@@ -10,5 +10,6 @@
     <!-- message  基础项目-->
 
     <reference interface="com.ngari.message.api.service.ConsultMessageService" id="msg.consultMessageService"/>
+    <reference interface="com.ngari.message.api.service.INetworkclinicMsgService" id="msg.networkclinicMsgService"/>
 
 </s:beans>
