@@ -141,6 +141,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //设置药品详情
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         List<PushDrugListBean> pushDrugListBeans = new ArrayList<>();
         //设置配送药品信息
@@ -149,6 +150,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
             if (saleDrugList != null) {
                 pushDrugListBean.setSaleDrugListDTO(ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class));
+            }
+            OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(),recipedetail.getDrugId());
+            if (organDrug != null) {
+                pushDrugListBean.setOrganDrugListBean(ObjectCopyUtils.convert(organDrug, OrganDrugListBean.class));
             }
             pushDrugListBean.setRecipeDetailBean(ObjectCopyUtils.convert(recipedetail, RecipeDetailBean.class));
             pushDrugListBeans.add(pushDrugListBean);
