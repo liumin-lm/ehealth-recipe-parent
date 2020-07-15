@@ -5,10 +5,7 @@ import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.entity.*;
@@ -158,6 +155,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //设置医生信息
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+        //设置医生工号
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+        doctorDTO.setJobNumber(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
         pushRecipeAndOrder.setDoctorDTO(doctorDTO);
         //设置患者信息
         PatientService patientService = BasicAPI.getService(PatientService.class);
