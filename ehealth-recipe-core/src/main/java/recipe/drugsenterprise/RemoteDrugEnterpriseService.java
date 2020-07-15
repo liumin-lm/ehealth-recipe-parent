@@ -32,6 +32,7 @@ import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
 
 import java.util.*;
@@ -71,12 +72,23 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         if (responseTO != null && responseTO.isSuccess()) {
-            String prescId = (String)responseTO.getExtend().get("prescId");
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (StringUtils.isNotEmpty(prescId)) {
-                recipeExtend.setRxid(prescId);
-                recipeExtendDAO.update(recipeExtend);
+            //推送药企处方成功,判断是否为扁鹊平台
+            if (RecipeServiceSub.isBQEnterprise(recipe.getClinicOrgan())) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("bqEnterprise");
+                if (drugsEnterprise != null) {
+                    recipe.setEnterpriseId(drugsEnterprise.getId());
+                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                    recipeDAO.update(recipe);
+                }
+            } else {
+                String prescId = (String)responseTO.getExtend().get("prescId");
+                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if (StringUtils.isNotEmpty(prescId)) {
+                    recipeExtend.setRxid(prescId);
+                    recipeExtendDAO.update(recipeExtend);
+                }
             }
         }
     }
@@ -163,6 +175,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.get(recipe.getMpiid());
         pushRecipeAndOrder.setPatientDTO(patientDTO);
+        //设置用户信息
+        if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
+            PatientDTO userDTO = patientService.get(recipe.getRequestMpiId());
+            pushRecipeAndOrder.setUserDTO(userDTO);
+        }
         //设置科室信息
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());

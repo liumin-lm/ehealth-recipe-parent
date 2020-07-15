@@ -493,4 +493,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request);
 
+    @RpcService
+    Integer recipeStatusNotice(Map<String, Object> paramMap);
+
 }

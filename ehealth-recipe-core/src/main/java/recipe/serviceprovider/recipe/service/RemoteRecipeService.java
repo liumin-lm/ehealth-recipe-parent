@@ -12,11 +12,16 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
+import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -1226,5 +1231,106 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
         Map<String, Object> result = reportFormsService.recipeHisAccountCheckList(request);
         return null != result ? (List<RecipeHisAccountCheckResponse>)result.get("data") : new ArrayList<RecipeHisAccountCheckResponse>();
+    }
+
+    @Override
+    public Integer recipeStatusNotice(Map<String, Object> paramMap) {
+        LOGGER.info("recipeStatusNotice paramMap:{}.", JSONUtils.toString(paramMap));
+        String result = MapValueUtil.getString(paramMap, "result");
+        if (StringUtils.isNotEmpty(result) && "success".equals(result)) {
+            String prescriptionNo = MapValueUtil.getString(paramMap, "prescriptionNo"); //处方编码
+            String orgCode = MapValueUtil.getString(paramMap, "orgCode"); //医疗机构编码
+            String hosCode = MapValueUtil.getString(paramMap, "hosCode"); //院区编码
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = null;
+            if (StringUtils.isNotEmpty(orgCode)) {
+                OrganService organService = BasicAPI.getService(OrganService.class);
+                OrganDTO organDTO = organService.getOrganByOrganizeCode(orgCode);
+                recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(prescriptionNo, organDTO.getOrganId());
+            }
+            //表示回调成功,需要查询处方状态并开始更新处方信息
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            HospitalReqTo hospitalReqTo = new HospitalReqTo();
+            hospitalReqTo.setOrganId(recipe.getClinicOrgan());
+            hospitalReqTo.setPrescriptionNo(prescriptionNo);
+            hospitalReqTo.setOrgCode(orgCode);
+            hospitalReqTo.setHosCode(hosCode);
+            LOGGER.info("recipeStatusNotice hospitalReqTo:{}.", JSONUtils.toString(hospitalReqTo));
+            HisResponseTO hisResponseTO = recipeEnterpriseService.queryRecipeStatus(hospitalReqTo);
+            LOGGER.info("recipeStatusNotice hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
+            if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+                Map map = hisResponseTO.getExtend();
+                String payStatus = (String)map.get("payStatus");
+                String orderStatus = (String)map.get("orderStatus");
+                String writeoffStatus = (String)map.get("writeoffStatus");
+                //如果处方没有下单,则payStatus = null,由于不产生订单,现只将订单信息记录日志
+                switch (payStatus) {
+                    case "0" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单未支付");
+                        break;
+                    case "1" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已支付");
+                        break;
+                    case "2" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已退款");
+                        break;
+                    default:
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该处方未下单");
+                        break;
+                }
+                switch (orderStatus) {
+                    case "2" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已经被接单");
+                        break;
+                    case "3" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已发货/已取药");
+                        break;
+                    case "4" :
+                        Map<String, Object> attrMap = Maps.newHashMap();
+                        attrMap.put("giveFlag", 1);
+                        attrMap.put("payFlag", 1);
+                        attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
+                        attrMap.put("chooseFlag", 1);
+                        attrMap.put("payDate", new Date());
+                        //更新处方信息
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已完成");
+                        break;
+                    case "5" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已被取消");
+                        break;
+                    case "6" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已退回");
+                        break;
+                    default:
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该处方未下单");
+                        break;
+                }
+
+                switch (writeoffStatus) {
+                    case "0" :
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已审核");
+                        break;
+                    case "1" :
+                        //处方已核销
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.FINISH));
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已核销");
+                        break;
+                    case "2" :
+                        //该处方已失效
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.NO_PAY));
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已失效");
+                        break;
+                    case "3" :
+                        //该处方已撤销
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.REVOKE));
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已撤销");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        return null;
     }
 }
