@@ -1871,7 +1871,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
         Recipe recipe = recipeDAO.get(recipeId);
-        if (null != recipe) {
+        if (null != recipe && recipe.getEnterpriseId() !=null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
