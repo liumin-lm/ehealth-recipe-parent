@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.recipe.entity.Recipe;
+import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -12,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
+import recipe.ca.impl.ShenzhenImp;
+import recipe.ca.vo.CaSignResultVo;
+import recipe.dao.RecipeDAO;
 
 import java.util.Date;
 
@@ -61,10 +67,28 @@ public class CARemoteServiceImpl implements ICARemoteService {
         requestTO.setPassword(password);
 //        CommonCAFactory caFactory = new CommonCAFactory();
         CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
+        if(caInterface instanceof ShenzhenImp){
+            requestTO.setUserAccount(doctorDTO.getIdNumber());
+        }
         if (caInterface != null) {
             return caInterface.caPasswordBusiness(requestTO);
         }
         return false;
+    }
+
+
+    @Override
+    public CaSignResultVo commonCASignAndSeal(Integer doctorId, Integer bussId, Integer bussType) {
+        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},bussId={}，bussType={}", doctorId, bussId, bussType);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+        // 目前先支持recipe 后期加入其他业务
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(bussId);
+        CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
+        if (caInterface != null) {
+            return caInterface.commonCASignAndSeal(null,recipe,doctorDTO.getOrgan(),doctorDTO.getJobNumber(),null);
+        }
+        return null;
     }
 
     @RpcService
