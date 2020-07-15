@@ -1144,7 +1144,7 @@ public class RecipeListService extends RecipeBaseService{
             return payModeShowButtonBean;
         }
         //流转到扁鹊处方流转平台的处方购药按钮都不显示
-        if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())){
+        if (recipe.getEnterpriseId()!=null && RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())){
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
