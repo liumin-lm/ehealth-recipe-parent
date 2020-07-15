@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
+import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -759,12 +760,12 @@ public class HisRecipeService {
         LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}", JSONUtils.toString(hisRecipeTO));
         Integer clinicOrgan = hisRecipeTO.get(0).getClinicOrgan();
         if (null == clinicOrgan) {
-            LOGGER.error("hisRecipeInfoCheck his data error clinicOrgan is null");
+            LOGGER.info("hisRecipeInfoCheck his data error clinicOrgan is null");
             return;
         }
         List<String> recipeCodeList = hisRecipeTO.stream().map(QueryHisRecipResTO::getRecipeCode).distinct().collect(Collectors.toList());
         if (CollectionUtils.isEmpty(recipeCodeList)) {
-            LOGGER.error("hisRecipeInfoCheck his data error recipeCodeList is null");
+            LOGGER.info("hisRecipeInfoCheck his data error recipeCodeList is null");
             return;
         }
         //2 判断Recipe 是否有订单
@@ -777,11 +778,14 @@ public class HisRecipeService {
             if (CollectionUtils.isNotEmpty(orderCodeList)) {
                 List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
                 LOGGER.info("hisRecipeInfoCheck recipeOrderList = {}", JSONUtils.toString(recipeOrderList));
-                List<String> recipeOrderCode = recipeOrderList.stream().filter(a -> a.getPayFlag().equals(1)).map(RecipeOrder::getOrderCode).collect(Collectors.toList());
+                List<String> recipeOrderCode = recipeOrderList.stream().filter(a -> a.getPayFlag().equals(PayConstant.PAY_FLAG_PAY_SUCCESS)).map(RecipeOrder::getOrderCode).collect(Collectors.toList());
                 List<String> recipeCodeExclude = recipeList.stream().filter(a -> recipeOrderCode.contains(a.getOrderCode())).map(Recipe::getRecipeCode).distinct().collect(Collectors.toList());
                 //排除支付订单处方
                 recipeCodeList = recipeCodeList.stream().filter(a -> !recipeCodeExclude.contains(a)).collect(Collectors.toList());
                 LOGGER.info("hisRecipeInfoCheck recipeCodeList = {}", JSONUtils.toString(recipeCodeList));
+                if (CollectionUtils.isEmpty(recipeCodeList)) {
+                    return;
+                }
             }
         }
 
@@ -791,7 +795,7 @@ public class HisRecipeService {
             return;
         }
         //判断 hisRecipe 诊断不一致 更新
-        updateHisRecipe(hisRecipeTO, recipeList, hisRecipeList);
+        Map<String, HisRecipe> hisRecipeMap = updateHisRecipe(hisRecipeTO, recipeList, hisRecipeList);
 
         /**判断处方是否删除*/
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).distinct().collect(Collectors.toList());
@@ -801,10 +805,8 @@ public class HisRecipeService {
             return;
         }
         //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数
-        Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
-        Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
-
         Set<String> deleteSetRecipeCode = new HashSet<>();
+        Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
         hisRecipeTO.forEach(a -> {
             String recipeCode = a.getRecipeCode();
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
@@ -812,7 +814,6 @@ public class HisRecipeService {
                 return;
             }
             List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
-
             if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
                 deleteSetRecipeCode.add(recipeCode);
                 return;
@@ -873,7 +874,7 @@ public class HisRecipeService {
      * @param recipeList
      * @param hisRecipeList
      */
-    private void updateHisRecipe(List<QueryHisRecipResTO> hisRecipeTO, List<Recipe> recipeList, List<HisRecipe> hisRecipeList) {
+    private Map<String, HisRecipe> updateHisRecipe(List<QueryHisRecipResTO> hisRecipeTO, List<Recipe> recipeList, List<HisRecipe> hisRecipeList) {
         Map<String, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         hisRecipeTO.forEach(a -> {
@@ -898,6 +899,7 @@ public class HisRecipeService {
                 }
             }
         });
+        return hisRecipeMap;
     }
 
 }
