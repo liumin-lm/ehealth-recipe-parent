@@ -182,6 +182,48 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         return responseRs;
     }
 
+    /**
+     * 深圳Ca根据pin获取token
+     * @param requestTO
+     * @return
+     */
+    @Override
+    public CaPasswordResponseTO caTokenBusiness(CaPasswordRequestTO requestTO) {
+        CaPasswordResponseTO caPasswordResponseTO = new CaPasswordResponseTO();
+        try {
+            LOGGER.info("CommonCAServiceImpl caTokenBusiness start userAccount={}", requestTO.getUserAccount());
+            HisResponseTO<CaPasswordResponseTO> responseTO = iCaHisService.caPasswordBusiness(requestTO);
+            LOGGER.info("CommonCAServiceImpl caTokenBusiness userAccount={},responseTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO));
+            if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
+                caPasswordResponseTO.setValue(responseTO.getData().getValue());
+            }
+            caPasswordResponseTO.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            caPasswordResponseTO.setMsg(responseTO.getMsg());
+        } catch (Exception e) {
+            LOGGER.error("CommonCAServiceImpl getTokenByAccountPin error={}", e);
+            e.getMessage();
+            return caPasswordResponseTO;
+        }
+        return caPasswordResponseTO;
+    }
 
-
+    @Override
+    public CaPictureResponseTO newCaPictureBusiness(CaPictureRequestTO requestTO) {
+        CaPictureResponseTO caPictureResponseTO = new CaPictureResponseTO();
+        try {
+            LOGGER.info("CommonCAServiceImpl newCaPictureBusiness start userAccount={}, requestTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO));
+            HisResponseTO<CaPictureResponseTO> responseTO = iCaHisService.caPictureBusiness(requestTO);
+            LOGGER.info("CommonCAServiceImpl newCaPictureBusiness userAccount={}, responseTO={}", requestTO.getUserAccount(), JSONUtils.toString(responseTO));
+            if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
+                caPictureResponseTO.setCaPicture(responseTO.getData().getCaPicture());
+            }
+            caPictureResponseTO.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            caPictureResponseTO.setMsg(responseTO.getMsg());
+        } catch (Exception e) {
+            LOGGER.error("CommonCAServiceImpl caPictureBusiness 调用前置机失败 userAccount={}, requestTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO), e);
+            e.printStackTrace();
+            return caPictureResponseTO;
+        }
+        return caPictureResponseTO;
+    }
 }
