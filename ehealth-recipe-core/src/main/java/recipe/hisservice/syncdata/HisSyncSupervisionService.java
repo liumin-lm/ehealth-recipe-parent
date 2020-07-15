@@ -1077,6 +1077,154 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     }
 
     /**
+     * 拼接配送到家-配送完成调用监管平台参数、以及调用
+     * @return
+     **/
+    @RpcService
+    public CommonResponse uploadFinishMedicine(Integer recipeId) {
+        CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+
+        if (ValidateUtil.nullOrZeroInteger(recipeId)) {
+            LOGGER.warn("uploadFinishMedicine  recipeId is null.");
+            return commonResponse ;
+        }
+
+
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (null == recipe) {
+            LOGGER.warn("uploadFinishMedicine  recipe is null,recipeid={}", recipeId);
+            return commonResponse;
+        }
+
+        String orderCode = recipe.getOrderCode();
+        if (!StringUtils.isEmpty(orderCode)) {
+
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+            try {
+                if (null != recipe && order != null) {
+                    IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                    //获取所有监管平台机构列表
+                    List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
+                    if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
+                        LOGGER.warn("uploadFinishMedicine  regulationOrganList is null.");
+                        return commonResponse;
+                    }
+                    List<Integer> organList = serviceConfigResponseTOS.stream().map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
+                    if (!organList.contains(recipe.getClinicOrgan())) {
+                        LOGGER.warn("uploadFinishMedicine organId={},没有关联监管平台", recipe.getClinicOrgan());
+                        return commonResponse;
+                    }
+                    RegulationSendMedicineReq req = new RegulationSendMedicineReq();
+                    req.setRecipeId(recipe.getRecipeId());
+                    req.setGiveMode(recipe.getGiveMode());
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
+                    if (patientDTO != null) {
+                        req.setIdcardTypeCode("01");
+                        req.setIdcardNo(patientDTO.getIdcard());
+                        req.setName(patientDTO.getPatientName());
+                        req.setGenderCode(patientDTO.getPatientSex());
+                        req.setBirthdate(patientDTO.getBirthday());
+                    }
+                    req.setVisitNo(String.valueOf(recipe.getClinicId()));
+                    req.setAccountNo(order.getTradeNo());
+                    req.setTotalFee(recipe.getTotalMoney() != null ? recipe.getTotalMoney().doubleValue() : 0);
+                    req.setIndividualPay(recipe.getActualPrice() != null ? recipe.getActualPrice().doubleValue() : 0);
+                    req.setChargeRefundCode(String.valueOf(recipe.getPayFlag()));
+                    req.setOrganId(String.valueOf(recipe.getClinicOrgan()));
+                    req.setOrgName(recipe.getOrganName());
+                    req.setRcdDatetime(new Date());
+                    req.setPayTypeCode("07"); //详见医疗费用分类代码表
+
+                    List<RegulationCostDetailReq> items = new ArrayList<>();
+                    //取处方单明细
+                    RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+                    List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                    for (Recipedetail item : recipedetails) {
+                        RegulationCostDetailReq costDetailReq = new RegulationCostDetailReq();
+                        costDetailReq.setProjDeno(String.valueOf(item.getRecipeDetailId()));
+                        costDetailReq.setProjName(item.getDrugName());
+                        costDetailReq.setChargeRefundCode(String.valueOf(recipe.getPayFlag()));
+                        costDetailReq.setStatCatCode("010100"); //监管分类代码 his未返回该字段，不知道传什么，默认传  010100 一般医疗服务
+                        costDetailReq.setPinCatCode("9900"); // 财务分类代码 ，his未返回  9900 其他
+                        costDetailReq.setIfOutMedIns("0");
+                        costDetailReq.setProjUnitPrice(item.getSalePrice() != null ? item.getSalePrice().doubleValue() : 0);
+                        costDetailReq.setProjCnt(item.getUseTotalDose());
+                        costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
+
+                        //医保编码
+                        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+                        List<OrganDrugList> list=organDrugListDAO.findByDrugIdAndOrganId(item.getDrugId(),recipe.getClinicOrgan());
+                        if(!list.isEmpty()){
+                            costDetailReq.setMedicalDrugCode(list.get(0).getMedicalDrugCode());
+                        }
+                        items.add(costDetailReq);
+                    }
+                    req.setItems(items);
+
+                    // 科室相关
+                    DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+                    DepartmentDTO departmentDTO = departmentService.getById(recipe.getDepart());
+                    if (departmentDTO != null) {
+                        req.setDeptCode(departmentDTO.getCode());
+                        req.setDeptName(departmentDTO.getName());
+                    }
+                    req.setDeptClassCode("A99");
+                    req.setDeptClassName("其他业务科室");
+                    /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
+                    req.setOrderNo(order.getOutTradeNo());
+
+
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if (recipeExtend != null) {
+                        //从his返回的挂号序号
+                        req.setRegisterNo(recipeExtend.getRegisterNo());
+                        req.setRegisterId(recipeExtend.getRegisterID());
+                        //从监管平台上传保存的序号
+                        req.setSuperviseRecipecode(recipeExtend.getSuperviseRecipecode());
+                    }
+
+                    //开方医生信息
+                    req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(),recipe.getClinicOrgan(),recipe.getDepart()));
+                    //审方医生信息
+                    req.setCheckDoctor(getRegulationBusDocReq(recipe.getChecker(),null,null));
+
+                    //物流信息
+                    RegulationLogisticsReq LogisticsInfo=ObjectCopyUtils.convert(order, RegulationLogisticsReq.class);
+                    try {
+                        String company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany")
+                                .getText(LogisticsInfo.getLogisticsCompany());
+                        LogisticsInfo.setLogisticsCompanyName(company);
+                    } catch (ControllerException e) {
+                        LOGGER.error("toSend get logisticsCompany error. logisticsCompany={}",LogisticsInfo.getLogisticsCompany(),e);
+                    }
+                    req.setLogisticsInfo(LogisticsInfo);
+
+                    LOGGER.info("调用regulation接口，上传[配送到家-处方完成]信息，req = {}", JSONUtils.toString(req));
+                    IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+                    HisResponseTO hisResponseTO = regulationService.uploadFinishMedicine(recipe.getClinicOrgan(), req);
+                    LOGGER.info("调用regulation接口，上传[配送到家-处方完成]信息，res = {}", JSONUtils.toString(hisResponseTO));
+
+
+                    if(hisResponseTO.isSuccess()){
+                        commonResponse.setCode(CommonConstant.SUCCESS);
+                    }else {
+                        commonResponse.setMsg(hisResponseTO.getMsg());
+                    }
+
+                }
+            } catch (Exception e) {
+                LOGGER.error("调用regulation接口，上传派药信息，busId = {}", recipe.getRecipeId(), e);
+            }
+        }
+
+        return commonResponse;
+    }
+
+    /**
      * 医生信息
      **/
     private RegulationBusDocReq getRegulationBusDocReq(Integer doctorId, Integer organId, Integer deptId) {
