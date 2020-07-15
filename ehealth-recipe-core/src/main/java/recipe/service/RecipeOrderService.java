@@ -1907,7 +1907,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 PatientBaseInfo patientBaseInfo =new PatientBaseInfo();
                 patientBaseInfo.setPatientName(patient.getPatientName());
                 patientBaseInfo.setCertificateType(1);
-                patientBaseInfo.setCertificate(patient.getCertificate());
+                patientBaseInfo.setCertificate(patient.getIdcard());
+                patientBaseInfo.setMobile(patient.getMobile());
                 IRecipeEnterpriseService hisService = AppDomainContext.getBean("his.IRecipeEnterpriseService", IRecipeEnterpriseService.class);
                 RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
                 LOGGER.info("getLSRecipeThirdUrl request={}", JSONUtils.toString(req));
