@@ -1,25 +1,32 @@
 package recipe.audit.auditmode;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+
+import java.util.List;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -109,6 +116,18 @@ public class AuditPreMode extends AbstractAuidtMode {
                 //向患者推送处方消息
                 //处方通知您有一张处方单需要处理，请及时查看。
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+            }
+            //临沭人民医院个性化处理
+            if (new Integer(1002753).equals(recipe.getClinicOrgan())){
+                OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(1002753, 1);
+                if (CollectionUtils.isNotEmpty(enterprises)){
+                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("enterpriseId",enterprises.get(0).getId()));
+                }
+                //审核后处方推送到药企
+                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
             }
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");

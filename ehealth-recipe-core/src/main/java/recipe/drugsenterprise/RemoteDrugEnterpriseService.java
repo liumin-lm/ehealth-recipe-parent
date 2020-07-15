@@ -480,8 +480,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             //PS:药企ID取的是订单表的药企ID
             Integer depId = recipeOrderDAO.getEnterpriseIdByRecipeId(recipeId);
+            if (depId==null){
+                depId = recipeDAO.getByRecipeId(recipeId).getEnterpriseId();
+            }
             if (null != depId) {
                 DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
                 if (null != dep) {
