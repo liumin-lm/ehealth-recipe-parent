@@ -1911,6 +1911,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setMobile(patient.getMobile());
                 IRecipeEnterpriseService hisService = AppDomainContext.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
                 RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
+                req.setOrganId(recipe.getClinicOrgan());
+                req.setPatient(patientBaseInfo);
                 LOGGER.info("getLSRecipeThirdUrl request={}", JSONUtils.toString(req));
                 HisResponseTO<String> response;
                 try {
