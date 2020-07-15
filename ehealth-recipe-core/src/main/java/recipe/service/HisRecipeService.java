@@ -774,10 +774,9 @@ public class HisRecipeService {
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).distinct().collect(Collectors.toList());
             //3 判断 订单 是否支付
-            List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
-            LOGGER.info("hisRecipeInfoCheck recipeOrderList = {}", JSONUtils.toString(recipeOrderList));
-
-            if (CollectionUtils.isNotEmpty(recipeOrderList)) {
+            if (CollectionUtils.isNotEmpty(orderCodeList)) {
+                List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
+                LOGGER.info("hisRecipeInfoCheck recipeOrderList = {}", JSONUtils.toString(recipeOrderList));
                 List<String> recipeOrderCode = recipeOrderList.stream().filter(a -> a.getPayFlag().equals(1)).map(RecipeOrder::getOrderCode).collect(Collectors.toList());
                 List<String> recipeCodeExclude = recipeList.stream().filter(a -> recipeOrderCode.contains(a.getOrderCode())).map(Recipe::getRecipeCode).distinct().collect(Collectors.toList());
                 //排除支付订单处方
@@ -857,7 +856,10 @@ public class HisRecipeService {
             return;
         }
         List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        recipeOrderDAO.deleteByRecipeIds(recipeIds);
+        List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(orderCodeList)) {
+            recipeOrderDAO.deleteByRecipeIds(orderCodeList);
+        }
         recipeExtendDAO.deleteByRecipeIds(recipeIds);
         recipeDetailDAO.deleteByRecipeIds(recipeIds);
         recipeDAO.deleteByRecipeIds(recipeIds);

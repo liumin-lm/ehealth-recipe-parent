@@ -120,8 +120,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      *
      * @param recipeIds
      */
-    @DAOMethod(sql = "delete from RecipeOrder where recipeId in (:recipeIds)")
-    public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+    @DAOMethod(sql = "delete from RecipeOrder where orderCode in (:orderCodeList)")
+    public abstract void deleteByRecipeIds(@DAOParam("orderCodeList") List<String> orderCodeList);
 
     /**
      * 根据支付标识查询订单集合
