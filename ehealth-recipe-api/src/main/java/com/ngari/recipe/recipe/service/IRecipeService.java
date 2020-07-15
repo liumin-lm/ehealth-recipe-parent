@@ -496,4 +496,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     Integer recipeStatusNotice(Map<String, Object> paramMap);
 
-}
+    @RpcService
+    public Map<String, Object>   findRecipeCanRefundByClinicId(Map<String,String> params);
+
+    }
