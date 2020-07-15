@@ -28,6 +28,12 @@ public class CaSignResultVo {
     //date 20200617
     private Integer resultCode;
 
+    //证书
+    private String certificate;
+
+    //手写签名
+    private String signPicture;
+
     public Integer getRecipeId() {
         return recipeId;
     }
@@ -90,5 +96,21 @@ public class CaSignResultVo {
 
     public void setFileId(String fileId) {
         this.fileId = fileId;
+    }
+
+    public String getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(String certificate) {
+        this.certificate = certificate;
+    }
+
+    public String getSignPicture() {
+        return signPicture;
+    }
+
+    public void setSignPicture(String signPicture) {
+        this.signPicture = signPicture;
     }
 }
