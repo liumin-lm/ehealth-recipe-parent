@@ -257,4 +257,17 @@ public class RecipeTestService {
         return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(organId, drugId, totalDose);
     }
 
+    @RpcService
+    public void insertOrganDrugList(Integer organId, Integer targetOrganId, String date){
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganId(organId);
+        for (OrganDrugList organDrugList : organDrugLists) {
+            organDrugList.setOrganId(targetOrganId);
+            organDrugList.setCreateDt(DateConversion.getCurrentDate(date, DateConversion.DEFAULT_DATE_TIME));
+            organDrugList.setLastModify(DateConversion.getCurrentDate(date, DateConversion.DEFAULT_DATE_TIME));
+            organDrugListDAO.save(organDrugList);
+        }
+        insertDrugCategoryByOrganId(targetOrganId, date);
+    }
+
 }

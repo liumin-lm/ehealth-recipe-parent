@@ -126,7 +126,9 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
 
             List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
             for (DrugsEnterprise drugsEnterprise : retList) {
-                drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                if (new Integer(1).equals(drugsEnterprise.getOperationType())){
+                    drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                }
             }
         }catch(Exception e){
             LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
