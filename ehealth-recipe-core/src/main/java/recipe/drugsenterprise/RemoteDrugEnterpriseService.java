@@ -77,6 +77,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("bqEnterprise");
                 if (drugsEnterprise != null) {
                     recipe.setEnterpriseId(drugsEnterprise.getId());
+                    recipe.setPushFlag(1);
                     RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                     recipeDAO.update(recipe);
                 }
