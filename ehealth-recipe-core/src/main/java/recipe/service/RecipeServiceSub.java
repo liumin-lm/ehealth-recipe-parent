@@ -2427,12 +2427,13 @@ public class RecipeServiceSub {
             }
         }
 
-        //判断第三方处方能否取消,若不能则获取不能取消的原因
-        HisResponseTO res = recipeCancelService.canCancelRecipe(recipe);
-        if (!res.isSuccess()){
-            msg = res.getMsg();
+        //判断第三方处方能否取消,若不能则获取不能取消的原因----只有推送药企成功后才判断能否撤销
+        if (new Integer(1).equals(recipe.getPushFlag())){
+            HisResponseTO res = recipeCancelService.canCancelRecipe(recipe);
+            if (!res.isSuccess()){
+                msg = res.getMsg();
+            }
         }
-
         if (StringUtils.isNotEmpty(msg)) {
             rMap.put("result", result);
             rMap.put("msg", msg);
