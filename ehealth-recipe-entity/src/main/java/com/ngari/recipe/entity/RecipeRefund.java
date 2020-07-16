@@ -31,7 +31,7 @@ public class RecipeRefund implements Serializable {
     private Integer busId;
 
     @ItemProperty(alias = "医院Id")
-    private String  organId;
+    private Integer  organId;
 
     @ItemProperty(alias = "操作人员Id（患者Id、医生Id、医院默认为'his'）")
     private String userId;
@@ -84,11 +84,11 @@ public class RecipeRefund implements Serializable {
         this.busId = busId;
     }
 
-    public String getOrganId() {
+    public Integer getOrganId() {
         return organId;
     }
 
-    public void setOrganId(String organId) {
+    public void setOrganId(Integer organId) {
         this.organId = organId;
     }
 

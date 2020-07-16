@@ -53,8 +53,7 @@ public class ShenzhenImp implements CAInterface {
         EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
         if (null != redisClient.get("encryptedToken_" + employmentDTO.getJobNumber())) {
             return true;
-        }
-        ;
+        };
         return false;
     }
 
@@ -77,10 +76,16 @@ public class ShenzhenImp implements CAInterface {
 
     @Override
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
-        logger.info("ShenzhenCA commonCASignAndSeal start requestSealTO=[{}],requestSealTO=[{}],organId=[{}],userAccount=[{}]",requestSealTO,JSONUtils.toString(recipe),organId,userAccount);
+        logger.info("ShenzhenCA commonCASignAndSeal start requestSealTO=[{}],requestSealTO=[{}],organId=[{}],userAccount=[{}]",JSONUtils.toString(requestSealTO),JSONUtils.toString(recipe),organId,userAccount);
         CaSignResultVo caSignResultVo = new CaSignResultVo();
         caSignResultVo.setRecipeId(recipe.getRecipeId());
         try {
+            //深圳CA为工号
+            Integer doctorId = recipe.getDoctor();
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+            EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
+            userAccount = employmentDTO.getJobNumber();
+            logger.info("shenzhenCA commonCASignAndSeal the userAccount=[{}]",userAccount);
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
             requestTO.setUserAccount(userAccount);
@@ -93,11 +98,14 @@ public class ShenzhenImp implements CAInterface {
             }
             caSignResultVo.setSignPicture(caPictureResponseTO.getCaPicture());
             logger.info("caSignResultVo one =[{}]",JSONUtils.toString(caSignResultVo));
+
             //数据签名
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setType("002");
             if (!StringUtils.isEmpty(redisClient.get("encryptedToken_"+userAccount))) {
-                caSignRequestTO.setCertVoucher(redisClient.get("encryptedToken_"+userAccount));
+                String token = redisClient.get("encryptedToken_"+userAccount);
+                logger.info("shenzhenCA commonCASignAndSeal token = [{}]",token);
+                caSignRequestTO.setCertVoucher(token);
             } else {
                 throw new DAOException(505, "令牌已过期，请重新获取");
             }
@@ -129,13 +137,13 @@ public class ShenzhenImp implements CAInterface {
             caSignResultVo.setCode(200);
             caSignResultVo.setResultCode(1);
             //保存信息
-            saveSignDoctorRecipeInfo(caSignResultVo);
+           // saveSignDoctorRecipeInfo(caSignResultVo);
         } catch (Exception e) {
             caSignResultVo.setResultCode(0);
             logger.error("shenzhenCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", e);
         } finally {
             logger.error("shenzhenCAImpl finally callback signResultVo={}", JSONUtils.toString(caSignResultVo));
-            //this.callbackRecipe(caSignResultVo, null == recipe.getChecker());
+            this.callbackRecipe(caSignResultVo, null == recipe.getChecker());
         }
         logger.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(), JSONUtils.toString(caSignResultVo));
         return caSignResultVo;
@@ -143,44 +151,44 @@ public class ShenzhenImp implements CAInterface {
     }
 
 
-    @RpcService
-    public String caPictureBusiness(Integer doctorId) {
-        logger.info("CARemoteServiceImpl caPictureBusiness start in doctorId={}", doctorId);
-        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-        CaPictureRequestTO requestTO = new CaPictureRequestTO();
-        requestTO.setUserAccount(doctorDTO.getJobNumber());
-        CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
-        if (caPictureResponseTO.getCode() == 200) {
-            return caPictureResponseTO.getCaPicture();
-        }
-        return caPictureResponseTO.getMsg();
-    }
+//    @RpcService
+//    public String caPictureBusiness(Integer doctorId) {
+//        logger.info("CARemoteServiceImpl caPictureBusiness start in doctorId={}", doctorId);
+//        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+//        CaPictureRequestTO requestTO = new CaPictureRequestTO();
+//        requestTO.setUserAccount(doctorDTO.getJobNumber());
+//        CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
+//        if (caPictureResponseTO.getCode() == 200) {
+//            return caPictureResponseTO.getCaPicture();
+//        }
+//        return caPictureResponseTO.getMsg();
+//    }
 
-    private void saveSignDoctorRecipeInfo(CaSignResultVo caSignResultVo) {
-        logger.info("shenzhenCA saveSignDoctorRecipeInfo  caSignResultVo = [{}]",JSONUtils.toString(caSignResultVo));
-        SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
-        signDoctorRecipeInfo.setRecipeId(caSignResultVo.getRecipeId());
-        signDoctorRecipeInfo.setSignCaDateDoc(caSignResultVo.getSignCADate());
-        signDoctorRecipeInfo.setSignCodeDoc(caSignResultVo.getSignRecipeCode());
-        signDoctorRecipeInfo.setSealDataDoc(caSignResultVo.getSignPicture());
-        signDoctorRecipeInfo.setCreateDate(new Date());
-        signDoctorRecipeInfo.setLastmodify(new Date());
-        signDoctorRecipeInfo.setServerType(2);
-        // base64证书没有存
-
-        SignDoctorRecipeInfo s = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
-        if (s != null) {
-            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
-        } else {
-            signRecipeInfoService.updateSignInfoByRecipeInfo(signDoctorRecipeInfo);
-        }
-    }
-
-//    private void callbackRecipe(CaSignResultVo signResultVo, boolean isDoctor) {
-//        if (isDoctor) {
-//            recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+//    private void saveSignDoctorRecipeInfo(CaSignResultVo caSignResultVo) {
+//        logger.info("shenzhenCA saveSignDoctorRecipeInfo  caSignResultVo = [{}]",JSONUtils.toString(caSignResultVo));
+//        SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+//        signDoctorRecipeInfo.setRecipeId(caSignResultVo.getRecipeId());
+//        signDoctorRecipeInfo.setSignCaDateDoc(caSignResultVo.getSignCADate());
+//        signDoctorRecipeInfo.setSignCodeDoc(caSignResultVo.getSignRecipeCode());
+//        signDoctorRecipeInfo.setSealDataDoc(caSignResultVo.getSignPicture());
+//        signDoctorRecipeInfo.setCreateDate(new Date());
+//        signDoctorRecipeInfo.setLastmodify(new Date());
+//        signDoctorRecipeInfo.setServerType(2);
+//        // base64证书没有存
+//
+//        SignDoctorRecipeInfo s = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
+//        if (s != null) {
+//            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
 //        } else {
-//            recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+//            signRecipeInfoService.updateSignInfoByRecipeInfo(signDoctorRecipeInfo);
 //        }
 //    }
+
+    private void callbackRecipe(CaSignResultVo signResultVo, boolean isDoctor) {
+        if (isDoctor) {
+            recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+        } else {
+            recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+        }
+    }
 }
