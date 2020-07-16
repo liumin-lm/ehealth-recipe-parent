@@ -83,6 +83,7 @@ public class ShenzhenImp implements CAInterface {
         try {
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
+            requestTO.setUserAccount(userAccount);
             CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
             if (caPictureResponseTO == null || caPictureResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caPictureResponseTO.getCode());
