@@ -1245,12 +1245,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             Recipe recipe = null;
             if (StringUtils.isNotEmpty(orgCode)) {
                 OrganService organService = BasicAPI.getService(OrganService.class);
-                OrganDTO organDTO = organService.getByMinkeUnitCretditCode(orgCode);
-                if (organDTO != null) {
-                    recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(prescriptionNo, organDTO.getOrganId());
-                } else {
-                    recipe = recipeDAO.getByRecipeCode(prescriptionNo);
-                }
+//                OrganDTO organDTO = organService.getByMinkeUnitCretditCode(orgCode);
+//                if (organDTO != null) {
+//                    recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(prescriptionNo, organDTO.getOrganId());
+//                } else {
+//                    recipe = recipeDAO.getByRecipeCode(prescriptionNo);
+//                }
 
             }
             //表示回调成功,需要查询处方状态并开始更新处方信息

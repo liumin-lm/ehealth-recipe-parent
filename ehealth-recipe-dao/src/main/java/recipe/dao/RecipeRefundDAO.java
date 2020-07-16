@@ -54,7 +54,7 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     public RecipeRefundDAO() {
         super();
-        this.setEntityName(Recipe.class.getName());
+        this.setEntityName(RecipeRefund.class.getName());
         this.setKeyField("id");
     }
 
@@ -68,7 +68,7 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
      * @param recipeId
      * @return
      */
-    @DAOMethod(sql = "from RecipeRefund where busId = :recipeId order by node, checkTime desc")
+    @DAOMethod(sql = "from RecipeRefund where busId = :recipeId order by node desc, checkTime desc")
     public abstract List<RecipeRefund> findRefundListByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
     /**
