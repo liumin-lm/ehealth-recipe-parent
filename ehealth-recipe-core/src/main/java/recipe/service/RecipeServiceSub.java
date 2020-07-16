@@ -1068,6 +1068,7 @@ public class RecipeServiceSub {
      */
     public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, Boolean effective, Integer orderStatus) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         String cancelReason = "";
         String tips = "";
         String listTips = "";
@@ -1132,10 +1133,14 @@ public class RecipeServiceSub {
                     break;
                 case RecipeStatusConstant.REVOKE:
                     tips = "已撤销";
-                    cancelReason = "由于您已撤销，该处方单已失效";
-                    List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
-                    if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                        cancelReason = recipeLogs.get(0).getMemo();
+                    if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                        cancelReason = "由于患者申请退款成功，该处方已取消。";
+                    }else{
+                        cancelReason = "由于您已撤销，该处方单已失效";
+                        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
+                        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                            cancelReason = recipeLogs.get(0).getMemo();
+                        }
                     }
                     break;
                 case RecipeStatusConstant.HAVE_PAY:
@@ -2035,6 +2040,7 @@ public class RecipeServiceSub {
         Integer giveMode = recipe.getGiveMode();
         String orderCode = recipe.getOrderCode();
         String tips = "";
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         switch (status) {
             case RecipeStatusConstant.FINISH:
                 tips = "处方单已完结.";
@@ -2115,7 +2121,10 @@ public class RecipeServiceSub {
 
                 break;
             case RecipeStatusConstant.REVOKE:
-                tips = "由于医生已撤销，该处方单已失效，请联系医生.";
+                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                    tips = "由于患者申请退款成功，该处方已取消。";
+                }else{
+                tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:

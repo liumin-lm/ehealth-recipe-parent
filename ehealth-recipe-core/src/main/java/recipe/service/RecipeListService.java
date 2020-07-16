@@ -1442,16 +1442,4 @@ public class RecipeListService extends RecipeBaseService{
         return list;
     }
 
-    @RpcService
-    public List<RecipePatientRefundVO> findPatientRefundRecipesByDoctorId(Integer doctorId, Integer refundType, int start, int limit) {
-        List<RecipePatientRefundVO> result = new ArrayList<RecipePatientRefundVO>();
-        RecipePatientRefundVO refundVO1 = new RecipePatientRefundVO(1,1,"aaa",new Date(),"aaa","3425621",220439,0.0,"aaa");
-        RecipePatientRefundVO refundVO2 = new RecipePatientRefundVO(1,1,"bbb",new Date(),"bbb","3425621",220438,0.0,"bbb");
-        RecipePatientRefundVO refundVO3 = new RecipePatientRefundVO(1,1,"ccc",new Date(),"ccc","3425621",220437,0.0,"ccc");
-        result.add(refundVO1);
-        result.add(refundVO2);
-        result.add(refundVO3);
-        return result;
-    }
-
 }

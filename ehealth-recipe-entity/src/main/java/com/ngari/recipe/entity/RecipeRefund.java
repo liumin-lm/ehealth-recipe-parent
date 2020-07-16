@@ -66,10 +66,21 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "预留（后面要临时存扩展字段可以用键值对存）")
     private String expand;
 
+    @ItemProperty(alias = "审核医生id")
+    private Integer doctorId;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     public Integer getId() {
         return id;
+    }
+
+    public Integer getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Integer doctorId) {
+        this.doctorId = doctorId;
     }
 
     public void setId(Integer id) {

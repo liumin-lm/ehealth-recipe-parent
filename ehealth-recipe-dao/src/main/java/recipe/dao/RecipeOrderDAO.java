@@ -1538,5 +1538,4 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-
 }
