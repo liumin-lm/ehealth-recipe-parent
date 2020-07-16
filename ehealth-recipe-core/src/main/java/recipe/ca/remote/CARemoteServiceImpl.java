@@ -3,7 +3,9 @@ package recipe.ca.remote;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -27,6 +29,8 @@ public class CARemoteServiceImpl implements ICARemoteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CARemoteServiceImpl.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+
+    private EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
 
     @Autowired
     private CommonCAFactory commonCAFactory;
@@ -68,7 +72,8 @@ public class CARemoteServiceImpl implements ICARemoteService {
 //        CommonCAFactory caFactory = new CommonCAFactory();
         CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
         if(caInterface instanceof ShenzhenImp){
-            requestTO.setUserAccount(doctorDTO.getIdNumber());
+            EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
+            requestTO.setUserAccount(employmentDTO.getJobNumber());
         }
         if (caInterface != null) {
             return caInterface.caPasswordBusiness(requestTO);
@@ -84,9 +89,10 @@ public class CARemoteServiceImpl implements ICARemoteService {
         // 目前先支持recipe 后期加入其他业务
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(bussId);
+        EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
         CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
         if (caInterface != null) {
-            return caInterface.commonCASignAndSeal(null,recipe,doctorDTO.getOrgan(),doctorDTO.getJobNumber(),null);
+            return caInterface.commonCASignAndSeal(null,recipe,doctorDTO.getOrgan(),employmentDTO.getJobNumber(),null);
         }
         return null;
     }
