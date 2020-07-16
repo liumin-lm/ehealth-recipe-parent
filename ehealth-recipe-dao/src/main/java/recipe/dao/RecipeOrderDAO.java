@@ -952,7 +952,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuffer paySql = new StringBuffer();
                 paySql.append("SELECT  r.ClinicOrgan, count(*), sum(IFNULL(o.ActualPrice, 0)) ");
                 paySql.append(" FROM cdr_recipe r, cdr_recipeorder o ");
-                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.PayFlag = 1 ");
+                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.ActualPrice != 0 ");
                 paySql.append(" AND  PayTime >= :startTime AND PayTime < :endTime ");
                 paySql.append(" GROUP BY r.ClinicOrgan ");
                 Query paySqlQuery = ss.createSQLQuery(paySql.toString());
