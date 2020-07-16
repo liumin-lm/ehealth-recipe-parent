@@ -4,6 +4,7 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.*;
@@ -147,5 +148,8 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
 
     @RpcService
     List<BillDrugFeeVo> findDrugFeeList(RecipeBillRequest recipeBillRequest);
+
+    @RpcService
+    public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node);
 
 }

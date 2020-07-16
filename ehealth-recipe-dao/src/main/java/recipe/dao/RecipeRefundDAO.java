@@ -79,4 +79,12 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "select count(*) from RecipeRefund")
     public abstract Long getCountByAll();
 
+    /**
+     * 根据处方和node状态获取退费的一单信息
+     *
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeRefund where busId = :busId and node = :node ")
+    public abstract RecipeRefund getRecipeRefundByRecipeIdAndNode(@DAOParam("busId") Integer busId, @DAOParam("node") Integer node);
+
 }
