@@ -4,6 +4,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -31,6 +32,7 @@ import recipe.dao.*;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
+import recipe.third.IFileDownloadService;
 
 import java.util.*;
 
@@ -184,6 +186,40 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
             PatientDTO userDTO = patientService.get(recipe.getRequestMpiId());
             pushRecipeAndOrder.setUserDTO(userDTO);
+        }
+        //设置扩展信息
+        ExpandDTO expandDTO = new ExpandDTO();
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+        expandDTO.setOrgCode(organDTO.getMinkeUnitCretditCode());
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+            expandDTO.setSignFile(recipe.getChemistSignFile());
+        } else {
+            if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                expandDTO.setSignFile(recipe.getSignFile());
+            }
+        }
+        //设置处方笺base
+        String ossId = recipe.getSignImg();
+        if(null != ossId){
+            String imgHead = "data:image/jpeg;base64,";
+            try {
+                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
+                if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
+                    LOGGER.warn("getPushRecipeAndOrder:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                }
+                LOGGER.warn("getPushRecipeAndOrder:{}处方", recipe.getRecipeId());
+                expandDTO.setPrescriptionImg(imgStr);
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.error("getPushRecipeAndOrder:{}处方，获取处方图片服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
+            }
+        }
+        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+        RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeCheck != null && StringUtils.isNotEmpty(recipeCheck.getCheckerName())) {
+            expandDTO.setCheckerName(recipeCheck.getCheckerName());
         }
         //设置科室信息
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
