@@ -18,6 +18,7 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -1907,8 +1908,8 @@ public class RecipeOrderService extends RecipeBaseService {
             req.setUser(userInfo);
             HisResponseTO<String> response;
             try {
-                OrganService organService = BasicAPI.getService(OrganService.class);
-                req.setOrgCode(organService.getByOrganId(recipe.getClinicOrgan()).getMinkeUnitCretditCode());
+                //获取民科机构登记号
+                req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
                 LOGGER.info("getRecipeThirdUrl request={}", JSONUtils.toString(req));
                 response = hisService.getRecipeThirdUrl(req);
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));

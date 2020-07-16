@@ -23,6 +23,7 @@ import com.ngari.follow.service.IRelationPatientService;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.message.api.MessageAPI;
 import com.ngari.message.api.service.ConsultMessageService;
 import com.ngari.message.api.service.INetworkclinicMsgService;
@@ -2648,6 +2649,22 @@ public class RecipeServiceSub {
             return false;
         }
         return false;
+    }
+
+    /**
+     * //根据平台机构id获取民科机构登记号
+     * @param organid
+     * @return
+     */
+    public static String getMinkeOrganCodeByOrganId(Integer organid){
+        //获取民科机构登记号
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organid);
+        if (organDTO!=null&&StringUtils.isNotEmpty(organDTO.getMinkeUnitID())){
+            IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
+            return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
+        }
+        return null;
     }
 
     /**
