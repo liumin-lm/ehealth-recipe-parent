@@ -222,6 +222,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (recipeCheck != null && StringUtils.isNotEmpty(recipeCheck.getCheckerName())) {
             expandDTO.setCheckerName(recipeCheck.getCheckerName());
         }
+        pushRecipeAndOrder.setExpandDTO(expandDTO);
         //设置科室信息
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
