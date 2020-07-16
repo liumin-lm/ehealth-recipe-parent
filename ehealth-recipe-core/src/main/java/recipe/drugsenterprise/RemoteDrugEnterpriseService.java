@@ -189,9 +189,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
         //设置扩展信息
         ExpandDTO expandDTO = new ExpandDTO();
-        OrganService organService = BasicAPI.getService(OrganService.class);
-        OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-        expandDTO.setOrgCode(organDTO.getMinkeUnitCretditCode());
+        String orgCode = RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan());
+        if (StringUtils.isNotEmpty(orgCode)) {
+            expandDTO.setOrgCode(orgCode);
+        }
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
             expandDTO.setSignFile(recipe.getChemistSignFile());
         } else {
