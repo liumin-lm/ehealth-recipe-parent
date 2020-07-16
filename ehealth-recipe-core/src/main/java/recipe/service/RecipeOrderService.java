@@ -12,6 +12,11 @@ import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -50,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
@@ -1885,6 +1891,45 @@ public class RecipeOrderService extends RecipeBaseService {
             /*if (DrugEnterpriseConstant.COMPANY_YSQ.equals(remoteDrugEnterpriseService.getDepAccount(order.getEnterpriseId()))) {
                 thirdUrl = remoteDrugEnterpriseService.getYsqOrderInfoUrl(recipe);
             }*/
+        }
+        return thirdUrl;
+    }
+
+    /**
+     * 临沭东软对接慢病处方流转平台跳转第三方地址
+     *
+     * @return
+     */
+    @RpcService
+    public String getLSRecipeThirdUrl(Integer recipeId) {
+        Assert.notNull(recipeId,"recipeId must be not null");
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        String thirdUrl ="";
+        if (null != recipe) {
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            if (patient !=null){
+                PatientBaseInfo patientBaseInfo =new PatientBaseInfo();
+                patientBaseInfo.setPatientName(patient.getPatientName());
+                patientBaseInfo.setCertificateType(1);
+                patientBaseInfo.setCertificate(patient.getIdcard());
+                patientBaseInfo.setMobile(patient.getMobile());
+                IRecipeEnterpriseService hisService = AppDomainContext.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
+                RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
+                req.setOrganId(recipe.getClinicOrgan());
+                req.setPatient(patientBaseInfo);
+                LOGGER.info("getLSRecipeThirdUrl request={}", JSONUtils.toString(req));
+                HisResponseTO<String> response;
+                try {
+                    response = hisService.getRecipeThirdUrl(req);
+                    LOGGER.info("getLSRecipeThirdUrl res={}", JSONUtils.toString(response));
+                    if (response!=null){
+                        thirdUrl = response.getData();
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("getLSRecipeThirdUrl error ", e);
+                }
+            }
         }
         return thirdUrl;
     }

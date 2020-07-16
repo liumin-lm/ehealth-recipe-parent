@@ -995,32 +995,65 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             }
 
             private List<BillBusFeeVo> convertToBBFVList(String acctDate, List<Object[]> payList, List<Object[]> refundList) {
+                Set<Integer> organSet = fetchAllOrgan(payList, refundList);
                 List<BillBusFeeVo> voList = Lists.newArrayList();
-                for(Object[] pos : payList){
-                    BillBusFeeVo vo = new BillBusFeeVo();
-                    vo.setAcctMonth(acctDate.substring(0, 7));
-                    vo.setAcctDate(acctDate);
-                    vo.setFeeType(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.id());
-                    vo.setFeeTypeName(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.text());
-                    vo.setOrganId(ConversionUtils.convert(pos[0], Integer.class));
-                    vo.setPayCount(ConversionUtils.convert(pos[1], Integer.class));
-                    vo.setPayAmount(ConversionUtils.convert(pos[2], Double.class));
-                    vo.setRefundAmount(0.0);
-                    vo.setRefundCount(0);
-                    for(Object[] ros : refundList){
-                        Integer xo = ConversionUtils.convert(ros[0], Integer.class);
-                        if(vo.getOrganId().equals(xo)) {
-                            vo.setRefundCount(ConversionUtils.convert(pos[1], Integer.class));
-                            vo.setRefundAmount(ConversionUtils.convert(pos[2], Double.class));
-                            break;
-                        }
-                    }
+                for(Integer organId : organSet){
+                    BillBusFeeVo vo = newBillBusFeeVo(acctDate, organId);
+                    fullFillPayPartIfExists(vo, payList);
+                    fullFillRefundPartIfExists(vo, refundList);
                     vo.setAggregateAmount(vo.getPayAmount()-vo.getRefundAmount());
-                    vo.setCreateTime(new Date());
-                    vo.setUpdateTime(new Date());
                     voList.add(vo);
                 }
                 return voList;
+            }
+
+            private void fullFillRefundPartIfExists(BillBusFeeVo vo, List<Object[]> refundList) {
+                for(Object[] ros : refundList){
+                    Integer organId = ConversionUtils.convert(ros[0], Integer.class);
+                    if(vo.getOrganId().equals(organId)){
+                        vo.setRefundCount(ConversionUtils.convert(ros[1], Integer.class));
+                        vo.setRefundAmount(ConversionUtils.convert(ros[2], Double.class));
+                        break;
+                    }
+                }
+            }
+
+            private void fullFillPayPartIfExists(BillBusFeeVo vo, List<Object[]> payList) {
+                for(Object[] pos : payList){
+                    Integer organId = ConversionUtils.convert(pos[0], Integer.class);
+                    if(vo.getOrganId().equals(organId)){
+                        vo.setPayCount(ConversionUtils.convert(pos[1], Integer.class));
+                        vo.setPayAmount(ConversionUtils.convert(pos[2], Double.class));
+                        break;
+                    }
+                }
+            }
+
+            private BillBusFeeVo newBillBusFeeVo(String acctDate, Integer organId) {
+                BillBusFeeVo vo = new BillBusFeeVo();
+                vo.setAcctMonth(acctDate.substring(0, 7));
+                vo.setAcctDate(acctDate);
+                vo.setFeeType(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.id());
+                vo.setFeeTypeName(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.text());
+                vo.setOrganId(organId);
+                vo.setPayCount(0);
+                vo.setPayAmount(0.0);
+                vo.setRefundCount(0);
+                vo.setRefundAmount(0.0);
+                vo.setCreateTime(new Date());
+                vo.setUpdateTime(new Date());
+                return vo;
+            }
+
+            private Set<Integer> fetchAllOrgan(List<Object[]> payList, List<Object[]> refundList) {
+                Set<Integer> organSet = new HashSet<>();
+                for(Object[] pos : payList){
+                    organSet.add(ConversionUtils.convert(pos[0], Integer.class));
+                }
+                for(Object[] ros : refundList){
+                    organSet.add(ConversionUtils.convert(ros[0], Integer.class));
+                }
+                return organSet;
             }
         };
         HibernateSessionTemplate.instance().execute(action);
@@ -1035,7 +1068,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 sql.append("SELECT r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType, sum(o.RecipeFee) ");
                 sql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON (r.OrderCode = o.OrderCode) LEFT JOIN cdr_drugsenterprise d ON (r.EnterpriseId = d.id) ");
                 sql.append(" WHERE r.OrderCode = o.OrderCode AND o.Effective = 1 AND o.PayFlag=1 ");
-                sql.append(" AND PayTime >= :startTime AND PayTime < :endTime ");
+                sql.append(" AND o.FinishTime>= :startTime AND o.FinishTime< :endTime AND o.status = 5 ");
                 sql.append(" AND r.enterpriseId is not null ");
                 sql.append(" GROUP BY r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType");
                 Query sqlQuery = ss.createSQLQuery(sql.toString());
