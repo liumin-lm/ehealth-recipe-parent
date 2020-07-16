@@ -95,16 +95,12 @@ public class HisRecipeService {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        try {
-            /**查询his线下处方数据*/
-            //同步查询待缴费处方
-            queryHisRecipeInfo(organId, patientDTO, timeQuantum, 1);
-        } catch (Exception e) {
-            LOGGER.error("查询his线下处方数据 error ", e);
-        }
+
+        /**查询his线下处方数据*/
+        //同步查询待缴费处方
+        queryHisRecipeInfo(organId, patientDTO, timeQuantum, 1);
         //异步获取已缴费处方
-        QueryHisRecipeCallable callable = new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO);
-        RecipeBusiThreadPool.submit(callable);
+        RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
 
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
         List<HisRecipeVO> result = new ArrayList<>();
@@ -208,7 +204,7 @@ public class HisRecipeService {
      * @param flag
      */
     @RpcService
-    public void queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) throws Exception {
+    public void queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
@@ -231,14 +227,20 @@ public class HisRecipeService {
         if (null == responseTO || null == responseTO.getData()) {
             return;
         }
-        /** 更新数据校验*/
+
         try {
+            /** 更新数据校验*/
             hisRecipeInfoCheck(responseTO.getData());
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        //数据入库
-        saveHisRecipeInfo(responseTO, patientDTO, flag);
+
+        try {
+            //数据入库
+            saveHisRecipeInfo(responseTO, patientDTO, flag);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
     }
 
 
