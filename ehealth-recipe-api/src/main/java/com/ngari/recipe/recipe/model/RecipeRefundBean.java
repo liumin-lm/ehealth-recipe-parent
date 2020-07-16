@@ -1,26 +1,20 @@
-package com.ngari.recipe.entity;
+package com.ngari.recipe.recipe.model;
 
-import ctd.account.session.ClientSession;
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author gaomw
  */
-@Entity
 @Schema
-@Table(name = "cdr_recipe_refund")
-@Access(AccessType.PROPERTY)
-public class RecipeRefund implements Serializable {
+public class RecipeRefundBean implements Serializable {
 
     private static final long serialVersionUID = -6170665419368031590L;
 
@@ -66,8 +60,6 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "预留（后面要临时存扩展字段可以用键值对存）")
     private String expand;
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
     public Integer getId() {
         return id;
     }

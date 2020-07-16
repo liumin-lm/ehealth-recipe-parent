@@ -12,6 +12,8 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.recipe.model.RecipeRefundBean;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -170,35 +172,43 @@ public class RecipeRefundService extends RecipeBaseService{
      * @return 申请序号
      */
     @RpcService
-    public List<RecipeRefund> findRecipeReFundRate(Integer recipeId) {
+    public List<RecipeRefundBean> findRecipeReFundRate(Integer recipeId) {
         RecipeRefundDAO recipeRefundDao = DAOFactory.getDAO(RecipeRefundDAO.class);
         List<RecipeRefund> list = recipeRefundDao.findRefundListByRecipeId(recipeId);
         if(list == null && list.size() == 0){
             LOGGER.error("findRecipeReFundRate-未获取到处方退费信息. recipeId={}", recipeId);
             throw new DAOException("未获取到处方退费信息！");
         }
-        List<RecipeRefund> result = new ArrayList<>();
+        List<RecipeRefundBean> result = new ArrayList<>();
         //医生审核后还需要获取医院his的审核状态
         if(list.get(0).getNode() > 0 && list.get(0).getNode() != 9){
             RecipeRefund recipeRefund = null;
             try {
                 FindRefundRecordResponseTO record = findRefundRecordfromHis(recipeId, list.get(0).getApplyNo());
-                if(null != record){
-                    //保存记录
+                //当his的审核记录发生变更时才做记录
+                if(null != record && !(list.get(0).getNode().equals(record.getCheckNode())
+                                        && list.get(0).getStatus().equals(record.getCheckStatus()))){
                     recipeRefund = ObjectCopyUtils.convert(list.get(0), RecipeRefund.class);
                     recipeRefund.setNode(Integer.valueOf(record.getCheckNode()));
                     recipeRefund.setStatus(Integer.valueOf(record.getCheckStatus()));
-                    recipeRefund.setMemo(record.getReason());
+                    recipeRefund.setReason(record.getReason());
+                    String memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(record.getCheckStatus()) +
+                        DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(record.getCheckStatus());
+                    recipeRefund.setMemo(memo);
+                    recipeRefund.setCheckTime(null);
+                    //保存记录
                     recipeRefundDao.saveRefund(recipeRefund);
+                    //将最新记录返回到前端
+                    result.add(ObjectCopyUtils.convert(recipeRefund, RecipeRefundBean.class));
                 }
             } catch (Exception e) {
-                throw new DAOException(e.getMessage());
+                throw new DAOException(e);
             }
-
         }
-//        for(){
-//
-//        }
+
+        for(int i=0; i<list.size(); i++){
+            result.add(ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class));
+        }
         return result;
 
     }
