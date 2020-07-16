@@ -66,6 +66,7 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "预留（后面要临时存扩展字段可以用键值对存）")
     private String expand;
 
+    @Id
     public Integer getId() {
         return id;
     }
