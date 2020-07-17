@@ -101,6 +101,8 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
+        //对重庆附二进行处理,审核通过将处方信息推送第三方
+        RecipeServiceSub.pushRecipeForThird(recipe);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发
@@ -120,7 +122,5 @@ public class AuditPreMode extends AbstractAuidtMode {
 
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
-        //审核通过将处方信息推送第三方--走前置机
-        RecipeServiceSub.pushRecipeForThird(recipe);
     }
 }
