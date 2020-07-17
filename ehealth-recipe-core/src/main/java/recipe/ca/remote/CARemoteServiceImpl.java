@@ -61,7 +61,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
     @Override
     @RpcService
     public boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType) {
-        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},password={},newPassword={},busType={}", doctorId);
+        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},password={},newPassword={},busType={}", doctorId,password,newPassword,busType);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         CaPasswordRequestTO requestTO = new CaPasswordRequestTO();
         requestTO.setBusType(busType);
@@ -71,6 +71,8 @@ public class CARemoteServiceImpl implements ICARemoteService {
         requestTO.setPassword(password);
 //        CommonCAFactory caFactory = new CommonCAFactory();
         CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
+        Boolean flag = caInterface instanceof ShenzhenImp;
+        LOGGER.info("caInterface instanceof ShenzhenImp =[{}]",flag);
         if(caInterface instanceof ShenzhenImp){
             EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
             requestTO.setUserAccount(employmentDTO.getJobNumber());
