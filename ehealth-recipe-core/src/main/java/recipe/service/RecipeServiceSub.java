@@ -59,6 +59,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
@@ -2710,6 +2711,22 @@ public class RecipeServiceSub {
                 recipedetail.setUseDaysB(null != recipedetail.getUseDays() ? recipedetail.getUseDays().toString() : "0");
 
             }
+        }
+    }
+
+    public static void pushRecipeForThird(Recipe recipe) {
+        try{
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+            List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            for (DrugsEnterprise drugsEnterprise : retList) {
+                if (new Integer(1).equals(drugsEnterprise.getOperationType())){
+                    drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                }
+            }
+        }catch(Exception e){
+            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
     }
 }

@@ -117,19 +117,10 @@ public class AuditPreMode extends AbstractAuidtMode {
                 //处方通知您有一张处方单需要处理，请及时查看。
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
             }
-            /*//临沭人民医院个性化处理
-            if (new Integer(1002753).equals(recipe.getClinicOrgan())){
-                OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(1002753, 1);
-                if (CollectionUtils.isNotEmpty(enterprises)){
-                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("enterpriseId",enterprises.get(0).getId()));
-                }
-                //审核后处方推送到药企
-                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
-            }*/
+
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
+        //审核通过将处方信息推送第三方--走前置机
+        RecipeServiceSub.pushRecipeForThird(recipe);
     }
 }
