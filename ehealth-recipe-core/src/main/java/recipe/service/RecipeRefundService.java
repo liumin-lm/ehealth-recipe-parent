@@ -28,6 +28,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -309,7 +310,7 @@ public class RecipeRefundService extends RecipeBaseService{
                     result.add(ObjectCopyUtils.convert(recipeRefund, RecipeRefundBean.class));
                 }
             } catch (Exception e) {
-                throw new DAOException(609,e);
+                throw new DAOException(e);
             }
         }
 
@@ -391,12 +392,16 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipePatientRefundVO.setRefundReason(recipeRefund.getReason());
                 recipePatientRefundVO.setRefundDate(recipeRefund.getCheckTime());
             }
-            recipePatientRefundVO.setRefundStatus(-1);
-            recipePatientRefundVO.setRefundStatusMsg("待审核");
-            if(0 == recipeRefund.getNode()){
-                recipePatientRefundVO.setRefundStatusMsg(1 == recipeRefund.getStatus() ? "审核通过" : "审核不通过");
+
+        }
+        if(CollectionUtils.isNotEmpty(nodes)){
+            try {
+                recipePatientRefundVO.setRefundStatusMsg(DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(nodes.get(0).getStatus()));
+            } catch (Exception e) {
+                throw new DAOException(e);
             }
         }
+        recipePatientRefundVO.setRefundStatus(nodes.get(0).getStatus());
     }
 
     @RpcService
@@ -427,7 +432,7 @@ public class RecipeRefundService extends RecipeBaseService{
         try {
             applyForRecipeRefund(recipeId, patientRefundReason);
         } catch (Exception e) {
-            throw new DAOException(609,e);
+            throw new DAOException(609,e.getMessage());
         }
 
         result.put("result", true);
@@ -442,7 +447,7 @@ public class RecipeRefundService extends RecipeBaseService{
         try {
             checkForRecipeRefund(busId,checkResult ? "1" : "2",doctorNoPassReason);
         } catch (Exception e) {
-            throw new DAOException(609,e);
+            throw new DAOException(609,e.getMessage());
         }
         result.put("result", true);
         result.put("code", 200);
