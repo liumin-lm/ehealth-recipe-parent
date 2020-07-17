@@ -71,8 +71,6 @@ public class CARemoteServiceImpl implements ICARemoteService {
         requestTO.setPassword(password);
 //        CommonCAFactory caFactory = new CommonCAFactory();
         CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
-        Boolean flag = caInterface instanceof ShenzhenImp;
-        LOGGER.info("caInterface instanceof ShenzhenImp =[{}]",flag);
         if(caInterface instanceof ShenzhenImp){
             EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
             requestTO.setUserAccount(employmentDTO.getJobNumber());

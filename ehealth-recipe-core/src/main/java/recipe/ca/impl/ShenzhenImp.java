@@ -65,6 +65,12 @@ public class ShenzhenImp implements CAInterface {
      */
     @Override
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+        /*
+        * 测试数据
+        * */
+        requestTO.setUserAccount("1217");
+        requestTO.setPassword("123456");
+
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
         String userAccount = requestTO.getUserAccount();
         if (!StringUtils.isEmpty(responseTO.getValue())) {
@@ -84,7 +90,8 @@ public class ShenzhenImp implements CAInterface {
             Integer doctorId = recipe.getDoctor();
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
-            userAccount = employmentDTO.getJobNumber();
+            //userAccount = employmentDTO.getJobNumber();
+            userAccount = "1217";
             logger.info("shenzhenCA commonCASignAndSeal the userAccount=[{}]",userAccount);
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
