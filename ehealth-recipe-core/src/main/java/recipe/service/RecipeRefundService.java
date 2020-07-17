@@ -321,7 +321,9 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefundBean.setMemo("等待审核");
                 result.add(recipeRefundBean);
             }
-            result.add(ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class));
+            RecipeRefundBean recipeRefundBean2 =ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class);
+            recipeRefundBean2.setReason(null);
+            result.add(recipeRefundBean2);
         }
         return result;
 
