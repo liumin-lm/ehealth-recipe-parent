@@ -544,7 +544,7 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
-    private String getRecipeStatusTabText(int status) {
+    private String getRecipeStatusTabText(int status, int recipeId) {
         String msg;
         switch (status) {
             case RecipeStatusConstant.FINISH:
@@ -564,7 +564,14 @@ public class RecipeListService extends RecipeBaseService{
                 break;
             //已撤销从已取消拆出来
             case RecipeStatusConstant.REVOKE:
-                msg = "已撤销";
+                RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
+                    msg = "由于患者申请退款成功，该处方已取消。";
+                }else{
+
+                    msg = "已撤销";
+                }
+
                 break;
             //已撤销从已取消拆出来
             case RecipeStatusConstant.DELETE:
@@ -1009,7 +1016,7 @@ public class RecipeListService extends RecipeBaseService{
                 }
 
                 if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
-                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode()));
+                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode(), record.getRecordId()));
                     //设置失效时间
                     if (RecipeStatusConstant.CHECK_PASS == record.getStatusCode()) {
                         record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));

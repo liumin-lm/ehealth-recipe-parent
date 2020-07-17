@@ -1133,10 +1133,11 @@ public class RecipeServiceSub {
                     tips = "待处理";
                     break;
                 case RecipeStatusConstant.REVOKE:
-                    tips = "已撤销";
                     if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
                         cancelReason = "由于患者申请退款成功，该处方已取消。";
+                        tips = "已取消";
                     }else{
+                        tips = "已撤销";
                         cancelReason = "由于您已撤销，该处方单已失效";
                         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
                         if (CollectionUtils.isNotEmpty(recipeLogs)) {
