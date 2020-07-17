@@ -152,4 +152,8 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     @RpcService
     public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node);
 
+    //有退费结果回调接口，修改处方和订单的状态，推送消息
+    @RpcService
+    public void refundCallback(Integer busId, Integer refundStatus, String msg);
+
 }
