@@ -566,7 +566,7 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.REVOKE:
                 RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
-                    msg = "由于患者申请退款成功，该处方已取消。";
+                    msg = "已取消";
                 }else{
 
                     msg = "已撤销";
