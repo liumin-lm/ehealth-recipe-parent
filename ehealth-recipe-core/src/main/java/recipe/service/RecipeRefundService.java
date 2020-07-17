@@ -92,7 +92,7 @@ public class RecipeRefundService extends RecipeBaseService{
             RecipeRefund recipeRefund = new RecipeRefund();
             recipeRefund.setTradeNo(recipeOrder.getTradeNo());
             recipeRefund.setNode(-1);
-//            recipeRefund.setApplyNo(hisResult.getData());
+            recipeRefund.setApplyNo(hisResult.getData());
             recipeRefund.setReason(applyReason);
             recipeReFundSave(recipe, recipeRefund);
             RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
@@ -160,7 +160,7 @@ public class RecipeRefundService extends RecipeBaseService{
             recipeRefund.setStatus(Integer.valueOf(checkStatus));
             recipeRefund.setReason(checkReason);
             recipeRefund.setTradeNo(list.get(0).getTradeNo());
-//            recipeRefund.setApplyNo(hisResult.getData());
+            recipeRefund.setApplyNo(hisResult.getData());
             recipeReFundSave(recipe, recipeRefund);
             if(2 == Integer.valueOf(checkStatus)){
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_AUDIT_FAIL);
@@ -185,11 +185,21 @@ public class RecipeRefundService extends RecipeBaseService{
         RecipeRefundDAO recipeRefundDao = DAOFactory.getDAO(RecipeRefundDAO.class);
         recipeRefund.setBusId(recipe.getRecipeId());
         recipeRefund.setOrganId(recipe.getClinicOrgan());
+        String memo = null;
+        try {
+            memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(recipeRefund.getNode()) +
+                DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(recipeRefund.getStatus());
+        } catch (ControllerException e) {
+            LOGGER.error("recipeReFundSave-未获取到处方单信息. recipeId={}, node={}, recipeRefund={}", recipe, JSONUtils.toString(recipeRefund));
+            throw new DAOException("退费相关字典获取失败");
+        }
+        recipeRefund.setMemo(memo);
         switch(recipeRefund.getNode()){
             case -1:
                 recipeRefund.setUserId(recipe.getMpiid());
                 recipeRefund.setUserType(1);
                 recipeRefund.setStatus(0);
+                recipeRefund.setMemo("患者发起退费申请");
                 break;
             case 0:
                 recipeRefund.setUserId(recipe.getDoctor() + "");
@@ -203,17 +213,6 @@ public class RecipeRefundService extends RecipeBaseService{
         recipeRefund.setNode(recipeRefund.getNode());
         recipeRefund.setStatus(recipeRefund.getStatus());
         recipeRefund.setCheckTime(new Date());
-        //date 添加退费申请医生id
-        recipeRefund.setDoctorId(recipe.getDoctor());
-        String memo = null;
-        try {
-            memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(recipeRefund.getNode()) +
-                DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(recipeRefund.getStatus());
-        } catch (ControllerException e) {
-            LOGGER.error("recipeReFundSave-未获取到处方单信息. recipeId={}, node={}, recipeRefund={}", recipe, JSONUtils.toString(recipeRefund));
-            throw new DAOException("退费相关字典获取失败");
-        }
-        recipeRefund.setMemo(memo);
         //保存记录
         recipeRefundDao.saveRefund(recipeRefund);
 
@@ -278,8 +277,8 @@ public class RecipeRefundService extends RecipeBaseService{
             try {
                 FindRefundRecordResponseTO record = findRefundRecordfromHis(recipeId, list.get(0).getApplyNo());
                 //当his的审核记录发生变更时才做记录
-                if(null != record && !(list.get(0).getNode().equals(record.getCheckNode())
-                                        && list.get(0).getStatus().equals(record.getCheckStatus()))){
+                if(null != record && !(list.get(0).getNode().equals(Integer.valueOf(record.getCheckNode()))
+                                        && list.get(0).getStatus().equals(Integer.valueOf(record.getCheckStatus())))){
                     recipeRefund = ObjectCopyUtils.convert(list.get(0), RecipeRefund.class);
                     recipeRefund.setUserId("his");
                     recipeRefund.setUserType(3);
@@ -294,17 +293,17 @@ public class RecipeRefundService extends RecipeBaseService{
                     recipeRefundDao.saveRefund(recipeRefund);
                     //date 20200717
                     //添加推送逻辑
-                    if(9 == Integer.valueOf(record.getCheckNode())){
-                        if(1 == Integer.valueOf(record.getCheckStatus())){
-                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
-                            //修改处方单状态
-                            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, null);
-                        }
-                        if(2 == Integer.valueOf(record.getCheckStatus())){
-                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
-
-                        }
-                    }
+//                    if(9 == Integer.valueOf(record.getCheckNode())){
+//                        if(1 == Integer.valueOf(record.getCheckStatus())){
+//                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
+//                            //修改处方单状态
+//                            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, null);
+//                        }
+//                        if(2 == Integer.valueOf(record.getCheckStatus())){
+//                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
+//
+//                        }
+//                    }
                     //将最新记录返回到前端
                     result.add(ObjectCopyUtils.convert(recipeRefund, RecipeRefundBean.class));
                 }
@@ -314,6 +313,12 @@ public class RecipeRefundService extends RecipeBaseService{
         }
 
         for(int i=0; i<list.size(); i++){
+            if(list.get(i).getNode().equals(-1)){
+                RecipeRefundBean recipeRefundBean = new RecipeRefundBean();
+                recipeRefundBean.setBusId(list.get(i).getBusId());
+                recipeRefundBean.setMemo("等待审核");
+                result.add(recipeRefundBean);
+            }
             result.add(ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class));
         }
         return result;
