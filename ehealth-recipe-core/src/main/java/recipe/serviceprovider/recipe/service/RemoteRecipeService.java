@@ -1241,9 +1241,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             String prescriptionNo = MapValueUtil.getString(paramMap, "prescriptionNo"); //处方编码
             String orgCode = MapValueUtil.getString(paramMap, "orgCode"); //医疗机构编码
             String hosCode = MapValueUtil.getString(paramMap, "hosCode"); //院区编码
-            Integer organId = MapValueUtil.getInteger(paramMap, "organId"); //机构编码
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(prescriptionNo, organId);
+            Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(prescriptionNo));
             //表示回调成功,需要查询处方状态并开始更新处方信息
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             HospitalReqTo hospitalReqTo = new HospitalReqTo();
