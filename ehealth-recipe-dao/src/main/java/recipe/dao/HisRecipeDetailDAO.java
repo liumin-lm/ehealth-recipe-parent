@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.HisRecipeDetail;
-import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -24,4 +23,21 @@ public abstract class HisRecipeDetailDAO extends HibernateSupportDelegateDAO<His
 
     @DAOMethod(sql = "from HisRecipeDetail where hisRecipeId=:hisRecipeId and status=1")
     public abstract List<HisRecipeDetail> findByHisRecipeId(@DAOParam("hisRecipeId") int hisRecipeId);
+
+    /**
+     * 批量查询
+     *
+     * @param hisRecipeIds his处方id
+     * @return
+     */
+    @DAOMethod(sql = "from HisRecipeDetail where hisRecipeId in (:hisRecipeIds) and status=1")
+    public abstract List<HisRecipeDetail> findByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
+    /**
+     * 根据处方id批量删除
+     *
+     * @param hisRecipeIds
+     */
+    @DAOMethod(sql = "delete from HisRecipeDetail where hisRecipeId in (:hisRecipeIds)")
+    public abstract void deleteByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
 }

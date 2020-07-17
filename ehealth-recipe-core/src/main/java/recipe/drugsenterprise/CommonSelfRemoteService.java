@@ -11,6 +11,7 @@ import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -98,9 +99,9 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
             LOGGER.warn("判断当前处方{}，当前处方为互联网处方，默认有库存！", recipeId);
             return DrugEnterpriseResult.getSuccess();
         }
-        //1 药企配送 2 医院配送
+        //配送主体类型 1医院配送 2 药企配送
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        if(2 == drugsEnterprise.getSendType()){
+        if(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType() == drugsEnterprise.getSendType()){
             //当前医院配送，调用医院库存
             //当前医院呢库存接口，前置机对接了，则按对接的算
             //前置机没对接算库存足够

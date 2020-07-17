@@ -4,6 +4,8 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.RecipeRefundDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
@@ -220,4 +223,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         return recipeOrderDAO.findDrugFeeList(recipeBillRequest);
     }
+
+    @Override
+    public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node) {
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, node);
+        return getBean(refund, RecipeRefundBean.class);
+    }
+
 }

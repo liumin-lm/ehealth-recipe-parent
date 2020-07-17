@@ -478,6 +478,22 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             }
             //更新pdf
             CommonOrder.finishGetDrugUpdatePdf(recipeId);
+            //监管平台上传配送信息(配送到家-处方完成)
+            RecipeBusiThreadPool.submit(()->{
+                HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                CommonResponse response= hisSyncService.uploadFinishMedicine(recipeId);
+                if (CommonConstant.SUCCESS.equals(response.getCode())){
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
+                            "监管平台配送信息[配送到家-处方完成]上传成功");
+                } else{
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
+                            "监管平台配送信息[配送到家-处方完成]上传失败："+response.getMsg());
+                }
+                return null;
+            });
+
         } else {
             code = ErrorCode.SERVICE_ERROR;
             errorMsg = "电子处方更新失败";

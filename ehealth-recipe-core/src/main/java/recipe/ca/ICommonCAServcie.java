@@ -65,5 +65,18 @@ public interface ICommonCAServcie {
     @RpcService
     CaSignDateResponseTO caSignDateBusiness(CaSignDateRequestTO requestTO);
 
+    /**
+     * 根据pin获取令牌
+     * @param requestTO
+     * @return
+     */
+    @RpcService
+    CaPasswordResponseTO caTokenBusiness(CaPasswordRequestTO requestTO);
 
+    /**
+     * 手写签名图片
+     * @param requestTO
+     * @return
+     */
+    CaPictureResponseTO newCaPictureBusiness(CaPictureRequestTO requestTO);
 }

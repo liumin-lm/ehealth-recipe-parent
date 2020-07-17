@@ -13,6 +13,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -987,6 +988,7 @@ public class RecipeListService extends RecipeBaseService{
 
             Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
             PatientDTO p;
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             for (PatientTabStatusRecipeDTO record : backList) {
                 p = patientMap.get(record.getMpiId());
                 if (null != p) {
@@ -994,6 +996,8 @@ public class RecipeListService extends RecipeBaseService{
                     record.setPhoto(p.getPhoto());
                     record.setPatientSex(p.getPatientSex());
                 }
+                //获取扁鹊处方流转平台第三方跳转url
+                record.setThirdUrl(recipeOrderService.getThirdUrl(record.getRecordId()));
                 //能否购药进行设置，默认可购药
                 record.setCheckEnterprise(true);
                 if (null != record.getOrganId()) {
@@ -1136,6 +1140,11 @@ public class RecipeListService extends RecipeBaseService{
         Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if(null == recipe){
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
+            payModeShowButtonBean.noUserButtons();
+            return payModeShowButtonBean;
+        }
+        //流转到扁鹊处方流转平台的处方购药按钮都不显示
+        if (recipe.getEnterpriseId()!=null && RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())){
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
