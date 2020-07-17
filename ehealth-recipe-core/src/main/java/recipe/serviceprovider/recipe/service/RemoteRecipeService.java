@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
@@ -92,8 +93,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
-    @Autowired
-    private CommonCAFactory commonCAFactory;
+//    @Autowired
+//    private CommonCAFactory commonCAFactory;
 
     @RpcService
     @Override
@@ -1153,6 +1154,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
+        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
         CAInterface caInterface = commonCAFactory.useCAFunction(organId);
         Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
         CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
