@@ -315,14 +315,16 @@ public class RecipeRefundService extends RecipeBaseService{
         }
 
         for(int i=0; i<list.size(); i++){
+
+            RecipeRefundBean recipeRefundBean2 =ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class);
+            //退费申请多加一天等待审核的数据，并且去掉理由
             if(list.get(i).getNode().equals(-1)){
                 RecipeRefundBean recipeRefundBean = new RecipeRefundBean();
                 recipeRefundBean.setBusId(list.get(i).getBusId());
                 recipeRefundBean.setMemo("等待审核");
                 result.add(recipeRefundBean);
+                recipeRefundBean2.setReason(null);
             }
-            RecipeRefundBean recipeRefundBean2 =ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class);
-            recipeRefundBean2.setReason(null);
             result.add(recipeRefundBean2);
         }
         return result;
