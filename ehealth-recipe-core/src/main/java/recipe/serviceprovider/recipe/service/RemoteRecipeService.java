@@ -1243,6 +1243,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             String hosCode = MapValueUtil.getString(paramMap, "hosCode"); //院区编码
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(prescriptionNo));
+            if (recipe == null) {
+                return 0;
+            }
             //表示回调成功,需要查询处方状态并开始更新处方信息
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             HospitalReqTo hospitalReqTo = new HospitalReqTo();
@@ -1326,7 +1329,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 }
             }
         }
-        return null;
+        return 1;
     }
 
     /**
