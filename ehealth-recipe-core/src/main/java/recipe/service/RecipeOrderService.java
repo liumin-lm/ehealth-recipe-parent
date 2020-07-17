@@ -1906,6 +1906,7 @@ public class RecipeOrderService extends RecipeBaseService {
             req.setOrganId(recipe.getClinicOrgan());
             req.setPatient(patientBaseInfo);
             req.setUser(userInfo);
+            req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
             HisResponseTO<String> response;
             try {
                 //获取民科机构登记号
