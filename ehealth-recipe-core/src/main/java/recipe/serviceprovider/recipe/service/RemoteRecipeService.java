@@ -1262,70 +1262,76 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 String orderStatus = (String)map.get("orderStatus");
                 String writeoffStatus = (String)map.get("writeoffStatus");
                 //如果处方没有下单,则payStatus = null,由于不产生订单,现只将订单信息记录日志
-                switch (payStatus) {
-                    case "0" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单未支付");
-                        break;
-                    case "1" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已支付");
-                        break;
-                    case "2" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已退款");
-                        break;
-                    default:
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该处方未下单");
-                        break;
+                if (StringUtils.isNotEmpty(payStatus)) {
+                    switch (payStatus) {
+                        case "0" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单未支付");
+                            break;
+                        case "1" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已支付");
+                            break;
+                        case "2" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已退款");
+                            break;
+                        default:
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该处方未下单");
+                            break;
+                    }
                 }
-                switch (orderStatus) {
-                    case "2" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已经被接单");
-                        break;
-                    case "3" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已发货/已取药");
-                        break;
-                    case "4" :
-                        Map<String, Object> attrMap = Maps.newHashMap();
-                        attrMap.put("giveFlag", 1);
-                        attrMap.put("payFlag", 1);
-                        attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
-                        attrMap.put("chooseFlag", 1);
-                        attrMap.put("payDate", new Date());
-                        //更新处方信息
-                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已完成");
-                        break;
-                    case "5" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已被取消");
-                        break;
-                    case "6" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已退回");
-                        break;
-                    default:
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该处方未下单");
-                        break;
+                if (StringUtils.isNotEmpty(orderStatus)) {
+                    switch (orderStatus) {
+                        case "2" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已经被接单");
+                            break;
+                        case "3" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已发货/已取药");
+                            break;
+                        case "4" :
+                            Map<String, Object> attrMap = Maps.newHashMap();
+                            attrMap.put("giveFlag", 1);
+                            attrMap.put("payFlag", 1);
+                            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
+                            attrMap.put("chooseFlag", 1);
+                            attrMap.put("payDate", new Date());
+                            //更新处方信息
+                            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已完成");
+                            break;
+                        case "5" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已被取消");
+                            break;
+                        case "6" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已退回");
+                            break;
+                        default:
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该处方未下单");
+                            break;
+                    }
                 }
 
-                switch (writeoffStatus) {
-                    case "0" :
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已审核");
-                        break;
-                    case "1" :
-                        //处方已核销
-                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.FINISH));
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已核销");
-                        break;
-                    case "2" :
-                        //该处方已失效
-                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.NO_PAY));
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已失效");
-                        break;
-                    case "3" :
-                        //该处方已撤销
-                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.REVOKE));
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已撤销");
-                        break;
-                    default:
-                        break;
+                if (StringUtils.isNotEmpty(writeoffStatus)) {
+                    switch (writeoffStatus) {
+                        case "0" :
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已审核");
+                            break;
+                        case "1" :
+                            //处方已核销
+                            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.FINISH));
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已核销");
+                            break;
+                        case "2" :
+                            //该处方已失效
+                            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.NO_PAY));
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已失效");
+                            break;
+                        case "3" :
+                            //该处方已撤销
+                            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.REVOKE));
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已撤销");
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
