@@ -495,7 +495,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
 
     /**
-     * 生成签名处方pdf
+     * 为 处方 pdf 盖章
      *
      * @param recipeId
      * @param organId
