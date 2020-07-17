@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
@@ -17,8 +16,6 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
-import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -1892,7 +1889,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setMobile(patient.getMobile());
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
-            if (StringUtils.isEmpty(recipe.getRequestMpiId())){
+            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
                 PatientDTO user = patientService.get(recipe.getRequestMpiId());
                 if (user!=null){
                     userInfo.setPatientName(user.getPatientName());

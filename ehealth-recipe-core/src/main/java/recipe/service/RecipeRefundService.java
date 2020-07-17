@@ -91,6 +91,7 @@ public class RecipeRefundService extends RecipeBaseService{
             //退费申请记录保存
             RecipeRefund recipeRefund = new RecipeRefund();
             recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+            recipeRefund.setPrice(recipeOrder.getActualPrice());
             recipeRefund.setNode(-1);
             recipeRefund.setApplyNo(hisResult.getData());
             recipeRefund.setReason(applyReason);
@@ -160,6 +161,7 @@ public class RecipeRefundService extends RecipeBaseService{
             recipeRefund.setStatus(Integer.valueOf(checkStatus));
             recipeRefund.setReason(checkReason);
             recipeRefund.setTradeNo(list.get(0).getTradeNo());
+            recipeRefund.setPrice(list.get(0).getPrice());
             recipeRefund.setApplyNo(hisResult.getData());
             recipeReFundSave(recipe, recipeRefund);
             if(2 == Integer.valueOf(checkStatus)){
@@ -185,6 +187,9 @@ public class RecipeRefundService extends RecipeBaseService{
         RecipeRefundDAO recipeRefundDao = DAOFactory.getDAO(RecipeRefundDAO.class);
         recipeRefund.setBusId(recipe.getRecipeId());
         recipeRefund.setOrganId(recipe.getClinicOrgan());
+        recipeRefund.setMpiid(recipe.getMpiid());
+        recipeRefund.setPatientName(recipe.getPatientName());
+        recipeRefund.setDoctorId(recipe.getDoctor());
         String memo = null;
         try {
             memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(recipeRefund.getNode()) +
@@ -194,21 +199,19 @@ public class RecipeRefundService extends RecipeBaseService{
             throw new DAOException("退费相关字典获取失败");
         }
         recipeRefund.setMemo(memo);
-        switch(recipeRefund.getNode()){
-            case -1:
-                recipeRefund.setUserId(recipe.getMpiid());
-                recipeRefund.setUserType(1);
-                recipeRefund.setStatus(0);
-                recipeRefund.setMemo("患者发起退费申请");
-                break;
-            case 0:
-                recipeRefund.setUserId(recipe.getDoctor() + "");
-                recipeRefund.setUserType(2);
-                break;
-            default:
-                recipeRefund.setUserId("his");
-                recipeRefund.setUserType(3);
-                break;
+//        switch(recipeRefund.getNode()){
+//            case -1:
+//                recipeRefund.setStatus(0);
+//                recipeRefund.setMemo("患者发起退费申请");
+//                break;
+//            case 0:
+//                break;
+//            default:
+//                break;
+//        }
+        if(recipeRefund.getNode() == -1){
+            recipeRefund.setStatus(0);
+            recipeRefund.setMemo("患者发起退费申请");
         }
         recipeRefund.setNode(recipeRefund.getNode());
         recipeRefund.setStatus(recipeRefund.getStatus());
@@ -280,8 +283,6 @@ public class RecipeRefundService extends RecipeBaseService{
                 if(null != record && !(list.get(0).getNode().equals(Integer.valueOf(record.getCheckNode()))
                                         && list.get(0).getStatus().equals(Integer.valueOf(record.getCheckStatus())))){
                     recipeRefund = ObjectCopyUtils.convert(list.get(0), RecipeRefund.class);
-                    recipeRefund.setUserId("his");
-                    recipeRefund.setUserType(3);
                     recipeRefund.setNode(Integer.valueOf(record.getCheckNode()));
                     recipeRefund.setStatus(Integer.valueOf(record.getCheckStatus()));
                     recipeRefund.setReason(record.getReason());
