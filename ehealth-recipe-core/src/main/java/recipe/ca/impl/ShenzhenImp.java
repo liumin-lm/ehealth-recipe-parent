@@ -51,7 +51,10 @@ public class ShenzhenImp implements CAInterface {
     public boolean caUserLoginAndGetCertificate(Integer doctorId) {
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
-        if (null != redisClient.get("encryptedToken_" + employmentDTO.getJobNumber())) {
+//        if (null != redisClient.get("encryptedToken_" + employmentDTO.getJobNumber())) {
+//            return true;
+//        };
+        if (null != redisClient.get("encryptedToken_" + "1217")) {
             return true;
         };
         return false;
@@ -65,6 +68,12 @@ public class ShenzhenImp implements CAInterface {
      */
     @Override
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+        /*
+        * 测试数据
+        * */
+        requestTO.setUserAccount("1217");
+        requestTO.setPassword("123456");
+
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
         String userAccount = requestTO.getUserAccount();
         if (!StringUtils.isEmpty(responseTO.getValue())) {
@@ -84,11 +93,13 @@ public class ShenzhenImp implements CAInterface {
             Integer doctorId = recipe.getDoctor();
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
-            userAccount = employmentDTO.getJobNumber();
+            //userAccount = employmentDTO.getJobNumber();
+            userAccount = "1217";
             logger.info("shenzhenCA commonCASignAndSeal the userAccount=[{}]",userAccount);
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
             requestTO.setUserAccount(userAccount);
+            requestTO.setOrganId(recipe.getClinicOrgan());
             CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
             if (caPictureResponseTO == null || caPictureResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caPictureResponseTO.getCode());
@@ -111,6 +122,7 @@ public class ShenzhenImp implements CAInterface {
             }
             //签名原文
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            caSignRequestTO.setOrganId(recipe.getClinicOrgan());
             CaSignResponseTO caSignResponseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (caSignResponseTO == null || caSignResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
@@ -125,6 +137,7 @@ public class ShenzhenImp implements CAInterface {
             //获取base64位证书
             CaCertificateRequestTO caCertificateRequestTO = new CaCertificateRequestTO();
             caCertificateRequestTO.setUserAccount(userAccount);
+            caSignRequestTO.setOrganId(recipe.getClinicOrgan());
 
             CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
             if (caCertificateResponseTO == null || caCertificateResponseTO.getCode() != 200) {
