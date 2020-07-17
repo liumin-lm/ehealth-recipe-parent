@@ -52,6 +52,13 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.BussTypeConstant;
+import eh.cdr.constant.DrugEnterpriseConstant;
+import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.entity.bus.pay.BusTypeEnum;
+import eh.utils.params.ParameterConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1892,7 +1899,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setMobile(patient.getMobile());
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
-            if (StringUtils.isEmpty(recipe.getRequestMpiId())){
+            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
                 PatientDTO user = patientService.get(recipe.getRequestMpiId());
                 if (user!=null){
                     userInfo.setPatientName(user.getPatientName());
