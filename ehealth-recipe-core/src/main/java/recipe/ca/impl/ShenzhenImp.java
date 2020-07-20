@@ -157,7 +157,8 @@ public class ShenzhenImp implements CAInterface {
             //保存信息
            // saveSignDoctorRecipeInfo(caSignResultVo);
         } catch (Exception e) {
-            caSignResultVo.setResultCode(0);
+            //caSignResultVo.setResultCode(0);
+            caSignResultVo.setResultCode(1);
             logger.error("shenzhenCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", e);
         } finally {
             logger.error("shenzhenCAImpl finally callback signResultVo={}", JSONUtils.toString(caSignResultVo));
