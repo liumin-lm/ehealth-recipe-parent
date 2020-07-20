@@ -5,6 +5,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.account.user.support.SM3;
@@ -159,6 +160,7 @@ public class ShenzhenImp implements CAInterface {
         } catch (Exception e) {
             //caSignResultVo.setResultCode(0);
             caSignResultVo.setResultCode(1);
+            caSignResultVo.setCode(200);
             logger.error("shenzhenCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", e);
         } finally {
             logger.error("shenzhenCAImpl finally callback signResultVo={}", JSONUtils.toString(caSignResultVo));
