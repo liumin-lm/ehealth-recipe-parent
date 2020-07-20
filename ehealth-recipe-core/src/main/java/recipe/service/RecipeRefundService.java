@@ -357,28 +357,7 @@ public class RecipeRefundService extends RecipeBaseService{
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        List<Integer> recipeIds = recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
-        List<Integer> noteList = new ArrayList<>();
-        noteList.add(0);
-        noteList.add(-1);
-        Recipe recipe;
-        RecipeOrder recipeOrder;
-        for (Integer recipeId : recipeIds) {
-            recipe = recipeDAO.getByRecipeId(recipeId);
-            recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            if(null == recipe || null == recipeOrder){
-                LOGGER.warn("当前处方id{}，处方或者订单不存在！", recipeId);
-                continue;
-            }
-            RecipePatientRefundVO recipePatientRefundVO = new RecipePatientRefundVO();
-
-            //初始化对象
-            initRecipeRefundVo(noteList, recipe, recipeOrder, recipeId, recipePatientRefundVO);
-
-
-            result.add(recipePatientRefundVO);
-        }
-        return result;
+        return recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
     }
 
     private void initRecipeRefundVo(List<Integer> noteList, Recipe recipe, RecipeOrder recipeOrder, Integer recipeId, RecipePatientRefundVO recipePatientRefundVO) {
@@ -413,20 +392,8 @@ public class RecipeRefundService extends RecipeBaseService{
     public RecipePatientRefundVO getPatientRefundRecipeByRecipeId(Integer busId) {
 
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        RecipePatientRefundVO recipePatientRefundVO = new RecipePatientRefundVO();
-        List<Integer> noteList = new ArrayList<>();
-        noteList.add(0);
-        noteList.add(-1);
-        Recipe recipe = recipeDAO.getByRecipeId(busId);
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        if(null == recipe || null == recipeOrder){
-            LOGGER.warn("当前处方id{}，处方或者订单不存在！", busId);
-            return null;
-        }
-        initRecipeRefundVo(noteList, recipe, recipeOrder, busId, recipePatientRefundVO);
-
-        return recipePatientRefundVO;
+        RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
+        return recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
     }
 
     //用户提交退费申请给医生
