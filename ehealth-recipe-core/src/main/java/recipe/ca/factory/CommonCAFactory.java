@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ca.CAInterface;
 import recipe.ca.impl.ShanghaiCAImpl;
 import recipe.ca.impl.ShanxiCAImpl;
+import recipe.ca.impl.ShenzhenImp;
 import recipe.ca.impl.TianjinCAImpl;
 
 import java.util.Arrays;
@@ -44,12 +45,15 @@ public class CommonCAFactory {
      */
     public static final String CA_TYPE_TIANJIN= "tianjinCA";
 
+    public static final String CA_TYPE_SHENZHEN= "shenzhenCA";
+
     public static final Map<String, CAInterface> map = new HashMap<>();
 
     static {
         map.put(CA_TYPE_SHANXI, new ShanxiCAImpl());
         map.put(CA_TYPE_SHANGHAI, new ShanghaiCAImpl());
         map.put(CA_TYPE_TIANJIN, new TianjinCAImpl());
+        map.put(CA_TYPE_SHENZHEN, new ShenzhenImp());
     }
 
     @RpcService

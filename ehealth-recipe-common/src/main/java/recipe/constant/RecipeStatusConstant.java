@@ -259,5 +259,25 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
 
+    /**
+     * 不存在的状态，用于微信发送,患者提交审核推送,医生系统消息
+     */
+    public static final int RECIPE_REFUND_APPLY = 130;
+
+    /**
+     * 不存在的状态，用于微信发送,患者退费失败
+     */
+    public static final int RECIPE_REFUND_FAIL = 131;
+
+    /**
+     * 不存在的状态，用于微信发送,患者退费成功
+     */
+    public static final int RECIPE_REFUND_SUCC = 132;
+
+    /**
+     * 不存在的状态，用于微信发送,医生审核不通过
+     */
+    public static final int RECIPE_REFUND_AUDIT_FAIL = 133;
+
 
 }

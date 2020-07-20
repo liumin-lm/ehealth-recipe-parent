@@ -84,10 +84,12 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         if (StringUtils.isNotEmpty(signDoctorRecipeInfo.getSignRemarkPha())) {
             recipeInfo.setSignRemarkPha(signDoctorRecipeInfo.getSignRemarkPha());
         }
-        if(StringUtils.isNotEmpty(signDoctorRecipeInfo.getSignBefText())){
+        if (StringUtils.isNotEmpty(signDoctorRecipeInfo.getSignBefText())) {
             recipeInfo.setSignBefText(signDoctorRecipeInfo.getSignBefText());
         }
-
+        if (StringUtils.isNotEmpty(signDoctorRecipeInfo.getType())) {
+            recipeInfo.setType(signDoctorRecipeInfo.getType());
+        }
         signDoctorRecipeInfoDAO.update(recipeInfo);
         return true;
     }
