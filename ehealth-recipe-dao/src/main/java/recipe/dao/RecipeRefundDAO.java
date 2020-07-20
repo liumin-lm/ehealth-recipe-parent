@@ -31,7 +31,9 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
+import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.type.LongType;
+import org.hibernate.type.StandardBasicTypes;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,51 +91,167 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "from RecipeRefund where busId = :busId and node = :node ")
     public abstract RecipeRefund getRecipeRefundByRecipeIdAndNode(@DAOParam("busId") Integer busId, @DAOParam("node") Integer node);
 
-    public List<Integer> findDoctorPatientRefundListByRefundType(Integer doctorId, Integer refundType, int start, int limit) {
-        HibernateStatelessResultAction<List<Integer>> action = new AbstractHibernateStatelessResultAction<List<Integer>>() {
+    public List<RecipePatientRefundVO> findDoctorPatientRefundListByRefundType(Integer doctorId, Integer refundType, int start, int limit) {
+        HibernateStatelessResultAction<List<RecipePatientRefundVO>> action = new AbstractHibernateStatelessResultAction<List<RecipePatientRefundVO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-//                StringBuilder sql = new StringBuilder("SELECT cr.BusId ,crd.Doctor,group_concat((case cr.node when 0  then cr.reason else '' end) separator '') ,crd.MPIID, crd.patientName, min(cr.checktime) ,cro.ActualPrice,group_concat((case cr.node when -1  then cr.reason else '' end) separator ''),max(cr.node),sum(case cr.node when 0  then cr.status else 0 end) checkStatus FROM `cdr_recipe_refund` cr  INNER JOIN `cdr_recipe` crd on cr.BusId = crd.RecipeID  " +
-//                        " INNER JOIN `cdr_recipeorder` cro on crd.orderCode = cro.orderCode where crd.Doctor = :doctorId" +
-//                        " GROUP BY cr.BusId ");
-                StringBuilder sql = new StringBuilder("SELECT cr.BusId FROM `cdr_recipe_refund` cr ");
-                //0：全部
-                //1：待审核
-                //2：审核通过
-                //3：审核不通过
+                StringBuilder sqlNew = new StringBuilder(" SELECT " +
+                        "  r.busId, " +
+                        "  r.patientName, " +
+                        "  r.Mpiid, " +
+                        "  r.doctorId, " +
+                        "  r.Price, " +
+                        "  GROUP_CONCAT( IF ( node =- 1, r.Reason, NULL ) ) AS '申请理由', " +
+                        "  GROUP_CONCAT( IF ( node = 0, r.Reason, NULL ) ) AS '审核理由', " +
+                        "  max( r.STATUS ), " +
+                        "  min( r.checkTime ) " +
+                        " FROM " +
+                        "  `cdr_recipe_refund` r " +
+                        " WHERE " +
+                        "  doctorId = :doctorId " +
+                        "  AND node in (-1, 0) " +
+                        " GROUP BY " +
+                        "  r.BusId " );
                 if(null != refundType){
                     switch(refundType){
                         case 0:
-                            sql.append("where cr.doctorId = :doctorId group by cr.BusId ");
                             break;
                         case 1:
-                            sql.append("where cr.id in ( select MAX(id) from cdr_recipe_refund  r where r.doctorId = :doctorId GROUP BY BusId ) and node=-1 ");
-                            break;
                         case 2:
-                            sql.append("where cr.doctorId = :doctorId and cr.node = 0 and cr.status = 1 group by cr.BusId ");
-                            break;
                         case 3:
-                            sql.append("where cr.doctorId = :doctorId and cr.node = 0 and cr.status = 2 group by cr.BusId ");
+                            sqlNew.append(" having max( r.STATUS ) = :refundStatus ");
                             break;
                         default:
                             LOGGER.warn("当前查询处方退费列表信息，没有传状态，不做筛选");
-                            sql.append("group by cr.BusId ");
                             break;
                     }
 
                 }
-                sql.append(" order by cr.checkTime desc ");
+                sqlNew.append(" order by r.checkTime desc ");
 
-                Query query = ss.createSQLQuery(sql.toString());
+                Query query = ss.createSQLQuery(sqlNew.toString());
                 if(null != doctorId){
                     query.setParameter("doctorId", doctorId);
+                }
+                if(null != refundType && ! refundType.equals(new Integer(0))){
+
+                    query.setParameter("refundStatus", refundType -1);
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
+                List<Object[]> result = query.list();
+                List<RecipePatientRefundVO> results = new ArrayList<RecipePatientRefundVO>();
+                for(Object[] b : result){
+                    RecipePatientRefundVO recipePatientRefundVO = new RecipePatientRefundVO();
+                    recipePatientRefundVO.setBusId(getIntValue(b[0]));
+                    recipePatientRefundVO.setDoctorId(getIntValue(b[3]));
+                    recipePatientRefundVO.setDoctorNoPassReason(getStringValue(b[6]));
+                    recipePatientRefundVO.setPatientMpiid(getStringValue(b[2]));
+                    recipePatientRefundVO.setPatientName(getStringValue(b[1]));
+                    recipePatientRefundVO.setRefundDate(getDateValue(b[8]));
+                    recipePatientRefundVO.setRefundPrice(getDoubleValue(b[4]));
+                    recipePatientRefundVO.setRefundReason(getStringValue(b[5]));
+                    recipePatientRefundVO.setRefundStatus(getIntValue(b[7]));
+                    recipePatientRefundVO.setRefundStatusMsg(null != b[7] ? DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(b[7]) : null);
+                    results.add(recipePatientRefundVO);
+                }
 
 
-                setResult(query.list());
+
+                setResult(results);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    private Date getDateValue(Object o) throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
+        return null != o ? format.parse(o.toString()) : null;
+    }
+
+    private String getStringValue(Object o) {
+        return null != o ? o.toString() : null;
+    }
+
+    private Integer getIntValue(Object o) {
+        return null != o ? Integer.parseInt(o.toString()) : null;
+    }
+
+    private Double getDoubleValue(Object o) {
+        return null != o ? Double.parseDouble(o.toString()) : null;
+    }
+
+    private BigDecimal getBigDecimalValue(Object o) {
+        return null != o ? new BigDecimal(o.toString()) : null;
+    }
+
+    public RecipePatientRefundVO getDoctorPatientRefundByRecipeId(Integer busId) {
+        HibernateStatelessResultAction<RecipePatientRefundVO> action = new AbstractHibernateStatelessResultAction<RecipePatientRefundVO>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sqlNew = new StringBuilder(" SELECT " +
+                        "  r.busId busId, " +
+                        "  r.patientName patientName, " +
+                        "  r.Mpiid patientMpiid, " +
+                        "  r.doctorId doctorId, " +
+                        "  r.Price refundPrice, " +
+                        "  GROUP_CONCAT( IF ( node =- 1, r.Reason, NULL ) ) AS  refundReason, " +
+                        "  GROUP_CONCAT( IF ( node = 0, r.Reason, NULL ) ) AS doctorNoPassReason, " +
+                        "  max( r.STATUS ) refundStatus, " +
+                        "  min( r.checkTime ) refundDate " +
+                        " FROM " +
+                        "  `cdr_recipe_refund` r " +
+                        " WHERE " +
+                        "  node in (-1, 0) " +
+                        " and  " +
+                        "  r.BusId  = :busId " );
+//                StringBuilder sql = new StringBuilder("SELECT cr.BusId FROM `cdr_recipe_refund` cr ");
+//                //0：全部
+//                //1：待审核
+//                //2：审核通过
+//                //3：审核不通过
+//                if(null != refundType){
+//                    switch(refundType){
+//                        case 0:
+//                            sql.append("where cr.doctorId = :doctorId group by cr.BusId ");
+//                            break;
+//                        case 1:
+//                            sql.append("where cr.id in ( select MAX(id) from cdr_recipe_refund  r where r.doctorId = :doctorId GROUP BY BusId ) and node=-1 ");
+//                            break;
+//                        case 2:
+//                            sql.append("where cr.doctorId = :doctorId and cr.node = 0 and cr.status = 1 group by cr.BusId ");
+//                            break;
+//                        case 3:
+//                            sql.append("where cr.doctorId = :doctorId and cr.node = 0 and cr.status = 2 group by cr.BusId ");
+//                            break;
+//                        default:
+//                            LOGGER.warn("当前查询处方退费列表信息，没有传状态，不做筛选");
+//                            sql.append("group by cr.BusId ");
+//                            break;
+//                    }
+//
+//                }
+//                sql.append(" order by r.checkTime desc ");
+
+                Query query = ss.createSQLQuery(sqlNew.toString())
+                        .addScalar("refundPrice", StandardBasicTypes.DOUBLE)
+                        .addScalar("doctorId", StandardBasicTypes.INTEGER)
+                        .addScalar("refundStatus", StandardBasicTypes.INTEGER)
+                        .addScalar("refundReason", StandardBasicTypes.STRING)
+                        .addScalar("refundDate", StandardBasicTypes.DATE)
+                        .addScalar("patientName", StandardBasicTypes.STRING)
+                        .addScalar("busId", StandardBasicTypes.INTEGER)
+                        .addScalar("patientMpiid", StandardBasicTypes.STRING)
+                        .addScalar("doctorNoPassReason", StandardBasicTypes.STRING)
+                        .setResultTransformer(new AliasToBeanResultTransformer(RecipePatientRefundVO.class));
+                if(null != busId){
+                    query.setParameter("busId", busId);
+                }
+                RecipePatientRefundVO result = (RecipePatientRefundVO) query.uniqueResult();
+                result.setRefundStatusMsg(null != result.getRefundStatus() ? DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(result.getRefundStatus()) : null);
+                setResult(result);
             }
         };
         HibernateSessionTemplate.instance().execute(action);
