@@ -2673,7 +2673,7 @@ public class RecipeServiceSub {
             OrganService organService = BasicAPI.getService(OrganService.class);
             OrganDTO organDTO = organService.getByOrganId(organid);
             if (organDTO!=null&&StringUtils.isNotEmpty(organDTO.getMinkeUnitID())){
-                IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
+                IMinkeOrganService minkeOrganService = AppContextHolder.getBean("opbase.minkeOrganService", IMinkeOrganService.class);
                 return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
             }
         }
