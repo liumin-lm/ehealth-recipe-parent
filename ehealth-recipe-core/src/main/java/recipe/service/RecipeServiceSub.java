@@ -2675,14 +2675,18 @@ public class RecipeServiceSub {
      * @return
      */
     public static String getMinkeOrganCodeByOrganId(Integer organid){
-        if (organid !=null){
-            //获取民科机构登记号
-            OrganService organService = BasicAPI.getService(OrganService.class);
-            OrganDTO organDTO = organService.getByOrganId(organid);
-            if (organDTO!=null&&StringUtils.isNotEmpty(organDTO.getMinkeUnitID())){
-                IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
-                return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
+        try {
+            if (organid !=null){
+                //获取民科机构登记号
+                OrganService organService = BasicAPI.getService(OrganService.class);
+                OrganDTO organDTO = organService.getByOrganId(organid);
+                if (organDTO!=null&&StringUtils.isNotEmpty(organDTO.getMinkeUnitID())){
+                    IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
+                    return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
+                }
             }
+        } catch (Exception e) {
+            LOGGER.error("getMinkeOrganCodeByOrganId error",e);
         }
         return null;
     }
