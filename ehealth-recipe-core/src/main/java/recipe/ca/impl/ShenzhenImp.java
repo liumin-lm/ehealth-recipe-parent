@@ -103,7 +103,9 @@ public class ShenzhenImp implements CAInterface {
             CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
             if (caPictureResponseTO == null || caPictureResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caPictureResponseTO.getCode());
-                caSignResultVo.setResultCode(0);
+                //caSignResultVo.setResultCode(0);
+                caSignResultVo.setResultCode(1);
+
                 caSignResultVo.setMsg(caPictureResponseTO.getMsg());
                 return caSignResultVo;
             }
@@ -126,7 +128,9 @@ public class ShenzhenImp implements CAInterface {
             CaSignResponseTO caSignResponseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (caSignResponseTO == null || caSignResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
-                caSignResultVo.setResultCode(0);
+               // caSignResultVo.setResultCode(0);
+               caSignResultVo.setResultCode(1);
+
                 caSignResultVo.setMsg(caSignResponseTO.getMsg());
                 return caSignResultVo;
             }
@@ -142,7 +146,8 @@ public class ShenzhenImp implements CAInterface {
             CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
             if (caCertificateResponseTO == null || caCertificateResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
-                caSignResultVo.setResultCode(0);
+                //caSignResultVo.setResultCode(0);
+                caSignResultVo.setResultCode(1);
                 caSignResultVo.setMsg(caSignResponseTO.getMsg());
                 return caSignResultVo;
             }
