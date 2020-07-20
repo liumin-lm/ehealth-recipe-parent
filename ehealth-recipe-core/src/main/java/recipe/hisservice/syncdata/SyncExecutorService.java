@@ -44,14 +44,6 @@ public class SyncExecutorService {
     private static final String REGULATION_GD = "gdsjgpt";
 
     /**
-     * 上传批量处方，暂时用不到
-     */
-    @RpcService
-    public void uploadRecipeIndicators() {
-
-    }
-
-    /**
      * 上传单个处方
      *
      * @param recipe
@@ -72,53 +64,6 @@ public class SyncExecutorService {
         } catch (Exception e) {
             LOGGER.error("uploadRecipeIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
         }
-
-        /* //上传openApi的
-        CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
-        try {
-            response = null;
-            response = service.uploadRecipeIndicators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-                //更新字段
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传成功");
-                LOGGER.info("uploadRecipeIndicators openapi execute success. recipeId={}", recipe.getRecipeId());
-            }else {
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
-                LOGGER.warn("uploadRecipeIndicators openapi execute error. recipe={}", JSONUtils.toString(recipe));
-            }
-        } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
-        }*/
-
-       /* //上传hisApi方式
-        HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-        try {
-            response = hisSyncService.uploadRecipeIndi cators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-                //更新字段
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传成功");
-                LOGGER.info("uploadRecipeIndicators openapi execute success. recipeId={}", recipe.getRecipeId());
-            }else {
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
-                LOGGER.warn("uploadRecipeIndicators openapi execute error. recipe={}", JSONUtils.toString(recipe));
-            }
-        } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
-        }
-*/
-
     }
 
     /**
@@ -208,8 +153,5 @@ public class SyncExecutorService {
                 LOGGER.error("uploadRecipeIndicators exception ", e);
             }
         }
-
-
     }
-
 }

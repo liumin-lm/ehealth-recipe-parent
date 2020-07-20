@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:context="http://www.springframework.org/schema/context"
-	   xmlns:apollo="http://www.ctrip.com/schema/apollo"
+	   xmlns:apollo="http://www.ctrip.com/schema/apollo" xmlns:mvc="http://www.springframework.org/schema/mvc"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-	http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd">
+
+	http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<!--<context:property-placeholder location="classpath:config.properties" file-encoding="UTF-8" />-->
-	<apollo:config />
+	<apollo:config/>
 	<apollo:config namespaces="DEV.publicUrl"/>
 
 	<!-- 文件token校验 -->
@@ -18,18 +17,27 @@
 	</bean>
 
 	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
-	<import resource="spring-hibernate.xml" />
+	<import resource="spring-hibernate.xml"/>
 	<import resource="spring-controller.xml"/>
 	<import resource="spring-mq.xml"/>
-	<import resource="spring-service.xml" />
+	<import resource="spring-service.xml"/>
 	<import resource="spring-redis.xml"/>
-	<import resource="spring-service-base.xml" />
-    <import resource="spring-service-basic.xml" />
-    <import resource="spring-service-consult.xml" />
-    <import resource="spring-service-messsage.xml" />
-	<import resource="spring-service-his-center.xml" />
+	<import resource="spring-service-base.xml"/>
+	<import resource="spring-service-basic.xml"/>
+	<import resource="spring-service-consult.xml"/>
+	<import resource="spring-service-messsage.xml"/>
+	<import resource="spring-service-his-center.xml"/>
 	<import resource="spring-service-opbase.xml"/>
-    <import resource="spring-file.xml"/>
+	<import resource="spring-file.xml"/>
+
+	<!--日志traceId 追踪添加拦截-->
+	<mvc:interceptors>
+		<bean class="recipe.comment.TraceInterceptor"/>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="recipe.comment.TraceInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
@@ -37,17 +45,17 @@
 	<!--钥世圈对接实现-->
 	<bean id="ysqRemoteService" class="recipe.drugsenterprise.YsqRemoteService"></bean>
 
-    <!--支付宝对接实现-->
-    <bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
+	<!--支付宝对接实现-->
+	<bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
 
-    <!--测试药企-->
-    <bean id="aldyfRemoteService" class="recipe.drugsenterprise.AldyfRemoteService"></bean>
+	<!--测试药企-->
+	<bean id="aldyfRemoteService" class="recipe.drugsenterprise.AldyfRemoteService"></bean>
 
-    <!--九州通对接实现-->
+	<!--九州通对接实现-->
 	<bean id="jztdyfRemoteService" class="recipe.drugsenterprise.JztdyfRemoteService"></bean>
 
-    <!--测试药店对接实现-->
-    <bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
+	<!--测试药店对接实现-->
+	<bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
 
 	<!--测试药企-->
 	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>

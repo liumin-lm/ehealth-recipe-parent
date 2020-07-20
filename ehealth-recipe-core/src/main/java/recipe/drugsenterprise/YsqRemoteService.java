@@ -747,7 +747,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("BINGLINUMBER", recipe.getPatientID());
             //身份信息使用原始身份证号，暂定空
             recipeMap.put("IDENTIFICATION", patient.getCertificate());
-            recipeMap.put("USERID", recipe.getPatientID());
+            //recipeMap.put("USERID", recipe.getPatientID());
             recipeMap.put("TELPHONE", patient.getMobile());
             if (sendRecipe) {
                 recipeMap.put("RECEIVENAME", order.getReceiver());

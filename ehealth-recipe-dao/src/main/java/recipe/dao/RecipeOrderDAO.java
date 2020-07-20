@@ -7,7 +7,6 @@ import com.google.common.collect.Sets;
 import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipereportform.model.*;
@@ -18,7 +17,6 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import ctd.util.converter.ConversionUtils;
 import eh.billcheck.constant.BillBusFeeTypeEnum;
@@ -32,7 +30,6 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
@@ -65,7 +62,17 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract RecipeOrder getByOrderCode(@DAOParam("orderCode") String orderCode);
 
     /**
+     * 批量查询 根据编号获取有效订单
+     *
+     * @param orderCodeList
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where orderCode in (:orderCodeList)")
+    public abstract List<RecipeOrder> findByOrderCode(@DAOParam("orderCodeList") List<String> orderCodeList);
+
+    /**
      * 根据流水号获取订单
+     *
      * @param tradeNo
      * @return
      */
@@ -101,6 +108,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据处方id获取药企id
+     *
      * @param recipeId
      * @return
      */
@@ -108,7 +116,16 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract Integer getEnterpriseIdByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
     /**
+     * 根据处方id批量删除
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "delete from RecipeOrder where orderCode in (:orderCodeList)")
+    public abstract void deleteByRecipeIds(@DAOParam("orderCodeList") List<String> orderCodeList);
+
+    /**
      * 根据支付标识查询订单集合
+     *
      * @param payFlag
      * @return
      */
@@ -952,7 +969,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuffer paySql = new StringBuffer();
                 paySql.append("SELECT  r.ClinicOrgan, count(*), sum(IFNULL(o.ActualPrice, 0)) ");
                 paySql.append(" FROM cdr_recipe r, cdr_recipeorder o ");
-                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.PayFlag = 1 ");
+                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.ActualPrice != 0 ");
                 paySql.append(" AND  PayTime >= :startTime AND PayTime < :endTime ");
                 paySql.append(" GROUP BY r.ClinicOrgan ");
                 Query paySqlQuery = ss.createSQLQuery(paySql.toString());
@@ -1110,7 +1127,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("SELECT OrganId,enterpriseName, lastBalance, thisRecived, thisDispatched, lastBalance+thisRecived-thisDispatched from(" +
-                        "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.PayTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched ");
+                        "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.finishTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched ");
                 StringBuilder searchSql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d where c.EnterpriseId = d.Id");
                 if (CollectionUtils.isNotEmpty(organIdList)) {
                     searchSql.append(" and c.OrganId in :organIdList");

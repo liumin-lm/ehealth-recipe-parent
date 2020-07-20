@@ -109,7 +109,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
     private Integer storePayFlag;
 
-    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    @ItemProperty(alias = "配送主体类型 1医院配送 2 药企配送")
     private Integer sendType;
 
     @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")

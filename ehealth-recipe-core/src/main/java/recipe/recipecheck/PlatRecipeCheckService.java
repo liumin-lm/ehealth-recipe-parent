@@ -114,24 +114,9 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
 //        });
 //        //推送处方到监管平台(审核后数据)
 //        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
-        //对重庆附二进行处理,审核通过将处方信息推送第三方
-        pushRecipeForThird(recipe);
         return resMap;
     }
 
-    private void pushRecipeForThird(Recipe recipe) {
-        try{
-            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-
-            List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-            for (DrugsEnterprise drugsEnterprise : retList) {
-                drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
-            }
-        }catch(Exception e){
-            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
-        }
-    }
 
     public void doAfterCheckNotPassYs(Recipe recipe) {
         boolean secondsignflag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());

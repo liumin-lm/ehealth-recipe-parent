@@ -13,6 +13,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -543,7 +544,7 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
-    private String getRecipeStatusTabText(int status) {
+    private String getRecipeStatusTabText(int status, int recipeId) {
         String msg;
         switch (status) {
             case RecipeStatusConstant.FINISH:
@@ -563,7 +564,14 @@ public class RecipeListService extends RecipeBaseService{
                 break;
             //已撤销从已取消拆出来
             case RecipeStatusConstant.REVOKE:
-                msg = "已撤销";
+                RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
+                    msg = "已取消";
+                }else{
+
+                    msg = "已撤销";
+                }
+
                 break;
             //已撤销从已取消拆出来
             case RecipeStatusConstant.DELETE:
@@ -987,6 +995,7 @@ public class RecipeListService extends RecipeBaseService{
 
             Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
             PatientDTO p;
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             for (PatientTabStatusRecipeDTO record : backList) {
                 p = patientMap.get(record.getMpiId());
                 if (null != p) {
@@ -994,6 +1003,8 @@ public class RecipeListService extends RecipeBaseService{
                     record.setPhoto(p.getPhoto());
                     record.setPatientSex(p.getPatientSex());
                 }
+                //获取扁鹊处方流转平台第三方跳转url
+                record.setThirdUrl(recipeOrderService.getThirdUrl(record.getRecordId()));
                 //能否购药进行设置，默认可购药
                 record.setCheckEnterprise(true);
                 if (null != record.getOrganId()) {
@@ -1005,7 +1016,7 @@ public class RecipeListService extends RecipeBaseService{
                 }
 
                 if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
-                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode()));
+                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode(), record.getRecordId()));
                     //设置失效时间
                     if (RecipeStatusConstant.CHECK_PASS == record.getStatusCode()) {
                         record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
@@ -1136,6 +1147,11 @@ public class RecipeListService extends RecipeBaseService{
         Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if(null == recipe){
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
+            payModeShowButtonBean.noUserButtons();
+            return payModeShowButtonBean;
+        }
+        //流转到扁鹊处方流转平台的处方购药按钮都不显示
+        if (recipe.getEnterpriseId()!=null && RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())){
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }

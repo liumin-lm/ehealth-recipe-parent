@@ -1,14 +1,11 @@
 package recipe.service.recipecancel;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.home.asyn.model.BussCancelEvent;
-import com.ngari.home.asyn.model.BussCreateEvent;
-import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -16,26 +13,18 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
-import recipe.ApplicationUtils;
-import recipe.constant.BussTypeConstant;
-import recipe.constant.RecipeBussConstant;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2020/4/3
@@ -44,6 +33,8 @@ import static ctd.persistence.DAOFactory.getDAO;
 @RpcBean("recipeCancelService")
 public class RecipeCancelService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCancelService.class);
+    @Autowired
+    private IRecipeEnterpriseService recipeEnterpriseService;
 
     /**
      * 处方撤销处方new----------(供医生端使用)
@@ -91,11 +82,21 @@ public class RecipeCancelService {
         if (Integer.valueOf(1).equals(recipe.getChooseFlag())) {
             msg = "患者已选择购药方式，不能进行撤销操作";
         }
+
+        //判断第三方处方能否取消,若不能则获取不能取消的原因---只有推送成功的时候才判断第三方
+        if (new Integer(1).equals(recipe.getPushFlag())){
+            HisResponseTO res = canCancelRecipe(recipe);
+            if (!res.isSuccess()){
+                msg = res.getMsg();
+            }
+        }
+
         if (StringUtils.isNotEmpty(msg)) {
             rMap.put("result", result);
             rMap.put("msg", msg);
             return rMap;
         }
+
         //审核通过变为待审核
         Map<String, Object> updateMap = Maps.newHashMap();
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())){
@@ -130,5 +131,34 @@ public class RecipeCancelService {
         map.put("localLimitDate", DateConversion.getDateAftMinute(new Date(), 10));
         map.put("updateTime",new Date());
         recipeCheckDAO.updateRecipeExInfoByRecipeId(recipeId,map);
+    }
+
+    public HisResponseTO canCancelRecipe(Recipe recipe) {
+        HisResponseTO res;
+        try {
+            HospitalReqTo req = new HospitalReqTo();
+            if (recipe != null){
+                req.setOrganId(recipe.getClinicOrgan());
+                req.setPrescriptionNo(String.valueOf(recipe.getRecipeId()));
+                req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
+            }
+            LOGGER.info("canCancelRecipe recipeId={} req={}",recipe.getRecipeId(),JSONUtils.toString(req));
+            res = recipeEnterpriseService.cancelRecipe(req);
+            LOGGER.info("canCancelRecipe recipeId={} res={}",recipe.getRecipeId(),JSONUtils.toString(res));
+            if (res == null){
+                res = new HisResponseTO();
+                res.setSuccess();
+            }else {
+                if (StringUtils.isEmpty(res.getMsg())){
+                    res.setMsg("抱歉，该处方单已被处理，无法撤销。");
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("canCancelRecipe error recipeId={}",recipe.getRecipeId(),e);
+            res = new HisResponseTO();
+            res.setMsgCode("0");
+            res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
+        }
+        return res;
     }
 }

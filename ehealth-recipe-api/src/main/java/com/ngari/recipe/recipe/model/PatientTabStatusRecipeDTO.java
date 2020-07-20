@@ -112,6 +112,11 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private Integer enterpriseId;
 
+    /**
+     * 第三方跳转url
+     */
+    private String thirdUrl;
+
     public PatientTabStatusRecipeDTO() {
     }
 
@@ -377,5 +382,13 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setEnterpriseId(Integer enterpriseId) {
         this.enterpriseId = enterpriseId;
+    }
+
+    public String getThirdUrl() {
+        return thirdUrl;
+    }
+
+    public void setThirdUrl(String thirdUrl) {
+        this.thirdUrl = thirdUrl;
     }
 }

@@ -22,6 +22,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAO;
@@ -634,7 +635,7 @@ public class HisRequestInit {
                             if (depId != null) {
                                 DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                                 DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
-                                if (drugsEnterprise != null && drugsEnterprise.getSendType() == 1) {
+                                if (drugsEnterprise != null && drugsEnterprise.getSendType() == RecipeSendTypeEnum.NO_PAY.getSendType()) {
                                     //药企配送
                                     requestTO.setTakeDrugsType("2");
                                 } else {

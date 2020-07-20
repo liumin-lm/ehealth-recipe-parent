@@ -493,4 +493,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request);
 
-}
+    @RpcService
+    Integer recipeStatusNotice(Map<String, Object> paramMap);
+
+    @RpcService
+    Map<String, Object>   findRecipeCanRefundByClinicId(Map<String,String> params);
+
+    }
