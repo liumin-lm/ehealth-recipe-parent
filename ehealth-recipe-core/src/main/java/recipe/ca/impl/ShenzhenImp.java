@@ -74,6 +74,7 @@ public class ShenzhenImp implements CAInterface {
         * */
         requestTO.setUserAccount("1217");
         requestTO.setPassword("123456");
+        requestTO.setOrganId(1000169);
 
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
         String userAccount = requestTO.getUserAccount();
@@ -100,7 +101,9 @@ public class ShenzhenImp implements CAInterface {
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
             requestTO.setUserAccount(userAccount);
-            requestTO.setOrganId(recipe.getClinicOrgan());
+            //requestTO.setOrganId(recipe.getClinicOrgan());
+            // 测试数据前置机配置杭州市中医院
+            requestTO.setOrganId(1000169);
             CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
             if (caPictureResponseTO == null || caPictureResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caPictureResponseTO.getCode());
@@ -125,7 +128,8 @@ public class ShenzhenImp implements CAInterface {
             }
             //签名原文
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
-            caSignRequestTO.setOrganId(recipe.getClinicOrgan());
+            //caSignRequestTO.setOrganId(recipe.getClinicOrgan());
+            caSignRequestTO.setOrganId(1000169);
             CaSignResponseTO caSignResponseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (caSignResponseTO == null || caSignResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
@@ -142,7 +146,8 @@ public class ShenzhenImp implements CAInterface {
             //获取base64位证书
             CaCertificateRequestTO caCertificateRequestTO = new CaCertificateRequestTO();
             caCertificateRequestTO.setUserAccount(userAccount);
-            caSignRequestTO.setOrganId(recipe.getClinicOrgan());
+            //caSignRequestTO.setOrganId(recipe.getClinicOrgan());
+            caCertificateRequestTO.setOrganId(1000169);
 
             CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
             if (caCertificateResponseTO == null || caCertificateResponseTO.getCode() != 200) {
