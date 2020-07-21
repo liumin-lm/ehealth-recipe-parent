@@ -291,7 +291,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 break;
             case 4:
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
-                RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), msg);
+                RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), "退费失败");
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 break;
             default:
