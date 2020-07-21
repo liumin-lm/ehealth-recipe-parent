@@ -1913,6 +1913,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
                 if (response != null) {
                     thirdUrl = response.getData();
+                }else {
+                    throw new DAOException(609,"获取扁鹊处方流转平台链接异常");
                 }
             } catch (Exception e) {
                 LOGGER.error("getRecipeThirdUrl error ", e);
