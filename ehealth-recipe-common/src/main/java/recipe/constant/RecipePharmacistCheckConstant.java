@@ -28,5 +28,9 @@ public class RecipePharmacistCheckConstant {
      * 失效
      */
     public static final int Check_Failure = 4;
+    /**
+     * 已取消
+     */
+    public static final int Cancel = 7;
 
 }
