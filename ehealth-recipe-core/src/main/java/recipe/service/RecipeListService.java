@@ -1003,8 +1003,8 @@ public class RecipeListService extends RecipeBaseService{
                     record.setPhoto(p.getPhoto());
                     record.setPatientSex(p.getPatientSex());
                 }
-                //获取扁鹊处方流转平台第三方跳转url
-                record.setThirdUrl(recipeOrderService.getThirdUrl(record.getRecordId()));
+                /*//获取扁鹊处方流转平台第三方跳转url
+                record.setThirdUrl(recipeOrderService.getThirdUrl(record.getRecordId()));*/
                 //能否购药进行设置，默认可购药
                 record.setCheckEnterprise(true);
                 if (null != record.getOrganId()) {
