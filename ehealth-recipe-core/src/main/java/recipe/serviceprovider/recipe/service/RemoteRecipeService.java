@@ -1246,6 +1246,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if (recipe == null) {
                 return 0;
             }
+
             //表示回调成功,需要查询处方状态并开始更新处方信息
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             HospitalReqTo hospitalReqTo = new HospitalReqTo();
