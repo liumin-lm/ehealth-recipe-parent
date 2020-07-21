@@ -747,10 +747,6 @@ public class RecipeCheckService {
                 if (1 == nowRecipeCheck.getCheckStatus()) {
                     checkResult = RecipePharmacistCheckConstant.Check_Pass;
                 } else {
-                    //date 20200721 添加“已取消”状态
-                    if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
-                        return RecipePharmacistCheckConstant.Cancel;
-                    }
                     checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }else{
@@ -761,6 +757,10 @@ public class RecipeCheckService {
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = 0;
         } else if (RecipeStatusConstant.REVOKE == status) {
+            //date 20200721 添加“已取消”状态
+            if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                return RecipePharmacistCheckConstant.Cancel;
+            }
             checkResult = 4;
         } else {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
