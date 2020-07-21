@@ -1373,7 +1373,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN//25
                             ||recipe.getStatus()==RecipeStatusConstant.REVOKE      //9
                             ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS//-1
-                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS_YS)//15
+                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS_YS//15
+                            ||recipe.getStatus()==RecipeStatusConstant.UNSIGN)//0
                     ){
                         String recipeStatusTextTmp=DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
                         if(StringUtils.isEmpty(recipeStatusText)||(!StringUtils.isEmpty(recipeStatusText)&&!recipeStatusText.contains(recipeStatusTextTmp))){
