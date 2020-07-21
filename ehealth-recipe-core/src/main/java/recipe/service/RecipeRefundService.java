@@ -216,6 +216,7 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         recipeRefund.setNode(recipeRefund.getNode());
         recipeRefund.setStatus(recipeRefund.getStatus());
+        recipeRefund.setApplyTime(new Date());
         recipeRefund.setCheckTime(new Date());
         //保存记录
         recipeRefundDao.saveRefund(recipeRefund);
@@ -291,6 +292,7 @@ public class RecipeRefundService extends RecipeBaseService{
                     String memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(record.getCheckNode()) +
                         DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(record.getCheckStatus());
                     recipeRefund.setMemo(memo);
+                    recipeRefund.setApplyTime(new Date());
                     recipeRefund.setCheckTime(null);
                     //保存记录
                     recipeRefundDao.saveRefund(recipeRefund);
