@@ -1916,6 +1916,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } catch (Exception e) {
                 LOGGER.error("getRecipeThirdUrl error ", e);
+                throw new DAOException(609,"获取扁鹊处方流转平台链接异常");
             }
         }
         return thirdUrl;
