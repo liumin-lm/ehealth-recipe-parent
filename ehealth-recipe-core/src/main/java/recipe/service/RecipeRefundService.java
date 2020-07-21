@@ -97,7 +97,7 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             //退费申请记录保存
             RecipeRefund recipeRefund = new RecipeRefund();
-            recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+            recipeRefund.setTradeNo(extend.getHisSettlementNo());
             recipeRefund.setPrice(recipeOrder.getActualPrice());
             recipeRefund.setNode(-1);
             recipeRefund.setApplyNo(hisResult.getData());
