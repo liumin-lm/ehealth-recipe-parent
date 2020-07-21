@@ -277,7 +277,7 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         List<RecipeRefundBean> result = new ArrayList<>();
         //医生审核后还需要获取医院his的审核状态(医生已审核且通过、还未退费)
-        RecipeRefund refundTemp = list.get(0);
+        RecipeRefund refundTemp = list.get(list.size() - 1);
         if(refundTemp.getNode() >= 0 && refundTemp.getNode() != 9 && !(refundTemp.getNode() == 0 && refundTemp.getStatus() == 2)){
             RecipeRefund recipeRefund = null;
             try {
