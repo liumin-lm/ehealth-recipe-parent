@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.visit.mode.ApplicationForRefundVisitReqTO;
 import com.ngari.his.visit.mode.CheckForRefundVisitReqTO;
@@ -16,21 +17,31 @@ import com.ngari.recipe.entity.RecipeRefund;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.common.RecipePatientRefundVO;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeRefundDAO;
+import recipe.dao.RecipeExtendDAO;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**
@@ -81,10 +92,12 @@ public class RecipeRefundService extends RecipeBaseService{
             //退费申请记录保存
             RecipeRefund recipeRefund = new RecipeRefund();
             recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+            recipeRefund.setPrice(recipeOrder.getActualPrice());
             recipeRefund.setNode(-1);
-//            recipeRefund.setApplyNo(hisResult.getData());
+            recipeRefund.setApplyNo(hisResult.getData());
             recipeRefund.setReason(applyReason);
             recipeReFundSave(recipe, recipeRefund);
+            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
         } else {
             LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             String msg = "";
@@ -149,8 +162,12 @@ public class RecipeRefundService extends RecipeBaseService{
             recipeRefund.setStatus(Integer.valueOf(checkStatus));
             recipeRefund.setReason(checkReason);
             recipeRefund.setTradeNo(list.get(0).getTradeNo());
-//            recipeRefund.setApplyNo(hisResult.getData());
+            recipeRefund.setPrice(list.get(0).getPrice());
+            recipeRefund.setApplyNo(hisResult.getData());
             recipeReFundSave(recipe, recipeRefund);
+            if(2 == Integer.valueOf(checkStatus)){
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_AUDIT_FAIL);
+            }
         } else {
             LOGGER.error("checkForRecipeRefund-处方退费审核失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             throw new DAOException("处方退费审核失败！" + hisResult.getMsg());
@@ -171,24 +188,9 @@ public class RecipeRefundService extends RecipeBaseService{
         RecipeRefundDAO recipeRefundDao = DAOFactory.getDAO(RecipeRefundDAO.class);
         recipeRefund.setBusId(recipe.getRecipeId());
         recipeRefund.setOrganId(recipe.getClinicOrgan());
-        switch(recipeRefund.getNode()){
-            case -1:
-                recipeRefund.setUserId(recipe.getMpiid());
-                recipeRefund.setUserType(1);
-                recipeRefund.setStatus(0);
-                break;
-            case 0:
-                recipeRefund.setUserId(recipe.getDoctor() + "");
-                recipeRefund.setUserType(2);
-                break;
-            default:
-                recipeRefund.setUserId("his");
-                recipeRefund.setUserType(3);
-                break;
-        }
-        recipeRefund.setNode(recipeRefund.getNode());
-        recipeRefund.setStatus(recipeRefund.getStatus());
-        recipeRefund.setCheckTime(new Date());
+        recipeRefund.setMpiid(recipe.getMpiid());
+        recipeRefund.setPatientName(recipe.getPatientName());
+        recipeRefund.setDoctorId(recipe.getDoctor());
         String memo = null;
         try {
             memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(recipeRefund.getNode()) +
@@ -198,6 +200,24 @@ public class RecipeRefundService extends RecipeBaseService{
             throw new DAOException("退费相关字典获取失败");
         }
         recipeRefund.setMemo(memo);
+//        switch(recipeRefund.getNode()){
+//            case -1:
+//                recipeRefund.setStatus(0);
+//                recipeRefund.setMemo("患者发起退费申请");
+//                break;
+//            case 0:
+//                break;
+//            default:
+//                break;
+//        }
+        if(recipeRefund.getNode() == -1){
+            recipeRefund.setStatus(0);
+            recipeRefund.setMemo("患者发起退费申请");
+        }
+        recipeRefund.setNode(recipeRefund.getNode());
+        recipeRefund.setStatus(recipeRefund.getStatus());
+        recipeRefund.setApplyTime(new Date());
+        recipeRefund.setCheckTime(new Date());
         //保存记录
         recipeRefundDao.saveRefund(recipeRefund);
 
@@ -249,32 +269,46 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public List<RecipeRefundBean> findRecipeReFundRate(Integer recipeId) {
         RecipeRefundDAO recipeRefundDao = DAOFactory.getDAO(RecipeRefundDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<RecipeRefund> list = recipeRefundDao.findRefundListByRecipeId(recipeId);
         if(list == null || list.size() == 0){
             LOGGER.error("findRecipeReFundRate-未获取到处方退费信息. recipeId={}", recipeId);
             throw new DAOException("未获取到处方退费信息！");
         }
         List<RecipeRefundBean> result = new ArrayList<>();
-        //医生审核后还需要获取医院his的审核状态
-        if(list.get(0).getNode() >= 0 && list.get(0).getNode() != 9){
+        //医生审核后还需要获取医院his的审核状态(医生已审核且通过、还未退费)
+        RecipeRefund refundTemp = list.get(0);
+        if(refundTemp.getNode() >= 0 && refundTemp.getNode() != 9 && !(refundTemp.getNode() == 0 && refundTemp.getStatus() == 2)){
             RecipeRefund recipeRefund = null;
             try {
-                FindRefundRecordResponseTO record = findRefundRecordfromHis(recipeId, list.get(0).getApplyNo());
+                FindRefundRecordResponseTO record = findRefundRecordfromHis(recipeId, refundTemp.getApplyNo());
                 //当his的审核记录发生变更时才做记录
-                if(null != record && !(list.get(0).getNode().equals(record.getCheckNode())
-                                        && list.get(0).getStatus().equals(record.getCheckStatus()))){
-                    recipeRefund = ObjectCopyUtils.convert(list.get(0), RecipeRefund.class);
-                    recipeRefund.setUserId("his");
-                    recipeRefund.setUserType(3);
+                if(null != record && !(refundTemp.getNode().equals(Integer.valueOf(record.getCheckNode()))
+                                        && refundTemp.getStatus().equals(Integer.valueOf(record.getCheckStatus())))){
+                    recipeRefund = ObjectCopyUtils.convert(refundTemp, RecipeRefund.class);
                     recipeRefund.setNode(Integer.valueOf(record.getCheckNode()));
                     recipeRefund.setStatus(Integer.valueOf(record.getCheckStatus()));
                     recipeRefund.setReason(record.getReason());
                     String memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(record.getCheckNode()) +
                         DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(record.getCheckStatus());
                     recipeRefund.setMemo(memo);
+                    recipeRefund.setApplyTime(new Date());
                     recipeRefund.setCheckTime(null);
                     //保存记录
                     recipeRefundDao.saveRefund(recipeRefund);
+                    //date 20200717
+                    //添加推送逻辑
+//                    if(9 == Integer.valueOf(record.getCheckNode())){
+//                        if(1 == Integer.valueOf(record.getCheckStatus())){
+//                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
+//                            //修改处方单状态
+//                            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, null);
+//                        }
+//                        if(2 == Integer.valueOf(record.getCheckStatus())){
+//                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
+//
+//                        }
+//                    }
                     //将最新记录返回到前端
                     result.add(ObjectCopyUtils.convert(recipeRefund, RecipeRefundBean.class));
                 }
@@ -284,7 +318,17 @@ public class RecipeRefundService extends RecipeBaseService{
         }
 
         for(int i=0; i<list.size(); i++){
-            result.add(ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class));
+
+            RecipeRefundBean recipeRefundBean2 =ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class);
+            //退费申请多加一天等待审核的数据，并且去掉理由
+            if(list.get(i).getNode().equals(-1)){
+                RecipeRefundBean recipeRefundBean = new RecipeRefundBean();
+                recipeRefundBean.setBusId(list.get(i).getBusId());
+                recipeRefundBean.setMemo("等待审核");
+                result.add(recipeRefundBean);
+                recipeRefundBean2.setReason(null);
+            }
+            result.add(recipeRefundBean2);
         }
         return result;
 
@@ -306,5 +350,81 @@ public class RecipeRefundService extends RecipeBaseService{
         } else {
             return true;
         }
+    }
+
+    @RpcService
+    public List<RecipePatientRefundVO> findPatientRefundRecipesByDoctorId(Integer doctorId, Integer refundType, int start, int limit) {
+        List<RecipePatientRefundVO> result = new ArrayList<RecipePatientRefundVO>();
+        //获取当前医生的退费处方列表，根据当前处方的开方医生审核列表获取当前退费最新的一条记录
+        RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        return recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
+    }
+
+    private void initRecipeRefundVo(List<Integer> noteList, Recipe recipe, RecipeOrder recipeOrder, Integer recipeId, RecipePatientRefundVO recipePatientRefundVO) {
+        RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
+        recipePatientRefundVO.setBusId(recipeId);
+        List<RecipeRefund> nodes = recipeRefundDAO.findRefundListByRecipeIdAndNodes(recipeId, noteList);
+        for(RecipeRefund recipeRefund : nodes){
+            recipePatientRefundVO.setDoctorId(recipeRefund.getDoctorId());
+            if(0 == recipeRefund.getNode()){
+                recipePatientRefundVO.setDoctorNoPassReason(recipeRefund.getReason());
+            }
+            recipePatientRefundVO.setPatientMpiid(recipe.getMpiid());
+            recipePatientRefundVO.setPatientName(recipe.getPatientName());
+            recipePatientRefundVO.setRefundPrice(recipeOrder.getActualPrice());
+            if(-1 == recipeRefund.getNode()){
+                recipePatientRefundVO.setRefundReason(recipeRefund.getReason());
+                recipePatientRefundVO.setRefundDate(recipeRefund.getCheckTime());
+            }
+
+        }
+        if(CollectionUtils.isNotEmpty(nodes)){
+            try {
+                recipePatientRefundVO.setRefundStatusMsg(DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(nodes.get(0).getStatus()));
+            } catch (Exception e) {
+                throw new DAOException(e);
+            }
+        }
+        recipePatientRefundVO.setRefundStatus(nodes.get(0).getStatus());
+    }
+
+    @RpcService
+    public RecipePatientRefundVO getPatientRefundRecipeByRecipeId(Integer busId) {
+
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
+        return recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
+    }
+
+    //用户提交退费申请给医生
+    @RpcService
+    public Map<String, Object> startRefundRecipeToDoctor(Integer recipeId, String patientRefundReason){
+        Map<String, Object> result = Maps.newHashMap();
+
+        try {
+            applyForRecipeRefund(recipeId, patientRefundReason);
+        } catch (Exception e) {
+            throw new DAOException(609,e.getMessage());
+        }
+
+        result.put("result", true);
+        result.put("code", 200);
+        return result;
+    }
+
+    //医生端审核患者退费，通过不通过的
+    @RpcService
+    public Map<String, Object> doctorCheckRefundRecipe(Integer busId, Boolean checkResult, String doctorNoPassReason){
+        Map<String, Object> result = Maps.newHashMap();
+        try {
+            checkForRecipeRefund(busId,checkResult ? "1" : "2",doctorNoPassReason);
+        } catch (Exception e) {
+            throw new DAOException(609,e.getMessage());
+        }
+        result.put("result", true);
+        result.put("code", 200);
+        return result;
     }
 }

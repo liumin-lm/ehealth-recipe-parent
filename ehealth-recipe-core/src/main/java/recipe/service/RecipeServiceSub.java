@@ -23,6 +23,7 @@ import com.ngari.follow.service.IRelationPatientService;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.message.api.MessageAPI;
 import com.ngari.message.api.service.ConsultMessageService;
 import com.ngari.message.api.service.INetworkclinicMsgService;
@@ -58,6 +59,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
@@ -1067,6 +1069,7 @@ public class RecipeServiceSub {
      */
     public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, Boolean effective, Integer orderStatus) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         String cancelReason = "";
         String tips = "";
         String listTips = "";
@@ -1130,11 +1133,16 @@ public class RecipeServiceSub {
                     tips = "待处理";
                     break;
                 case RecipeStatusConstant.REVOKE:
-                    tips = "已撤销";
-                    cancelReason = "由于您已撤销，该处方单已失效";
-                    List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
-                    if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                        cancelReason = recipeLogs.get(0).getMemo();
+                    if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                        cancelReason = "由于患者申请退费成功，该处方已取消。";
+                        tips = "已取消";
+                    }else{
+                        tips = "已撤销";
+                        cancelReason = "由于您已撤销，该处方单已失效";
+                        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
+                        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                            cancelReason = recipeLogs.get(0).getMemo();
+                        }
                     }
                     break;
                 case RecipeStatusConstant.HAVE_PAY:
@@ -1842,12 +1850,18 @@ public class RecipeServiceSub {
     }
 
     private static String getCancelReasonForPatient(int recipeId) {
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
         String cancelReason = "";
-        if (CollectionUtils.isNotEmpty(recipeLogs)) {
-            cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
+            cancelReason = "由于患者申请退费成功，该处方已取消。";
+        }else{
+            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+            }
         }
+
         return cancelReason;
     }
 
@@ -2034,6 +2048,7 @@ public class RecipeServiceSub {
         Integer giveMode = recipe.getGiveMode();
         String orderCode = recipe.getOrderCode();
         String tips = "";
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         switch (status) {
             case RecipeStatusConstant.FINISH:
                 tips = "处方单已完结.";
@@ -2114,7 +2129,10 @@ public class RecipeServiceSub {
 
                 break;
             case RecipeStatusConstant.REVOKE:
-                tips = "由于医生已撤销，该处方单已失效，请联系医生.";
+                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                    tips = "由于患者申请退费成功，该处方已取消。";
+                }else{
+                tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:
@@ -2426,12 +2444,13 @@ public class RecipeServiceSub {
             }
         }
 
-        //判断第三方处方能否取消,若不能则获取不能取消的原因
-        HisResponseTO res = recipeCancelService.canCancelRecipe(recipe);
-        if (!res.isSuccess()){
-            msg = res.getMsg();
+        //判断第三方处方能否取消,若不能则获取不能取消的原因----只有推送药企成功后才判断能否撤销
+        if (new Integer(1).equals(recipe.getPushFlag())){
+            HisResponseTO res = recipeCancelService.canCancelRecipe(recipe);
+            if (!res.isSuccess()){
+                msg = res.getMsg();
+            }
         }
-
         if (StringUtils.isNotEmpty(msg)) {
             rMap.put("result", result);
             rMap.put("msg", msg);
@@ -2651,6 +2670,28 @@ public class RecipeServiceSub {
     }
 
     /**
+     * //根据平台机构id获取民科机构登记号
+     * @param organid
+     * @return
+     */
+    public static String getMinkeOrganCodeByOrganId(Integer organid){
+        try {
+            if (organid !=null){
+                //获取民科机构登记号
+                OrganService organService = BasicAPI.getService(OrganService.class);
+                OrganDTO organDTO = organService.getByOrganId(organid);
+                if (organDTO!=null&&StringUtils.isNotEmpty(organDTO.getMinkeUnitID())){
+                    IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
+                    return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("getMinkeOrganCodeByOrganId error",e);
+        }
+        return null;
+    }
+
+    /**
      * 获取机构是否支持二次审方
      *
      * @param clinicOrgan
@@ -2681,6 +2722,22 @@ public class RecipeServiceSub {
                 recipedetail.setUseDaysB(null != recipedetail.getUseDays() ? recipedetail.getUseDays().toString() : "0");
 
             }
+        }
+    }
+
+    public static void pushRecipeForThird(Recipe recipe) {
+        try{
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+            List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            for (DrugsEnterprise drugsEnterprise : retList) {
+                if (new Integer(1).equals(drugsEnterprise.getOperationType())){
+                    drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                }
+            }
+        }catch(Exception e){
+            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
     }
 }

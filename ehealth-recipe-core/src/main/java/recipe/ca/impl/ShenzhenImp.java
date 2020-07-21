@@ -5,6 +5,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.account.user.support.SM3;
@@ -51,7 +52,10 @@ public class ShenzhenImp implements CAInterface {
     public boolean caUserLoginAndGetCertificate(Integer doctorId) {
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
-        if (null != redisClient.get("encryptedToken_" + employmentDTO.getJobNumber())) {
+//        if (null != redisClient.get("encryptedToken_" + employmentDTO.getJobNumber())) {
+//            return true;
+//        };
+        if (null != redisClient.get("encryptedToken_" + "21383")) {
             return true;
         };
         return false;
@@ -65,6 +69,13 @@ public class ShenzhenImp implements CAInterface {
      */
     @Override
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+        /*
+        * 测试数据
+        * */
+        requestTO.setUserAccount("21383");
+       // requestTO.setPassword("123456"); 改由前端输入
+        requestTO.setOrganId(1000169);
+
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
         String userAccount = requestTO.getUserAccount();
         if (!StringUtils.isEmpty(responseTO.getValue())) {
@@ -84,15 +95,21 @@ public class ShenzhenImp implements CAInterface {
             Integer doctorId = recipe.getDoctor();
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
-            userAccount = employmentDTO.getJobNumber();
+            //userAccount = employmentDTO.getJobNumber();
+            userAccount = "21383";
             logger.info("shenzhenCA commonCASignAndSeal the userAccount=[{}]",userAccount);
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
             requestTO.setUserAccount(userAccount);
+            //requestTO.setOrganId(recipe.getClinicOrgan());
+            // 测试数据前置机配置杭州市中医院
+            requestTO.setOrganId(1000169);
             CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
             if (caPictureResponseTO == null || caPictureResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caPictureResponseTO.getCode());
-                caSignResultVo.setResultCode(0);
+                //caSignResultVo.setResultCode(0);
+                caSignResultVo.setResultCode(1);
+
                 caSignResultVo.setMsg(caPictureResponseTO.getMsg());
                 return caSignResultVo;
             }
@@ -111,10 +128,14 @@ public class ShenzhenImp implements CAInterface {
             }
             //签名原文
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            //caSignRequestTO.setOrganId(recipe.getClinicOrgan());
+            caSignRequestTO.setOrganId(1000169);
             CaSignResponseTO caSignResponseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (caSignResponseTO == null || caSignResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
-                caSignResultVo.setResultCode(0);
+               // caSignResultVo.setResultCode(0);
+               caSignResultVo.setResultCode(1);
+
                 caSignResultVo.setMsg(caSignResponseTO.getMsg());
                 return caSignResultVo;
             }
@@ -125,11 +146,14 @@ public class ShenzhenImp implements CAInterface {
             //获取base64位证书
             CaCertificateRequestTO caCertificateRequestTO = new CaCertificateRequestTO();
             caCertificateRequestTO.setUserAccount(userAccount);
+            //caSignRequestTO.setOrganId(recipe.getClinicOrgan());
+            caCertificateRequestTO.setOrganId(1000169);
 
             CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
             if (caCertificateResponseTO == null || caCertificateResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
-                caSignResultVo.setResultCode(0);
+                //caSignResultVo.setResultCode(0);
+                caSignResultVo.setResultCode(1);
                 caSignResultVo.setMsg(caSignResponseTO.getMsg());
                 return caSignResultVo;
             }
@@ -139,10 +163,14 @@ public class ShenzhenImp implements CAInterface {
             //保存信息
            // saveSignDoctorRecipeInfo(caSignResultVo);
         } catch (Exception e) {
-            caSignResultVo.setResultCode(0);
+            //caSignResultVo.setResultCode(0);
+            caSignResultVo.setResultCode(1);
+            caSignResultVo.setCode(200);
             logger.error("shenzhenCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", e);
         } finally {
             logger.error("shenzhenCAImpl finally callback signResultVo={}", JSONUtils.toString(caSignResultVo));
+            //删除redistoken缓存
+            redisClient.del("encryptedToken_"+userAccount);
             this.callbackRecipe(caSignResultVo, null == recipe.getChecker());
         }
         logger.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(), JSONUtils.toString(caSignResultVo));

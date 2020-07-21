@@ -107,6 +107,24 @@ public enum RecipeMsgEnum {
     RECIPE_EXPRESSFEE_REMIND_NOPAY(126, "RecipeExpressFeeRemindNoPay"),
 
     /**
+     * 提交审核推送
+     */
+    RECIPE_REFUND_APPLY(130, "RecipRefundApply"),
+    /**
+     * 退费失败
+     */
+    RECIPE_REFUND_FAIL(131, "RecipeRefundFail"),
+    /**
+     * 退费成功
+     */
+    RECIPE_REFUND_SUCC(132, "RecipeRefundSucc"),
+    /**
+     * 医生审核不通过
+     */
+    RECIPE_REFUND_AUDIT_FAIL(133, "RecipeRefundAuditFail"),
+
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");

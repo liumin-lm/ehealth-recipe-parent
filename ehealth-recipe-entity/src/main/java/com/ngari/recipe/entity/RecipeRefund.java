@@ -33,14 +33,20 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "医院Id")
     private Integer  organId;
 
-    @ItemProperty(alias = "操作人员Id（患者Id、医生Id、医院默认为'his'）")
-    private String userId;
+    @ItemProperty(alias = "患者Id")
+    private String mpiid;
 
-    @ItemProperty(alias = "操作人类型（1：患者，2：医生，3：医院）")
-    private Integer userType;
+    @ItemProperty(alias = "患者Id")
+    private String patientName;
+
+    @ItemProperty(alias = "审核医生id")
+    private Integer doctorId;
 
     @ItemProperty(alias = "支付流水号")
     private String tradeNo;
+
+    @ItemProperty(alias = "订单金额")
+    private Double price;
 
     @ItemProperty(alias = "退费申请序号")
     private String applyNo;
@@ -57,6 +63,9 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "审核时间")
     private Date checkTime;
 
+    @ItemProperty(alias = "审核时间")
+    private Date applyTime;
+
     @ItemProperty(alias = "前一节点")
     private Integer beforeNode;
 
@@ -66,10 +75,29 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "预留（后面要临时存扩展字段可以用键值对存）")
     private String expand;
 
+    public RecipeRefund() {
+    }
+    public RecipeRefund(Integer recipeId, String patientName, String reason, Double price, int status, Date checkTime) {
+        this.busId = recipeId;
+        this.patientName = patientName;
+        this.reason = reason;
+        this.price = price;
+        this.status = status;
+        this.checkTime = checkTime;
+    }
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     public Integer getId() {
         return id;
+    }
+
+    public Integer getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Integer doctorId) {
+        this.doctorId = doctorId;
     }
 
     public void setId(Integer id) {
@@ -90,22 +118,6 @@ public class RecipeRefund implements Serializable {
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Integer getUserType() {
-        return userType;
-    }
-
-    public void setUserType(Integer userType) {
-        this.userType = userType;
     }
 
     public String getTradeNo() {
@@ -148,6 +160,14 @@ public class RecipeRefund implements Serializable {
         this.reason = reason;
     }
 
+    public Date getApplyTime() {
+        return applyTime;
+    }
+
+    public void setApplyTime(Date applyTime) {
+        this.applyTime = applyTime;
+    }
+
     public Date getCheckTime() {
         return checkTime;
     }
@@ -178,5 +198,29 @@ public class RecipeRefund implements Serializable {
 
     public void setExpand(String expand) {
         this.expand = expand;
+    }
+
+    public String getMpiid() {
+        return mpiid;
+    }
+
+    public void setMpiid(String mpiid) {
+        this.mpiid = mpiid;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 }

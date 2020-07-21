@@ -77,6 +77,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("bqEnterprise");
                 if (drugsEnterprise != null) {
                     recipe.setEnterpriseId(drugsEnterprise.getId());
+                    recipe.setPushFlag(1);
                     RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                     recipeDAO.update(recipe);
                 }
@@ -189,9 +190,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
         //设置扩展信息
         ExpandDTO expandDTO = new ExpandDTO();
-        OrganService organService = BasicAPI.getService(OrganService.class);
-        OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-        expandDTO.setOrgCode(organDTO.getMinkeUnitCretditCode());
+        String orgCode = RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan());
+        if (StringUtils.isNotEmpty(orgCode)) {
+            expandDTO.setOrgCode(orgCode);
+        }
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
             expandDTO.setSignFile(recipe.getChemistSignFile());
         } else {
@@ -221,6 +223,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (recipeCheck != null && StringUtils.isNotEmpty(recipeCheck.getCheckerName())) {
             expandDTO.setCheckerName(recipeCheck.getCheckerName());
         }
+        pushRecipeAndOrder.setExpandDTO(expandDTO);
         //设置科室信息
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());

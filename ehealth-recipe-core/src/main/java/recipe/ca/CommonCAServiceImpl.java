@@ -193,7 +193,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         try {
             LOGGER.info("CommonCAServiceImpl caTokenBusiness start userAccount={}", requestTO.getUserAccount());
             HisResponseTO<CaPasswordResponseTO> responseTO = iCaHisService.caPasswordBusiness(requestTO);
-            LOGGER.info("CommonCAServiceImpl caTokenBusiness userAccount={},responseTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caTokenBusiness userAccount={},responseTO={}", requestTO.getUserAccount(), JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 caPasswordResponseTO.setValue(responseTO.getData().getValue());
             }

@@ -544,7 +544,7 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
-    private String getRecipeStatusTabText(int status) {
+    private String getRecipeStatusTabText(int status, int recipeId) {
         String msg;
         switch (status) {
             case RecipeStatusConstant.FINISH:
@@ -564,7 +564,14 @@ public class RecipeListService extends RecipeBaseService{
                 break;
             //已撤销从已取消拆出来
             case RecipeStatusConstant.REVOKE:
-                msg = "已撤销";
+                RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
+                    msg = "已取消";
+                }else{
+
+                    msg = "已撤销";
+                }
+
                 break;
             //已撤销从已取消拆出来
             case RecipeStatusConstant.DELETE:
@@ -996,8 +1003,8 @@ public class RecipeListService extends RecipeBaseService{
                     record.setPhoto(p.getPhoto());
                     record.setPatientSex(p.getPatientSex());
                 }
-                //获取扁鹊处方流转平台第三方跳转url
-                record.setThirdUrl(recipeOrderService.getThirdUrl(record.getRecordId()));
+                /*//获取扁鹊处方流转平台第三方跳转url
+                record.setThirdUrl(recipeOrderService.getThirdUrl(record.getRecordId()));*/
                 //能否购药进行设置，默认可购药
                 record.setCheckEnterprise(true);
                 if (null != record.getOrganId()) {
@@ -1009,7 +1016,7 @@ public class RecipeListService extends RecipeBaseService{
                 }
 
                 if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
-                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode()));
+                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode(), record.getRecordId()));
                     //设置失效时间
                     if (RecipeStatusConstant.CHECK_PASS == record.getStatusCode()) {
                         record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
@@ -1440,18 +1447,6 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         return list;
-    }
-
-    @RpcService
-    public List<RecipePatientRefundVO> findPatientRefundRecipesByDoctorId(Integer doctorId, Integer refundType, int start, int limit) {
-        List<RecipePatientRefundVO> result = new ArrayList<RecipePatientRefundVO>();
-        RecipePatientRefundVO refundVO1 = new RecipePatientRefundVO(1,1,"aaa",new Date(),"aaa","3425621",220439,0.0,"aaa");
-        RecipePatientRefundVO refundVO2 = new RecipePatientRefundVO(1,1,"bbb",new Date(),"bbb","3425621",220438,0.0,"bbb");
-        RecipePatientRefundVO refundVO3 = new RecipePatientRefundVO(1,1,"ccc",new Date(),"ccc","3425621",220437,0.0,"ccc");
-        result.add(refundVO1);
-        result.add(refundVO2);
-        result.add(refundVO3);
-        return result;
     }
 
 }

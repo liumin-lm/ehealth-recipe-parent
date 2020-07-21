@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
@@ -17,7 +16,6 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -1891,7 +1889,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setMobile(patient.getMobile());
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
-            if (StringUtils.isEmpty(recipe.getRequestMpiId())){
+            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
                 PatientDTO user = patientService.get(recipe.getRequestMpiId());
                 if (user!=null){
                     userInfo.setPatientName(user.getPatientName());
@@ -1905,10 +1903,11 @@ public class RecipeOrderService extends RecipeBaseService {
             req.setOrganId(recipe.getClinicOrgan());
             req.setPatient(patientBaseInfo);
             req.setUser(userInfo);
+            req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
             HisResponseTO<String> response;
             try {
-                OrganService organService = BasicAPI.getService(OrganService.class);
-                req.setOrgCode(organService.getByOrganId(recipe.getClinicOrgan()).getMinkeUnitCretditCode());
+                //获取民科机构登记号
+                req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
                 LOGGER.info("getRecipeThirdUrl request={}", JSONUtils.toString(req));
                 response = hisService.getRecipeThirdUrl(req);
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
@@ -1917,6 +1916,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } catch (Exception e) {
                 LOGGER.error("getRecipeThirdUrl error ", e);
+                throw new DAOException(609,"获取扁鹊处方流转平台链接异常");
             }
         }
         return thirdUrl;

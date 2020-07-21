@@ -83,11 +83,14 @@ public class RecipeCancelService {
             msg = "患者已选择购药方式，不能进行撤销操作";
         }
 
-        //判断第三方处方能否取消,若不能则获取不能取消的原因
-        HisResponseTO res = canCancelRecipe(recipe);
-        if (!res.isSuccess()){
-            msg = res.getMsg();
+        //判断第三方处方能否取消,若不能则获取不能取消的原因---只有推送成功的时候才判断第三方
+        if (new Integer(1).equals(recipe.getPushFlag())){
+            HisResponseTO res = canCancelRecipe(recipe);
+            if (!res.isSuccess()){
+                msg = res.getMsg();
+            }
         }
+
         if (StringUtils.isNotEmpty(msg)) {
             rMap.put("result", result);
             rMap.put("msg", msg);
@@ -136,7 +139,8 @@ public class RecipeCancelService {
             HospitalReqTo req = new HospitalReqTo();
             if (recipe != null){
                 req.setOrganId(recipe.getClinicOrgan());
-                req.setPrescriptionNo(recipe.getRecipeCode());
+                req.setPrescriptionNo(String.valueOf(recipe.getRecipeId()));
+                req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
             }
             LOGGER.info("canCancelRecipe recipeId={} req={}",recipe.getRecipeId(),JSONUtils.toString(req));
             res = recipeEnterpriseService.cancelRecipe(req);

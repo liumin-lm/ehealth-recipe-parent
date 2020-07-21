@@ -675,12 +675,20 @@ public class RecipeCheckService {
     }
 
     private String getCancelReasonForChecker(Integer recipeId) {
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         String cancelReason = "";
-        if (CollectionUtils.isNotEmpty(recipeLogs)) {
-            cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+        if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
+            cancelReason = "由于患者申请退费成功，该处方已取消。";
+        }else{
+
+            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+
+            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+            }
         }
+
         return cancelReason;
     }
 

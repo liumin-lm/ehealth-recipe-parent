@@ -61,7 +61,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
     @Override
     @RpcService
     public boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType) {
-        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},password={},newPassword={},busType={}", doctorId);
+        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},password={},newPassword={},busType={}", doctorId,password,newPassword,busType);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         CaPasswordRequestTO requestTO = new CaPasswordRequestTO();
         requestTO.setBusType(busType);

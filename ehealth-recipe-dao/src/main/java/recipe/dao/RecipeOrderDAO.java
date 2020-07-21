@@ -969,7 +969,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuffer paySql = new StringBuffer();
                 paySql.append("SELECT  r.ClinicOrgan, count(*), sum(IFNULL(o.ActualPrice, 0)) ");
                 paySql.append(" FROM cdr_recipe r, cdr_recipeorder o ");
-                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.PayFlag = 1 ");
+                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.ActualPrice != 0 ");
                 paySql.append(" AND  PayTime >= :startTime AND PayTime < :endTime ");
                 paySql.append(" GROUP BY r.ClinicOrgan ");
                 Query paySqlQuery = ss.createSQLQuery(paySql.toString());
@@ -1127,7 +1127,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("SELECT OrganId,enterpriseName, lastBalance, thisRecived, thisDispatched, lastBalance+thisRecived-thisDispatched from(" +
-                        "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.PayTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched ");
+                        "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.finishTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched ");
                 StringBuilder searchSql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d where c.EnterpriseId = d.Id");
                 if (CollectionUtils.isNotEmpty(organIdList)) {
                     searchSql.append(" and c.OrganId in :organIdList");
@@ -1537,6 +1537,5 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
-
 
 }

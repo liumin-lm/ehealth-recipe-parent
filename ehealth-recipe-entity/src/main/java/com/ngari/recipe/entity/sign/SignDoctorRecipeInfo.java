@@ -53,10 +53,10 @@ public class SignDoctorRecipeInfo {
     /**药师手签图片*/
     private String sealDataPha;
 
-    /**医生签名摘要*/
+    /**医生签名摘要-CA签名证书*/
     private String signRemarkDoc;
 
-    /**药师签名摘要*/
+    /**药师签名摘要-CA签名证书*/
     private String signRemarkPha;
 
     /**签名原文*/
@@ -138,7 +138,7 @@ public class SignDoctorRecipeInfo {
         this.signDate = signDate;
     }
 
-    @Column
+    @Column(length = 5000)
     public String getSignCaDateDoc() {
         return signCaDateDoc;
     }
@@ -165,7 +165,7 @@ public class SignDoctorRecipeInfo {
         this.signFileDoc = signFileDoc;
     }
 
-    @Column
+    @Column(length = 5000)
     public String getSignCaDatePha() {
         return signCaDatePha;
     }
