@@ -55,7 +55,7 @@ public class ShenzhenImp implements CAInterface {
 //        if (null != redisClient.get("encryptedToken_" + employmentDTO.getJobNumber())) {
 //            return true;
 //        };
-        if (null != redisClient.get("encryptedToken_" + "1217")) {
+        if (null != redisClient.get("encryptedToken_" + "21383")) {
             return true;
         };
         return false;
