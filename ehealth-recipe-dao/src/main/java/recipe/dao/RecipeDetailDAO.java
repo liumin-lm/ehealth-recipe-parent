@@ -219,11 +219,20 @@ public abstract class RecipeDetailDAO extends
 
     /**
      * 根据id删除无用的处方单关联的详情
+     *
      * @param recipeId
      * @return
      */
     @DAOMethod(sql = "delete from Recipedetail where recipeId =:recipeId")
     public abstract void deleteByRecipeId(@DAOParam("recipeId") int recipeId);
+
+    /**
+     * 根据处方id批量删除
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "delete from Recipedetail where recipeId in (:recipeIds)")
+    public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
      * 根据机构id和HIS结算单据号查询对应处方id
@@ -242,7 +251,7 @@ public abstract class RecipeDetailDAO extends
                 q.setParameter("invoiceNo", invoiceNo);
                 List<Recipedetail> list = q.list();
                 Integer recipeId = null;
-                if(null != list && 0 < list.size()){
+                if (null != list && 0 < list.size()) {
                     recipeId = list.get(0).getRecipeId();
                 }
                 setResult(recipeId);
@@ -251,4 +260,6 @@ public abstract class RecipeDetailDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+
 }

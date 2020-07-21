@@ -2028,7 +2028,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
-        LOGGER.info("doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
@@ -3141,6 +3141,10 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 for (Recipe recipe : recipeList) {
+                    //过滤掉流转到扁鹊处方流转平台的处方
+                    if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())){
+                        continue;
+                    }
                     if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
                         OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                         List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
@@ -4828,4 +4832,6 @@ public class RecipeService extends RecipeBaseService {
         }
 
     }
+
+
 }

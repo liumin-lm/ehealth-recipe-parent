@@ -1,9 +1,14 @@
 package recipe.serviceprovider.recipeorder.service;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
@@ -13,9 +18,16 @@ import eh.billcheck.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.OrderStatusConstant;
+import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.RecipeRefundDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
+import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
@@ -220,4 +232,75 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         return recipeOrderDAO.findDrugFeeList(recipeBillRequest);
     }
+
+    @Override
+    public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node) {
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, node);
+        return getBean(refund, RecipeRefundBean.class);
+    }
+
+    @Override
+    public void refundCallback(Integer busId, Integer refundStatus, String msg){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(busId);
+        if(null == recipe){
+            LOGGER.warn("当前处方{}不存在无法退费！", busId);
+            return;
+        }
+        //判断当前处方是不是有审核通过的患者手动弄退费信息，有的话设置处方和订单的状态
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeIdQuery(busId);
+        if(null == recipeOrder){
+            LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
+            return;
+        }
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
+        RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(busId, 0);
+        //当前处方没有患者退费记录，或者有有的医生审核没有通过则不修改处方状态
+        if(null == refund || 1 != refund.getStatus()){
+            return;
+        }
+        RecipeRefund nowRecipeRefund = new RecipeRefund();
+        nowRecipeRefund.setTradeNo(recipeOrder.getTradeNo());
+        nowRecipeRefund.setPrice(recipeOrder.getActualPrice());
+        nowRecipeRefund.setNode(9);
+        nowRecipeRefund.setApplyNo(refund.getApplyNo());
+        nowRecipeRefund.setStatus(refundStatus);
+        nowRecipeRefund.setReason(msg);
+        //根据业务id，根据退费推送消息
+        //当退费成功后修改处方和订单的状态
+        switch (refundStatus) {
+            case 3:
+                RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
+                //修改处方单状态
+                recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
+                //订单状态修改
+                Map<String, Object> orderAttrMap = Maps.newHashMap();
+                orderAttrMap.put("effective", 0);
+                orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                //修改支付flag的状态，退费信息
+                orderAttrMap.put("payFlag", 3);
+                orderAttrMap.put("refundFlag", 1);
+                orderAttrMap.put("refundTime", new Date());
+                boolean flag = recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
+                recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
+                break;
+            case 4:
+                nowRecipeRefund.setReason("退费失败");
+                RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
+                RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), msg);
+                recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
+                break;
+            default:
+                LOGGER.warn("当前处方{}退费状态{}无法解析！", busId, refundStatus);
+                break;
+        }
+
+
+    }
+
 }

@@ -1,25 +1,32 @@
 package recipe.audit.auditmode;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+
+import java.util.List;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -94,6 +101,8 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
+        //对重庆附二进行处理,审核通过将处方信息推送第三方
+        RecipeServiceSub.pushRecipeForThird(recipe);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发
@@ -110,6 +119,7 @@ public class AuditPreMode extends AbstractAuidtMode {
                 //处方通知您有一张处方单需要处理，请及时查看。
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
             }
+
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
     }

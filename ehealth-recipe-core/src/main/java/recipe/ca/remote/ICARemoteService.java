@@ -1,6 +1,8 @@
 package recipe.ca.remote;
 
+import com.ngari.recipe.entity.Recipe;
 import ctd.util.annotation.RpcService;
+import recipe.ca.vo.CaSignResultVo;
 
 public interface ICARemoteService {
 
@@ -22,5 +24,9 @@ public interface ICARemoteService {
      */
     @RpcService
     boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType);
+
+
+    @RpcService
+    CaSignResultVo commonCASignAndSeal(Integer doctorId,Integer bussId ,Integer bussType);
 
 }
