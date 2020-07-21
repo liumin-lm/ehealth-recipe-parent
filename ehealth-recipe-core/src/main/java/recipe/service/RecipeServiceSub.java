@@ -2635,10 +2635,12 @@ public class RecipeServiceSub {
      * @return
      */
     public static boolean isBQEnterpriseBydepId(Integer depId) {
-        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = dao.getById(depId);
-        if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-            return true;
+        if (depId != null){
+            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = dao.getById(depId);
+            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+                return true;
+            }
         }
         return false;
     }
