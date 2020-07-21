@@ -38,8 +38,6 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.thread.QueryHisRecipeCallable;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -99,8 +97,8 @@ public class HisRecipeService {
         /**查询his线下处方数据*/
         //同步查询待缴费处方
         queryHisRecipeInfo(organId, patientDTO, timeQuantum, 1);
-        //异步获取已缴费处方
-        RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
+        //todo测试需要注释 异步获取已缴费处方
+        //RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
 
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
         LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
