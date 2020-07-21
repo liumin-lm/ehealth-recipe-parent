@@ -280,6 +280,10 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 Map<String, Object> orderAttrMap = Maps.newHashMap();
                 orderAttrMap.put("effective", 0);
                 orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                //修改支付flag的状态，退费信息
+                orderAttrMap.put("payFlag", 3);
+                orderAttrMap.put("refundFlag", 1);
+                orderAttrMap.put("refundTime", new Date());
                 boolean flag = recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
