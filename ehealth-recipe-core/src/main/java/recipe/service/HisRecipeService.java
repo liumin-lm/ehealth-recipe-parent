@@ -103,7 +103,7 @@ public class HisRecipeService {
         RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
 
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
-        LOGGER.info("findHisRecipe:{},organId:{},mpiId:{},flag:{},start:{},limit:{}" + JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
+        LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}" + JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
         List<HisRecipeVO> result = new ArrayList<>();
         //根据status状态查询处方列表
         if ("ongoing".equals(status)) {
@@ -193,6 +193,7 @@ public class HisRecipeService {
                 }
             }
         }
+        LOGGER.info("findHisRecipe result:{}" + JSONUtils.toString(result));
         return result;
     }
 
