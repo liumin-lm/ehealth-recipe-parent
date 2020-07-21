@@ -365,7 +365,7 @@ public class HisRecipeService {
                 //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则将数据库里的未缴费状态更新为已缴费状态
                 if(2 == flag){
                     if(1 == hisRecipe1.getStatus()){
-                        hisRecipe1.setStatus(2);
+                        hisRecipe1.setStatus(queryHisRecipResTO.getStatus());
                         hisRecipeDAO.update(hisRecipe1);
                     }
                 }
