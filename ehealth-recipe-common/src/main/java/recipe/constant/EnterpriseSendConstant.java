@@ -7,13 +7,16 @@ package recipe.constant;
 * @Date: 2020/05/09
 */
 public class EnterpriseSendConstant {
-    /**
-     * 药企配送
-     */
-    public static final Integer Enterprise_Send = 1;
+
     /**
      * 医院配送
      */
-    public static final Integer Hos_Send = 2;
+    public static final Integer Hos_Send = 1;
+
+    /**
+     * 药企配送
+     */
+    public static final Integer Enterprise_Send = 2;
+
 
 }

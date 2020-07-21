@@ -63,6 +63,9 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "审核时间")
     private Date checkTime;
 
+    @ItemProperty(alias = "审核时间")
+    private Date applyTime;
+
     @ItemProperty(alias = "前一节点")
     private Integer beforeNode;
 
@@ -155,6 +158,14 @@ public class RecipeRefund implements Serializable {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public Date getApplyTime() {
+        return applyTime;
+    }
+
+    public void setApplyTime(Date applyTime) {
+        this.applyTime = applyTime;
     }
 
     public Date getCheckTime() {
