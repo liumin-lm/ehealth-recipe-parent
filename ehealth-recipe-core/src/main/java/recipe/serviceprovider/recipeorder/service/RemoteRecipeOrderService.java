@@ -1,5 +1,6 @@
 package recipe.serviceprovider.recipeorder.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -275,7 +276,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             case 3:
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态
-                recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, null);
+                recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
                 //订单状态修改
                 Map<String, Object> orderAttrMap = Maps.newHashMap();
                 orderAttrMap.put("effective", 0);
