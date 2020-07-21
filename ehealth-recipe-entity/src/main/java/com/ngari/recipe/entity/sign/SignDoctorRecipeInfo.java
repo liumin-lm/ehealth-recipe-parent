@@ -138,7 +138,7 @@ public class SignDoctorRecipeInfo {
         this.signDate = signDate;
     }
 
-    @Column
+    @Column(length = 5000)
     public String getSignCaDateDoc() {
         return signCaDateDoc;
     }
@@ -165,7 +165,7 @@ public class SignDoctorRecipeInfo {
         this.signFileDoc = signFileDoc;
     }
 
-    @Column
+    @Column(length = 5000)
     public String getSignCaDatePha() {
         return signCaDatePha;
     }

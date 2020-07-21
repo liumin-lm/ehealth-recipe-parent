@@ -1246,6 +1246,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if (recipe == null) {
                 return 0;
             }
+
             //表示回调成功,需要查询处方状态并开始更新处方信息
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             HospitalReqTo hospitalReqTo = new HospitalReqTo();
@@ -1261,30 +1262,31 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 String payStatus = (String)map.get("payStatus");
                 String orderStatus = (String)map.get("orderStatus");
                 String writeoffStatus = (String)map.get("writeoffStatus");
+                StringBuilder stringBuilder = new StringBuilder();
                 //如果处方没有下单,则payStatus = null,由于不产生订单,现只将订单信息记录日志
                 if (StringUtils.isNotEmpty(payStatus)) {
                     switch (payStatus) {
                         case "0" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单未支付");
+                            stringBuilder.append("[支付状态]该订单未支付;");
                             break;
                         case "1" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已支付");
+                            stringBuilder.append("[支付状态]该订单已支付;");
                             break;
                         case "2" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该订单已退款");
+                            stringBuilder.append("[支付状态]该订单已退款;");
                             break;
                         default:
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[支付状态]该处方未下单");
+                            stringBuilder.append("[支付状态]该处方未下单;");
                             break;
                     }
                 }
                 if (StringUtils.isNotEmpty(orderStatus)) {
                     switch (orderStatus) {
                         case "2" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已经被接单");
+                            stringBuilder.append("[订单状态]该订单已经被接单;");
                             break;
                         case "3" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已发货/已取药");
+                            stringBuilder.append("[订单状态]该订单已发货/已取药;");
                             break;
                         case "4" :
                             Map<String, Object> attrMap = Maps.newHashMap();
@@ -1295,16 +1297,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             attrMap.put("payDate", new Date());
                             //更新处方信息
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已完成");
+                            stringBuilder.append("[订单状态]该订单已完成;");
                             break;
                         case "5" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已被取消");
+                            stringBuilder.append("[订单状态]该订单已被取消;");
                             break;
                         case "6" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该订单已退回");
+                            stringBuilder.append("[订单状态]该订单已退回;");
                             break;
                         default:
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[订单状态]该处方未下单");
+                            stringBuilder.append("[订单状态]该处方未下单;");
                             break;
                     }
                 }
@@ -1312,27 +1314,28 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 if (StringUtils.isNotEmpty(writeoffStatus)) {
                     switch (writeoffStatus) {
                         case "0" :
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已审核");
+                            stringBuilder.append("[处方状态]该处方已审核;");
                             break;
                         case "1" :
                             //处方已核销
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.FINISH));
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已核销");
+                            stringBuilder.append("[处方状态]该处方已核销;");
                             break;
                         case "2" :
                             //该处方已失效
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.NO_PAY));
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已失效");
+                            stringBuilder.append("[处方状态]该处方已失效;");
                             break;
                         case "3" :
                             //该处方已撤销
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.REVOKE));
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "[处方状态]该处方已撤销");
+                            stringBuilder.append("[处方状态]该处方已撤销;");
                             break;
                         default:
                             break;
                     }
                 }
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), stringBuilder.toString());
             }
         }
         return 1;
@@ -1355,7 +1358,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         String msg="";
         String recipeStatusText="";
         boolean canRefund=false;//默认不能申请退款
-        //除已取消状态之外的处方是不能申请退款的  只有已取消状态的处方返回true  其余返回false
+        //只有已取消状态或已撤销或审核不通过的处方才能申请退款 返回true  其余返回false
         try {
             if(recipes!=null&&recipes.size()>0){
                 for(Recipe recipe:recipes){
@@ -1364,10 +1367,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             ||recipe.getStatus()==RecipeStatusConstant.NO_DRUG      //12
                             ||recipe.getStatus()==RecipeStatusConstant.NO_PAY       //13
                             ||recipe.getStatus()==RecipeStatusConstant.NO_OPERATOR  //14
-                            ||recipe.getStatus()==RecipeStatusConstant.EXPIRED//20
-                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_FAIL//17
+                            ||recipe.getStatus()==RecipeStatusConstant.EXPIRED      //20
+                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_FAIL  //17
                             ||recipe.getStatus()==RecipeStatusConstant.RECIPE_MEDICAL_FAIL//19
-                            ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN)){//25
+                            ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN//25
+                            ||recipe.getStatus()==RecipeStatusConstant.REVOKE      //9
+                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS//-1
+                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS_YS)//15
+                    ){
                         String recipeStatusTextTmp=DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
                         if(StringUtils.isEmpty(recipeStatusText)||(!StringUtils.isEmpty(recipeStatusText)&&!recipeStatusText.contains(recipeStatusTextTmp))){
                             recipeStatusText+= recipeStatusTextTmp+"、";
