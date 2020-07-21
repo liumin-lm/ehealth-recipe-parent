@@ -678,7 +678,7 @@ public class RecipeCheckService {
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         String cancelReason = "";
         if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
-            cancelReason = "由于患者申请退款成功，该处方已取消。";
+            cancelReason = "由于患者申请退费成功，该处方已取消。";
         }else{
 
             RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
