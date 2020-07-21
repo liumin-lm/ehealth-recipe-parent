@@ -72,7 +72,7 @@ public class ShenzhenImp implements CAInterface {
         /*
         * 测试数据
         * */
-        requestTO.setUserAccount("1217");
+        requestTO.setUserAccount("21383");
        // requestTO.setPassword("123456"); 改由前端输入
         requestTO.setOrganId(1000169);
 
@@ -96,7 +96,7 @@ public class ShenzhenImp implements CAInterface {
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
             //userAccount = employmentDTO.getJobNumber();
-            userAccount = "1217";
+            userAccount = "21383";
             logger.info("shenzhenCA commonCASignAndSeal the userAccount=[{}]",userAccount);
             //获取手写图片
             CaPictureRequestTO requestTO = new CaPictureRequestTO();
