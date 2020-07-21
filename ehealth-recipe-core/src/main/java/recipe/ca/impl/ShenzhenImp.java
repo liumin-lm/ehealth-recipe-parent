@@ -73,7 +73,7 @@ public class ShenzhenImp implements CAInterface {
         * 测试数据
         * */
         requestTO.setUserAccount("1217");
-        requestTO.setPassword("123456");
+       // requestTO.setPassword("123456"); 改由前端输入
         requestTO.setOrganId(1000169);
 
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
@@ -169,6 +169,8 @@ public class ShenzhenImp implements CAInterface {
             logger.error("shenzhenCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", e);
         } finally {
             logger.error("shenzhenCAImpl finally callback signResultVo={}", JSONUtils.toString(caSignResultVo));
+            //删除redistoken缓存
+            redisClient.del("encryptedToken_"+userAccount);
             this.callbackRecipe(caSignResultVo, null == recipe.getChecker());
         }
         logger.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(), JSONUtils.toString(caSignResultVo));
