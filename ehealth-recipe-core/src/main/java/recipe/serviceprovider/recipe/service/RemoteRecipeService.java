@@ -1355,7 +1355,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         String msg="";
         String recipeStatusText="";
         boolean canRefund=false;//默认不能申请退款
-        //除已取消状态之外的处方是不能申请退款的  只有已取消状态的处方返回true  其余返回false
+        //只有已取消状态或已撤销或审核不通过的处方才能申请退款 返回true  其余返回false
         try {
             if(recipes!=null&&recipes.size()>0){
                 for(Recipe recipe:recipes){
@@ -1364,10 +1364,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             ||recipe.getStatus()==RecipeStatusConstant.NO_DRUG      //12
                             ||recipe.getStatus()==RecipeStatusConstant.NO_PAY       //13
                             ||recipe.getStatus()==RecipeStatusConstant.NO_OPERATOR  //14
-                            ||recipe.getStatus()==RecipeStatusConstant.EXPIRED//20
-                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_FAIL//17
+                            ||recipe.getStatus()==RecipeStatusConstant.EXPIRED      //20
+                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_FAIL  //17
                             ||recipe.getStatus()==RecipeStatusConstant.RECIPE_MEDICAL_FAIL//19
-                            ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN)){//25
+                            ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN//25
+                            ||recipe.getStatus()==RecipeStatusConstant.REVOKE      //9
+                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS//-1
+                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS_YS)//15
+                    ){
                         String recipeStatusTextTmp=DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
                         if(StringUtils.isEmpty(recipeStatusText)||(!StringUtils.isEmpty(recipeStatusText)&&!recipeStatusText.contains(recipeStatusTextTmp))){
                             recipeStatusText+= recipeStatusTextTmp+"、";
