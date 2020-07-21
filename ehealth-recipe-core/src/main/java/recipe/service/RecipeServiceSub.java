@@ -1134,7 +1134,7 @@ public class RecipeServiceSub {
                     break;
                 case RecipeStatusConstant.REVOKE:
                     if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
-                        cancelReason = "由于患者申请退款成功，该处方已取消。";
+                        cancelReason = "由于患者申请退费成功，该处方已取消。";
                         tips = "已取消";
                     }else{
                         tips = "已撤销";
@@ -1853,7 +1853,7 @@ public class RecipeServiceSub {
         String cancelReason = "";
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
-            cancelReason = "由于患者申请退款成功，该处方已取消。";
+            cancelReason = "由于患者申请退费成功，该处方已取消。";
         }else{
             RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
             List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
@@ -2130,7 +2130,7 @@ public class RecipeServiceSub {
                 break;
             case RecipeStatusConstant.REVOKE:
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
-                    tips = "由于患者申请退款成功，该处方已取消。";
+                    tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
                 tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
                 break;

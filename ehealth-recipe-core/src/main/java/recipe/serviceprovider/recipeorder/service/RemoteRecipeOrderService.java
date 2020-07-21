@@ -1,5 +1,6 @@
 package recipe.serviceprovider.recipeorder.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -250,7 +251,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         //判断当前处方是不是有审核通过的患者手动弄退费信息，有的话设置处方和订单的状态
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(busId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeIdQuery(busId);
         if(null == recipeOrder){
             LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
             return;
@@ -275,16 +276,21 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             case 3:
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态
-                recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, null);
+                recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
                 //订单状态修改
                 Map<String, Object> orderAttrMap = Maps.newHashMap();
                 orderAttrMap.put("effective", 0);
                 orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                //修改支付flag的状态，退费信息
+                orderAttrMap.put("payFlag", 3);
+                orderAttrMap.put("refundFlag", 1);
+                orderAttrMap.put("refundTime", new Date());
                 boolean flag = recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 break;
             case 4:
+                nowRecipeRefund.setReason("退费失败");
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), msg);
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
