@@ -740,12 +740,17 @@ public class RecipeCheckService {
     private Integer getCheckResult(Recipe recipe) {
         Integer checkResult = 0;
         Integer status = recipe.getStatus();
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status ){
             RecipeCheck nowRecipeCheck = recipeCheckDAO.getNowCheckResultByRecipeId(recipe.getRecipeId());
             if(null != nowRecipeCheck) {
                 if (1 == nowRecipeCheck.getCheckStatus()) {
                     checkResult = RecipePharmacistCheckConstant.Check_Pass;
                 } else {
+                    //date 20200721 添加“已取消”状态
+                    if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                        return RecipePharmacistCheckConstant.Cancel;
+                    }
                     checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }else{
@@ -799,12 +804,17 @@ public class RecipeCheckService {
         Integer checkResult = 0;
         Integer status = recipe.getStatus();
         RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         //date 20191127
         //添加前置判断:当审核方式是不需要审核则返回通过审核状态
         if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()) {
             return RecipePharmacistCheckConstant.Check_Pass;
         }
         if(RecipeStatusConstant.REVOKE == status){
+            //date 20200721 添加“已取消”状态
+            if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                return RecipePharmacistCheckConstant.Cancel;
+            }
             return RecipePharmacistCheckConstant.Check_Failure;
         }
         if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status ){
