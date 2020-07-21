@@ -34,6 +34,7 @@ import org.hibernate.StatelessSession;
 import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.type.LongType;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.TimestampType;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,7 +241,7 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
                         .addScalar("doctorId", StandardBasicTypes.INTEGER)
                         .addScalar("refundStatus", StandardBasicTypes.INTEGER)
                         .addScalar("refundReason", StandardBasicTypes.STRING)
-                        .addScalar("refundDate", StandardBasicTypes.DATE)
+                        .addScalar("refundDate", TimestampType.INSTANCE)
                         .addScalar("patientName", StandardBasicTypes.STRING)
                         .addScalar("busId", StandardBasicTypes.INTEGER)
                         .addScalar("patientMpiid", StandardBasicTypes.STRING)
