@@ -103,6 +103,7 @@ public class HisRecipeService {
         RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
 
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
+        LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
         List<HisRecipeVO> result = new ArrayList<>();
         //根据status状态查询处方列表
         if ("ongoing".equals(status)) {
@@ -192,6 +193,7 @@ public class HisRecipeService {
                 }
             }
         }
+        LOGGER.info("findHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
@@ -365,7 +367,7 @@ public class HisRecipeService {
                 //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则将数据库里的未缴费状态更新为已缴费状态
                 if(2 == flag){
                     if(1 == hisRecipe1.getStatus()){
-                        hisRecipe1.setStatus(2);
+                        hisRecipe1.setStatus(queryHisRecipResTO.getStatus());
                         hisRecipeDAO.update(hisRecipe1);
                     }
                 }

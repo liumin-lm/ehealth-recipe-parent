@@ -1911,7 +1911,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("getRecipeThirdUrl request={}", JSONUtils.toString(req));
                 response = hisService.getRecipeThirdUrl(req);
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
-                if (response != null) {
+                if (response != null && "200".equals(response.getMsgCode())) {
                     thirdUrl = response.getData();
                 }else {
                     throw new DAOException(609,"获取扁鹊处方流转平台链接异常");
