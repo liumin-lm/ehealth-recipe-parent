@@ -648,7 +648,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     long  getRecipeCountByFlag( List<Integer> organ,  int flag);
-}
 
 
     @RpcService
