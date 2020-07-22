@@ -104,6 +104,13 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         return getBean(order, RecipeOrderBean.class);
     }
 
+    @Override
+    public RecipeOrderBean getByOrderCode(String orderCode) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+        return getBean(order, RecipeOrderBean.class);
+    }
+
     @RpcService
     @Override
     public RecipeListResTO<RecipeOrderBean> findByPayFlag(RecipeListReqTO request) {
