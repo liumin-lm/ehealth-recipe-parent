@@ -171,7 +171,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @Deprecated
     QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                        Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
                                        Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
 
     /**
@@ -641,7 +640,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<RecipeBean> findByRecipeAndOrganId( List<Integer> recipeIds, Set<Integer> organIds);
-}
+
 
     @RpcService
     List<EnterpriseRecipeDetailResponse> findRecipesPharmaceuticalDetailsByInfoForExcel(EnterpriseRecipeDetailExcelRequest req);
@@ -659,3 +658,4 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     Map<String, Object>   findRecipeCanRefundByClinicId(Map<String,String> params);
 
     }
+
