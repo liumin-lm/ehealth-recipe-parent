@@ -608,4 +608,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<RecipeBean> findByRecipeAndOrganId( List<Integer> recipeIds, Set<Integer> organIds);
+
+    /**
+     * 查询药师审核平台待审核、已审核、或者所有的处方单的总条数
+     * @param organ
+     * @param flag  标志位
+     * @return
+     */
+    @RpcService
+    long  getRecipeCountByFlag( List<Integer> organ,  int flag);
 }

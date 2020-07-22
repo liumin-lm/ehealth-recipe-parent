@@ -75,6 +75,7 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1182,7 +1183,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
 
-
     @Override
     public void doAfterCheckNotPassYs(RecipeBean recipeBean) {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -1231,6 +1231,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
         return recipeBeans;
+    }
+
+    @Override
+    public long getRecipeCountByFlag(List<Integer> organ, int flag) {
+        return recipeDAO.getRecipeCountByFlag(organ, flag);
     }
 
     private List<RecipeBean> getRecipeBeans(List<Recipe> recipes) {
