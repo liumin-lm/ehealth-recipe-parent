@@ -26,6 +26,10 @@ public class MapValueUtil {
             return obj.toString();
         }
 
+        if (obj instanceof Integer) {
+            return obj.toString();
+        }
+
         return "";
     }
 
