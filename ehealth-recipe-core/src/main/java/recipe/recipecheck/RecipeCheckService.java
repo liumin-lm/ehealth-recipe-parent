@@ -915,12 +915,12 @@ public class RecipeCheckService {
         try {
             String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
+            Map<String, Object> map = saveCheckResult(paramMap);
+            return map;
         } catch (Exception e) {
             LOGGER.error("saveCheckResultEncrypt-recipeId解密异常",e);
             throw new DAOException("处方号解密异常");
         }
-        Map<String, Object> map = saveCheckResult(paramMap);
-        return map;
     }
 
     /**
