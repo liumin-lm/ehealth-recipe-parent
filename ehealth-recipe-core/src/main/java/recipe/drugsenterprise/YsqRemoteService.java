@@ -814,6 +814,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     //药品使用
                     detailMap.put("DOSAGE", "");
                     detailMap.put("DOSAGENAME", getFormatDouble(detail.getUseDose()) + detail.getUseDoseUnit());
+                    detailMap.put("BOILDRUGMETHOD", detail.getMemo());
                     String userRate = detail.getUsingRate();
                     detailMap.put("DISEASE", userRate);
                     if (StringUtils.isNotEmpty(userRate)) {

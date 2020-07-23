@@ -242,7 +242,7 @@ public class RecipeServiceSub {
         if (details != null && details.size() > 0) {
             for (Recipedetail detail : details) {
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                 String unitDoseForSpecificationUnit = "";
                 String unitForSpecificationUnit = "";
                 String unitDoseForSmallUnit = "";
