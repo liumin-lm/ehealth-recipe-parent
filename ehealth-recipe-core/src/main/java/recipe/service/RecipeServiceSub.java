@@ -1544,7 +1544,8 @@ public class RecipeServiceSub {
                     map.put("recipeDangers", recipeDangers); //返回处方分析数据
                 }
             }
-
+            //医生处方单详情页按钮显示
+            doctorRecipeInfoBottonShow(map, recipe);
         } else {
             //处方详情单底部文案提示说明---机构配置
             map.put("bottomText", getBottomTextForPatient(recipe.getClinicOrgan()));
@@ -1715,6 +1716,21 @@ public class RecipeServiceSub {
 
 
         return map;
+    }
+
+    private static void doctorRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe) {
+        //按钮枚举
+        for (DoctorRecipePageButtonStatusEnum e : DoctorRecipePageButtonStatusEnum.values()) {
+            map.put(e.getButtonName(),e.getStatusList().contains(recipe.getStatus()));
+            if ("continueOpenRecipeFlag".equals(e.getButtonName())){
+                map.put("continueOpenRecipeFlag",canShowContinueSignFlag(recipe.getClinicOrgan()));
+            }
+        }
+    }
+
+    private static boolean canShowContinueSignFlag(Integer clinicOrgan) {
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        return (Boolean) configurationService.getConfiguration(clinicOrgan, "continueOpenRecipeFlag");
     }
 
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
