@@ -238,6 +238,24 @@ public class OrganDrugListService implements IOrganDrugListService {
         req.setOrganId(organDrugList.getOrganId());
         iRegulationService.notifyData(organDrugList.getOrganId(), req);
     }
+    /**
+     * 药品目录-机构药品目录增加一个权限策略，一键禁用（只在监管平台增加此权限），支持将当前有效状态的药品全部更改为无效状态；
+     *
+     * @param organId 机构Id
+     */
+    @RpcService
+    public void updateOrganDrugListStatusByOrganId(Integer organId) {
+        if (organId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        Integer status = 0;
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        try {
+            organDrugListDAO.updateDrugStatus(organId, status);
+        } catch (Exception e) {
+            logger.info("一键禁用机构药品[updateOrganDrugListStatusByOrganId]:" + e);
+        }
+    }
 
     /**
      * 更新药品在医院中的信息
