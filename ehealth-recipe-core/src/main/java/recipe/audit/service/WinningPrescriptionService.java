@@ -267,17 +267,27 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         // 检查单信息
         List<AuditLisForm> lisForms = new ArrayList<>();
 
-        // 过敏源
-        List<AuditAllergy> auditAllergys = new ArrayList<>();
-
         // 患者信息
         AuditPatient auditPatient = new AuditPatient();
-        auditPatient.setAllergies(auditAllergys);
         auditPatient.setDiagnoses(diagnoses);
         auditPatient.setLisForms(lisForms);
         auditPatient.setName(patient.getPatientName());
         auditPatient.setBirthDate(DateConversion.formatDate(patient.getBirthday()));
         auditPatient.setGender(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
+
+        // 过敏源
+        if (CollectionUtils.isNotEmpty(recipe.getAllergies())) {
+            List<AuditAllergy> auditAllergys = new ArrayList<>();
+            recipe.getAllergies().forEach(item -> {
+                AuditAllergy auditAllergy = new AuditAllergy();
+                auditAllergy.setCode(item.getCode());
+                auditAllergy.setName(item.getName());
+                auditAllergy.setType(item.getType());
+                auditAllergys.add(auditAllergy);
+            });
+            auditPatient.setAllergies(auditAllergys);
+        }
+
 
         // 处方信息
         List<AuditPrescription> prescriptions = new ArrayList<>();
