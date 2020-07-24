@@ -428,11 +428,13 @@ public class RecipeCheckService {
                 //判断该就诊人是否为儿童就诊人
                 if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                     guardian.setName(patient.getGuardianName());
+                    guardian.setGuardianCertificate(hideIdCard(patient.getGuardianCertificate()));
+                    guardian.setMobile(patient.getMobile());
                     try {
                         guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                         guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
                     } catch (ValidateException exception) {
-                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(),exception);
+                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(), exception);
                     }
                 }
 

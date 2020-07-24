@@ -270,7 +270,11 @@ public class HisRecipeService {
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
-                hisRecipe.setMedicalType(1);
+                if(queryHisRecipResTO.getMedicalType()==2){
+                    hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
+                }else{
+                    hisRecipe.setMedicalType(1);//默认自费
+                }
                 hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
@@ -307,6 +311,11 @@ public class HisRecipeService {
                         hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
                     }
                 }
+                hisRecipe.setGiveMode(queryHisRecipResTO.getGiveMode());
+                hisRecipe.setDeliveryCode(queryHisRecipResTO.getDeliveryCode());
+                hisRecipe.setDeliveryName(queryHisRecipResTO.getDeliveryName());
+                hisRecipe.setSendAddr(queryHisRecipResTO.getSendAddr());
+                hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
                 hisRecipe = hisRecipeDAO.save(hisRecipe);
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
@@ -519,7 +528,8 @@ public class HisRecipeService {
         recipe.setRecipeSourceType(2);
         recipe.setRecipePayType(hisRecipe.getRecipePayType());
         recipe.setRequestMpiId(hisRecipe.getMpiId());
-
+        recipe.setRecipeSource(hisRecipe.getRecipeSource());
+        recipe.setGiveMode(hisRecipe.getGiveMode());
         return recipeDAO.saveRecipe(recipe);
 
     }

@@ -20,7 +20,10 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -48,8 +51,10 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 患者端服务
@@ -354,6 +359,86 @@ public class RecipePatientService extends RecipeBaseService {
             }
             return res.getData().getChronicDiseaseListResTOs();
         }
+    }
+
+    /**
+     * 获取患者特慢病病种列表
+     *
+     * @return
+     */
+    @RpcService
+    public Map<String,Object> findPatientChronicDiseaseListNew(Integer organId, String mpiId) {
+        LOGGER.info("findPatientChronicDiseaseListNew organId={},mpiId={}", organId, mpiId);
+        Map<String,Object> result = Maps.newHashMap();
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        List<ChronicDiseaseListResTO> list = Lists.newArrayList();
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
+        result.put("recipeChooseChronicDisease",diseaseType);
+        if (3 == diseaseType) {
+            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(diseaseType.toString());
+            list = ObjectCopyUtils.convert(chronicDiseaseList, ChronicDiseaseListResTO.class);
+        } else {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
+            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+            patientBaseInfo.setPatientName(patientDTO.getPatientName());
+            patientBaseInfo.setCertificate(patientDTO.getCertificate());
+            patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+            req.setPatient(patientBaseInfo);
+            req.setOrganId(organId);
+            HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
+            if (res != null && !("200".equals(res.getMsgCode()))) {
+                String msg = "接口异常";
+                if (StringUtils.isNotEmpty(res.getMsg())) {
+                    msg = msg + ":" + res.getMsg();
+                }
+                throw new DAOException(609, msg);
+            }
+            if (res != null && res.getData() != null) {
+                list = res.getData().getChronicDiseaseListResTOs();
+                try {
+                    if (CollectionUtils.isNotEmpty(list)){
+                        //第一层
+                        List<RankShiftList> rankShiftList = Lists.newArrayList();
+                        Map<String, List<ChronicDiseaseListResTO>> flagMap = list.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseFlag,LinkedHashMap::new,Collectors.toList()));
+                        Map<String, String> codeNameMap = list.stream().collect(Collectors.toMap(ChronicDiseaseListResTO::getChronicDiseaseCode, ChronicDiseaseListResTO::getChronicDiseaseName, (k1, k2) -> k1));
+                        flagMap.forEach((k,v)->{
+                            RankShiftList rank = new RankShiftList();
+                            rank.setCode(k);
+                            try {
+                                rank.setName(DictionaryController.instance().get("eh.cdr.dictionary.chronicDiseaseFlag").getText(k));
+                            } catch (ControllerException e) {
+                                LOGGER.error("findPatientChronicDiseaseListNew error",e);
+                            }
+                            //第二层
+                            Map<String, List<ChronicDiseaseListResTO>> codeMap = v.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseCode,LinkedHashMap::new,Collectors.toList()));
+                            List<RankShiftList> rankShiftList1 = Lists.newArrayList();
+                            codeMap.forEach((k1,k2)->{
+                                RankShiftList rank1 = new RankShiftList();
+                                rank1.setCode(k);
+                                rank1.setName(codeNameMap.get(k));
+                                rank1.setRankShiftList(v.stream().map((entity) -> new RankShiftList(entity.getComplication())).collect(Collectors.toList()));
+                                rankShiftList1.add(rank1);
+                            });
+                            rank.setRankShiftList(rankShiftList1);
+                            rankShiftList.add(rank);
+                        });
+                        result.put("rankShiftList",rankShiftList);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("findPatientChronicDiseaseListNew error",e);
+                }
+                result.put("medicalType",res.getData().getPatientType());
+                result.put("medicalTypeText",res.getData().getPatientTypeText());
+            }
+        }
+        result.put("chronicDiseaseList",list);
+        return result;
     }
 
     /**
