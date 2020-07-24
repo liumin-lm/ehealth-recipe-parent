@@ -332,7 +332,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核状态标记位")
     private Integer checkStatus;
 
-    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
+    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
     private Integer recipeSource;
 
     @ItemProperty(alias="医生处方数字签名值")
