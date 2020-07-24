@@ -89,7 +89,7 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "开处方页面病种选择开关标识")
     private String recipeChooseChronicDisease;
     @ItemProperty(alias = "病种标识")
-    @Dictionary(id = "eh.cdr.dictionary.chronicDiseaseFlag")
+    @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
     private String chronicDiseaseFlag;
     @ItemProperty(alias = "病种代码")
     private String chronicDiseaseCode;

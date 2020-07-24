@@ -27,6 +27,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -50,11 +51,13 @@ import recipe.serviceprovider.BaseService;
 import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Future;
 
 /**
  * 第三方药企调用接口,历史原因存在一些平台的接口
@@ -1547,7 +1550,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     return 0;
                 }
                 //TODO 1约定的enterpriseCode=》appKey
-                if("**".equals(enterpriseCode)){//除马路以外的其他药企库存查询
+                if("12345".equals(enterpriseCode)){//除马路以外的其他药企库存查询
                     map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
                     drugInventoryRequestMap.set(map);
                     return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
@@ -1945,5 +1948,58 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
+    }
+
+    /**
+     * 1.2	同步药企药品库存接口返回给his并异步更新销售药品目录药品价格
+     * @param paramMap
+     * @return
+     */
+    @RpcService
+    public List<Map<String,Object>> finEnterpriseStockByOrganIdForHisAndUpdateSale(Map<String, Object> paramMap) {
+        String organId = (String)paramMap.get("organ");
+        Integer start = (Integer)paramMap.get("start");
+        Integer limit = (Integer)paramMap.get("limit");
+        if (StringUtils.isEmpty(organId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
+        }
+        if (start==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "start is needed");
+        }
+        if (limit==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "limit is needed");
+        }
+        if (limit>100) {
+            limit=100;
+        }
+        //1 同步药企药品库存给HIS
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<Map<String,Object>> res=remoteDrugEnterpriseService.findEnterpriseStockByPage(organId,start,limit);
+        //2 异步更新零售价格
+        GlobalEventExecFactory.instance().getExecutor().execute(()->{
+             updateSaleDrugList(res,organId);
+        });
+        return res;
+    }
+
+    /**
+     * 更新零售价格
+     * @param res
+     * @param organ
+     */
+    private void updateSaleDrugList(List<Map<String, Object>> res,String organ) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        if(res!=null){
+            Integer organId=Integer.parseInt(organ);
+            for(Map<String,Object> map :res){
+                SaleDrugList saleDrugList=new SaleDrugList();
+                saleDrugList=saleDrugListDAO.getByOrganIdAndDrugCode(organId,map.get("PROC_ID").toString());
+                if(saleDrugList!=null){
+                    saleDrugList.setPrice(new BigDecimal( (String) map.get("RETAIL_PRICE")));
+                    saleDrugListDAO.update(saleDrugList);
+                }
+            }
+        }
+
     }
 }

@@ -51,6 +51,7 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -404,7 +405,7 @@ public class RecipePatientService extends RecipeBaseService {
                     if (CollectionUtils.isNotEmpty(list)){
                         //第一层
                         List<RankShiftList> rankShiftList = Lists.newArrayList();
-                        Map<String, List<ChronicDiseaseListResTO>> flagMap = list.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseFlag));
+                        Map<String, List<ChronicDiseaseListResTO>> flagMap = list.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseFlag,LinkedHashMap::new,Collectors.toList()));
                         Map<String, String> codeNameMap = list.stream().collect(Collectors.toMap(ChronicDiseaseListResTO::getChronicDiseaseCode, ChronicDiseaseListResTO::getChronicDiseaseName, (k1, k2) -> k1));
                         flagMap.forEach((k,v)->{
                             RankShiftList rank = new RankShiftList();
@@ -415,7 +416,7 @@ public class RecipePatientService extends RecipeBaseService {
                                 LOGGER.error("findPatientChronicDiseaseListNew error",e);
                             }
                             //第二层
-                            Map<String, List<ChronicDiseaseListResTO>> codeMap = v.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseCode));
+                            Map<String, List<ChronicDiseaseListResTO>> codeMap = v.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseCode,LinkedHashMap::new,Collectors.toList()));
                             List<RankShiftList> rankShiftList1 = Lists.newArrayList();
                             codeMap.forEach((k1,k2)->{
                                 RankShiftList rank1 = new RankShiftList();
