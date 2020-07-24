@@ -2540,6 +2540,8 @@ public class RecipeService extends RecipeBaseService {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(dbRecipeId);
             PatientDTO patient = patientService.get(recipe.getMpiid());
+            LOGGER.info("updateRecipeAndDetail  patient:{}", JSONUtils.toString(patient));
+
             if (null != patient) {
                 recipeExtend.setGuardianName(patient.getGuardianName());
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
