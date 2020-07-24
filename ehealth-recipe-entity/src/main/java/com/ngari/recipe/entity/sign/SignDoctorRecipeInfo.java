@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity.sign;
 
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
@@ -73,9 +74,11 @@ public class SignDoctorRecipeInfo {
     private Integer serverType;
 
     /**医生手签图片 (oss文件id)  */
+    @FileToken
     private String signPictureDoc;
 
     /**药师手签图片 */
+    @FileToken
     private String signPicturePha;
 
     @Id
