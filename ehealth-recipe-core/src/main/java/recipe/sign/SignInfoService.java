@@ -209,6 +209,7 @@ public class SignInfoService implements ISignInfoService {
             //陪诊人信息
             request.setGuardianName(patientDTO.getGuardianName());
             request.setGuardianCertID(patientDTO.getGuardianCertificate());
+            request.setGuardianMobile(patientDTO.getMobile());
         }
 
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList(detailBeanList.size());
