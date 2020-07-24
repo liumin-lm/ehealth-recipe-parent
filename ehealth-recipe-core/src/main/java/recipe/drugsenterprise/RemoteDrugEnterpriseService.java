@@ -736,4 +736,28 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
         return "";
     }
+
+    /**
+     * 通过机构分页查找药品库存
+     * @param organId
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public List<Map<String,Object>> findEnterpriseStockByPage(String  organId, Integer start, Integer limit){
+        LOGGER.info("syncEnterpriseStockByOrganIdForHis organId:{}, start:{}, limit:{}", organId, start,limit);
+        IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+        FindEnterpriseStockByPageTo findEnterpriseStockByPageTo = new FindEnterpriseStockByPageTo();
+        findEnterpriseStockByPageTo.setOrganId(organId);
+        findEnterpriseStockByPageTo.setStart(start);
+        findEnterpriseStockByPageTo.setLimit(limit);
+        LOGGER.info("findEnterpriseStockByPage requestBean:{}.", JSONUtils.toString(findEnterpriseStockByPageTo));
+        HisResponseTO<List<Map<String,Object>>> responseTO =  recipeEnterpriseService.findEnterpriseStockByPage(findEnterpriseStockByPageTo);
+        LOGGER.info("String responseTO:{}.", JSONUtils.toString(responseTO));
+        if(responseTO.isSuccess()){
+            return responseTO.getData();
+        }
+        return new ArrayList<>();
+    }
 }
