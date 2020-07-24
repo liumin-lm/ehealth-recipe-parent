@@ -72,6 +72,12 @@ public class SignDoctorRecipeInfo {
     /**业务类型 1：处方 2：病历*/
     private Integer serverType;
 
+    /**医生手签图片 (oss文件id)  */
+    private String signPictureDoc;
+
+    /**药师手签图片 */
+    private String signPicturePha;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column
@@ -262,5 +268,23 @@ public class SignDoctorRecipeInfo {
 
     public void setServerType(Integer serverType) {
         this.serverType = serverType;
+    }
+
+    @Column
+    public String getSignPictureDoc() {
+        return signPictureDoc;
+    }
+
+    public void setSignPictureDoc(String signPictureDoc) {
+        this.signPictureDoc = signPictureDoc;
+    }
+
+    @Column
+    public String getSignPicturePha() {
+        return signPicturePha;
+    }
+
+    public void setSignPicturePha(String signPicturePha) {
+        this.signPicturePha = signPicturePha;
     }
 }
