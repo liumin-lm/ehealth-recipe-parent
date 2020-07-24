@@ -35,6 +35,7 @@ import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -66,6 +67,7 @@ import recipe.purchase.PurchaseService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.recipecancel.RecipeCancelService;
+import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
@@ -1662,18 +1664,39 @@ public class RecipeServiceSub {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
         }
-        //设置医生手签图片id
-        DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
-        if (doctorDTO != null) {
-            map.put("doctorSignImg", doctorDTO.getSignImage());
-            map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
-        }
-        //设置药师手签图片id-----药师撤销审核结果不应该显示药师手签
-        if (recipe.getChecker() != null && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-            DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
-            if (auditDTO != null) {
-                map.put("checkerSignImg", auditDTO.getSignImage());
-                map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
+        //date 20200723
+        //根据ca配置：当时深圳ca则更新处方详情中的医生图片
+        String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(),"thirdCASign");
+        if("shenzhenCA".equals(thirdCASign)){
+            SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
+            SignDoctorRecipeInfo info = signRecipeInfoService.get(recipe.getRecipeId());
+            if(null != info){
+                //医生图片
+                if(StringUtils.isNotEmpty(info.getSignPictureDoc())){
+                    map.put("doctorSignImg", info.getSignPictureDoc());
+                    map.put("doctorSignImgToken", FileAuth.instance().createToken(info.getSignPictureDoc(), 3600L));
+                }
+                //药师图片
+                if(StringUtils.isNotEmpty(info.getSignPicturePha())){
+                    map.put("checkerSignImg", info.getSignPicturePha());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(info.getSignPicturePha(), 3600L));
+                }
+            }
+        }else{
+            //设置医生手签图片id
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            if (doctorDTO != null) {
+                map.put("doctorSignImg", doctorDTO.getSignImage());
+                map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
+            }
+
+            //设置药师手签图片id-----药师撤销审核结果不应该显示药师手签
+            if (recipe.getChecker() != null && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
+                if (auditDTO != null) {
+                    map.put("checkerSignImg", auditDTO.getSignImage());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
+                }
             }
         }
         //获取药师撤销原因
