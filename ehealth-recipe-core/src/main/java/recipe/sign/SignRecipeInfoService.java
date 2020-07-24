@@ -298,7 +298,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     private SignDoctorRecipeInfo getInfoByResultVo(SignDoctorRecipeInfo signDoctorRecipeInfo, CaSignResultVo signResult, boolean isDoctor, String type) {
         String fileId = null;
-        if(StringUtils.isNoneEmpty(signResult.getSignPicture())){
+        if(StringUtils.isNotEmpty(signResult.getSignPicture())){
             fileId = uploadPicture(signResult.getSignPicture());
         }
         if (isDoctor) {
@@ -333,6 +333,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     private String uploadPicture(String picture) {
         byte[] data = Base64.decodeBase64(picture.getBytes());
+        logger.info("uploadPicture.data=[{}]",JSONUtils.toString(data));
         if (data == null) {
             return null;
         }
@@ -362,6 +363,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             meta.setContentType("image/jpeg");
             meta.setFileName(fileName);
             meta.setFileSize(file.length());
+            logger.info("uploadPicture.meta=[{}]",JSONUtils.toString(meta));
             FileService.instance().upload(meta, file);
             file.delete();
             return meta.getFileId();
