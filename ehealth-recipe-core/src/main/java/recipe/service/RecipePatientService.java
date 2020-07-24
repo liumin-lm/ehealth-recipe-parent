@@ -1,5 +1,7 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
@@ -50,10 +52,7 @@ import recipe.service.common.RecipeCacheService;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -361,6 +360,17 @@ public class RecipePatientService extends RecipeBaseService {
         }
     }
 
+    public static void main(String[] args){
+        //第一层
+        List<ChronicDiseaseListResTO> list1 = Lists.newArrayList();
+        ChronicDiseaseListResTO chronicDiseaseListResTO = new ChronicDiseaseListResTO();
+        chronicDiseaseListResTO.setChronicDiseaseFlag("1");
+        chronicDiseaseListResTO.setChronicDiseaseName("aaaa");
+        list1.add(chronicDiseaseListResTO);
+        List<RankShiftList> rankShiftList = Lists.newArrayList();
+        Map<String, List<ChronicDiseaseListResTO>> flagMap = list1.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseFlag));
+
+    }
     /**
      * 获取患者特慢病病种列表
      *
@@ -402,27 +412,27 @@ public class RecipePatientService extends RecipeBaseService {
             if (res != null && res.getData() != null) {
                 list = res.getData().getChronicDiseaseListResTOs();
                 try {
-                    if (CollectionUtils.isNotEmpty(list)){
+                    if (CollectionUtils.isNotEmpty(list)&& (5 == diseaseType)){
                         //第一层
                         List<RankShiftList> rankShiftList = Lists.newArrayList();
-                        Map<String, List<ChronicDiseaseListResTO>> flagMap = list.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseFlag,LinkedHashMap::new,Collectors.toList()));
+                        Map<String, List<ChronicDiseaseListResTO>> flagMap = list.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseFlag));
                         Map<String, String> codeNameMap = list.stream().collect(Collectors.toMap(ChronicDiseaseListResTO::getChronicDiseaseCode, ChronicDiseaseListResTO::getChronicDiseaseName, (k1, k2) -> k1));
                         flagMap.forEach((k,v)->{
                             RankShiftList rank = new RankShiftList();
                             rank.setCode(k);
                             try {
-                                rank.setName(DictionaryController.instance().get("eh.cdr.dictionary.chronicDiseaseFlag").getText(k));
+                                rank.setName(DictionaryController.instance().get("eh.cdr.dictionary.ChronicDiseaseFlag").getText(k));
                             } catch (ControllerException e) {
                                 LOGGER.error("findPatientChronicDiseaseListNew error",e);
                             }
                             //第二层
-                            Map<String, List<ChronicDiseaseListResTO>> codeMap = v.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseCode,LinkedHashMap::new,Collectors.toList()));
+                            Map<String, List<ChronicDiseaseListResTO>> codeMap = v.stream().collect(Collectors.groupingBy(ChronicDiseaseListResTO::getChronicDiseaseCode));
                             List<RankShiftList> rankShiftList1 = Lists.newArrayList();
                             codeMap.forEach((k1,k2)->{
                                 RankShiftList rank1 = new RankShiftList();
-                                rank1.setCode(k);
-                                rank1.setName(codeNameMap.get(k));
-                                rank1.setRankShiftList(v.stream().map((entity) -> new RankShiftList(entity.getComplication())).collect(Collectors.toList()));
+                                rank1.setCode(k1);
+                                rank1.setName(codeNameMap.get(k1));
+                                rank1.setRankShiftList(k2.stream().map((entity) -> new RankShiftList(entity.getComplication())).collect(Collectors.toList()));
                                 rankShiftList1.add(rank1);
                             });
                             rank.setRankShiftList(rankShiftList1);
