@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -159,12 +160,17 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
-    @ItemProperty(alias = "慢病病种标识")
+    @ItemProperty(alias = "开处方页面病种选择开关标识")
+    private String recipeChooseChronicDisease;
+    @ItemProperty(alias = "病种标识")
+    @Dictionary(id = "eh.cdr.dictionary.chronicDiseaseFlag")
     private String chronicDiseaseFlag;
-    @ItemProperty(alias = "慢病病种代码")
+    @ItemProperty(alias = "病种代码")
     private String chronicDiseaseCode;
-    @ItemProperty(alias = "慢病病种名称")
+    @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
+    @ItemProperty(alias = "并发症")
+    private String complication;
 
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
@@ -539,5 +545,21 @@ public class RecipeExtend implements Serializable {
 
     public void setRxid(String rxid) {
         this.rxid = rxid;
+    }
+
+    public String getRecipeChooseChronicDisease() {
+        return recipeChooseChronicDisease;
+    }
+
+    public void setRecipeChooseChronicDisease(String recipeChooseChronicDisease) {
+        this.recipeChooseChronicDisease = recipeChooseChronicDisease;
+    }
+
+    public String getComplication() {
+        return complication;
+    }
+
+    public void setComplication(String complication) {
+        this.complication = complication;
     }
 }
