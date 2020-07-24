@@ -366,7 +366,7 @@ public class RecipePatientService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public Map<String,Object> findPatientChronicDiseaseListNew(Integer organId, String mpiId,String... args) {
+    public Map<String,Object> findPatientChronicDiseaseListNew(Integer organId, String mpiId) {
         LOGGER.info("findPatientChronicDiseaseListNew organId={},mpiId={}", organId, mpiId);
         Map<String,Object> result = Maps.newHashMap();
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
