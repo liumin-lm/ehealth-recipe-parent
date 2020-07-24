@@ -95,6 +95,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
+    static ThreadLocal<Map> drugInventoryRequestMap = new ThreadLocal<>();
+
     /**
      * 待配送状态
      *
@@ -1510,20 +1512,23 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         return result;
     }
 
+    /**
+     *
+     * @param paramMap
+     * @return
+     */
     @RpcService
     public Integer scanStockEnterpriseForHis(Map<String, Object> paramMap) {
         LOGGER.info("scanStockEnterpriseForHis:{}.", JSONUtils.toString(paramMap));
         Integer organId = (Integer)paramMap.get("organId");
         String enterpriseCode = (String)paramMap.get("enterpriseCode");
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseCode);
         if (drugsEnterprise == null) {
             LOGGER.info("scanStockEnterpriseForHis 没有查询到对应的药企");
             return 0;
         }
-        Integer result = 1;
         List data = (List)paramMap.get("data");
         if (data != null) {
             for (int i = 0; i < data.size(); i++) {
@@ -1535,34 +1540,85 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 }
                 OrganDrugList organDrugList = null;
                 try {
+                    //TODO 2 drugCode含义
                     organDrugList = organDrugListDAO.getByOrganIdAndProducerCode(organId, drugCode);
                 } catch (Exception e) {
                     LOGGER.error("scanStockEnterpriseForHis 查询机构药品错误 drugCode:{}.", drugCode , e);
+                    return 0;
+                }
+                //TODO 1约定的enterpriseCode=》appKey
+                if("**".equals(enterpriseCode)){//除马路以外的其他药企库存查询
+                    map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
+                    drugInventoryRequestMap.set(map);
+                    return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
+                }else{//马路
+                    return execScanStockEnterpriseForMaLu(organDrugList,drugsEnterprise,total);
                 }
 
-                if (organDrugList != null) {
-                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
-                    if (saleDrugList != null) {
-                        if (saleDrugList.getInventory() != null) {
-                            if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
-                                result = 0;
-                            } else {
-                                try{
-                                    saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), saleDrugList.getDrugId(), new BigDecimal(total));
-                                }catch(Exception e){
-                                    LOGGER.error("scanStockEnterpriseForHis 扣库存失败,msg:{}.", e.getMessage(), e);
-                                }
-                            }
-                        } else {
-                            return 0;
-                        }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 提供给his查询库存
+     * @return
+     */
+    private Integer execScanStockEnterpriseForOther(Integer depId, Integer drugId, Integer organId) {
+        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        String getDrugInventoryResponse="";
+        int result=0;//默认无库存
+            //TODO 2 实现类返回多样化 处理问题
+            try{
+                getDrugInventoryResponse=service.getDrugInventory(depId, drugId, organId);
+                if("有库存".equals(getDrugInventoryResponse)){
+                    result=1;
+                }else if("无库存".equals(getDrugInventoryResponse)||"暂无库存".equals(getDrugInventoryResponse)){
+                    result=0;
+                }else if("暂不支持库存查询".equals(getDrugInventoryResponse)){
+                    result=-1;
+                }else if(Integer.parseInt(getDrugInventoryResponse)>0){//返回库存数兼容
+                    result=1;
+                }
+            }catch (Exception e){
+                LOGGER.error("execScanStockEnterpriseForOther error: {}",e);
+            }finally {
+                drugInventoryRequestMap.remove();
+            }
+        return result;
+    }
+
+    /**
+     * 马陆扣库存操作
+     * @param organDrugList
+     * @param drugsEnterprise
+     * @param total
+     * @return
+     */
+    private Integer execScanStockEnterpriseForMaLu(OrganDrugList organDrugList,DrugsEnterprise drugsEnterprise,String total) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        Integer result = 1;
+        if (organDrugList != null) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                if (saleDrugList.getInventory() != null) {
+                    if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
+                        result = 0;
                     } else {
-                        return 0;
+                        try{
+                            saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), saleDrugList.getDrugId(), new BigDecimal(total));
+                        }catch(Exception e){
+                            LOGGER.error("scanStockEnterpriseForHis 扣库存失败,msg:{}.", e.getMessage(), e);
+                        }
                     }
                 } else {
                     return 0;
                 }
+            } else {
+                return 0;
             }
+        } else {
+            return 0;
         }
         return result;
     }

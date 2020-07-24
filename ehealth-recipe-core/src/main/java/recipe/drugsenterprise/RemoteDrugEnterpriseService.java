@@ -380,13 +380,54 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
-        if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-           return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
-        } else {
-            return "0";
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
+            //通过前置机调用
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(organId, drugsEnterprise);
+            LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
+            HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
+            LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
+            if (responseTO != null && responseTO.isSuccess()) {
+                return "1";
+            } else {
+                return "0";
+            }
+        }else{//通过平台调用
+            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
+                return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
+            } else {
+                return "0";
+            }
         }
+
     }
 
+    /**
+     * 封装前置机所需参数
+     * @param organId
+     * @param drugsEnterprise
+     * @return
+     */
+    private ScanRequestBean getDrugInventoryRequestBean( Integer organId,DrugsEnterprise drugsEnterprise) {
+        //TODO ScanRequestBean
+        ScanRequestBean scanRequestBean = new ScanRequestBean();
+        ThirdEnterpriseCallService thirdEnterpriseCallService =ApplicationUtils.getRecipeService(
+                ThirdEnterpriseCallService.class, "takeDrugService");
+        Map drugInventoryRequestMap=thirdEnterpriseCallService.drugInventoryRequestMap.get();
+        LOGGER.info("getDrugInventoryRequestBean map: {}",JSONUtils.toString(drugInventoryRequestMap));
+        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
+        ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+        scanDrugListBean.setDrugCode(drugInventoryRequestMap.get("organDurgList_drugCode")+"");
+        scanDrugListBean.setTotal(drugInventoryRequestMap.get("total")+"");
+        scanDrugListBean.setUnit(drugInventoryRequestMap.get("unit")+"");
+        scanDrugListBeans.add(scanDrugListBean);
+        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
+        scanRequestBean.setOrganId(organId);
+        LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
+        return scanRequestBean;
+    }
 
     /**
      * 药师审核通过通知消息
