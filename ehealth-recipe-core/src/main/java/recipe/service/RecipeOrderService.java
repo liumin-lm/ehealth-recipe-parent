@@ -710,7 +710,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
                         order.setReceiver(hisRecipe.getReceiverName());
                         order.setRecMobile(hisRecipe.getReceiverTel());
-                        order.setAddressCanSend(true);
+                        order.setAddressCanSend(false);
                         order.setAddress4(hisRecipe.getSendAddr());
                     }
                 }
