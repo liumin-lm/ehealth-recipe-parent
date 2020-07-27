@@ -331,7 +331,8 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         return signDoctorRecipeInfo;
     }
 
-    private String uploadPicture(String picture) {
+    @RpcService
+    public String uploadPicture(String picture) {
         byte[] data = Base64.decodeBase64(picture.getBytes());
         logger.info("uploadPicture.data=[{}]",JSONUtils.toString(data));
         if (data == null) {
