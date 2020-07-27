@@ -1025,7 +1025,13 @@ public class RecipeOrderService extends RecipeBaseService {
         } else {
             //对北京互联网处方流转模式处理
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByOrderCode(order.getOrderCode());
+            String recipeIds = order.getRecipeIdList();
+            Recipe recipe = null;
+            if (StringUtils.isNotEmpty(recipeIds)) {
+                String recipeId = recipeIds.substring(1, recipeIds.lastIndexOf("]"));
+                recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
+            }
+
             if (recipe != null && new Integer(2).equals(recipe.getRecipeSource())) {
                 HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                 HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
