@@ -193,7 +193,7 @@ public class HisRecipeService {
                 }
             }
         }
-        LOGGER.info("findHisRecipe result:{}", JSONUtils.toString(result));
+        //LOGGER.info("findHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
