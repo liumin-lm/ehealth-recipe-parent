@@ -429,8 +429,8 @@ public class RecipePatientService extends RecipeBaseService {
                                         rankShift2.setComplication(resTO.getComplication());
                                         rankShiftList2.add(rankShift2);
                                     }
-                                    rank1.setRankShiftList(rankShiftList2);
                                 }
+                                rank1.setRankShiftList(rankShiftList2);
                                 rankShiftList1.add(rank1);
                             });
                             rank.setRankShiftList(rankShiftList1);
