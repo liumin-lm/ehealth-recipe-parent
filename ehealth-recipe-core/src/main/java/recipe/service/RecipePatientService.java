@@ -423,9 +423,12 @@ public class RecipePatientService extends RecipeBaseService {
                                 rank1.setChronicDiseaseName(codeNameMap.get(k1));
                                 //第三层
                                 rank1.setRankShiftList(k2.stream().map((entity) -> {
-                                    RankShiftList rankShiftList2 = new RankShiftList();
-                                    rankShiftList2.setComplication(entity.getComplication());
-                                    return rankShiftList2;
+                                    if (StringUtils.isNotEmpty(entity.getComplication())){
+                                        RankShiftList rankShiftList2 = new RankShiftList();
+                                        rankShiftList2.setComplication(entity.getComplication());
+                                        return rankShiftList2;
+                                    }
+                                    return null;
                                 }).collect(Collectors.toList()));
                                 rankShiftList1.add(rank1);
                             });

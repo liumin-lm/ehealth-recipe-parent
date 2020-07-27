@@ -121,7 +121,7 @@ public class HisCallBackService {
 
         //更新复诊挂号序号、卡类型卡号等信息如果有
         updateRecipeRegisterID(recipe,result);
-        updateRecipepatientType(recipe);
+        //updateRecipepatientType(recipe);
 
         OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
         List<Recipedetail> recipedetails = result.getDetailList();
