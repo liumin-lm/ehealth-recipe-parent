@@ -1737,6 +1737,14 @@ public class RecipeServiceSub {
             map.put("showRefund", 1);
         }
 
+        //对北京互联网流转模式处理
+        if (new Integer(2).equals(recipe.getRecipeSource())) {
+            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            if (hisRecipe != null && new Integer(2).equals(hisRecipe.getMedicalType())) {
+                map.put("medicalType", 2);
+            }
+        }
 
         return map;
     }
@@ -1831,6 +1839,31 @@ public class RecipeServiceSub {
                 map.put("showSendToHos", 0);
                 map.put("supportTFDS", 0);
                 map.put("supportOnline", 0);
+            }
+        }
+        //date 20200724 北京互联网按钮展示根据HIS进行判断
+        if (new Integer(2).equals(recipe.getRecipeSource())) {
+            if (new Integer(1).equals(recipe.getGiveMode())) {
+                //表示配送到家,需要判断是药企配送还是医院配送
+                HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
+                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(hisRecipe.getDeliveryCode());
+                    if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
+                        //表示为药企配送
+                        map.put("showSendToEnterprises", 1);
+                    } else {
+                        //表示为医院配送
+                        map.put("showSendToHos", 1);
+                    }
+                }
+            }  else if (new Integer(2).equals(recipe.getGiveMode())) {
+                //表示到院取药
+
+            } else if (new Integer(3).equals(recipe.getGiveMode())) {
+                //表示到店取药
+                map.put("supportTFDS", 1);
             }
         }
         //date 2191011
