@@ -700,15 +700,18 @@ public class RecipeOrderService extends RecipeBaseService {
             //此字段前端已不使用
             order.setAddressCanSend(false);
             Recipe recipe = recipeList.get(0);
-            if (recipe != null && new Integer(2).equals(recipe.getRecipeSource())) {
-                if (StringUtils.isNotEmpty(operAddressId)) {
+            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            if (new Integer(2).equals(recipe.getRecipeSource())) {
+                if (StringUtils.isNotEmpty(operAddressId) && StringUtils.isEmpty(hisRecipe.getSendAddr())) {
                     //表示患者重新修改了地址
                     setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                 } else {
-                    HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
-                    HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                     if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
-                        //TODO 收货人信息
+                        order.setReceiver(hisRecipe.getReceiverName());
+                        order.setRecMobile(hisRecipe.getReceiverTel());
+                        order.setAddressCanSend(true);
+                        order.setAddress4(hisRecipe.getSendAddr());
                     }
                 }
             } else {
@@ -1025,7 +1028,13 @@ public class RecipeOrderService extends RecipeBaseService {
         } else {
             //对北京互联网处方流转模式处理
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByOrderCode(order.getOrderCode());
+            String recipeIds = order.getRecipeIdList();
+            Recipe recipe = null;
+            if (StringUtils.isNotEmpty(recipeIds)) {
+                String recipeId = recipeIds.substring(1, recipeIds.lastIndexOf("]"));
+                recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
+            }
+
             if (recipe != null && new Integer(2).equals(recipe.getRecipeSource())) {
                 HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                 HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());

@@ -103,7 +103,7 @@ public class HisRecipeService {
         RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
 
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
-        LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
+        //LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
         List<HisRecipeVO> result = new ArrayList<>();
         //根据status状态查询处方列表
         if ("ongoing".equals(status)) {
@@ -193,7 +193,7 @@ public class HisRecipeService {
                 }
             }
         }
-        LOGGER.info("findHisRecipe result:{}", JSONUtils.toString(result));
+        //LOGGER.info("findHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
@@ -270,7 +270,7 @@ public class HisRecipeService {
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
-                if(queryHisRecipResTO.getMedicalType()==2){
+                if(new Integer(2).equals(queryHisRecipResTO.getMedicalType())){
                     hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
                 }else{
                     hisRecipe.setMedicalType(1);//默认自费
@@ -316,6 +316,8 @@ public class HisRecipeService {
                 hisRecipe.setDeliveryName(queryHisRecipResTO.getDeliveryName());
                 hisRecipe.setSendAddr(queryHisRecipResTO.getSendAddr());
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
+                hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
+                hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
                 hisRecipe = hisRecipeDAO.save(hisRecipe);
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
