@@ -341,7 +341,8 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         OutputStream fileOutputStream = null;
         try {
             //先生成本地文件
-            String fileName = "caPicture.jpg";
+            String prefix = picture.substring(0,4);
+            String fileName = "caPicture_"+prefix+".jpg";
             File file = new File(fileName);
             fileOutputStream = new FileOutputStream(file);
             if (data.length > 0) {
@@ -356,7 +357,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             meta.setUploadTime(new Date());
             //0需要验证 31不需要
             meta.setMode(0);
-            meta.setCatalog("CA-doc");
+            meta.setCatalog("other-doc");
             meta.setContentType("image/jpeg");
             meta.setFileName(fileName);
             meta.setFileSize(file.length());
