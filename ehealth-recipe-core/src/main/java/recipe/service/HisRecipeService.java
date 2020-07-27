@@ -270,7 +270,7 @@ public class HisRecipeService {
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
-                if(queryHisRecipResTO.getMedicalType()==2){
+                if(new Integer(2).equals(queryHisRecipResTO.getMedicalType())){
                     hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
                 }else{
                     hisRecipe.setMedicalType(1);//默认自费
