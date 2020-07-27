@@ -72,7 +72,6 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
-import javax.print.DocFlavor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
