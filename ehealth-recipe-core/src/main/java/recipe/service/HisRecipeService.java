@@ -316,6 +316,8 @@ public class HisRecipeService {
                 hisRecipe.setDeliveryName(queryHisRecipResTO.getDeliveryName());
                 hisRecipe.setSendAddr(queryHisRecipResTO.getSendAddr());
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
+                hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
+                hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
                 hisRecipe = hisRecipeDAO.save(hisRecipe);
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
