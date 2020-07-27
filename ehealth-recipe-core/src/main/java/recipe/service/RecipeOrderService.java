@@ -702,14 +702,12 @@ public class RecipeOrderService extends RecipeBaseService {
             Recipe recipe = recipeList.get(0);
             HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-            if (recipe != null && new Integer(2).equals(recipe.getRecipeSource())) {
+            if (new Integer(2).equals(recipe.getRecipeSource())) {
                 if (StringUtils.isNotEmpty(operAddressId) && StringUtils.isEmpty(hisRecipe.getSendAddr())) {
                     //表示患者重新修改了地址
                     setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                 } else {
                     if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
-                        //TODO 收货人信息
-                        order.setAddressID(1);
                         order.setReceiver(hisRecipe.getReceiverName());
                         order.setRecMobile(hisRecipe.getReceiverTel());
                     }
