@@ -290,6 +290,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            req.setGuardianMobile(patientDTO.getMobile());
             //其他信息
             //监管接收方现在使用recipeId去重
             req.setRecipeID(recipe.getRecipeId().toString());
@@ -716,7 +717,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         String useDose;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
-            organDrugList = organDrugDao.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
+            organDrugList = organDrugDao.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
             if (organDrugList == null) {
                 reqDetail.setDrcode(detail.getOrganDrugCode());
             } else {

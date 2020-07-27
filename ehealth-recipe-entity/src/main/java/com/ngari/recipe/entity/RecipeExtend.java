@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -130,19 +131,6 @@ public class RecipeExtend implements Serializable {
      */
     private String rxid;
 
-//    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
-//    private String orderMakeStatus;
-//
-//    @ItemProperty(alias = "处方")
-//    private String deliverySendTag;
-
-//    public String getOrderMakeStatus() {
-//        return orderMakeStatus;
-//    }
-//
-//    public void setOrderMakeStatus(String orderMakeStatus) {
-//        this.orderMakeStatus = orderMakeStatus;
-//    }
 
     @Column(name = "deliveryRecipeFee")
     public String getDeliveryRecipeFee() {
@@ -159,18 +147,30 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
-    @ItemProperty(alias = "慢病病种标识")
+    @ItemProperty(alias = "开处方页面病种选择开关标识")
+    private Integer recipeChooseChronicDisease;
+    @ItemProperty(alias = "病种标识")
+    @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
     private String chronicDiseaseFlag;
-    @ItemProperty(alias = "慢病病种代码")
+    @ItemProperty(alias = "病种代码")
     private String chronicDiseaseCode;
-    @ItemProperty(alias = "慢病病种名称")
+    @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
+    @ItemProperty(alias = "并发症")
+    private String complication;
 
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
 
     @ItemProperty(alias = "电子处方监管平台流水号")
     private String superviseRecipecode;
+
+    @ItemProperty(alias = "监管人姓名")
+    private String guardianName;
+    @ItemProperty(alias = "监管人证件号")
+    private String guardianCertificate;
+    @ItemProperty(alias = "监管人手机号")
+    private String guardianMobile;
 
     @Column(name = "superviseRecipecode")
     public String getSuperviseRecipecode() {
@@ -539,5 +539,48 @@ public class RecipeExtend implements Serializable {
 
     public void setRxid(String rxid) {
         this.rxid = rxid;
+    }
+
+    public Integer getRecipeChooseChronicDisease() {
+        return recipeChooseChronicDisease;
+    }
+
+    public void setRecipeChooseChronicDisease(Integer recipeChooseChronicDisease) {
+        this.recipeChooseChronicDisease = recipeChooseChronicDisease;
+    }
+
+    public String getComplication() {
+        return complication;
+    }
+
+    public void setComplication(String complication) {
+        this.complication = complication;
+    }
+
+    @Column(name = "guardian_name")
+    public String getGuardianName() {
+        return guardianName;
+    }
+
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
+    }
+
+    @Column(name = "guardian_certificate")
+    public String getGuardianCertificate() {
+        return guardianCertificate;
+    }
+
+    public void setGuardianCertificate(String guardianCertificate) {
+        this.guardianCertificate = guardianCertificate;
+    }
+
+    @Column(name = "guardian_mobile")
+    public String getGuardianMobile() {
+        return guardianMobile;
+    }
+
+    public void setGuardianMobile(String guardianMobile) {
+        this.guardianMobile = guardianMobile;
     }
 }

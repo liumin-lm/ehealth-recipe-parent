@@ -209,12 +209,13 @@ public class SignInfoService implements ISignInfoService {
             //陪诊人信息
             request.setGuardianName(patientDTO.getGuardianName());
             request.setGuardianCertID(patientDTO.getGuardianCertificate());
+            request.setGuardianMobile(patientDTO.getMobile());
         }
 
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList(detailBeanList.size());
         for (RecipeDetailBean detail : detailBeanList) {
             RegulationRecipeDetailIndicatorsReq reqDetail = new RegulationRecipeDetailIndicatorsReq();
-            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), detail.getOrganDrugCode());
+            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCodeAndDrugId(recipeBean.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
             if (organDrugList == null) {
                 reqDetail.setDrcode(detail.getOrganDrugCode());
             } else {

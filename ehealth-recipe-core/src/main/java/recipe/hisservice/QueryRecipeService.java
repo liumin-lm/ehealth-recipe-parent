@@ -425,7 +425,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //剂量单位
                 orderItem.setDrunit(detail.getUseDoseUnit());
 
-                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(clinicOrgan, detail.getOrganDrugCode());
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(clinicOrgan, detail.getOrganDrugCode(), detail.getDrugId());
                 if (null != organDrugList) {
                     //药品产地名称
                     orderItem.setDrugManf(organDrugList.getProducer());

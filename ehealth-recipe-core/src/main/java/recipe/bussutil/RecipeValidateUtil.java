@@ -1,7 +1,5 @@
 package recipe.bussutil;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -29,11 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.service.CommonRecipeService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -155,7 +151,6 @@ public class RecipeValidateUtil {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
-        Integer organId = recipe.getClinicOrgan();
         Integer recipeId = recipe.getRecipeId();
         List<RecipeDetailBean> backDetailList = new ArrayList<>();
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
@@ -163,72 +158,45 @@ public class RecipeValidateUtil {
             return backDetailList;
         }
         List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
-        List<String> drugCodeList = FluentIterable.from(details).transform(new Function<Recipedetail, String>() {
-            @Override
-            public String apply(Recipedetail input) {
-                return input.getOrganDrugCode();
-            }
-        }).toList();
+        Map<Integer, RecipeDetailBean> drugIdAndDetailMap = Maps.uniqueIndex(detailBeans, RecipeDetailBean::getDrugId);
 
-        //校验当前机构可开具药品是否满足
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
-        if (CollectionUtils.isEmpty(organDrugList)) {
-            return backDetailList;
-        }
-
-        if (organDrugList.size() != drugCodeList.size()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品编码重复");
-        }
-        /*//2边长度一致直接返回
-        if (organDrugList.size() == drugIdList.size()) {
-            return detailBeans;
-        }*/
-
-        Map<Integer, RecipeDetailBean> drugIdAndDetailMap = Maps.uniqueIndex(detailBeans, new Function<RecipeDetailBean, Integer>() {
-            @Override
-            public Integer apply(RecipeDetailBean input) {
-                return input.getDrugId();
-            }
-        });
-
-        RecipeDetailBean mapDetail;
-        //包装返回app端剂量单位最小单位选择关系
-        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
-        UsingRateDTO usingRateDTO;
-        UsePathwaysDTO usePathwaysDTO;
         IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
         IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
-        for (OrganDrugList organDrug : organDrugList) {
-            mapDetail = drugIdAndDetailMap.get(organDrug.getDrugId());
-            if (null != mapDetail) {
-                mapDetail.setDrugForm(organDrug.getDrugForm());
-                //设置医生端每次剂量和剂量单位联动关系
-                useDoseAndUnitRelationList = Lists.newArrayList();
-                //用药单位不为空时才返回给前端
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-                }
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())){
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
-                }
-                mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-                try {
-                    usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsingRate());
-                    if (usingRateDTO!=null){
-                        mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-                    }
-                    usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
-                    if (usePathwaysDTO!=null){
-                        mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-                    }
-                } catch (Exception e) {
-                    LOGGER.info("validateDrugsImpl error,recipeId={}", recipeId,e);
-                }
-                backDetailList.add(mapDetail);
+        for (Recipedetail recipedetail : details) {
+            OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+            if (null == organDrug) {
+                continue;
             }
+            RecipeDetailBean mapDetail = drugIdAndDetailMap.get(organDrug.getDrugId());
+            if (null == mapDetail) {
+                continue;
+            }
+            mapDetail.setDrugForm(organDrug.getDrugForm());
+            //设置医生端每次剂量和剂量单位联动关系
+            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
+            //用药单位不为空时才返回给前端
+            if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+            }
+            if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+            }
+            mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            try {
+                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsingRate());
+                if (usingRateDTO != null) {
+                    mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                }
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
+                if (usePathwaysDTO != null) {
+                    mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                }
+            } catch (Exception e) {
+                LOGGER.info("validateDrugsImpl error,recipeId={}", recipeId, e);
+            }
+            backDetailList.add(mapDetail);
         }
-
         return backDetailList;
     }
 
