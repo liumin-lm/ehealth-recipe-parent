@@ -408,9 +408,9 @@ public class RecipePatientService extends RecipeBaseService {
                         Map<String, String> codeNameMap = list.stream().collect(Collectors.toMap(ChronicDiseaseListResTO::getChronicDiseaseCode, ChronicDiseaseListResTO::getChronicDiseaseName, (k1, k2) -> k1));
                         flagMap.forEach((k,v)->{
                             RankShiftList rank = new RankShiftList();
-                            rank.setCode(k);
+                            rank.setChronicDiseaseFlag(k);
                             try {
-                                rank.setName(DictionaryController.instance().get("eh.cdr.dictionary.ChronicDiseaseFlag").getText(k));
+                                rank.setChronicDiseaseFlagText(DictionaryController.instance().get("eh.cdr.dictionary.ChronicDiseaseFlag").getText(k));
                             } catch (ControllerException e) {
                                 LOGGER.error("findPatientChronicDiseaseListNew error",e);
                             }
@@ -419,9 +419,14 @@ public class RecipePatientService extends RecipeBaseService {
                             List<RankShiftList> rankShiftList1 = Lists.newArrayList();
                             codeMap.forEach((k1,k2)->{
                                 RankShiftList rank1 = new RankShiftList();
-                                rank1.setCode(k1);
-                                rank1.setName(codeNameMap.get(k1));
-                                rank1.setRankShiftList(k2.stream().map((entity) -> new RankShiftList(entity.getComplication())).collect(Collectors.toList()));
+                                rank1.setChronicDiseaseCode(k1);
+                                rank1.setChronicDiseaseName(codeNameMap.get(k1));
+                                //第三层
+                                rank1.setRankShiftList(k2.stream().map((entity) -> {
+                                    RankShiftList rankShiftList2 = new RankShiftList();
+                                    rankShiftList2.setComplication(entity.getComplication());
+                                    return rankShiftList2;
+                                }).collect(Collectors.toList()));
                                 rankShiftList1.add(rank1);
                             });
                             rank.setRankShiftList(rankShiftList1);
