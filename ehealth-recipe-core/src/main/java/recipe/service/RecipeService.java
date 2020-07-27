@@ -2539,14 +2539,6 @@ public class RecipeService extends RecipeBaseService {
         if (null != recipeExt && null != dbRecipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(dbRecipeId);
-            PatientDTO patient = patientService.get(recipe.getMpiid());
-            LOGGER.info("updateRecipeAndDetail  patient:{}", JSONUtils.toString(patient));
-
-            if (null != patient) {
-                recipeExtend.setGuardianName(patient.getGuardianName());
-                recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
-                recipeExtend.setGuardianMobile(patient.getMobile());
-            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }

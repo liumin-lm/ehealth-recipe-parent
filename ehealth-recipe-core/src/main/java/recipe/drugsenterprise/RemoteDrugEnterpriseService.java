@@ -749,7 +749,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         LOGGER.info("syncEnterpriseStockByOrganIdForHis organId:{}, start:{}, limit:{}", organId, start,limit);
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
         FindEnterpriseStockByPageTo findEnterpriseStockByPageTo = new FindEnterpriseStockByPageTo();
-        findEnterpriseStockByPageTo.setOrganId(organId);
+        findEnterpriseStockByPageTo.setOrgan(organId);
         findEnterpriseStockByPageTo.setStart(start);
         findEnterpriseStockByPageTo.setLimit(limit);
         LOGGER.info("findEnterpriseStockByPage requestBean:{}.", JSONUtils.toString(findEnterpriseStockByPageTo));
