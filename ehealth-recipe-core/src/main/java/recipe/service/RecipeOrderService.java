@@ -703,7 +703,7 @@ public class RecipeOrderService extends RecipeBaseService {
             HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
             if (new Integer(2).equals(recipe.getRecipeSource())) {
-                if (StringUtils.isNotEmpty(operAddressId) && StringUtils.isEmpty(hisRecipe.getSendAddr())) {
+                if (StringUtils.isNotEmpty(operAddressId)) {
                     //表示患者重新修改了地址
                     setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                 } else {
