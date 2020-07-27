@@ -350,12 +350,8 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             }
 
             FileMetaRecord meta = new FileMetaRecord();
-            UserRoleToken token = UserRoleToken.getCurrent();
-            if (null == token) {
-                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "userRoleToken is null");
-            }
-            meta.setManageUnit(token.getManageUnit());
-            meta.setOwner(token.getUserId());
+            meta.setManageUnit("eh");
+           // meta.setOwner(token.getUserId());
             meta.setLastModify(new Date());
             meta.setUploadTime(new Date());
             //0需要验证 31不需要
