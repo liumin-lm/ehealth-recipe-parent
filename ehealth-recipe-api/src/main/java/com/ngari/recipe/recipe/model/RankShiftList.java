@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,13 +12,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class RankShiftList implements Serializable {
-    private String code;
-    private String name;
+public class RankShiftList extends ChronicDiseaseListResTO implements Serializable {
+    private String chronicDiseaseFlagText;
     private List<RankShiftList> rankShiftList;
-
-    public RankShiftList(String name) {
-        this.name = name;
-    }
-
 }
