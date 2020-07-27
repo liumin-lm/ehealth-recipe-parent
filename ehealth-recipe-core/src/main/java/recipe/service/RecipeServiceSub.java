@@ -72,6 +72,7 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
+import javax.print.DocFlavor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -135,7 +136,16 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
-        //武昌需求，加入处方扩展信息
+        //武昌需求，加入处方扩展信息---扩展信息处理
+        doWithRecipeExtend(patient,recipeBean,recipeId);
+
+        //加入历史患者
+        saveOperationRecordsForRecipe(patient, recipe);
+        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "暂存处方单");
+        return recipeId;
+    }
+
+    private static void doWithRecipeExtend(PatientDTO patient, RecipeBean recipeBean, Integer recipeId) {
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
         if (null != recipeExt && null != recipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
@@ -153,6 +163,17 @@ public class RecipeServiceSub {
                     default:
                 }
             }
+            //慢病开关
+            if (recipeExtend.getRecipeChooseChronicDisease()==null){
+                try {
+                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                    Integer recipeChooseChronicDisease = (Integer)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
+                    recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
+                }catch (Exception e){
+                    LOGGER.error("doWithRecipeExtend 获取开关异常",e);
+                }
+            }
+
             if (null != patient) {
                 recipeExtend.setGuardianName(patient.getGuardianName());
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
@@ -161,11 +182,6 @@ public class RecipeServiceSub {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
-
-        //加入历史患者
-        saveOperationRecordsForRecipe(patient, recipe);
-        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "暂存处方单");
-        return recipeId;
     }
 
     public static void setRecipeMoreInfo(Recipe recipe, List<Recipedetail> details, RecipeBean recipeBean, Integer flag) {
