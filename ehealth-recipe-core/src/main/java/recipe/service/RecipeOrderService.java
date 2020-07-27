@@ -709,6 +709,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                     if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
                         //TODO 收货人信息
+                        order.setAddressID(0);
+                        order.setReceiver(hisRecipe.getReceiverName());
+                        order.setRecMobile(hisRecipe.getReceiverTel());
                     }
                 }
             } else {
