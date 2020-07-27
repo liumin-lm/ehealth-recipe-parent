@@ -133,19 +133,25 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
 
+
+        PatientDTO patient = patientService.get(recipe.getMpiid());
+        LOGGER.info("updateRecipeAndDetail  patient:{}", JSONUtils.toString(patient));
         //武昌需求，加入处方扩展信息
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
         if (null != recipeExt && null != recipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(recipeId);
+            if (null != patient) {
+                recipeExtend.setGuardianName(patient.getGuardianName());
+                recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
+                recipeExtend.setGuardianMobile(patient.getMobile());
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
 
         //加入历史患者
-        String mpiId = recipe.getMpiid();
-        PatientDTO patient = patientService.get(mpiId);
-        saveOperationRecordsForRecipe(mpiId, patient, recipe);
+        saveOperationRecordsForRecipe(patient, recipe);
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "暂存处方单");
         return recipeId;
     }
@@ -183,11 +189,11 @@ public class RecipeServiceSub {
         recipeService.setMergeDrugType(details, recipe);
     }
 
-    private static void saveOperationRecordsForRecipe(String mpiId, PatientDTO patient, Recipe recipe) {
+    private static void saveOperationRecordsForRecipe(PatientDTO patient, Recipe recipe) {
         IOperationRecordsService iOperationRecordsService = ApplicationUtils.getBaseService(IOperationRecordsService.class);
         OperationRecordsBean record = new OperationRecordsBean();
-        record.setMpiId(mpiId);
-        record.setRequestMpiId(mpiId);
+        record.setMpiId(patient.getMpiId());
+        record.setRequestMpiId(patient.getMpiId());
         record.setPatientName(patient.getPatientName());
         record.setBussType(BussTypeConstant.RECIPE);
         record.setBussId(recipe.getRecipeId());
