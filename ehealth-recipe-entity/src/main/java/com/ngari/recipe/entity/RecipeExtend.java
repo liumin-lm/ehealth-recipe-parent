@@ -148,7 +148,7 @@ public class RecipeExtend implements Serializable {
     private Integer fromFlag;
 
     @ItemProperty(alias = "开处方页面病种选择开关标识")
-    private String recipeChooseChronicDisease;
+    private Integer recipeChooseChronicDisease;
     @ItemProperty(alias = "病种标识")
     @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
     private String chronicDiseaseFlag;
@@ -541,11 +541,11 @@ public class RecipeExtend implements Serializable {
         this.rxid = rxid;
     }
 
-    public String getRecipeChooseChronicDisease() {
+    public Integer getRecipeChooseChronicDisease() {
         return recipeChooseChronicDisease;
     }
 
-    public void setRecipeChooseChronicDisease(String recipeChooseChronicDisease) {
+    public void setRecipeChooseChronicDisease(Integer recipeChooseChronicDisease) {
         this.recipeChooseChronicDisease = recipeChooseChronicDisease;
     }
 
