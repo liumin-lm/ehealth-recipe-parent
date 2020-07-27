@@ -107,6 +107,10 @@ public class HisRecipe implements Serializable {
     private String sendAddr;
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
     private Integer recipeSource;
+    @ItemProperty(alias = "收货人姓名")
+    private String receiverName;
+    @ItemProperty(alias = "收货人电话")
+    private String receiverTel;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -490,5 +494,21 @@ public class HisRecipe implements Serializable {
 
     public void setRecipeSource(Integer recipeSource) {
         this.recipeSource = recipeSource;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
+    public String getReceiverTel() {
+        return receiverTel;
+    }
+
+    public void setReceiverTel(String receiverTel) {
+        this.receiverTel = receiverTel;
     }
 }
