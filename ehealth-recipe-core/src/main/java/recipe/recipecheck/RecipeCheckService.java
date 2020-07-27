@@ -400,13 +400,10 @@ public class RecipeCheckService {
         try {
             doctor = doctorService.get(doctorId);
             doctor.setIdNumber(hideIdCard(doctor.getIdNumber()));
-//            if (null != doctor) {
-//                doc.setMobile(doctor.getMobile());
-//            }
         } catch (Exception e) {
             LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
         }
-
+        RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         //监护人信息
         GuardianBean guardian = new GuardianBean();
         //取patient需要的字段
@@ -427,9 +424,15 @@ public class RecipeCheckService {
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
                 if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
-                    guardian.setName(patient.getGuardianName());
-                    guardian.setGuardianCertificate(hideIdCard(patient.getGuardianCertificate()));
-                    guardian.setMobile(patient.getMobile());
+                    if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
+                        guardian.setName(extend.getGuardianName());
+                        guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));
+                        guardian.setMobile(extend.getGuardianMobile());
+                    } else {
+                        guardian.setName(patient.getGuardianName());
+                        guardian.setGuardianCertificate(hideIdCard(patient.getGuardianCertificate()));
+                        guardian.setMobile(patient.getMobile());
+                    }
                     try {
                         guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                         guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
@@ -546,7 +549,6 @@ public class RecipeCheckService {
         map.put("cancelRecipeFlag", cancelRecipeFlag);
 
         //患者就诊卡信息
-        RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         HashMap<String, String> cardMap = Maps.newHashMap();
         if(extend!=null){
             String cardNo = extend.getCardNo();
