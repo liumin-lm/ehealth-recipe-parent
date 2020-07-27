@@ -1550,13 +1550,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     return 0;
                 }
                 //TODO 1约定的enterpriseCode=》appKey
-                if("12345".equals(enterpriseCode)){//除马路以外的其他药企库存查询
-                    map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
-                    drugInventoryRequestMap.set(map);
-                    return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
-                }else{//马路
+//                if("12345".equals(enterpriseCode)){//除马路以外的其他药企库存查询
+//                    map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
+//                    drugInventoryRequestMap.set(map);
+//                    return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
+//                }else{//马路
                     return execScanStockEnterpriseForMaLu(organDrugList,drugsEnterprise,total);
-                }
+//                }
 
             }
         }
