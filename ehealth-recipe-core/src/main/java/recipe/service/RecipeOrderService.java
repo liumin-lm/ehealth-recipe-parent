@@ -711,6 +711,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setReceiver(hisRecipe.getReceiverName());
                         order.setRecMobile(hisRecipe.getReceiverTel());
                         order.setAddressCanSend(true);
+                        order.setAddress4(hisRecipe.getSendAddr());
                     }
                 }
             } else {

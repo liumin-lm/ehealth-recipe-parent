@@ -491,7 +491,7 @@ public class RecipeServiceSub {
                 success = true;
             } else {
                 LOGGER.warn("setDetailsInfo organDrugList. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
-                throw new DAOException("药品已失效，请重新选择药品");
+                throw new DAOException(ErrorCode.SERVICE_ERROR,"药品已失效，请重新选择药品");
             }
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
