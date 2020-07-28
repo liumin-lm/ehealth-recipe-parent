@@ -714,6 +714,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setAddress4(hisRecipe.getSendAddr());
                     }
                 }
+                order.setExpressFee(null);
             } else {
                 setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
             }
