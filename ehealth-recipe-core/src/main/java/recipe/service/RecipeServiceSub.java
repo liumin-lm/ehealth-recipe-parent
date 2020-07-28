@@ -1887,11 +1887,11 @@ public class RecipeServiceSub {
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
                     if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
-                        //表示为药企配送
-                        map.put("showSendToEnterprises", 1);
-                    } else {
                         //表示为医院配送
                         map.put("showSendToHos", 1);
+                    } else {
+                        //表示为医院配送
+                        map.put("showSendToEnterprises", 1);
                     }
                 }
             } else if (new Integer(2).equals(recipe.getGiveMode())) {
