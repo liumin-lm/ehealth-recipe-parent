@@ -1885,7 +1885,7 @@ public class RecipeServiceSub {
                 HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                 if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(hisRecipe.getDeliveryCode());
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
                     if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
                         //表示为药企配送
                         map.put("showSendToEnterprises", 1);
