@@ -1,7 +1,5 @@
 package recipe.hisservice;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
@@ -310,35 +308,28 @@ public class RecipeToHisService {
 
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
-        List<Integer> drugIdList = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
-            @Override
-            public Integer apply(Recipedetail input) {
-                return input.getDrugId();
-            }
-        }).toList();
+        List<Integer> drugIdList = detailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
 
         List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(organId, drugIdList);
-        Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
-            @Override
-            public String apply(OrganDrugList input) {
-                return input.getOrganDrugCode();
-            }
-        });
+        Map<String, List<OrganDrugList>> drugIdAndProduce =
+                organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
 
         List<DrugInfoTO> data = new ArrayList<>(detailList.size());
-        DrugInfoTO drugInfo;
-        OrganDrugList organDrug;
-        for (Recipedetail detail : detailList) {
-            drugInfo = new DrugInfoTO(detail.getOrganDrugCode());
-            drugInfo.setPack(detail.getPack().toString());
-            drugInfo.setPackUnit(detail.getDrugUnit());
-            drugInfo.setUseTotalDose(detail.getUseTotalDose());
-            organDrug = drugIdAndProduce.get(detail.getOrganDrugCode());
-            if (null != organDrug) {
-                drugInfo.setManfcode(organDrug.getProducerCode());
+        detailList.forEach(a -> {
+            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
+            drugInfo.setPack(a.getPack().toString());
+            drugInfo.setPackUnit(a.getDrugUnit());
+            drugInfo.setUseTotalDose(a.getUseTotalDose());
+            List<OrganDrugList> organDrugs = drugIdAndProduce.get(a.getOrganDrugCode());
+            if (CollectionUtils.isNotEmpty(organDrugs)) {
+                Map<Integer, String> producerCodeMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getProducerCode));
+                String producerCode = producerCodeMap.get(a.getDrugId());
+                if (StringUtils.isNotEmpty(producerCode)) {
+                    drugInfo.setManfcode(producerCode);
+                }
             }
             data.add(drugInfo);
-        }
+        });
         request.setData(data);
 
         DrugInfoResponseTO response = null;
