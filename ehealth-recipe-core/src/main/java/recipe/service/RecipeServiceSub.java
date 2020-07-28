@@ -1784,7 +1784,7 @@ public class RecipeServiceSub {
         //按钮枚举
         for (DoctorRecipePageButtonStatusEnum e : DoctorRecipePageButtonStatusEnum.values()) {
             map.put(e.getButtonName(),e.getStatusList().contains(recipe.getStatus()));
-            if ("continueOpenRecipeFlag".equals(e.getButtonName())){
+            if ("continueOpenRecipeFlag".equals(e.getButtonName()) && e.getStatusList().contains(recipe.getStatus())){
                 map.put("continueOpenRecipeFlag",canShowContinueSignFlag(recipe.getClinicOrgan()));
             }
         }
@@ -1874,6 +1874,11 @@ public class RecipeServiceSub {
         }
         //date 20200724 北京互联网按钮展示根据HIS进行判断
         if (new Integer(2).equals(recipe.getRecipeSource())) {
+            map.put("supportDownload", 0);
+            map.put("supportToHos", 0);
+            map.put("showSendToHos", 0);
+            map.put("showSendToEnterprises", 0);
+            map.put("supportTFDS", 0);
             if (new Integer(1).equals(recipe.getGiveMode())) {
                 //表示配送到家,需要判断是药企配送还是医院配送
                 HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
@@ -1891,6 +1896,7 @@ public class RecipeServiceSub {
                 }
             } else if (new Integer(2).equals(recipe.getGiveMode())) {
                 //表示到院取药
+                map.put("supportToHos", 1);
 
             } else if (new Integer(3).equals(recipe.getGiveMode())) {
                 //表示到店取药
