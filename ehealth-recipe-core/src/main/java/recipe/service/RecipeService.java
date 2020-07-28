@@ -3878,6 +3878,7 @@ public class RecipeService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
                     RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                    // 111 为卫宁支付
                     if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
                         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                         hisService.recipeDrugTake(recipeId, payFlag, result);
