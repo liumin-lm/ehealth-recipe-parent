@@ -313,17 +313,18 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         for (RecipeDetailBean recipedetail : recipedetails) {
             medicine = new AuditMedicine();
             medicine.setName(recipedetail.getDrugName());
-            Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
-            if (ObjectUtils.isEmpty(targetDrugId)) {
-                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
-                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
-                    medicine.setHisCode(organDrug.getRegulationDrugCode());
-                } else {
-                    medicine.setHisCode(LocalStringUtil.toString(recipedetail.getDrugId()));
-                }
-            } else {
-                medicine.setHisCode(LocalStringUtil.toString(targetDrugId));
-            }
+//            Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
+//            if (ObjectUtils.isEmpty(targetDrugId)) {
+//                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+//                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
+//                    medicine.setHisCode(organDrug.getRegulationDrugCode());
+//                } else {
+//                    medicine.setHisCode(LocalStringUtil.toString(recipedetail.getDrugId()));
+//                }
+//            } else {
+//                medicine.setHisCode(LocalStringUtil.toString(targetDrugId));
+//            }
+            medicine.setHisCode(String.valueOf(recipedetail.getDrugId()));
             medicine.setSpec(recipedetail.getDrugSpec());
             medicine.setGroup(recipedetail.getDrugGroup());
             medicine.setUnit(recipedetail.getUseDoseUnit());
