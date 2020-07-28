@@ -130,8 +130,14 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         recipeCheck.setCheckerName(auditDoctorName);
         List<RecipeCheckDetail> recipeCheckDetails = null;
         RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
-        recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
 
+        RecipeCheck oldRecipeCheck = recipeCheckDAO.getByRecipeId(recipeCheck.getRecipeId());
+        if (oldRecipeCheck != null) {
+            recipeCheck.setCheckId(oldRecipeCheck.getCheckId());
+            recipeCheckDAO.update(recipeCheck);
+        } else {
+            recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck,recipeCheckDetails);
+        }
         int beforeStatus = recipe.getStatus();
         String logMemo = "审核不通过(第三方平台，药师：" + auditDoctorName + "):" + memo;
         int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;
