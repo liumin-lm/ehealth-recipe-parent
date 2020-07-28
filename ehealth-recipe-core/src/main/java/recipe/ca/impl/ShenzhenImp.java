@@ -74,7 +74,7 @@ public class ShenzhenImp implements CAInterface {
         * */
         requestTO.setUserAccount("21383");
        // requestTO.setPassword("123456"); 改由前端输入
-        requestTO.setOrganId(1000169);
+        requestTO.setOrganId(1003086);
 
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
         String userAccount = requestTO.getUserAccount();
@@ -103,7 +103,7 @@ public class ShenzhenImp implements CAInterface {
             requestTO.setUserAccount(userAccount);
             //requestTO.setOrganId(recipe.getClinicOrgan());
             // 测试数据前置机配置杭州市中医院
-            requestTO.setOrganId(1000169);
+            requestTO.setOrganId(1003086);
             CaPictureResponseTO caPictureResponseTO = iCommonCAServcie.newCaPictureBusiness(requestTO);
             if (caPictureResponseTO == null || caPictureResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caPictureResponseTO.getCode());
@@ -129,7 +129,7 @@ public class ShenzhenImp implements CAInterface {
             //签名原文
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
             //caSignRequestTO.setOrganId(recipe.getClinicOrgan());
-            caSignRequestTO.setOrganId(1000169);
+            caSignRequestTO.setOrganId(1003086);
             CaSignResponseTO caSignResponseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (caSignResponseTO == null || caSignResponseTO.getCode() != 200) {
                 caSignResultVo.setCode(caSignResponseTO.getCode());
@@ -147,7 +147,7 @@ public class ShenzhenImp implements CAInterface {
             CaCertificateRequestTO caCertificateRequestTO = new CaCertificateRequestTO();
             caCertificateRequestTO.setUserAccount(userAccount);
             //caSignRequestTO.setOrganId(recipe.getClinicOrgan());
-            caCertificateRequestTO.setOrganId(1000169);
+            caCertificateRequestTO.setOrganId(1003086);
 
             CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
             if (caCertificateResponseTO == null || caCertificateResponseTO.getCode() != 200) {
