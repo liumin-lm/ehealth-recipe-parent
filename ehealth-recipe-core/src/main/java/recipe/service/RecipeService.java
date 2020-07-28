@@ -3873,9 +3873,16 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //异步显示对应的药品金额，
                 RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
+                //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
                 //HIS消息发送
-                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                hisService.recipeDrugTake(recipeId, payFlag, result);
+                if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
+                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                    if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
+                        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                        hisService.recipeDrugTake(recipeId, payFlag, result);
+                    }
+                }
             }
         }
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
