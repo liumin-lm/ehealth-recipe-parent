@@ -1784,7 +1784,7 @@ public class RecipeServiceSub {
         //按钮枚举
         for (DoctorRecipePageButtonStatusEnum e : DoctorRecipePageButtonStatusEnum.values()) {
             map.put(e.getButtonName(),e.getStatusList().contains(recipe.getStatus()));
-            if ("continueOpenRecipeFlag".equals(e.getButtonName())){
+            if ("continueOpenRecipeFlag".equals(e.getButtonName()) && e.getStatusList().contains(recipe.getStatus())){
                 map.put("continueOpenRecipeFlag",canShowContinueSignFlag(recipe.getClinicOrgan()));
             }
         }
