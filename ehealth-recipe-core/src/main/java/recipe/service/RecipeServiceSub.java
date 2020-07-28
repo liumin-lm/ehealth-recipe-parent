@@ -1890,7 +1890,7 @@ public class RecipeServiceSub {
                         //表示为医院配送
                         map.put("showSendToHos", 1);
                     } else {
-                        //表示为医院配送
+                        //表示为药企配送
                         map.put("showSendToEnterprises", 1);
                     }
                 }
