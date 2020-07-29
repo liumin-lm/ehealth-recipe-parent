@@ -334,8 +334,10 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @RpcService
     public String uploadPicture(String picture) {
-        byte[] data = Base64.decodeBase64(picture.getBytes());
-        logger.info("uploadPicture.data=[{}]",JSONUtils.toString(data));
+        String basePrefix = "data:image/jpeg;base64,/9j/";
+        String base64Picture = basePrefix + picture;
+        logger.info("uploadPicture.data=[{}]",JSONUtils.toString(base64Picture));
+        byte[] data = Base64.decodeBase64(base64Picture.getBytes());
         if (data == null) {
             return null;
         }
@@ -343,7 +345,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         try {
             //先生成本地文件
             String prefix = picture.substring(0,4);
-            String fileName = "caPicture_"+prefix+".png";
+            String fileName = "caPicture_"+prefix+".jpg";
             File file = new File(fileName);
             fileOutputStream = new FileOutputStream(file);
             if (data.length > 0) {
@@ -359,7 +361,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             //0需要验证 31不需要
             meta.setMode(0);
             meta.setCatalog("other-doc");
-            meta.setContentType("image/png");
+            meta.setContentType("image/jpeg");
             meta.setFileName(fileName);
             meta.setFileSize(file.length());
             logger.info("uploadPicture.meta=[{}]",JSONUtils.toString(meta));
