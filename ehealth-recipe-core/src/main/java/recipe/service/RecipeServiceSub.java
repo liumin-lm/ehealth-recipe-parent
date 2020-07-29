@@ -374,7 +374,7 @@ public class RecipeServiceSub {
                             takeMedicineSize++;
                             takeOutDrugName.add(obj.getSaleName());
                         }
-                        organDrugListMap.put(obj.getOrganDrugCode(), obj);
+                        organDrugListMap.put(obj.getOrganDrugCode() + obj.getDrugId(), obj);
                         organDrugListIdMap.put(obj.getDrugId(), obj);
                     }
 
@@ -396,7 +396,7 @@ public class RecipeServiceSub {
                     }
                 } else {
                     for (OrganDrugList obj : organDrugList) {
-                        organDrugListMap.put(obj.getOrganDrugCode(), obj);
+                        organDrugListMap.put(obj.getOrganDrugCode() + obj.getDrugId(), obj);
                         organDrugListIdMap.put(obj.getDrugId(), obj);
                     }
                 }
@@ -409,7 +409,7 @@ public class RecipeServiceSub {
                     if (oldFlag) {
                         organDrug = organDrugListIdMap.get(detail.getDrugId());
                     } else {
-                        organDrug = organDrugListMap.get(detail.getOrganDrugCode());
+                        organDrug = organDrugListMap.get(detail.getOrganDrugCode() + detail.getDrugId());
                     }
                     if (null != organDrug) {
                         detail.setOrganDrugCode(organDrug.getOrganDrugCode());
