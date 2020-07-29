@@ -334,10 +334,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @RpcService
     public String uploadPicture(String picture) {
-        String basePrefix = "data:image/jpg;base64,";
-        String base64Picture = basePrefix + picture;
-        logger.info("uploadPicture.data=[{}]",JSONUtils.toString(base64Picture));
-        byte[] data = Base64.decodeBase64(base64Picture.getBytes());
+        byte[] data = Base64.decodeBase64(picture.getBytes());
         if (data == null) {
             return null;
         }
@@ -345,7 +342,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         try {
             //先生成本地文件
             String prefix = picture.substring(0,4);
-            String fileName = "caPicture_"+prefix+".jpg";
+            String fileName = "caPicture_"+prefix+".jpeg";
             File file = new File(fileName);
             fileOutputStream = new FileOutputStream(file);
             if (data.length > 0) {
