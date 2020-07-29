@@ -423,7 +423,7 @@ public class RecipeCheckService {
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
-                if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                if (!ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                     if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
                         guardian.setName(extend.getGuardianName());
                         guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));
