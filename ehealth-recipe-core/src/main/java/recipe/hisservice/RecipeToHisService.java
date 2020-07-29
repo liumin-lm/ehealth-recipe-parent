@@ -506,6 +506,7 @@ public class RecipeToHisService {
             LOGGER.info("findPatientChronicDiseaseList response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("findPatientChronicDiseaseList error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
         }
         return response;
     }
