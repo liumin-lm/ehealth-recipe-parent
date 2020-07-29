@@ -826,7 +826,7 @@ public class RecipeCheckService {
             if(null != nowRecipeCheck) {
                 if (1 == nowRecipeCheck.getCheckStatus()) {
                     checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                } else {
+                } else if(0 == nowRecipeCheck.getCheckStatus() && null != nowRecipeCheck.getChecker()) {
                     checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }else{

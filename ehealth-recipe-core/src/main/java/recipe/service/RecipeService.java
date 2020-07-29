@@ -4354,7 +4354,7 @@ public class RecipeService extends RecipeBaseService {
             //通过证件号码获取患者年龄
             Integer age = 0;
             try {
-                age = ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
+                age = ChinaIDNumberUtil.getAgeFromBirth(patientList.get(0).getIdcard());
                 LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}", age);
             } catch (ValidateException e) {
                 LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常" + e.getMessage(), e);
