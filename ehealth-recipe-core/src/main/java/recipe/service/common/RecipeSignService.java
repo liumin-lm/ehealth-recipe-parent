@@ -416,7 +416,7 @@ public class RecipeSignService {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-
+        rMap.put("bussSource", recipeBean.getBussSource());
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeBean.getRecipeId());
         rMap.put("consultId", recipeBean.getClinicId());
