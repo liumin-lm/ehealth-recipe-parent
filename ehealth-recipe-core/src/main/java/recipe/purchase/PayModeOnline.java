@@ -151,6 +151,18 @@ public class PayModeOnline implements IPurchaseService {
             drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
             //drugsEnterpriseList = new ArrayList<DrugsEnterprise>();
         }
+        if (new Integer(2).equals(dbRecipe.getRecipeSource())) {
+            //北京互联网根据HIS传过来的药企进行展示
+            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
+            if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
+                drugsEnterpriseList.clear();
+                if (enterprise != null) {
+                    drugsEnterpriseList.add(enterprise);
+                }
+            }
+        }
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
             resultBean.setCode(5);
