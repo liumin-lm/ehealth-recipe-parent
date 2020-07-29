@@ -1708,7 +1708,7 @@ public class RecipeServiceSub {
                     map.put("doctorSignImgToken", FileAuth.instance().createToken(info.getSignPictureDoc(), 3600L));
                 }
                 //药师图片
-                if (StringUtils.isNotEmpty(info.getSignPicturePha())) {
+                if (StringUtils.isNotEmpty(info.getSignPicturePha()) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
                     map.put("checkerSignImg", info.getSignPicturePha());
                     map.put("checkerSignImgToken", FileAuth.instance().createToken(info.getSignPicturePha(), 3600L));
                 }
