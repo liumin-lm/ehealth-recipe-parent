@@ -99,6 +99,7 @@ import recipe.util.*;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -4351,17 +4352,23 @@ public class RecipeService extends RecipeBaseService {
             List<String> findByMpiIdInParam = new ArrayList<>();
             findByMpiIdInParam.add(params.get("mpiid"));
             List<PatientDTO> patientList = patientService.findByMpiIdIn(findByMpiIdInParam);
-            //通过证件号码获取患者年龄
-            Integer age = 0;
-            try {
-                age = ChinaIDNumberUtil.getAgeFromBirth(patientList.get(0).getIdcard());
-                LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}", age);
-            } catch (ValidateException e) {
-                LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常" + e.getMessage(), e);
-                e.printStackTrace();
+            if(patientList!=null&&patientList.size()>0){
+                //通过生日获取患者年龄
+                Integer age = 0;
+                try {
+                    if(patientList.get(0)!=null&&patientList.get(0).getBirthday()!=null){
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        age = ChinaIDNumberUtil.getAgeFromBirth(simpleDateFormat.format(patientList.get(0).getBirthday()));
+                    }
+                    LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}", age);
+                } catch (ValidateException e) {
+                    LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常" + e.getMessage(), e);
+                    e.printStackTrace();
+                }
+                //实际年龄>=配置年龄 设置可开处方
+                if (age >= (Integer) findCanRecipeByAge) canRecipe = true;
             }
-            //实际年龄>=配置年龄 设置可开处方
-            if (age >= (Integer) findCanRecipeByAge) canRecipe = true;
+
         }
         map.put("canRecipe", canRecipe);
         map.put("canRecipeAge", findCanRecipeByAge);
