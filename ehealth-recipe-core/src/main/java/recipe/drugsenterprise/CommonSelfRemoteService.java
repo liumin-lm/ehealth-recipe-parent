@@ -174,7 +174,7 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
                 Position position = new Position();
                 position.setLatitude(Double.parseDouble(pharmacy.getPharmacyLatitude()));
                 position.setLongitude(Double.parseDouble(pharmacy.getPharmacyLongitude()));
-                position.setRange(Integer.parseInt(ext.get(searchMapRANGE).toString()));
+                //position.setRange(Integer.parseInt(ext.get(searchMapRANGE).toString()));
                 detailBean.setPosition(position);
                 detailBean.setBelongDepName(enterprise.getName());
                 //记录药店和用户两个经纬度的距离
