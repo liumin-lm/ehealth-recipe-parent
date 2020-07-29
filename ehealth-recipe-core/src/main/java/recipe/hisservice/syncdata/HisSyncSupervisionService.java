@@ -295,7 +295,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
-            req.setGuardianMobile(patientDTO.getMobile());
+            //儿童的手机号就是陪诊人的手机号
+            if(StringUtils.isNotEmpty(patientDTO.getGuardianCertificate())){
+                req.setGuardianMobile(patientDTO.getMobile());
+            }
             //其他信息
             //监管接收方现在使用recipeId去重
             req.setRecipeID(recipe.getRecipeId().toString());
