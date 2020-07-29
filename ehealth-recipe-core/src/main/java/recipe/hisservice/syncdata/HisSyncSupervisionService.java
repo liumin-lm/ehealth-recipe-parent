@@ -280,7 +280,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
             req.setOriginalDiagnosis(organDiseaseName);
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
-            req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
+            if (new Integer(2).equals(patientDTO.getPatientUserType())) {
+                //无证身份证儿童包含特殊字符
+                req.setPatientCertID(patientDTO.getGuardianCertificate());
+            } else {
+                req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
+            }
             req.setPatientName(patientDTO.getPatientName());
             req.setNation(patientDTO.getNation());
             req.setMobile(LocalStringUtil.toString(patientDTO.getMobile()));
