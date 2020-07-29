@@ -2540,6 +2540,29 @@ public class RecipeService extends RecipeBaseService {
         if (null != recipeExt && null != dbRecipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(dbRecipeId);
+            //老的字段兼容处理
+            if (StringUtils.isNotEmpty(recipeExtend.getPatientType())) {
+                recipeExtend.setMedicalType(recipeExtend.getPatientType());
+                switch (recipeExtend.getPatientType()) {
+                    case "2":
+                        recipeExtend.setMedicalTypeText(("普通医保"));
+                        break;
+                    case "3":
+                        recipeExtend.setMedicalTypeText(("慢病医保"));
+                        break;
+                    default:
+                }
+            }
+            //慢病开关
+            if (recipeExtend.getRecipeChooseChronicDisease()==null){
+                try {
+                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                    Integer recipeChooseChronicDisease = (Integer)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
+                    recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
+                }catch (Exception e){
+                    LOGGER.error("doWithRecipeExtend 获取开关异常",e);
+                }
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
