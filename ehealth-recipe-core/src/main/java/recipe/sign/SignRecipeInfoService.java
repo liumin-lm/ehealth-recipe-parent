@@ -334,7 +334,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @RpcService
     public String uploadPicture(String picture) {
-        String basePrefix = "data:image/jpeg;base64,/9j/";
+        String basePrefix = "data:image/jpg;base64,";
         String base64Picture = basePrefix + picture;
         logger.info("uploadPicture.data=[{}]",JSONUtils.toString(base64Picture));
         byte[] data = Base64.decodeBase64(base64Picture.getBytes());
