@@ -99,6 +99,7 @@ import recipe.util.*;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -2539,6 +2540,29 @@ public class RecipeService extends RecipeBaseService {
         if (null != recipeExt && null != dbRecipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(dbRecipeId);
+            //老的字段兼容处理
+            if (StringUtils.isNotEmpty(recipeExtend.getPatientType())) {
+                recipeExtend.setMedicalType(recipeExtend.getPatientType());
+                switch (recipeExtend.getPatientType()) {
+                    case "2":
+                        recipeExtend.setMedicalTypeText(("普通医保"));
+                        break;
+                    case "3":
+                        recipeExtend.setMedicalTypeText(("慢病医保"));
+                        break;
+                    default:
+                }
+            }
+            //慢病开关
+            if (recipeExtend.getRecipeChooseChronicDisease()==null){
+                try {
+                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                    Integer recipeChooseChronicDisease = (Integer)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
+                    recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
+                }catch (Exception e){
+                    LOGGER.error("doWithRecipeExtend 获取开关异常",e);
+                }
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
@@ -4351,17 +4375,23 @@ public class RecipeService extends RecipeBaseService {
             List<String> findByMpiIdInParam = new ArrayList<>();
             findByMpiIdInParam.add(params.get("mpiid"));
             List<PatientDTO> patientList = patientService.findByMpiIdIn(findByMpiIdInParam);
-            //通过证件号码获取患者年龄
-            Integer age = 0;
-            try {
-                age = ChinaIDNumberUtil.getAgeFromBirth(patientList.get(0).getIdcard());
-                LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}", age);
-            } catch (ValidateException e) {
-                LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常" + e.getMessage(), e);
-                e.printStackTrace();
+            if(patientList!=null&&patientList.size()>0){
+                //通过生日获取患者年龄
+                Integer age = 0;
+                try {
+                    if(patientList.get(0)!=null&&patientList.get(0).getBirthday()!=null){
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        age = ChinaIDNumberUtil.getAgeFromBirth(simpleDateFormat.format(patientList.get(0).getBirthday()));
+                    }
+                    LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}", age);
+                } catch (ValidateException e) {
+                    LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常" + e.getMessage(), e);
+                    e.printStackTrace();
+                }
+                //实际年龄>=配置年龄 设置可开处方
+                if (age >= (Integer) findCanRecipeByAge) canRecipe = true;
             }
-            //实际年龄>=配置年龄 设置可开处方
-            if (age >= (Integer) findCanRecipeByAge) canRecipe = true;
+
         }
         map.put("canRecipe", canRecipe);
         map.put("canRecipeAge", findCanRecipeByAge);
