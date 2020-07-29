@@ -31,6 +31,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -334,7 +335,6 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     @RpcService
     public String uploadPicture(String picture) {
         byte[] data = Base64.decodeBase64(picture.getBytes());
-        logger.info("uploadPicture.data=[{}]",JSONUtils.toString(data));
         if (data == null) {
             return null;
         }
@@ -342,7 +342,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         try {
             //先生成本地文件
             String prefix = picture.substring(0,4);
-            String fileName = "caPicture_"+prefix+".jpg";
+            String fileName = "caPicture_"+prefix+".jpeg";
             File file = new File(fileName);
             fileOutputStream = new FileOutputStream(file);
             if (data.length > 0) {

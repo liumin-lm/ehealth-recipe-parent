@@ -374,7 +374,7 @@ public class RecipeServiceSub {
                             takeMedicineSize++;
                             takeOutDrugName.add(obj.getSaleName());
                         }
-                        organDrugListMap.put(obj.getOrganDrugCode(), obj);
+                        organDrugListMap.put(obj.getOrganDrugCode() + obj.getDrugId(), obj);
                         organDrugListIdMap.put(obj.getDrugId(), obj);
                     }
 
@@ -396,7 +396,7 @@ public class RecipeServiceSub {
                     }
                 } else {
                     for (OrganDrugList obj : organDrugList) {
-                        organDrugListMap.put(obj.getOrganDrugCode(), obj);
+                        organDrugListMap.put(obj.getOrganDrugCode() + obj.getDrugId(), obj);
                         organDrugListIdMap.put(obj.getDrugId(), obj);
                     }
                 }
@@ -409,7 +409,7 @@ public class RecipeServiceSub {
                     if (oldFlag) {
                         organDrug = organDrugListIdMap.get(detail.getDrugId());
                     } else {
-                        organDrug = organDrugListMap.get(detail.getOrganDrugCode());
+                        organDrug = organDrugListMap.get(detail.getOrganDrugCode() + detail.getDrugId());
                     }
                     if (null != organDrug) {
                         detail.setOrganDrugCode(organDrug.getOrganDrugCode());
@@ -1785,14 +1785,14 @@ public class RecipeServiceSub {
         for (DoctorRecipePageButtonStatusEnum e : DoctorRecipePageButtonStatusEnum.values()) {
             map.put(e.getButtonName(),e.getStatusList().contains(recipe.getStatus()));
             if ("continueOpenRecipeFlag".equals(e.getButtonName()) && e.getStatusList().contains(recipe.getStatus())){
-                map.put("continueOpenRecipeFlag",canShowContinueSignFlag(recipe.getClinicOrgan()));
+                map.put("continueOpenRecipeFlag",canShowContinueSignFlag(recipe));
             }
         }
     }
 
-    private static boolean canShowContinueSignFlag(Integer clinicOrgan) {
+    private static boolean canShowContinueSignFlag(Recipe recipe) {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        return (Boolean) configurationService.getConfiguration(clinicOrgan, "continueOpenRecipeFlag");
+        return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "continueOpenRecipeFlag") && StringUtils.isEmpty(recipe.getOrderCode());
     }
 
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
