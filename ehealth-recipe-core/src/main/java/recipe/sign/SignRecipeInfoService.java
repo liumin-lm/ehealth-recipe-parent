@@ -31,6 +31,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -342,7 +343,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         try {
             //先生成本地文件
             String prefix = picture.substring(0,4);
-            String fileName = "caPicture_"+prefix+".jpg";
+            String fileName = "caPicture_"+prefix+".png";
             File file = new File(fileName);
             fileOutputStream = new FileOutputStream(file);
             if (data.length > 0) {
@@ -358,7 +359,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             //0需要验证 31不需要
             meta.setMode(0);
             meta.setCatalog("other-doc");
-            meta.setContentType("image/jpeg");
+            meta.setContentType("image/png");
             meta.setFileName(fileName);
             meta.setFileSize(file.length());
             logger.info("uploadPicture.meta=[{}]",JSONUtils.toString(meta));
