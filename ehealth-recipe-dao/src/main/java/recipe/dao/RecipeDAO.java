@@ -228,8 +228,24 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      *
      * @param orderCode
      */
-    @DAOMethod(sql = "update Recipe set orderCode=null ,chooseFlag=0, status = 2, giveMode = null, payMode = null where orderCode=:orderCode")
-    public abstract void updateOrderCodeToNullByOrderCodeAndClearChoose(@DAOParam("orderCode") String orderCode);
+    public void updateOrderCodeToNullByOrderCodeAndClearChoose(String orderCode, Recipe recipe) {
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update Recipe set ");
+                //非北京互联网模式设置为null
+                if (!new Integer(2).equals(recipe.getRecipeSource())) {
+                    hql.append(" giveMode = null, ");
+                }
+                hql.append(" orderCode=null ,chooseFlag=0, status = 2, payMode = null where orderCode=:orderCode");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameter("orderCode", orderCode);
+                q.executeUpdate();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+    }
 
     /**
      * 根据处方id批量删除
