@@ -81,8 +81,13 @@ public class ShenzhenImp implements CAInterface {
         CaSignResultVo caSignResultVo = new CaSignResultVo();
         caSignResultVo.setRecipeId(recipe.getRecipeId());
         try {
-            //深圳CA为工号
-            Integer doctorId = recipe.getDoctor();
+            //深圳CA为工号 recipe.getChecker() 为null的为医生
+            Integer doctorId;
+            if(recipe.getChecker() == null) {
+             doctorId =recipe.getDoctor();
+            }else {
+                doctorId =recipe.getChecker();
+            }
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             EmploymentDTO employmentDTO = employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
             userAccount = employmentDTO.getJobNumber();
