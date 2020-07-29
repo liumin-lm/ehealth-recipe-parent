@@ -1,6 +1,18 @@
 variables:
   AppName: "ehealth-recipe"
 
+build:
+  stage: build
+  only:
+    - branches
+  except:
+    - develop
+  script:
+    - 'cd *-api'
+    - 'mvn clean deploy -Dmaven.test.skip=true'
+  tags:
+    - build-jar
+
 package:
   stage: build
   only:
