@@ -180,7 +180,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public abstract List<Recipe> findByRecipeCodeAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList,
                                                                 @DAOParam("clinicOrgan") Integer clinicOrgan);
 
-    @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag  and TO_DAYS(NOW()) - TO_DAYS(createDate) <= valueDays")
+    @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag and status in (2,8)")
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
 
     /**
