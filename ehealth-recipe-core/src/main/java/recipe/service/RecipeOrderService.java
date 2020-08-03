@@ -101,6 +101,9 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
 
+    @Autowired
+    private RecipeListService recipeListService;
+
     /**
      * 处方结算时创建临时订单
      *
@@ -1452,10 +1455,26 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignFile(recipe.getSignFile());
                     //药品详情
                     recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
-                    prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+                    String className = Thread.currentThread().getStackTrace()[2].getClassName();
+                    String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+                    //获取处方详情
+                    if(("getOrderDetail".equals(methodName)&&"recipe.service.RecipeOrderService".equals(className))){
+                        if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+                            prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+                        }
+                    }else{
+                        prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+
+                    }
+                    //返回是否隐方
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
+                    prb.setIsHiddenRecipeDetail((boolean)isHiddenRecipeDetail);
+
                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && OrderStatusConstant.READY_PAY.equals(order.getStatus())) {
                         prb.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(recipe.getSignDate()));
                     }
+
                     //添加处方的取药窗口
                     OrganService organService = BasicAPI.getService(OrganService.class);
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
@@ -1463,7 +1482,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (CollectionUtils.isNotEmpty(recipedetails) && null != recipedetails.get(0).getPharmNo()) {
                         prb.setGetDrugWindow(organDTO.getName() + recipedetails.get(0).getPharmNo() + "取药窗口");
                     }
-
+                    prb.setOrganId(recipe.getClinicOrgan());
+                    prb.setRecipeType(recipe.getRecipeType());
+                    prb.setPayFlag(recipe.getPayFlag());
                     patientRecipeBeanList.add(prb);
 
                     if (1 == order.getEffective()) {
@@ -1629,8 +1650,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
 
     /**
-     * 获取订单详情
-     *
+     * 健康端获取订单详情
      * @param orderCode
      * @return
      */
