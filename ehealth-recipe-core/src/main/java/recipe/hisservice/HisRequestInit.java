@@ -710,6 +710,7 @@ public class HisRequestInit {
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
         requestTO.setDoctorID(doctorDTO.getIdNumber());
+        requestTO.setDoctorNumber(doctorDTO.getJobNumber());
 
         //如果平台状态是 13-未支付 14-未操作 15-药师审核未通过 则武昌医院状态置为 9-作废
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
