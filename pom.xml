@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-his-api</artifactId>
-                <version>2.7.3.0.toB-hotfix-20200715-SNAPSHOT</version>
+                <version>${ngari.hisapi.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
