@@ -9,6 +9,8 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -736,6 +738,27 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     }
                 }
             }
+
+            //添加患者医保类型
+            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            if (recipe.getClinicId() != null) {
+                ConsultExDTO consultExDTO = consultExService.getByConsultId(recipe.getClinicId());
+                if (StringUtils.isNotEmpty(consultExDTO.getInsureTypeCode())) {
+                    if ("0".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示自费
+                        recipeMap.put("YIBAOBILL", "1");
+                    } else if ("1".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示普通医保
+                        recipeMap.put("YIBAOBILL", "0");
+                        recipeMap.put("YBTYPE", "0");
+                    } else if ("2".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示门特
+                        recipeMap.put("YIBAOBILL", "0");
+                        recipeMap.put("YBTYPE", "1");
+                    }
+                }
+            }
+
             //周岁处理
             Date birthday = patient.getBirthday();
             if (null != birthday) {
@@ -774,7 +797,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("VALIDDATE", DateConversion.getDateFormatter(validate, DateConversion.DEFAULT_DATE_TIME));
             recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());
             //医保处方 0：是；1：否
-            recipeMap.put("YIBAOBILL", "1");
+            //recipeMap.put("YIBAOBILL", "1");
 
             List<Map<String, String>> recipeDetailList = new ArrayList<>();
             recipeMap.put("DETAILS", recipeDetailList);
