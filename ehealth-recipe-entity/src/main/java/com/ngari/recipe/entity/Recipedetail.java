@@ -202,6 +202,10 @@ public class Recipedetail implements java.io.Serializable {
 	 */
 	private String medicalDrugCode;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
 
 	@Column(name = "UseDaysB")
 	public String getUseDaysB() {
@@ -755,4 +759,20 @@ public class Recipedetail implements java.io.Serializable {
 	public void setSettlementMode(Integer settlementMode) {
 		this.settlementMode = settlementMode;
 	}
+
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
 }

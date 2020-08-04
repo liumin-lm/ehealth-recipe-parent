@@ -8,6 +8,7 @@ import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.model.SearchDrugDetailReqDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -209,9 +210,20 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
         } else {
             //医生查询药品信息
-            return searchDrugListWithES(organId, drugType, drugName, start, 10);
+            return searchDrugListWithES(organId, drugType, drugName, null,start, 10);
         }
 
+    }
+
+    /**
+     * 药品目录搜索服务医生端NEW（每页限制10条）
+     * 新增-可根据药品药房进行搜索
+     */
+    @RpcService
+    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodePageStaticNew(SearchDrugDetailReqDTO req) {
+        LOGGER.info("findDrugListsByNameOrCodePageStaticNew req={}",JSONUtils.toString(req));
+        //医生查询药品信息
+        return searchDrugListWithES(req.getOrganId(), req.getDrugType(), req.getDrugName(), req.getPharmacyId(),req.getStart(), 10);
     }
 
 
@@ -234,7 +246,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             searchContentBean.setBussType(18);
             iSearchContentService.addSearchContent(searchContentBean,0);
         }
-        return searchDrugListWithES(organId, drugType, drugName, start, 10);
+        return searchDrugListWithES(organId, drugType, drugName,null, start, 10);
     }
 
 
@@ -244,7 +256,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      *
      * @return
      */
-    public List<SearchDrugDetailDTO> searchDrugListWithES(Integer organId, Integer drugType, String drugName,
+    public List<SearchDrugDetailDTO> searchDrugListWithES(Integer organId, Integer drugType, String drugName,Integer pharmacyId,
                                                           Integer start, Integer limit) {
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
@@ -291,6 +303,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(drugInfo)) {
             SearchDrugDetailDTO drugList = null;
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugList drugListNow;
             boolean drugInventoryFlag;
             List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
@@ -300,6 +313,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setHospitalPrice(drugList.getSalePrice());
                 } catch (Exception e) {
                     LOGGER.error("searchDrugListWithES parse error.  String=" + s,e);
+                }
+                //考虑到在es做过滤有可能会导致老版本搜索出多个重复药品
+                //(如果X药品有AB两个药房，要同步两次到es，如果不根据药房id搜索就会出现两个重复药品),so过滤药房暂时先放这
+                if (organId != null){
+                    OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, drugList.getOrganDrugCode(), drugList.getDrugId());
+                    if (organDrugList !=null){
+
+                    }
                 }
                 //该高亮字段给微信端使用:highlightedField
                 //该高亮字段给ios前端使用:highlightedFieldForIos
