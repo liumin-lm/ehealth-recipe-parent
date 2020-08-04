@@ -19,6 +19,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,30 +153,41 @@ public class EleInvoiceService {
      */
     private RecipeDTO setRecipeDTO(EleInvoiceDTO eleInvoiceDTO) {
         RecipeDTO recipeDTO = new RecipeDTO();
-
-
         Integer recipeId = eleInvoiceDTO.getId();
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (StringUtils.isNotBlank(recipeExtend.getRegisterID())) {
-            eleInvoiceDTO.setGhxh(recipeExtend.getRegisterID());
-        }
-        if (StringUtils.isNotBlank(recipeExtend.getCardType())) {
-            eleInvoiceDTO.setCardType(recipeExtend.getCardType());
-        }
-        if (StringUtils.isNotBlank(recipeExtend.getCardNo())) {
-            eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
-        }
-        RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
-        recipeDTO.setRecipeExtendBean(recipeExtendBean);
+
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            throw new DAOException(609, "recipe is null");
+        }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeDTO.setRecipeBean(recipeBean);
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null != recipeExtend) {
+            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+            recipeDTO.setRecipeExtendBean(recipeExtendBean);
+            if (StringUtils.isNotBlank(recipeExtend.getRegisterID())) {
+                eleInvoiceDTO.setGhxh(recipeExtend.getRegisterID());
+            }
+            if (StringUtils.isNotBlank(recipeExtend.getCardType())) {
+                eleInvoiceDTO.setCardType(recipeExtend.getCardType());
+            }
+            if (StringUtils.isNotBlank(recipeExtend.getCardNo())) {
+                eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
+            }
+        }
+
         RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
-        RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-        recipeDTO.setRecipeOrderBean(recipeOrderBean);
+        if (null != recipeOrder) {
+            RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
+            recipeDTO.setRecipeOrderBean(recipeOrderBean);
+        }
+
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        List<RecipeDetailBean> recipeDetails = ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class);
-        recipeDTO.setRecipeDetails(recipeDetails);
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            List<RecipeDetailBean> recipeDetails = ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class);
+            recipeDTO.setRecipeDetails(recipeDetails);
+        }
         return recipeDTO;
     }
 
@@ -204,11 +216,11 @@ public class EleInvoiceService {
     private List<String> stringToList(HisResponseTO<String> hisResponse) {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {
-            LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败,hisResponseTo is null");
+            LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
             throw new DAOException(609, "当前系统繁忙，请稍后再试");
         }
         if (!"200".equals(hisResponse.getMsgCode())) {
-            LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败，返回信息:msg={}", hisResponse.getMsg());
+            LOGGER.info("EleInvoiceService.stringToList 请求his失败，返回信息:msg={}", hisResponse.getMsg());
             throw new DAOException(609, hisResponse.getMsg());
         }
         String result = hisResponse.getData();
