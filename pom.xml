@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-his-api</artifactId>
-                <version>${ngari.hisapi.version}</version>
+                <version>2.7.3.0.master-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
