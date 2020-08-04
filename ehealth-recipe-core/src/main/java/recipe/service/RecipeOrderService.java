@@ -32,6 +32,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -1438,6 +1439,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
 
                 RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
+                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+
                 PatientRecipeDTO prb;
                 List<Recipedetail> recipedetails;
                 for (Recipe recipe : recipeList) {
@@ -1466,6 +1469,10 @@ public class RecipeOrderService extends RecipeBaseService {
                         prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
 
                     }
+                    //返回处方拓展信息
+                    RecipeExtend recipeExtend =recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+                    prb.setRecipeExtend(recipeExtendBean);
                     //返回是否隐方
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
