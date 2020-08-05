@@ -29,7 +29,7 @@ public abstract class PharmacyTcm implements java.io.Serializable{
     private String pharmacyName;
 
     @ItemProperty(alias = "药房分类")
-    private Integer category;
+    private String category;
 
     @ItemProperty(alias = "是否默认")
     private Boolean isDefault;
@@ -70,11 +70,11 @@ public abstract class PharmacyTcm implements java.io.Serializable{
     }
 
     @Column(name = "category")
-    public Integer getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(Integer category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 

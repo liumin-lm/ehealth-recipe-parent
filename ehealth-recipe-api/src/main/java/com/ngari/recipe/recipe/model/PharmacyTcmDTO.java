@@ -18,7 +18,7 @@ public class PharmacyTcmDTO implements Serializable {
 
     private String pharmacyName;
 
-    private Integer category;
+    private String category;
 
     private Boolean isDefault;
 
@@ -50,11 +50,11 @@ public class PharmacyTcmDTO implements Serializable {
         this.pharmacyName = pharmacyName;
     }
 
-    public Integer getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(Integer category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 
