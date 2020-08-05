@@ -1092,7 +1092,13 @@ public class RecipeListService extends RecipeBaseService{
                 record.setButtons(buttons);
                 //根据隐方配置返回处方详情
                 if(!isReturnRecipeDetail(record.getOrganId(),record.getRecipeType(),record.getPayFlag())){
-                    record.setRecipeDetail(null);
+                    List<RecipeDetailBean> recipeDetailVOs=record.getRecipeDetail();
+                    if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
+                        for(int j=0;j<recipeDetailVOs.size();j++){
+                            recipeDetailVOs.get(j).setDrugName(null);
+                            recipeDetailVOs.get(j).setDrugSpec(null);
+                        }
+                    }
                 }
                 //返回是否隐方
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
