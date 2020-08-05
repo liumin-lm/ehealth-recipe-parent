@@ -83,11 +83,11 @@ public class Recipedetail implements java.io.Serializable {
 
 	//用药频率说明（来源his）
 	@ItemProperty(alias="用药频率说明")
-	private String usingRateTextFromHis;
+	private String usingRateTextFromHis; //防止覆盖原有usingRateText
 
 	//用药方式说明（来源his）
 	@ItemProperty(alias="用药方式说明")
-	private String usePathwaysTextFromHis;
+	private String usePathwaysTextFromHis;//防止覆盖原有usePathwaysText
 
 	@ItemProperty(alias="药物使用总数量")
 	private Double useTotalDose;

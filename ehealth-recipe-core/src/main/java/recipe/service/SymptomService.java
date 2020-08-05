@@ -192,7 +192,6 @@ public class SymptomService implements ISymptomService {
             return result;
         }
 
-        Symptom symptom;
         Row row;
         List<String> errDrugListMatchList = Lists.newArrayList();
         Integer addNum = 0;
@@ -200,6 +199,7 @@ public class SymptomService implements ISymptomService {
         List<Symptom> symptomLists=Lists.newArrayList();
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
+            Symptom symptom;
             //循环获得每个行
             row = sheet.getRow(rowIndex);
             // 判断是否是模板

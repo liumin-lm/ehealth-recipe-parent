@@ -30,6 +30,25 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
 
+
+    /**
+     * 根据药房ID 查找药房数据
+     * @param pharmacyTcmId
+     * @return
+     */
+    @RpcService
+    public PharmacyTcmDTO getPharmacyTcmForId(Integer pharmacyTcmId) {
+        if (null == pharmacyTcmId) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "pharmacyTcmId is null");
+        }
+        PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(pharmacyTcmId);
+        if (pharmacyTcm == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
+        }
+        return ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcmDTO.class);
+    }
+
+
     /**
      * 新增药房
      * @param pharmacyTcm
@@ -39,10 +58,21 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
     public boolean addPharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm) {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
+        validate(pharmacyTcm);
+        PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
+        logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
+        pharmacyTcmDAO.save(convert);
+        return true;
+
+    }
+    /**
+     * 验证
+     * @param pharmacyTcm
+     */
+    private void validate(PharmacyTcmDTO pharmacyTcm) {
         if (null == pharmacyTcm) {
             throw new DAOException(DAOException.VALUE_NEEDED, "symptom is null");
         }
-        PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         if (pharmacyTcm.getPharmacyCode() == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "药房编码不能为空！");
         }
@@ -58,10 +88,45 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
         }
-        logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
-        pharmacyTcmDAO.save(convert);
-        return true;
+    }
 
+
+    /**
+     * 编辑药房
+     * @param pharmacyTcm
+     * @return
+     */
+    @RpcService
+    public PharmacyTcmDTO updatePharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm) {
+        PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+        //验证症候必要信息
+        PharmacyTcm pharmacyTcm1 = pharmacyTcmDAO.get(pharmacyTcm.getPharmacyId());
+        if (pharmacyTcm1 == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
+        }
+        validate(pharmacyTcm);
+        PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
+        logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
+        PharmacyTcm update = pharmacyTcmDAO.update(convert);
+        return ObjectCopyUtils.convert(update, PharmacyTcmDTO.class);
+
+    }
+
+    /**
+     * 根据药房ID 删除药房数据
+     * @param pharmacyTcmId
+     * @return
+     */
+    @RpcService
+    public void deletePharmacyTcmForId(Integer pharmacyTcmId) {
+        if (null == pharmacyTcmId) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "pharmacyTcmId is null");
+        }
+        PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(pharmacyTcmId);
+        if (pharmacyTcm == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
+        }
+        pharmacyTcmDAO.remove(pharmacyTcmId);
     }
 
     /**
