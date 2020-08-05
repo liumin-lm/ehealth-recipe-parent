@@ -5,6 +5,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.recipe.mode.EleInvoiceReqTo;
+import com.ngari.his.recipe.mode.RecipeInvoiceTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
@@ -45,7 +46,7 @@ import java.util.List;
  **/
 @RpcBean(value = "eleInvoiceService")
 public class EleInvoiceService {
-
+    private static final Integer RECIPE_TYPE = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(EleInvoiceService.class);
     @Autowired
     private PatientService patientService;
@@ -62,9 +63,9 @@ public class EleInvoiceService {
     public List<String> findEleInvoice(EleInvoiceDTO eleInvoiceDTO) {
         LOGGER.info("EleInvoiceService.findEleInvoice 入参eleInvoiceDTO=[{}]", JSONUtils.toString(eleInvoiceDTO));
         validateParam(eleInvoiceDTO);
-        PatientDTO patientDTO = patientService.get(eleInvoiceDTO.getMpiid());
-
+        EleInvoiceReqTo eleInvoiceReqTo = new EleInvoiceReqTo();
         if ("0".equals(eleInvoiceDTO.getType())) {
+            eleInvoiceReqTo.setCzybz("0");
             IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
             ConsultExDTO consultExDTO = iConsultExService.getByConsultId(eleInvoiceDTO.getId());
             if (StringUtils.isNotBlank(consultExDTO.getRegisterNo())) {
@@ -77,14 +78,18 @@ public class EleInvoiceService {
                 eleInvoiceDTO.setCardType(consultExDTO.getCardType());
             }
         }
-        EleInvoiceReqTo eleInvoiceReqTo = new EleInvoiceReqTo();
         //处方数据
-        if ("1".equals(eleInvoiceDTO.getType())) {
+        if (RECIPE_TYPE.toString().equals(eleInvoiceDTO.getType())) {
             RecipeDTO recipeDTO = setRecipeDTO(eleInvoiceDTO);
-            recipeDTO.setPatientDTO(patientDTO);
             eleInvoiceReqTo.setRecipeDTO(recipeDTO);
         }
 
+        if (StringUtils.isBlank(eleInvoiceDTO.getGhxh())) {
+            throw new DAOException(609, "ghxh is null,无法获取对应电子发票");
+        }
+
+        PatientDTO patientDTO = patientService.get(eleInvoiceDTO.getMpiid());
+        eleInvoiceReqTo.setPatientDTO(patientDTO);
         eleInvoiceReqTo.setOrganId(eleInvoiceDTO.getOrganId());
         if (StringUtils.isNotBlank(patientDTO.getPatientName())) {
             eleInvoiceReqTo.setHzxm(patientDTO.getPatientName());
@@ -99,34 +104,21 @@ public class EleInvoiceService {
         if (StringUtils.isNotBlank(patientDTO.getCertificate())) {
             eleInvoiceReqTo.setSfzh(patientDTO.getCertificate());
         }
-        eleInvoiceReqTo.setBlh(null);
-        if(StringUtils.isNotBlank(eleInvoiceDTO.getCardId())){
+        if (StringUtils.isNotBlank(eleInvoiceDTO.getCardId())) {
             eleInvoiceReqTo.setCardno(eleInvoiceDTO.getCardId());
         }
-        if(StringUtils.isNotBlank(eleInvoiceDTO.getCardType())){
+        if (StringUtils.isNotBlank(eleInvoiceDTO.getCardType())) {
             eleInvoiceReqTo.setCxlb(eleInvoiceDTO.getCardType());
         }
         eleInvoiceReqTo.setType(eleInvoiceDTO.getType());
-
         eleInvoiceReqTo.setKsrq(DateConversion.getPastDate(7));
         eleInvoiceReqTo.setJsrq(DateConversion.getToDayDate());
-        if ("0".equals(eleInvoiceDTO.getType())) {
-            eleInvoiceReqTo.setCzybz("0");
-        }
-        if ("1".equals(eleInvoiceDTO.getType())) {
-            eleInvoiceReqTo.setCzybz(null);
-        }
-        if (StringUtils.isNotBlank(eleInvoiceDTO.getGhxh())) {
-            eleInvoiceReqTo.setGhxh(eleInvoiceDTO.getGhxh());
-        } else {
-            throw new DAOException(609, "ghxh is null,无法获取对应电子发票");
-        }
+        eleInvoiceReqTo.setGhxh(eleInvoiceDTO.getGhxh());
+
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("EleInvoiceService.findEleInvoice 待推送数据:eleInvoiceReqTo:[{}]", JSONUtils.toString(eleInvoiceReqTo));
-        HisResponseTO<String> hisResponse = hisService.queryEleInvoice(eleInvoiceReqTo);
+        HisResponseTO<RecipeInvoiceTO> hisResponse = hisService.queryEleInvoice(eleInvoiceReqTo);
         return stringToList(hisResponse);
-
-
     }
 
     private void validateParam(EleInvoiceDTO eleInvoiceDTO) {
@@ -142,6 +134,28 @@ public class EleInvoiceService {
         if (StringUtils.isBlank(eleInvoiceDTO.getType())) {
             throw new DAOException(609, "type is null");
         }
+    }
+
+    @RpcService
+    public String getEleInvoiceEnable(Integer organId, String type) {
+        if (organId == null) {
+            throw new DAOException(609, "organId is null");
+        }
+        if (StringUtils.isBlank(type)) {
+            throw new DAOException(609, "type is null");
+        }
+        IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String result = "";
+        if ("0".equals(type)) {
+            result = (String) configurationCenterUtils.getConfiguration(organId, "EleInvoiceFzSwitchNew");
+        }
+        if ("1".equals(type)) {
+            result = (String) configurationCenterUtils.getConfiguration(organId, "EleInvoiceCfSwitch");
+        }
+        if (StringUtils.isBlank(result)) {
+            result = "0";
+        }
+        return result;
     }
 
     /**
@@ -191,29 +205,7 @@ public class EleInvoiceService {
         return recipeDTO;
     }
 
-    @RpcService
-    public String getEleInvoiceEnable(Integer organId, String type) {
-        if (organId == null) {
-            throw new DAOException(609, "organId is null");
-        }
-        if (StringUtils.isBlank(type)) {
-            throw new DAOException(609, "type is null");
-        }
-        IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        String result = "";
-        if ("0".equals(type)) {
-            result = (String) configurationCenterUtils.getConfiguration(organId, "EleInvoiceFzSwitchNew");
-        }
-        if ("1".equals(type)) {
-            result = (String) configurationCenterUtils.getConfiguration(organId, "EleInvoiceCfSwitch");
-        }
-        if (StringUtils.isBlank(result)) {
-            result = "0";
-        }
-        return result;
-    }
-
-    private List<String> stringToList(HisResponseTO<String> hisResponse) {
+    private List<String> stringToList(HisResponseTO<RecipeInvoiceTO> hisResponse) {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
@@ -223,10 +215,17 @@ public class EleInvoiceService {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败，返回信息:msg={}", hisResponse.getMsg());
             throw new DAOException(609, hisResponse.getMsg());
         }
-        String result = hisResponse.getData();
-        if (StringUtils.isBlank(result)) {
+        RecipeInvoiceTO result = hisResponse.getData();
+        if (null == result) {
             throw new DAOException(609, "当前系统繁忙，请稍后再试");
         }
-        return Arrays.asList(result.split(","));
+        if (StringUtils.isBlank(result.getInvoiceUrl())) {
+            throw new DAOException(609, "当前系统繁忙，请稍后再试");
+        }
+        if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
+                && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {
+
+        }
+        return Arrays.asList(result.getInvoiceUrl().split(","));
     }
 }
