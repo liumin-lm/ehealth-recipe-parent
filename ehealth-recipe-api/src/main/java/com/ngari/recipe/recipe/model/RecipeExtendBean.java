@@ -117,6 +117,67 @@ public class RecipeExtendBean implements Serializable {
      */
     private String medicalTypeText;
 
+    @ItemProperty(alias = "制法")
+    private String makeMethod;
+    @ItemProperty(alias = "制法text")
+    private String makeMethodText;
+    @ItemProperty(alias = "每付取汁")
+    private String juice;
+    @ItemProperty(alias = "每付取汁单位")
+    private String juiceUnit;
+    @ItemProperty(alias = "次量")
+    private String minor;
+    @ItemProperty(alias = "次量单位")
+    private String minorUnit;
+
+    public String getMakeMethod() {
+        return makeMethod;
+    }
+
+    public void setMakeMethod(String makeMethod) {
+        this.makeMethod = makeMethod;
+    }
+
+    public String getMakeMethodText() {
+        return makeMethodText;
+    }
+
+    public void setMakeMethodText(String makeMethodText) {
+        this.makeMethodText = makeMethodText;
+    }
+
+    public String getJuice() {
+        return juice;
+    }
+
+    public void setJuice(String juice) {
+        this.juice = juice;
+    }
+
+    public String getJuiceUnit() {
+        return juiceUnit;
+    }
+
+    public void setJuiceUnit(String juiceUnit) {
+        this.juiceUnit = juiceUnit;
+    }
+
+    public String getMinor() {
+        return minor;
+    }
+
+    public void setMinor(String minor) {
+        this.minor = minor;
+    }
+
+    public String getMinorUnit() {
+        return minorUnit;
+    }
+
+    public void setMinorUnit(String minorUnit) {
+        this.minorUnit = minorUnit;
+    }
+
     public RecipeExtendBean() {
     }
 

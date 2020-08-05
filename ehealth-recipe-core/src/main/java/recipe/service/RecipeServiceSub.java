@@ -113,8 +113,7 @@ public class RecipeServiceSub {
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
-    @Autowired
-    private static RecipeListService recipeListService;
+    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
 
     /**
      * @param recipeBean
@@ -433,8 +432,8 @@ public class RecipeServiceSub {
                         detail.setPack(organDrug.getPack());
                         //中药基础数据处理
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                            detail.setUsePathways(recipe.getTcmUsePathways());
-                            detail.setUsingRate(recipe.getTcmUsingRate());
+//                            detail.setUsePathways(recipe.getTcmUsePathways());
+//                            detail.setUsingRate(recipe.getTcmUsingRate());
 
                             //date 20200526
                             //构建处方初始化处方药品详情的时候用recipe的剂数
@@ -1485,13 +1484,13 @@ public class RecipeServiceSub {
         }
 
         //中药处方处理
-        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-            if (CollectionUtils.isNotEmpty(recipedetails)) {
-                Recipedetail recipedetail = recipedetails.get(0);
-                recipe.setTcmUsePathways(recipedetail.getUsePathways());
-                recipe.setTcmUsingRate(recipedetail.getUsingRate());
-            }
-        }
+//        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+//            if (CollectionUtils.isNotEmpty(recipedetails)) {
+//                Recipedetail recipedetail = recipedetails.get(0);
+//                recipe.setTcmUsePathways(recipedetail.getUsePathways());
+//                recipe.setTcmUsingRate(recipedetail.getUsingRate());
+//            }
+//        }
         map.put("patient", patient);
         if(isDoctor==false){
             if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){

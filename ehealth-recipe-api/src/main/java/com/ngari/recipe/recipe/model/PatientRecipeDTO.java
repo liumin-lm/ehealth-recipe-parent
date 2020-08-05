@@ -72,6 +72,8 @@ public class PatientRecipeDTO implements Serializable {
 
     private List<RecipeDetailBean> recipeDetail;
 
+    private RecipeExtendBean recipeExtend;
+
     /**
      * 药师签名的处方PDF
      */
@@ -327,5 +329,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setSignFile(String signFile) {
         this.signFile = signFile;
+    }
+
+    public RecipeExtendBean getRecipeExtend() {
+        return recipeExtend;
+    }
+
+    public void setRecipeExtend(RecipeExtendBean recipeExtendBean) {
+        this.recipeExtend = recipeExtendBean;
     }
 }

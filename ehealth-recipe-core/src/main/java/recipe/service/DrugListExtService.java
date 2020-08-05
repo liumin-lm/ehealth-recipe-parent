@@ -107,16 +107,16 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     }
 
     /**
-     * 常用药品列表服务
+     * 常用药品列表服务new
      *
      * @param doctor 开方医生
      * @return List<DrugList>
-     * zhongzx 加 organId,drugType
-     * @author luf
+     * 新增 根据药房pharmacyId过滤
      */
     @RpcService
-    public List<DrugListBean> findCommonDrugLists(int doctor, int organId, int drugType) {
+    public List<DrugListBean> findCommonDrugListsNew(int doctor, int organId, int drugType,Integer pharmacyId) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次
@@ -152,6 +152,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
             for (DrugListBean drugListBean : drugListBeans) {
+                if (pharmacyId != null){
+                    OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, drugListBean.getOrganDrugCode(), drugListBean.getDrugId());
+                    if (organDrugList != null){
+                        //过滤掉不在此药房内的药
+                    }
+                }
                 DrugList drugList = drugListDAO.getById(drugListBean.getDrugId());
                 if (drugList != null) {
                     drugListBean.setPrice1(drugList.getPrice1());
@@ -164,6 +170,19 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(organId, drugListBeans);
         return drugListBeans;
+    }
+
+    /**
+     * 常用药品列表服务
+     *
+     * @param doctor 开方医生
+     * @return List<DrugList>
+     * zhongzx 加 organId,drugType
+     * @author luf
+     */
+    @RpcService
+    public List<DrugListBean> findCommonDrugLists(int doctor, int organId, int drugType) {
+        return findCommonDrugListsNew(doctor,organId,drugType,null);
     }
 
     /**
