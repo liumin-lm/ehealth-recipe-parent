@@ -45,7 +45,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @return
      */
     @DAOMethod(sql = "from PharmacyTcm where organId=:organId and pharmacyCode=:pharmacyCode")
-    public abstract PharmacyTcm getByOrganIdAndPharmacyCode(@DAOParam("organId") int organId,@DAOParam("pharmacyCode") String pharmacyCode);
+    public abstract PharmacyTcm getByOrganIdAndPharmacyCode(@DAOParam("organId") Integer organId,@DAOParam("pharmacyCode") String pharmacyCode);
 
     /**
      * pharmacyName 查找相应药房ID
@@ -63,7 +63,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @return
      */
     @DAOMethod(sql = "from PharmacyTcm where organId=:organId order by sort ASC ")
-    public abstract List<PharmacyTcm> findByOrganId(@DAOParam("organId") int organId);
+    public abstract List<PharmacyTcm> findByOrganId(@DAOParam("organId") Integer organId);
 
 
     /**
@@ -73,7 +73,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @return
      */
     @DAOMethod(sql = "from PharmacyTcm where organId=:organId and pharmacyName=:pharmacyName")
-    public abstract PharmacyTcm getByOrganIdAndPharmacyName(@DAOParam("organId") int organId,@DAOParam("pharmacyName") String pharmacyName);
+    public abstract PharmacyTcm getByOrganIdAndPharmacyName(@DAOParam("organId") Integer organId,@DAOParam("pharmacyName") String pharmacyName);
 
 
     /**

@@ -82,10 +82,10 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm.getOrganId() == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构ID不能为空！");
         }
-        if (pharmacyTcmDAO.getByOrganIdAndPharmacyCode(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) == null){
+        if (pharmacyTcmDAO.getByOrganIdAndPharmacyCode(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) != null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
         }
-        if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) == null){
+        if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) != null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
         }
     }
