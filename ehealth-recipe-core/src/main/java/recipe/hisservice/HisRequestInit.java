@@ -383,7 +383,10 @@ public class HisRequestInit {
         c.setTime(recipe.getSignDate());
         c.add(Calendar.DATE, 3);
         requestTO.setEndDate(c.getTime());
-
+        // 医嘱
+        requestTO.setRecipeMemo(recipe.getRecipeMemo());
+        // 剂数
+        requestTO.setCopyNum(recipe.getCopyNum());
         //福建省立医院特殊处理
         if ("1001393".equals(recipe.getClinicOrgan().toString())) {
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
@@ -462,7 +465,12 @@ public class HisRequestInit {
                         //产地名称
                         orderItem.setDrugManf(organDrug.getProducer());
                     }
-
+                    //用法
+                    orderItem.setUsePathways(detail.getUsePathways());
+                    orderItem.setUsePathwaysText( DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways()));
+                    //频次
+                    orderItem.setUsingRate(detail.getUsingRate());
+                    orderItem.setUsingRateText(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsePathways()));
                     orderList.add(orderItem);
                 }
             } catch (Exception e) {
