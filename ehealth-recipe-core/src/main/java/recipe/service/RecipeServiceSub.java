@@ -441,7 +441,7 @@ public class RecipeServiceSub {
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            detail.setUseDays(recipe.getCopyNum());
+                            //detail.setUseDays(recipe.getCopyNum());
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -451,7 +451,7 @@ public class RecipeServiceSub {
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            detail.setUseDays(recipe.getCopyNum());
+                            //detail.setUseDays(recipe.getCopyNum());
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -1500,12 +1500,18 @@ public class RecipeServiceSub {
 //            }
 //        }
         map.put("patient", patient);
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
+        //隐方
         if(isDoctor==false){
             if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
-                map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
+                List<RecipeDetailBean> recipeDetailVOs=(List<RecipeDetailBean>)map.get("recipedetails");
+                if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
+                    for(int j=0;j<recipeDetailVOs.size();j++){
+                        recipeDetailVOs.get(j).setDrugName(null);
+                        recipeDetailVOs.get(j).setDrugSpec(null);
+                    }
+                }
             }
-        }else{
-            map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
         }
         //返回是否隐方
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
