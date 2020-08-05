@@ -1503,7 +1503,7 @@ public class RecipeServiceSub {
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
         //隐方
         if(isDoctor==false){
-            if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+            if(!recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
                 List<RecipeDetailBean> recipeDetailVOs=(List<RecipeDetailBean>)map.get("recipedetails");
                 if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
                     for(int j=0;j<recipeDetailVOs.size();j++){
