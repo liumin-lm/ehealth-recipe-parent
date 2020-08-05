@@ -410,6 +410,7 @@ public class HisRequestInit {
             List<OrderItemTO> orderList = new ArrayList<>();
             try {
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
                 OrganDrugList organDrug;
                 for (Recipedetail detail : details) {
                     OrderItemTO orderItem = new OrderItemTO();
@@ -454,12 +455,22 @@ public class HisRequestInit {
                     orderItem.setUseDays(detail.getUseDays());
                     //药品数量
                     orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));
+                    //药房
+                    if (detail.getPharmacyId() != null){
+                        PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
+                        if (pharmacyTcm != null){
+                            orderItem.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                            orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
+                        }
+                    }
                     organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                     if (null != organDrug) {
                         //生产厂家
                         orderItem.setManfcode(organDrug.getProducerCode());
                         //药房名称
-                        orderItem.setPharmacy(organDrug.getPharmacyName());
+                        if (StringUtils.isEmpty(orderItem.getPharmacy())){
+                            orderItem.setPharmacy(organDrug.getPharmacyName());
+                        }
                         //单价
                         orderItem.setItemPrice(organDrug.getSalePrice());
                         //产地名称
