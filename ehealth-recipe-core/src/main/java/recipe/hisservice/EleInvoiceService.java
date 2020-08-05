@@ -35,7 +35,9 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -118,7 +120,7 @@ public class EleInvoiceService {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("EleInvoiceService.findEleInvoice 待推送数据:eleInvoiceReqTo:[{}]", JSONUtils.toString(eleInvoiceReqTo));
         HisResponseTO<RecipeInvoiceTO> hisResponse = hisService.queryEleInvoice(eleInvoiceReqTo);
-        return stringToList(hisResponse);
+        return response(hisResponse);
     }
 
     private void validateParam(EleInvoiceDTO eleInvoiceDTO) {
@@ -190,9 +192,9 @@ public class EleInvoiceService {
                 eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
             }
         }
-
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
-        if (null != recipeOrder) {
+        
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
             recipeDTO.setRecipeOrderBean(recipeOrderBean);
         }
@@ -205,7 +207,7 @@ public class EleInvoiceService {
         return recipeDTO;
     }
 
-    private List<String> stringToList(HisResponseTO<RecipeInvoiceTO> hisResponse) {
+    private List<String> response(HisResponseTO<RecipeInvoiceTO> hisResponse) {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
@@ -224,7 +226,9 @@ public class EleInvoiceService {
         }
         if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
                 && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {
-
+            Map<String, String> map = new HashMap(1);
+            map.put("einvoiceNumber", result.getInvoiceNumber());
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
         }
         return Arrays.asList(result.getInvoiceUrl().split(","));
     }
