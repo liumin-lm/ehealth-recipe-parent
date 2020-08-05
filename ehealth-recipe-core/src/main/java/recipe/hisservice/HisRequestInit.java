@@ -710,17 +710,14 @@ public class HisRequestInit {
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
         requestTO.setDoctorID(doctorDTO.getIdNumber());
-        requestTO.setDoctorNumber(doctorDTO.getJobNumber());
 
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+        String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+        requestTO.setDoctorNumber(jobNumber);
         //如果平台状态是 13-未支付 14-未操作 15-药师审核未通过 则武昌医院状态置为 9-作废
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
             requestTO.setRecipeStatus("9");
         }
-        /*// 如果平台状态是 6-已完成 则医院状态置为 1-已发药
-        if (RecipeStatusConstant.FINISH == recipe.getStatus()) {
-            requestTO.setRecipeStatus("1");
-        }
-*/
         return requestTO;
 
     }

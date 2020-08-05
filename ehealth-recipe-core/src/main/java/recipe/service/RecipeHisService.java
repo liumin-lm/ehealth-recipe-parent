@@ -644,7 +644,7 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
             } catch (ControllerException e) {
-                LOGGER.error("DictionaryController 字典转化异常,{}", e);
+                LOGGER.warn("provincialMedicalPreSettle 字典转化异常");
             }
             //患者信息
             PatientService patientService = BasicAPI.getService(PatientService.class);
