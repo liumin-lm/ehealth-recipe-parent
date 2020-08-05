@@ -407,6 +407,7 @@ public class RecipeServiceSub {
 
                 OrganDrugList organDrug;
                 List<String> delOrganDrugName = Lists.newArrayList();
+                PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
                     if (oldFlag) {
@@ -473,6 +474,13 @@ public class RecipeServiceSub {
                         BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
+                        //药房处理
+                        if (detail.getPharmacyId() != null && StringUtils.isEmpty(detail.getPharmacyName())){
+                            PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
+                            if(pharmacyTcm!=null){
+                                detail.setPharmacyName(pharmacyTcm.getPharmacyName());
+                            }
+                        }
                     } else {
                         if (StringUtils.isNotEmpty(detail.getDrugName())) {
                             delOrganDrugName.add(detail.getDrugName());
