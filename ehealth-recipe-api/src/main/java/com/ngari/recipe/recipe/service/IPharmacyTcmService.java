@@ -21,17 +21,17 @@ public interface IPharmacyTcmService {
      * @param pharmacyTcm
      * @return
      */
-    @RpcService
-    boolean addPharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm);
+    /*@RpcService
+    boolean addPharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm);*/
 
     /**
      * 编辑药房
      * @param pharmacyTcm
      * @return
      */
-    @RpcService
+   /* @RpcService
     PharmacyTcmDTO updatePharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm);
-
+*/
     /**
      * 删除药房
      * @param pharmacyTcmId
