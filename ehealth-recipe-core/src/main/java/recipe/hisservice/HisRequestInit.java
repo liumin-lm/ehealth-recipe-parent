@@ -475,6 +475,8 @@ public class HisRequestInit {
                         orderItem.setItemPrice(organDrug.getSalePrice());
                         //产地名称
                         orderItem.setDrugManf(organDrug.getProducer());
+                        //HIS药品的IDM码
+                        orderItem.setIdm(organDrug.getIdm());
                     }
                     orderList.add(orderItem);
                 }
