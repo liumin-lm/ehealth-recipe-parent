@@ -267,7 +267,7 @@ public class SymptomService implements ISymptomService {
             ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
             //导入症候记录
             importExcelInfoDTO.setFileName(originalFilename);
-            importExcelInfoDTO.setExcelType(14);
+            importExcelInfoDTO.setExcelType(15);
             importExcelInfoDTO.setUploaderName(operator);
             importExcelInfoDTO.setUploadDate(new Date());
             importExcelInfoDTO.setStatus(0);
@@ -306,7 +306,7 @@ public class SymptomService implements ISymptomService {
         ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
         //导入药品记录
         importExcelInfoDTO.setFileName(originalFilename);
-        importExcelInfoDTO.setExcelType(14);
+        importExcelInfoDTO.setExcelType(15);
         importExcelInfoDTO.setUploaderName(operator);
         importExcelInfoDTO.setUploadDate(new Date());
         importExcelInfoDTO.setStatus(1);
