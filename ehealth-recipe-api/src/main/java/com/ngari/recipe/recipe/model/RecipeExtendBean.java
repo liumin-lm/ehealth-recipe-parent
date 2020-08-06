@@ -107,6 +107,13 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
 
+    @ItemProperty(alias = "监管人姓名")
+    private String guardianName;
+    @ItemProperty(alias = "监管人证件号")
+    private String guardianCertificate;
+    @ItemProperty(alias = "监管人手机号")
+    private String guardianMobile;
+
     /**
      * 患者医保类型（编码）
      */
@@ -391,5 +398,29 @@ public class RecipeExtendBean implements Serializable {
 
     public void setComplication(String complication) {
         this.complication = complication;
+    }
+
+    public String getGuardianName() {
+        return guardianName;
+    }
+
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
+    }
+
+    public String getGuardianCertificate() {
+        return guardianCertificate;
+    }
+
+    public void setGuardianCertificate(String guardianCertificate) {
+        this.guardianCertificate = guardianCertificate;
+    }
+
+    public String getGuardianMobile() {
+        return guardianMobile;
+    }
+
+    public void setGuardianMobile(String guardianMobile) {
+        this.guardianMobile = guardianMobile;
     }
 }
