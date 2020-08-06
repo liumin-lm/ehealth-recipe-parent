@@ -51,7 +51,7 @@ public abstract class PharmacyTcm implements java.io.Serializable{
         this.pharmacyId = pharmacyId;
     }
 
-    @Column(name = "symptomCode")
+    @Column(name = "pharmacyCode")
     public String getPharmacyCode() {
         return pharmacyCode;
     }
