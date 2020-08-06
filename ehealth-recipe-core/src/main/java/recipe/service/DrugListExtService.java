@@ -116,7 +116,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Args.notNull(commonDrugListDTO.getDoctor(), "doctor");
         Args.notNull(commonDrugListDTO.getDrugType(), "drugType");
         Args.notNull(commonDrugListDTO.getOrganId(), "organId");
-        String pharmacyId = String.valueOf(commonDrugListDTO.getPharmacyId());
+        String pharmacyId = commonDrugListDTO.getPharmacyId() ==null ? null : String.valueOf(commonDrugListDTO.getPharmacyId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(commonDrugListDTO.getDoctor(), commonDrugListDTO.getOrganId(), commonDrugListDTO.getDrugType(), pharmacyId,0, 20);
