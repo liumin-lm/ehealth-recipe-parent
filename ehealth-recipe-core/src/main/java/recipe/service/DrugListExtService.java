@@ -327,14 +327,16 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
                     //考虑到在es做过滤有可能会导致老版本搜索出多个重复药品
                     //(如果X药品有AB两个药房，要同步两次到es，如果不根据药房id搜索就会出现两个重复药品),so过滤药房暂时先放这
-                    if (organId != null){
+                    if (organId != null && pharmacyId != null){
                         OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, drugList.getOrganDrugCode(), drugList.getDrugId());
-                        if (organDrugList !=null && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && pharmacyId != null){
+                        if (organDrugList !=null && StringUtils.isNotEmpty(organDrugList.getPharmacy())){
                             //过滤掉不在此药房内的药
                             List<String> pharmacyIds = Splitter.on("，").splitToList(organDrugList.getPharmacy());
                             if (!pharmacyIds.contains(String.valueOf(pharmacyId))){
                                 continue;
                             }
+                        }else {
+                            continue;
                         }
                     }
                 } catch (Exception e) {
@@ -386,7 +388,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 dList.add(drugList);
             }
-
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
         } else {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
