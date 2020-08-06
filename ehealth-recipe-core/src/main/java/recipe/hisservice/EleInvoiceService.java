@@ -9,8 +9,7 @@ import com.ngari.his.recipe.mode.RecipeInvoiceTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.*;
+import com.ngari.platform.recipe.mode.InvoiceDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -84,8 +83,7 @@ public class EleInvoiceService {
         }
         //处方数据
         if (RECIPE_TYPE.toString().equals(eleInvoiceDTO.getType())) {
-            RecipeDTO recipeDTO = setRecipeDTO(eleInvoiceDTO);
-            eleInvoiceReqTo.setRecipeDTO(recipeDTO);
+            setRecipeDTO(eleInvoiceReqTo, eleInvoiceDTO);
         }
 
         if (StringUtils.isBlank(eleInvoiceDTO.getGhxh())) {
@@ -169,26 +167,28 @@ public class EleInvoiceService {
      * @param eleInvoiceDTO
      * @param
      */
-    private RecipeDTO setRecipeDTO(EleInvoiceDTO eleInvoiceDTO) {
-        RecipeDTO recipeDTO = new RecipeDTO();
-        Integer recipeId = eleInvoiceDTO.getId();
+    private void setRecipeDTO(EleInvoiceReqTo eleInvoiceReqTo, EleInvoiceDTO eleInvoiceDTO) {
 
+
+        Integer recipeId = eleInvoiceDTO.getId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(609, "recipe is null");
         }
-        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+
+        eleInvoiceReqTo.setCreateDate(recipe.getCreateDate());
+        eleInvoiceReqTo.setDeptId(recipe.getDepart());
         try {
-            recipeBean.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+            eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
         } catch (ControllerException e) {
             LOGGER.warn("EleInvoiceService setRecipeDTO 字典转化异常");
         }
-        recipeDTO.setRecipeBean(recipeBean);
 
+        InvoiceDTO invoiceDTO = new InvoiceDTO();
+        invoiceDTO.setPayId(recipe.getRecipeId());
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null != recipeExtend) {
-            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
-            recipeDTO.setRecipeExtendBean(recipeExtendBean);
+            invoiceDTO.setInvoiceNumber(recipeExtend.getEinvoiceNumber());
             if (StringUtils.isNotBlank(recipeExtend.getRegisterID())) {
                 eleInvoiceDTO.setGhxh(recipeExtend.getRegisterID());
             }
@@ -202,16 +202,14 @@ public class EleInvoiceService {
         
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-            recipeDTO.setRecipeOrderBean(recipeOrderBean);
+            invoiceDTO.setPayAmount(recipeOrder.getActualPrice());
+            invoiceDTO.setPayWay(recipeOrder.getWxPayWay());
+            invoiceDTO.setPayTime(recipeOrder.getPayTime());
         }
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            List<RecipeDetailBean> recipeDetails = ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class);
-            recipeDTO.setRecipeDetails(recipeDetails);
         }
-        return recipeDTO;
     }
 
     private List<String> response(HisResponseTO<RecipeInvoiceTO> hisResponse) {
