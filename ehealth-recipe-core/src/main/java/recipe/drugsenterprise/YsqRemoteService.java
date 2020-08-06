@@ -799,7 +799,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             //医保处方 0：是；1：否
             //recipeMap.put("YIBAOBILL", "1");
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                recipeMap.put("PDF_ID", recipe.getChemistSignFile());
+                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                String url = recipeParameterDao.getByName("fileImgUrl");
+                recipeMap.put("PDF_ID", url + recipe.getChemistSignFile());
             }
             List<Map<String, String>> recipeDetailList = new ArrayList<>();
             recipeMap.put("DETAILS", recipeDetailList);
