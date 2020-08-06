@@ -147,7 +147,7 @@ public class LogisticsService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("getOrderTraces error! expCode={}, expNo={}", expCode, expNo);
+            LOGGER.error("getOrderTraces error! expCode={}, expNo={}", expCode, expNo, e);
         }
 
         return traceList;
