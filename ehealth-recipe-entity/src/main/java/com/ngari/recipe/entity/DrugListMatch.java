@@ -159,6 +159,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "平台药品编码")
     private Integer platformDrugId;
 
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
+
 
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
@@ -470,5 +473,13 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setPlatformDrugId(Integer platformDrugId) {
         this.platformDrugId = platformDrugId;
+    }
+
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
     }
 }

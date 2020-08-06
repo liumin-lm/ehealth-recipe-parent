@@ -2,12 +2,14 @@ package recipe.hisservice;
 
 import com.ngari.his.recipe.mode.NoticeHisRecipeInfoReq;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import org.springframework.util.ObjectUtils;
-import recipe.constant.RecipeBussConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.util.LocalStringUtil;
 
 import java.util.Date;
@@ -19,6 +21,7 @@ import java.util.Date;
  * @version： 1.0
  */
 public class HisMqRequestInit {
+    private static final Logger logger = LoggerFactory.getLogger(HisMqRequestInit.class);
 
     /**
      *
@@ -36,6 +39,13 @@ public class HisMqRequestInit {
         notice.setPlatRecipeID(String.valueOf(recipeBean.getRecipeId()));
         notice.setRecipeStatus(status);
         notice.setRemark(recipeBean.getRecipeMemo());
+        try {
+            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+            String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
+            notice.setDoctorNumber(jobNumber);
+        } catch (Exception e) {
+            logger.warn("initRecipeStatusToHisReq jobNumber error", e);
+        }
         return notice;
     }
 

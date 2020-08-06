@@ -124,6 +124,107 @@ public class RecipeExtendBean implements Serializable {
      */
     private String medicalTypeText;
 
+    @ItemProperty(alias = "制法")
+    private String makeMethod;
+    @ItemProperty(alias = "制法text")
+    private String makeMethodText;
+    @ItemProperty(alias = "每付取汁")
+    private String juice;
+    @ItemProperty(alias = "每付取汁单位")
+    private String juiceUnit;
+    @ItemProperty(alias = "次量")
+    private String minor;
+    @ItemProperty(alias = "次量单位")
+    private String minorUnit;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomCode;
+    @ItemProperty(alias = "中医症候名称")
+    private String symptomName;
+    @ItemProperty(alias = "煎法")
+    private String decoctionCode;
+    @ItemProperty(alias = "煎法text")
+    private String decoctionText;
+
+    public String getDecoctionCode() {
+        return decoctionCode;
+    }
+
+    public void setDecoctionCode(String decoctionCode) {
+        this.decoctionCode = decoctionCode;
+    }
+
+    public String getDecoctionText() {
+        return decoctionText;
+    }
+
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
+    }
+
+    public String getSymptomCode() {
+        return symptomCode;
+    }
+
+    public void setSymptomCode(String symptomCode) {
+        this.symptomCode = symptomCode;
+    }
+
+    public String getSymptomName() {
+        return symptomName;
+    }
+
+    public void setSymptomName(String symptomName) {
+        this.symptomName = symptomName;
+    }
+
+    public String getMakeMethod() {
+        return makeMethod;
+    }
+
+    public void setMakeMethod(String makeMethod) {
+        this.makeMethod = makeMethod;
+    }
+
+    public String getMakeMethodText() {
+        return makeMethodText;
+    }
+
+    public void setMakeMethodText(String makeMethodText) {
+        this.makeMethodText = makeMethodText;
+    }
+
+    public String getJuice() {
+        return juice;
+    }
+
+    public void setJuice(String juice) {
+        this.juice = juice;
+    }
+
+    public String getJuiceUnit() {
+        return juiceUnit;
+    }
+
+    public void setJuiceUnit(String juiceUnit) {
+        this.juiceUnit = juiceUnit;
+    }
+
+    public String getMinor() {
+        return minor;
+    }
+
+    public void setMinor(String minor) {
+        this.minor = minor;
+    }
+
+    public String getMinorUnit() {
+        return minorUnit;
+    }
+
+    public void setMinorUnit(String minorUnit) {
+        this.minorUnit = minorUnit;
+    }
+
     public RecipeExtendBean() {
     }
 
