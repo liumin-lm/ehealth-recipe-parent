@@ -160,7 +160,6 @@ public class RecipeExtend implements Serializable {
         this.decoctionCode = decoctionCode;
     }
 
-    @Column(name = "DecoctionTest")
     public String getDecoctionText() {
         return decoctionText;
     }
