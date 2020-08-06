@@ -60,6 +60,12 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
         validate(pharmacyTcm);
+        if (pharmacyTcmDAO.getByOrganIdAndPharmacyCode(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
+        }
+        if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
+        }
         //PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
         pharmacyTcmDAO.save(pharmacyTcm);
@@ -83,12 +89,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm.getOrganId() == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构ID不能为空！");
         }
-        if (pharmacyTcmDAO.getByOrganIdAndPharmacyCode(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) != null){
-            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
-        }
-        if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) != null){
-            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
-        }
+
     }
 
 
@@ -106,6 +107,12 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
         validate(pharmacyTcm);
+        if (!pharmacyTcm.getPharmacyCode().equals(pharmacyTcm1.getPharmacyCode()) && pharmacyTcmDAO.getByOrganIdAndPharmacyCode( pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
+        }
+        if (!pharmacyTcm.getPharmacyName().equals(pharmacyTcm1.getPharmacyName()) && pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
+        }
         PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
         PharmacyTcm update = pharmacyTcmDAO.update(convert);
