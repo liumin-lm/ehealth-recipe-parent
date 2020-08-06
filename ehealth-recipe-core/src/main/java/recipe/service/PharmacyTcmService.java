@@ -7,6 +7,7 @@ import com.ngari.recipe.recipe.service.IPharmacyTcmService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -55,13 +56,13 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public boolean addPharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm) {
+    public boolean addPharmacyTcmForOrgan(PharmacyTcm pharmacyTcm) {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
         validate(pharmacyTcm);
-        PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
+        //PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
-        pharmacyTcmDAO.save(convert);
+        pharmacyTcmDAO.save(pharmacyTcm);
         return true;
 
     }
@@ -69,7 +70,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * 验证
      * @param pharmacyTcm
      */
-    private void validate(PharmacyTcmDTO pharmacyTcm) {
+    private void validate(PharmacyTcm pharmacyTcm) {
         if (null == pharmacyTcm) {
             throw new DAOException(DAOException.VALUE_NEEDED, "symptom is null");
         }
@@ -97,7 +98,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public PharmacyTcmDTO updatePharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm) {
+    public PharmacyTcm updatePharmacyTcmForOrgan(PharmacyTcm pharmacyTcm) {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
         PharmacyTcm pharmacyTcm1 = pharmacyTcmDAO.get(pharmacyTcm.getPharmacyId());
@@ -108,7 +109,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
         PharmacyTcm update = pharmacyTcmDAO.update(convert);
-        return ObjectCopyUtils.convert(update, PharmacyTcmDTO.class);
+        return update;
 
     }
 
