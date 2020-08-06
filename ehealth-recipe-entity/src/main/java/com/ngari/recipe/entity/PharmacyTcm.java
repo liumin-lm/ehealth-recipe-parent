@@ -15,7 +15,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "recipe_pharmacy")
 @Access(AccessType.PROPERTY)
-public abstract class PharmacyTcm implements java.io.Serializable{
+public  class PharmacyTcm implements java.io.Serializable{
 
     private static final long serialVersionUID = -7395577376998087750L;
 
@@ -51,7 +51,7 @@ public abstract class PharmacyTcm implements java.io.Serializable{
         this.pharmacyId = pharmacyId;
     }
 
-    @Column(name = "symptomCode")
+    @Column(name = "pharmacyCode")
     public String getPharmacyCode() {
         return pharmacyCode;
     }

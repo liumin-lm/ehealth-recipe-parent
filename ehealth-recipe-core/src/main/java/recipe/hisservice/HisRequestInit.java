@@ -476,12 +476,6 @@ public class HisRequestInit {
                         //产地名称
                         orderItem.setDrugManf(organDrug.getProducer());
                     }
-                    //用法
-                    orderItem.setUsePathways(detail.getUsePathways());
-                    orderItem.setUsePathwaysText( DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways()));
-                    //频次
-                    orderItem.setUsingRate(detail.getUsingRate());
-                    orderItem.setUsingRateText(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsePathways()));
                     orderList.add(orderItem);
                 }
             } catch (Exception e) {

@@ -7,6 +7,7 @@ import com.ngari.recipe.recipe.service.IPharmacyTcmService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -55,13 +56,19 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public boolean addPharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm) {
+    public boolean addPharmacyTcmForOrgan(PharmacyTcm pharmacyTcm) {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
         validate(pharmacyTcm);
-        PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
+        if (pharmacyTcmDAO.getByOrganIdAndPharmacyCode(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
+        }
+        if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
+        }
+        //PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
-        pharmacyTcmDAO.save(convert);
+        pharmacyTcmDAO.save(pharmacyTcm);
         return true;
 
     }
@@ -69,7 +76,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * 验证
      * @param pharmacyTcm
      */
-    private void validate(PharmacyTcmDTO pharmacyTcm) {
+    private void validate(PharmacyTcm pharmacyTcm) {
         if (null == pharmacyTcm) {
             throw new DAOException(DAOException.VALUE_NEEDED, "symptom is null");
         }
@@ -82,12 +89,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm.getOrganId() == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构ID不能为空！");
         }
-        if (pharmacyTcmDAO.getByOrganIdAndPharmacyCode(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) == null){
-            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
-        }
-        if (pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) == null){
-            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
-        }
+
     }
 
 
@@ -97,7 +99,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public PharmacyTcmDTO updatePharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm) {
+    public PharmacyTcm updatePharmacyTcmForOrgan(PharmacyTcm pharmacyTcm) {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
         PharmacyTcm pharmacyTcm1 = pharmacyTcmDAO.get(pharmacyTcm.getPharmacyId());
@@ -105,10 +107,16 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
         validate(pharmacyTcm);
+        if (!pharmacyTcm.getPharmacyCode().equals(pharmacyTcm1.getPharmacyCode()) && pharmacyTcmDAO.getByOrganIdAndPharmacyCode( pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyCode()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房编码已存在，请重新输入！");
+        }
+        if (!pharmacyTcm.getPharmacyName().equals(pharmacyTcm1.getPharmacyName()) && pharmacyTcmDAO.getByOrganIdAndPharmacyName(pharmacyTcm.getOrganId(),pharmacyTcm.getPharmacyName()) != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
+        }
         PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
         logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
         PharmacyTcm update = pharmacyTcmDAO.update(convert);
-        return ObjectCopyUtils.convert(update, PharmacyTcmDTO.class);
+        return update;
 
     }
 

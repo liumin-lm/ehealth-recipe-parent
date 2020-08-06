@@ -223,6 +223,9 @@ public class SymptomService implements ISymptomService {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
                     errMsg.append("症候编码不能为空").append(";");
                 }
+                if (symptomDAO.getByOrganIdAndSymptomCode(organId,getStrFromCell(row.getCell(0))) != null){
+                    errMsg.append("该机构此症候编码已存在！").append(";");
+                }
                 symptom.setSymptomCode(getStrFromCell(row.getCell(0)));
             } catch (Exception e) {
                 logger.error("症候编号有误 ," + e.getMessage(),e);
@@ -243,6 +246,9 @@ public class SymptomService implements ISymptomService {
             try {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
                     errMsg.append("症候名称不能为空").append(";");
+                }
+                if (symptomDAO.getByOrganIdAndSymptomName(organId,getStrFromCell(row.getCell(2))) != null){
+                    errMsg.append("该机构此症候名称已存在！").append(";");
                 }
                 symptom.setSymptomName(getStrFromCell(row.getCell(2)));
             } catch (Exception e) {

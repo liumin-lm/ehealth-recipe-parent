@@ -44,8 +44,26 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
      * @return
      */
     @DAOMethod(sql = "from Symptom where organId=:organId ")
-    public abstract List<Symptom> findByOrganId(@DAOParam("organId") int organId);
+    public abstract List<Symptom> findByOrganId(@DAOParam("organId") Integer organId);
 
+    /**
+     * 通过orgsnId获取
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from Symptom where organId=:organId and symptomCode=:symptomCode ")
+    public abstract Symptom getByOrganIdAndSymptomCode(@DAOParam("organId") Integer organId,@DAOParam("symptomCode") String symptomCode);
+
+
+    /**
+     * 通过orgsnId获取
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from Symptom where organId=:organId and symptomName=:symptomName ")
+    public abstract Symptom getByOrganIdAndSymptomName(@DAOParam("organId") Integer organId,@DAOParam("symptomName") String symptomName);
 
     /**
      * 通过orgsnId 和症候名称  模糊查询

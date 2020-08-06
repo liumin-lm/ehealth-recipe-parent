@@ -142,6 +142,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药房")
     private String pharmacy;
 
+    @ItemProperty(alias = "HIS药品idm编码")
+    private String idm;
+
 
     public OrganDrugList() {
     }
@@ -510,5 +513,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setPharmacy(String pharmacy) {
         this.pharmacy = pharmacy;
+    }
+
+    @Column(name = "idm")
+    public String getIdm() {
+        return idm;
+    }
+
+    public void setIdm(String idm) {
+        this.idm = idm;
     }
 }
