@@ -921,7 +921,6 @@ public class RecipeCheckService {
             paramMap.put("recipeId", Integer.valueOf(recipeS));
             return saveCheckResult(paramMap);
         } catch (DAOException e) {
-            LOGGER.error("saveCheckResultEncrypt DAOException", e);
             throw new DAOException(e.getCode(), e.getMessage());
         } catch (Exception e1) {
             LOGGER.error("saveCheckResultEncrypt error", e1);
