@@ -10,12 +10,11 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceDTO;
+import com.ngari.platform.recipe.mode.InvoiceItemDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
+import recipe.comment.DictionaryUtil;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -35,10 +35,8 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.util.DateConversion;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 
 
 /**
@@ -168,8 +166,6 @@ public class EleInvoiceService {
      * @param
      */
     private void setRecipeDTO(EleInvoiceReqTo eleInvoiceReqTo, EleInvoiceDTO eleInvoiceDTO) {
-
-
         Integer recipeId = eleInvoiceDTO.getId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
@@ -178,11 +174,7 @@ public class EleInvoiceService {
 
         eleInvoiceReqTo.setCreateDate(recipe.getCreateDate());
         eleInvoiceReqTo.setDeptId(recipe.getDepart());
-        try {
-            eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
-        } catch (ControllerException e) {
-            LOGGER.warn("EleInvoiceService setRecipeDTO 字典转化异常");
-        }
+        eleInvoiceReqTo.setDeptName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
 
         InvoiceDTO invoiceDTO = new InvoiceDTO();
         invoiceDTO.setPayId(recipe.getRecipeId());
@@ -199,17 +191,38 @@ public class EleInvoiceService {
                 eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
             }
         }
-        
+        List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             invoiceDTO.setPayAmount(recipeOrder.getActualPrice());
             invoiceDTO.setPayWay(recipeOrder.getWxPayWay());
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
+            invoiceDTO.setFundAmount(recipeOrder.getFundAmount());
+            invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
+
+            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
+                    recipeOrder.getRegisterFee(), "", 1D));
+            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
+                    recipeOrder.getExpressFee(), "", 1D));
         }
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
+                    a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose())));
         }
+    }
+
+    private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
+        InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
+        invoiceItemDTO.setRelatedCode(recipe.getRecipeId());
+        invoiceItemDTO.setRelatedName(DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType()));
+        invoiceItemDTO.setCode(code);
+        invoiceItemDTO.setName(name);
+        invoiceItemDTO.setAmount(amount);
+        invoiceItemDTO.setUnit(unit);
+        invoiceItemDTO.setQuantity(quantity);
+        return invoiceItemDTO;
     }
 
     private List<String> response(HisResponseTO<RecipeInvoiceTO> hisResponse) {
