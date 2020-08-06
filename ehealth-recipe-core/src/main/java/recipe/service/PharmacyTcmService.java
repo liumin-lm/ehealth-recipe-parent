@@ -114,7 +114,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
             throw new DAOException(DAOException.VALUE_NEEDED, "机构此药房名称已存在，请重新输入！");
         }
         PharmacyTcm convert = ObjectCopyUtils.convert(pharmacyTcm, PharmacyTcm.class);
-        logger.info("新增药房服务[addPharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
+        logger.info("编辑药房服务[updatePharmacyTcmForOrgan]:" + JSONUtils.toString(pharmacyTcm));
         PharmacyTcm update = pharmacyTcmDAO.update(convert);
         return update;
 
@@ -169,7 +169,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         }
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         List<PharmacyTcm> symptomQueryResult = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("查询药房服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(symptomQueryResult));
+        logger.info("查询药房服务[querPharmacyTcmByOrganId]:" + JSONUtils.toString(symptomQueryResult));
         return  ObjectCopyUtils.convert(symptomQueryResult, PharmacyTcmDTO.class);
     }
 }

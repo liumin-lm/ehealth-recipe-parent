@@ -134,24 +134,24 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
     @ItemProperty(alias = "煎法")
-    private String decoctionWay;
+    private String decoctionCode;
     @ItemProperty(alias = "煎法text")
-    private String decoctionWayText;
+    private String decoctionText;
 
-    public String getDecoctionWay() {
-        return decoctionWay;
+    public String getDecoctionCode() {
+        return decoctionCode;
     }
 
-    public void setDecoctionWay(String decoctionWay) {
-        this.decoctionWay = decoctionWay;
+    public void setDecoctionCode(String decoctionCode) {
+        this.decoctionCode = decoctionCode;
     }
 
-    public String getDecoctionWayText() {
-        return decoctionWayText;
+    public String getDecoctionText() {
+        return decoctionText;
     }
 
-    public void setDecoctionWayText(String decoctionWayText) {
-        this.decoctionWayText = decoctionWayText;
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
     }
 
     public String getSymptomCode() {
