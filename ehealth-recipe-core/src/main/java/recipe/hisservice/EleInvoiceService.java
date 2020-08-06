@@ -15,6 +15,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
@@ -176,6 +178,11 @@ public class EleInvoiceService {
             throw new DAOException(609, "recipe is null");
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        try {
+            recipeBean.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+        } catch (ControllerException e) {
+            LOGGER.warn("EleInvoiceService setRecipeDTO 字典转化异常");
+        }
         recipeDTO.setRecipeBean(recipeBean);
 
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
