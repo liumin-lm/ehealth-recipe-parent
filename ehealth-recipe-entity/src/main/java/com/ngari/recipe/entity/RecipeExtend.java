@@ -143,7 +143,46 @@ public class RecipeExtend implements Serializable {
     private String minor;
     @ItemProperty(alias = "次量单位")
     private String minorUnit;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomCode;
+    @ItemProperty(alias = "中医症候名称")
+    private String symptomName;
+//    @ItemProperty(alias = "煎法")
+//    private String decoctionWay;
+//    @ItemProperty(alias = "煎法text")
+//    private String decoctionWayText;
 
+//    public String getDecoctionWay() {
+//        return decoctionWay;
+//    }
+//
+//    public void setDecoctionWay(String decoctionWay) {
+//        this.decoctionWay = decoctionWay;
+//    }
+//
+//    public String getDecoctionWayText() {
+//        return decoctionWayText;
+//    }
+//
+//    public void setDecoctionWayText(String decoctionWayText) {
+//        this.decoctionWayText = decoctionWayText;
+//    }
+
+    public String getSymptomCode() {
+        return symptomCode;
+    }
+
+    public void setSymptomCode(String symptomCode) {
+        this.symptomCode = symptomCode;
+    }
+
+    public String getSymptomName() {
+        return symptomName;
+    }
+
+    public void setSymptomName(String symptomName) {
+        this.symptomName = symptomName;
+    }
 
     @Column(name = "deliveryRecipeFee")
     public String getDeliveryRecipeFee() {

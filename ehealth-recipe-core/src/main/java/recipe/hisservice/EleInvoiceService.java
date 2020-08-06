@@ -211,7 +211,7 @@ public class EleInvoiceService {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
-            throw new DAOException(609, "当前系统繁忙，请稍后再试");
+            throw new DAOException(609, "获取出错，请稍后再试");
         }
         if (!"200".equals(hisResponse.getMsgCode())) {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败，返回信息:msg={}", hisResponse.getMsg());
@@ -219,10 +219,10 @@ public class EleInvoiceService {
         }
         RecipeInvoiceTO result = hisResponse.getData();
         if (null == result) {
-            throw new DAOException(609, "当前系统繁忙，请稍后再试");
+            throw new DAOException(609, "获取数据出错，请稍后再试");
         }
         if (StringUtils.isBlank(result.getInvoiceUrl())) {
-            throw new DAOException(609, "当前系统繁忙，请稍后再试");
+            throw new DAOException(609, "获取地址出错，请稍后再试");
         }
         if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
                 && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {

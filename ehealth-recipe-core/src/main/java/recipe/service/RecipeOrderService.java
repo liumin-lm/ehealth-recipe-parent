@@ -1461,13 +1461,17 @@ public class RecipeOrderService extends RecipeBaseService {
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     //获取处方详情
+                    prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
                     if(("getOrderDetail".equals(methodName)&&"recipe.service.RecipeOrderService".equals(className))){
-                        if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
-                            prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+                        if(!recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+                            List<RecipeDetailBean> recipeDetailVOs=prb.getRecipeDetail();
+                            if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
+                                for(int j=0;j<recipeDetailVOs.size();j++){
+                                    recipeDetailVOs.get(j).setDrugName(null);
+                                    recipeDetailVOs.get(j).setDrugSpec(null);
+                                }
+                            }
                         }
-                    }else{
-                        prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
-
                     }
                     //返回处方拓展信息
                     RecipeExtend recipeExtend =recipeExtendDAO.getByRecipeId(recipe.getRecipeId());

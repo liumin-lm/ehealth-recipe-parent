@@ -20,7 +20,7 @@ public class PharmacyTcmDTO implements Serializable {
 
     private String category;
 
-    private Boolean isDefault;
+    private Boolean whDefault;
 
     private Integer sort;
 
@@ -58,12 +58,12 @@ public class PharmacyTcmDTO implements Serializable {
         this.category = category;
     }
 
-    public Boolean getDefault() {
-        return isDefault;
+    public Boolean getWhDefault() {
+        return whDefault;
     }
 
-    public void setDefault(Boolean aDefault) {
-        isDefault = aDefault;
+    public void setWhDefault(Boolean whDefault) {
+        this.whDefault = whDefault;
     }
 
     public Integer getSort() {

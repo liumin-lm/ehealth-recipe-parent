@@ -383,7 +383,10 @@ public class HisRequestInit {
         c.setTime(recipe.getSignDate());
         c.add(Calendar.DATE, 3);
         requestTO.setEndDate(c.getTime());
-
+        // 医嘱
+        requestTO.setRecipeMemo(recipe.getRecipeMemo());
+        // 剂数
+        requestTO.setCopyNum(recipe.getCopyNum());
         //福建省立医院特殊处理
         if ("1001393".equals(recipe.getClinicOrgan().toString())) {
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
@@ -407,6 +410,7 @@ public class HisRequestInit {
             List<OrderItemTO> orderList = new ArrayList<>();
             try {
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
                 OrganDrugList organDrug;
                 for (Recipedetail detail : details) {
                     OrderItemTO orderItem = new OrderItemTO();
@@ -451,18 +455,27 @@ public class HisRequestInit {
                     orderItem.setUseDays(detail.getUseDays());
                     //药品数量
                     orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));
+                    //药房
+                    if (detail.getPharmacyId() != null){
+                        PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
+                        if (pharmacyTcm != null){
+                            orderItem.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                            orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
+                        }
+                    }
                     organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                     if (null != organDrug) {
                         //生产厂家
                         orderItem.setManfcode(organDrug.getProducerCode());
                         //药房名称
-                        orderItem.setPharmacy(organDrug.getPharmacyName());
+                        if (StringUtils.isEmpty(orderItem.getPharmacy())){
+                            orderItem.setPharmacy(organDrug.getPharmacyName());
+                        }
                         //单价
                         orderItem.setItemPrice(organDrug.getSalePrice());
                         //产地名称
                         orderItem.setDrugManf(organDrug.getProducer());
                     }
-
                     orderList.add(orderItem);
                 }
             } catch (Exception e) {
@@ -710,17 +723,14 @@ public class HisRequestInit {
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
         requestTO.setDoctorID(doctorDTO.getIdNumber());
-        requestTO.setDoctorNumber(doctorDTO.getJobNumber());
 
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+        String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+        requestTO.setDoctorNumber(jobNumber);
         //如果平台状态是 13-未支付 14-未操作 15-药师审核未通过 则武昌医院状态置为 9-作废
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
             requestTO.setRecipeStatus("9");
         }
-        /*// 如果平台状态是 6-已完成 则医院状态置为 1-已发药
-        if (RecipeStatusConstant.FINISH == recipe.getStatus()) {
-            requestTO.setRecipeStatus("1");
-        }
-*/
         return requestTO;
 
     }

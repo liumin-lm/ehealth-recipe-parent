@@ -9,6 +9,14 @@ import java.util.List;
 public interface IPharmacyTcmService {
 
     /**
+     *根据药房id查询药房数据
+     * @param pharmacyTcmId
+     * @return
+     */
+    @RpcService
+    PharmacyTcmDTO getPharmacyTcmForId(Integer pharmacyTcmId);
+
+    /**
      *新增药房
      * @param pharmacyTcm
      * @return
@@ -16,6 +24,20 @@ public interface IPharmacyTcmService {
     @RpcService
     boolean addPharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm);
 
+    /**
+     * 编辑药房
+     * @param pharmacyTcm
+     * @return
+     */
+    @RpcService
+    PharmacyTcmDTO updatePharmacyTcmForOrgan(PharmacyTcmDTO pharmacyTcm);
+
+    /**
+     * 删除药房
+     * @param pharmacyTcmId
+     */
+    @RpcService
+    void deletePharmacyTcmForId(Integer pharmacyTcmId);
     /**
      *根据机构ID和药房名称查询药房
      * @param organId

@@ -32,7 +32,7 @@ public abstract class PharmacyTcm implements java.io.Serializable{
     private String category;
 
     @ItemProperty(alias = "是否默认")
-    private Boolean isDefault;
+    private Boolean whDefault;
 
     @ItemProperty(alias = "药房排序")
     private Integer sort;
@@ -51,7 +51,7 @@ public abstract class PharmacyTcm implements java.io.Serializable{
         this.pharmacyId = pharmacyId;
     }
 
-    @Column(name = "symptomCode")
+    @Column(name = "pharmacyCode")
     public String getPharmacyCode() {
         return pharmacyCode;
     }
@@ -78,14 +78,15 @@ public abstract class PharmacyTcm implements java.io.Serializable{
         this.category = category;
     }
 
-    @Column(name = "isDefault")
-    public Boolean getDefault() {
-        return isDefault;
+    @Column(name = "whDefault")
+    public Boolean getWhDefault() {
+        return whDefault;
     }
 
-    public void setDefault(Boolean aDefault) {
-        isDefault = aDefault;
+    public void setWhDefault(Boolean whDefault) {
+        this.whDefault = whDefault;
     }
+
 
     @Column(name = "sort")
     public Integer getSort() {
