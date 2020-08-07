@@ -6,6 +6,9 @@ package recipe.constant;
  * @author fuzi
  */
 public enum MedicalChargesEnum {
+    /**
+     * 0-9 为药品费用类型在其他项目中定义
+     */
     REGISTRATION(10, "挂号费"),
     DISTRIBUTION(11, "配送费"),
     ;
