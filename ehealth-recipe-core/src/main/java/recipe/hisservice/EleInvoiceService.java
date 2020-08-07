@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  **/
 @RpcBean(value = "eleInvoiceService")
 public class EleInvoiceService {
-    private static final Integer RECIPE_TYPE = 1;
+    private static final String RECIPE_TYPE = "1";
     private static final Logger LOGGER = LoggerFactory.getLogger(EleInvoiceService.class);
     @Autowired
     private PatientService patientService;
@@ -85,7 +85,7 @@ public class EleInvoiceService {
 
         }
         //处方数据
-        if (RECIPE_TYPE.toString().equals(eleInvoiceDTO.getType())) {
+        if (RECIPE_TYPE.equals(eleInvoiceDTO.getType())) {
             setRecipeDTO(eleInvoiceReqTo, eleInvoiceDTO);
         }
 
