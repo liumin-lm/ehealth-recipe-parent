@@ -64,10 +64,10 @@ public abstract class DrugMakingMethodDao extends HibernateSupportDelegateDAO<Dr
 
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (organId != null) {
-                    query.setParameter("organId", organId);
+                    countQuery.setParameter("organId", organId);
                 }
                 if (!StringUtils.isEmpty(methodText)) {
-                    query.setParameter("methodText", "%" + methodText + "%");
+                    countQuery.setParameter("methodText", "%" + methodText + "%");
                 }
                 Long total = (Long) countQuery.uniqueResult();
                 setResult(new QueryResult<DrugMakingMethodBean>(total, query.getFirstResult(), query.getMaxResults(), lists));
