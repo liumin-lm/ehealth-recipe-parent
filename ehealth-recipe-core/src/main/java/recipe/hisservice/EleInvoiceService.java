@@ -37,6 +37,7 @@ import recipe.util.DateConversion;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -199,7 +200,6 @@ public class EleInvoiceService {
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
             invoiceDTO.setFundAmount(recipeOrder.getFundAmount());
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
-
             invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
                     recipeOrder.getRegisterFee(), "", 1D));
             invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
@@ -208,11 +208,15 @@ public class EleInvoiceService {
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
-                    a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose())));
+            recipeDetailList.forEach(a -> {
+                InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
+                        a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose());
+                invoiceItem.add(invoiceItemDTO);
+            });
         }
         if (CollectionUtils.isNotEmpty(invoiceItem)) {
-            invoiceDTO.setInvoiceItem(invoiceItem);
+            List<InvoiceItemDTO> item = invoiceItem.stream().filter(Objects::nonNull).collect(Collectors.toList());
+            invoiceDTO.setInvoiceItem(item);
         }
         eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
     }
@@ -229,6 +233,9 @@ public class EleInvoiceService {
      * @return
      */
     private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
+        if (null == amount) {
+            return null;
+        }
         InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
         invoiceItemDTO.setRelatedCode(recipe.getRecipeId());
         invoiceItemDTO.setRelatedName(DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType()));
