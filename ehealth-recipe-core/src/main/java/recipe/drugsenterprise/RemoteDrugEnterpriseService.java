@@ -234,9 +234,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         pushRecipeAndOrder.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         //制法Code 煎法Code 中医证候Code
-        DrugDecoctionWayDao drugDecoctionWayDao= ConsultAPI.getService(DrugDecoctionWayDao.class);
-        DrugMakingMethodDao drugMakingMethodDao=ConsultAPI.getService(DrugMakingMethodDao.class);
-        SymptomDAO symptomDAO=ConsultAPI.getService(SymptomDAO.class);
+        DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+        DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
+        SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
         DecoctionWay decoctionWay=drugDecoctionWayDao.get(recipeExtend.getDecoctionId());
         DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(recipeExtend.getMakeMethodId());
         Symptom symptom=symptomDAO.get(recipeExtend.getSymptomId());
