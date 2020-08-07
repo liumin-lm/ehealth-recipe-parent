@@ -297,9 +297,9 @@ public class HisRequestInit {
             DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
             DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
             SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
-            DecoctionWay decoctionWay=drugDecoctionWayDao.get(recipeExtend.getDecoctionId());
-            DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(recipeExtend.getMakeMethodId());
-            Symptom symptom=symptomDAO.get(recipeExtend.getSymptomId());
+            DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+            DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+            Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
             requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
             requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
             requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
