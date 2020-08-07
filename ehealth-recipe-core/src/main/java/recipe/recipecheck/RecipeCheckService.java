@@ -920,11 +920,12 @@ public class RecipeCheckService {
         try {
             String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
-            Map<String, Object> map = saveCheckResult(paramMap);
-            return map;
-        } catch (Exception e) {
-            LOGGER.error("saveCheckResultEncrypt-recipeId解密异常",e);
-            throw new DAOException("处方号解密异常");
+            return saveCheckResult(paramMap);
+        } catch (DAOException e) {
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e1) {
+            LOGGER.error("saveCheckResultEncrypt error", e1);
+            throw new DAOException(e1.getMessage());
         }
     }
 

@@ -1,6 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -232,6 +233,17 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         pushRecipeAndOrder.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+        //制法Code 煎法Code 中医证候Code
+        DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+        DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
+        SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
+        DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+        DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+        Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+        pushRecipeAndOrder.getRecipeExtendBean().setDecoctionCode(decoctionWay.getDecoctionCode());
+        pushRecipeAndOrder.getRecipeExtendBean().setMakeMethod(drugMakingMethod.getMethodCode());
+        pushRecipeAndOrder.getRecipeExtendBean().setSymptomCode(symptom.getSymptomCode());
+
         LOGGER.info("getPushRecipeAndOrder pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
         return pushRecipeAndOrder;
     }

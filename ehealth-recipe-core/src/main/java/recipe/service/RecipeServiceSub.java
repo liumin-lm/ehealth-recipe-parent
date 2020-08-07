@@ -770,6 +770,8 @@ public class RecipeServiceSub {
                     //备注
                     paramMap.put("dMemo" + i, "备注:" + d.getMemo());
                 }
+
+
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -847,8 +849,17 @@ public class RecipeServiceSub {
                     dTotal = dTotal + "*" + d.getMemo();
                 }
                 paramMap.put("drugInfo" + i, dName + "¨" + dTotal);
-                paramMap.put("tcmUsePathways", d.getUsePathways());
-                paramMap.put("tcmUsingRate", d.getUsingRate());
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
+                    paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
+                }else{
+                    paramMap.put("tcmUsePathways", d.getUsePathways());
+                }
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))){
+                    paramMap.put("tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()));
+                }else{
+                    paramMap.put("tcmUsingRate", d.getUsingRate());
+                }
+
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -1803,6 +1814,43 @@ public class RecipeServiceSub {
             if (hisRecipe != null && new Integer(2).equals(hisRecipe.getMedicalType())) {
                 map.put("medicalType", 2);
             }
+        }
+
+        //根据运营平台配置的选项获取生成二维码的字段
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer qrTypeForRecipe = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "getQrTypeForRecipe");
+
+            switch (qrTypeForRecipe) {
+                case 1:
+                    //无
+                    break;
+                case 2:
+                    //就诊卡号
+                    if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+                        map.put("qrName", recipeExtend.getCardNo());
+                    }
+                    break;
+                case 3:
+                    if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
+                        map.put("qrName", recipeExtend.getRegisterID());
+                    }
+                    break;
+                case 4:
+                    if (StringUtils.isNotEmpty(recipe.getPatientID())) {
+                        map.put("qrName", recipe.getPatientID());
+                    }
+                    break;
+                case 5:
+                    if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
+                        map.put("qrName", recipe.getRecipeCode());
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            LOGGER.error("获取运营平台处方支付配置异常", e);
         }
 
         return map;

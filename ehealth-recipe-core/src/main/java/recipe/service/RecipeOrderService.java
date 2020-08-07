@@ -602,8 +602,11 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //膏方代表制作费
         BigDecimal otherFee = BigDecimal.ZERO;
-        boolean needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
-//        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
+        boolean needCalDecFee = false;
+        if(order.getDecoctionUnitPrice() != null){
+            needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
+        }
+        //        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
         //1表示待煎
 //        if (Integer.valueOf(1).equals(decoctionFlag)) {
             //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
