@@ -246,7 +246,7 @@ public class EleInvoiceService {
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null");
         }
-
+        eleInvoiceReqTo.setRequestId(recipe.getRecipeId());
         eleInvoiceReqTo.setCreateDate(recipe.getCreateDate());
         eleInvoiceReqTo.setDeptId(recipe.getDepart());
         eleInvoiceReqTo.setDeptName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
