@@ -21,7 +21,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -280,7 +279,7 @@ public class EleInvoiceService {
             invoiceDTO.setPayAmount(recipeOrder.getActualPrice());
             invoiceDTO.setPayWay(recipeOrder.getWxPayWay());
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
-            invoiceDTO.setFundAmount(recipeOrder.getFundAmount());
+            invoiceDTO.setFundAmount(recipeOrder.getFundAmount() == null ? 0D : recipeOrder.getFundAmount());
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
             invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
                     recipeOrder.getRegisterFee(), "", 1D));
@@ -290,11 +289,8 @@ public class EleInvoiceService {
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            recipeDetailList.forEach(a -> {
-                InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
-                        a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose());
-                invoiceItem.add(invoiceItemDTO);
-            });
+            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
+                    a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose())));
         }
         if (CollectionUtils.isNotEmpty(invoiceItem)) {
             List<InvoiceItemDTO> item = invoiceItem.stream().filter(Objects::nonNull).collect(Collectors.toList());
@@ -315,12 +311,18 @@ public class EleInvoiceService {
      * @return
      */
     private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
+        String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        return getInvoiceItemDTO(recipe.getRecipeId(), recipeType, code, name, amount, unit, quantity);
+    }
+
+    private InvoiceItemDTO getInvoiceItemDTO(Integer relatedCode, String relatedName, Integer code, String name
+            , BigDecimal amount, String unit, Double quantity) {
         if (null == amount) {
             return null;
         }
         InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
-        invoiceItemDTO.setRelatedCode(recipe.getRecipeId());
-        invoiceItemDTO.setRelatedName(DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType()));
+        invoiceItemDTO.setRelatedCode(relatedCode);
+        invoiceItemDTO.setRelatedName(relatedName);
         invoiceItemDTO.setCode(code);
         invoiceItemDTO.setName(name);
         invoiceItemDTO.setAmount(amount);
@@ -329,6 +331,12 @@ public class EleInvoiceService {
         return invoiceItemDTO;
     }
 
+    /**
+     * 出参解析
+     *
+     * @param hisResponse
+     * @return
+     */
     private List<String> response(HisResponseTO<RecipeInvoiceTO> hisResponse) {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {
