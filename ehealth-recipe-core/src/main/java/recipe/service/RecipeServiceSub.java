@@ -770,6 +770,8 @@ public class RecipeServiceSub {
                     //备注
                     paramMap.put("dMemo" + i, "备注:" + d.getMemo());
                 }
+
+
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -847,8 +849,17 @@ public class RecipeServiceSub {
                     dTotal = dTotal + "*" + d.getMemo();
                 }
                 paramMap.put("drugInfo" + i, dName + "¨" + dTotal);
-                paramMap.put("tcmUsePathways", d.getUsePathways());
-                paramMap.put("tcmUsingRate", d.getUsingRate());
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
+                    paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
+                }else{
+                    paramMap.put("tcmUsePathways", d.getUsePathways());
+                }
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))){
+                    paramMap.put("tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()));
+                }else{
+                    paramMap.put("tcmUsingRate", d.getUsingRate());
+                }
+
                 i++;
             }
             paramMap.put("drugNum", i);
