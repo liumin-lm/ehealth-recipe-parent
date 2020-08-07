@@ -36,6 +36,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
+import recipe.constant.MedicalChargesEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -276,11 +277,11 @@ public class EleInvoiceService {
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
             invoiceDTO.setFundAmount(recipeOrder.getFundAmount() == null ? 0D : recipeOrder.getFundAmount());
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
-            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
-                    recipeOrder.getRegisterFee(), "", 1D));
+            invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.REGISTRATION.getCode(), MedicalChargesEnum.REGISTRATION.getName()
+                    , recipeOrder.getOrderId(), MedicalChargesEnum.REGISTRATION.getName(), recipeOrder.getRegisterFee(), "", 1D));
             if (1 == recipeOrder.getExpressFeePayWay()) {
-                invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
-                        recipeOrder.getExpressFee(), "", 1D));
+                invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.DISTRIBUTION.getCode(), MedicalChargesEnum.DISTRIBUTION.getName()
+                        , recipeOrder.getOrderId(), MedicalChargesEnum.DISTRIBUTION.getName(), recipeOrder.getExpressFee(), "", 1D));
             }
         }
 
