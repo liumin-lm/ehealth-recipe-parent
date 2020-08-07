@@ -116,6 +116,9 @@ public class DrugExtService implements IDrugExtService {
         drugMakingMethodDao.deleteDrugMakingMethodByMethodId(methodId);
     }
 
+
+
+
     /**
      * 获取机构下所有药品煎法
      *
@@ -131,7 +134,6 @@ public class DrugExtService implements IDrugExtService {
         }
         return decoctionWayBean;
     }
-
 
     /**
      * 获取机构下指定煎法
