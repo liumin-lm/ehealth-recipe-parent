@@ -11,6 +11,7 @@ public enum MedicalChargesEnum {
      */
     REGISTRATION(10, "挂号费"),
     DISTRIBUTION(11, "配送费"),
+    CONSULT(12, "复诊咨询费"),
     ;
 
     /**
