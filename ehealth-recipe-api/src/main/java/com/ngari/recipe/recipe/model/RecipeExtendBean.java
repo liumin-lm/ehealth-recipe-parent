@@ -125,7 +125,7 @@ public class RecipeExtendBean implements Serializable {
     private String medicalTypeText;
 
     @ItemProperty(alias = "制法")
-    private String makeMethod;
+    private String makeMethodId;
     @ItemProperty(alias = "制法text")
     private String makeMethodText;
     @ItemProperty(alias = "每付取汁")
@@ -137,13 +137,37 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "次量单位")
     private String minorUnit;
     @ItemProperty(alias = "中医症候编码")
-    private String symptomCode;
+    private String symptomId;
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
     @ItemProperty(alias = "煎法")
-    private String decoctionCode;
+    private String decoctionId;
     @ItemProperty(alias = "煎法text")
     private String decoctionText;
+
+    @ItemProperty(alias = "制法编码")
+    private String makeMethod;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomCode;
+    @ItemProperty(alias = "煎法编码")
+    private String decoctionCode;
+
+
+    public String getMakeMethod() {
+        return makeMethod;
+    }
+
+    public void setMakeMethod(String makeMethod) {
+        this.makeMethod = makeMethod;
+    }
+
+    public String getSymptomCode() {
+        return symptomCode;
+    }
+
+    public void setSymptomCode(String symptomCode) {
+        this.symptomCode = symptomCode;
+    }
 
     public String getDecoctionCode() {
         return decoctionCode;
@@ -161,12 +185,20 @@ public class RecipeExtendBean implements Serializable {
         this.decoctionText = decoctionText;
     }
 
-    public String getSymptomCode() {
-        return symptomCode;
+    public String getSymptomId() {
+        return symptomId;
     }
 
-    public void setSymptomCode(String symptomCode) {
-        this.symptomCode = symptomCode;
+    public void setSymptomId(String symptomId) {
+        this.symptomId = symptomId;
+    }
+
+    public String getDecoctionId() {
+        return decoctionId;
+    }
+
+    public void setDecoctionId(String decoctionId) {
+        this.decoctionId = decoctionId;
     }
 
     public String getSymptomName() {
@@ -177,12 +209,12 @@ public class RecipeExtendBean implements Serializable {
         this.symptomName = symptomName;
     }
 
-    public String getMakeMethod() {
-        return makeMethod;
+    public String getMakeMethodId() {
+        return makeMethodId;
     }
 
-    public void setMakeMethod(String makeMethod) {
-        this.makeMethod = makeMethod;
+    public void setMakeMethodId(String makeMethodId) {
+        this.makeMethodId = makeMethodId;
     }
 
     public String getMakeMethodText() {

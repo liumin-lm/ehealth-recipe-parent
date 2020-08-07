@@ -2,20 +2,25 @@ package recipe.hisservice;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.EleInvoiceReqTo;
 import com.ngari.his.recipe.mode.RecipeInvoiceTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.*;
+import com.ngari.platform.recipe.mode.InvoiceDTO;
+import com.ngari.platform.recipe.mode.InvoiceItemDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -29,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
+import recipe.comment.DictionaryUtil;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -36,10 +42,9 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.util.DateConversion;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -62,6 +67,11 @@ public class EleInvoiceService {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private DepartmentService departmentService;
+    @Autowired
+    private OrganService organService;
+
 
     @RpcService
     public List<String> findEleInvoice(EleInvoiceDTO eleInvoiceDTO) {
@@ -70,22 +80,12 @@ public class EleInvoiceService {
         EleInvoiceReqTo eleInvoiceReqTo = new EleInvoiceReqTo();
         if ("0".equals(eleInvoiceDTO.getType())) {
             eleInvoiceReqTo.setCzybz("0");
-            IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
-            ConsultExDTO consultExDTO = iConsultExService.getByConsultId(eleInvoiceDTO.getId());
-            if (StringUtils.isNotBlank(consultExDTO.getRegisterNo())) {
-                eleInvoiceDTO.setGhxh(consultExDTO.getRegisterNo());
-            }
-            if (StringUtils.isNotBlank(consultExDTO.getCardId())) {
-                eleInvoiceDTO.setCardId(consultExDTO.getCardId());
-            }
-            if (StringUtils.isNotBlank(consultExDTO.getCardType())) {
-                eleInvoiceDTO.setCardType(consultExDTO.getCardType());
-            }
+          setRecipeConsultDTO(eleInvoiceReqTo,eleInvoiceDTO);
+
         }
         //处方数据
         if (RECIPE_TYPE.toString().equals(eleInvoiceDTO.getType())) {
-            RecipeDTO recipeDTO = setRecipeDTO(eleInvoiceDTO);
-            eleInvoiceReqTo.setRecipeDTO(recipeDTO);
+            setRecipeDTO(eleInvoiceReqTo, eleInvoiceDTO);
         }
 
         if (StringUtils.isBlank(eleInvoiceDTO.getGhxh())) {
@@ -163,32 +163,106 @@ public class EleInvoiceService {
     }
 
     /**
+     * 复诊相关数据
+     *
+     * @param eleInvoiceReqTo
+     * @param eleInvoiceDTO
+     * @return
+     */
+    private void setRecipeConsultDTO(EleInvoiceReqTo eleInvoiceReqTo, EleInvoiceDTO eleInvoiceDTO){
+
+
+        //复诊
+        IConsultService iConsultService = AppDomainContext.getBean("consult.consultService", IConsultService.class);
+        ConsultBean consultBean = iConsultService.getById(eleInvoiceDTO.getId());
+        if (null == consultBean) {
+            throw new DAOException(609, "consultBean is null");
+        }
+
+        //复诊ex
+        IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
+        ConsultExDTO consultExDTO = iConsultExService.getByConsultId(eleInvoiceDTO.getId());
+        if (null == consultExDTO) {
+            throw new DAOException(609, "consultExDTO is null");
+        }
+        //机构
+        OrganDTO organDTO = organService.getByOrganId(consultBean.getConsultOrgan());
+        if (null == organDTO) {
+            throw new DAOException(609, "organDTO is null");
+        }
+        //门诊
+        DepartmentDTO departmentDTO = departmentService.getByDeptId(consultBean.getConsultDepart());
+        if (null == departmentDTO) {
+            throw new DAOException(609, "departmentDTO is null");
+        }
+
+
+        if (StringUtils.isNotBlank(consultExDTO.getRegisterNo())) {
+            eleInvoiceDTO.setGhxh(consultExDTO.getRegisterNo());
+        }
+        if (StringUtils.isNotBlank(consultExDTO.getCardType())) {
+            eleInvoiceDTO.setCardType(consultExDTO.getCardType());
+        }
+        if (StringUtils.isNotBlank(consultExDTO.getCardId())) {
+            eleInvoiceDTO.setCardId(consultExDTO.getCardId());
+        }
+
+        try {
+            eleInvoiceReqTo.setCreateDate(consultBean.getPaymentDate());
+            eleInvoiceReqTo.setDeptId(consultBean.getConsultDepart());
+            eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(consultBean.getConsultDepart()));
+            InvoiceDTO invoiceDTO = new InvoiceDTO();
+
+            invoiceDTO.setPayAmount(consultBean.getConsultCost());
+            invoiceDTO.setPayWay("第三方支付");
+            invoiceDTO.setPayTime(consultBean.getPaymentDate());
+            invoiceDTO.setFundAmount(consultBean.getFundAmount());
+            invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
+
+            List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
+            InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
+
+            invoiceItemDTO.setRelatedCode(consultBean.getConsultId());
+            invoiceItemDTO.setRelatedName("复诊咨询");
+            invoiceItemDTO.setCode(consultBean.getConsultId());
+            invoiceItemDTO.setName("复诊咨询费");
+            invoiceItemDTO.setAmount(BigDecimal.valueOf(consultBean.getConsultCost()));
+            invoiceItemDTO.setUnit("元");
+            invoiceItemDTO.setQuantity(1D);
+            invoiceItem.add(invoiceItemDTO);
+            invoiceDTO.setInvoiceItem(invoiceItem);
+            eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
+
+        } catch (Exception e) {
+            LOGGER.error("EleInvoiceService ", e);
+        }
+        
+    }
+
+
+    /**
      * 处方发票号入参
      * 组织处方相关数据
      *
      * @param eleInvoiceDTO
      * @param
      */
-    private RecipeDTO setRecipeDTO(EleInvoiceDTO eleInvoiceDTO) {
-        RecipeDTO recipeDTO = new RecipeDTO();
+    private void setRecipeDTO(EleInvoiceReqTo eleInvoiceReqTo, EleInvoiceDTO eleInvoiceDTO) {
         Integer recipeId = eleInvoiceDTO.getId();
-
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(609, "recipe is null");
         }
-        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-        try {
-            recipeBean.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
-        } catch (ControllerException e) {
-            LOGGER.warn("EleInvoiceService setRecipeDTO 字典转化异常");
-        }
-        recipeDTO.setRecipeBean(recipeBean);
 
+        eleInvoiceReqTo.setCreateDate(recipe.getCreateDate());
+        eleInvoiceReqTo.setDeptId(recipe.getDepart());
+        eleInvoiceReqTo.setDeptName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
+
+        InvoiceDTO invoiceDTO = new InvoiceDTO();
+        invoiceDTO.setPayId(recipe.getRecipeId());
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null != recipeExtend) {
-            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
-            recipeDTO.setRecipeExtendBean(recipeExtendBean);
+            invoiceDTO.setInvoiceNumber(recipeExtend.getEinvoiceNumber());
             if (StringUtils.isNotBlank(recipeExtend.getRegisterID())) {
                 eleInvoiceDTO.setGhxh(recipeExtend.getRegisterID());
             }
@@ -199,21 +273,70 @@ public class EleInvoiceService {
                 eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
             }
         }
-        
+        List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-            recipeDTO.setRecipeOrderBean(recipeOrderBean);
+            invoiceDTO.setPayAmount(recipeOrder.getActualPrice());
+            invoiceDTO.setPayWay(recipeOrder.getWxPayWay());
+            invoiceDTO.setPayTime(recipeOrder.getPayTime());
+            invoiceDTO.setFundAmount(recipeOrder.getFundAmount() == null ? 0D : recipeOrder.getFundAmount());
+            invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
+            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
+                    recipeOrder.getRegisterFee(), "", 1D));
+            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
+                    recipeOrder.getExpressFee(), "", 1D));
         }
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            List<RecipeDetailBean> recipeDetails = ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class);
-            recipeDTO.setRecipeDetails(recipeDetails);
+            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
+                    a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose())));
         }
-        return recipeDTO;
+        if (CollectionUtils.isNotEmpty(invoiceItem)) {
+            List<InvoiceItemDTO> item = invoiceItem.stream().filter(Objects::nonNull).collect(Collectors.toList());
+            invoiceDTO.setInvoiceItem(item);
+        }
+        eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
     }
 
+    /**
+     * 组装 发票明细
+     *
+     * @param recipe
+     * @param code
+     * @param name
+     * @param amount
+     * @param unit
+     * @param quantity
+     * @return
+     */
+    private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
+        String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        return getInvoiceItemDTO(recipe.getRecipeId(), recipeType, code, name, amount, unit, quantity);
+    }
+
+    private InvoiceItemDTO getInvoiceItemDTO(Integer relatedCode, String relatedName, Integer code, String name
+            , BigDecimal amount, String unit, Double quantity) {
+        if (null == amount) {
+            return null;
+        }
+        InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
+        invoiceItemDTO.setRelatedCode(relatedCode);
+        invoiceItemDTO.setRelatedName(relatedName);
+        invoiceItemDTO.setCode(code);
+        invoiceItemDTO.setName(name);
+        invoiceItemDTO.setAmount(amount);
+        invoiceItemDTO.setUnit(unit);
+        invoiceItemDTO.setQuantity(quantity);
+        return invoiceItemDTO;
+    }
+
+    /**
+     * 出参解析
+     *
+     * @param hisResponse
+     * @return
+     */
     private List<String> response(HisResponseTO<RecipeInvoiceTO> hisResponse) {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {

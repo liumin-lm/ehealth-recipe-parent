@@ -22,9 +22,14 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
     public DrugDecoctionWayDao() {
         super();
         this.setEntityName(DecoctionWay.class.getName());
-        this.setKeyField("methodId");
+        this.setKeyField("decoctionId");
     }
 
     @DAOMethod(sql = "from DecoctionWay where organId =:organId ", limit = 0)
     public abstract List<DecoctionWayBean> findAllDecoctionWayByOrganId(@DAOParam("organId")Integer organId);
+
+
+    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionId =: decoctionId")
+    public abstract DecoctionWayBean findDecoctionWayByOrganIdandDecoctionId(@DAOParam("organId")Integer organId,
+                                                                             @DAOParam("decoctionId") Integer decoctionId);
 }
