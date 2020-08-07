@@ -284,14 +284,16 @@ public class EleInvoiceService {
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
             invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
                     recipeOrder.getRegisterFee(), "", 1D));
-            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
-                    recipeOrder.getExpressFee(), "", 1D));
+            if (1 == recipeOrder.getExpressFeePayWay()) {
+                invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
+                        recipeOrder.getExpressFee(), "", 1D));
+            }
         }
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
             recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
-                    a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose())));
+                    a.getDrugName(), a.getActualSalePrice(), a.getDrugUnit(), a.getUseTotalDose())));
         }
         if (CollectionUtils.isNotEmpty(invoiceItem)) {
             List<InvoiceItemDTO> item = invoiceItem.stream().filter(Objects::nonNull).collect(Collectors.toList());
