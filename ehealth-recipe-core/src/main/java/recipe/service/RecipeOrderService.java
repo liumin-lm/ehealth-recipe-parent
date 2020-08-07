@@ -178,7 +178,7 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @param recipeIds 合并处方单ID
      * @param extInfo   {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
-     *                  "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
+     *                  "decoctionId":"代煎方式", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
      *                  "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
      *                  "calculateFee":"1(1:需要，0:不需要)"}
      *                  <p>
@@ -268,6 +268,16 @@ public class RecipeOrderService extends RecipeBaseService {
         if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
             //设置配送费支付方式
             order.setExpressFeePayWay(2);
+        }
+
+        //设置中药代建费
+        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+        if(decoctionId != null){
+            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            if(decoctionWay != null){
+                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+            }
         }
         if (null == remoteService) {
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
@@ -590,20 +600,18 @@ public class RecipeOrderService extends RecipeBaseService {
         order.setRecipeFee(remoteService.orderToRecipeFee(order, recipeIds, payModeSupport, recipeFee, extInfo));
         //order.setRecipeFee(recipeFee);
 
-        //中药表示待煎费，膏方代表制作费
+        //膏方代表制作费
         BigDecimal otherFee = BigDecimal.ZERO;
-        //设置订单代煎费
-        Integer totalCopyNum = 0;
-        boolean needCalDecFee = false;
-        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
+        boolean needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
+//        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
         //1表示待煎
-        if (Integer.valueOf(1).equals(decoctionFlag)) {
+//        if (Integer.valueOf(1).equals(decoctionFlag)) {
             //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
-            BigDecimal recipeDecoctionPrice = organConfig.getRecipeDecoctionPrice();
-            //根据机构获取代煎费
-            order.setDecoctionUnitPrice(null != recipeDecoctionPrice ? recipeDecoctionPrice : BigDecimal.valueOf(-1));
-            needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
-        }
+//            BigDecimal recipeDecoctionPrice = order.getDecoctionUnitPrice();
+//            //根据机构获取代煎费
+//            order.setDecoctionUnitPrice(null != recipeDecoctionPrice ? recipeDecoctionPrice : BigDecimal.valueOf(-1));
+//            needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
+//        }
 
         //设置膏方制作费
         Integer gfFeeFlag = MapValueUtil.getInteger(extInfo, "gfFeeFlag");
@@ -623,13 +631,16 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         BigDecimal tcmFee = null;//null表示用户在运营平台没有配置这项费用
+        //设置订单代煎费
+        Integer totalCopyNum = 0;
+        BigDecimal decoctionFee = BigDecimal.ZERO;
         int i = 0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
                 if (needCalDecFee) {
                     //代煎费等于剂数乘以代煎单价
-                    otherFee = otherFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                    decoctionFee = order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum()));
                 }
                 //一张订单只会有一个处方
                 if (i == 0) {
@@ -649,7 +660,7 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("tcmFee是：{}", tcmFee);
         order.setTcmFee(tcmFee);
         order.setCopyNum(totalCopyNum);
-        order.setDecoctionFee(otherFee);
+        order.setDecoctionFee(decoctionFee);
         //当前是his返回的，范围不进行校验
 //        if(new Integer(-1).equals(order.getEnterpriseId()) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
 //            //设置运费
