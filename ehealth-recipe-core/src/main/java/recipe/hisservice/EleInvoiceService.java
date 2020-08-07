@@ -209,11 +209,13 @@ public class EleInvoiceService {
         }
 
         try {
+            eleInvoiceReqTo.setRequestId(consultBean.getConsultId());
             eleInvoiceReqTo.setCreateDate(consultBean.getPaymentDate());
             eleInvoiceReqTo.setDeptId(consultBean.getConsultDepart());
             eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(consultBean.getConsultDepart()));
             InvoiceDTO invoiceDTO = new InvoiceDTO();
 
+            invoiceDTO.setPayId(consultBean.getConsultId());
             invoiceDTO.setPayAmount(consultBean.getConsultCost());
             invoiceDTO.setPayWay("第三方支付");
             invoiceDTO.setPayTime(consultBean.getPaymentDate());

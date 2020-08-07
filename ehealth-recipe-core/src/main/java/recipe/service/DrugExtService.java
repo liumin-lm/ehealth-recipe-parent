@@ -7,6 +7,7 @@ import com.ngari.recipe.drug.model.DrugMakingMethodBean;
 import com.ngari.recipe.drug.service.IDrugExtService;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugMakingMethod;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -62,11 +63,8 @@ public class DrugExtService implements IDrugExtService {
      */
     @RpcService
     @Override
-    public List<DrugMakingMethodBean> findDrugMakingMethodByOrganIdAndName(Integer organId, String methodText, Integer start, Integer limit) {
-        List<DrugMakingMethodBean> decoctionWayBean = drugMakingMethodDao.findDrugMakingMethodByOrganIdAndName(organId, methodText, start, limit);
-        if (decoctionWayBean.isEmpty()) {
-            return Lists.newArrayList();
-        }
+    public QueryResult<DrugMakingMethodBean> findDrugMakingMethodByOrganIdAndName(Integer organId, String methodText, Integer start, Integer limit) {
+        QueryResult<DrugMakingMethodBean> decoctionWayBean = drugMakingMethodDao.findDrugMakingMethodByOrganIdAndName(organId, methodText, start, limit);
         return decoctionWayBean;
     }
 
@@ -143,11 +141,9 @@ public class DrugExtService implements IDrugExtService {
      */
     @RpcService
     @Override
-    public List<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
-        List<DecoctionWayBean> decoctionWayBean = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
-        if (decoctionWayBean.isEmpty()) {
-            return Lists.newArrayList();
-        }
+    public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
+        QueryResult<DecoctionWayBean> decoctionWayBean = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
+
         return decoctionWayBean;
     }
 
