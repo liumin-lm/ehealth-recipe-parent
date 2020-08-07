@@ -126,6 +126,25 @@ public class SymptomService implements ISymptomService {
         return  ObjectCopyUtils.convert(byOrganId, SymptomDTO.class);
     }
 
+    /**
+     * 根据机构Id 和 症候ID查询中医症候
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public SymptomDTO querSymptomByOrganIdAndSymptomId(Integer organId , Integer symptomId ) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        if (null == symptomId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "症候Id不能为空");
+        }
+        SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+        Symptom byOrganIdAndSymptomId = symptomDAO.getByOrganIdAndSymptomId(organId,symptomId);
+        logger.info("查询中医症候服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(byOrganIdAndSymptomId));
+        return  ObjectCopyUtils.convert(byOrganIdAndSymptomId, SymptomDTO.class);
+    }
+
 
     /**
      * 症候批量导入

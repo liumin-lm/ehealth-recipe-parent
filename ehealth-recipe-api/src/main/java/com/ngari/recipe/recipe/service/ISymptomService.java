@@ -36,6 +36,16 @@ public interface ISymptomService {
     @RpcService
     List<SymptomDTO> querSymptomByOrganId(Integer organId );
 
+
+    /**根据机构Id 和 症候ID查询中医症候
+     *
+     * @param organId
+     * @param symptomId
+     * @return
+     */
+    @RpcService
+    SymptomDTO querSymptomByOrganIdAndSymptomId(Integer organId , Integer symptomId );
+
     /**
      * 症候批量导入
      * @param buf
