@@ -300,7 +300,7 @@ public class HisRequestInit {
             DecoctionWay decoctionWay=drugDecoctionWayDao.get(recipeExtend.getDecoctionId());
             DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(recipeExtend.getMakeMethodId());
             Symptom symptom=symptomDAO.get(recipeExtend.getSymptomId());
-            requestTO.getRecipeExtend().setDecoctionWay(decoctionWay.getDecoctionCode());
+            requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
             requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
             requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
         }
