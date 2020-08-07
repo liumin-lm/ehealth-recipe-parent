@@ -42,8 +42,8 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
     @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
     public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId")Integer decoctionId);
 
-    public List<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
-        HibernateStatelessResultAction<List<DecoctionWayBean>> action = new AbstractHibernateStatelessResultAction<List<DecoctionWayBean>>() {
+    public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
+        HibernateStatelessResultAction<QueryResult<DecoctionWayBean>> action = new AbstractHibernateStatelessResultAction<QueryResult<DecoctionWayBean>>() {
 
             @Override public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("from DecoctionWay where 1=1");
@@ -64,7 +64,16 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
                 List<DecoctionWayBean> lists = query.list();
-                setResult(lists);
+
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                if (organId != null) {
+                    countQuery.setParameter("organId", organId);
+                }
+                if (!StringUtils.isEmpty(decoctionText)) {
+                    countQuery.setParameter("decoctionText", "%" + decoctionText + "%");
+                }
+                Long total = (Long) countQuery.uniqueResult();
+                setResult(new QueryResult<DecoctionWayBean>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);

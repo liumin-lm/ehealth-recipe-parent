@@ -3,6 +3,7 @@ package com.ngari.recipe.drug.service;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.drug.model.DrugMakingMethodBean;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public interface IDrugExtService extends IBaseService {
      * @return List<DecoctionWayBean> 药品信息
      */
     @RpcService
-    List<DrugMakingMethodBean> findDrugMakingMethodByOrganIdAndName(Integer organId, String methodText, Integer start, Integer limit);
+    QueryResult<DrugMakingMethodBean> findDrugMakingMethodByOrganIdAndName(Integer organId, String methodText, Integer start, Integer limit);
 
     /**
      * 药品制法法存储
@@ -79,7 +80,7 @@ public interface IDrugExtService extends IBaseService {
      * @return List<DecoctionWayBean> 药品信息
      */
     @RpcService
-    List<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit);
+    QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit);
 
     /**
      * 药品制法存储

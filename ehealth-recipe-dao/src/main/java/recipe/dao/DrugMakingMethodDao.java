@@ -39,8 +39,8 @@ public abstract class DrugMakingMethodDao extends HibernateSupportDelegateDAO<Dr
     @DAOMethod(sql = "delete from DrugMakingMethod where methodId =:methodId ")
     public abstract void deleteDrugMakingMethodByMethodId(@DAOParam("methodId")Integer methodId);
 
-    public List<DrugMakingMethodBean> findDrugMakingMethodByOrganIdAndName(Integer organId, String methodText, Integer start, Integer limit) {
-        HibernateStatelessResultAction<List<DrugMakingMethodBean>> action = new AbstractHibernateStatelessResultAction<List<DrugMakingMethodBean>>() {
+    public QueryResult<DrugMakingMethodBean> findDrugMakingMethodByOrganIdAndName(Integer organId, String methodText, Integer start, Integer limit) {
+        HibernateStatelessResultAction<QueryResult<DrugMakingMethodBean>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugMakingMethodBean>>() {
 
             @Override public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("from DrugMakingMethod where 1=1");
@@ -61,7 +61,17 @@ public abstract class DrugMakingMethodDao extends HibernateSupportDelegateDAO<Dr
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
                 List<DrugMakingMethodBean> lists = query.list();
-                setResult(lists);
+
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                if (organId != null) {
+                    query.setParameter("organId", organId);
+                }
+                if (!StringUtils.isEmpty(methodText)) {
+                    query.setParameter("methodText", "%" + methodText + "%");
+                }
+                Long total = (Long) countQuery.uniqueResult();
+                setResult(new QueryResult<DrugMakingMethodBean>(total, query.getFirstResult(), query.getMaxResults(), lists));
+
             }
         };
         HibernateSessionTemplate.instance().execute(action);
