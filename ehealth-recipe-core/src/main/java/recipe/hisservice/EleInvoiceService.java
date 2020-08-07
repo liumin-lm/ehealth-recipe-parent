@@ -177,24 +177,24 @@ public class EleInvoiceService {
         IConsultService iConsultService = AppDomainContext.getBean("consult.consultService", IConsultService.class);
         ConsultBean consultBean = iConsultService.getById(eleInvoiceDTO.getId());
         if (null == consultBean) {
-            throw new DAOException(609, "consultBean is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "consultBean is null");
         }
 
         //复诊ex
         IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
         ConsultExDTO consultExDTO = iConsultExService.getByConsultId(eleInvoiceDTO.getId());
         if (null == consultExDTO) {
-            throw new DAOException(609, "consultExDTO is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "consultExDTO is null");
         }
         //机构
         OrganDTO organDTO = organService.getByOrganId(consultBean.getConsultOrgan());
         if (null == organDTO) {
-            throw new DAOException(609, "organDTO is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "organDTO is null");
         }
         //门诊
         DepartmentDTO departmentDTO = departmentService.getByDeptId(consultBean.getConsultDepart());
         if (null == departmentDTO) {
-            throw new DAOException(609, "departmentDTO is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "departmentDTO is null");
         }
 
 
@@ -221,15 +221,7 @@ public class EleInvoiceService {
             invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
 
             List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
-            InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
-
-            invoiceItemDTO.setRelatedCode(consultBean.getConsultId());
-            invoiceItemDTO.setRelatedName("复诊咨询");
-            invoiceItemDTO.setCode(consultBean.getConsultId());
-            invoiceItemDTO.setName("复诊咨询费");
-            invoiceItemDTO.setAmount(BigDecimal.valueOf(consultBean.getConsultCost()));
-            invoiceItemDTO.setUnit("元");
-            invoiceItemDTO.setQuantity(1D);
+            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(consultBean.getConsultId(),"复诊咨询",consultBean.getConsultId(),"复诊咨询费",BigDecimal.valueOf(consultBean.getConsultCost()),"元",1D);
             invoiceItem.add(invoiceItemDTO);
             invoiceDTO.setInvoiceItem(invoiceItem);
             eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
