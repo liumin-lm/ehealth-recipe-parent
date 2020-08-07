@@ -204,6 +204,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         }*/
         request.setOrganID(sendOrganId.toString());
+        LOGGER.info("recipeHisService recipeId:{} request:{}",recipeId,JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);
     }
