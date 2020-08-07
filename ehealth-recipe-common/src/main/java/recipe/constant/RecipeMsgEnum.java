@@ -123,6 +123,11 @@ public enum RecipeMsgEnum {
      */
     RECIPE_REFUND_AUDIT_FAIL(133, "RecipeRefundAuditFail"),
 
+    /**
+     * 药师审核通过
+     */
+    RECIPE_APPROVED(134, "RecipeApproved"),
+
 
     /**
      * 默认消息

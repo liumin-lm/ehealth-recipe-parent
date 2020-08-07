@@ -41,7 +41,7 @@ public class DecoctionWay implements Serializable {
     @ItemProperty(
         alias = "煎法价格"
     )
-    private String decoctionPrice;
+    private Double decoctionPrice;
 
     @ItemProperty(
         alias = "煎法拼音"
@@ -79,11 +79,11 @@ public class DecoctionWay implements Serializable {
         this.decoctionText = decoctionText;
     }
 
-    public String getDecoctionPrice() {
+    public Double getDecoctionPrice() {
         return decoctionPrice;
     }
 
-    public void setDecoctionPrice(String decoctionPrice) {
+    public void setDecoctionPrice(Double decoctionPrice) {
         this.decoctionPrice = decoctionPrice;
     }
 
