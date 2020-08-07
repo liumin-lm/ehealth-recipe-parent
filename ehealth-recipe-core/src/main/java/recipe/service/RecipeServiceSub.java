@@ -50,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -111,6 +112,8 @@ public class RecipeServiceSub {
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
+
+    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
 
     /**
      * @param recipeBean
@@ -404,6 +407,7 @@ public class RecipeServiceSub {
 
                 OrganDrugList organDrug;
                 List<String> delOrganDrugName = Lists.newArrayList();
+                PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
                     if (oldFlag) {
@@ -429,15 +433,15 @@ public class RecipeServiceSub {
                         detail.setPack(organDrug.getPack());
                         //中药基础数据处理
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                            detail.setUsePathways(recipe.getTcmUsePathways());
-                            detail.setUsingRate(recipe.getTcmUsingRate());
+//                            detail.setUsePathways(recipe.getTcmUsePathways());
+//                            detail.setUsingRate(recipe.getTcmUsingRate());
 
                             //date 20200526
                             //构建处方初始化处方药品详情的时候用recipe的剂数
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            detail.setUseDays(recipe.getCopyNum());
+                            //detail.setUseDays(recipe.getCopyNum());
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -447,7 +451,7 @@ public class RecipeServiceSub {
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            detail.setUseDays(recipe.getCopyNum());
+                            //detail.setUseDays(recipe.getCopyNum());
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -470,6 +474,13 @@ public class RecipeServiceSub {
                         BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
+                        //药房处理
+                        if (detail.getPharmacyId() != null && StringUtils.isEmpty(detail.getPharmacyName())){
+                            PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
+                            if(pharmacyTcm!=null){
+                                detail.setPharmacyName(pharmacyTcm.getPharmacyName());
+                            }
+                        }
                     } else {
                         if (StringUtils.isNotEmpty(detail.getDrugName())) {
                             delOrganDrugName.add(detail.getDrugName());
@@ -759,6 +770,8 @@ public class RecipeServiceSub {
                     //备注
                     paramMap.put("dMemo" + i, "备注:" + d.getMemo());
                 }
+
+
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -836,8 +849,17 @@ public class RecipeServiceSub {
                     dTotal = dTotal + "*" + d.getMemo();
                 }
                 paramMap.put("drugInfo" + i, dName + "¨" + dTotal);
-                paramMap.put("tcmUsePathways", d.getUsePathways());
-                paramMap.put("tcmUsingRate", d.getUsingRate());
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
+                    paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
+                }else{
+                    paramMap.put("tcmUsePathways", d.getUsePathways());
+                }
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))){
+                    paramMap.put("tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()));
+                }else{
+                    paramMap.put("tcmUsingRate", d.getUsingRate());
+                }
+
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -1481,15 +1503,32 @@ public class RecipeServiceSub {
         }
 
         //中药处方处理
-        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-            if (CollectionUtils.isNotEmpty(recipedetails)) {
-                Recipedetail recipedetail = recipedetails.get(0);
-                recipe.setTcmUsePathways(recipedetail.getUsePathways());
-                recipe.setTcmUsingRate(recipedetail.getUsingRate());
-            }
-        }
+//        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+//            if (CollectionUtils.isNotEmpty(recipedetails)) {
+//                Recipedetail recipedetail = recipedetails.get(0);
+//                recipe.setTcmUsePathways(recipedetail.getUsePathways());
+//                recipe.setTcmUsingRate(recipedetail.getUsingRate());
+//            }
+//        }
         map.put("patient", patient);
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
+        //隐方
+        if(isDoctor==false){
+            if(!recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+                List<RecipeDetailBean> recipeDetailVOs=(List<RecipeDetailBean>)map.get("recipedetails");
+                if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
+                    for(int j=0;j<recipeDetailVOs.size();j++){
+                        recipeDetailVOs.get(j).setDrugName(null);
+                        recipeDetailVOs.get(j).setDrugSpec(null);
+                    }
+                }
+            }
+        }
+        //返回是否隐方
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
+        map.put("isHiddenRecipeDetail",(boolean)isHiddenRecipeDetail);
+
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
             IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);

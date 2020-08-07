@@ -65,6 +65,16 @@ public class PatientRecipeBean {
      */
     private Integer recipeSource;
 
+    private Integer payFlag;//支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败
+
+    public Integer getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(Integer payFlag) {
+        this.payFlag = payFlag;
+    }
+
     public PatientRecipeBean() {
     }
 

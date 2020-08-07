@@ -119,6 +119,7 @@ public class RecipeCheckService {
      * @param request
      * @return
      */
+    @Deprecated
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request, int start, int limit) {
         LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));

@@ -98,7 +98,8 @@ public class HisRecipeVO implements Serializable{
     private String organDiseaseName;
     @ItemProperty(alias = "药品详情")
     private List<HisRecipeDetailVO> recipeDetail;
-
+    @ItemProperty(alias = "是否隐方")
+    private boolean isHiddenRecipeDetail;
     public Integer getHisRecipeID() {
         return hisRecipeID;
     }
@@ -433,5 +434,13 @@ public class HisRecipeVO implements Serializable{
 
     public void setOrganDiseaseName(String organDiseaseName) {
         this.organDiseaseName = organDiseaseName;
+    }
+
+    public boolean getIsHiddenRecipeDetail() {
+        return isHiddenRecipeDetail;
+    }
+
+    public void setIsHiddenRecipeDetail(boolean isHiddenRecipeDetail) {
+        this.isHiddenRecipeDetail = isHiddenRecipeDetail;
     }
 }

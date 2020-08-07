@@ -134,6 +134,8 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
 
     public OrganDrugListBean() {
     }

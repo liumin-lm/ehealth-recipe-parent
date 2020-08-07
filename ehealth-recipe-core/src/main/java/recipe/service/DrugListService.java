@@ -99,7 +99,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     /**
      * 添加药品
      *
-     * @param d
+     * @param drugListBean
      * @return
      * @author zhongzx
      */
@@ -213,7 +213,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     /**
      * 更新药品信息
      *
-     * @param drugList
+     * @param drugListBean
      * @return
      * @author zhongzx
      */
@@ -473,7 +473,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
-        return drugListExtService.searchDrugListWithES(null, null, drugName, start, limit);
+        return drugListExtService.searchDrugListWithES(null, null, drugName,null, start, limit);
     }
 
     /**
@@ -489,7 +489,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     public List<SearchDrugDetailDTO> searchDrugByNameOrPyCodeForPC(
             final int organId, final int drugType, final String drugName, final int start, final int limit) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
-        return drugListExtService.searchDrugListWithES(organId, drugType, drugName, start, limit);
+        return drugListExtService.searchDrugListWithES(organId, drugType, drugName,null, start, limit);
     }
 
     @RpcService

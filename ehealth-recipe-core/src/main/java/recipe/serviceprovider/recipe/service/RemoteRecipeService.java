@@ -373,8 +373,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @Deprecated
     public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
-                                        final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                        Integer fromflag,Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType){
+                                                    final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
+                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
@@ -1352,6 +1352,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeBeans;
     }
 
+    private <T> List<T> changBean(List dataList, Class<T> cla) {
+        List<T> list = null;
+        if (CollectionUtils.isNotEmpty(dataList)) {
+            list = (List<T>) dataList.stream().map(t -> {
+                T o = null;
+                try {
+                    o = cla.newInstance();
+                    BeanUtils.copyProperties(t, o);
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                return o;
+            }).collect(Collectors.toList());
+        }
+        return list;
+    }
+
     @Override
     public List<EnterpriseRecipeDetailResponse> findRecipesPharmaceuticalDetailsByInfoForExcel(EnterpriseRecipeDetailExcelRequest req) {
         RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
@@ -1361,7 +1380,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         request.setStart(0);
         request.setLimit(null != sum ? sum.intValue() : 0);
         Map<String, Object> resultMap = reportFormsService.enterpriseRecipeDetailList(request);
-        return (null != resultMap && !resultMap.isEmpty()) ? (List<EnterpriseRecipeDetailResponse>)resultMap.get("data") : new ArrayList<EnterpriseRecipeDetailResponse>();
+        return (null != resultMap && !resultMap.isEmpty()) ? (List<EnterpriseRecipeDetailResponse>) resultMap.get("data") : new ArrayList<EnterpriseRecipeDetailResponse>();
     }
 
     @Override
@@ -1373,14 +1392,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         request.setStart(0);
         request.setLimit(null != sum ? sum.intValue() : 0);
         Map<String, Object> resultMap = reportFormsService.recipeAccountCheckDetailList(request);
-        return (null != resultMap && !resultMap.isEmpty()) ? (List<RecipeAccountCheckDetailResponse>)resultMap.get("data") : new ArrayList<RecipeAccountCheckDetailResponse>();
+        return (null != resultMap && !resultMap.isEmpty()) ? (List<RecipeAccountCheckDetailResponse>) resultMap.get("data") : new ArrayList<RecipeAccountCheckDetailResponse>();
     }
 
     @Override
     public List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request) {
         RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
         Map<String, Object> result = reportFormsService.recipeHisAccountCheckList(request);
-        return null != result ? (List<RecipeHisAccountCheckResponse>)result.get("data") : new ArrayList<RecipeHisAccountCheckResponse>();
+        return null != result ? (List<RecipeHisAccountCheckResponse>) result.get("data") : new ArrayList<RecipeHisAccountCheckResponse>();
     }
 
     @Override
@@ -1398,7 +1417,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
 
             //表示回调成功,需要查询处方状态并开始更新处方信息
-            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             HospitalReqTo hospitalReqTo = new HospitalReqTo();
             hospitalReqTo.setOrganId(recipe.getClinicOrgan());
             hospitalReqTo.setPrescriptionNo(prescriptionNo);
@@ -1409,20 +1428,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             LOGGER.info("recipeStatusNotice hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
             if (hisResponseTO != null && hisResponseTO.isSuccess()) {
                 Map map = hisResponseTO.getExtend();
-                String payStatus = (String)map.get("payStatus");
-                String orderStatus = (String)map.get("orderStatus");
-                String writeoffStatus = (String)map.get("writeoffStatus");
+                String payStatus = (String) map.get("payStatus");
+                String orderStatus = (String) map.get("orderStatus");
+                String writeoffStatus = (String) map.get("writeoffStatus");
                 StringBuilder stringBuilder = new StringBuilder();
                 //如果处方没有下单,则payStatus = null,由于不产生订单,现只将订单信息记录日志
                 if (StringUtils.isNotEmpty(payStatus)) {
                     switch (payStatus) {
-                        case "0" :
+                        case "0":
                             stringBuilder.append("[支付状态]该订单未支付;");
                             break;
-                        case "1" :
+                        case "1":
                             stringBuilder.append("[支付状态]该订单已支付;");
                             break;
-                        case "2" :
+                        case "2":
                             stringBuilder.append("[支付状态]该订单已退款;");
                             break;
                         default:
@@ -1432,13 +1451,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 }
                 if (StringUtils.isNotEmpty(orderStatus)) {
                     switch (orderStatus) {
-                        case "2" :
+                        case "2":
                             stringBuilder.append("[订单状态]该订单已经被接单;");
                             break;
-                        case "3" :
+                        case "3":
                             stringBuilder.append("[订单状态]该订单已发货/已取药;");
                             break;
-                        case "4" :
+                        case "4":
                             Map<String, Object> attrMap = Maps.newHashMap();
                             attrMap.put("giveFlag", 1);
                             attrMap.put("payFlag", 1);
@@ -1449,10 +1468,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
                             stringBuilder.append("[订单状态]该订单已完成;");
                             break;
-                        case "5" :
+                        case "5":
                             stringBuilder.append("[订单状态]该订单已被取消;");
                             break;
-                        case "6" :
+                        case "6":
                             stringBuilder.append("[订单状态]该订单已退回;");
                             break;
                         default:
@@ -1463,20 +1482,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
                 if (StringUtils.isNotEmpty(writeoffStatus)) {
                     switch (writeoffStatus) {
-                        case "0" :
+                        case "0":
                             stringBuilder.append("[处方状态]该处方已审核;");
                             break;
-                        case "1" :
+                        case "1":
                             //处方已核销
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.FINISH));
                             stringBuilder.append("[处方状态]该处方已核销;");
                             break;
-                        case "2" :
+                        case "2":
                             //该处方已失效
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.NO_PAY));
                             stringBuilder.append("[处方状态]该处方已失效;");
                             break;
-                        case "3" :
+                        case "3":
                             //该处方已撤销
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.REVOKE));
                             stringBuilder.append("[处方状态]该处方已撤销;");
@@ -1494,56 +1513,66 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      * 根据clinicId 查询复诊处方能否退费
      * select clinicid,count(*),group_concat(status) from cdr_recipe  c group by clinicid
-     * @return Map<String,Object>
+     *
+     * @return Map<String, Object>
      */
     @RpcService
-    public Map<String, Object>   findRecipeCanRefundByClinicId(Map<String,String> params) {
-        LOGGER.info("findRecipeCanRefundByClinicId 参数{}",JSONUtils.toString(params));
-        if(StringUtils.isEmpty(params.get("clinicId"))) {
+    public Map<String, Object> findRecipeCanRefundByClinicId(Map<String, String> params) {
+        LOGGER.info("findRecipeCanRefundByClinicId 参数{}", JSONUtils.toString(params));
+        if (StringUtils.isEmpty(params.get("clinicId"))) {
             throw new DAOException("findRecipeCanRefundByClinicId clinicId不允许为空");
         }
-        RecipeDAO recipeDAO=DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> recipes =recipeDAO.findByClinicId(Integer.parseInt(params.get("clinicId")));
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findByClinicId(Integer.parseInt(params.get("clinicId")));
         Map<String, Object> map = Maps.newHashMap();
-        String msg="";
-        String recipeStatusText="";
-        boolean canRefund=false;//默认不能申请退款
+        String msg = "";
+        String recipeStatusText = "";
+        boolean canRefund = false;//默认不能申请退款
         //只有已取消状态或已撤销或审核不通过的处方才能申请退款 返回true  其余返回false
         try {
-            if(recipes!=null&&recipes.size()>0){
-                for(Recipe recipe:recipes){
-                    LOGGER.info("findRecipeCanRefundByClinicId status:[{}]",recipe.getStatus());
-                    if(!(recipe.getStatus()==RecipeStatusConstant.HIS_FAIL          //11
-                            ||recipe.getStatus()==RecipeStatusConstant.NO_DRUG      //12
-                            ||recipe.getStatus()==RecipeStatusConstant.NO_PAY       //13
-                            ||recipe.getStatus()==RecipeStatusConstant.NO_OPERATOR  //14
-                            ||recipe.getStatus()==RecipeStatusConstant.EXPIRED      //20
-                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_FAIL  //17
-                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_MEDICAL_FAIL//19
-                            ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN//25
-                            ||recipe.getStatus()==RecipeStatusConstant.REVOKE      //9
-                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS//-1
-                            ||recipe.getStatus()==RecipeStatusConstant.CHECK_NOT_PASS_YS//15
-                            ||recipe.getStatus()==RecipeStatusConstant.UNSIGN)//0
-                    ){
-                        String recipeStatusTextTmp=DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
-                        if(StringUtils.isEmpty(recipeStatusText)||(!StringUtils.isEmpty(recipeStatusText)&&!recipeStatusText.contains(recipeStatusTextTmp))){
-                            recipeStatusText+= recipeStatusTextTmp+"、";
+            if (recipes != null && recipes.size() > 0) {
+                for (Recipe recipe : recipes) {
+                    LOGGER.info("findRecipeCanRefundByClinicId status:[{}]", recipe.getStatus());
+                    if (!(recipe.getStatus() == RecipeStatusConstant.HIS_FAIL          //11
+                            || recipe.getStatus() == RecipeStatusConstant.NO_DRUG      //12
+                            || recipe.getStatus() == RecipeStatusConstant.NO_PAY       //13
+                            || recipe.getStatus() == RecipeStatusConstant.NO_OPERATOR  //14
+                            || recipe.getStatus() == RecipeStatusConstant.EXPIRED      //20
+                            || recipe.getStatus() == RecipeStatusConstant.RECIPE_FAIL  //17
+                            || recipe.getStatus() == RecipeStatusConstant.RECIPE_MEDICAL_FAIL//19
+                            || recipe.getStatus() == RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN//25
+                            || recipe.getStatus() == RecipeStatusConstant.REVOKE      //9
+                            || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS//-1
+                            || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS//15
+                            || recipe.getStatus() == RecipeStatusConstant.UNSIGN)//0
+                    ) {
+                        String recipeStatusTextTmp = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
+                        if (StringUtils.isEmpty(recipeStatusText) || (!StringUtils.isEmpty(recipeStatusText) && !recipeStatusText.contains(recipeStatusTextTmp))) {
+                            recipeStatusText += recipeStatusTextTmp + "、";
                         }
                     }
                 }
-                if(!StringUtils.isEmpty(recipeStatusText)){
-                    msg+="当前有处方处于"+recipeStatusText.substring(0,recipeStatusText.length()-1)+"状态，不能退费";
+                if (!StringUtils.isEmpty(recipeStatusText)) {
+                    msg += "当前有处方处于" + recipeStatusText.substring(0, recipeStatusText.length() - 1) + "状态，不能退费";
                 }
             }
         } catch (ControllerException e) {
-            LOGGER.info("findRecipeCanRefundByClinicId {}",e);
+            LOGGER.info("findRecipeCanRefundByClinicId {}", e);
         }
-        if(StringUtils.isEmpty(msg)){
-            canRefund=true;
+        if (StringUtils.isEmpty(msg)) {
+            canRefund = true;
         }
-        map.put("canRefund",canRefund);
-        map.put("msg",msg);
+        map.put("canRefund", canRefund);
+        map.put("msg", msg);
         return map;
+    }
+
+    @RpcService
+    @Override
+    public List<RecipeRefundBean> findRefundListByRecipeId(Integer recipeId) {
+
+        RecipeRefundDAO drugsEnterpriseDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        List<RecipeRefund> recipeRefunds = drugsEnterpriseDAO.findRefundListByRecipeId(recipeId);
+        return  changBean(recipeRefunds, RecipeRefundBean.class);
     }
 }

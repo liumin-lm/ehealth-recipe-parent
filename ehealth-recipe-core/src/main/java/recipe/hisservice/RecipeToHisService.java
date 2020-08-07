@@ -10,6 +10,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HosPatientDTO;
@@ -28,6 +29,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.RecipeDAO;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.HisCallBackService;
@@ -304,6 +306,7 @@ public class RecipeToHisService {
             return null;
         }
         OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
 
         DrugInfoRequestTO request = new DrugInfoRequestTO();
@@ -326,6 +329,14 @@ public class RecipeToHisService {
                 String producerCode = producerCodeMap.get(a.getDrugId());
                 if (StringUtils.isNotEmpty(producerCode)) {
                     drugInfo.setManfcode(producerCode);
+                }
+            }
+            //药房
+            if (a.getPharmacyId() != null){
+                PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(a.getPharmacyId());
+                if (pharmacyTcm != null){
+                    drugInfo.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                    drugInfo.setPharmacy(pharmacyTcm.getPharmacyName());
                 }
             }
             data.add(drugInfo);

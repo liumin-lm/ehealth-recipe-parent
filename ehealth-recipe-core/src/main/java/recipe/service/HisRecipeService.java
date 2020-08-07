@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
@@ -67,6 +68,8 @@ public class HisRecipeService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private RecipeListService recipeListService;
 
     /**
      * organId 机构编码
@@ -194,8 +197,31 @@ public class HisRecipeService {
             }
         }
         //LOGGER.info("findHisRecipe result:{}", JSONUtils.toString(result));
+        //result=convertResult(result);
         return result;
     }
+
+//    private List<HisRecipeVO> convertResult(List<HisRecipeVO> result){
+//        if(result!=null&&result.size()>0){
+//            //获取运营平台隐方配置
+//            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+//            Object isHiddenRecipeDetail = configService.getConfiguration(result.get(0).getClinicOrgan(), "isHiddenRecipeDetail");
+//            for(int i=0;i<result.size();i++){
+//                if(recipeListService.isReturnRecipeDetail(result.get(i).getClinicOrgan(),result.get(i).getRecipeType(),0)){
+//                }else{
+//                    List<HisRecipeDetailVO> hisRecipeDetailVOs=result.get(i).getRecipeDetail();
+//                    if(hisRecipeDetailVOs!=null&&hisRecipeDetailVOs.size()>0){
+//                        for(int j=0;j<hisRecipeDetailVOs.size();j++){
+//                            hisRecipeDetailVOs.get(j).setDrugName(null);
+//                            hisRecipeDetailVOs.get(j).setDrugSpec(null);
+//                        }
+//                    }
+//                }
+//                result.get(i).setIsHiddenRecipeDetail((boolean)isHiddenRecipeDetail);
+//            }
+//        }
+//        return result;
+//    }
 
     /**
      * 查询线下处方 入库操作
@@ -443,8 +469,10 @@ public class HisRecipeService {
         }
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         Map<String,Object> map = recipeService.getPatientRecipeById(recipe.getRecipeId());
-        List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
-        map.put("hisRecipeDetails", hisRecipeDetails);
+        //if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+            List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
+            map.put("hisRecipeDetails", hisRecipeDetails);
+        //}
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         map.put("hisRecipeExts", hisRecipeExts);
         map.put("showText", hisRecipe.getShowText());

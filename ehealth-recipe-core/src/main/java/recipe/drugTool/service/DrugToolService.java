@@ -118,6 +118,9 @@ public class DrugToolService implements IDrugToolService {
     @Resource
     private ImportDrugRecordDAO importDrugRecordDAO;
 
+    @Resource
+    private PharmacyTcmDAO pharmacyTcmDAO;
+
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
@@ -251,7 +254,7 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(19));
+                String retrievalCode = getStrFromCell(row.getCell(20));
                 if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
                     continue;
                 } else {
@@ -381,9 +384,9 @@ public class DrugToolService implements IDrugToolService {
             //中药不需要设置
             if (!(new Integer(3).equals(drug.getDrugType()))) {
                 try {
-                    if (("是").equals(getStrFromCell(row.getCell(18)))) {
+                    if (("是").equals(getStrFromCell(row.getCell(19)))) {
                         drug.setBaseDrug(1);
-                    } else if (("否").equals(getStrFromCell(row.getCell(18)))) {
+                    } else if (("否").equals(getStrFromCell(row.getCell(19)))) {
                         drug.setBaseDrug(0);
                     } else {
                         errMsg.append("是否基药格式不正确").append(";");
@@ -403,7 +406,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
             try {
-                drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
+                drug.setRetrievalCode(getStrFromCell(row.getCell(20)));
             } catch (Exception e) {
                 LOGGER.error("院内检索码有误 ," + e.getMessage(),e);
                 errMsg.append("院内检索码有误").append(";");
@@ -422,22 +425,40 @@ public class DrugToolService implements IDrugToolService {
             }
             //设置无需判断的数据
             drug.setDrugManfCode(getStrFromCell(row.getCell(10)));
-            drug.setLicenseNumber(getStrFromCell(row.getCell(13)));
-            drug.setStandardCode(getStrFromCell(row.getCell(14)));
-            drug.setIndications(getStrFromCell(row.getCell(15)));
-            drug.setDrugForm(getStrFromCell(row.getCell(16)));
-            drug.setPackingMaterials(getStrFromCell(row.getCell(17)));
+            if (getStrFromCell(row.getCell(13)) != null){
+                String strFromCell = getStrFromCell(row.getCell(13));
+                StringBuilder ss=new StringBuilder();
+                String[] split = strFromCell.split(",");
+                for (int i = 0; i < split.length; i++) {
+                    Integer idByPharmacyName = pharmacyTcmDAO.getIdByPharmacyName(split[i]);
+                    if (idByPharmacyName == null){
+                        errMsg.append("药房名称有误").append(";");
+                    }else {
+                        if (i != split.length-1){
+                            ss.append(idByPharmacyName + ",");
+                        }else {
+                            ss.append(idByPharmacyName);
+                        }
+                    }
+                }
+                drug.setPharmacy(ss.toString());
+            }
+            drug.setLicenseNumber(getStrFromCell(row.getCell(14)));
+            drug.setStandardCode(getStrFromCell(row.getCell(15)));
+            drug.setIndications(getStrFromCell(row.getCell(16)));
+            drug.setDrugForm(getStrFromCell(row.getCell(17)));
+            drug.setPackingMaterials(getStrFromCell(row.getCell(18)));
             //drug.setRegulationDrugCode(getStrFromCell(row.getCell(20)));
-            drug.setMedicalDrugCode(getStrFromCell(row.getCell(20)));
-            drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(21)));
-            drug.setHisFormCode(getStrFromCell(row.getCell(22)));
+            drug.setMedicalDrugCode(getStrFromCell(row.getCell(21)));
+            drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(22)));
+            drug.setHisFormCode(getStrFromCell(row.getCell(23)));
             drug.setSourceOrgan(organId);
             drug.setStatus(DrugMatchConstant.UNMATCH);
             drug.setOperator(operator);
-            drug.setRegulationDrugCode(getStrFromCell(row.getCell(24)));
+            drug.setRegulationDrugCode(getStrFromCell(row.getCell(25)));
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(23)))) {
-                    drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(24)))) {
+                    drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(24)).trim()));
                 }
             } catch (Exception e) {
                 LOGGER.error("平台药品编码有误 ," + e.getMessage(),e);
@@ -859,6 +880,7 @@ public class DrugToolService implements IDrugToolService {
 
                         }
 
+
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
                         organDrugList.setProducer(drugListMatch.getProducer());
@@ -873,6 +895,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
+                        organDrugList.setPharmacyName(drugListMatch.getPharmacy());
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
@@ -998,6 +1021,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
+                        organDrugList.setPharmacy(drugListMatch.getPharmacy());
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");

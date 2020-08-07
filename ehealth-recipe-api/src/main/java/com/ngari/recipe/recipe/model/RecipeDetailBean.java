@@ -199,6 +199,11 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
     private Integer settlementMode;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
     public String getUseDaysB() {
         return useDaysB;
     }
@@ -691,5 +696,21 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setSettlementMode(Integer settlementMode) {
         this.settlementMode = settlementMode;
+    }
+
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
     }
 }
