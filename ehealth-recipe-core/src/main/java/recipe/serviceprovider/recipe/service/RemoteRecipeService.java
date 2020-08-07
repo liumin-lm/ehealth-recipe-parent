@@ -1280,7 +1280,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit) {
         List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, flag, start, limit);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1323,7 +1323,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
         List<Recipe> recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1331,7 +1331,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
         List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1340,29 +1340,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeDAO.getRecipeCountByFlag(organ, flag);
     }
 
-    private List<RecipeBean> getRecipeBeans(List<Recipe> recipes) {
-        List<RecipeBean> recipeBeans = null;
-        if (CollectionUtils.isNotEmpty(recipes)) {
-            recipeBeans = recipes.stream().map(recipe -> {
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copyProperties(recipe, recipeBean);
-                return recipeBean;
-            }).collect(Collectors.toList());
-        }
-        return recipeBeans;
-    }
 
-    private <T> List<T> changBean(List dataList, Class<T> cla) {
-        List<T> list = null;
+    /**
+     *  转换对象
+     * @param dataList
+     * @param toClass
+     * @param <T> 转换前
+     * @param <T1> 转换后
+     * @return
+     */
+    private <T,T1> List<T1> changBean(List<T> dataList, Class<T1> toClass) {
+        List<T1> list = Collections.emptyList();
         if (CollectionUtils.isNotEmpty(dataList)) {
-            list = (List<T>) dataList.stream().map(t -> {
-                T o = null;
+            list = dataList.stream().map(t -> {
+                T1 o = null;
                 try {
-                    o = cla.newInstance();
+                    o = toClass.getDeclaredConstructor().newInstance();
                     BeanUtils.copyProperties(t, o);
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return o;
