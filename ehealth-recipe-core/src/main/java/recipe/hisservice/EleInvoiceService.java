@@ -211,8 +211,23 @@ public class EleInvoiceService {
             recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
                     a.getDrugName(), a.getDrugCost(), a.getDrugUnit(), a.getUseTotalDose())));
         }
+        if (CollectionUtils.isNotEmpty(invoiceItem)) {
+            invoiceDTO.setInvoiceItem(invoiceItem);
+        }
+        eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
     }
 
+    /**
+     * 组装 发票明细
+     *
+     * @param recipe
+     * @param code
+     * @param name
+     * @param amount
+     * @param unit
+     * @param quantity
+     * @return
+     */
     private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
         InvoiceItemDTO invoiceItemDTO = new InvoiceItemDTO();
         invoiceItemDTO.setRelatedCode(recipe.getRecipeId());
