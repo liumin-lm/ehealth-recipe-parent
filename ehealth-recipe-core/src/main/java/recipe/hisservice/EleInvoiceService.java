@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.comment.DictionaryUtil;
+import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -89,7 +90,7 @@ public class EleInvoiceService {
         }
 
         if (StringUtils.isBlank(eleInvoiceDTO.getGhxh())) {
-            throw new DAOException(609, "ghxh is null,无法获取对应电子发票");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "ghxh is null,无法获取对应电子发票");
         }
 
         PatientDTO patientDTO = patientService.get(eleInvoiceDTO.getMpiid());
@@ -143,10 +144,10 @@ public class EleInvoiceService {
     @RpcService
     public String getEleInvoiceEnable(Integer organId, String type) {
         if (organId == null) {
-            throw new DAOException(609, "organId is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "organId is null");
         }
         if (StringUtils.isBlank(type)) {
-            throw new DAOException(609, "type is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "type is null");
         }
         IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String result = "";
@@ -251,7 +252,7 @@ public class EleInvoiceService {
         Integer recipeId = eleInvoiceDTO.getId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
-            throw new DAOException(609, "recipe is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null");
         }
 
         eleInvoiceReqTo.setCreateDate(recipe.getCreateDate());
@@ -341,18 +342,18 @@ public class EleInvoiceService {
         LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
         if (null == hisResponse) {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
-            throw new DAOException(609, "获取出错，请稍后再试");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取出错，请稍后再试");
         }
         if (!"200".equals(hisResponse.getMsgCode())) {
             LOGGER.info("EleInvoiceService.stringToList 请求his失败，返回信息:msg={}", hisResponse.getMsg());
-            throw new DAOException(609, hisResponse.getMsg());
+            throw new DAOException(ErrorCode.SERVICE_ERROR, hisResponse.getMsg());
         }
         RecipeInvoiceTO result = hisResponse.getData();
         if (null == result) {
-            throw new DAOException(609, "获取数据出错，请稍后再试");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取数据出错，请稍后再试");
         }
         if (StringUtils.isBlank(result.getInvoiceUrl())) {
-            throw new DAOException(609, "获取地址出错，请稍后再试");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取地址出错，请稍后再试");
         }
         if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
                 && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {
