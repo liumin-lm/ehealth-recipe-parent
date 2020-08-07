@@ -307,7 +307,7 @@ public class EleInvoiceService {
      */
     private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
         String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
-        return getInvoiceItemDTO(recipe.getRecipeId(), recipeType, code, name, amount, unit, quantity);
+        return getInvoiceItemDTO(recipe.getRecipeType(), recipeType, code, name, amount, unit, quantity);
     }
 
     private InvoiceItemDTO getInvoiceItemDTO(Integer relatedCode, String relatedName, Integer code, String name
@@ -333,28 +333,35 @@ public class EleInvoiceService {
      * @return
      */
     private List<String> response(HisResponseTO<RecipeInvoiceTO> hisResponse) {
-        LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
-        if (null == hisResponse) {
-            LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取出错，请稍后再试");
+        try {
+            LOGGER.info("EleInvoiceService.stringToList  hisResponseTO={}", JSONUtils.toString(hisResponse));
+            if (null == hisResponse) {
+                LOGGER.info("EleInvoiceService.stringToList 请求his失败,hisResponseTo is null");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取出错，请稍后再试");
+            }
+            if (!"200".equals(hisResponse.getMsgCode())) {
+                LOGGER.info("EleInvoiceService.stringToList 请求his失败，返回信息:msg={}", hisResponse.getMsg());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, hisResponse.getMsg());
+            }
+            RecipeInvoiceTO result = hisResponse.getData();
+            if (null == result) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取数据出错，请稍后再试");
+            }
+            if (StringUtils.isBlank(result.getInvoiceUrl())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取地址出错，请稍后再试");
+            }
+            if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
+                    && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {
+                Map<String, String> map = new HashMap(1);
+                map.put("einvoiceNumber", result.getInvoiceNumber());
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
+            }
+            List<String> list = Arrays.asList(result.getInvoiceUrl().split(","));
+            LOGGER.info("EleInvoiceService.stringToList list :{}", JSONUtils.toString(list));
+            return list;
+        } catch (Exception e) {
+            LOGGER.info("EleInvoiceService.stringToList error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        if (!"200".equals(hisResponse.getMsgCode())) {
-            LOGGER.info("EleInvoiceService.stringToList 请求his失败，返回信息:msg={}", hisResponse.getMsg());
-            throw new DAOException(ErrorCode.SERVICE_ERROR, hisResponse.getMsg());
-        }
-        RecipeInvoiceTO result = hisResponse.getData();
-        if (null == result) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取数据出错，请稍后再试");
-        }
-        if (StringUtils.isBlank(result.getInvoiceUrl())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取地址出错，请稍后再试");
-        }
-        if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
-                && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {
-            Map<String, String> map = new HashMap(1);
-            map.put("einvoiceNumber", result.getInvoiceNumber());
-            recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
-        }
-        return Arrays.asList(result.getInvoiceUrl().split(","));
     }
 }
