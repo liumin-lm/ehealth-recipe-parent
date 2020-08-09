@@ -398,7 +398,7 @@ public class PayModeOnline implements IPurchaseService {
             if(decoctionWay != null){
                 order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId, "decoctionText", decoctionWay.getDecoctionText()));
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
 
             } else {
                 LOG.error("未获取到对应的代煎费，recipeId={},decoctionId={}",dbRecipe.getRecipeId(),decoctionId);
