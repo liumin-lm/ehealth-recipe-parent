@@ -232,7 +232,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
 
-            recipeMap.put("HOSNAME", organ.getName());
+            //recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("HOSCODE", "12120104401232064P");
+            recipeMap.put("HOSNAME", "天津市黄河医院");
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
             //处方pdf文件Id   有药师签名则推送药师签名的pdf  无则推送医生签名的pdf
@@ -286,7 +288,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 position.put("LATITUDE", ext.get("latitude"));
                 map.put("POSITION", position);
             } else {
-                map.put("RANGE", 2000);
+                map.put("RANGE", 20000);
                 Map<String, Object> position = new HashMap<>();
                 position.put("LONGITUDE", "120.201685");
                 position.put("LATITUDE", "30.255732");
@@ -703,6 +705,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
             recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("HOSCODE", "12120104401232064P");
+            recipeMap.put("HOSNAME", "天津市黄河医院");
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
             if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
