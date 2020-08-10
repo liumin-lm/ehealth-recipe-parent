@@ -271,7 +271,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                         OrganDrugList drug = iterator.next();
                         if (StringUtils.isNotEmpty(drug.getPharmacy())){
                             //过滤掉不在此药房内的药
-                            List<String> pharmacyIds = Splitter.on("，").splitToList(drug.getPharmacy());
+                            List<String> pharmacyIds = Splitter.on(",").splitToList(drug.getPharmacy());
                             if (pharmacyIds.contains(pharmacyId)){
                                 canAddDrug =true;
                             }
