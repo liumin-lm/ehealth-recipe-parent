@@ -397,6 +397,9 @@ public class PayModeOnline implements IPurchaseService {
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
             if(decoctionWay != null){
                 order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
+
             } else {
                 LOG.error("未获取到对应的代煎费，recipeId={},decoctionId={}",dbRecipe.getRecipeId(),decoctionId);
             }
@@ -708,6 +711,7 @@ public class PayModeOnline implements IPurchaseService {
                 updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
                         order.getExpectSendDate() + " 00:00:00" : null);
                 updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
+                updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
             }else{
                 LOG.info("同步配送信息，组装配送订单失败！");
                 HisResponseTO hisResponseTO = new HisResponseTO();

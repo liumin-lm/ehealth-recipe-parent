@@ -218,13 +218,14 @@ public class EleInvoiceService {
 
             invoiceDTO.setPayId(consultBean.getConsultId());
             invoiceDTO.setPayAmount(consultBean.getConsultCost());
-            invoiceDTO.setPayWay("第三方支付");
+            invoiceDTO.setPayWay(consultBean.getPayWay());
             invoiceDTO.setPayTime(consultBean.getPaymentDate());
-            invoiceDTO.setFundAmount(consultBean.getFundAmount());
+            invoiceDTO.setFundAmount(consultBean.getConsultCost());
             invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
 
             List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
-            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(consultBean.getConsultId(), "复诊咨询", consultBean.getConsultId().toString(), "复诊咨询费", BigDecimal.valueOf(consultBean.getConsultCost()), "元", 1D);
+            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(MedicalChargesEnum.CONSULT.getCode(), MedicalChargesEnum.CONSULT.getName(),
+                    consultBean.getConsultId().toString(), "复诊咨询费", BigDecimal.valueOf(consultBean.getConsultCost()), "元", 1D);
             invoiceItem.add(invoiceItemDTO);
             invoiceDTO.setInvoiceItem(invoiceItem);
             eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
