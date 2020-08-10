@@ -139,6 +139,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
+
 
     public OrganDrugList() {
     }
@@ -498,5 +501,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    @Column(name = "pharmacy")
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
     }
 }

@@ -131,6 +131,58 @@ public class RecipeExtend implements Serializable {
      */
     private String rxid;
 
+    @ItemProperty(alias = "制法")
+    private String makeMethodId;
+    @ItemProperty(alias = "制法text")
+    private String makeMethodText;
+    @ItemProperty(alias = "每付取汁")
+    private String juice;
+    @ItemProperty(alias = "每付取汁单位")
+    private String juiceUnit;
+    @ItemProperty(alias = "次量")
+    private String minor;
+    @ItemProperty(alias = "次量单位")
+    private String minorUnit;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomId;
+    @ItemProperty(alias = "中医症候名称")
+    private String symptomName;
+    @ItemProperty(alias = "煎法")
+    private String decoctionId;
+    @ItemProperty(alias = "煎法text")
+    private String decoctionText;
+
+    public String getSymptomId() {
+        return symptomId;
+    }
+
+    public void setSymptomId(String symptomId) {
+        this.symptomId = symptomId;
+    }
+
+    public String getSymptomName() {
+        return symptomName;
+    }
+
+    public void setSymptomName(String symptomName) {
+        this.symptomName = symptomName;
+    }
+
+    public String getDecoctionId() {
+        return decoctionId;
+    }
+
+    public void setDecoctionId(String decoctionId) {
+        this.decoctionId = decoctionId;
+    }
+
+    public String getDecoctionText() {
+        return decoctionText;
+    }
+
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
+    }
 
     @Column(name = "deliveryRecipeFee")
     public String getDeliveryRecipeFee() {
@@ -582,5 +634,53 @@ public class RecipeExtend implements Serializable {
 
     public void setGuardianMobile(String guardianMobile) {
         this.guardianMobile = guardianMobile;
+    }
+
+    public String getMakeMethodId() {
+        return makeMethodId;
+    }
+
+    public void setMakeMethodId(String makeMethodId) {
+        this.makeMethodId = makeMethodId;
+    }
+
+    public String getMakeMethodText() {
+        return makeMethodText;
+    }
+
+    public void setMakeMethodText(String makeMethodText) {
+        this.makeMethodText = makeMethodText;
+    }
+
+    public String getJuice() {
+        return juice;
+    }
+
+    public void setJuice(String juice) {
+        this.juice = juice;
+    }
+
+    public String getJuiceUnit() {
+        return juiceUnit;
+    }
+
+    public void setJuiceUnit(String juiceUnit) {
+        this.juiceUnit = juiceUnit;
+    }
+
+    public String getMinor() {
+        return minor;
+    }
+
+    public void setMinor(String minor) {
+        this.minor = minor;
+    }
+
+    public String getMinorUnit() {
+        return minorUnit;
+    }
+
+    public void setMinorUnit(String minorUnit) {
+        this.minorUnit = minorUnit;
     }
 }

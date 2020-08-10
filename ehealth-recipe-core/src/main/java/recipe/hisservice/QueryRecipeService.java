@@ -386,6 +386,7 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //拼接处方明细
         if (null != details && !details.isEmpty()) {
             List<OrderItemDTO> orderList = new ArrayList<>();
@@ -464,6 +465,14 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setAdmissionName(detail.getUsePathwaysTextFromHis());
                 //频次名称
                 orderItem.setFrequencyName(detail.getUsingRateTextFromHis());
+                //药房
+                if (detail.getPharmacyId() != null){
+                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
+                    if (pharmacyTcm != null){
+                        orderItem.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                        orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
+                    }
+                }
                 orderList.add(orderItem);
             }
             recipeDTO.setOrderList(orderList);

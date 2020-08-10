@@ -798,7 +798,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());
             //医保处方 0：是；1：否
             //recipeMap.put("YIBAOBILL", "1");
-
             List<Map<String, String>> recipeDetailList = new ArrayList<>();
             recipeMap.put("DETAILS", recipeDetailList);
             //处方详情数据

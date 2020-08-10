@@ -1099,6 +1099,8 @@ public class RecipeService extends RecipeBaseService {
                 if (1 == result) {
                     //审方成功，订单状态的
                     auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
+                    //药师审核通推送医生
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_APPROVED,recipe);
                 } else {
                     //审核不通过后处理
                     AppContextHolder.getBean("platRecipeCheckService", PlatRecipeCheckService.class).doAfterCheckNotPassYs(recipe);

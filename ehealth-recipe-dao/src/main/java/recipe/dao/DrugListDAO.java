@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.google.common.base.Splitter;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
@@ -21,10 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.util.DateConversion;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -247,7 +245,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * zhongzx 加 organId,drugType
      * @author luf
      */
-    public List<OrganDrugList> findCommonDrugListsWithPage(final int doctor, final int organId, final int drugType,
+    public List<OrganDrugList> findCommonDrugListsWithPage(final int doctor, final int organId, final int drugType,final String pharmacyId,
                                                       final int start, final int limit) {
         HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
             @SuppressWarnings("unchecked")
@@ -265,9 +263,24 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 List<OrganDrugList> drugListList = q.list();
-                /*for (DrugList drug : drugListList) {
-                    setDrugDefaultInfo(drug);
-                }*/
+                //X药品里有A药房B药房，医生开了个A药房的X，选了B药房的常用药里也要有X药出来
+                if (StringUtils.isNotEmpty(pharmacyId)){
+                    Iterator<OrganDrugList> iterator = drugListList.iterator();
+                    while(iterator.hasNext()){
+                        boolean canAddDrug = false;
+                        OrganDrugList drug = iterator.next();
+                        if (StringUtils.isNotEmpty(drug.getPharmacy())){
+                            //过滤掉不在此药房内的药
+                            List<String> pharmacyIds = Splitter.on("，").splitToList(drug.getPharmacy());
+                            if (pharmacyIds.contains(pharmacyId)){
+                                canAddDrug =true;
+                            }
+                        }
+                        if (!canAddDrug){
+                            iterator.remove();
+                        }
+                    }
+                }
                 setResult(drugListList);
             }
         };

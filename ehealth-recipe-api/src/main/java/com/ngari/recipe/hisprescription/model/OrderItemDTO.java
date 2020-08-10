@@ -73,6 +73,11 @@ public class OrderItemDTO implements Serializable {
     @ItemProperty(alias="剂型名称")
     private String drugFormName;
 
+    @ItemProperty(alias="医院药房编码")
+    private String pharmacyCode;
+    @ItemProperty(alias="医院药房名称")
+    private String pharmacy;
+
 
     public OrderItemDTO(){}
 
@@ -282,5 +287,21 @@ public class OrderItemDTO implements Serializable {
 
     public void setOrganUsePathways(String organUsePathways) {
         this.organUsePathways = organUsePathways;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
     }
 }
