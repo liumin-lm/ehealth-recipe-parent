@@ -224,7 +224,8 @@ public class EleInvoiceService {
             invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
 
             List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
-            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(MedicalChargesEnum.CONSULT.getCode(),MedicalChargesEnum.CONSULT.getName(),consultBean.getConsultId(),"复诊咨询费",BigDecimal.valueOf(consultBean.getConsultCost()),"元",1D);
+            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(MedicalChargesEnum.CONSULT.getCode(), MedicalChargesEnum.CONSULT.getName(),
+                    consultBean.getConsultId().toString(), "复诊咨询费", BigDecimal.valueOf(consultBean.getConsultCost()), "元", 1D);
             invoiceItem.add(invoiceItemDTO);
             invoiceDTO.setInvoiceItem(invoiceItem);
             eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
@@ -278,16 +279,16 @@ public class EleInvoiceService {
             invoiceDTO.setFundAmount(recipeOrder.getFundAmount() == null ? 0D : recipeOrder.getFundAmount());
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
             invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.REGISTRATION.getCode(), MedicalChargesEnum.REGISTRATION.getName()
-                    , recipeOrder.getOrderId(), MedicalChargesEnum.REGISTRATION.getName(), recipeOrder.getRegisterFee(), "", 1D));
+                    , recipeOrder.getOrderCode(), MedicalChargesEnum.REGISTRATION.getName(), recipeOrder.getRegisterFee(), "", 1D));
             if (1 == recipeOrder.getExpressFeePayWay()) {
                 invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.DISTRIBUTION.getCode(), MedicalChargesEnum.DISTRIBUTION.getName()
-                        , recipeOrder.getOrderId(), MedicalChargesEnum.DISTRIBUTION.getName(), recipeOrder.getExpressFee(), "", 1D));
+                        , recipeOrder.getOrderCode(), MedicalChargesEnum.DISTRIBUTION.getName(), recipeOrder.getExpressFee(), "", 1D));
             }
         }
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getRecipeDetailId(),
+            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getOrganDrugCode(),
                     a.getDrugName(), a.getActualSalePrice(), a.getDrugUnit(), a.getUseTotalDose())));
         }
         if (CollectionUtils.isNotEmpty(invoiceItem)) {
@@ -308,12 +309,12 @@ public class EleInvoiceService {
      * @param quantity
      * @return
      */
-    private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, Integer code, String name, BigDecimal amount, String unit, Double quantity) {
+    private InvoiceItemDTO getInvoiceItemDTO(Recipe recipe, String code, String name, BigDecimal amount, String unit, Double quantity) {
         String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
         return getInvoiceItemDTO(recipe.getRecipeType(), recipeType, code, name, amount, unit, quantity);
     }
 
-    private InvoiceItemDTO getInvoiceItemDTO(Integer relatedCode, String relatedName, Integer code, String name
+    private InvoiceItemDTO getInvoiceItemDTO(Integer relatedCode, String relatedName, String code, String name
             , BigDecimal amount, String unit, Double quantity) {
         if (null == amount) {
             return null;
