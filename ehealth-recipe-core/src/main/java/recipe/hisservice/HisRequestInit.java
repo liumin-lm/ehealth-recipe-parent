@@ -295,16 +295,27 @@ public class HisRequestInit {
             requestTO.setHandleMethod(recipeExtend.getHandleMethod());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
-            //制法Code 煎法Code 中医证候Code
-            DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
-            DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
-            SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
-            DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-            DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
-            Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
-            requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
-            requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
-            requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+            try{
+                //制法Code 煎法Code 中医证候Code
+                DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
+                SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
+                if(StringUtils.isNotBlank(recipeExtend.getDecoctionId())){
+                    DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                }
+                if(StringUtils.isNotBlank(recipeExtend.getMakeMethodId())){
+                    DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+                    requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
+
+                }
+                if(StringUtils.isNotBlank(recipeExtend.getSymptomId())){
+                    Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                    requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+                }
+            }catch(Exception e){
+                LOGGER.error("initRecipeSendRequestTO recipeid:{} error :{}",recipe.getRecipeId(),e );
+            }
         }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null) {
