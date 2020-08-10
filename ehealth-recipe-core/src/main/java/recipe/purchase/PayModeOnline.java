@@ -288,7 +288,8 @@ public class PayModeOnline implements IPurchaseService {
 
 
     //date 20200318
-    //确认订单前校验处方信息
+    //确认订单前校验处方信息--废弃
+    @Deprecated
     private Map<String,Object> checkMakeOrder(Recipe dbRecipe, Map<String, String> extInfo) {
         //首先校验：预结算
         //再校验：同步配送信息
@@ -300,7 +301,7 @@ public class PayModeOnline implements IPurchaseService {
         //事务2 -> 预交付
 
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        Map<String, Object> payResult = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
+        Map<String, Object> payResult = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId(),null);
         if ("-1".equals(payResult.get("code"))) {
             LOG.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
                     dbRecipe.getRecipeId(), JSONUtils.toString(payResult));
