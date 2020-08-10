@@ -333,7 +333,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, drugList.getOrganDrugCode(), drugList.getDrugId());
                         if (organDrugList !=null && StringUtils.isNotEmpty(organDrugList.getPharmacy())){
                             //过滤掉不在此药房内的药
-                            List<String> pharmacyIds = Splitter.on("，").splitToList(organDrugList.getPharmacy());
+                            List<String> pharmacyIds = Splitter.on(",").splitToList(organDrugList.getPharmacy());
                             if (pharmacyIds.contains(String.valueOf(pharmacyId))){
                                 canAddDrug = true;
                             }
