@@ -36,6 +36,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
+import recipe.constant.MedicalChargesEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -217,13 +218,13 @@ public class EleInvoiceService {
 
             invoiceDTO.setPayId(consultBean.getConsultId());
             invoiceDTO.setPayAmount(consultBean.getConsultCost());
-            invoiceDTO.setPayWay("第三方支付");
+            invoiceDTO.setPayWay(consultBean.getPayWay());
             invoiceDTO.setPayTime(consultBean.getPaymentDate());
-            invoiceDTO.setFundAmount(consultBean.getFundAmount());
+            invoiceDTO.setFundAmount(0.00);
             invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
 
             List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
-            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(consultBean.getConsultId(),"复诊咨询",consultBean.getConsultId(),"复诊咨询费",BigDecimal.valueOf(consultBean.getConsultCost()),"元",1D);
+            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(MedicalChargesEnum.CONSULT.getCode(),MedicalChargesEnum.CONSULT.getName(),consultBean.getConsultId(),"复诊咨询费",BigDecimal.valueOf(consultBean.getConsultCost()),"元",1D);
             invoiceItem.add(invoiceItemDTO);
             invoiceDTO.setInvoiceItem(invoiceItem);
             eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
@@ -276,11 +277,11 @@ public class EleInvoiceService {
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
             invoiceDTO.setFundAmount(recipeOrder.getFundAmount() == null ? 0D : recipeOrder.getFundAmount());
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
-            invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "挂号费",
-                    recipeOrder.getRegisterFee(), "", 1D));
+            invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.REGISTRATION.getCode(), MedicalChargesEnum.REGISTRATION.getName()
+                    , recipeOrder.getOrderId(), MedicalChargesEnum.REGISTRATION.getName(), recipeOrder.getRegisterFee(), "", 1D));
             if (1 == recipeOrder.getExpressFeePayWay()) {
-                invoiceItem.add(getInvoiceItemDTO(recipe, recipeOrder.getOrderId(), "配送费",
-                        recipeOrder.getExpressFee(), "", 1D));
+                invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.DISTRIBUTION.getCode(), MedicalChargesEnum.DISTRIBUTION.getName()
+                        , recipeOrder.getOrderId(), MedicalChargesEnum.DISTRIBUTION.getName(), recipeOrder.getExpressFee(), "", 1D));
             }
         }
 

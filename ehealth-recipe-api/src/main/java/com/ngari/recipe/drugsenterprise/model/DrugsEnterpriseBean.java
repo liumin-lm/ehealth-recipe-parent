@@ -73,6 +73,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "排序，1最前，越往后越小")
     private Integer sort;
 
+    @ItemProperty(alias = "校验药品库存标志0 不需要校验 1 需要校验")
+    private Integer checkInventoryFlag;
+
     @ItemProperty(alias = "药店信息")
     private Map<String, String> pharmacyInfo;
 
@@ -247,6 +250,14 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setSort(Integer sort) {
         this.sort = sort;
+    }
+
+    public Integer getCheckInventoryFlag() {
+        return checkInventoryFlag;
+    }
+
+    public void setCheckInventoryFlag(Integer checkInventoryFlag) {
+        this.checkInventoryFlag = checkInventoryFlag;
     }
 
     public Map<String, String> getPharmacyInfo() {
