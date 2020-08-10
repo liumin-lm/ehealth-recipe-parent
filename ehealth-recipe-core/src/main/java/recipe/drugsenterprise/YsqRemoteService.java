@@ -705,6 +705,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
             recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("HOSCODE", "12120104401232064P");
+            recipeMap.put("HOSNAME", "天津市黄河医院");
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
             if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
