@@ -644,8 +644,19 @@ public class RecipeHisService extends RecipeBaseService {
             request.setDoctorId(recipe.getDoctor() + "");
             request.setDoctorName(recipe.getDoctorName());
             request.setDepartId(recipe.getDepart() + "");
-            //参保地区
+            //参保地区行政区划代码
             request.setInsuredArea(MapValueUtil.getString(extInfo, "insuredArea"));
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            //获取医保支付流程配置（2-原省医保 3-长三角）
+            Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
+            if (new Integer(3).equals(insuredAreaType)){
+                if (StringUtils.isEmpty(request.getInsuredArea())){
+                    result.put("msg", "参保地区行政区划代码为空,无法进行预结算");
+                    return result;
+                }
+                //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
+                request.setInsuredAreaType("1");
+            }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
             } catch (ControllerException e) {
@@ -672,6 +683,9 @@ public class RecipeHisService extends RecipeBaseService {
                         RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                         if (ext != null) {
                             ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount", fundAmount, "cashAmount", cashAmount);
+                            if (StringUtils.isNotEmpty(request.getInsuredArea())){
+                                map.putIfAbsent("insuredArea",request.getInsuredArea());
+                            }
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                         } else {
                             ext = new RecipeExtend();

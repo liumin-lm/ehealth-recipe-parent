@@ -3,9 +3,11 @@ package recipe.hisservice;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
@@ -581,18 +583,30 @@ public class HisRequestInit {
                 requestTO.setOrganName(recipe.getOrganName());
                 RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
-                if (extend != null && extend.getCashAmount() != null) {
-                    //自负金额
-                    requestTO.setCashAmount(extend.getCashAmount());
-                    //应付金额
-                    requestTO.setPayAmount(extend.getPayAmount());
-                    //总金额
-                    requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
-                    //his收据号
-                    requestTO.setHisSettlementNo(extend.getHisSettlementNo());
-                } else {
-                    LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}", recipe.getRecipeId());
+                if (extend != null){
+                    //参保地行政区划代码
+                    requestTO.setInsuredArea(extend.getInsuredArea());
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    //获取医保支付流程配置（2-原省医保 3-长三角）
+                    Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
+                    if (new Integer(3).equals(insuredAreaType)){
+                        //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
+                        requestTO.setInsuredAreaType("1");
+                    }
+                    if (extend.getCashAmount() != null) {
+                        //自负金额
+                        requestTO.setCashAmount(extend.getCashAmount());
+                        //应付金额
+                        requestTO.setPayAmount(extend.getPayAmount());
+                        //总金额
+                        requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
+                        //his收据号
+                        requestTO.setHisSettlementNo(extend.getHisSettlementNo());
+                    } else {
+                        LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}", recipe.getRecipeId());
+                    }
                 }
+
                 requestTO.setTradeNo(order.getTradeNo());
                 requestTO.setOutTradeNo(order.getOutTradeNo());
             }
