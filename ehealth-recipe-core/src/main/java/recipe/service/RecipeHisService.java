@@ -64,6 +64,7 @@ import recipe.purchase.PurchaseEnum;
 import recipe.purchase.PurchaseService;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
+import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
@@ -621,10 +622,11 @@ public class RecipeHisService extends RecipeBaseService {
      * 处方省医保预结算接口
      *
      * @param recipeId
+     * @param extInfo 扩展信息
      * @return
      */
     @RpcService
-    public Map<String, Object> provincialMedicalPreSettle(Integer recipeId) {
+    public Map<String, Object> provincialMedicalPreSettle(Integer recipeId,Map<String, String> extInfo) {
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -642,6 +644,8 @@ public class RecipeHisService extends RecipeBaseService {
             request.setDoctorId(recipe.getDoctor() + "");
             request.setDoctorName(recipe.getDoctorName());
             request.setDepartId(recipe.getDepart() + "");
+            //参保地区
+            request.setInsuredArea(MapValueUtil.getString(extInfo, "insuredArea"));
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
             } catch (ControllerException e) {
