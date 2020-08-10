@@ -234,15 +234,25 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         pushRecipeAndOrder.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         //制法Code 煎法Code 中医证候Code
-        DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
-        DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
-        SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
-        DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-        DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
-        Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
-        pushRecipeAndOrder.getRecipeExtendBean().setDecoctionCode(decoctionWay.getDecoctionCode());
-        pushRecipeAndOrder.getRecipeExtendBean().setMakeMethod(drugMakingMethod.getMethodCode());
-        pushRecipeAndOrder.getRecipeExtendBean().setSymptomCode(symptom.getSymptomCode());
+        try{
+            DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+            DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
+            SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
+            if(StringUtils.isNotBlank(recipeExtend.getDecoctionId())){
+                DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                pushRecipeAndOrder.getRecipeExtendBean().setDecoctionCode(decoctionWay.getDecoctionCode());
+            }
+            if(StringUtils.isNotBlank(recipeExtend.getMakeMethodId())){
+                DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+                pushRecipeAndOrder.getRecipeExtendBean().setMakeMethod(drugMakingMethod.getMethodCode());
+            }
+            if(StringUtils.isNotBlank(recipeExtend.getSymptomId())){
+                Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                pushRecipeAndOrder.getRecipeExtendBean().setSymptomCode(symptom.getSymptomCode());
+            }
+        }catch(Exception e){
+            LOGGER.error("getPushRecipeAndOrder recipe:{} error :{}",recipe.getRecipeId(),e );
+        }
 
         LOGGER.info("getPushRecipeAndOrder pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
         return pushRecipeAndOrder;
