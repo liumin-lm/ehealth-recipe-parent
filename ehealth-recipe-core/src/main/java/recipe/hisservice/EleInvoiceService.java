@@ -74,15 +74,25 @@ public class EleInvoiceService {
     @Autowired
     private OrganService organService;
 
-
     @RpcService
     public List<String> findEleInvoice(EleInvoiceDTO eleInvoiceDTO) {
+        try {
+            return eleInvoice(eleInvoiceDTO);
+        } catch (DAOException e) {
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            LOGGER.info("EleInvoiceService.findEleInvoice error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "无法获取对应电子发票");
+        }
+    }
+
+    public List<String> eleInvoice(EleInvoiceDTO eleInvoiceDTO) {
         LOGGER.info("EleInvoiceService.findEleInvoice 入参eleInvoiceDTO=[{}]", JSONUtils.toString(eleInvoiceDTO));
         validateParam(eleInvoiceDTO);
         EleInvoiceReqTo eleInvoiceReqTo = new EleInvoiceReqTo();
         if ("0".equals(eleInvoiceDTO.getType())) {
             eleInvoiceReqTo.setCzybz("0");
-          setRecipeConsultDTO(eleInvoiceReqTo,eleInvoiceDTO);
+            setRecipeConsultDTO(eleInvoiceReqTo, eleInvoiceDTO);
 
         }
         //处方数据
