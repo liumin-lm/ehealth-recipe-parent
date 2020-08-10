@@ -107,6 +107,13 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
 
+    @ItemProperty(alias = "监管人姓名")
+    private String guardianName;
+    @ItemProperty(alias = "监管人证件号")
+    private String guardianCertificate;
+    @ItemProperty(alias = "监管人手机号")
+    private String guardianMobile;
+
     /**
      * 患者医保类型（编码）
      */
@@ -118,7 +125,7 @@ public class RecipeExtendBean implements Serializable {
     private String medicalTypeText;
 
     @ItemProperty(alias = "制法")
-    private String makeMethod;
+    private String makeMethodId;
     @ItemProperty(alias = "制法text")
     private String makeMethodText;
     @ItemProperty(alias = "每付取汁")
@@ -130,28 +137,28 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "次量单位")
     private String minorUnit;
     @ItemProperty(alias = "中医症候编码")
-    private String symptomCode;
+    private String symptomId;
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
     @ItemProperty(alias = "煎法")
-    private String decoctionWay;
+    private String decoctionId;
     @ItemProperty(alias = "煎法text")
-    private String decoctionWayText;
+    private String decoctionText;
 
-    public String getDecoctionWay() {
-        return decoctionWay;
+    @ItemProperty(alias = "制法编码")
+    private String makeMethod;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomCode;
+    @ItemProperty(alias = "煎法编码")
+    private String decoctionCode;
+
+
+    public String getMakeMethod() {
+        return makeMethod;
     }
 
-    public void setDecoctionWay(String decoctionWay) {
-        this.decoctionWay = decoctionWay;
-    }
-
-    public String getDecoctionWayText() {
-        return decoctionWayText;
-    }
-
-    public void setDecoctionWayText(String decoctionWayText) {
-        this.decoctionWayText = decoctionWayText;
+    public void setMakeMethod(String makeMethod) {
+        this.makeMethod = makeMethod;
     }
 
     public String getSymptomCode() {
@@ -162,6 +169,38 @@ public class RecipeExtendBean implements Serializable {
         this.symptomCode = symptomCode;
     }
 
+    public String getDecoctionCode() {
+        return decoctionCode;
+    }
+
+    public void setDecoctionCode(String decoctionCode) {
+        this.decoctionCode = decoctionCode;
+    }
+
+    public String getDecoctionText() {
+        return decoctionText;
+    }
+
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
+    }
+
+    public String getSymptomId() {
+        return symptomId;
+    }
+
+    public void setSymptomId(String symptomId) {
+        this.symptomId = symptomId;
+    }
+
+    public String getDecoctionId() {
+        return decoctionId;
+    }
+
+    public void setDecoctionId(String decoctionId) {
+        this.decoctionId = decoctionId;
+    }
+
     public String getSymptomName() {
         return symptomName;
     }
@@ -170,12 +209,12 @@ public class RecipeExtendBean implements Serializable {
         this.symptomName = symptomName;
     }
 
-    public String getMakeMethod() {
-        return makeMethod;
+    public String getMakeMethodId() {
+        return makeMethodId;
     }
 
-    public void setMakeMethod(String makeMethod) {
-        this.makeMethod = makeMethod;
+    public void setMakeMethodId(String makeMethodId) {
+        this.makeMethodId = makeMethodId;
     }
 
     public String getMakeMethodText() {
@@ -492,5 +531,29 @@ public class RecipeExtendBean implements Serializable {
 
     public void setComplication(String complication) {
         this.complication = complication;
+    }
+
+    public String getGuardianName() {
+        return guardianName;
+    }
+
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
+    }
+
+    public String getGuardianCertificate() {
+        return guardianCertificate;
+    }
+
+    public void setGuardianCertificate(String guardianCertificate) {
+        this.guardianCertificate = guardianCertificate;
+    }
+
+    public String getGuardianMobile() {
+        return guardianMobile;
+    }
+
+    public void setGuardianMobile(String guardianMobile) {
+        this.guardianMobile = guardianMobile;
     }
 }

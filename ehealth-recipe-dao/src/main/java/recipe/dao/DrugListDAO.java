@@ -263,13 +263,20 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 List<OrganDrugList> drugListList = q.list();
-                Iterator<OrganDrugList> iterator = drugListList.iterator();
-                while(iterator.hasNext()){
-                    OrganDrugList drug = iterator.next();
-                    if (StringUtils.isNotEmpty(drug.getPharmacy()) && StringUtils.isNotEmpty(pharmacyId)){
-                        //过滤掉不在此药房内的药
-                        List<String> pharmacyIds = Splitter.on("，").splitToList(drug.getPharmacy());
-                        if (pharmacyIds.contains(pharmacyId)){
+                //X药品里有A药房B药房，医生开了个A药房的X，选了B药房的常用药里也要有X药出来
+                if (StringUtils.isNotEmpty(pharmacyId)){
+                    Iterator<OrganDrugList> iterator = drugListList.iterator();
+                    while(iterator.hasNext()){
+                        boolean canAddDrug = false;
+                        OrganDrugList drug = iterator.next();
+                        if (StringUtils.isNotEmpty(drug.getPharmacy())){
+                            //过滤掉不在此药房内的药
+                            List<String> pharmacyIds = Splitter.on("，").splitToList(drug.getPharmacy());
+                            if (pharmacyIds.contains(pharmacyId)){
+                                canAddDrug =true;
+                            }
+                        }
+                        if (!canAddDrug){
                             iterator.remove();
                         }
                     }

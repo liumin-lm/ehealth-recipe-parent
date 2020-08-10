@@ -105,6 +105,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<Map<String, Object>> findRecipeListWithPage(int doctorId, int flag, int start, int limit) {
         AuditListReq request = new AuditListReq();
         request.setOrganIdList(null);
@@ -120,6 +121,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request, int start, int limit) {
         LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));
         if (null == request.getDoctorId() || null == request.getStatus()) {
@@ -301,6 +303,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
         LOGGER.info("findRecipeAndDetailsAndCheckByIdEncrypt recipeId={},doctorId={}", recipeId, doctorId);
         //20200323 解密recipe
@@ -324,6 +327,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId,Integer checkerId) {
 
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
@@ -919,11 +923,12 @@ public class RecipeCheckService {
         try {
             String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
-            Map<String, Object> map = saveCheckResult(paramMap);
-            return map;
-        } catch (Exception e) {
-            LOGGER.error("saveCheckResultEncrypt-recipeId解密异常",e);
-            throw new DAOException("处方号解密异常");
+            return saveCheckResult(paramMap);
+        } catch (DAOException e) {
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e1) {
+            LOGGER.error("saveCheckResultEncrypt error", e1);
+            throw new DAOException(e1.getMessage());
         }
     }
 
@@ -1005,6 +1010,7 @@ public class RecipeCheckService {
      * @author zhongzx
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<Map<String, Object>> searchRecipeForChecker(Integer doctorId, String searchString, Integer searchFlag,
                                                             Integer organId, Integer start, Integer limit) {
         RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
@@ -1124,6 +1130,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<OrganBean> findCheckOrganList(Integer doctorId) {
         List<OrganBean> organList = Lists.newArrayList();
         List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);

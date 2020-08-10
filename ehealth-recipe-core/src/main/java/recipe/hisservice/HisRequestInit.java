@@ -39,6 +39,8 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.recipecheck.RecipeCheckService;
+import recipe.service.DrugExtService;
+import recipe.service.SymptomService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -291,6 +293,16 @@ public class HisRequestInit {
             requestTO.setHandleMethod(recipeExtend.getHandleMethod());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+            //制法Code 煎法Code 中医证候Code
+            DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+            DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
+            SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
+            DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+            DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+            Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+            requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+            requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
+            requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
         }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null) {
