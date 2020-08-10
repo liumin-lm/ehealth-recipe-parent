@@ -220,7 +220,7 @@ public class EleInvoiceService {
             invoiceDTO.setPayAmount(consultBean.getConsultCost());
             invoiceDTO.setPayWay(consultBean.getPayWay());
             invoiceDTO.setPayTime(consultBean.getPaymentDate());
-            invoiceDTO.setFundAmount(0.00);
+            invoiceDTO.setFundAmount(consultBean.getConsultCost());
             invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
 
             List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
