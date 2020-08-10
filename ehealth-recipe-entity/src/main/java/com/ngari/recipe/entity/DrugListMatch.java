@@ -475,6 +475,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.platformDrugId = platformDrugId;
     }
 
+    @Column(name = "pharmacy",length = 12)
     public String getPharmacy() {
         return pharmacy;
     }
