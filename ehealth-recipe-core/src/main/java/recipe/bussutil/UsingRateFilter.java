@@ -19,6 +19,9 @@ import java.util.List;
 public class UsingRateFilter {
 
     public static String filter(int organId, String field) {
+        if (StringUtils.isNotEmpty(field)){
+            return "";
+        }
         String val = RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, field);
         /**
          * 根据医院的编码，匹配平台的值，一般用于医院处方写入平台使用
@@ -36,6 +39,9 @@ public class UsingRateFilter {
      * @return
      */
     public static String filterNgari(int organId, String field){
+        if (StringUtils.isNotEmpty(field)){
+            return "";
+        }
         String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USINGRATE + organId, field);
         /**
          * 查不到的原因
@@ -52,6 +58,9 @@ public class UsingRateFilter {
      * @return
      */
     public static String filterNgariByMedical(int organId, String field){
+        if (StringUtils.isNotEmpty(field)){
+            return "";
+        }
         String val = RedisClient.instance().hget(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + organId, field);
         if (StringUtils.isEmpty(val)){
             OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
