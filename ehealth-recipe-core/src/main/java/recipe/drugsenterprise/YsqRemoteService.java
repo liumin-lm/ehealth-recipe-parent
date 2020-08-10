@@ -931,8 +931,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         //最终发给药企的json数据
         Map<String, Object> sendInfo = new HashMap<>(1);
         Map<String, Object> auditInfo = new HashMap<>();
-        auditInfo.put("HOSCODE", auditDrugList.getOrganizeCode());
-        auditInfo.put("HOSNAME", organ.getName());
+        //auditInfo.put("HOSCODE", auditDrugList.getOrganizeCode());
+        //auditInfo.put("HOSNAME", organ.getName());
+        auditInfo.put("HOSCODE", "12120104401232064P");
+        auditInfo.put("HOSNAME", "天津市黄河医院");
         auditInfo.put("CODE", auditDrugList.getOrganDrugCode());
         auditInfo.put("NAME", auditDrugList.getDrugName());
         auditInfo.put("GNAME", auditDrugList.getSaleName());
