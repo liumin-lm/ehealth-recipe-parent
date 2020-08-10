@@ -232,7 +232,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
 
-            recipeMap.put("HOSNAME", organ.getName());
+            //recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("HOSCODE", "12120104401232064P");
+            recipeMap.put("HOSNAME", "天津市黄河医院");
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
             //处方pdf文件Id   有药师签名则推送药师签名的pdf  无则推送医生签名的pdf
@@ -931,10 +933,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         //最终发给药企的json数据
         Map<String, Object> sendInfo = new HashMap<>(1);
         Map<String, Object> auditInfo = new HashMap<>();
-        //auditInfo.put("HOSCODE", auditDrugList.getOrganizeCode());
-        //auditInfo.put("HOSNAME", organ.getName());
-        auditInfo.put("HOSCODE", "12120104401232064P");
-        auditInfo.put("HOSNAME", "天津市黄河医院");
+        auditInfo.put("HOSCODE", auditDrugList.getOrganizeCode());
+        auditInfo.put("HOSNAME", organ.getName());
         auditInfo.put("CODE", auditDrugList.getOrganDrugCode());
         auditInfo.put("NAME", auditDrugList.getDrugName());
         auditInfo.put("GNAME", auditDrugList.getSaleName());
