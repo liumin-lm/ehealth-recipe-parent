@@ -53,7 +53,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param pharmacyName
      * @return
      */
-    @DAOMethod(sql = "select pharmacyId from PharmacyTcm where  and pharmacyName=:pharmacyName")
+    @DAOMethod(sql = "select pharmacyId from PharmacyTcm where pharmacyName=:pharmacyName")
     public abstract Integer getIdByPharmacyName(@DAOParam("pharmacyName") String pharmacyName);
 
     /**

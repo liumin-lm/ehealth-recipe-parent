@@ -35,6 +35,13 @@ public abstract class DrugMakingMethodDao extends HibernateSupportDelegateDAO<Dr
     @DAOMethod(sql = "from DrugMakingMethod where organId =:organId order by sort", limit = 0)
     public abstract List<DrugMakingMethodBean> findAllDrugMakingMethodByOrganId(@DAOParam("organId")Integer organId);
 
+    @DAOMethod(sql = "from DrugMakingMethod where organId =:organId and methodCode = :methodCode")
+    public abstract DrugMakingMethod getDrugMakingMethodByOrganIdAndCode(@DAOParam("organId")Integer organId,
+                                                                    @DAOParam("methodCode")String methodCode);
+
+    @DAOMethod(sql = "from DrugMakingMethod where organId =:organId and methodText = :methodText")
+    public abstract DrugMakingMethod getDrugMakingMethodByOrganIdAndText(@DAOParam("organId")Integer organId,
+                                                                    @DAOParam("methodText")String methodText);
 
     @DAOMethod(sql = "delete from DrugMakingMethod where methodId =:methodId ")
     public abstract void deleteDrugMakingMethodByMethodId(@DAOParam("methodId")Integer methodId);

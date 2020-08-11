@@ -77,6 +77,14 @@ public class DrugExtService implements IDrugExtService {
     @RpcService
     @Override
     public Integer saveDrugMakingMethod(DrugMakingMethodBean drugMakingMethodBean) {
+        DrugMakingMethod temp = drugMakingMethodDao.getDrugMakingMethodByOrganIdAndCode(drugMakingMethodBean.getOrganId(),drugMakingMethodBean.getMethodCode());
+        if (temp != null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, " 此制法编码重复，请修改！");
+        }
+        temp = drugMakingMethodDao.getDrugMakingMethodByOrganIdAndText(drugMakingMethodBean.getOrganId(),drugMakingMethodBean.getMethodText());
+        if (temp != null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, " 此制法名称已存在！");
+        }
         DrugMakingMethod drugMakingMethod = ObjectCopyUtils.convert(drugMakingMethodBean, DrugMakingMethod.class);
         drugMakingMethod = drugMakingMethodDao.save(drugMakingMethod);
         return drugMakingMethod.getMethodId();
@@ -156,6 +164,14 @@ public class DrugExtService implements IDrugExtService {
     @RpcService
     @Override
     public Integer saveDrugDecoctionWay(DecoctionWayBean decoctionWayBean) {
+        DecoctionWay temp = drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(decoctionWayBean.getOrganId(),decoctionWayBean.getDecoctionCode());
+        if (temp != null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, " 此煎法编码重复，请修改！");
+        }
+        temp = drugDecoctionWayDao.getDecoctionWayByOrganIdAndText(decoctionWayBean.getOrganId(),decoctionWayBean.getDecoctionText());
+        if (temp != null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, " 此煎法名称已存在！");
+        }
         DecoctionWay decoctionWay = ObjectCopyUtils.convert(decoctionWayBean, DecoctionWay.class);
         decoctionWay = drugDecoctionWayDao.save(decoctionWay);
         return decoctionWay.getDecoctionId();
