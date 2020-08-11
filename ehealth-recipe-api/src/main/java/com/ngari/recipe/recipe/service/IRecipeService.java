@@ -629,7 +629,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<RecipeBean> searchRecipe( Set<Integer> organs, Integer searchFlag,  String searchString,
-                                    Integer start,  Integer limit);
+                                   Integer start,  Integer limit);
 
     /**
      *  审方处方列表
@@ -668,5 +668,5 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeRefundBean> findRefundListByRecipeId(Integer recipeId);
 
-    }
+}
 
