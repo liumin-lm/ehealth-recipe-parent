@@ -597,6 +597,8 @@ public class HisRequestInit {
                 if (extend != null){
                     //参保地行政区划代码
                     requestTO.setInsuredArea(extend.getInsuredArea());
+                    //挂号序号
+                    requestTO.setRegisterID(extend.getRegisterID());
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     //获取医保支付流程配置（2-原省医保 3-长三角）
                     Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
