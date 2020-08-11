@@ -232,9 +232,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
 
-            //recipeMap.put("HOSNAME", organ.getName());
-            recipeMap.put("HOSCODE", "12120104401232064P");
-            recipeMap.put("HOSNAME", "天津市黄河医院");
+            recipeMap.put("HOSNAME", organ.getName());
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
             //处方pdf文件Id   有药师签名则推送药师签名的pdf  无则推送医生签名的pdf
@@ -705,8 +703,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
             recipeMap.put("HOSNAME", organ.getName());
-            recipeMap.put("HOSCODE", "12120104401232064P");
-            recipeMap.put("HOSNAME", "天津市黄河医院");
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
             if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
@@ -805,7 +801,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                 RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
                 String url = recipeParameterDao.getByName("fileImgUrl");
-                recipeMap.put("PDF_ID", url + recipe.getChemistSignFile());
+                url += null != recipe.getChemistSignFile() ?
+                        LocalStringUtil.toString(recipe.getChemistSignFile()) : LocalStringUtil.toString(recipe.getSignFile());
+                recipeMap.put("PDF_ID", url);
             }
             List<Map<String, String>> recipeDetailList = new ArrayList<>();
             recipeMap.put("DETAILS", recipeDetailList);
