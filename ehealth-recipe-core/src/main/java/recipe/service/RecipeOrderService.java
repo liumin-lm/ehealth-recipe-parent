@@ -269,16 +269,16 @@ public class RecipeOrderService extends RecipeBaseService {
             //设置配送费支付方式
             order.setExpressFeePayWay(2);
         }
-
-        //设置中药代建费
-        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-        if(decoctionId != null){
-            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
-            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if(decoctionWay != null){
-                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-            }
-        }
+//
+//        //设置中药代建费
+//        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+//        if(decoctionId != null){
+//            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+//            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+//            if(decoctionWay != null){
+//                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+//            }
+//        }
         if (null == remoteService) {
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
@@ -625,7 +625,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == gfFeeUnitPrice) {
                 gfFeeUnitPrice = BigDecimal.ZERO;
             }
-            order.setDecoctionUnitPrice(gfFeeUnitPrice);
+//            order.setDecoctionUnitPrice(gfFeeUnitPrice);
             //存在制作单价且大于0
             if (gfFeeUnitPrice.compareTo(BigDecimal.ZERO) == 1) {
                 Double totalDose = recipeDetailDAO.getUseTotalDoseByRecipeIds(recipeIds);
