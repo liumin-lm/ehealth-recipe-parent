@@ -8,8 +8,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipesQueryVO;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -42,6 +44,8 @@ import recipe.util.SqlOperInfo;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 处方DAO
@@ -1894,6 +1898,108 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             diseaseIds.add(iterator.next().getKey());
         }
         return diseaseIds;
+    }
+
+    public List<String> findCommonSymptomIdByDoctorAndOrganId(final int doctorId, final int organId) {
+
+        final String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(0), DateConversion.DEFAULT_DATE_TIME);
+        final String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(90), DateConversion.DEFAULT_DATE_TIME);
+        //查询医生三个月内开的数据
+        HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "SELECT re.symptomId FROM Recipe r ,RecipeExtend re WHERE " +
+                        "r.recipeId=re.recipeId and r.doctor = :doctorId AND r.clinicOrgan = :organId AND re.symptomId is not null AND r.createDate between '" + startDt + "' and '" + endDt + "'";
+                Query query = ss.createQuery(hql);
+                query.setParameter("doctorId", doctorId);
+                query.setParameter("organId", organId);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        //单独处理多证候的处方单
+        List<String> list = action.getResult();
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        Map<String, Integer> diseaseMap = Maps.newHashMap();
+        //循环计算每一个诊断的次数
+        for (String s : list) {
+            if (StringUtils.isNotEmpty(s)) {
+                String[] strings = s.split(";");
+                if (strings != null && strings.length > 0) {
+                    for (String s1 : strings) {
+                        Integer i = diseaseMap.get(s1);
+                        if (i == null) {
+                            diseaseMap.put(s1, 1);
+                        } else {
+                            diseaseMap.put(s1, i + 1);
+                        }
+                    }
+                }
+            }
+        }
+        //将map装换为list并按开诊断个数排序
+        List<Map.Entry<String, Integer>> entryList = new ArrayList<Map.Entry<String, Integer>>(diseaseMap.entrySet());
+        Collections.sort(entryList, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue() - o1.getValue();
+            }
+        });
+        List<String> diseaseIds = Lists.newArrayList();
+        Iterator<Map.Entry<String, Integer>> iterator = entryList.iterator();
+        while (iterator.hasNext()) {
+            diseaseIds.add(iterator.next().getKey());
+        }
+        return diseaseIds;
+    }
+
+    /**
+     * 查询医生对应机构 常用证候 最多显示10条
+     * liumin
+     *
+     * @param doctor
+     * @param organId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<Symptom> findCommonSymptomByDoctorAndOrganId(final int doctor, final int organId,
+                                                           final int start, final int limit) {
+        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
+        final List<String> organSymptomIdsTemp = recipeService.findCommonSymptomIdByDoctorAndOrganId(doctor, organId);
+        if (organSymptomIdsTemp == null || organSymptomIdsTemp.size() == 0) {
+            return Lists.newArrayList();
+        }
+        List<Integer> organSymptomIds = Stream.of(organSymptomIdsTemp.toArray(new String[organSymptomIdsTemp.size()])).map(Integer::parseInt).collect(Collectors.toList());
+        HibernateStatelessResultAction<List<Symptom>> action = new AbstractHibernateStatelessResultAction<List<Symptom>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select a from Symptom a where "
+                        + "  a.symptomId in (:organSymptomIds) ");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("organSymptomIds", organSymptomIds);
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        List<Symptom> list = action.getResult();
+        if (null == list || list.size() == 0) {
+            return Lists.newArrayList();
+        }
+        //排序
+        List<Symptom> symptoms = Lists.newArrayList();
+        for (int i = 0; i < organSymptomIds.size(); i++) {
+            for (int x = 0; x < list.size(); x++) {
+                if (list.get(x).getSymptomId().equals(organSymptomIds.get(i))) {
+                    symptoms.add(list.get(x));
+                }
+            }
+        }
+        return symptoms;
     }
 
 

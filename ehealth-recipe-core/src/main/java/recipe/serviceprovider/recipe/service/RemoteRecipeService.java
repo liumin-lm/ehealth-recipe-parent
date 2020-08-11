@@ -48,6 +48,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.entity.base.Diseas;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -287,6 +288,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<String> findCommonDiseasByDoctorAndOrganId(int doctorId, int organId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findCommonDiseasByDoctorAndOrganId(doctorId, organId);
+    }
+
+    @RpcService
+    @Override
+    public List<String> findCommonSymptomIdByDoctorAndOrganId(int doctorId, int organId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findCommonSymptomIdByDoctorAndOrganId(doctorId, organId);
+    }
+
+
+    @RpcService
+    public List<Symptom> findCommonSymptomByDoctorAndOrganId(int doctor, int organId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findCommonSymptomByDoctorAndOrganId(doctor, organId, 0, 10);
     }
 
     @RpcService

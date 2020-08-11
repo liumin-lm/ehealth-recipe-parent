@@ -11,6 +11,7 @@ import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
+import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -244,6 +245,24 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<String> findCommonDiseasByDoctorAndOrganId(int doctorId, int organId);
 
+    /**
+     * 获取常用中医证候ids
+     *liumin
+     * @param doctorId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    List<String> findCommonSymptomIdByDoctorAndOrganId(int doctorId, int organId);
+
+    /**
+     * 查询医生对应机构 常用诊断 最多显示10条
+     *liumin
+     * @param doctor
+     * @param organId
+     * @return
+     */
+    public List<Symptom> findCommonSymptomByDoctorAndOrganId(final int doctor, final int organId) ;
     /**
      * 就诊人改造：获取医生的历史患者MpiId：从处方表中查询
      *
