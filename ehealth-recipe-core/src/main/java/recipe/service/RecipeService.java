@@ -3,6 +3,7 @@ package recipe.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -160,6 +161,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     /**
      * 药师审核不通过
@@ -1178,7 +1182,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 重新开具 或这续方时校验 药品数据
-     *
+     * 还有暂存的处方点进来时做药房配置的判断
      * @param recipeId
      * @return
      */
@@ -1191,6 +1195,40 @@ public class RecipeService extends RecipeBaseService {
             return Lists.newArrayList();
         }
         List<RecipeDetailBean> detailBeans = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        //药房配置校验
+        if (CollectionUtils.isNotEmpty(detailBeans)){
+            List<PharmacyTcm> pharmacyTcms = pharmacyTcmDAO.findByOrganId(dbRecipe.getClinicOrgan());
+            if (CollectionUtils.isNotEmpty(pharmacyTcms)){
+                List<Integer> pharmacyIdList = pharmacyTcms.stream().map(PharmacyTcm::getPharmacyId).collect(Collectors.toList());
+                OrganDrugList organDrugList;
+                for (RecipeDetailBean recipedetail : detailBeans) {
+                    if (recipedetail.getPharmacyId() == null){
+                        continue;
+                    }
+                    if (recipedetail.getPharmacyId() == 0){
+                        continue;
+                    }
+                    //判断药房机构库配置
+                    if (!pharmacyIdList.contains(recipedetail.getPharmacyId())){
+                        throw new DAOException(609,"您所在的机构已更新药房配置，需要重新开具处方");
+                    }
+                    //判断药品归属药房
+                    organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(dbRecipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+                    if (organDrugList !=null){
+                        if (StringUtils.isNotEmpty(organDrugList.getPharmacy())){
+                            List<String> pharmacyIds = Splitter.on(",").splitToList(organDrugList.getPharmacy());
+                            if (!pharmacyIds.contains(String.valueOf(recipedetail.getPharmacyId()))){
+                                throw new DAOException(609,"您所在的机构已更新药房配置，需要重新开具处方");
+                            }
+                        }else {
+                            throw new DAOException(609,"您所在的机构已更新药房配置，需要重新开具处方");
+                        }
+
+                    }
+                }
+            }
+
+        }
         return detailBeans;
     }
 
