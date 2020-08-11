@@ -290,7 +290,7 @@ public class EleInvoiceService {
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
             invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.REGISTRATION.getCode(), MedicalChargesEnum.REGISTRATION.getName()
                     , recipeOrder.getOrderCode(), MedicalChargesEnum.REGISTRATION.getName(), recipeOrder.getRegisterFee(), "", 1D));
-            if (1 == recipeOrder.getExpressFeePayWay()) {
+            if (null != recipeOrder.getExpressFeePayWay() && recipeOrder.getExpressFeePayWay().equals(1)) {
                 invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.DISTRIBUTION.getCode(), MedicalChargesEnum.DISTRIBUTION.getName()
                         , recipeOrder.getOrderCode(), MedicalChargesEnum.DISTRIBUTION.getName(), recipeOrder.getExpressFee(), "", 1D));
             }

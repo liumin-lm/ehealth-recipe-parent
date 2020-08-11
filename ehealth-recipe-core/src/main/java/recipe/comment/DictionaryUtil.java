@@ -2,8 +2,10 @@ package recipe.comment;
 
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.constant.ErrorCode;
 import recipe.hisservice.EleInvoiceService;
 
 /**
@@ -15,6 +17,9 @@ public class DictionaryUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(EleInvoiceService.class);
 
     public static String getDictionary(String classId, Integer key) {
+        if (null == key) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "DictionaryController is null");
+        }
         try {
             return DictionaryController.instance().get(classId).getText(key);
         } catch (ControllerException e) {

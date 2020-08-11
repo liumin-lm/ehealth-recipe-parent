@@ -101,7 +101,7 @@ public class SymptomService implements ISymptomService {
     @RpcService
     public QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId , String input, final int start, final int limit) {
         if (null == organId) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+            return  null;
         }
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input, start, limit);
