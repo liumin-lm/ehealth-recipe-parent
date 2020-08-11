@@ -1967,8 +1967,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     public List<Symptom> findCommonSymptomByDoctorAndOrganId(final int doctor, final int organId,
                                                            final int start, final int limit) {
-        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
-        final List<String> organSymptomIdsTemp = recipeService.findCommonSymptomIdByDoctorAndOrganId(doctor, organId);
+        final List<String> organSymptomIdsTemp = findCommonSymptomIdByDoctorAndOrganId(doctor, organId);
         if (organSymptomIdsTemp == null || organSymptomIdsTemp.size() == 0) {
             return Lists.newArrayList();
         }

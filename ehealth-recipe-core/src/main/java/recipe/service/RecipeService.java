@@ -4924,5 +4924,18 @@ public class RecipeService extends RecipeBaseService {
 
     }
 
+    @RpcService
+    public List<String> findCommonSymptomIdByDoctorAndOrganId(int doctorId, int organId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findCommonSymptomIdByDoctorAndOrganId(doctorId, organId);
+    }
+
+
+    @RpcService
+    public List<Symptom> findCommonSymptomByDoctorAndOrganId(int doctor, int organId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findCommonSymptomByDoctorAndOrganId(doctor, organId, 0, 10);
+    }
+
 
 }
