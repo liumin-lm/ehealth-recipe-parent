@@ -2361,7 +2361,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         patientRecipeBean.setRecordCode(objs[1].toString());
                         patientRecipeBean.setRecordId(Integer.parseInt(objs[2].toString()));
                         patientRecipeBean.setMpiId(objs[3].toString());
-                        patientRecipeBean.setOrganDiseaseName(objs[4].toString());
+                        if (null != objs[4]) {
+                            patientRecipeBean.setOrganDiseaseName(objs[4].toString());
+                        }
                         patientRecipeBean.setStatusCode(Integer.parseInt(objs[5].toString()));
                         patientRecipeBean.setTotalMoney(new BigDecimal(objs[6].toString()));
                         patientRecipeBean.setSignDate((Date) objs[7]);
