@@ -435,9 +435,9 @@ public class DrugToolService implements IDrugToolService {
                         errMsg.append("药房名称有误").append(";");
                     }else {
                         if (i != split.length-1){
-                            ss.append(idByPharmacyName + ",");
+                            ss.append(idByPharmacyName.toString() + ",");
                         }else {
-                            ss.append(idByPharmacyName);
+                            ss.append(idByPharmacyName.toString());
                         }
                     }
                 }
