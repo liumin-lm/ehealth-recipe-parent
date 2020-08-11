@@ -550,6 +550,17 @@ public class PayModeOnline implements IPurchaseService {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (null != recipeExtend){
                 updateTakeDrugWayReqTO.setRegisterId(recipeExtend.getRegisterID());
+                if(recipeExtend.getDecoctionId() != null){
+                    //煎法Code
+                    DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    if(decoctionWay.getDecoctionCode() != null){
+                        updateTakeDrugWayReqTO.setDecoctionCode(decoctionWay.getDecoctionCode());
+                    } else {
+                        LOG.error("updateGoodsReceivingInfo error 未获取到有效煎法 recipeId:{}，decoctionId{}.", recipeId,recipeExtend.getDecoctionId());
+                    }
+
+                }
             }
             updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
             updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
@@ -584,6 +595,8 @@ public class PayModeOnline implements IPurchaseService {
                         //收货地址
                         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                         updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
+                        //代煎费
+                        updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
                     }
                 }
             if (recipe.getClinicId() != null) {

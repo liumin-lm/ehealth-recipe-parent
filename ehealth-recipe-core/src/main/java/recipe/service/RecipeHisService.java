@@ -657,6 +657,10 @@ public class RecipeHisService extends RecipeBaseService {
                 //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
                 request.setInsuredAreaType("1");
             }
+            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext !=null){
+                ext.setRegisterID(ext.getRegisterID());
+            }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
             } catch (ControllerException e) {
@@ -680,7 +684,6 @@ public class RecipeHisService extends RecipeBaseService {
                     //总金额
                     String totalAmount = hisResult.getData().getZje();
                     if (StringUtils.isNotEmpty(cashAmount) && StringUtils.isNotEmpty(fundAmount) && StringUtils.isNotEmpty(totalAmount)) {
-                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                         if (ext != null) {
                             ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount", fundAmount, "cashAmount", cashAmount);
                             if (StringUtils.isNotEmpty(request.getInsuredArea())){
