@@ -719,6 +719,7 @@ public class PayModeOnline implements IPurchaseService {
                 //制法Code 煎法Code 中医证候Code
                 DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                updateTakeDrugWayReqTO.setDecoctionCode(decoctionWay.getDecoctionCode());
                 updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
             }else{
                 LOG.info("同步配送信息，组装配送订单失败！");
