@@ -269,16 +269,7 @@ public class RecipeOrderService extends RecipeBaseService {
             //设置配送费支付方式
             order.setExpressFeePayWay(2);
         }
-//
-//        //设置中药代建费
-//        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-//        if(decoctionId != null){
-//            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
-//            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-//            if(decoctionWay != null){
-//                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-//            }
-//        }
+
         if (null == remoteService) {
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
@@ -367,6 +358,16 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         if (StringUtils.isNotEmpty(extInfo.get("hisDepCode"))) {
             order.setHisEnterpriseName(extInfo.get("depName"));
+        }
+
+        //设置中药代建费
+        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+        if(decoctionId != null){
+            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            if(decoctionWay != null){
+                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+            }
         }
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
