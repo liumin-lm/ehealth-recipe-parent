@@ -543,89 +543,92 @@ public class HisRequestInit {
 
     public static PayNotifyReqTO initPayNotifyReqTO(Recipe recipe, PatientBean patient, HealthCardBean card) {
         PayNotifyReqTO requestTO = new PayNotifyReqTO();
-        requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
-        requestTO.setRecipeNo(recipe.getRecipeCode());
-        requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
-        // 目前都是平台代收 后面要改
-        requestTO.setPayType("1");
-        if (null != patient) {
-            // 患者信息
-            requestTO.setCertID(patient.getCertificate());
-            requestTO.setPatientName(patient.getPatientName());
-        }
-
-        if (null != card) {
-            requestTO.setCardType(card.getCardType());
-            requestTO.setCardNo(card.getCardId());
-        }
-
-        requestTO.setAmount(recipe.getTotalMoney().toString());
-
-        requestTO.setIsMedicalSettle("0");
-        if (recipe.getOrderCode() != null) {
-            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-            RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
-
-            if (order != null) {
-                //新参数-把整个订单信息传给前置机
-                requestTO.setRecipeOrderBean(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
-                //如果预结算有值则直接返回预结算的金额
-                if(order.getPreSettletotalAmount() != null) {
-                    requestTO.setAmount(order.getPreSettletotalAmount().toString());
-                }
-                //省医保订单新增逻辑
-                switch (order.getOrderType()) {
-                    case 0:
-                        requestTO.setIsMedicalSettle("0");
-                        break;
-                    case 1:
-                        requestTO.setIsMedicalSettle("1");
-                        break;
-                    default:
-                        requestTO.setIsMedicalSettle("0");
-                }
-                if ("40".equals(order.getWxPayWay())) {
-                    requestTO.setPayType("C");
-                } else {
-                    requestTO.setPayType("E");
-                }
-                requestTO.setRecipeNo(recipe.getRecipeId() + "");
-                requestTO.setRecipeCode(recipe.getRecipeCode());
-                requestTO.setOrganName(recipe.getOrganName());
-                RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
-                RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
-                if (extend != null){
-                    //参保地行政区划代码
-                    requestTO.setInsuredArea(extend.getInsuredArea());
-                    //挂号序号
-                    requestTO.setRegisterID(extend.getRegisterID());
-                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                    //获取医保支付流程配置（2-原省医保 3-长三角）
-                    Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
-                    if (new Integer(3).equals(insuredAreaType)){
-                        //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
-                        requestTO.setInsuredAreaType("1");
-                    }
-                    if (extend.getCashAmount() != null) {
-                        //自负金额
-                        requestTO.setCashAmount(extend.getCashAmount());
-                        //应付金额
-                        requestTO.setPayAmount(extend.getPayAmount());
-                        //总金额
-                        requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
-                        //his收据号
-                        requestTO.setHisSettlementNo(extend.getHisSettlementNo());
-                    } else {
-                        LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}", recipe.getRecipeId());
-                    }
-                }
-
-                requestTO.setTradeNo(order.getTradeNo());
-                requestTO.setOutTradeNo(order.getOutTradeNo());
+        try {
+            requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
+            requestTO.setRecipeNo(recipe.getRecipeCode());
+            requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
+            // 目前都是平台代收 后面要改
+            requestTO.setPayType("1");
+            if (null != patient) {
+                // 患者信息
+                requestTO.setCertID(patient.getCertificate());
+                requestTO.setPatientName(patient.getPatientName());
             }
+
+            if (null != card) {
+                requestTO.setCardType(card.getCardType());
+                requestTO.setCardNo(card.getCardId());
+            }
+
+            requestTO.setAmount(recipe.getTotalMoney().toString());
+
+            requestTO.setIsMedicalSettle("0");
+            if (recipe.getOrderCode() != null) {
+                RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+                RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+
+                if (order != null) {
+                    //新参数-把整个订单信息传给前置机
+                    requestTO.setRecipeOrderBean(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
+                    //如果预结算有值则直接返回预结算的金额
+                    if (order.getPreSettletotalAmount() != null) {
+                        requestTO.setAmount(order.getPreSettletotalAmount().toString());
+                    }
+                    //省医保订单新增逻辑
+                    switch (order.getOrderType()) {
+                        case 0:
+                            requestTO.setIsMedicalSettle("0");
+                            break;
+                        case 1:
+                            requestTO.setIsMedicalSettle("1");
+                            break;
+                        default:
+                            requestTO.setIsMedicalSettle("0");
+                    }
+                    if ("40".equals(order.getWxPayWay())) {
+                        requestTO.setPayType("C");
+                    } else {
+                        requestTO.setPayType("E");
+                    }
+                    requestTO.setRecipeNo(recipe.getRecipeId() + "");
+                    requestTO.setRecipeCode(recipe.getRecipeCode());
+                    requestTO.setOrganName(recipe.getOrganName());
+                    RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
+                    RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
+                    if (extend != null) {
+                        //参保地行政区划代码
+                        requestTO.setInsuredArea(extend.getInsuredArea());
+                        //挂号序号
+                        requestTO.setRegisterID(extend.getRegisterID());
+                        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                        //获取医保支付流程配置（2-原省医保 3-长三角）
+                        Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
+                        if (new Integer(3).equals(insuredAreaType)) {
+                            //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
+                            requestTO.setInsuredAreaType("1");
+                        }
+                        if (extend.getCashAmount() != null) {
+                            //自负金额
+                            requestTO.setCashAmount(extend.getCashAmount());
+                            //应付金额
+                            requestTO.setPayAmount(extend.getPayAmount());
+                            //总金额
+                            requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
+                            //his收据号
+                            requestTO.setHisSettlementNo(extend.getHisSettlementNo());
+                        } else {
+                            LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}", recipe.getRecipeId());
+                        }
+                    }
+
+                    requestTO.setTradeNo(order.getTradeNo());
+                    requestTO.setOutTradeNo(order.getOutTradeNo());
+                }
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("initPayNotifyReqTO error  recipeId={}", recipe.getRecipeId(),e);
         }
-
-
         return requestTO;
     }
 
