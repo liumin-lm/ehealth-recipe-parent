@@ -102,6 +102,16 @@ public class DrugExtService implements IDrugExtService {
         if(drugMakingMethodBean == null || drugMakingMethodBean.getMethodId() == null){
             throw new DAOException("methodId不能为空");
         }
+
+        DrugMakingMethod drugMakingMethodOld = drugMakingMethodDao.get(drugMakingMethodBean.getMethodId());
+        if(drugMakingMethodOld != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, " 未查询出有此制法，修改错误！");
+        }
+
+        DrugMakingMethod temp = drugMakingMethodDao.getDrugMakingMethodByOrganIdAndText(drugMakingMethodBean.getOrganId(),drugMakingMethodBean.getMethodText());
+        if (temp != null && !(temp.getMethodId().equals(drugMakingMethodBean.getMethodId())) ) {
+            throw new DAOException(DAOException.VALUE_NEEDED, " 此制法名称已存在！");
+        }
         DrugMakingMethod drugMakingMethod = ObjectCopyUtils.convert(drugMakingMethodBean, DrugMakingMethod.class);
         drugMakingMethod = drugMakingMethodDao.update(drugMakingMethod);
         return drugMakingMethod.getMethodId();
@@ -188,6 +198,16 @@ public class DrugExtService implements IDrugExtService {
     public Integer updateDrugDecoctionWay(DecoctionWayBean decoctionWayBean) {
         if(decoctionWayBean == null || decoctionWayBean.getDecoctionId() == null){
             throw new DAOException("decoctionId不能为空");
+        }
+
+        DecoctionWay decoctionWayOld = drugDecoctionWayDao.get(decoctionWayBean.getDecoctionId());
+        if(decoctionWayOld != null){
+            throw new DAOException(DAOException.VALUE_NEEDED, " 未查询出有此煎法，修改错误！");
+        }
+
+        DecoctionWay temp = drugDecoctionWayDao.getDecoctionWayByOrganIdAndText(decoctionWayBean.getOrganId(),decoctionWayBean.getDecoctionText());
+        if (temp != null && !(temp.getDecoctionId().equals(decoctionWayBean.getDecoctionId()))) {
+            throw new DAOException(DAOException.VALUE_NEEDED, " 此煎法名称已存在！");
         }
         DecoctionWay decoctionWay = ObjectCopyUtils.convert(decoctionWayBean, DecoctionWay.class);
         decoctionWay = drugDecoctionWayDao.update(decoctionWay);
