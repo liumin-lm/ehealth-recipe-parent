@@ -1513,8 +1513,10 @@ public class RecipeServiceSub {
         map.put("patient", patient);
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
         //隐方
+        boolean isHiddenRecipeDetail=false;
         if(isDoctor==false){
-            if(!recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+            boolean isReturnRecipeDetail=recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
+            if(!isReturnRecipeDetail){
                 List<RecipeDetailBean> recipeDetailVOs=(List<RecipeDetailBean>)map.get("recipedetails");
                 if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
                     for(int j=0;j<recipeDetailVOs.size();j++){
@@ -1523,11 +1525,9 @@ public class RecipeServiceSub {
                     }
                 }
             }
+            isHiddenRecipeDetail=!isReturnRecipeDetail;
         }
-        //返回是否隐方
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
-        map.put("isHiddenRecipeDetail",(boolean)isHiddenRecipeDetail);
+        map.put("isHiddenRecipeDetail",isHiddenRecipeDetail);
 
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
