@@ -135,6 +135,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + drugsEnterprise.getName());
+                //推送审核结果
+                pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
                 if (new Integer(3).equals(drugsEnterprise.getExpressFeePayWay())){
                     //推送处方运费待支付消息提醒
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
@@ -150,9 +152,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             result.setMsg("推送处方失败，" + result.getMsg());
             result.setCode(DrugEnterpriseResult.FAIL);
         }
-
-        //推送审核结果
-        pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
 
         return result;
     }
