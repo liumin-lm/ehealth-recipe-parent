@@ -50,6 +50,25 @@ public class SymptomService implements ISymptomService {
     private SymptomDAO symptomDAO;
 
     /**
+     * 获取单元格值（字符串）
+     * @param cell
+     * @return
+     */
+    public static String getStrFromCell(Cell cell){
+        if(cell==null){
+            return null;
+        }
+        String strCell =cell.getStringCellValue();
+        if(strCell!=null){
+            strCell = strCell.trim();
+            if(StringUtils.isEmpty(strCell)){
+                strCell=null;
+            }
+        }
+        return strCell ;
+    }
+
+    /**
      * 新增中医症候
      * @param symptom
      * @return
@@ -109,7 +128,6 @@ public class SymptomService implements ISymptomService {
         return  symptomQueryResult;
     }
 
-
     /**
      * 根据机构Id查询中医症候
      * @param organId
@@ -144,7 +162,6 @@ public class SymptomService implements ISymptomService {
         logger.info("查询中医症候服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(byOrganIdAndSymptomId));
         return  ObjectCopyUtils.convert(byOrganIdAndSymptomId, SymptomDTO.class);
     }
-
 
     /**
      * 症候批量导入
@@ -311,7 +328,7 @@ public class SymptomService implements ISymptomService {
                 try {
                     //自动匹配功能暂无法提供
                     if (symptomDAO.getByOrganIdAndSymptomCode(organId,symptom1.getSymptomCode()) != null){
-                        symptomDAO.updateBySymptomCode(symptom1.getSymptomCode(),symptom1.getSymptomName(),symptom1.getOrganId());
+                        symptomDAO.updateBySymptomCode(symptom1.getSymptomCode(),symptom1.getPinYin(),symptom1.getSymptomName(),symptom1.getOrganId());
                         updateNum++;
                     }else {
                         symptomDAO.save(symptom1);
@@ -347,26 +364,6 @@ public class SymptomService implements ISymptomService {
         logger.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
-    }
-
-
-    /**
-     * 获取单元格值（字符串）
-     * @param cell
-     * @return
-     */
-    public static String getStrFromCell(Cell cell){
-        if(cell==null){
-            return null;
-        }
-        String strCell =cell.getStringCellValue();
-        if(strCell!=null){
-            strCell = strCell.trim();
-            if(StringUtils.isEmpty(strCell)){
-                strCell=null;
-            }
-        }
-        return strCell ;
     }
 
 
