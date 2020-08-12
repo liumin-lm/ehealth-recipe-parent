@@ -1215,8 +1215,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isEmpty(details)) {
-            LOGGER.error("validateDrugsData 平台无该处方明细对象. recipeId=[{}]", recipeId);
-            throw new DAOException(609,"获取不到处方明细数据");
+           return;
         }
         List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         //药房配置校验
