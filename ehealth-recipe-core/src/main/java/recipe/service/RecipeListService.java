@@ -1116,7 +1116,7 @@ public class RecipeListService extends RecipeBaseService{
      * @author liumin
      */
     public boolean isReturnRecipeDetail(Integer recipeId){
-        boolean isReturnRecipeDetail=true;
+        boolean isReturnRecipeDetail=true;//返回详情
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1134,7 +1134,7 @@ public class RecipeListService extends RecipeBaseService{
                 //支付状态为非已支付
                 if(order ==null){
                     LOGGER.info("isReturnRecipeDetail  order ==null");
-                     if(recipe.getPayMode()==1){//支付方式：线上支付
+                     if(recipe.getPayMode()==1){//支付方式：线上h支付
                          LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"1");
                          return false;
                      }else{
