@@ -1116,12 +1116,12 @@ public class RecipeListService extends RecipeBaseService{
      * @author liumin
      */
     public boolean isReturnRecipeDetail(Integer recipeId){
-        boolean isReturnRecipeDetail=true;
+        boolean isReturnRecipeDetail=true;//返回详情
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
-        LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}",recipeId,JSONUtils.toString(recipe),recipeId,JSONUtils.toString(order));
+        LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}",recipeId,JSONUtils.toString(recipe),JSONUtils.toString(order));
         try{
             //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -1133,7 +1133,8 @@ public class RecipeListService extends RecipeBaseService{
             ) {
                 //支付状态为非已支付
                 if(order ==null){
-                     if(recipe.getPayMode()==1){//支付方式：线上支付
+                    LOGGER.info("isReturnRecipeDetail  order ==null");
+                     if(recipe.getPayMode()==1){//支付方式：线上h支付
                          LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"1");
                          return false;
                      }else{
@@ -1145,6 +1146,7 @@ public class RecipeListService extends RecipeBaseService{
                          }
                      }
                 }else{
+                    LOGGER.info("isReturnRecipeDetail  order ！=null");
                     if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付
                         if((order.getPayFlag()==1)){//返回详情
                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"33");
