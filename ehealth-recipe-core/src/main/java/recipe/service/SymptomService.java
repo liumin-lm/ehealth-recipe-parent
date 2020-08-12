@@ -311,7 +311,7 @@ public class SymptomService implements ISymptomService {
                 try {
                     //自动匹配功能暂无法提供
                     if (symptomDAO.getByOrganIdAndSymptomCode(organId,symptom1.getSymptomCode()) != null){
-                        symptomDAO.updateBySymptomCode(symptom1.getSymptomCode(),symptom1.getSymptomName());
+                        symptomDAO.updateBySymptomCode(symptom1.getSymptomCode(),symptom1.getSymptomName(),symptom1.getOrganId());
                         updateNum++;
                     }else {
                         symptomDAO.save(symptom1);
