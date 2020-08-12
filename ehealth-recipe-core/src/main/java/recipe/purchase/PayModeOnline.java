@@ -479,49 +479,15 @@ public class PayModeOnline implements IPurchaseService {
             nowRecipe.setChooseFlag(1);
             recipeDAO.update(nowRecipe);
         }
-        updateRecipeDetail(recipeId);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        purchaseService.updateRecipeDetail(recipeId);
         //date 20200318
         //确认订单后同步配送信息接口
         remoteService.sendDeliveryMsgToHis(dbRecipe.getRecipeId());
         return result;
     }
 
-    private void updateRecipeDetail(Integer recipeId) {
-        try{
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            if (recipe.getEnterpriseId() != null) {
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-                int settlementMode = 0;
-                if(drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1){
-                    settlementMode = 1;
-                }
-                for (Recipedetail recipedetail : recipedetails) {
-                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-                    LOG.info("PayModeOnline.updateRecipeDetail recipeId:{},saleDrugList:{}.", recipeId, JSONUtils.toString(saleDrugList));
 
-                    //记录药企购药时用的医院目录的价格还是用的药企目录的价格
-                    recipedetail.setSettlementMode(settlementMode);
-
-                    if (saleDrugList != null) {
-                        recipedetail.setActualSalePrice(saleDrugList.getPrice());
-                        if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
-                            recipedetail.setSaleDrugCode(saleDrugList.getDrugId()+"");
-                        } else {
-                            recipedetail.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-                        }
-                    }
-                    recipeDetailDAO.update(recipedetail);
-                }
-            }
-        }catch(Exception e){
-            LOG.error("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId,e);
-        }
-    }
 
     public HisResponseTO updateGoodsReceivingInfo(Integer recipeId) {
         try{
