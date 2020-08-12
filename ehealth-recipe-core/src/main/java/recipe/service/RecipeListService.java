@@ -1116,45 +1116,35 @@ public class RecipeListService extends RecipeBaseService{
      * @author liumin
      */
     public boolean isReturnRecipeDetail(Integer recipeId){
-        boolean isReturnRecipeDetail=true;
+        boolean isReturnRecipeDetail=true;//默认返回详情
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
-        LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}",recipeId,JSONUtils.toString(recipe),recipeId,JSONUtils.toString(order));
+        LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}",recipeId,JSONUtils.toString(recipe),JSONUtils.toString(order));
         try{
             //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
             LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方"
-                    ,RecipeUtil.isTcmType(recipe.getRecipeType()),(boolean)isHiddenRecipeDetail);
+                    ,RecipeUtil.isTcmType(recipe.getRecipeType()),isHiddenRecipeDetail);
             if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
-                    &&(boolean)isHiddenRecipeDetail==true//隐方
-                    &&(PayConstant.PAY_FLAG_PAY_SUCCESS != recipe.getPayFlag()) //支付状态为非已支付
+                    &&(boolean)isHiddenRecipeDetail==true//隐方)
             ) {
-                if(order ==null){
-                     if(recipe.getPayMode()==1){//支付方式：线上支付
-                         LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"1");
-                         return false;
-                     }else{
-                         if(recipe.getStatus()==6){// 处方状态已完成
-                         }else{
-                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"2");
-                             return false;
-                         }
-                     }
+                //支付状态为非已支付
+                if(order == null){
+                    if(recipe.getStatus() != 6){// 未完成
+                        isReturnRecipeDetail=false;//不返回详情
+                    }
                 }else{
-                    if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付
-                        if((order.getPayFlag()==1)){//返回详情
-                        }else{
-                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"3");
+                    LOGGER.info("isReturnRecipeDetail  order ！=null");
+                    if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付（包括卫宁付）
+                        if((order.getPayFlag() !=1 )){
                             isReturnRecipeDetail=false;//不返回详情
                         }
                     }else{//线下支付
-                        if(recipe.getStatus()==6){// 处方状态已完成
-                        }else{
-                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"4");
-                            return false;
+                        if(recipe.getStatus() !=6 ){// 处方状态未完成
+                            isReturnRecipeDetail=false;//不返回详情
                         }
                     }
 
