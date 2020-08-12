@@ -270,15 +270,6 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setExpressFeePayWay(2);
         }
 
-        //设置中药代建费
-        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-        if(decoctionId != null){
-            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
-            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if(decoctionWay != null){
-                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-            }
-        }
         if (null == remoteService) {
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
@@ -367,6 +358,16 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         if (StringUtils.isNotEmpty(extInfo.get("hisDepCode"))) {
             order.setHisEnterpriseName(extInfo.get("depName"));
+        }
+
+        //设置中药代建费
+        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+        if(decoctionId != null){
+            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
+                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+            }
         }
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
@@ -625,7 +626,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == gfFeeUnitPrice) {
                 gfFeeUnitPrice = BigDecimal.ZERO;
             }
-            order.setDecoctionUnitPrice(gfFeeUnitPrice);
+//            order.setDecoctionUnitPrice(gfFeeUnitPrice);
             //存在制作单价且大于0
             if (gfFeeUnitPrice.compareTo(BigDecimal.ZERO) == 1) {
                 Double totalDose = recipeDetailDAO.getUseTotalDoseByRecipeIds(recipeIds);
@@ -1476,8 +1477,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     //获取处方详情
                     prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+                    boolean isReturnRecipeDetail=recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
                     if(("getOrderDetail".equals(methodName)&&"recipe.service.RecipeOrderService".equals(className))){
-                        if(!recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+                        if(!isReturnRecipeDetail){
                             List<RecipeDetailBean> recipeDetailVOs=prb.getRecipeDetail();
                             if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
                                 for(int j=0;j<recipeDetailVOs.size();j++){
@@ -1487,15 +1489,12 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                     }
+                    //返回是否隐方
+                    prb.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
                     //返回处方拓展信息
                     RecipeExtend recipeExtend =recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
                     prb.setRecipeExtend(recipeExtendBean);
-                    //返回是否隐方
-                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                    Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
-                    prb.setIsHiddenRecipeDetail((boolean)isHiddenRecipeDetail);
-
                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && OrderStatusConstant.READY_PAY.equals(order.getStatus())) {
                         prb.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(recipe.getSignDate()));
                     }

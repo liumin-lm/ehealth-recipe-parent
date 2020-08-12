@@ -433,15 +433,21 @@ public class RecipeServiceSub {
                         detail.setPack(organDrug.getPack());
                         //中药基础数据处理
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-//                            detail.setUsePathways(recipe.getTcmUsePathways());
-//                            detail.setUsingRate(recipe.getTcmUsingRate());
+                            if(StringUtils.isBlank(detail.getUsePathways())){
+                                detail.setUsePathways(recipe.getTcmUsePathways());
+                            }
+                            if(StringUtils.isBlank(detail.getUsingRate())){
+                                detail.setUsingRate(recipe.getTcmUsingRate());
+                            }
 
                             //date 20200526
                             //构建处方初始化处方药品详情的时候用recipe的剂数
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            //detail.setUseDays(recipe.getCopyNum());
+                            if(detail.getUseDays()==null){
+                                detail.setUseDays(recipe.getCopyNum());
+                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -451,7 +457,9 @@ public class RecipeServiceSub {
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            //detail.setUseDays(recipe.getCopyNum());
+                            if(detail.getUseDays()==null){
+                                detail.setUseDays(recipe.getCopyNum());
+                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -1503,18 +1511,20 @@ public class RecipeServiceSub {
         }
 
         //中药处方处理
-//        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-//            if (CollectionUtils.isNotEmpty(recipedetails)) {
-//                Recipedetail recipedetail = recipedetails.get(0);
-//                recipe.setTcmUsePathways(recipedetail.getUsePathways());
-//                recipe.setTcmUsingRate(recipedetail.getUsingRate());
-//            }
-//        }
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+            if (CollectionUtils.isNotEmpty(recipedetails)) {
+                Recipedetail recipedetail = recipedetails.get(0);
+                recipe.setTcmUsePathways(recipedetail.getUsePathways());
+                recipe.setTcmUsingRate(recipedetail.getUsingRate());
+            }
+        }
         map.put("patient", patient);
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
         //隐方
+        boolean isHiddenRecipeDetail=false;
         if(isDoctor==false){
-            if(!recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
+            boolean isReturnRecipeDetail=recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
+            if(!isReturnRecipeDetail){
                 List<RecipeDetailBean> recipeDetailVOs=(List<RecipeDetailBean>)map.get("recipedetails");
                 if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
                     for(int j=0;j<recipeDetailVOs.size();j++){
@@ -1523,11 +1533,9 @@ public class RecipeServiceSub {
                     }
                 }
             }
+            isHiddenRecipeDetail=!isReturnRecipeDetail;
         }
-        //返回是否隐方
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
-        map.put("isHiddenRecipeDetail",(boolean)isHiddenRecipeDetail);
+        map.put("isHiddenRecipeDetail",isHiddenRecipeDetail);
 
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);

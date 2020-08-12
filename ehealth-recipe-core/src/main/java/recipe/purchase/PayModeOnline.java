@@ -397,7 +397,9 @@ public class PayModeOnline implements IPurchaseService {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
             if(decoctionWay != null){
-                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                if(decoctionWay.getDecoctionPrice() != null){
+                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                }
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
 
@@ -548,6 +550,17 @@ public class PayModeOnline implements IPurchaseService {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (null != recipeExtend){
                 updateTakeDrugWayReqTO.setRegisterId(recipeExtend.getRegisterID());
+                if(recipeExtend.getDecoctionId() != null){
+                    //煎法Code
+                    DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    if(decoctionWay.getDecoctionCode() != null){
+                        updateTakeDrugWayReqTO.setDecoctionCode(decoctionWay.getDecoctionCode());
+                    } else {
+                        LOG.error("updateGoodsReceivingInfo error 未获取到有效煎法 recipeId:{}，decoctionId{}.", recipeId,recipeExtend.getDecoctionId());
+                    }
+
+                }
             }
             updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
             updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
@@ -582,6 +595,8 @@ public class PayModeOnline implements IPurchaseService {
                         //收货地址
                         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                         updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
+                        //代煎费
+                        updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
                     }
                 }
             if (recipe.getClinicId() != null) {
@@ -712,7 +727,16 @@ public class PayModeOnline implements IPurchaseService {
                 updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
                         order.getExpectSendDate() + " 00:00:00" : null);
                 updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
-                updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
+
+                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                if(recipeExtend != null && recipeExtend.getDecoctionId() != null){
+                    //煎法Code
+                    DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                    DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    updateTakeDrugWayReqTO.setDecoctionCode(decoctionWay.getDecoctionCode());
+                    updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
+                }
             }else{
                 LOG.info("同步配送信息，组装配送订单失败！");
                 HisResponseTO hisResponseTO = new HisResponseTO();

@@ -8,8 +8,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipesQueryVO;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -42,6 +44,8 @@ import recipe.util.SqlOperInfo;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 处方DAO
@@ -1896,6 +1900,107 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return diseaseIds;
     }
 
+    public List<String> findCommonSymptomIdByDoctorAndOrganId(final int doctorId, final int organId) {
+
+        final String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(0), DateConversion.DEFAULT_DATE_TIME);
+        final String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(90), DateConversion.DEFAULT_DATE_TIME);
+        //查询医生三个月内开的数据
+        HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "SELECT re.symptomId FROM Recipe r ,RecipeExtend re WHERE " +
+                        "r.recipeId=re.recipeId and r.doctor = :doctorId AND r.clinicOrgan = :organId AND re.symptomId is not null AND r.createDate between '" + startDt + "' and '" + endDt + "'";
+                Query query = ss.createQuery(hql);
+                query.setParameter("doctorId", doctorId);
+                query.setParameter("organId", organId);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        //单独处理多证候的处方单
+        List<String> list = action.getResult();
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        Map<String, Integer> diseaseMap = Maps.newHashMap();
+        //循环计算每一个诊断的次数
+        for (String s : list) {
+            if (StringUtils.isNotEmpty(s)) {
+                String[] strings = s.split(";");
+                if (strings != null && strings.length > 0) {
+                    for (String s1 : strings) {
+                        Integer i = diseaseMap.get(s1);
+                        if (i == null) {
+                            diseaseMap.put(s1, 1);
+                        } else {
+                            diseaseMap.put(s1, i + 1);
+                        }
+                    }
+                }
+            }
+        }
+        //将map装换为list并按开诊断个数排序
+        List<Map.Entry<String, Integer>> entryList = new ArrayList<Map.Entry<String, Integer>>(diseaseMap.entrySet());
+        Collections.sort(entryList, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue() - o1.getValue();
+            }
+        });
+        List<String> diseaseIds = Lists.newArrayList();
+        Iterator<Map.Entry<String, Integer>> iterator = entryList.iterator();
+        while (iterator.hasNext()) {
+            diseaseIds.add(iterator.next().getKey());
+        }
+        return diseaseIds;
+    }
+
+    /**
+     * 查询医生对应机构 常用证候 最多显示10条
+     * liumin
+     *
+     * @param doctor
+     * @param organId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<Symptom> findCommonSymptomByDoctorAndOrganId(final int doctor, final int organId,
+                                                           final int start, final int limit) {
+        final List<String> organSymptomIdsTemp = findCommonSymptomIdByDoctorAndOrganId(doctor, organId);
+        if (organSymptomIdsTemp == null || organSymptomIdsTemp.size() == 0) {
+            return Lists.newArrayList();
+        }
+        List<Integer> organSymptomIds = Stream.of(organSymptomIdsTemp.toArray(new String[organSymptomIdsTemp.size()])).map(Integer::parseInt).collect(Collectors.toList());
+        HibernateStatelessResultAction<List<Symptom>> action = new AbstractHibernateStatelessResultAction<List<Symptom>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select a from Symptom a where "
+                        + "  a.symptomId in (:organSymptomIds) ");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("organSymptomIds", organSymptomIds);
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        List<Symptom> list = action.getResult();
+        if (null == list || list.size() == 0) {
+            return Lists.newArrayList();
+        }
+        //排序
+        List<Symptom> symptoms = Lists.newArrayList();
+        for (int i = 0; i < organSymptomIds.size(); i++) {
+            for (int x = 0; x < list.size(); x++) {
+                if (list.get(x).getSymptomId().equals(organSymptomIds.get(i))) {
+                    symptoms.add(list.get(x));
+                }
+            }
+        }
+        return symptoms;
+    }
+
 
     /**
      * 查询指定医生开过处方的患者Id列表
@@ -2300,10 +2405,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," +
-                        "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode, s.recipeSource,s.payFlag from (");
+                        "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode, s.recipeSource,s.payFlag ,s.recipeId from (");
                 hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
                         "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as Status,t.TotalMoney as fee," +
-                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag FROM cdr_recipe t " +
+                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag,t.recipeId FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
                 hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 ");
                 //添加前置的逻辑：前置时，一次审核不通过，处方判定为待审核，需要在待处理列表中，显示状态为待处理
@@ -2323,18 +2428,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 if (CollectionUtils.isNotEmpty(specialStatusList)) {
                     hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                             "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
-                            "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
+                            "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag,w.recipeId FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
                             "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.Status NOT IN (:specialStatusList) and w.recipeSourceType = 1 ");
                     hql.append("UNION ALL ");
                     hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
                             "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case when k.Effective is null then t.TotalMoney else k.ActualPrice end) as fee," +
-                            "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag FROM cdr_recipe t " +
+                            "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag,t.recipeId FROM cdr_recipe t " +
                             "left join cdr_recipeorder k on t.OrderCode=k.OrderCode " +
                             "WHERE t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList) and t.recipeSourceType = 1 ");
                 } else {
                     hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                             "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
-                            "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
+                            "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag,w.recipeId FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
                             "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
 
                 }
@@ -2361,7 +2466,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         patientRecipeBean.setRecordCode(objs[1].toString());
                         patientRecipeBean.setRecordId(Integer.parseInt(objs[2].toString()));
                         patientRecipeBean.setMpiId(objs[3].toString());
-                        patientRecipeBean.setOrganDiseaseName(objs[4].toString());
+                        if (null != objs[4]) {
+                            patientRecipeBean.setOrganDiseaseName(objs[4].toString());
+                        }
                         patientRecipeBean.setStatusCode(Integer.parseInt(objs[5].toString()));
                         patientRecipeBean.setTotalMoney(new BigDecimal(objs[6].toString()));
                         patientRecipeBean.setSignDate((Date) objs[7]);
@@ -2382,6 +2489,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         }
                         if (null != objs[15]) {
                             patientRecipeBean.setPayFlag(Integer.parseInt(objs[15].toString()));
+                        }
+                        if (null != objs[16]) {
+                            patientRecipeBean.setRecipeId(Integer.parseInt(objs[16].toString()));
                         }
                         backList.add(patientRecipeBean);
                     }

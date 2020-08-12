@@ -39,6 +39,14 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
     @DAOMethod(sql = "from DecoctionWay where organId =:organId order by sort", limit = 0)
     public abstract List<DecoctionWayBean> findAllDecoctionWayByOrganId(@DAOParam("organId")Integer organId);
 
+    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionCode = :decoctionCode")
+    public abstract DecoctionWay getDecoctionWayByOrganIdAndCode(@DAOParam("organId")Integer organId
+                                                                ,@DAOParam("decoctionCode")String decoctionCode);
+
+    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionText = :decoctionText")
+    public abstract DecoctionWay getDecoctionWayByOrganIdAndText(@DAOParam("organId")Integer organId
+                                                                ,@DAOParam("decoctionText")String decoctionText);
+
     @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
     public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId")Integer decoctionId);
 

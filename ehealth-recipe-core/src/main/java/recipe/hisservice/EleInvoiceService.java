@@ -225,7 +225,9 @@ public class EleInvoiceService {
             eleInvoiceReqTo.setDeptId(consultBean.getConsultDepart());
             eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(consultBean.getConsultDepart()));
             InvoiceDTO invoiceDTO = new InvoiceDTO();
-
+            if (consultExDTO.getInvoiceNumber()!=null){
+                invoiceDTO.setInvoiceNumber(consultExDTO.getInvoiceNumber());
+            }
             invoiceDTO.setPayId(consultBean.getConsultId());
             invoiceDTO.setPayAmount(consultBean.getConsultCost());
             invoiceDTO.setPayWay(consultBean.getPayWay());
@@ -370,6 +372,12 @@ public class EleInvoiceService {
                 map.put("einvoiceNumber", result.getInvoiceNumber());
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
             }
+            //复诊
+            if (null !=result.getInvoiceType() && "0".equals(result.getInvoiceType()) && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()){
+                IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
+                iConsultExService.updateInvoiceNumberByConsultId(result.getInvoiceNumber(),result.getRequestId());
+            }
+
             List<String> list = Arrays.asList(result.getInvoiceUrl().split(","));
             LOGGER.info("EleInvoiceService.stringToList list :{}", JSONUtils.toString(list));
             return list;

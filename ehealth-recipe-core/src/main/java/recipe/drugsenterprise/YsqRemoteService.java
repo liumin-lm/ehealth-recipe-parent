@@ -135,6 +135,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + drugsEnterprise.getName());
+                //推送审核结果
+                pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
                 if (new Integer(3).equals(drugsEnterprise.getExpressFeePayWay())){
                     //推送处方运费待支付消息提醒
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
@@ -150,9 +152,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             result.setMsg("推送处方失败，" + result.getMsg());
             result.setCode(DrugEnterpriseResult.FAIL);
         }
-
-        //推送审核结果
-        pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
 
         return result;
     }
@@ -232,9 +231,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
 
-            //recipeMap.put("HOSNAME", organ.getName());
-            recipeMap.put("HOSCODE", "12120104401232064P");
-            recipeMap.put("HOSNAME", "天津市黄河医院");
+            recipeMap.put("HOSNAME", organ.getName());
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
             //处方pdf文件Id   有药师签名则推送药师签名的pdf  无则推送医生签名的pdf
@@ -705,8 +702,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
             recipeMap.put("HOSNAME", organ.getName());
-            recipeMap.put("HOSCODE", "12120104401232064P");
-            recipeMap.put("HOSNAME", "天津市黄河医院");
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
             if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
@@ -805,7 +800,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                 RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
                 String url = recipeParameterDao.getByName("fileImgUrl");
-                recipeMap.put("PDF_ID", url + recipe.getChemistSignFile());
+                url += null != recipe.getChemistSignFile() ?
+                        LocalStringUtil.toString(recipe.getChemistSignFile()) : LocalStringUtil.toString(recipe.getSignFile());
+                recipeMap.put("PDF_ID", url);
             }
             List<Map<String, String>> recipeDetailList = new ArrayList<>();
             recipeMap.put("DETAILS", recipeDetailList);
