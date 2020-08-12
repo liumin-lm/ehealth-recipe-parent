@@ -52,8 +52,8 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
      * @param symptomCode
      * @return
      */
-    @DAOMethod(sql = "update  Symptom  set symptomName=:symptomName   where symptomCode=:symptomCode ")
-    public abstract void updateBySymptomCode(@DAOParam("symptomCode") String symptomCode,@DAOParam("symptomName") String symptomName);
+    @DAOMethod(sql = "update  Symptom  set symptomName=:symptomName   where symptomCode=:symptomCode and organId=:organId ")
+    public abstract void updateBySymptomCode(@DAOParam("symptomCode") String symptomCode,@DAOParam("symptomName") String symptomName,@DAOParam("organId") Integer organId );
 
     /**
      * 通过orgsnId和症候Id获取
