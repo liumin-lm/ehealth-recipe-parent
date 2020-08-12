@@ -1182,7 +1182,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 重新开具 或这续方时校验 药品数据
-     * 还有暂存的处方点进来时做药房配置的判断
+     *
      * @param recipeId
      * @return
      */
@@ -1195,6 +1195,29 @@ public class RecipeService extends RecipeBaseService {
             return Lists.newArrayList();
         }
         List<RecipeDetailBean> detailBeans = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        return detailBeans;
+    }
+
+    /**
+     * 重新开具 或这续方时校验 药品数据---new校验接口，原接口保留-app端有对validateDrugs单独处理
+     * 还有暂存的处方点进来时做药房配置的判断
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public void validateDrugsData(Integer recipeId) {
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
+        if (null == dbRecipe) {
+            LOGGER.error("validateDrugsData 平台无该处方对象. recipeId=[{}] ", recipeId);
+            throw new DAOException(609,"获取不到处方数据");
+        }
+        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isEmpty(details)) {
+           return;
+        }
+        List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         //药房配置校验
         if (CollectionUtils.isNotEmpty(detailBeans)){
             List<PharmacyTcm> pharmacyTcms = pharmacyTcmDAO.findByOrganId(dbRecipe.getClinicOrgan());
@@ -1202,11 +1225,8 @@ public class RecipeService extends RecipeBaseService {
                 List<Integer> pharmacyIdList = pharmacyTcms.stream().map(PharmacyTcm::getPharmacyId).collect(Collectors.toList());
                 OrganDrugList organDrugList;
                 for (RecipeDetailBean recipedetail : detailBeans) {
-                    if (recipedetail.getPharmacyId() == null){
-                        continue;
-                    }
-                    if (recipedetail.getPharmacyId() == 0){
-                        continue;
+                    if (recipedetail.getPharmacyId() == null || recipedetail.getPharmacyId() == 0){
+                        throw new DAOException(609,"您所在的机构已更新药房配置，需要重新开具处方");
                     }
                     //判断药房机构库配置
                     if (!pharmacyIdList.contains(recipedetail.getPharmacyId())){
@@ -1229,7 +1249,6 @@ public class RecipeService extends RecipeBaseService {
             }
 
         }
-        return detailBeans;
     }
 
     /**
