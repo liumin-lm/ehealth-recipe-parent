@@ -256,6 +256,7 @@ public class RecipeHisService extends RecipeBaseService {
      */
     @RpcService
     public boolean recipeStatusUpdateWithOrganId(Integer recipeId, Integer otherOrganId, String hisRecipeStatus) {
+        LOGGER.info("recipeStatusUpdateWithOrganId  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
         boolean flag = true;
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
@@ -269,6 +270,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (isHisEnable(sendOrganId)) {
+            LOGGER.info("recipeStatusUpdateWithOrganId  sendOrganId:{}", sendOrganId);
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
 
@@ -287,7 +289,10 @@ public class RecipeHisService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(hisRecipeStatus)) {
                     request.setRecipeStatus(hisRecipeStatus);
                 }
-
+                EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+                String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+                request.setDoctorNumber(jobNumber);
+                LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", request);
                 flag = service.recipeUpdate(request);
             } catch (Exception e) {
                 LOGGER.error("recipeStatusUpdateWithOrganId error ", e);

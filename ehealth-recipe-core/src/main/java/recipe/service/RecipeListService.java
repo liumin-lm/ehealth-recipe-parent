@@ -1129,15 +1129,16 @@ public class RecipeListService extends RecipeBaseService{
             LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方"
                     ,RecipeUtil.isTcmType(recipe.getRecipeType()),(boolean)isHiddenRecipeDetail);
             if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
-                    &&(boolean)isHiddenRecipeDetail==true//隐方
-                    &&(PayConstant.PAY_FLAG_PAY_SUCCESS != recipe.getPayFlag()) //支付状态为非已支付
+                    &&(boolean)isHiddenRecipeDetail==true//隐方)
             ) {
+                //支付状态为非已支付
                 if(order ==null){
                      if(recipe.getPayMode()==1){//支付方式：线上支付
                          LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"1");
                          return false;
                      }else{
                          if(recipe.getStatus()==6){// 处方状态已完成
+                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"22");
                          }else{
                              LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"2");
                              return false;
@@ -1146,12 +1147,14 @@ public class RecipeListService extends RecipeBaseService{
                 }else{
                     if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付
                         if((order.getPayFlag()==1)){//返回详情
+                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"33");
                         }else{
                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"3");
                             isReturnRecipeDetail=false;//不返回详情
                         }
                     }else{//线下支付
                         if(recipe.getStatus()==6){// 处方状态已完成
+                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"44");
                         }else{
                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"4");
                             return false;
