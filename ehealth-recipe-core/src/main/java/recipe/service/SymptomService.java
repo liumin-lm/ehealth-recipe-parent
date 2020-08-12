@@ -8,6 +8,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.recipe.service.ISymptomService;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -302,6 +303,7 @@ public class SymptomService implements ISymptomService {
 
             ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
             //导入症候记录
+            UserRoleToken urt = UserRoleToken.getCurrent();
             importExcelInfoDTO.setFileName(originalFilename);
             importExcelInfoDTO.setExcelType(15);
             importExcelInfoDTO.setUploaderName(operator);
@@ -313,6 +315,7 @@ public class SymptomService implements ISymptomService {
             importExcelInfoDTO.setExecuteDate(new Date());
             importExcelInfoDTO.setErrMsg(errMsgAll.toString());
             importExcelInfoDTO.setOssId(ossId);
+            importExcelInfoDTO.setManageUnit(urt.getManageUnit());
             importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
