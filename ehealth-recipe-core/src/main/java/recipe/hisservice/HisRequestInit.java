@@ -601,7 +601,7 @@ public class HisRequestInit {
                         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                         //获取医保支付流程配置（2-原省医保 3-长三角）
                         Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
-                        if (new Integer(3).equals(insuredAreaType)) {
+                        if (new Integer(3).equals(insuredAreaType) && StringUtils.isNotEmpty(extend.getInsuredArea())) {
                             //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
                             requestTO.setInsuredAreaType("1");
                         }
