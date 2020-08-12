@@ -1182,7 +1182,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 重新开具 或这续方时校验 药品数据
-     * 还有暂存的处方点进来时做药房配置的判断
+     *
      * @param recipeId
      * @return
      */
@@ -1193,6 +1193,24 @@ public class RecipeService extends RecipeBaseService {
         if (null == dbRecipe) {
             LOGGER.error("validateDrugs 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
             return Lists.newArrayList();
+        }
+        List<RecipeDetailBean> detailBeans = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        return detailBeans;
+    }
+
+    /**
+     * 重新开具 或这续方时校验 药品数据---new校验接口，原接口保留-app端有对validateDrugs单独处理
+     * 还有暂存的处方点进来时做药房配置的判断
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public void validateDrugsData(Integer recipeId) {
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
+        if (null == dbRecipe) {
+            LOGGER.error("validateDrugsData 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
+            throw new DAOException(609,"获取不到处方数据");
         }
         List<RecipeDetailBean> detailBeans = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
         //药房配置校验
@@ -1229,7 +1247,6 @@ public class RecipeService extends RecipeBaseService {
             }
 
         }
-        return detailBeans;
     }
 
     /**
