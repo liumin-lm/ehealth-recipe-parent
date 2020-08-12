@@ -1206,13 +1206,19 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void validateDrugsData(Integer recipeId) {
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
         if (null == dbRecipe) {
-            LOGGER.error("validateDrugsData 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
+            LOGGER.error("validateDrugsData 平台无该处方对象. recipeId=[{}] ", recipeId);
             throw new DAOException(609,"获取不到处方数据");
         }
-        List<RecipeDetailBean> detailBeans = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isEmpty(details)) {
+            LOGGER.error("validateDrugsData 平台无该处方明细对象. recipeId=[{}]", recipeId);
+            throw new DAOException(609,"获取不到处方明细数据");
+        }
+        List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         //药房配置校验
         if (CollectionUtils.isNotEmpty(detailBeans)){
             List<PharmacyTcm> pharmacyTcms = pharmacyTcmDAO.findByOrganId(dbRecipe.getClinicOrgan());
