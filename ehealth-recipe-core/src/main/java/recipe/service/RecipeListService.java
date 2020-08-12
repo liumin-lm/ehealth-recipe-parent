@@ -1116,7 +1116,7 @@ public class RecipeListService extends RecipeBaseService{
      * @author liumin
      */
     public boolean isReturnRecipeDetail(Integer recipeId){
-        boolean isReturnRecipeDetail=true;//返回详情
+        boolean isReturnRecipeDetail=true;//默认返回详情
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1127,39 +1127,24 @@ public class RecipeListService extends RecipeBaseService{
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
             LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方"
-                    ,RecipeUtil.isTcmType(recipe.getRecipeType()),(boolean)isHiddenRecipeDetail);
+                    ,RecipeUtil.isTcmType(recipe.getRecipeType()),isHiddenRecipeDetail);
             if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
                     &&(boolean)isHiddenRecipeDetail==true//隐方)
             ) {
                 //支付状态为非已支付
-                if(order ==null){
-                    LOGGER.info("isReturnRecipeDetail  order ==null");
-                     if(recipe.getPayMode()==1){//支付方式：线上h支付
-                         LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"1");
-                         return false;
-                     }else{
-                         if(recipe.getStatus()==6){// 处方状态已完成
-                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"22");
-                         }else{
-                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"2");
-                             return false;
-                         }
-                     }
+                if(order == null){
+                    if(recipe.getStatus() != 6){// 未完成
+                        isReturnRecipeDetail=false;//不返回详情
+                    }
                 }else{
                     LOGGER.info("isReturnRecipeDetail  order ！=null");
-                    if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付
-                        if((order.getPayFlag()==1)){//返回详情
-                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"33");
-                        }else{
-                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"3");
+                    if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付（包括卫宁付）
+                        if((order.getPayFlag() !=1 )){
                             isReturnRecipeDetail=false;//不返回详情
                         }
                     }else{//线下支付
-                        if(recipe.getStatus()==6){// 处方状态已完成
-                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"44");
-                        }else{
-                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"4");
-                            return false;
+                        if(recipe.getStatus() !=6 ){// 处方状态未完成
+                            isReturnRecipeDetail=false;//不返回详情
                         }
                     }
 
