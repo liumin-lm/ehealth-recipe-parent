@@ -252,6 +252,12 @@ public class PayModeTFDS implements IPurchaseService{
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }
+        //根据药企判断是否药店取药改药品价格
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if(drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            purchaseService.updateRecipeDetail(recipeId);
+        }
         return result;
     }
 
