@@ -353,6 +353,9 @@ public class RecipeBean implements Serializable {
      */
     private String medicalTypeText;
 
+    @ItemProperty(alias = "过敏源")
+    private List<AllergieBean> allergies;
+
     public RecipeBean() {
     }
 
@@ -1280,5 +1283,13 @@ public class RecipeBean implements Serializable {
 
     public void setDetailData(List<HisRecipeDetailBean> detailData) {
         this.detailData = detailData;
+    }
+
+    public List<AllergieBean> getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(List<AllergieBean> allergies) {
+        this.allergies = allergies;
     }
 }

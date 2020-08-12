@@ -267,17 +267,27 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         // 检查单信息
         List<AuditLisForm> lisForms = new ArrayList<>();
 
-        // 过敏源
-        List<AuditAllergy> auditAllergys = new ArrayList<>();
-
         // 患者信息
         AuditPatient auditPatient = new AuditPatient();
-        auditPatient.setAllergies(auditAllergys);
         auditPatient.setDiagnoses(diagnoses);
         auditPatient.setLisForms(lisForms);
         auditPatient.setName(patient.getPatientName());
         auditPatient.setBirthDate(DateConversion.formatDate(patient.getBirthday()));
         auditPatient.setGender(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
+
+        // 过敏源
+        if (CollectionUtils.isNotEmpty(recipe.getAllergies())) {
+            List<AuditAllergy> auditAllergys = new ArrayList<>();
+            recipe.getAllergies().forEach(item -> {
+                AuditAllergy auditAllergy = new AuditAllergy();
+                auditAllergy.setCode(item.getCode());
+                auditAllergy.setName(item.getName());
+                auditAllergy.setType(item.getType());
+                auditAllergys.add(auditAllergy);
+            });
+            auditPatient.setAllergies(auditAllergys);
+        }
+
 
         // 处方信息
         List<AuditPrescription> prescriptions = new ArrayList<>();
@@ -303,17 +313,18 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         for (RecipeDetailBean recipedetail : recipedetails) {
             medicine = new AuditMedicine();
             medicine.setName(recipedetail.getDrugName());
-            Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
-            if (ObjectUtils.isEmpty(targetDrugId)) {
-                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
-                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
-                    medicine.setHisCode(organDrug.getRegulationDrugCode());
-                } else {
-                    medicine.setHisCode(LocalStringUtil.toString(recipedetail.getDrugId()));
-                }
-            } else {
-                medicine.setHisCode(LocalStringUtil.toString(targetDrugId));
-            }
+//            Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
+//            if (ObjectUtils.isEmpty(targetDrugId)) {
+//                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+//                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
+//                    medicine.setHisCode(organDrug.getRegulationDrugCode());
+//                } else {
+//                    medicine.setHisCode(LocalStringUtil.toString(recipedetail.getDrugId()));
+//                }
+//            } else {
+//                medicine.setHisCode(LocalStringUtil.toString(targetDrugId));
+//            }
+            medicine.setHisCode(String.valueOf(recipedetail.getDrugId()));
             medicine.setSpec(recipedetail.getDrugSpec());
             medicine.setGroup(recipedetail.getDrugGroup());
             medicine.setUnit(recipedetail.getUseDoseUnit());

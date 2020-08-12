@@ -75,6 +75,10 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private Integer recipeSource;
 
+    private Integer payFlag;//支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败
+
+    private boolean isHiddenRecipeDetail;//是否隐方
+
     private List<RecipeDetailBean> recipeDetail;
 
     /**
@@ -116,6 +120,22 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      * 第三方跳转url
      */
     private String thirdUrl;
+
+    public boolean getIsHiddenRecipeDetail() {
+        return isHiddenRecipeDetail;
+    }
+
+    public void setIsHiddenRecipeDetail(boolean hiddenRecipe) {
+        isHiddenRecipeDetail = hiddenRecipe;
+    }
+
+    public Integer getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(Integer payFlag) {
+        this.payFlag = payFlag;
+    }
 
     public PatientTabStatusRecipeDTO() {
     }

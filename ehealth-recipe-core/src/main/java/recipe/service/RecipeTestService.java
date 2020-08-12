@@ -270,4 +270,24 @@ public class RecipeTestService {
         insertDrugCategoryByOrganId(targetOrganId, date);
     }
 
+    @RpcService
+    public void saveOrUpdateRecipeParames(RecipeParameter recipeParameter, Integer flag){
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        if (1 == flag) {
+            recipeParameterDao.save(recipeParameter);
+        } else {
+            recipeParameterDao.update(recipeParameter);
+        }
+    }
+
+    @RpcService
+    public void updateRecipeOrder(String orderCode){
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        Map map = new HashMap<>();
+        map.put("status", 1);
+        map.put("effective", 0);
+        map.put("payFlag", 0);
+        recipeOrderDAO.updateByOrdeCode(orderCode, map);
+    }
+
 }

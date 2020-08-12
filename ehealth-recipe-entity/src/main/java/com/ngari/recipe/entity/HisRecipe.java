@@ -75,7 +75,7 @@ public class HisRecipe implements Serializable {
     private String tcmUsingRate; // varchar(20) DEFAULT NULL COMMENT '中药处方用量',
     @ItemProperty(alias = "贴数")
     private String tcmNum; // int(11) DEFAULT '0' COMMENT '贴数',
-    @ItemProperty(alias = "1 自费  2 医保")
+    @ItemProperty(alias = "结算类型/医保类型 1 自费  2 医保")
     private Integer medicalType; // tinyint(4) NOT NULL DEFAULT '1' COMMENT '1 自费  2 医保',
     @ItemProperty(alias = "提示文本")
     private String showText; // varchar(250) DEFAULT NULL COMMENT '提示文本',
@@ -97,6 +97,20 @@ public class HisRecipe implements Serializable {
     private Date createTime;
     @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
     private Integer recipePayType;
+    @ItemProperty(alias = "配送方式/购药方式 1配送到家 2医院取药 3药店取药")
+    private Integer giveMode;
+    @ItemProperty(alias = "配送药企代码")
+    private String deliveryCode;
+    @ItemProperty(alias = "配送药企名称")
+    private String deliveryName;
+    @ItemProperty(alias = "配送地址")
+    private String sendAddr;
+    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
+    private Integer recipeSource;
+    @ItemProperty(alias = "收货人姓名")
+    private String receiverName;
+    @ItemProperty(alias = "收货人电话")
+    private String receiverTel;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -442,5 +456,59 @@ public class HisRecipe implements Serializable {
         this.fromFlag = fromFlag;
     }
 
+    public Integer getGiveMode() {
+        return giveMode;
+    }
 
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
+    }
+
+    public String getDeliveryCode() {
+        return deliveryCode;
+    }
+
+    public void setDeliveryCode(String deliveryCode) {
+        this.deliveryCode = deliveryCode;
+    }
+
+    public String getDeliveryName() {
+        return deliveryName;
+    }
+
+    public void setDeliveryName(String deliveryName) {
+        this.deliveryName = deliveryName;
+    }
+
+    public String getSendAddr() {
+        return sendAddr;
+    }
+
+    public void setSendAddr(String sendAddr) {
+        this.sendAddr = sendAddr;
+    }
+
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
+    public String getReceiverTel() {
+        return receiverTel;
+    }
+
+    public void setReceiverTel(String receiverTel) {
+        this.receiverTel = receiverTel;
+    }
 }

@@ -2,6 +2,7 @@ package recipe.purchase;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
@@ -32,6 +33,8 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -214,6 +217,23 @@ public class PayModeTFDS implements IPurchaseService{
         order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
+        //设置中药代建费
+        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+        if(decoctionId != null){
+            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            if(decoctionWay != null){
+                if(decoctionWay.getDecoctionPrice() != null){
+                    calculateFee = 1;
+                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                }
+                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap
+                    .of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
+            } else {
+                LOGGER.error("未获取到对应的代煎费，recipeId={},decoctionId={}",dbRecipe.getRecipeId(),decoctionId);
+            }
+        }
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
         //设置为有效订单
         order.setEffective(1);

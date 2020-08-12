@@ -261,4 +261,10 @@ public class SaleDrugListService implements ISaleDrugListService {
         }
         busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + drugsEnterprise.getName() + "】删除" + msg.toString(), drugsEnterprise.getName());
     }
+
+    @RpcService
+    public void updateIntroduceByDepId(Integer depId, Integer introduce){
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        saleDrugListDAO.updateIntroduceByDepId(depId, introduce);
+    }
 }

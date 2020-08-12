@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -15,14 +14,11 @@ import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -32,7 +28,8 @@ import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -51,7 +48,6 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -68,6 +64,7 @@ import recipe.purchase.PurchaseEnum;
 import recipe.purchase.PurchaseService;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
+import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
@@ -208,6 +205,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         }*/
         request.setOrganID(sendOrganId.toString());
+        LOGGER.info("recipeHisService recipeId:{} request:{}",recipeId,JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);
     }
@@ -258,6 +256,7 @@ public class RecipeHisService extends RecipeBaseService {
      */
     @RpcService
     public boolean recipeStatusUpdateWithOrganId(Integer recipeId, Integer otherOrganId, String hisRecipeStatus) {
+        LOGGER.info("recipeStatusUpdateWithOrganId  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
         boolean flag = true;
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
@@ -271,6 +270,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (isHisEnable(sendOrganId)) {
+            LOGGER.info("recipeStatusUpdateWithOrganId  sendOrganId:{}", sendOrganId);
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
 
@@ -289,7 +289,10 @@ public class RecipeHisService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(hisRecipeStatus)) {
                     request.setRecipeStatus(hisRecipeStatus);
                 }
-
+                EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+                String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+                request.setDoctorNumber(jobNumber);
+                LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", request);
                 flag = service.recipeUpdate(request);
             } catch (Exception e) {
                 LOGGER.error("recipeStatusUpdateWithOrganId error ", e);
@@ -624,10 +627,11 @@ public class RecipeHisService extends RecipeBaseService {
      * 处方省医保预结算接口
      *
      * @param recipeId
+     * @param extInfo 扩展信息
      * @return
      */
     @RpcService
-    public Map<String, Object> provincialMedicalPreSettle(Integer recipeId) {
+    public Map<String, Object> provincialMedicalPreSettle(Integer recipeId,Map<String, String> extInfo) {
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -642,6 +646,31 @@ public class RecipeHisService extends RecipeBaseService {
             request.setClinicOrgan(recipe.getClinicOrgan());
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());
+            request.setDoctorId(recipe.getDoctor() + "");
+            request.setDoctorName(recipe.getDoctorName());
+            request.setDepartId(recipe.getDepart() + "");
+            //参保地区行政区划代码
+            request.setInsuredArea(MapValueUtil.getString(extInfo, "insuredArea"));
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            //获取医保支付流程配置（2-原省医保 3-长三角）
+            Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
+            if (new Integer(3).equals(insuredAreaType)){
+                if (StringUtils.isEmpty(request.getInsuredArea())){
+                    result.put("msg", "参保地区行政区划代码为空,无法进行预结算");
+                    return result;
+                }
+                //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
+                request.setInsuredAreaType("1");
+            }
+            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext !=null){
+                ext.setRegisterID(ext.getRegisterID());
+            }
+            try {
+                request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+            } catch (ControllerException e) {
+                LOGGER.warn("provincialMedicalPreSettle 字典转化异常");
+            }
             //患者信息
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
@@ -660,9 +689,14 @@ public class RecipeHisService extends RecipeBaseService {
                     //总金额
                     String totalAmount = hisResult.getData().getZje();
                     if (StringUtils.isNotEmpty(cashAmount) && StringUtils.isNotEmpty(fundAmount) && StringUtils.isNotEmpty(totalAmount)) {
-                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                         if (ext != null) {
-                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount", fundAmount, "cashAmount", cashAmount);
+                            Map<String, String> map = Maps.newHashMap();
+                            map.put("preSettleTotalAmount",totalAmount);
+                            map.put("fundAmount",fundAmount);
+                            map.put("cashAmount",cashAmount);
+                            if (StringUtils.isNotEmpty(request.getInsuredArea())){
+                                map.put("insuredArea",request.getInsuredArea());
+                            }
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                         } else {
                             ext = new RecipeExtend();

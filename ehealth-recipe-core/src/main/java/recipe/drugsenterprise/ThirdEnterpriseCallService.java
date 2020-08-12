@@ -27,6 +27,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -50,11 +51,13 @@ import recipe.serviceprovider.BaseService;
 import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Future;
 
 /**
  * 第三方药企调用接口,历史原因存在一些平台的接口
@@ -94,6 +97,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private YsqRemoteService ysqRemoteService;
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+
+    static ThreadLocal<Map> drugInventoryRequestMap = new ThreadLocal<>();
 
     /**
      * 待配送状态
@@ -1510,20 +1515,23 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         return result;
     }
 
+    /**
+     *
+     * @param paramMap
+     * @return
+     */
     @RpcService
     public Integer scanStockEnterpriseForHis(Map<String, Object> paramMap) {
         LOGGER.info("scanStockEnterpriseForHis:{}.", JSONUtils.toString(paramMap));
         Integer organId = (Integer)paramMap.get("organId");
         String enterpriseCode = (String)paramMap.get("enterpriseCode");
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseCode);
         if (drugsEnterprise == null) {
             LOGGER.info("scanStockEnterpriseForHis 没有查询到对应的药企");
             return 0;
         }
-        Integer result = 1;
         List data = (List)paramMap.get("data");
         if (data != null) {
             for (int i = 0; i < data.size(); i++) {
@@ -1535,34 +1543,85 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 }
                 OrganDrugList organDrugList = null;
                 try {
+                    //TODO 2 drugCode含义
                     organDrugList = organDrugListDAO.getByOrganIdAndProducerCode(organId, drugCode);
                 } catch (Exception e) {
                     LOGGER.error("scanStockEnterpriseForHis 查询机构药品错误 drugCode:{}.", drugCode , e);
+                    return 0;
                 }
+                //TODO 1约定的enterpriseCode=》appKey
+//                if("12345".equals(enterpriseCode)){//除马路以外的其他药企库存查询
+//                    map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
+//                    drugInventoryRequestMap.set(map);
+//                    return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
+//                }else{//马路
+                    return execScanStockEnterpriseForMaLu(organDrugList,drugsEnterprise,total);
+//                }
 
-                if (organDrugList != null) {
-                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
-                    if (saleDrugList != null) {
-                        if (saleDrugList.getInventory() != null) {
-                            if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
-                                result = 0;
-                            } else {
-                                try{
-                                    saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), saleDrugList.getDrugId(), new BigDecimal(total));
-                                }catch(Exception e){
-                                    LOGGER.error("scanStockEnterpriseForHis 扣库存失败,msg:{}.", e.getMessage(), e);
-                                }
-                            }
-                        } else {
-                            return 0;
-                        }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 提供给his查询库存
+     * @return
+     */
+    private Integer execScanStockEnterpriseForOther(Integer depId, Integer drugId, Integer organId) {
+        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        String getDrugInventoryResponse="";
+        int result=0;//默认无库存
+            //TODO 2 实现类返回多样化 处理问题
+            try{
+                getDrugInventoryResponse=service.getDrugInventory(depId, drugId, organId);
+                if("有库存".equals(getDrugInventoryResponse)){
+                    result=1;
+                }else if("无库存".equals(getDrugInventoryResponse)||"暂无库存".equals(getDrugInventoryResponse)){
+                    result=0;
+                }else if("暂不支持库存查询".equals(getDrugInventoryResponse)){
+                    result=-1;
+                }else if(Integer.parseInt(getDrugInventoryResponse)>0){//返回库存数兼容
+                    result=1;
+                }
+            }catch (Exception e){
+                LOGGER.error("execScanStockEnterpriseForOther error: {}",e);
+            }finally {
+                drugInventoryRequestMap.remove();
+            }
+        return result;
+    }
+
+    /**
+     * 马陆扣库存操作
+     * @param organDrugList
+     * @param drugsEnterprise
+     * @param total
+     * @return
+     */
+    private Integer execScanStockEnterpriseForMaLu(OrganDrugList organDrugList,DrugsEnterprise drugsEnterprise,String total) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        Integer result = 1;
+        if (organDrugList != null) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                if (saleDrugList.getInventory() != null) {
+                    if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
+                        result = 0;
                     } else {
-                        return 0;
+                        try{
+                            saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), saleDrugList.getDrugId(), new BigDecimal(total));
+                        }catch(Exception e){
+                            LOGGER.error("scanStockEnterpriseForHis 扣库存失败,msg:{}.", e.getMessage(), e);
+                        }
                     }
                 } else {
                     return 0;
                 }
+            } else {
+                return 0;
             }
+        } else {
+            return 0;
         }
         return result;
     }
@@ -1889,5 +1948,58 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
+    }
+
+    /**
+     * 1.2	同步药企药品库存接口返回给his并异步更新销售药品目录药品价格
+     * @param paramMap
+     * @return
+     */
+    @RpcService
+    public List<Map<String,Object>> finEnterpriseStockByOrganIdForHisAndUpdateSale(Map<String, Object> paramMap) {
+        String organId = (String)paramMap.get("organ");
+        Integer start = (Integer)paramMap.get("start");
+        Integer limit = (Integer)paramMap.get("limit");
+        if (StringUtils.isEmpty(organId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
+        }
+        if (start==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "start is needed");
+        }
+        if (limit==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "limit is needed");
+        }
+        if (limit>100) {
+            limit=100;
+        }
+        //1 同步药企药品库存给HIS
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<Map<String,Object>> res=remoteDrugEnterpriseService.findEnterpriseStockByPage(organId,start,limit);
+        //2 异步更新零售价格
+        GlobalEventExecFactory.instance().getExecutor().execute(()->{
+             updateSaleDrugList(res,organId);
+        });
+        return res;
+    }
+
+    /**
+     * 更新零售价格
+     * @param res
+     * @param organ
+     */
+    private void updateSaleDrugList(List<Map<String, Object>> res,String organ) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        if(res!=null){
+            Integer organId=Integer.parseInt(organ);
+            for(Map<String,Object> map :res){
+                SaleDrugList saleDrugList=new SaleDrugList();
+                saleDrugList=saleDrugListDAO.getByOrganIdAndDrugCode(organId,map.get("PROC_ID").toString());
+                if(saleDrugList!=null){
+                    saleDrugList.setPrice(new BigDecimal( (String) map.get("RETAIL_PRICE")));
+                    saleDrugListDAO.update(saleDrugList);
+                }
+            }
+        }
+
     }
 }

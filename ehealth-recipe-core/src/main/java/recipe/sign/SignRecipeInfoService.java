@@ -11,11 +11,15 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.sign.ISignRecipeInfoService;
+import ctd.account.UserRoleToken;
+import ctd.mvc.upload.FileMetaRecord;
+import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +31,10 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -290,14 +298,20 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     }
 
     private SignDoctorRecipeInfo getInfoByResultVo(SignDoctorRecipeInfo signDoctorRecipeInfo, CaSignResultVo signResult, boolean isDoctor, String type) {
+        String fileId = null;
+        if(StringUtils.isNotEmpty(signResult.getSignPicture())){
+            fileId = uploadPicture(signResult.getSignPicture());
+        }
         if (isDoctor) {
             signDoctorRecipeInfo.setSignFileDoc(signResult.getFileId());
             signDoctorRecipeInfo.setSignCaDateDoc(signResult.getSignCADate());
             signDoctorRecipeInfo.setSignCodeDoc(signResult.getSignRecipeCode());
+            signDoctorRecipeInfo.setSignPictureDoc(fileId);
         } else {
             signDoctorRecipeInfo.setSignFilePha(signResult.getFileId());
             signDoctorRecipeInfo.setSignCaDatePha(signResult.getSignCADate());
             signDoctorRecipeInfo.setSignCodePha(signResult.getSignRecipeCode());
+            signDoctorRecipeInfo.setSignPicturePha(fileId);
         }
         signDoctorRecipeInfo.setLastmodify(new Date());
         signDoctorRecipeInfo.setType(type);
@@ -317,4 +331,51 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         signDoctorRecipeInfo.setType(type);
         return signDoctorRecipeInfo;
     }
+
+    @RpcService
+    public String uploadPicture(String picture) {
+        byte[] data = Base64.decodeBase64(picture.getBytes());
+        if (data == null) {
+            return null;
+        }
+        OutputStream fileOutputStream = null;
+        try {
+            //先生成本地文件
+            String prefix = picture.substring(0,4);
+            String fileName = "caPicture_"+prefix+".jpeg";
+            File file = new File(fileName);
+            fileOutputStream = new FileOutputStream(file);
+            if (data.length > 0) {
+                fileOutputStream.write(data, 0, data.length);
+                fileOutputStream.flush();
+            }
+
+            FileMetaRecord meta = new FileMetaRecord();
+            meta.setManageUnit("eh");
+           // meta.setOwner(token.getUserId());
+            meta.setLastModify(new Date());
+            meta.setUploadTime(new Date());
+            //0需要验证 31不需要
+            meta.setMode(0);
+            meta.setCatalog("other-doc");
+            meta.setContentType("image/jpeg");
+            meta.setFileName(fileName);
+            meta.setFileSize(file.length());
+            logger.info("uploadPicture.meta=[{}]",JSONUtils.toString(meta));
+            FileService.instance().upload(meta, file);
+            file.delete();
+            return meta.getFileId();
+        } catch (Exception e) {
+            logger.error("uploadPicture uploadRecipeFile exception:" + e.getMessage());
+        } finally {
+            try {
+                fileOutputStream.close();
+            } catch (Exception e) {
+                logger.error("uploadPicture uploadRecipeFile exception:" + e.getMessage());
+            }
+
+        }
+        return null;
+    }
+
 }

@@ -72,6 +72,8 @@ public class PatientRecipeDTO implements Serializable {
 
     private List<RecipeDetailBean> recipeDetail;
 
+    private RecipeExtendBean recipeExtend;
+
     /**
      * 药师签名的处方PDF
      */
@@ -81,6 +83,26 @@ public class PatientRecipeDTO implements Serializable {
      * 处方的取药窗口
      */
     private String getDrugWindow;
+
+    private Integer payFlag;//支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败
+
+    private boolean isHiddenRecipeDetail;//是否隐方
+
+    public boolean getIsHiddenRecipeDetail() {
+        return isHiddenRecipeDetail;
+    }
+
+    public void setIsHiddenRecipeDetail(boolean hiddenRecipeDetail) {
+        isHiddenRecipeDetail = hiddenRecipeDetail;
+    }
+
+    public Integer getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(Integer payFlag) {
+        this.payFlag = payFlag;
+    }
 
     public PatientRecipeDTO() {
     }
@@ -307,5 +329,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setSignFile(String signFile) {
         this.signFile = signFile;
+    }
+
+    public RecipeExtendBean getRecipeExtend() {
+        return recipeExtend;
+    }
+
+    public void setRecipeExtend(RecipeExtendBean recipeExtendBean) {
+        this.recipeExtend = recipeExtendBean;
     }
 }

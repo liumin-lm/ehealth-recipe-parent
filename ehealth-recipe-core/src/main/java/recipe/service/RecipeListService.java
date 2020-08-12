@@ -28,6 +28,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
+import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
@@ -1088,13 +1090,72 @@ public class RecipeListService extends RecipeBaseService{
                 //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
                 PayModeShowButtonBean buttons = getShowButton(record);
                 record.setButtons(buttons);
-
+                //根据隐方配置返回处方详情
+                boolean isReturnRecipeDetail=isReturnRecipeDetail(record.getRecipeId());
+                if(!isReturnRecipeDetail){
+                    List<RecipeDetailBean> recipeDetailVOs=record.getRecipeDetail();
+                    if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
+                        for(int j=0;j<recipeDetailVOs.size();j++){
+                            recipeDetailVOs.get(j).setDrugName(null);
+                            recipeDetailVOs.get(j).setDrugSpec(null);
+                        }
+                    }
+                }
+                //返回是否隐方
+                record.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
             }
         }
 
         return backList;
     }
 
+    /**
+     * 是否返回处方详情
+     * @param
+     * @return
+     * @author liumin
+     */
+    public boolean isReturnRecipeDetail(Integer recipeId){
+        boolean isReturnRecipeDetail=true;//默认返回详情
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
+        LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}",recipeId,JSONUtils.toString(recipe),JSONUtils.toString(order));
+        try{
+            //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
+            LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方"
+                    ,RecipeUtil.isTcmType(recipe.getRecipeType()),isHiddenRecipeDetail);
+            if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
+                    &&(boolean)isHiddenRecipeDetail==true//隐方)
+            ) {
+                //支付状态为非已支付
+                if(order == null){
+                    if(recipe.getStatus() != 6){// 未完成
+                        isReturnRecipeDetail=false;//不返回详情
+                    }
+                }else{
+                    LOGGER.info("isReturnRecipeDetail  order ！=null");
+                    if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付（包括卫宁付）
+                        if((order.getPayFlag() !=1 )){
+                            isReturnRecipeDetail=false;//不返回详情
+                        }
+                    }else{//线下支付
+                        if(recipe.getStatus() !=6 ){// 处方状态未完成
+                            isReturnRecipeDetail=false;//不返回详情
+                        }
+                    }
+
+                }
+            }
+        }catch (Exception e){
+            LOGGER.error("isReturnRecipeDetail error:{}",e);
+        }
+
+        return isReturnRecipeDetail;
+    }
     /**
      * @method  getFile
      * @description 获取处方笺文件信息

@@ -109,6 +109,9 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "生产厂家")
     private String producer;
 
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
+
 
     public OrganDrugListDTO() {
     }
@@ -353,4 +356,11 @@ public class OrganDrugListDTO implements java.io.Serializable {
         this.producer = producer;
     }
 
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
+    }
 }

@@ -105,6 +105,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<Map<String, Object>> findRecipeListWithPage(int doctorId, int flag, int start, int limit) {
         AuditListReq request = new AuditListReq();
         request.setOrganIdList(null);
@@ -120,6 +121,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request, int start, int limit) {
         LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));
         if (null == request.getDoctorId() || null == request.getStatus()) {
@@ -301,6 +303,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
         LOGGER.info("findRecipeAndDetailsAndCheckByIdEncrypt recipeId={},doctorId={}", recipeId, doctorId);
         //20200323 解密recipe
@@ -324,6 +327,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId,Integer checkerId) {
 
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
@@ -400,13 +404,10 @@ public class RecipeCheckService {
         try {
             doctor = doctorService.get(doctorId);
             doctor.setIdNumber(hideIdCard(doctor.getIdNumber()));
-//            if (null != doctor) {
-//                doc.setMobile(doctor.getMobile());
-//            }
         } catch (Exception e) {
             LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
         }
-
+        RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         //监护人信息
         GuardianBean guardian = new GuardianBean();
         //取patient需要的字段
@@ -426,13 +427,21 @@ public class RecipeCheckService {
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
-                if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
-                    guardian.setName(patient.getGuardianName());
+                if (!ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                    if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
+                        guardian.setName(extend.getGuardianName());
+                        guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));
+                        guardian.setMobile(extend.getGuardianMobile());
+                    } else {
+                        guardian.setName(patient.getGuardianName());
+                        guardian.setGuardianCertificate(hideIdCard(patient.getGuardianCertificate()));
+                        guardian.setMobile(patient.getMobile());
+                    }
                     try {
                         guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                         guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
                     } catch (ValidateException exception) {
-                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(),exception);
+                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(), exception);
                     }
                 }
 
@@ -544,7 +553,6 @@ public class RecipeCheckService {
         map.put("cancelRecipeFlag", cancelRecipeFlag);
 
         //患者就诊卡信息
-        RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         HashMap<String, String> cardMap = Maps.newHashMap();
         if(extend!=null){
             String cardNo = extend.getCardNo();
@@ -822,7 +830,7 @@ public class RecipeCheckService {
             if(null != nowRecipeCheck) {
                 if (1 == nowRecipeCheck.getCheckStatus()) {
                     checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                } else {
+                } else if(0 == nowRecipeCheck.getCheckStatus() && null != nowRecipeCheck.getChecker()) {
                     checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }else{
@@ -915,12 +923,13 @@ public class RecipeCheckService {
         try {
             String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
-        } catch (Exception e) {
-            LOGGER.error("saveCheckResultEncrypt-recipeId解密异常",e);
-            throw new DAOException("处方号解密异常");
+            return saveCheckResult(paramMap);
+        } catch (DAOException e) {
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e1) {
+            LOGGER.error("saveCheckResultEncrypt error", e1);
+            throw new DAOException(e1.getMessage());
         }
-        Map<String, Object> map = saveCheckResult(paramMap);
-        return map;
     }
 
     /**
@@ -1001,6 +1010,7 @@ public class RecipeCheckService {
      * @author zhongzx
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<Map<String, Object>> searchRecipeForChecker(Integer doctorId, String searchString, Integer searchFlag,
                                                             Integer organId, Integer start, Integer limit) {
         RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
@@ -1120,6 +1130,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    @Deprecated //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
     public List<OrganBean> findCheckOrganList(Integer doctorId) {
         List<OrganBean> organList = Lists.newArrayList();
         List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);

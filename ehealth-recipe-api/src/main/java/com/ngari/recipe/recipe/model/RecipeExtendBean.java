@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -85,12 +86,17 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
 
-    @ItemProperty(alias = "慢病病种标识")
+    @ItemProperty(alias = "开处方页面病种选择开关标识")
+    private Integer recipeChooseChronicDisease;
+    @ItemProperty(alias = "病种标识")
+    @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
     private String chronicDiseaseFlag;
-    @ItemProperty(alias = "慢病病种代码")
+    @ItemProperty(alias = "病种代码")
     private String chronicDiseaseCode;
-    @ItemProperty(alias = "慢病病种名称")
+    @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
+    @ItemProperty(alias = "并发症")
+    private String complication;
     @ItemProperty(alias = "用药医嘱")
     private String drugEntrustment;
     //用户页面选择
@@ -101,6 +107,13 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
 
+    @ItemProperty(alias = "监管人姓名")
+    private String guardianName;
+    @ItemProperty(alias = "监管人证件号")
+    private String guardianCertificate;
+    @ItemProperty(alias = "监管人手机号")
+    private String guardianMobile;
+
     /**
      * 患者医保类型（编码）
      */
@@ -110,6 +123,139 @@ public class RecipeExtendBean implements Serializable {
      * 患者医保类型（名称）
      */
     private String medicalTypeText;
+
+    @ItemProperty(alias = "制法")
+    private String makeMethodId;
+    @ItemProperty(alias = "制法text")
+    private String makeMethodText;
+    @ItemProperty(alias = "每付取汁")
+    private String juice;
+    @ItemProperty(alias = "每付取汁单位")
+    private String juiceUnit;
+    @ItemProperty(alias = "次量")
+    private String minor;
+    @ItemProperty(alias = "次量单位")
+    private String minorUnit;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomId;
+    @ItemProperty(alias = "中医症候名称")
+    private String symptomName;
+    @ItemProperty(alias = "煎法")
+    private String decoctionId;
+    @ItemProperty(alias = "煎法text")
+    private String decoctionText;
+
+    @ItemProperty(alias = "制法编码")
+    private String makeMethod;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomCode;
+    @ItemProperty(alias = "煎法编码")
+    private String decoctionCode;
+
+
+    public String getMakeMethod() {
+        return makeMethod;
+    }
+
+    public void setMakeMethod(String makeMethod) {
+        this.makeMethod = makeMethod;
+    }
+
+    public String getSymptomCode() {
+        return symptomCode;
+    }
+
+    public void setSymptomCode(String symptomCode) {
+        this.symptomCode = symptomCode;
+    }
+
+    public String getDecoctionCode() {
+        return decoctionCode;
+    }
+
+    public void setDecoctionCode(String decoctionCode) {
+        this.decoctionCode = decoctionCode;
+    }
+
+    public String getDecoctionText() {
+        return decoctionText;
+    }
+
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
+    }
+
+    public String getSymptomId() {
+        return symptomId;
+    }
+
+    public void setSymptomId(String symptomId) {
+        this.symptomId = symptomId;
+    }
+
+    public String getDecoctionId() {
+        return decoctionId;
+    }
+
+    public void setDecoctionId(String decoctionId) {
+        this.decoctionId = decoctionId;
+    }
+
+    public String getSymptomName() {
+        return symptomName;
+    }
+
+    public void setSymptomName(String symptomName) {
+        this.symptomName = symptomName;
+    }
+
+    public String getMakeMethodId() {
+        return makeMethodId;
+    }
+
+    public void setMakeMethodId(String makeMethodId) {
+        this.makeMethodId = makeMethodId;
+    }
+
+    public String getMakeMethodText() {
+        return makeMethodText;
+    }
+
+    public void setMakeMethodText(String makeMethodText) {
+        this.makeMethodText = makeMethodText;
+    }
+
+    public String getJuice() {
+        return juice;
+    }
+
+    public void setJuice(String juice) {
+        this.juice = juice;
+    }
+
+    public String getJuiceUnit() {
+        return juiceUnit;
+    }
+
+    public void setJuiceUnit(String juiceUnit) {
+        this.juiceUnit = juiceUnit;
+    }
+
+    public String getMinor() {
+        return minor;
+    }
+
+    public void setMinor(String minor) {
+        this.minor = minor;
+    }
+
+    public String getMinorUnit() {
+        return minorUnit;
+    }
+
+    public void setMinorUnit(String minorUnit) {
+        this.minorUnit = minorUnit;
+    }
 
     public RecipeExtendBean() {
     }
@@ -369,5 +515,45 @@ public class RecipeExtendBean implements Serializable {
 
     public void setRecipeJsonConfig(String recipeJsonConfig) {
         this.recipeJsonConfig = recipeJsonConfig;
+    }
+
+    public Integer getRecipeChooseChronicDisease() {
+        return recipeChooseChronicDisease;
+    }
+
+    public void setRecipeChooseChronicDisease(Integer recipeChooseChronicDisease) {
+        this.recipeChooseChronicDisease = recipeChooseChronicDisease;
+    }
+
+    public String getComplication() {
+        return complication;
+    }
+
+    public void setComplication(String complication) {
+        this.complication = complication;
+    }
+
+    public String getGuardianName() {
+        return guardianName;
+    }
+
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
+    }
+
+    public String getGuardianCertificate() {
+        return guardianCertificate;
+    }
+
+    public void setGuardianCertificate(String guardianCertificate) {
+        this.guardianCertificate = guardianCertificate;
+    }
+
+    public String getGuardianMobile() {
+        return guardianMobile;
+    }
+
+    public void setGuardianMobile(String guardianMobile) {
+        this.guardianMobile = guardianMobile;
     }
 }

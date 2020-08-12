@@ -91,6 +91,11 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="剂量单位")
     private String useDoseUnit;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
     @Column(name = "UseDoseUnit")
     public String getUseDoseUnit() {
         return useDoseUnit;
@@ -322,5 +327,21 @@ public class CommonRecipeDrug implements java.io.Serializable{
                 ", usePathways='" + usePathways + '\'' +
                 ", useDays=" + useDays +
                 '}';
+    }
+
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
     }
 }

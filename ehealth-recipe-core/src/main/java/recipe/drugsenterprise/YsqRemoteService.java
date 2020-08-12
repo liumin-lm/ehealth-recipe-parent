@@ -9,6 +9,8 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -133,6 +135,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + drugsEnterprise.getName());
+                //推送审核结果
+                pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
                 if (new Integer(3).equals(drugsEnterprise.getExpressFeePayWay())){
                     //推送处方运费待支付消息提醒
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
@@ -148,9 +152,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             result.setMsg("推送处方失败，" + result.getMsg());
             result.setCode(DrugEnterpriseResult.FAIL);
         }
-
-        //推送审核结果
-        pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
 
         return result;
     }
@@ -284,7 +285,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 position.put("LATITUDE", ext.get("latitude"));
                 map.put("POSITION", position);
             } else {
-                map.put("RANGE", 2000);
+                map.put("RANGE", 20000);
                 Map<String, Object> position = new HashMap<>();
                 position.put("LONGITUDE", "120.201685");
                 position.put("LATITUDE", "30.255732");
@@ -736,6 +737,27 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     }
                 }
             }
+
+            //添加患者医保类型
+            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            if (recipe.getClinicId() != null) {
+                ConsultExDTO consultExDTO = consultExService.getByConsultId(recipe.getClinicId());
+                if (StringUtils.isNotEmpty(consultExDTO.getInsureTypeCode())) {
+                    if ("0".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示自费
+                        recipeMap.put("YIBAOBILL", "1");
+                    } else if ("1".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示普通医保
+                        recipeMap.put("YIBAOBILL", "0");
+                        recipeMap.put("YBTYPE", "0");
+                    } else if ("2".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示门特
+                        recipeMap.put("YIBAOBILL", "0");
+                        recipeMap.put("YBTYPE", "1");
+                    }
+                }
+            }
+
             //周岁处理
             Date birthday = patient.getBirthday();
             if (null != birthday) {
@@ -774,8 +796,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("VALIDDATE", DateConversion.getDateFormatter(validate, DateConversion.DEFAULT_DATE_TIME));
             recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());
             //医保处方 0：是；1：否
-            recipeMap.put("YIBAOBILL", "1");
-
+            //recipeMap.put("YIBAOBILL", "1");
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                String url = recipeParameterDao.getByName("fileImgUrl");
+                url += null != recipe.getChemistSignFile() ?
+                        LocalStringUtil.toString(recipe.getChemistSignFile()) : LocalStringUtil.toString(recipe.getSignFile());
+                recipeMap.put("PDF_ID", url);
+            }
             List<Map<String, String>> recipeDetailList = new ArrayList<>();
             recipeMap.put("DETAILS", recipeDetailList);
             //处方详情数据
@@ -814,6 +842,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     //药品使用
                     detailMap.put("DOSAGE", "");
                     detailMap.put("DOSAGENAME", getFormatDouble(detail.getUseDose()) + detail.getUseDoseUnit());
+                    detailMap.put("BOILDRUGMETHOD", detail.getMemo());
                     String userRate = detail.getUsingRate();
                     detailMap.put("DISEASE", userRate);
                     if (StringUtils.isNotEmpty(userRate)) {

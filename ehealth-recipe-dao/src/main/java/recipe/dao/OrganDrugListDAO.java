@@ -60,6 +60,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     public abstract List<OrganDrugList> findByOrganIdAndDrugIdWithoutStatus(@DAOParam("organId") int organId, @DAOParam("drugIds") List drugIds);
 
     /**
+     * 通过机构id一键禁用该机构下的所有机构药品
+     *
+     * @param organId
+     */
+    @DAOMethod(sql = "update OrganDrugList  a set a.status=:status where a.organId=:organId ")
+    public abstract void updateDrugStatus(@DAOParam("organId") int organId , @DAOParam("status") int status);
+
+
+    /**
      * 通过药品id及机构id获取(已废弃，有可能会获取到多条)
      *
      * @param organId
@@ -76,7 +85,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from OrganDrugList where organId=:organId  and status=1")
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId  and status=1", limit = 0)
     public abstract List<OrganDrugList> findByOrganId(@DAOParam("organId") int organId);
     /**
      * 通过机构id获取

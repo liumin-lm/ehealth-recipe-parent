@@ -32,6 +32,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -100,6 +101,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+
+    @Autowired
+    private RecipeListService recipeListService;
 
     /**
      * 处方结算时创建临时订单
@@ -174,7 +178,7 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @param recipeIds 合并处方单ID
      * @param extInfo   {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
-     *                  "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
+     *                  "decoctionId":"代煎方式", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
      *                  "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
      *                  "calculateFee":"1(1:需要，0:不需要)"}
      *                  <p>
@@ -265,6 +269,7 @@ public class RecipeOrderService extends RecipeBaseService {
             //设置配送费支付方式
             order.setExpressFeePayWay(2);
         }
+
         if (null == remoteService) {
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
@@ -353,6 +358,16 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         if (StringUtils.isNotEmpty(extInfo.get("hisDepCode"))) {
             order.setHisEnterpriseName(extInfo.get("depName"));
+        }
+
+        //设置中药代建费
+        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+        if(decoctionId != null){
+            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
+                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+            }
         }
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
@@ -586,20 +601,21 @@ public class RecipeOrderService extends RecipeBaseService {
         order.setRecipeFee(remoteService.orderToRecipeFee(order, recipeIds, payModeSupport, recipeFee, extInfo));
         //order.setRecipeFee(recipeFee);
 
-        //中药表示待煎费，膏方代表制作费
+        //膏方代表制作费
         BigDecimal otherFee = BigDecimal.ZERO;
-        //设置订单代煎费
-        Integer totalCopyNum = 0;
         boolean needCalDecFee = false;
-        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
-        //1表示待煎
-        if (Integer.valueOf(1).equals(decoctionFlag)) {
-            //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
-            BigDecimal recipeDecoctionPrice = organConfig.getRecipeDecoctionPrice();
-            //根据机构获取代煎费
-            order.setDecoctionUnitPrice(null != recipeDecoctionPrice ? recipeDecoctionPrice : BigDecimal.valueOf(-1));
+        if(order.getDecoctionUnitPrice() != null){
             needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
         }
+        //        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
+        //1表示待煎
+//        if (Integer.valueOf(1).equals(decoctionFlag)) {
+            //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
+//            BigDecimal recipeDecoctionPrice = order.getDecoctionUnitPrice();
+//            //根据机构获取代煎费
+//            order.setDecoctionUnitPrice(null != recipeDecoctionPrice ? recipeDecoctionPrice : BigDecimal.valueOf(-1));
+//            needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
+//        }
 
         //设置膏方制作费
         Integer gfFeeFlag = MapValueUtil.getInteger(extInfo, "gfFeeFlag");
@@ -610,7 +626,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == gfFeeUnitPrice) {
                 gfFeeUnitPrice = BigDecimal.ZERO;
             }
-            order.setDecoctionUnitPrice(gfFeeUnitPrice);
+//            order.setDecoctionUnitPrice(gfFeeUnitPrice);
             //存在制作单价且大于0
             if (gfFeeUnitPrice.compareTo(BigDecimal.ZERO) == 1) {
                 Double totalDose = recipeDetailDAO.getUseTotalDoseByRecipeIds(recipeIds);
@@ -619,13 +635,16 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         BigDecimal tcmFee = null;//null表示用户在运营平台没有配置这项费用
+        //设置订单代煎费
+        Integer totalCopyNum = 0;
+        BigDecimal decoctionFee = BigDecimal.ZERO;
         int i = 0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
                 if (needCalDecFee) {
                     //代煎费等于剂数乘以代煎单价
-                    otherFee = otherFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                    decoctionFee = order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum()));
                 }
                 //一张订单只会有一个处方
                 if (i == 0) {
@@ -645,7 +664,7 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("tcmFee是：{}", tcmFee);
         order.setTcmFee(tcmFee);
         order.setCopyNum(totalCopyNum);
-        order.setDecoctionFee(otherFee);
+        order.setDecoctionFee(decoctionFee);
         //当前是his返回的，范围不进行校验
 //        if(new Integer(-1).equals(order.getEnterpriseId()) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
 //            //设置运费
@@ -699,76 +718,23 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             //此字段前端已不使用
             order.setAddressCanSend(false);
-            if (null != address) {
-                //可以在参数里传递快递费
-                String paramExpressFee = MapValueUtil.getString(extInfo, "expressFee");
-                //保存地址,费用信息
-                BigDecimal expressFee;
-                if (StringUtils.isNotEmpty(paramExpressFee)) {
-                    expressFee = new BigDecimal(paramExpressFee);
+            Recipe recipe = recipeList.get(0);
+            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            if (new Integer(2).equals(recipe.getRecipeSource())) {
+                if (StringUtils.isNotEmpty(operAddressId)) {
+                    //表示患者重新修改了地址
+                    setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                 } else {
-                    //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
-                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                    if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
-                        //获取地址信息
-                        String address1 = address.getAddress1();  //省
-                        String address2 = address.getAddress2();  //市
-                        String address3 = address.getAddress3();  //区
-                        Map<String, Object> parames = new HashMap<>();
-                        parames.put("province", getAddressDic(address1));
-                        parames.put("city", getAddressDic(address2));
-                        parames.put("district", getAddressDic(address3));
-                        parames.put("depId", order.getEnterpriseId());
-                        parames.put("recipeId", recipeIds.get(0));
-                        RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                        Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
-                        if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
-                            //需要从平台获取
-                            expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
-                        } else {
-                            expressFee = new BigDecimal(expressFeeResult.get("expressFee").toString());
-                        }
-                    } else {
-                        expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
-                    }
-                }
-                order.setExpressFee(expressFee);
-                order.setReceiver(address.getReceiver());
-                order.setRecMobile(address.getRecMobile());
-                order.setRecTel(address.getRecTel());
-                order.setZipCode(address.getZipCode());
-                order.setAddressID(address.getAddressId());
-                order.setAddress1(address.getAddress1());
-                order.setAddress2(address.getAddress2());
-                order.setAddress3(address.getAddress3());
-                order.setStreetAddress(address.getStreetAddress());
-                order.setAddress4(address.getAddress4());
-
-                try {
-                    //校验地址是否可以配送
-                    EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-                    int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
-                    if (0 == flag) {
+                    if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
+                        order.setReceiver(hisRecipe.getReceiverName());
+                        order.setRecMobile(hisRecipe.getReceiverTel());
                         order.setAddressCanSend(true);
-                    } else {
-                        boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
-                        if (b) {
-                            //只有需要真正保存订单时才提示
-                            result.setCode(RecipeResultBean.FAIL);
-                            result.setMsg("该地址无法配送");
-                        }
+                        order.setAddress4(hisRecipe.getSendAddr());
                     }
-                } catch (Exception e) {
-                    LOGGER.error("setOrderFee--", e);
-                    result.setCode(RecipeResultBean.FAIL);
-                    result.setMsg(e.getMessage());
                 }
             } else {
-                //只有需要真正保存订单时才提示
-                if (1 == toDbFlag) {
-                    result.setCode(RecipeResultBean.NO_ADDRESS);
-                    result.setMsg("没有配送地址");
-                }
+                setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
             }
         }
 
@@ -860,6 +826,80 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setCashAmount(new Double(recipeExtend.getCashAmount()));
                     }
                 }
+            }
+        }
+    }
+
+    private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {
+        if (null != address) {
+            //可以在参数里传递快递费
+            String paramExpressFee = MapValueUtil.getString(extInfo, "expressFee");
+            //保存地址,费用信息
+            BigDecimal expressFee;
+            if (StringUtils.isNotEmpty(paramExpressFee)) {
+                expressFee = new BigDecimal(paramExpressFee);
+            } else {
+                //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
+                    //获取地址信息
+                    String address1 = address.getAddress1();  //省
+                    String address2 = address.getAddress2();  //市
+                    String address3 = address.getAddress3();  //区
+                    Map<String, Object> parames = new HashMap<>();
+                    parames.put("province", getAddressDic(address1));
+                    parames.put("city", getAddressDic(address2));
+                    parames.put("district", getAddressDic(address3));
+                    parames.put("depId", order.getEnterpriseId());
+                    parames.put("recipeId", recipeIds.get(0));
+                    RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                    Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
+                    if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
+                        //需要从平台获取
+                        expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                    } else {
+                        expressFee = new BigDecimal(expressFeeResult.get("expressFee").toString());
+                    }
+                } else {
+                    expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                }
+            }
+            order.setExpressFee(expressFee);
+            order.setReceiver(address.getReceiver());
+            order.setRecMobile(address.getRecMobile());
+            order.setRecTel(address.getRecTel());
+            order.setZipCode(address.getZipCode());
+            order.setAddressID(address.getAddressId());
+            order.setAddress1(address.getAddress1());
+            order.setAddress2(address.getAddress2());
+            order.setAddress3(address.getAddress3());
+            order.setStreetAddress(address.getStreetAddress());
+            order.setAddress4(address.getAddress4());
+
+            try {
+                //校验地址是否可以配送
+                EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+                int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
+                if (0 == flag) {
+                    order.setAddressCanSend(true);
+                } else {
+                    boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
+                    if (b) {
+                        //只有需要真正保存订单时才提示
+                        result.setCode(RecipeResultBean.FAIL);
+                        result.setMsg("该地址无法配送");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("setOrderFee--", e);
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg(e.getMessage());
+            }
+        } else {
+            //只有需要真正保存订单时才提示
+            if (1 == toDbFlag) {
+                result.setCode(RecipeResultBean.NO_ADDRESS);
+                result.setMsg("没有配送地址");
             }
         }
     }
@@ -1005,7 +1045,24 @@ public class RecipeOrderService extends RecipeBaseService {
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
         } else {
-            LOGGER.info("当前订单的配送地址信息不全！");
+            //对北京互联网处方流转模式处理
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            String recipeIds = order.getRecipeIdList();
+            Recipe recipe = null;
+            if (StringUtils.isNotEmpty(recipeIds)) {
+                String recipeId = recipeIds.substring(1, recipeIds.lastIndexOf("]"));
+                recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
+            }
+
+            if (recipe != null && new Integer(2).equals(recipe.getRecipeSource())) {
+                HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
+                    order.setCompleteAddress(hisRecipe.getSendAddr());
+                }
+            } else {
+                LOGGER.info("当前订单的配送地址信息不全！");
+            }
         }
     }
 
@@ -1299,7 +1356,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                     List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
-                    recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode());
+                    recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipes.get(0));
                     //清除医保金额
                     RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                     List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
@@ -1397,6 +1454,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
 
                 RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
+                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+
                 PatientRecipeDTO prb;
                 List<Recipedetail> recipedetails;
                 for (Recipe recipe : recipeList) {
@@ -1414,10 +1473,32 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignFile(recipe.getSignFile());
                     //药品详情
                     recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
+                    String className = Thread.currentThread().getStackTrace()[2].getClassName();
+                    String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+                    //获取处方详情
                     prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+                    boolean isReturnRecipeDetail=recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
+                    if(("getOrderDetail".equals(methodName)&&"recipe.service.RecipeOrderService".equals(className))){
+                        if(!isReturnRecipeDetail){
+                            List<RecipeDetailBean> recipeDetailVOs=prb.getRecipeDetail();
+                            if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
+                                for(int j=0;j<recipeDetailVOs.size();j++){
+                                    recipeDetailVOs.get(j).setDrugName(null);
+                                    recipeDetailVOs.get(j).setDrugSpec(null);
+                                }
+                            }
+                        }
+                    }
+                    //返回是否隐方
+                    prb.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
+                    //返回处方拓展信息
+                    RecipeExtend recipeExtend =recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+                    prb.setRecipeExtend(recipeExtendBean);
                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && OrderStatusConstant.READY_PAY.equals(order.getStatus())) {
                         prb.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(recipe.getSignDate()));
                     }
+
                     //添加处方的取药窗口
                     OrganService organService = BasicAPI.getService(OrganService.class);
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
@@ -1425,7 +1506,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (CollectionUtils.isNotEmpty(recipedetails) && null != recipedetails.get(0).getPharmNo()) {
                         prb.setGetDrugWindow(organDTO.getName() + recipedetails.get(0).getPharmNo() + "取药窗口");
                     }
-
+                    prb.setOrganId(recipe.getClinicOrgan());
+                    prb.setRecipeType(recipe.getRecipeType());
+                    prb.setPayFlag(recipe.getPayFlag());
                     patientRecipeBeanList.add(prb);
 
                     if (1 == order.getEffective()) {
@@ -1591,8 +1674,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
 
     /**
-     * 获取订单详情
-     *
+     * 健康端获取订单详情
      * @param orderCode
      * @return
      */

@@ -1,9 +1,7 @@
 package recipe.recipecheck;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.recipe.mode.NoticeHisRecipeInfoReq;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -15,29 +13,29 @@ import com.ngari.recipe.entity.RecipeCheckDetail;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.bean.CheckYsInfoBean;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipecCheckStatusConstant;
 import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.service.*;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +82,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
 
     @Override
     public Map<String, Object> saveCheckResult(Map<String, Object> paramMap) {
+        LOGGER.error("saveCheckResult paramMap : {}", JSONUtils.toString(paramMap));
         Integer recipeId = MapValueUtil.getInteger(paramMap, "recipeId");
         String result = MapValueUtil.getString(paramMap, "result");
         Integer checkOrgan = MapValueUtil.getInteger(paramMap, "checkOrgan");
@@ -91,7 +90,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         String auditDoctorName = MapValueUtil.getString(paramMap, "auditDoctorName");
         Date auditTime = MapValueUtil.getDate(paramMap, "auditTime");
         String memo = MapValueUtil.getString(paramMap, "failMemo");
-        if (null == recipeId || null == result || checkOrgan == null) {
+        if (null == recipeId || StringUtils.isEmpty(result) || checkOrgan == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "params are needed");
         }
         Integer checker = 0;
@@ -131,8 +130,14 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         recipeCheck.setCheckerName(auditDoctorName);
         List<RecipeCheckDetail> recipeCheckDetails = null;
         RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
-        recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
 
+        RecipeCheck oldRecipeCheck = recipeCheckDAO.getByRecipeId(recipeCheck.getRecipeId());
+        if (oldRecipeCheck != null) {
+            recipeCheck.setCheckId(oldRecipeCheck.getCheckId());
+            recipeCheckDAO.update(recipeCheck);
+        } else {
+            recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck,recipeCheckDetails);
+        }
         int beforeStatus = recipe.getStatus();
         String logMemo = "审核不通过(第三方平台，药师：" + auditDoctorName + "):" + memo;
         int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;

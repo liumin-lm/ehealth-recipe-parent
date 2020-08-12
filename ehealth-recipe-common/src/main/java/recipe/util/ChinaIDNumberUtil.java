@@ -209,7 +209,31 @@ public class ChinaIDNumberUtil
         }
         return String.valueOf(age);
     }
+
+	/**
+	 * 根据出生日期,获取年龄
+	 * @author liumin
+	 * @date 2020-7-28 上午11:47:36
+	 * @throws
+	 */
+	public static Integer getAgeFromBirth(String birth) throws ValidateException {
+		int age120 = 120;
+		Integer age;
+		try {
+			LocalDate birthDay = DateTimeFormat.forPattern("yyyy-MM-dd")
+					.parseLocalDate(birth);
+			LocalDate now = new LocalDate();
+			age = Years.yearsBetween(birthDay, now).getYears();
+			if (age < 0 || age > age120) {
+				throw new ValidateException("getAgeFromBirth ageOverflageow[" + birth + "]");
+			}
+		} catch (RuntimeException | ValidateException e) {
+			throw new ValidateException("getAgeFromBirth[" + birth + "]");
+		}
+
+		return age;
+	}
     public static void main(String[] args) throws Exception{
-        System.out.println(getStringAgeFromIDNumber("350101201908092136"));
+        System.out.println(getAgeFromBirth("2012-01-01"));
     }
 }

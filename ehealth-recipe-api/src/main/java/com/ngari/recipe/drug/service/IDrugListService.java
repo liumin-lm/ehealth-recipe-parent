@@ -22,4 +22,12 @@ public interface IDrugListService {
 
     @RpcService
     void saveDrugList(DrugListBean drugListBean);
+
+    /**
+     * 查询药品信息
+     * @param drugIds
+     * @return
+     */
+    @RpcService
+    List<DrugListBean> findByDrugIds(List<Integer> drugIds);
 }

@@ -1,7 +1,5 @@
 package recipe.hisservice;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
@@ -12,6 +10,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HosPatientDTO;
@@ -30,6 +29,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.RecipeDAO;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.HisCallBackService;
@@ -306,39 +306,41 @@ public class RecipeToHisService {
             return null;
         }
         OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
 
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
-        List<Integer> drugIdList = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
-            @Override
-            public Integer apply(Recipedetail input) {
-                return input.getDrugId();
-            }
-        }).toList();
+        List<Integer> drugIdList = detailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
 
         List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(organId, drugIdList);
-        Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
-            @Override
-            public String apply(OrganDrugList input) {
-                return input.getOrganDrugCode();
-            }
-        });
+        Map<String, List<OrganDrugList>> drugIdAndProduce =
+                organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
 
         List<DrugInfoTO> data = new ArrayList<>(detailList.size());
-        DrugInfoTO drugInfo;
-        OrganDrugList organDrug;
-        for (Recipedetail detail : detailList) {
-            drugInfo = new DrugInfoTO(detail.getOrganDrugCode());
-            drugInfo.setPack(detail.getPack().toString());
-            drugInfo.setPackUnit(detail.getDrugUnit());
-            drugInfo.setUseTotalDose(detail.getUseTotalDose());
-            organDrug = drugIdAndProduce.get(detail.getOrganDrugCode());
-            if (null != organDrug) {
-                drugInfo.setManfcode(organDrug.getProducerCode());
+        detailList.forEach(a -> {
+            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
+            drugInfo.setPack(a.getPack().toString());
+            drugInfo.setPackUnit(a.getDrugUnit());
+            drugInfo.setUseTotalDose(a.getUseTotalDose());
+            List<OrganDrugList> organDrugs = drugIdAndProduce.get(a.getOrganDrugCode());
+            if (CollectionUtils.isNotEmpty(organDrugs)) {
+                Map<Integer, String> producerCodeMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getProducerCode));
+                String producerCode = producerCodeMap.get(a.getDrugId());
+                if (StringUtils.isNotEmpty(producerCode)) {
+                    drugInfo.setManfcode(producerCode);
+                }
+            }
+            //药房
+            if (a.getPharmacyId() != null){
+                PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(a.getPharmacyId());
+                if (pharmacyTcm != null){
+                    drugInfo.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                    drugInfo.setPharmacy(pharmacyTcm.getPharmacyName());
+                }
             }
             data.add(drugInfo);
-        }
+        });
         request.setData(data);
 
         DrugInfoResponseTO response = null;
@@ -515,6 +517,7 @@ public class RecipeToHisService {
             LOGGER.info("findPatientChronicDiseaseList response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("findPatientChronicDiseaseList error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
         }
         return response;
     }
