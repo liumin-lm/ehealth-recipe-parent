@@ -1091,7 +1091,8 @@ public class RecipeListService extends RecipeBaseService{
                 PayModeShowButtonBean buttons = getShowButton(record);
                 record.setButtons(buttons);
                 //根据隐方配置返回处方详情
-                if(!isReturnRecipeDetail(record.getOrganId(),record.getRecipeType(),record.getPayFlag())){
+                boolean isReturnRecipeDetail=isReturnRecipeDetail(record.getRecipeId());
+                if(!isReturnRecipeDetail){
                     List<RecipeDetailBean> recipeDetailVOs=record.getRecipeDetail();
                     if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
                         for(int j=0;j<recipeDetailVOs.size();j++){
@@ -1101,9 +1102,7 @@ public class RecipeListService extends RecipeBaseService{
                     }
                 }
                 //返回是否隐方
-                IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                Object isHiddenRecipeDetail = configService.getConfiguration(record.getOrganId(), "isHiddenRecipeDetail");
-                record.setIsHiddenRecipeDetail((boolean)isHiddenRecipeDetail);
+                record.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
             }
         }
 
@@ -1116,19 +1115,50 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      * @author liumin
      */
-    public boolean isReturnRecipeDetail(Integer organId,Integer recipeType,Integer payFlag){
+    public boolean isReturnRecipeDetail(Integer recipeId){
         boolean isReturnRecipeDetail=true;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
+        LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}",recipeId,JSONUtils.toString(recipe),recipeId,JSONUtils.toString(order));
         try{
             //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-            Object isHiddenRecipeDetail = configService.getConfiguration(organId, "isHiddenRecipeDetail");
-            LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方：{} 支付状态是否为已支付（1）：{} "
-                    ,RecipeUtil.isTcmType(recipeType),(boolean)isHiddenRecipeDetail,payFlag);
-            if (RecipeUtil.isTcmType(recipeType)//中药
+            Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
+            LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方"
+                    ,RecipeUtil.isTcmType(recipe.getRecipeType()),(boolean)isHiddenRecipeDetail);
+            if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
                     &&(boolean)isHiddenRecipeDetail==true//隐方
-                    &&(PayConstant.PAY_FLAG_PAY_SUCCESS != payFlag) //支付状态为非已支付
+                    &&(PayConstant.PAY_FLAG_PAY_SUCCESS != recipe.getPayFlag()) //支付状态为非已支付
             ) {
-                isReturnRecipeDetail=false;
+                if(order ==null){
+                     if(recipe.getPayMode()==1){//支付方式：线上支付
+                         LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"1");
+                         return false;
+                     }else{
+                         if(recipe.getStatus()==6){// 处方状态已完成
+                         }else{
+                             LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"2");
+                             return false;
+                         }
+                     }
+                }else{
+                    if(recipe.getPayMode()==1 || "111".equals(order.getWxPayWay())){// 线上支付
+                        if((order.getPayFlag()==1)){//返回详情
+                        }else{
+                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"3");
+                            isReturnRecipeDetail=false;//不返回详情
+                        }
+                    }else{//线下支付
+                        if(recipe.getStatus()==6){// 处方状态已完成
+                        }else{
+                            LOGGER.info("isReturnRecipeDetail false recipeId:{} cause:{}",recipeId,"4");
+                            return false;
+                        }
+                    }
+
+                }
             }
         }catch (Exception e){
             LOGGER.error("isReturnRecipeDetail error:{}",e);
