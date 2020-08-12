@@ -365,7 +365,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if(decoctionId != null){
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if(decoctionWay != null){
+            if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
                 order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
             }
         }
