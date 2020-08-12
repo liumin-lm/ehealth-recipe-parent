@@ -690,9 +690,12 @@ public class RecipeHisService extends RecipeBaseService {
                     String totalAmount = hisResult.getData().getZje();
                     if (StringUtils.isNotEmpty(cashAmount) && StringUtils.isNotEmpty(fundAmount) && StringUtils.isNotEmpty(totalAmount)) {
                         if (ext != null) {
-                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount", fundAmount, "cashAmount", cashAmount);
+                            Map<String, String> map = Maps.newHashMap();
+                            map.put("preSettleTotalAmount",totalAmount);
+                            map.put("fundAmount",fundAmount);
+                            map.put("cashAmount",cashAmount);
                             if (StringUtils.isNotEmpty(request.getInsuredArea())){
-                                map.putIfAbsent("insuredArea",request.getInsuredArea());
+                                map.put("insuredArea",request.getInsuredArea());
                             }
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                         } else {
