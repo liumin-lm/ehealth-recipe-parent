@@ -289,6 +289,9 @@ public class RecipeHisService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(hisRecipeStatus)) {
                     request.setRecipeStatus(hisRecipeStatus);
                 }
+                EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+                String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+                request.setDoctorNumber(jobNumber);
                 LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", request);
                 flag = service.recipeUpdate(request);
             } catch (Exception e) {
