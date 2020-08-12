@@ -104,7 +104,7 @@ public class DrugExtService implements IDrugExtService {
         }
 
         DrugMakingMethod drugMakingMethodOld = drugMakingMethodDao.get(drugMakingMethodBean.getMethodId());
-        if(drugMakingMethodOld != null){
+        if(drugMakingMethodOld == null){
             throw new DAOException(DAOException.VALUE_NEEDED, " 未查询出有此制法，修改错误！");
         }
 
@@ -201,7 +201,7 @@ public class DrugExtService implements IDrugExtService {
         }
 
         DecoctionWay decoctionWayOld = drugDecoctionWayDao.get(decoctionWayBean.getDecoctionId());
-        if(decoctionWayOld != null){
+        if(decoctionWayOld == null){
             throw new DAOException(DAOException.VALUE_NEEDED, " 未查询出有此煎法，修改错误！");
         }
 
