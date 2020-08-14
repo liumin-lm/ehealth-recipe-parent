@@ -333,7 +333,12 @@ public class PrescribeService {
             }else {
                 //转换组织结构编码
                 try {
-                    clinicOrgan = RecipeServiceSub.transformOrganIdToClinicOrgan(request.getOrganId());
+                    if (StringUtils.isNotEmpty(request.getClinicOrgan())){
+                        clinicOrgan = Integer.valueOf(request.getClinicOrgan());
+                    }
+                    if (clinicOrgan == null){
+                        clinicOrgan = RecipeServiceSub.transformOrganIdToClinicOrgan(request.getOrganId());
+                    }
                 } catch (Exception e) {
                     LOG.error("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
                 } finally {
