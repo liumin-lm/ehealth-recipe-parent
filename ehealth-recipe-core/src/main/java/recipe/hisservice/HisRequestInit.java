@@ -451,9 +451,9 @@ public class HisRequestInit {
                     orderItem.setOrganUsingRate(detail.getOrganUsingRate());
                     //机构用法代码
                     orderItem.setOrganUsePathways(detail.getOrganUsePathways());
-                    orderItem.setAdmissionName(detail.getUsingRateTextFromHis());
+                    orderItem.setAdmissionName(detail.getUsePathwaysTextFromHis());
                     //频次名称
-                    orderItem.setFrequencyName(detail.getUsePathwaysTextFromHis());
+                    orderItem.setFrequencyName(detail.getUsingRateTextFromHis());
                     if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                         orderItem.setDosage(detail.getUseDoseStr());
                     } else {

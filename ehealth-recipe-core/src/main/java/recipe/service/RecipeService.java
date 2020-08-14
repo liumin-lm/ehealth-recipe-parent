@@ -606,6 +606,9 @@ public class RecipeService extends RecipeBaseService {
                 nowCheckResult.setLocalLimitDate(null);
                 nowCheckResult.setGrabDoctorId(null);
                 recipeCheckDAO.update(nowCheckResult);
+                if (CollectionUtils.isNotEmpty(recipeCheckDetails)) {
+                    recipeCheckDetails.forEach(recipeCheckDetail -> recipeCheckDetail.setCheckId(nowCheckResult.getCheckId()));
+                }
             }
             if (CollectionUtils.isNotEmpty(recipeCheckDetails)) {
                 recipeCheckDetails.forEach(recipeCheckDetail -> {

@@ -13,7 +13,7 @@ import recipe.util.RedisClient;
 public class UsePathwaysFilter {
 
     public static String filter(int organId, String field) {
-        if (StringUtils.isNotEmpty(field)){
+        if (StringUtils.isEmpty(field)){
             return "";
         }
         String val =  RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, field);
@@ -33,7 +33,7 @@ public class UsePathwaysFilter {
      * @return
      */
     public static String filterNgari(int organId, String field){
-        if (StringUtils.isNotEmpty(field)){
+        if (StringUtils.isEmpty(field)){
             return "";
         }
         String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, field);

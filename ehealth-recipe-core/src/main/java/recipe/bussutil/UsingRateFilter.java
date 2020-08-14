@@ -19,7 +19,7 @@ import java.util.List;
 public class UsingRateFilter {
 
     public static String filter(int organId, String field) {
-        if (StringUtils.isNotEmpty(field)){
+        if (StringUtils.isEmpty(field)){
             return "";
         }
         String val = RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, field);
@@ -39,7 +39,7 @@ public class UsingRateFilter {
      * @return
      */
     public static String filterNgari(int organId, String field){
-        if (StringUtils.isNotEmpty(field)){
+        if (StringUtils.isEmpty(field)){
             return "";
         }
         String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USINGRATE + organId, field);
@@ -58,7 +58,7 @@ public class UsingRateFilter {
      * @return
      */
     public static String filterNgariByMedical(int organId, String field){
-        if (StringUtils.isNotEmpty(field)){
+        if (StringUtils.isEmpty(field)){
             return "";
         }
         String val = RedisClient.instance().hget(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + organId, field);

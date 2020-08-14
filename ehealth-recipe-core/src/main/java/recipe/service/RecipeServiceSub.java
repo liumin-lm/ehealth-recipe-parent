@@ -9,6 +9,8 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -50,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -2934,5 +2935,39 @@ public class RecipeServiceSub {
         }catch(Exception e){
             LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 转换组织机构编码
+     *
+     * @param organId
+     * @return
+     */
+    public static Integer transformOrganIdToClinicOrgan(String organId) {
+        //需要转换组织机构编码
+        Integer clinicOrgan = null;
+        try {
+            if (isClinicOrgan(organId)) {
+                return Integer.valueOf(organId);
+            }
+            IOrganService organService = BaseAPI.getService(IOrganService.class);
+            List<OrganBean> organList = organService.findByOrganizeCode(organId);
+            if (CollectionUtils.isNotEmpty(organList)) {
+                clinicOrgan = organList.get(0).getOrganId();
+            }
+        } catch (Exception e) {
+            LOGGER.error("queryRecipeInfo 平台未匹配到该组织机构编码. organId={}", organId, e);
+        }
+        return clinicOrgan;
+    }
+
+    /**
+     * 判断是否是平台机构id规则----长度为7的纯数字
+     *
+     * @param organId
+     * @return
+     */
+    public static boolean isClinicOrgan(String organId) {
+        return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
     }
 }
