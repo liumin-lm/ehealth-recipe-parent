@@ -317,6 +317,7 @@ public class PurchaseService {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             if (recipe.getEnterpriseId() != null) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                //结算方式 0:药店价格 1:医院价格
                 int settlementMode = 0;
                 if(drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1){
                     settlementMode = 1;
@@ -329,7 +330,12 @@ public class PurchaseService {
                     recipedetail.setSettlementMode(settlementMode);
 
                     if (saleDrugList != null) {
-                        recipedetail.setActualSalePrice(saleDrugList.getPrice());
+                        if (settlementMode == 0){
+                            recipedetail.setActualSalePrice(saleDrugList.getPrice());
+                        }else if (settlementMode == 1){
+                            recipedetail.setActualSalePrice(recipedetail.getSalePrice());
+                        }
+
                         if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
                             recipedetail.setSaleDrugCode(saleDrugList.getDrugId()+"");
                         } else {
