@@ -2355,7 +2355,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             + "' and clinicOrgan =:organId and syncFlag =0 and checker is not null");
                 } else {
                     hql.append("and lastModify between '" + startDate + "' and '" + endDate
-                            + "' and clinicOrgan =:organId and syncFlag =0 ");
+                            + "' and clinicOrgan =:organId and syncFlag =0 and status not in (0,10,11,16)");
                 }
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId", organId);
