@@ -296,6 +296,7 @@ public class RecipeServiceSub {
                 detail.add(memo);
 
                 medicalDetailBean.setDetail(JSONUtils.toString(detail));
+                medicalInfoBean.setMedicalDetailBean(medicalDetailBean);
                 LOGGER.info("doWithSavaOrUpdateEmr medicalDetailBean:{}.", JSONUtils.toString(medicalInfoBean));
                 Integer docId = docIndexService.saveMedicalInfo(medicalInfoBean);
                 recipeExt.setDocIndexId(docId);
