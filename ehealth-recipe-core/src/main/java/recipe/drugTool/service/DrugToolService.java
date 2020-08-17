@@ -8,8 +8,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
-import com.ngari.bus.op.service.IUsePathwaysService;
-import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.opbase.base.service.IBusActionLogService;
@@ -17,6 +15,8 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.IUsePathwaysService;
+import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -1112,8 +1112,8 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public Map<String, Object> findUsingRateAndUsePathwayByOrganId(Integer organId) {
         Map<String, Object> result = Maps.newHashMap();
-        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
-        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
+        com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
         List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
         result.put("usingRate", usingRates);
