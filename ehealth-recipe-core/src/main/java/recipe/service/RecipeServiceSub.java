@@ -233,66 +233,84 @@ public class RecipeServiceSub {
                 //设置病历索引扩展信息
                 List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
                 DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
-                docIndexExtBean.setBussId(1);
+                docIndexExtBean.setBussType(1);
                 docIndexExtBean.setBussId(recipe.getRecipeId());
                 docIndexExtBeanList.add(docIndexExtBean);
                 medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
                 //设置病历详情
                 MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
-                List<Map<String, String>> detail = new ArrayList();
+                List detail = new ArrayList();
                 //设置主诉
-                Map<String, String> complain = new HashMap<>();
-                complain.put("type", "text");
-                complain.put("name", "主诉");
-                complain.put("value", recipeExt.getMainDieaseDescribe());
+                Map<String, Object> complain = new HashMap<>();
+                Map<String, String> complainValue = new HashMap<>();
+                complainValue.put("type", "text");
+                complainValue.put("name", "主诉");
+                complainValue.put("value", recipeExt.getMainDieaseDescribe());
+                complain.put("complain", complainValue);
                 detail.add(complain);
                 //设置现病史
-                Map<String, String> currentMedicalHistory = new HashMap<>();
-                currentMedicalHistory.put("type", "text");
-                currentMedicalHistory.put("name", "现病史");
-                currentMedicalHistory.put("value", recipeExt.getCurrentMedical());
+                Map<String, Object> currentMedicalHistory = new HashMap<>();
+                Map<String, String> currentMedicalHistoryValue = new HashMap<>();
+                currentMedicalHistoryValue.put("type", "text");
+                currentMedicalHistoryValue.put("name", "现病史");
+                currentMedicalHistoryValue.put("value", recipeExt.getCurrentMedical());
+                currentMedicalHistory.put("currentMedicalHistory", currentMedicalHistoryValue);
                 detail.add(currentMedicalHistory);
                 //设置既往史
-                Map<String, String> pastMedicalHistory = new HashMap<>();
-                pastMedicalHistory.put("type", "text");
-                pastMedicalHistory.put("name", "既往史");
-                pastMedicalHistory.put("value", recipeExt.getHistroyMedical());
+                Map<String, Object> pastMedicalHistory = new HashMap<>();
+                Map<String, String> pastMedicalHistoryValue = new HashMap<>();
+                pastMedicalHistoryValue.put("type", "text");
+                pastMedicalHistoryValue.put("name", "既往史");
+                pastMedicalHistoryValue.put("value", recipeExt.getHistroyMedical());
+                pastMedicalHistory.put("pastMedicalHistory", pastMedicalHistoryValue);
                 detail.add(pastMedicalHistory);
                 //设置过敏史
-                Map<String, String> allergyHistory = new HashMap<>();
-                allergyHistory.put("type", "text");
-                allergyHistory.put("name", "过敏史");
-                allergyHistory.put("value", recipeExt.getAllergyMedical());
+                Map<String, Object> allergyHistory = new HashMap<>();
+                Map<String, String> allergyHistoryValue = new HashMap<>();
+                allergyHistoryValue.put("type", "text");
+                allergyHistoryValue.put("name", "过敏史");
+                allergyHistoryValue.put("value", recipeExt.getAllergyMedical());
+                allergyHistory.put("allergyHistory", allergyHistoryValue);
                 detail.add(allergyHistory);
                 //设置体格检查
-                Map<String, String> physicalExamination = new HashMap<>();
-                physicalExamination.put("type", "text");
-                physicalExamination.put("name", "体格检查");
-                physicalExamination.put("value", recipeExt.getPhysicalCheck());
+                Map<String, Object> physicalExamination = new HashMap<>();
+                Map<String, String> physicalExaminationValue = new HashMap<>();
+                physicalExaminationValue.put("type", "text");
+                physicalExaminationValue.put("name", "体格检查");
+                physicalExaminationValue.put("value", recipeExt.getPhysicalCheck());
+                physicalExamination.put("physicalExamination", physicalExaminationValue);
                 detail.add(physicalExamination);
                 //设置诊断
-                Map<String, String> diagnosis = new HashMap<>();
-                diagnosis.put("type", "text");
-                diagnosis.put("name", "诊断");
-                diagnosis.put("value", recipe.getOrganDiseaseName());
+                Map<String, Object> diagnosis = new HashMap<>();
+                Map<String, String> diagnosisValue = new HashMap<>();
+                diagnosisValue.put("type", "text");
+                diagnosisValue.put("name", "诊断");
+                diagnosisValue.put("value", recipe.getOrganDiseaseName());
+                diagnosis.put("diagnosis", diagnosisValue);
                 detail.add(diagnosis);
                 //设置中医证候
-                Map<String, String> tcmSyndrome = new HashMap<>();
-                tcmSyndrome.put("type", "text");
-                tcmSyndrome.put("name", "中医证候");
-                tcmSyndrome.put("value", recipeExt.getSymptomName());
+                Map<String, Object> tcmSyndrome = new HashMap<>();
+                Map<String, String> tcmSyndromeValue = new HashMap<>();
+                tcmSyndromeValue.put("type", "text");
+                tcmSyndromeValue.put("name", "中医证候");
+                tcmSyndromeValue.put("value", recipeExt.getSymptomName());
+                tcmSyndrome.put("tcmSyndrome", tcmSyndromeValue);
                 detail.add(tcmSyndrome);
                 //设置处理方法
-                Map<String, String> processingMethod = new HashMap<>();
-                processingMethod.put("type", "text");
-                processingMethod.put("name", "处理方法");
-                processingMethod.put("value", recipeExt.getHandleMethod());
+                Map<String, Object> processingMethod = new HashMap<>();
+                Map<String, String> processingMethodValue = new HashMap<>();
+                processingMethodValue.put("type", "text");
+                processingMethodValue.put("name", "处理方法");
+                processingMethodValue.put("value", recipeExt.getHandleMethod());
+                processingMethod.put("processingMethod", processingMethodValue);
                 detail.add(processingMethod);
                 //设置注意事项
-                Map<String, String> memo = new HashMap<>();
-                memo.put("type", "text");
-                memo.put("name", "注意事项");
-                memo.put("value", recipe.getMemo());
+                Map<String, Object> memo = new HashMap<>();
+                Map<String, String> memoValue = new HashMap<>();
+                memoValue.put("type", "text");
+                memoValue.put("name", "注意事项");
+                memoValue.put("value", recipe.getMemo());
+                memo.put("memo", memoValue);
                 detail.add(memo);
 
                 medicalDetailBean.setDetail(JSONUtils.toString(detail));
