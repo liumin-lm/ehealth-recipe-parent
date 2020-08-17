@@ -152,6 +152,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "煎法text")
     private String decoctionText;
 
+    @ItemProperty(alias = "病历索引Id")
+    private Integer docIndexId;
+
     public String getSymptomId() {
         return symptomId;
     }
@@ -682,5 +685,14 @@ public class RecipeExtend implements Serializable {
 
     public void setMinorUnit(String minorUnit) {
         this.minorUnit = minorUnit;
+    }
+
+    @Column(name = "docIndexId")
+    public Integer getDocIndexId() {
+        return docIndexId;
+    }
+
+    public void setDocIndexId(Integer docIndexId) {
+        this.docIndexId = docIndexId;
     }
 }

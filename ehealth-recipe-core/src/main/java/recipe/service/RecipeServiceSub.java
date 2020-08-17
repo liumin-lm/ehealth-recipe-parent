@@ -47,6 +47,11 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import eh.cdr.api.service.IDocIndexService;
+import eh.cdr.api.vo.DocIndexBean;
+import eh.cdr.api.vo.DocIndexExtBean;
+import eh.cdr.api.vo.MedicalDetailBean;
+import eh.cdr.api.vo.MedicalInfoBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -139,6 +144,8 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
+        //电子病历，将电子病历保存到cdr模块
+        doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
         //武昌需求，加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient,recipeBean,recipeId);
 
@@ -184,6 +191,120 @@ public class RecipeServiceSub {
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }
+    }
+
+    /**
+     * 保存或更新电子病历
+     * @param recipeExt
+     */
+    private static void doWithSavaOrUpdateEmr(Recipe recipe,RecipeExtendBean recipeExt){
+        try{
+            if (ObjectUtils.isEmpty(recipeExt.getRecipeId())) {
+                //保存电子病历
+                IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
+                MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
+                //设置病历索引信息
+                DocIndexBean docIndexBean = new DocIndexBean();
+                docIndexBean.setClinicId(recipe.getClinicId());
+                docIndexBean.setMpiid(recipe.getMpiid());
+                docIndexBean.setDocClass(3);
+                docIndexBean.setDocType("3");
+                docIndexBean.setDocTitle("电子处方病历");
+                docIndexBean.setDocSummary("电子处方病历");
+                docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
+                docIndexBean.setCreateDepart(recipe.getDepart());
+                DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+                DepartmentDTO department = departmentService.get(recipe.getDepart());
+                if (department != null) {
+                    docIndexBean.setDepartName(department.getName());
+                }
+                docIndexBean.setCreateDoctor(recipe.getDoctor());
+                docIndexBean.setDoctorName(recipe.getDoctorName());
+                docIndexBean.setCreateDate(new Date());
+                docIndexBean.setGetDate(new Date());
+                docIndexBean.setDoctypeName("电子处方病历");
+                docIndexBean.setDocStatus(4);
+                docIndexBean.setDocFlag(0);
+                docIndexBean.setOrganNameByUser(recipe.getOrganName());
+                docIndexBean.setClinicPersonName(recipe.getPatientName());
+                docIndexBean.setLastModify(new Date());
+                medicalInfoBean.setDocIndexBean(docIndexBean);
+                //设置病历索引扩展信息
+                List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
+                DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
+                docIndexExtBean.setBussId(1);
+                docIndexExtBean.setBussId(recipe.getRecipeId());
+                docIndexExtBeanList.add(docIndexExtBean);
+                medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
+                //设置病历详情
+                MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
+                List<Map<String, String>> detail = new ArrayList();
+                //设置主诉
+                Map<String, String> complain = new HashMap<>();
+                complain.put("type", "text");
+                complain.put("name", "主诉");
+                complain.put("value", recipeExt.getMainDieaseDescribe());
+                detail.add(complain);
+                //设置现病史
+                Map<String, String> currentMedicalHistory = new HashMap<>();
+                currentMedicalHistory.put("type", "text");
+                currentMedicalHistory.put("name", "现病史");
+                currentMedicalHistory.put("value", recipeExt.getCurrentMedical());
+                detail.add(currentMedicalHistory);
+                //设置既往史
+                Map<String, String> pastMedicalHistory = new HashMap<>();
+                pastMedicalHistory.put("type", "text");
+                pastMedicalHistory.put("name", "既往史");
+                pastMedicalHistory.put("value", recipeExt.getHistroyMedical());
+                detail.add(pastMedicalHistory);
+                //设置过敏史
+                Map<String, String> allergyHistory = new HashMap<>();
+                allergyHistory.put("type", "text");
+                allergyHistory.put("name", "过敏史");
+                allergyHistory.put("value", recipeExt.getAllergyMedical());
+                detail.add(allergyHistory);
+                //设置体格检查
+                Map<String, String> physicalExamination = new HashMap<>();
+                physicalExamination.put("type", "text");
+                physicalExamination.put("name", "体格检查");
+                physicalExamination.put("value", recipeExt.getPhysicalCheck());
+                detail.add(physicalExamination);
+                //设置诊断
+                Map<String, String> diagnosis = new HashMap<>();
+                diagnosis.put("type", "text");
+                diagnosis.put("name", "诊断");
+                diagnosis.put("value", recipe.getOrganDiseaseName());
+                detail.add(diagnosis);
+                //设置中医证候
+                Map<String, String> tcmSyndrome = new HashMap<>();
+                tcmSyndrome.put("type", "text");
+                tcmSyndrome.put("name", "中医证候");
+                tcmSyndrome.put("value", recipeExt.getSymptomName());
+                detail.add(tcmSyndrome);
+                //设置处理方法
+                Map<String, String> processingMethod = new HashMap<>();
+                processingMethod.put("type", "text");
+                processingMethod.put("name", "处理方法");
+                processingMethod.put("value", recipeExt.getHandleMethod());
+                detail.add(processingMethod);
+                //设置注意事项
+                Map<String, String> memo = new HashMap<>();
+                memo.put("type", "text");
+                memo.put("name", "注意事项");
+                memo.put("value", recipe.getMemo());
+                detail.add(memo);
+
+                medicalDetailBean.setDetail(JSONUtils.toString(detail));
+                LOGGER.info("doWithSavaOrUpdateEmr medicalDetailBean:{}.", JSONUtils.toString(medicalDetailBean));
+                Integer docId = docIndexService.saveMedicalInfo(medicalInfoBean);
+                recipeExt.setDocIndexId(docId);
+            } else {
+                //更新电子病历
+
+            }
+        }catch(Exception e){
+            LOGGER.info("doWithSavaOrUpdateEmr 电子病历保存或更新失败, mgs:{}.", e.getMessage(), e);
         }
     }
 
