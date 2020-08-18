@@ -1527,6 +1527,22 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+            // 需支付
+            // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
+            // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
+            BigDecimal needFee=new BigDecimal(0.00);
+            try{
+                LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}",order.getOrderCode(),JSONUtils.toString(order));
+                if(PayConstant.PAY_FLAG_NOT_PAY==orderBean.getPayFlag()){
+                    needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee());
+                }else{
+                    needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee().subtract(new BigDecimal(orderBean.getActualPrice())));
+                }
+            }catch(Exception e){
+                LOGGER.error("getOrderDetailById needFee计算需支付 error :{}",needFee);
+            }
+            orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO)>=0?needFee:BigDecimal.ZERO);
+
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
