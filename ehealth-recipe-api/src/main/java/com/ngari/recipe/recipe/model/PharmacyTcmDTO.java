@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -25,6 +26,8 @@ public class PharmacyTcmDTO implements Serializable {
     private Integer sort;
 
     private Integer organId;
+
+    private String type;
 
     public Integer getPharmacyId() {
         return pharmacyId;
@@ -80,5 +83,13 @@ public class PharmacyTcmDTO implements Serializable {
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

@@ -1988,19 +1988,28 @@ public class RecipeServiceSub {
                 map.put("supportTFDS", 1);
             }
         }
+        //临沭县人民医院医保支付按钮--点击跳转到东软h5页面
+        if (recipe.getClinicOrgan() == 1002753){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            if (purchaseService.isMedicarePatient(1002753,recipe.getMpiid())){
+                map.put("supportMedicalPayment", 1);
+            }
+        }
         //date 2191011
         //添加处方详情上是否展示按钮
         boolean showButton = false;
-        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString())) && (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString())) && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString())) && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString())))) {
+        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString()))
+                && (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString()))
+                && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString()))
+                && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString()))
+                && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
-                //带药师审核，审核一次不通过，待处理无订单
+                //待药师审核，审核一次不通过，待处理无订单
                 if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
-
                     showButton = true;
                 }
             } else {
                 if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
-
                     showButton = true;
                 }
             }

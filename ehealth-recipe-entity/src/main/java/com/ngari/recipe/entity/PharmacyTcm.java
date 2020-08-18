@@ -40,6 +40,9 @@ public  class PharmacyTcm implements java.io.Serializable{
     @ItemProperty(alias = "机构ID")
     private Integer organId;
 
+    @ItemProperty(alias = "药房类型")
+    private String type;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "pharmacyId", unique = true, nullable = false)
@@ -104,5 +107,14 @@ public  class PharmacyTcm implements java.io.Serializable{
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    @Column(name = "type")
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

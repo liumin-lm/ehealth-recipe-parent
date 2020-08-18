@@ -5,6 +5,7 @@ import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -78,6 +79,9 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
+
+    @ItemProperty(alias = "需支付费用")
+    private BigDecimal needFee;
 
     @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
     private Integer expressFeePayWay;
@@ -930,5 +934,14 @@ public class RecipeOrderBean implements Serializable {
 
     public void setSendType(Integer sendType) {
         this.sendType = sendType;
+    }
+
+    @Transient
+    public BigDecimal getNeedFee() {
+        return needFee;
+    }
+
+    public void setNeedFee(BigDecimal needFee) {
+        this.needFee = needFee;
     }
 }
