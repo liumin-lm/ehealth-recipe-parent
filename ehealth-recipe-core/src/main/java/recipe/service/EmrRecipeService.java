@@ -43,8 +43,8 @@ public class EmrRecipeService {
                 DocIndexBean docIndexBean = new DocIndexBean();
                 docIndexBean.setClinicId(recipe.getClinicId());
                 docIndexBean.setMpiid(recipe.getMpiid());
-                docIndexBean.setDocClass(3);
-                docIndexBean.setDocType("3");
+                docIndexBean.setDocClass(11);
+                docIndexBean.setDocType("0");
                 docIndexBean.setDocTitle("电子处方病历");
                 docIndexBean.setDocSummary("电子处方病历");
                 docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
