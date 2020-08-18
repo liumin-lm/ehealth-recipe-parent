@@ -14,11 +14,15 @@ import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -28,6 +32,7 @@ import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -46,9 +51,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.CacheConstant;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -67,6 +74,7 @@ import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -84,6 +92,18 @@ public class RecipeHisService extends RecipeBaseService {
 
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private PatientService patientService;
+    @Autowired
+    private IConsultExService consultExService;
+    @Resource
+    private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
+    @Autowired
+    private IRecipeHisService recipeHisService;
+    @Autowired
+    private IConsultService consultService;
 
     /**
      * 发送处方
@@ -120,14 +140,6 @@ public class RecipeHisService extends RecipeBaseService {
         }
         return result;
     }
-
-   /* private boolean isAfterPatientChoose(Integer clinicOrgan) {
-        //
-        if (clinicOrgan == 1000899){
-            return true;
-        }
-        return false;
-    }*/
 
     @RpcService
     public void sendRecipe(Integer recipeId, Integer sendOrganId) {
@@ -168,42 +180,6 @@ public class RecipeHisService extends RecipeBaseService {
                 }
             }
         }
-        //设置医生工号
-        //request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
-       /* //查询生产厂家
-        List<OrderItemTO> orderItemList = request.getOrderList();
-        if (CollectionUtils.isNotEmpty(orderItemList)) {
-            List<Integer> drugIdList = FluentIterable.from(orderItemList).transform(new Function<OrderItemTO, Integer>() {
-                @Override
-                public Integer apply(OrderItemTO input) {
-                    return input.getDrugId();
-                }
-            }).toList();
-
-            List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(sendOrganId, drugIdList);
-            Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
-                @Override
-                public String apply(OrganDrugList input) {
-                    return input.getOrganDrugCode();
-                }
-            });
-
-            OrganDrugList organDrug;
-            for (OrderItemTO item : orderItemList) {
-                organDrug = drugIdAndProduce.get(item.getDrcode());
-                if (null != organDrug) {
-                    //生产厂家
-                    item.setManfcode(organDrug.getProducerCode());
-                    //药房名称
-                    item.setPharmacy(organDrug.getPharmacyName());
-                    //单价
-                    item.setItemPrice(organDrug.getSalePrice());
-                    //产地名称
-                    item.setDrugManf(organDrug.getProducer());
-                }
-            }
-
-        }*/
         request.setOrganID(sendOrganId.toString());
         LOGGER.info("recipeHisService recipeId:{} request:{}",recipeId,JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
@@ -413,26 +389,6 @@ public class RecipeHisService extends RecipeBaseService {
                     //非医保结算前置机返回null可能未对接接口
                     LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                 }
-
-//                if(null == response){
-//                    LOGGER.error("payNotify 前置机未返回null，可能为对接结算接口");
-//                } else if(null != response && (null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null)) {
-//                    result.setCode(RecipeResultBean.FAIL);
-//                    if (response != null) {
-//                        if (response.getMsg() != null) {
-//                            result.setError(response.getMsg());
-//                        } else {
-//                            result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
-//                        }
-//                        HisCallBackService.havePayFail(recipe.getRecipeId());
-//                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
-//                    }
-//                } else {
-//                    Recipedetail detail = new Recipedetail();
-//                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-//                    detail.setPharmNo(response.getData().getWindows());
-//                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
-//                }
             }
 
             if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
@@ -448,9 +404,6 @@ public class RecipeHisService extends RecipeBaseService {
                     if (!RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
                         LOGGER.error("HIS drugTake synchronize error. recipeId=" + recipeId);
                         //配送到家同步失败则返回异常,医院取药不需要管，医院处方默认是医院取药
-//                        HisCallBackService.havePayFail(_dbRecipe.getRecipeId());
-//                        result.setCode(RecipeResultBean.FAIL);
-//                        result.setError("由于医院接口异常，购药方式修改失败。");
                     }
                 }
             }
@@ -458,8 +411,6 @@ public class RecipeHisService extends RecipeBaseService {
         } else {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "recipeDrugTake[DrugTakeUpdateService] HIS未启用");
             LOGGER.error("recipeDrugTake 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
-//            result.setCode(RecipeResultBean.FAIL);
-//            result.setError("医院HIS未启用。");
         }
 
         return result;
@@ -930,7 +881,6 @@ public class RecipeHisService extends RecipeBaseService {
             DrugInfoResponseTO response = service.scanDrugStock(detailList, recipe.getClinicOrgan());
             if (null == response) {
                 //his未配置该服务则还是可以通过
-//                result.setCode(RecipeResultBean.FAIL);
                 result.setError("HIS返回为NULL");
             } else {
                 if (!Integer.valueOf(0).equals(response.getMsgCode())) {
@@ -1195,61 +1145,6 @@ public class RecipeHisService extends RecipeBaseService {
                 rMap.put("errorFlag", true);
                 rMap.put("errorMsg", map.get("resultMark"));
             } else {
-//                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
-//                String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
-//                //配送药企代码
-//                String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
-//                //配送药企名称
-//                String deliveryName = null != map.get("deliveryName") ? map.get("deliveryName").toString() : null;
-//                if (StringUtils.isNotEmpty(giveMode)){
-//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//                    Map<String,String> updateMap = Maps.newHashMap();
-//                    updateMap.put("giveMode",giveMode);
-//                    updateMap.put("deliveryCode",deliveryCode);
-//                    updateMap.put("deliveryName",deliveryName);
-//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
-//                }
-//                //date 20200305
-//                //当前处方信息获取物流配送信息
-//                //预校验返回 取药方式 0医院取药 1物流配送 2药店取药 4都支持 3其他
-//                Object deliveryList = map.get("deliveryList");
-//                if(null != deliveryList && null != giveMode){
-//
-//                    List<Map> deliveryLists = (List<Map>)deliveryList;
-//                    //暂时按照逻辑只保存展示返回的第一个药企
-//                    DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
-//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//                    if (null != nowDeliveryList){
-//                        Map<String,String> updateMap = Maps.newHashMap();
-//                        updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
-//                        updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
-//                        //存放处方金额
-//                        updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
-//                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
-//                    }
-//                    //date 20200311
-//                    //将his返回的批量药企信息存储下来，将信息分成|分割
-//                    DeliveryList deliveryListNow;
-//                    Map<String,String> updateMap = Maps.newHashMap();
-//                    StringBuffer deliveryCodes = new StringBuffer().append("|");
-//                    StringBuffer deliveryNames = new StringBuffer().append("|");
-//                    StringBuffer deliveryRecipeFees = new StringBuffer().append("|");
-//                    for(Map<String,String> delivery : deliveryLists){
-//                        deliveryListNow = JSON.parseObject(JSON.toJSONString(delivery), DeliveryList.class);
-//                        deliveryCodes.append(deliveryListNow.getDeliveryCode()).append("|");
-//                        deliveryNames.append(deliveryListNow.getDeliveryName()).append("|");
-//                        deliveryRecipeFees.append(deliveryListNow.getRecipeFee()).append("|");
-//                    }
-//                    updateMap.put("deliveryCode", "|".equals(deliveryCodes) ? null : deliveryCodes.toString());
-//                    updateMap.put("deliveryName", "|".equals(deliveryNames) ? null : deliveryNames.toString());
-//                    //存放处方金额
-//                    updateMap.put("deliveryRecipeFee", "|".equals(deliveryRecipeFees) ? null : deliveryRecipeFees.toString());
-//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
-//
-//
-//                }else{
-//                    LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
-//                }
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                         ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
@@ -1419,4 +1314,166 @@ public class RecipeHisService extends RecipeBaseService {
         }
         return hisResponseTO.getData();
     }
+
+    @RpcService
+    public List<RecipeDetailBean> validateOfflineDrug(Integer organId, String mpiId, String recipeCode) {
+        try {
+            LOGGER.info("validateOfflineDrug organId={}, mpiId={},recipeCode={}", organId, mpiId, recipeCode);
+            List<RecipeInfoTO> recipeInfoTO = recipeListInfos(organId, mpiId);
+            if (CollectionUtils.isEmpty(recipeInfoTO)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方数据为空");
+            }
+            recipeInfoTO = recipeInfoTO.stream().filter(a -> recipeCode.equals(a.getRecipeCode())).collect(Collectors.toList());
+            LOGGER.info("validateOfflineDrug recipeInfoTO={}", JSONUtils.toString(recipeInfoTO));
+
+            if (CollectionUtils.isEmpty(recipeInfoTO)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方数据为空");
+            }
+            //获取线下处方药品
+            List<RecipeDetailTO> detailData = recipeInfoTO.get(0).getDetailData();
+            if (CollectionUtils.isEmpty(detailData)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取药品数据为空");
+            }
+            List<String> drugCodes = detailData.stream().map(RecipeDetailTO::getDrugCode).distinct().collect(Collectors.toList());
+            //获取药品比对信息
+            List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodes);
+            if (CollectionUtils.isEmpty(organDrugs)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单上的药品不在医院线上药品清单内，无法正常续方");
+            }
+            return offlineDrugs(organId, organDrugs, detailData);
+        } catch (DAOException e) {
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e1) {
+            LOGGER.error("validateOfflineDrug error ", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        }
+    }
+
+    /**
+     * @param organId    机构id
+     * @param organDrugs 机构药品
+     * @param detailData 线下处方药品
+     * @return
+     */
+    private List<RecipeDetailBean> offlineDrugs(Integer organId, List<OrganDrugList> organDrugs, List<RecipeDetailTO> detailData) {
+        Map<String, OrganDrugList> organDrugMap = organDrugs.stream()
+                .collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        List<Integer> drugIds = organDrugs.stream().map(OrganDrugList::getDrugId).distinct().collect(Collectors.toList());
+        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+        Map<Integer, DrugList> drugMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
+
+        List<RecipeDetailBean> backDetailList = new ArrayList<>();
+        for (RecipeDetailTO recipeDetail : detailData) {
+            /**线下处方 续方逻辑校验*/
+            RecipeDetailBean recipeDetailBean = RecipeValidateUtil.validateOfflineDrug(organId, recipeDetail, organDrugMap);
+            if (null == recipeDetailBean) {
+                continue;
+            }
+            //组织处方药品续方参数
+            OrganDrugList organDrug = organDrugMap.get(recipeDetail.getDrugCode());
+            DrugList drug = drugMap.get(organDrug.getDrugId());
+            recipeDetailBean.setDefaultUseDose(drug.getUseDose());
+            recipeDetailBean.setDrugCost(recipeDetail.getTotalPrice());
+            recipeDetailBean.setDrugId(organDrug.getDrugId());
+            recipeDetailBean.setDrugName(recipeDetail.getDrugName());
+            recipeDetailBean.setDrugSpec(recipeDetail.getDrugSpec());
+            recipeDetailBean.setOrganDrugCode(recipeDetail.getDrugCode());
+            recipeDetailBean.setOrganUsePathways(recipeDetail.getUsePathwaysCode());
+            recipeDetailBean.setOrganUsingRate(recipeDetail.getUsingRateCode());
+            recipeDetailBean.setPack(recipeDetail.getPack());
+            recipeDetailBean.setPrice(recipeDetail.getPrice());
+            recipeDetailBean.setRatePrice(recipeDetail.getPrice());
+            recipeDetailBean.setSalePrice(recipeDetail.getPrice());
+            recipeDetailBean.setSendNumber(recipeDetail.getAmount());
+            recipeDetailBean.setUseDays(recipeDetail.getUseDays());
+            recipeDetailBean.setUseDose(Double.valueOf(recipeDetail.getUseDose()));
+            recipeDetailBean.setUseDoseStr(recipeDetail.getUseDose());
+            recipeDetailBean.setUseDoseUnit(recipeDetail.getUseDoseUnit());
+            recipeDetailBean.setUsePathways(drug.getUsePathways());
+            recipeDetailBean.setUsePathwaysTextFromHis(recipeDetail.getUsePathwaysText());
+            recipeDetailBean.setUseTotalDose(recipeDetail.getUseTotalDose().doubleValue());
+            recipeDetailBean.setUsingRate(drug.getUsingRate());
+            recipeDetailBean.setUsingRateTextFromHis(recipeDetail.getUsingRateText());
+            backDetailList.add(recipeDetailBean);
+        }
+        if (CollectionUtils.isEmpty(backDetailList)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单上的药品不在医院线上药品清单内，无法正常续方");
+        }
+        return backDetailList;
+    }
+
+    /**
+     * 获取线下处方
+     *
+     * @param organId 机构id
+     * @param mpiId   患者id
+     * @return
+     */
+    private List<RecipeInfoTO> recipeListInfos(Integer organId, String mpiId) {
+        if (StringUtils.isEmpty(mpiId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者id为空");
+        }
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该患者");
+        }
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        if (null != consultExDTO) {
+            patientBaseInfo.setPatientID(consultExDTO.getCardId());
+            patientBaseInfo.setCardID(consultExDTO.getCardId());
+            patientBaseInfo.setCardType(consultExDTO.getCardType());
+        }
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(DateConversion.getDateTimeDaysAgo(100));
+        request.setEndDate(DateTime.now().toDate());
+        request.setOrgan(organId);
+        try {
+            QueryRecipeResponseTO response = recipeHisService.queryRecipeListInfo(request);
+            LOGGER.info("recipeListInfos request={}，response={}", JSONUtils.toString(request), JSONUtils.toString(response));
+            if (null == response) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "查询数据为空");
+            }
+            return response.getData();
+        } catch (Exception e) {
+            LOGGER.error("recipeListInfos request={}，e", JSONUtils.toString(request), e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "查询数据出错");
+        }
+    }
+
+    /**
+     * 获取咨询信息
+     *
+     * @param consultId 咨询id
+     * @param organId   机构id
+     * @param mpiId     患者id
+     * @return
+     */
+    private ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id 为空");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该机构");
+        }
+        if (consultId == null) {
+            List<ConsultBean> consultBeans = consultService.findConsultByMpiId(Collections.singletonList(mpiId));
+            if (CollectionUtils.isNotEmpty(consultBeans)) {
+                consultId = consultBeans.get(0).getConsultId();
+            }
+        }
+        if (consultId == null) {
+            return null;
+        }
+        ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+        return consultExDTO;
+    }
+
 }

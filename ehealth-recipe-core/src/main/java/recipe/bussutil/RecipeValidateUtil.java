@@ -8,6 +8,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -271,12 +272,86 @@ public class RecipeValidateUtil {
                     } catch (Exception e) {
                         LOGGER.error("method covertDrugUnitdoseAndUnit 转换 error " + e.getMessage());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.error("method covertDrugUnitdoseAndUnit error " + e.getMessage());
                 }
             }
         }
 
         return recipeDetailBeans;
+    }
+
+    /**
+     * 校验线下处方药品可否续方
+     *
+     * @param organId
+     * @param recipeDetailTO
+     * @param organDrugMap
+     */
+    public static RecipeDetailBean validateOfflineDrug(Integer organId, RecipeDetailTO recipeDetailTO, Map<String, OrganDrugList> organDrugMap) {
+
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        OrganDrugList organDrug = organDrugMap.get(recipeDetailTO.getDrugCode());
+        if (null == organDrug) {
+            return null;
+        }
+        StringBuilder str = new StringBuilder();
+        if (null == recipeDetailTO.getAmount()) {
+            str.append("药品发药数量,");
+        }
+        if (StringUtils.isEmpty(recipeDetailTO.getUsePathwaysCode())) {
+            str.append("用药途径代码,");
+        }
+        if (StringUtils.isEmpty(recipeDetailTO.getUsingRateCode())) {
+            str.append("频次代码,");
+        }
+        if (StringUtils.isEmpty(recipeDetailTO.getUseDose())) {
+            str.append("药品剂量,");
+        }
+        if (StringUtils.isEmpty(recipeDetailTO.getUseDoseUnit())) {
+            str.append("剂量单位,");
+        }
+        if (StringUtils.isEmpty(recipeDetailTO.getDays())) {
+            str.append("用药天数,");
+        }
+        if (StringUtils.isNotEmpty(str)) {
+            str.append(recipeDetailTO.getDrugName());
+            str.append("药品信息不全，无法正常续方。");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, str.toString());
+        }
+
+        if (StringUtils.isEmpty(recipeDetailTO.getUsingRateCode())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药频次，未在线上做维护，无法正常续方");
+        }
+        UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, recipeDetailTO.getUsingRateCode());
+        if (null == usingRateDTO) {
+            LOGGER.warn("validateOfflineDrug usingRateDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetailTO));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药频次，未在线上做维护，无法正常续方");
+        }
+        if (StringUtils.isEmpty(recipeDetailTO.getUsePathwaysCode())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药途径，未在线上做维护，无法正常续方");
+        }
+        UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), recipeDetailTO.getUsePathwaysCode());
+        if (null == usePathwaysDTO) {
+            LOGGER.warn("validateOfflineDrug usePathwaysDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetailTO));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药途径，未在线上做维护，无法正常续方");
+        }
+        //设置医生端每次剂量和剂量单位联动关系
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
+        //用药单位不为空时才返回给前端
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+        }
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+        }
+
+        RecipeDetailBean mapDetail = new RecipeDetailBean();
+        mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+        mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+        mapDetail.setDrugForm(organDrug.getDrugForm());
+        mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+        return mapDetail;
     }
 }

@@ -144,39 +144,34 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
-//        try {
-//            Thread.sleep(60000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
+    public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
+        LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        Map<String,Object> result = Maps.newHashMap();
+        Map<String, Object> result = Maps.newHashMap();
         PatientDTO patientDTO = patientService.get(mpiId);
-        if (patientDTO == null){
+        if (patientDTO == null) {
             throw new DAOException(609, "找不到该患者");
         }
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organId);
-        if (organDTO == null){
+        if (organDTO == null) {
             throw new DAOException(609, "找不到该机构");
         }
         String cardId = null;
         String cardType = null;
         IConsultService service = ConsultAPI.getService(IConsultService.class);
-        if (consultId == null){
+        if (consultId == null) {
             List<ConsultBean> consultBeans = service.findConsultByMpiId(Arrays.asList(mpiId));
-            if (CollectionUtils.isNotEmpty(consultBeans)){
+            if (CollectionUtils.isNotEmpty(consultBeans)) {
                 consultId = consultBeans.get(0).getConsultId();
             }
         }
-        if (consultId != null){
+        if (consultId != null) {
             ConsultBean consultBean = service.getById(consultId);
-            if(null != consultBean){
+            if (null != consultBean) {
                 IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
                 ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
-                if(null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())){
+                if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
                     cardId = consultExDTO.getCardId();
                     cardType = consultExDTO.getCardType();
                 }
