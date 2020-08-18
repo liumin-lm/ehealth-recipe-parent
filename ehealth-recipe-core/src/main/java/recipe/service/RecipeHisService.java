@@ -1363,9 +1363,16 @@ public class RecipeHisService extends RecipeBaseService {
         Map<Integer, DrugList> drugMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
 
         List<RecipeDetailBean> backDetailList = new ArrayList<>();
+        StringBuilder str = new StringBuilder();
         for (RecipeDetailTO recipeDetail : detailData) {
             /**线下处方 续方逻辑校验*/
-            RecipeDetailBean recipeDetailBean = RecipeValidateUtil.validateOfflineDrug(organId, recipeDetail, organDrugMap);
+            RecipeDetailBean recipeDetailBean = null;
+            try {
+                recipeDetailBean = RecipeValidateUtil.validateOfflineDrug(organId, recipeDetail, organDrugMap);
+            } catch (DAOException e) {
+                str.append(e.getMessage());
+            }
+
             if (null == recipeDetailBean) {
                 continue;
             }
@@ -1396,8 +1403,8 @@ public class RecipeHisService extends RecipeBaseService {
             recipeDetailBean.setUsingRateTextFromHis(recipeDetail.getUsingRateText());
             backDetailList.add(recipeDetailBean);
         }
-        if (CollectionUtils.isEmpty(backDetailList)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单上的药品不在医院线上药品清单内，无法正常续方");
+        if (CollectionUtils.isEmpty(backDetailList) && StringUtils.isNotEmpty(str)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, str.toString());
         }
         return backDetailList;
     }

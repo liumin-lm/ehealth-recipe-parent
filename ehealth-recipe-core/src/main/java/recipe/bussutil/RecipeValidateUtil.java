@@ -321,17 +321,12 @@ public class RecipeValidateUtil {
             throw new DAOException(ErrorCode.SERVICE_ERROR, str.toString());
         }
 
-        if (StringUtils.isEmpty(recipeDetailTO.getUsingRateCode())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药频次，未在线上做维护，无法正常续方");
-        }
         UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, recipeDetailTO.getUsingRateCode());
         if (null == usingRateDTO) {
             LOGGER.warn("validateOfflineDrug usingRateDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetailTO));
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药频次，未在线上做维护，无法正常续方");
         }
-        if (StringUtils.isEmpty(recipeDetailTO.getUsePathwaysCode())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药途径，未在线上做维护，无法正常续方");
-        }
+
         UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), recipeDetailTO.getUsePathwaysCode());
         if (null == usePathwaysDTO) {
             LOGGER.warn("validateOfflineDrug usePathwaysDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetailTO));
