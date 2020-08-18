@@ -220,6 +220,12 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
 	private String drugUnitdoseAndUnit;
 
+	@ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+	private Integer tcmContraindicationType;
+
+	@ItemProperty(alias = "中药禁忌原因")
+	private String tcmContraindicationCause;
+
 	public void setUseDaysB(String useDaysB) {
 		this.useDaysB = useDaysB;
 	}
@@ -273,6 +279,85 @@ public class Recipedetail implements java.io.Serializable {
 		this.price = price;
 		this.rate = rate;
 		this.ratePrice = ratePrice;
+	}
+
+	public Recipedetail(Integer recipeDetailId, Integer recipeId, String drugGroup, Integer drugId, String organDrugCode, String drugName, String drugSpec, Integer pack, String drugUnit, Double useDose, Double defaultUseDose, String useDoseStr, String useDoseUnit, String dosageUnit, String usingRate, String usePathways, String organUsingRate, String organUsePathways, String usingRateTextFromHis, String usePathwaysTextFromHis, Double useTotalDose, Double sendNumber, Integer useDays, BigDecimal drugCost, String memo, Date validDate, String drugBatch, Date createDt, Date lastModify, BigDecimal salePrice, String drugCode, BigDecimal price, Double rate, BigDecimal ratePrice, BigDecimal totalPrice, BigDecimal tax, BigDecimal totalRatePrice, String orderNo, String pharmNo, Integer status, String invoiceNo, Date invoiceDate, String patientInvoiceNo, Date patientInvoiceDate, String recipedtlno, String drugForm, String producer, String licenseNumber, String producerCode, BigDecimal actualSalePrice, String saleDrugCode, Integer settlementMode, String useDaysB, Integer drugType, String medicalDrugCode, Integer pharmacyId, String pharmacyName, String drugUnitdoseAndUnit, Integer tcmContraindicationType, String tcmContraindicationCause) {
+		this.recipeDetailId = recipeDetailId;
+		this.recipeId = recipeId;
+		this.drugGroup = drugGroup;
+		this.drugId = drugId;
+		this.organDrugCode = organDrugCode;
+		this.drugName = drugName;
+		this.drugSpec = drugSpec;
+		this.pack = pack;
+		this.drugUnit = drugUnit;
+		this.useDose = useDose;
+		this.defaultUseDose = defaultUseDose;
+		this.useDoseStr = useDoseStr;
+		this.useDoseUnit = useDoseUnit;
+		this.dosageUnit = dosageUnit;
+		this.usingRate = usingRate;
+		this.usePathways = usePathways;
+		this.organUsingRate = organUsingRate;
+		this.organUsePathways = organUsePathways;
+		this.usingRateTextFromHis = usingRateTextFromHis;
+		this.usePathwaysTextFromHis = usePathwaysTextFromHis;
+		this.useTotalDose = useTotalDose;
+		this.sendNumber = sendNumber;
+		this.useDays = useDays;
+		this.drugCost = drugCost;
+		this.memo = memo;
+		this.validDate = validDate;
+		this.drugBatch = drugBatch;
+		this.createDt = createDt;
+		this.lastModify = lastModify;
+		this.salePrice = salePrice;
+		this.drugCode = drugCode;
+		this.price = price;
+		this.rate = rate;
+		this.ratePrice = ratePrice;
+		this.totalPrice = totalPrice;
+		this.tax = tax;
+		this.totalRatePrice = totalRatePrice;
+		this.orderNo = orderNo;
+		this.pharmNo = pharmNo;
+		this.status = status;
+		this.invoiceNo = invoiceNo;
+		this.invoiceDate = invoiceDate;
+		this.patientInvoiceNo = patientInvoiceNo;
+		this.patientInvoiceDate = patientInvoiceDate;
+		this.recipedtlno = recipedtlno;
+		this.drugForm = drugForm;
+		this.producer = producer;
+		this.licenseNumber = licenseNumber;
+		this.producerCode = producerCode;
+		this.actualSalePrice = actualSalePrice;
+		this.saleDrugCode = saleDrugCode;
+		this.settlementMode = settlementMode;
+		this.useDaysB = useDaysB;
+		this.drugType = drugType;
+		this.medicalDrugCode = medicalDrugCode;
+		this.pharmacyId = pharmacyId;
+		this.pharmacyName = pharmacyName;
+		this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+		this.tcmContraindicationType = tcmContraindicationType;
+		this.tcmContraindicationCause = tcmContraindicationCause;
+	}
+
+	public Integer getTcmContraindicationType() {
+		return tcmContraindicationType;
+	}
+
+	public void setTcmContraindicationType(Integer tcmContraindicationType) {
+		this.tcmContraindicationType = tcmContraindicationType;
+	}
+
+	public String getTcmContraindicationCause() {
+		return tcmContraindicationCause;
+	}
+
+	public void setTcmContraindicationCause(String tcmContraindicationCause) {
+		this.tcmContraindicationCause = tcmContraindicationCause;
 	}
 
 	@Column(name = "licenseNumber")
