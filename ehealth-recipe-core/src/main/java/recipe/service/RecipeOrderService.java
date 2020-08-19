@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,6 +35,7 @@ import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
+import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
@@ -1560,12 +1562,75 @@ public class RecipeOrderService extends RecipeBaseService {
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额
             getShowAuditFeeAndTips(result, order, recipeList);
+            //在扩展内容中添加医保结算金额明细数据
+            getShowMedicalRespData(result,recipeList);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
         }
 
         return result;
+    }
+
+    private void getShowMedicalRespData(RecipeResultBean result, List<Recipe> recipeList) {
+        try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            Map<String, Object> ext = result.getExt();
+            if (null == ext) {
+                ext = Maps.newHashMap();
+            }
+            if (CollectionUtils.isNotEmpty(recipeList)) {
+                Recipe nowRecipe = recipeList.get(0);
+                if (null != nowRecipe) {
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
+                    if (recipeExtend !=null
+                            && StringUtils.isNotEmpty(recipeExtend.getMedicalSettleData())){
+                        MedicalRespData data = new MedicalRespData();
+                        List<String> list = Splitter.on("|").splitToList(recipeExtend.getMedicalSettleData());
+                        if (list.size() >= 42){
+                            //本年账户支付 9
+                            data.setCurrentAccountPayment(transBigDecimal(list.get(8)));
+                            //历年账户支付 10
+                            data.setAccountPaymentHistory(transBigDecimal(list.get(9)));
+                            //本年账户余额 18
+                            data.setCurrentAccountBalance(transBigDecimal(list.get(17)));
+                            //历年账户余额 19
+                            data.setAccountBalanceHistory(transBigDecimal(list.get(18)));
+                            //基金支付     12
+                            data.setFundPayment(transBigDecimal(list.get(11)));
+                            //起付标准累计 24
+                            data.setAccumulativeMinimumPaymentStandard(transBigDecimal(list.get(23)));
+                            //自费         16
+                            data.setSelfPayment(transBigDecimal(list.get(15)));
+                            //其中历年账户（自费部分）40
+                            data.setAnnualAccountsBySelfPayment(transBigDecimal(list.get(39)));
+                            //自理         15
+                            data.setSelfCare(transBigDecimal(list.get(9)));
+                            //其中历年账户（自理部分）39
+                            data.setAnnualAccountsBySelfCare(transBigDecimal(list.get(38)));
+                            //自负         11+14+31+42
+                            data.setSelfFinancing(transBigDecimal(list.get(10)).add(transBigDecimal(list.get(13))).add(transBigDecimal(list.get(30))).add(transBigDecimal(list.get(41))));
+                            //其中历年账户（自负部分）  11
+                            data.setAnnualAccountsBySelfFinancing(transBigDecimal(list.get(10)));
+                            //合计   8
+                            data.setTotal(transBigDecimal(list.get(7)));
+                        }
+                        ext.put("medicalRespData", data);
+                        LOGGER.info("getShowMedicalRespData data={}",JSONUtils.toString(data));
+                        result.setExt(ext);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("getShowMedicalRespData error",e);
+        }
+    }
+
+    private BigDecimal transBigDecimal(String s) {
+        if (StringUtils.isEmpty(s)){
+            s = "0.00";
+        }
+        return new BigDecimal(s);
     }
 
     /**
@@ -1580,7 +1645,7 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     public void getShowAuditFeeAndTips(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Map<String, String> ext = result.getExt();
+        Map<String, Object> ext = result.getExt();
         if (null == ext) {
             ext = Maps.newHashMap();
         }
@@ -1619,7 +1684,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @date: 2019/9/29
      * @author: JRK
      */
-    private void getOrderTips(Map<String, String> ext, Recipe nowRecipe, RecipeOrder order) {
+    private void getOrderTips(Map<String, Object> ext, Recipe nowRecipe, RecipeOrder order) {
         if (nowRecipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
             ext.put("tips", RecipeServiceSub.getTipsByStatusForPatient(nowRecipe, order));
         } else {
@@ -1642,7 +1707,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //判断是否展示下载处方签按钮：1.在下载处方购药方式
         //2.是否是后置，后置：判断审核是否审核通过状态
         //3.不是后置:判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
-        Map<String, String> ext = result.getExt();
+        Map<String, Object> ext = result.getExt();
         if (null == ext) {
             ext = Maps.newHashMap();
         }
