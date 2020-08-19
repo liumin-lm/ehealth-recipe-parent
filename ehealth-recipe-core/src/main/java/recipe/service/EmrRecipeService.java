@@ -19,6 +19,7 @@ import eh.cdr.api.vo.MedicalInfoBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import recipe.dao.RecipeExtendDAO;
 
 import java.util.*;
@@ -109,7 +110,7 @@ public class EmrRecipeService {
         Map<String, String> complainValue = new HashMap<>();
         complainValue.put("type", "text");
         complainValue.put("name", "主诉");
-        complainValue.put("value", recipeExt.getMainDieaseDescribe());
+        complainValue.put("value", isEmpty(recipeExt.getMainDieaseDescribe()));
         complain.put("complain", complainValue);
         detail.add(complain);
         //设置现病史
@@ -117,7 +118,7 @@ public class EmrRecipeService {
         Map<String, String> currentMedicalHistoryValue = new HashMap<>();
         currentMedicalHistoryValue.put("type", "text");
         currentMedicalHistoryValue.put("name", "现病史");
-        currentMedicalHistoryValue.put("value", recipeExt.getCurrentMedical());
+        currentMedicalHistoryValue.put("value", isEmpty(recipeExt.getCurrentMedical()));
         currentMedicalHistory.put("currentMedicalHistory", currentMedicalHistoryValue);
         detail.add(currentMedicalHistory);
         //设置既往史
@@ -125,7 +126,7 @@ public class EmrRecipeService {
         Map<String, String> pastMedicalHistoryValue = new HashMap<>();
         pastMedicalHistoryValue.put("type", "text");
         pastMedicalHistoryValue.put("name", "既往史");
-        pastMedicalHistoryValue.put("value", recipeExt.getHistroyMedical());
+        pastMedicalHistoryValue.put("value", isEmpty(recipeExt.getHistroyMedical()));
         pastMedicalHistory.put("pastMedicalHistory", pastMedicalHistoryValue);
         detail.add(pastMedicalHistory);
         //设置过敏史
@@ -133,7 +134,7 @@ public class EmrRecipeService {
         Map<String, String> allergyHistoryValue = new HashMap<>();
         allergyHistoryValue.put("type", "text");
         allergyHistoryValue.put("name", "过敏史");
-        allergyHistoryValue.put("value", recipeExt.getAllergyMedical());
+        allergyHistoryValue.put("value", isEmpty(recipeExt.getAllergyMedical()));
         allergyHistory.put("allergyHistory", allergyHistoryValue);
         detail.add(allergyHistory);
         //设置体格检查
@@ -141,7 +142,7 @@ public class EmrRecipeService {
         Map<String, String> physicalExaminationValue = new HashMap<>();
         physicalExaminationValue.put("type", "text");
         physicalExaminationValue.put("name", "体格检查");
-        physicalExaminationValue.put("value", recipeExt.getPhysicalCheck());
+        physicalExaminationValue.put("value", isEmpty(recipeExt.getPhysicalCheck()));
         physicalExamination.put("physicalExamination", physicalExaminationValue);
         detail.add(physicalExamination);
         //设置诊断
@@ -149,7 +150,7 @@ public class EmrRecipeService {
         Map<String, String> diagnosisValue = new HashMap<>();
         diagnosisValue.put("type", "text");
         diagnosisValue.put("name", "诊断");
-        diagnosisValue.put("value", recipe.getOrganDiseaseName());
+        diagnosisValue.put("value", isEmpty(recipe.getOrganDiseaseName()));
         diagnosis.put("diagnosis", diagnosisValue);
         detail.add(diagnosis);
         //设置中医证候
@@ -157,7 +158,7 @@ public class EmrRecipeService {
         Map<String, String> tcmSyndromeValue = new HashMap<>();
         tcmSyndromeValue.put("type", "text");
         tcmSyndromeValue.put("name", "中医证候");
-        tcmSyndromeValue.put("value", recipeExt.getSymptomName());
+        tcmSyndromeValue.put("value", isEmpty(recipeExt.getSymptomName()));
         tcmSyndrome.put("tcmSyndrome", tcmSyndromeValue);
         detail.add(tcmSyndrome);
         //设置处理方法
@@ -165,7 +166,7 @@ public class EmrRecipeService {
         Map<String, String> processingMethodValue = new HashMap<>();
         processingMethodValue.put("type", "text");
         processingMethodValue.put("name", "处理方法");
-        processingMethodValue.put("value", recipeExt.getHandleMethod());
+        processingMethodValue.put("value", isEmpty(recipeExt.getHandleMethod()));
         processingMethod.put("processingMethod", processingMethodValue);
         detail.add(processingMethod);
         //设置注意事项
@@ -173,11 +174,19 @@ public class EmrRecipeService {
         Map<String, String> memoValue = new HashMap<>();
         memoValue.put("type", "text");
         memoValue.put("name", "注意事项");
-        memoValue.put("value", recipe.getMemo());
+        memoValue.put("value", isEmpty(recipe.getMemo()));
         memo.put("memo", memoValue);
         detail.add(memo);
 
         medicalDetailBean.setDetail(JSONUtils.toString(detail));
+    }
+
+    private String isEmpty(String parame){
+        if (StringUtils.isEmpty(parame)) {
+            return "";
+        } else {
+            return parame;
+        }
     }
 
 
