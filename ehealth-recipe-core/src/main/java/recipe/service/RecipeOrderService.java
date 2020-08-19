@@ -68,6 +68,8 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.CardDataUploadRunable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -1824,7 +1826,8 @@ public class RecipeOrderService extends RecipeBaseService {
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
-
+        //健康卡数据上传
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(),"030102"));
         return result;
     }
 
