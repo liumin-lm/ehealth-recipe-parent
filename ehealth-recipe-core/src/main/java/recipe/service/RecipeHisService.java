@@ -1356,6 +1356,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @return
      */
     private List<RecipeDetailBean> offlineDrugs(Integer organId, List<OrganDrugList> organDrugs, List<RecipeDetailTO> detailData) {
+        LOGGER.info("offlineDrugs organId = {},organDrugs={},detailData={}", organId, JSONUtils.toString(organDrugs), JSONUtils.toString(detailData));
         Map<String, OrganDrugList> organDrugMap = organDrugs.stream()
                 .collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         List<Integer> drugIds = organDrugs.stream().map(OrganDrugList::getDrugId).distinct().collect(Collectors.toList());
@@ -1393,12 +1394,16 @@ public class RecipeHisService extends RecipeBaseService {
             recipeDetailBean.setSalePrice(recipeDetail.getPrice());
             recipeDetailBean.setSendNumber(recipeDetail.getAmount());
             recipeDetailBean.setUseDays(recipeDetail.getUseDays());
-            recipeDetailBean.setUseDose(Double.valueOf(recipeDetail.getUseDose()));
+            if (StringUtils.isNotEmpty(recipeDetail.getUseDose())) {
+                recipeDetailBean.setUseDose(Double.valueOf(recipeDetail.getUseDose()));
+            }
             recipeDetailBean.setUseDoseStr(recipeDetail.getUseDose());
             recipeDetailBean.setUseDoseUnit(recipeDetail.getUseDoseUnit());
             recipeDetailBean.setUsePathways(drug.getUsePathways());
             recipeDetailBean.setUsePathwaysTextFromHis(recipeDetail.getUsePathwaysText());
-            recipeDetailBean.setUseTotalDose(recipeDetail.getUseTotalDose().doubleValue());
+            if (null != recipeDetail.getUseTotalDose()) {
+                recipeDetailBean.setUseTotalDose(recipeDetail.getUseTotalDose().doubleValue());
+            }
             recipeDetailBean.setUsingRate(drug.getUsingRate());
             recipeDetailBean.setUsingRateTextFromHis(recipeDetail.getUsingRateText());
             backDetailList.add(recipeDetailBean);
@@ -1406,6 +1411,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (CollectionUtils.isEmpty(backDetailList) && StringUtils.isNotEmpty(str)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, str.toString());
         }
+        LOGGER.info("offlineDrugs backDetailList = {}", JSONUtils.toString(backDetailList));
         return backDetailList;
     }
 

@@ -324,13 +324,13 @@ public class RecipeValidateUtil {
         UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, recipeDetailTO.getUsingRateCode());
         if (null == usingRateDTO) {
             LOGGER.warn("validateOfflineDrug usingRateDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetailTO));
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药频次，未在线上做维护，无法正常续方");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + recipeDetailTO.getDrugName() + "用药频次，未在线上做维护，无法正常续方");
         }
 
         UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), recipeDetailTO.getUsePathwaysCode());
         if (null == usePathwaysDTO) {
             LOGGER.warn("validateOfflineDrug usePathwaysDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetailTO));
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院用药途径，未在线上做维护，无法正常续方");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + recipeDetailTO.getDrugName() + "用药途径，未在线上做维护，无法正常续方");
         }
         //设置医生端每次剂量和剂量单位联动关系
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
