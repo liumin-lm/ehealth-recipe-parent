@@ -337,6 +337,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 double otherServiceFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE));
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+            if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)&&drugsEnterprise != null) {
+                order.setStorePayFlag(drugsEnterprise.getStorePayFlag());
+            }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
                 if (saveFlag) {
