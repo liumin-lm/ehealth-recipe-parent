@@ -1327,14 +1327,12 @@ public class RecipeHisService extends RecipeBaseService {
             if (CollectionUtils.isEmpty(recipeInfoTO)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方数据为空");
             }
-            recipeInfoTO = recipeInfoTO.stream().filter(a -> recipeCode.equals(a.getRecipeCode())).collect(Collectors.toList());
-            LOGGER.info("validateOfflineDrug recipeInfoTO={}", JSONUtils.toString(recipeInfoTO));
-
-            if (CollectionUtils.isEmpty(recipeInfoTO)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方数据为空");
+            RecipeInfoTO recipeInfo = recipeInfoTO.stream().filter(a -> recipeCode.equals(a.getRecipeCode())).findAny().orElse(null);
+            if (null == recipeInfo) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方代码数据为空");
             }
             //获取线下处方药品
-            List<RecipeDetailTO> detailData = recipeInfoTO.get(0).getDetailData();
+            List<RecipeDetailTO> detailData = recipeInfo.getDetailData();
             if (CollectionUtils.isEmpty(detailData)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "获取药品数据为空");
             }

@@ -785,6 +785,10 @@ public class RecipeService extends RecipeBaseService {
             }
             // 添加机构id
             dataMap.put("organId", recipe.getClinicOrgan());
+            Object footerRemark = configService.getConfiguration(recipe.getClinicOrgan(), "recipeDetailRemark");
+            if (null != footerRemark) {
+                dataMap.put("footerRemark", footerRemark.toString());
+            }
             Map<String, Object> backMap = esignService.signForRecipe(false, checker, dataMap);
             LOGGER.info("reviewRecipe  esignService backMap:{} ,e=============", JSONUtils.toString(backMap));
             //0表示成功
@@ -1291,6 +1295,10 @@ public class RecipeService extends RecipeBaseService {
         }
         //上传阿里云
         String memo = "";
+        Object footerRemark = configService.getConfiguration(recipe.getClinicOrgan(), "recipeDetailRemark");
+        if (null != footerRemark) {
+            paramMap.put("footerRemark", footerRemark.toString());
+        }
         Map<String, Object> backMap = esignService.signForRecipe(true, recipe.getDoctor(), paramMap);
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
