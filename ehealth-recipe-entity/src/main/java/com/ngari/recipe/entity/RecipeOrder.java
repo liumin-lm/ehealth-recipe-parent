@@ -301,6 +301,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
     private Integer payeeCode;
 
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
+    private Integer storePayFlag;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -1043,5 +1046,14 @@ public class RecipeOrder implements Serializable {
 
     public void setSendType(Integer sendType) {
         this.sendType = sendType;
+    }
+
+    @Transient
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
     }
 }
