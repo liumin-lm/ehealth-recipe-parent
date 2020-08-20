@@ -4028,7 +4028,7 @@ public class RecipeService extends RecipeBaseService {
             result.setError("处方单id对应的处方为空");
             return result;
         }
-        Map<String, String> ext = new HashMap<>(10);
+        Map<String, Object> ext = new HashMap<>(10);
         Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
         if (null == nowRecipe.getOrderCode()) {
             result.setObject(recipeMap);
@@ -4038,7 +4038,7 @@ public class RecipeService extends RecipeBaseService {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeResultBean orderDetail = orderService.getOrderDetail(nowRecipe.getOrderCode());
             result = orderDetail;
-            Map<String, String> nowExt = result.getExt();
+            Map<String, Object> nowExt = result.getExt();
             if (null == nowExt) {
                 ext.put("jumpType", "1");
                 result.setExt(ext);

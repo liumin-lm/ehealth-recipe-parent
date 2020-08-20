@@ -153,10 +153,10 @@ public class RecipeUtil {
      * @param order
      * @return
      */
-    public static Map<String, String> getParamFromOgainConfig(RecipeOrder order) {
+    public static Map<String, Object> getParamFromOgainConfig(RecipeOrder order) {
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         Integer organId = order.getOrganId();
-        Map<String, String> map = Maps.newHashMap();
+        Map<String, Object> map = Maps.newHashMap();
         if (null != organId) {
             OrganConfigBean organConfig = iOrganConfigService.get(organId);
             if (null != organConfig) {
