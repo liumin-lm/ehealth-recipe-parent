@@ -16,6 +16,7 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -147,6 +148,7 @@ public class RecipePreserveService {
     public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
         Map<String, Object> result = Maps.newHashMap();
         PatientDTO patientDTO = patientService.get(mpiId);
         if (patientDTO == null) {
@@ -191,10 +193,15 @@ public class RecipePreserveService {
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
         patientBaseInfo.setCardID(cardId);
         patientBaseInfo.setCardType(cardType);
+        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
+        if (StringUtils.isNotEmpty(cityCardNumber)) {
+            patientBaseInfo.setCityCardNumber(cityCardNumber);
+        }
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         request.setOrgan(organId);
+
         LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
         QueryRecipeResponseTO response = null;
         try {
