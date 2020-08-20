@@ -66,12 +66,24 @@ public class RecipeToHisService {
             LOGGER.info("recipeSend 调用前置机处方写入服务成功! recipeId=" + request.getRecipeID());
         } catch (Exception e) {
             LOGGER.error("recipeSend HIS接口调用失败. request={}", JSONUtils.toString(request), e);
-            //失败发送系统消息
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, null);
-            //日志记录
-            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS,
+            Recipe recipe= recipeDAO.get(recipeId);
+            if(recipe != null && recipe.getStatus() != null && recipe.getStatus() == RecipeStatusConstant.CHECKING_HOS){
+                //失败发送系统消息
+                recipeDAO.updateStatusByRecipeIdAndStatus(recipeId, RecipeStatusConstant.HIS_FAIL, RecipeStatusConstant.CHECKING_HOS);
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS,
                     RecipeStatusConstant.HIS_FAIL, "his写入失败，调用前置机处方写入服务失败");
-            LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务错误!", recipeId);
+                LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务异常!，更改处方状态", recipeId);
+            } else{
+                //非医院确认中的状态不做更改（避免已经回调成功了，这再报超时异常）
+                if(recipe != null){
+                    //日志记录
+                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
+                        recipe.getStatus(), "his写入失败，调用前置机处方写入服务失败,状态不变");
+                    LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务异常! status={}", recipeId, recipe.getStatus());
+                }
+            }
+
         }
     }
 
