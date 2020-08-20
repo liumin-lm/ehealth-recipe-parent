@@ -69,6 +69,8 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.PayModeOnline;
 import recipe.purchase.PurchaseEnum;
 import recipe.purchase.PurchaseService;
+import recipe.thread.CardDataUploadRunable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
@@ -478,6 +480,8 @@ public class RecipeHisService extends RecipeBaseService {
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.FINISH, RecipeStatusConstant.FINISH, memo + "：写入his失败");
             }
+            //健康卡数据上传
+            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipe.getClinicOrgan(), recipe.getMpiid(),"010103"));
         } else {
             result = false;
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.FINISH, RecipeStatusConstant.FINISH, "recipeFinish[RecipeStatusUpdateService] HIS未启用");
@@ -615,7 +619,7 @@ public class RecipeHisService extends RecipeBaseService {
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext !=null){
-                ext.setRegisterID(ext.getRegisterID());
+                request.setRegisterID(ext.getRegisterID());
             }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));

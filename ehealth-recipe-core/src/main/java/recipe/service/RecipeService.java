@@ -24,6 +24,8 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.his.recipe.mode.RecipePDFToHisTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -94,10 +96,13 @@ import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.sign.SignRecipeInfoService;
+import recipe.third.IFileDownloadService;
 import recipe.thread.*;
 import recipe.util.*;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -1644,6 +1649,8 @@ public class RecipeService extends RecipeBaseService {
                 //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //date 20200526
                 memo = "当前签名处方签名成功";
+                //上传处方pdf给第三方
+                RecipeBusiThreadPool.execute(()->uploadRecipePdfToHis(recipe.getRecipeId()));
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
@@ -1718,6 +1725,26 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
                 }
             }
+        }
+
+    }
+
+    private void uploadRecipePdfToHis(Integer recipeId) {
+        try {
+            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = dao.getByRecipeId(recipeId);
+            if (recipe != null && StringUtils.isNotEmpty(recipe.getSignFile())){
+                IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+                RecipePDFToHisTO req = new RecipePDFToHisTO();
+                req.setOrganId(recipe.getClinicOrgan());
+                req.setRecipeId(recipeId);
+                req.setRecipeCode(recipe.getRecipeCode());
+                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
+                hisService.sendRecipePDFToHis(req);
+            }
+        }catch (Exception e){
+            LOGGER.error("uploadRecipePdfToHis error",e);
         }
 
     }
@@ -2154,6 +2181,8 @@ public class RecipeService extends RecipeBaseService {
                 //更新审方信息
                 RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
             }
+            //健康卡数据上传
+            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
         } catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -4034,7 +4063,7 @@ public class RecipeService extends RecipeBaseService {
             result.setError("处方单id对应的处方为空");
             return result;
         }
-        Map<String, String> ext = new HashMap<>(10);
+        Map<String, Object> ext = new HashMap<>(10);
         Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
         if (null == nowRecipe.getOrderCode()) {
             result.setObject(recipeMap);
@@ -4044,7 +4073,7 @@ public class RecipeService extends RecipeBaseService {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeResultBean orderDetail = orderService.getOrderDetail(nowRecipe.getOrderCode());
             result = orderDetail;
-            Map<String, String> nowExt = result.getExt();
+            Map<String, Object> nowExt = result.getExt();
             if (null == nowExt) {
                 ext.put("jumpType", "1");
                 result.setExt(ext);
