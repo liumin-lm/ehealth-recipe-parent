@@ -619,7 +619,7 @@ public class RecipeHisService extends RecipeBaseService {
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext !=null){
-                ext.setRegisterID(ext.getRegisterID());
+                request.setRegisterID(ext.getRegisterID());
             }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
