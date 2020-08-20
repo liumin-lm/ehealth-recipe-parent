@@ -1642,7 +1642,7 @@ public class RecipeService extends RecipeBaseService {
                 //date 20200526
                 memo = "当前签名处方签名成功";
                 //上传处方pdf给第三方
-                RecipeBusiThreadPool.execute(()->{uploadRecipePdfToHis(recipe.getRecipeId())});
+                RecipeBusiThreadPool.execute(()->uploadRecipePdfToHis(recipe.getRecipeId()));
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
