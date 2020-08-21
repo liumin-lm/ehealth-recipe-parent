@@ -259,6 +259,18 @@ public class RecipeExtend implements Serializable {
         this.caUniqueID = caUniqueID;
     }
 
+    @ItemProperty(alias = "药师ca签名ID")
+    private String checkCAUniqueID;
+
+    @Column(name = "checkCAUniqueID")
+    public String getCheckCAUniqueID() {
+        return checkCAUniqueID;
+    }
+
+    public void setCheckCAUniqueID(String checkCAUniqueID) {
+        this.checkCAUniqueID = checkCAUniqueID;
+    }
+
     @Column(name = "medicationInstruction")
     public String getMedicationInstruction() {
         return medicationInstruction;

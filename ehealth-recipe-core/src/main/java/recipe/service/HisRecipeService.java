@@ -385,6 +385,8 @@ public class HisRecipeService {
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         detail.setUsingRateText(recipeDetailTO.getUsingRateText());
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
+                        //  线下特殊用法
+                        detail.setUseDoseStr(recipeDetailTO.getUseDoseStr());
                         detail.setUseDose(recipeDetailTO.getUseDose());
                         detail.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
                         detail.setSaleName(recipeDetailTO.getSaleName());
@@ -581,6 +583,8 @@ public class HisRecipeService {
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
             recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
+            //  线下特殊用法
+            recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr());
             recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
