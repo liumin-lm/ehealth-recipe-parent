@@ -44,6 +44,8 @@ public class HisRecipeDetail implements Serializable{
     private BigDecimal useTotalDose; // decimal(10,3) DEFAULT NULL COMMENT '开药总数',
     @ItemProperty(alias = "包装单位")
     private String drugUnit; // varchar(10) DEFAULT NULL COMMENT '包装单位',
+    // TODO 线下特殊用法
+
     @ItemProperty(alias = "每次使用剂量")
     private String useDose;// varchar(20) DEFAULT NULL COMMENT '每次使用剂量',
     @ItemProperty(alias = "每次使用剂量单位")
@@ -76,6 +78,18 @@ public class HisRecipeDetail implements Serializable{
     //设置药品使用天数为String，
     @ItemProperty(alias = "使用天数(小数类型)")
     private String useDaysB;
+
+    @ItemProperty(alias = "药品剂量特殊用法")
+    private String useDoseStr;
+
+    @Column(name = "useDoseStr")
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
 
     @Column(name = "UseDaysB")
     public String getUseDaysB() {
