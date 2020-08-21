@@ -1804,6 +1804,14 @@ public class RecipeServiceSub {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeExtend != null) {
+            if(recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null){
+                DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
+                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != 0){
+                    recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                }
+            }
+
             map.put("recipeExtend", recipeExtend);
         }
 
