@@ -42,10 +42,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RpcBean
 public class SignInfoService implements ISignInfoService {
@@ -139,7 +136,13 @@ public class SignInfoService implements ISignInfoService {
             if(recipeExtend!=null){
                 registerId=recipeExtend.getRegisterID();
             }
-
+            //date  20200820
+            //recipeId有的时候更新
+            request.setRecipeID(recipeId.toString());
+        }else{
+            //date  20200820
+            //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
+            request.setRecipeID(UUID.randomUUID().toString());
         }
 
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){

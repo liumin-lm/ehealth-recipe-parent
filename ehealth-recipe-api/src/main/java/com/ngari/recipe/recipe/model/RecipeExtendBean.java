@@ -152,6 +152,27 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "煎法编码")
     private String decoctionCode;
 
+    @ItemProperty(alias = "用药说明")
+    private String medicationInstruction;
+
+    @ItemProperty(alias = "ca签名ID")
+    private String caUniqueID;
+
+    public String getCaUniqueID() {
+        return caUniqueID;
+    }
+
+    public void setCaUniqueID(String caUniqueID) {
+        this.caUniqueID = caUniqueID;
+    }
+
+    public String getMedicationInstruction() {
+        return medicationInstruction;
+    }
+
+    public void setMedicationInstruction(String medicationInstruction) {
+        this.medicationInstruction = medicationInstruction;
+    }
 
     public String getMakeMethod() {
         return makeMethod;

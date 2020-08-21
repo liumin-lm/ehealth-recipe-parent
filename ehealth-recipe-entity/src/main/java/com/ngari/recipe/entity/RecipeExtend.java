@@ -242,6 +242,30 @@ public class RecipeExtend implements Serializable {
         this.einvoiceNumber = einvoiceNumber;
     }
 
+    @ItemProperty(alias = "用药说明")
+    private String medicationInstruction;
+
+    @ItemProperty(alias = "ca签名ID")
+    private String caUniqueID;
+
+    @Column(name = "caUniqueID")
+    public String getCaUniqueID() {
+        return caUniqueID;
+    }
+
+    public void setCaUniqueID(String caUniqueID) {
+        this.caUniqueID = caUniqueID;
+    }
+
+    @Column(name = "medicationInstruction")
+    public String getMedicationInstruction() {
+        return medicationInstruction;
+    }
+
+    public void setMedicationInstruction(String medicationInstruction) {
+        this.medicationInstruction = medicationInstruction;
+    }
+
     public RecipeExtend() {
     }
 

@@ -77,9 +77,7 @@ import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
-import recipe.thread.GenerateSignetRecipePdfRunable;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.*;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -110,7 +108,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
-            service.sendSuccess(response);
+//            service.sendSuccess(response);
+            //异步处理回调方法，避免超时
+            RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
         }
     }
 
@@ -120,7 +120,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
-            service.sendFail(response);
+//            service.sendFail(response);
+            //异步处理回调方法，避免超时
+            RecipeBusiThreadPool.execute(new RecipeSendFailRunnable(response));
         }
     }
 
