@@ -46,6 +46,7 @@ import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -1729,7 +1730,8 @@ public class RecipeService extends RecipeBaseService {
 
     }
 
-    private void uploadRecipePdfToHis(Integer recipeId) {
+    @RpcService
+    public void uploadRecipePdfToHis(Integer recipeId) {
         try {
             RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = dao.getByRecipeId(recipeId);
@@ -1740,6 +1742,10 @@ public class RecipeService extends RecipeBaseService {
                 req.setRecipeId(recipeId);
                 req.setRecipeCode(recipe.getRecipeCode());
                 IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(recipe.getSignFile());
+                if (fileMetaRecord !=null){
+                    req.setRecipePdfName(fileMetaRecord.getFileName());
+                }
                 req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
                 hisService.sendRecipePDFToHis(req);
             }
