@@ -151,6 +151,8 @@ public class RecipeExtend implements Serializable {
     private String decoctionId;
     @ItemProperty(alias = "煎法text")
     private String decoctionText;
+    @ItemProperty(alias = "煎法单价")
+    private Double decoctionPrice;
 
     public String getSymptomId() {
         return symptomId;
@@ -706,5 +708,14 @@ public class RecipeExtend implements Serializable {
 
     public void setMinorUnit(String minorUnit) {
         this.minorUnit = minorUnit;
+    }
+
+    @Transient
+    public Double getDecoctionPrice() {
+        return decoctionPrice;
+    }
+
+    public void setDecoctionPrice(Double decoctionPrice) {
+        this.decoctionPrice = decoctionPrice;
     }
 }
