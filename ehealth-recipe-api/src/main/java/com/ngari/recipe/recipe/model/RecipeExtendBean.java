@@ -157,6 +157,16 @@ public class RecipeExtendBean implements Serializable {
 
     @ItemProperty(alias = "ca签名ID")
     private String caUniqueID;
+    @ItemProperty(alias = "药师ca签名ID")
+    private String checkCAUniqueID;
+
+    public String getCheckCAUniqueID() {
+        return checkCAUniqueID;
+    }
+
+    public void setCheckCAUniqueID(String checkCAUniqueID) {
+        this.checkCAUniqueID = checkCAUniqueID;
+    }
 
     public String getCaUniqueID() {
         return caUniqueID;
