@@ -274,6 +274,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
     private Integer payeeCode;
 
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
+    private Integer storePayFlag;
+
     public Integer getPayeeCode() {
         return payeeCode;
     }
@@ -550,6 +553,14 @@ public class RecipeOrderBean implements Serializable {
 
     public void setAddressID(Integer addressID) {
         this.addressID = addressID;
+    }
+
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
     }
 
     public String getReceiver() {

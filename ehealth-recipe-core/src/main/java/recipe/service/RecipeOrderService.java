@@ -1554,6 +1554,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setEnterpriseName(drugsEnterprise.getName());
                     orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
                     orderBean.setTel(drugsEnterprise.getTel());
+                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipeList.get(0).getPayMode())){
+                        //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
+                        orderBean.setStorePayFlag(drugsEnterprise.getStorePayFlag());
+                    }
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
