@@ -1866,6 +1866,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDrugList(drugLists);
             result.add(orderDetailBean);
         }
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes result:{}.", JSONUtils.toString(result));
         standardResult.setData(result);
         return standardResult;
     }
