@@ -47,6 +47,11 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import eh.cdr.api.service.IDocIndexService;
+import eh.cdr.api.vo.DocIndexBean;
+import eh.cdr.api.vo.DocIndexExtBean;
+import eh.cdr.api.vo.MedicalDetailBean;
+import eh.cdr.api.vo.MedicalInfoBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -139,6 +144,9 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
+        //电子病历，将电子病历保存到cdr模块
+        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
+        emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
         //武昌需求，加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient,recipeBean,recipeId);
 
