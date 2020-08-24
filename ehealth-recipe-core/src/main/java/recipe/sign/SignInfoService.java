@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.ca.impl.BeijingYwxCAImpl;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -275,6 +276,9 @@ public class SignInfoService implements ISignInfoService {
         request.setOrderList(list);
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA",BeijingYwxCAImpl.class);
+        String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
+        caAccountRequestTO.setUserAccount(token);
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
