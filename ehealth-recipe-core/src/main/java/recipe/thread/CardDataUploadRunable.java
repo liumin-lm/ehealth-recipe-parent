@@ -5,6 +5,7 @@ import com.ngari.base.healthcard.service.IWholesomeService;
 import ctd.spring.AppDomainContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bussutil.openapi.util.JSONUtils;
 
 /**
  * @author： liumin
@@ -37,6 +38,7 @@ public class CardDataUploadRunable implements Runnable {
             cardUploadDTO.setOrganId(organId);
             cardUploadDTO.setMpiId(mpiid);
             cardUploadDTO.setScene(scene);
+            LOGGER.info("CardDataUploadRunable start. cardUploadDTO:{}", JSONUtils.toString(cardUploadDTO));
             IWholesomeService iWholesomeService = AppDomainContext.getBean("eh.wholesomeService", IWholesomeService.class);
             iWholesomeService.cardDataUpload(cardUploadDTO);
         }catch (Exception e){
