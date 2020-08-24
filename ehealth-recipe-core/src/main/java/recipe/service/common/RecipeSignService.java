@@ -39,6 +39,7 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
+import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.SaveAutoReviewRunable;
@@ -412,6 +413,10 @@ public class RecipeSignService {
                 }
 
             }
+
+            //健康卡数据上传
+            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
+
         } catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -570,6 +575,8 @@ public class RecipeSignService {
             }
 
         }
+        //健康卡数据上传
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
     }
@@ -660,7 +667,8 @@ public class RecipeSignService {
 
         //发送HIS处方开具消息
         sendRecipeToHIS(recipeBean);
-
+        //健康卡数据上传
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
         LOG.info("continueSignAfterCheckFailed execute ok! recipeId={}",recipeId);
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);

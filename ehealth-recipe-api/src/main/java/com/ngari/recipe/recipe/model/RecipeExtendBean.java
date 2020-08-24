@@ -151,6 +151,8 @@ public class RecipeExtendBean implements Serializable {
     private String symptomCode;
     @ItemProperty(alias = "煎法编码")
     private String decoctionCode;
+    @ItemProperty(alias = "煎法单价")
+    private Double decoctionPrice;
 
     @ItemProperty(alias = "用药说明")
     private String medicationInstruction;
@@ -586,5 +588,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setGuardianMobile(String guardianMobile) {
         this.guardianMobile = guardianMobile;
+    }
+
+    public Double getDecoctionPrice() {
+        return decoctionPrice;
+    }
+
+    public void setDecoctionPrice(Double decoctionPrice) {
+        this.decoctionPrice = decoctionPrice;
     }
 }
