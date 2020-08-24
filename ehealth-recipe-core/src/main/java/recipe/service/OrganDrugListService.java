@@ -1,6 +1,8 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
@@ -11,8 +13,6 @@ import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.ProvUploadOrganDTO;
-import com.ngari.patient.dto.UsePathwaysDTO;
-import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.dto.zjs.RegulationDoctorIndicatorsBean;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
