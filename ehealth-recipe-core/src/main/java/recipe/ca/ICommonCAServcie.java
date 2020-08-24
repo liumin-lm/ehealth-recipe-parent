@@ -79,4 +79,7 @@ public interface ICommonCAServcie {
      * @return
      */
     CaPictureResponseTO newCaPictureBusiness(CaPictureRequestTO requestTO);
+
+
+    CaTokenResponseTo newCaTokenBussiness(CaTokenRequestTo requestTo);
 }
