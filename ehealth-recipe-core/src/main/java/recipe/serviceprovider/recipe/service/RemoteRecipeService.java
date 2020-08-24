@@ -31,6 +31,7 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
@@ -67,6 +68,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
@@ -77,6 +79,7 @@ import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
+import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -1249,6 +1252,26 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
         return true;
+    }
+
+    @Override
+    public void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo) {
+        LOGGER.info("saveRecipeInfoForBjCa caSignResultTo=[{}]",JSONUtils.toString(caSignResultTo));
+        // 保存ca相关信息即可
+        if(caSignResultTo != null) {
+
+            SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
+
+            SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+            signDoctorRecipeInfo.setSignCodeDoc(caSignResultTo.getSignCADate());
+            signDoctorRecipeInfo.setCaSerCodeDoc(caSignResultTo.getUserAccount());
+            signDoctorRecipeInfo.setSignBefText(caSignResultTo.getPdfBase64());
+            signDoctorRecipeInfo.setUniqueId(caSignResultTo.getUniqueId());
+
+            signDoctorRecipeInfo.setType("BeijingYwxCa");
+
+            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+        }
     }
 
     @Override

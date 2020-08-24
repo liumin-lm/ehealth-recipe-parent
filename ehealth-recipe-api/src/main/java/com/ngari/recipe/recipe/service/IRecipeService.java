@@ -675,5 +675,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     List<RecipeBean>  findReadyCheckRecipeByCheckMode(Integer checkMode);
 
+    @RpcService
+    void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo);
+
 }
 

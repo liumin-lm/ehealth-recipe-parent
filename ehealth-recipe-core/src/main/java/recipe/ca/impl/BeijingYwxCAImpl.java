@@ -48,11 +48,12 @@ public class BeijingYwxCAImpl{
     }
 
     @RpcService
-    public CaAccountResponseTO getDocStatus(String openId,String token,Integer organId){
+    public CaAccountResponseTO getDocStatus(String openId,Integer organId){
       CaAccountRequestTO requestTO = new CaAccountRequestTO();
       CaAccountResponseTO responseTO = new CaAccountResponseTO();
       requestTO.setOrganId(organId);
       requestTO.setUserAccount(openId);
+      String token = CaTokenBussiness(organId);
       requestTO.setUserName(token);
       requestTO.setBusType(0);
 
