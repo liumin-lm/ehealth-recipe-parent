@@ -100,6 +100,11 @@
                 <version>${ngari.followup.version}</version>
             </dependency>
             <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-cdr-api</artifactId>
+                <version>${ngari.cdr.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-consult-api</artifactId>
                 <version>${ngari.consult.version}</version>

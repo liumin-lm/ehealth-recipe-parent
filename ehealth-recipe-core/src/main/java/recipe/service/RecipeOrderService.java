@@ -1584,8 +1584,8 @@ public class RecipeOrderService extends RecipeBaseService {
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额
             getShowAuditFeeAndTips(result, order, recipeList);
-            //在扩展内容中添加医保结算金额明细数据
-            getShowMedicalRespData(result,recipeList);
+            /*//在扩展内容中添加医保结算金额明细数据----已经要求卫宁互联网在支付回调memo字段里拼接好格式返回了所以此处不要了
+            getShowMedicalRespData(result,recipeList);*/
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
@@ -1627,7 +1627,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             //其中历年账户（自费部分）40
                             data.setAnnualAccountsBySelfPayment(transBigDecimal(list.get(39)));
                             //自理         15
-                            data.setSelfCare(transBigDecimal(list.get(9)));
+                            data.setSelfCare(transBigDecimal(list.get(14)));
                             //其中历年账户（自理部分）39
                             data.setAnnualAccountsBySelfCare(transBigDecimal(list.get(38)));
                             //自负         11+14+31+42
