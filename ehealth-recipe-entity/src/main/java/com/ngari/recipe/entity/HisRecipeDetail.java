@@ -44,8 +44,6 @@ public class HisRecipeDetail implements Serializable{
     private BigDecimal useTotalDose; // decimal(10,3) DEFAULT NULL COMMENT '开药总数',
     @ItemProperty(alias = "包装单位")
     private String drugUnit; // varchar(10) DEFAULT NULL COMMENT '包装单位',
-    // TODO 线下特殊用法
-
     @ItemProperty(alias = "每次使用剂量")
     private String useDose;// varchar(20) DEFAULT NULL COMMENT '每次使用剂量',
     @ItemProperty(alias = "每次使用剂量单位")
