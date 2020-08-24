@@ -2570,6 +2570,8 @@ public class RecipeService extends RecipeBaseService {
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(ObjectCopyUtils.convert(recipe, RecipeBean.class), ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class)));
         }
+        //健康卡数据上传
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipe.getClinicOrgan(), recipe.getMpiid(),"010106"));
         Map<String, Object> rMap = Maps.newHashMap();
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
@@ -2734,6 +2736,8 @@ public class RecipeService extends RecipeBaseService {
                 //更新审方信息
                 RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
             }
+            //健康卡数据上传
+            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
         } catch (Exception e) {
             LOGGER.error("doSignRecipeExt error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
