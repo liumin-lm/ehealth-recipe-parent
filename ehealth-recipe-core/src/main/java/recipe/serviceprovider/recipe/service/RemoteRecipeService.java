@@ -1282,7 +1282,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit) {
         List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, flag, start, limit);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1325,7 +1325,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
         List<Recipe> recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1333,7 +1333,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
         List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1344,14 +1344,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
 
     /**
-     *  转换对象
+     * 转换对象
+     *
      * @param dataList
      * @param toClass
-     * @param <T> 转换前
-     * @param <T1> 转换后
+     * @param <T>      转换前
+     * @param <T1>     转换后
      * @return
      */
-    private <T,T1> List<T1> changBean(List<T> dataList, Class<T1> toClass) {
+    private <T, T1> List<T1> changBean(List<T> dataList, Class<T1> toClass) {
         List<T1> list = Collections.emptyList();
         if (CollectionUtils.isNotEmpty(dataList)) {
             list = dataList.stream().map(t -> {
@@ -1570,6 +1571,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         RecipeRefundDAO drugsEnterpriseDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         List<RecipeRefund> recipeRefunds = drugsEnterpriseDAO.findRefundListByRecipeId(recipeId);
-        return  changBean(recipeRefunds, RecipeRefundBean.class);
+        return changBean(recipeRefunds, RecipeRefundBean.class);
+    }
+
+    @Override
+    public List<RecipeBean> findReadyCheckRecipeByCheckMode(Integer checkMode) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(checkMode);
+        return changBean(recipes, RecipeBean.class);
     }
 }

@@ -668,5 +668,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeRefundBean> findRefundListByRecipeId(Integer recipeId);
 
+    /**
+     * 根据审方环境模型查询待审核处方数据
+     * @param checkMode
+     * @return
+     */
+    List<RecipeBean>  findReadyCheckRecipeByCheckMode(Integer checkMode);
+
 }
 
