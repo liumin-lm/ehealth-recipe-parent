@@ -81,6 +81,8 @@ public class SignDoctorRecipeInfo {
     @FileToken
     private String signPicturePha;
 
+    private String uniqueId;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column
@@ -289,5 +291,14 @@ public class SignDoctorRecipeInfo {
 
     public void setSignPicturePha(String signPicturePha) {
         this.signPicturePha = signPicturePha;
+    }
+
+    @Column
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 }
