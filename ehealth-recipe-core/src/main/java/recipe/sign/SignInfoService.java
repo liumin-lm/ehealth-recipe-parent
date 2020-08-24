@@ -42,6 +42,8 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -225,16 +227,20 @@ public class SignInfoService implements ISignInfoService {
                 reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
                 reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
                 reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
+                //处方保存之前少三个字段
+                reqDetail.setPackUnit(StringUtils.isEmpty(detail.getDrugUnit())?organDrugList.getUnit():detail.getDrugUnit());
+                //设置药品价格
+                BigDecimal price = organDrugList.getSalePrice();
+                //单价
+                reqDetail.setPrice(price);
+                //保留3位小数
+                BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                //总价
+                reqDetail.setTotalPrice(drugCost);
             }
-
             reqDetail.setDrmodel(detail.getDrugSpec());
             reqDetail.setPack(detail.getPack());
-            reqDetail.setPackUnit(detail.getDrugUnit());
             reqDetail.setDrname(detail.getDrugName());
-            //单价
-            reqDetail.setPrice(detail.getSalePrice());
-            //总价
-            reqDetail.setTotalPrice(detail.getDrugCost());
             reqDetail.setDrunit(detail.getUseDoseUnit());
             list.add(reqDetail);
         }
