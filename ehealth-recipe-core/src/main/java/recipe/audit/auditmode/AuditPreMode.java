@@ -1,32 +1,25 @@
 package recipe.audit.auditmode;
 
-import com.google.common.collect.ImmutableMap;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
-
-import java.util.List;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -66,24 +59,34 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
         sendMsg(status, recipe, memo);
-        //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-        HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
-        hisCheckRecipeService.sendCheckRecipeInfo(recipe);
+        Integer checkMode = recipe.getCheckMode();
+        if (new Integer(2).equals(checkMode)) {
+            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+            hisCheckRecipeService.sendCheckRecipeInfo(recipe);
+        } else if (new Integer(3).equals(checkMode)) {
+            winningRecipeAudit(recipe);
+        }
     }
+
 
     private void sendMsg(Integer status, Recipe recipe, String memo) {
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
-            //发送消息--待审核消息
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            //平台审方途径下才发消息
-            if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(recipe.getCheckMode())) {
-                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //增加药师首页待处理任务---创建任务
-                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-                }
+            Integer checkMode = recipe.getCheckMode();
+            //卫宁审方不推送药师消息
+            if (!new Integer(3).equals(checkMode)) {
+                //发送消息--待审核消息
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+                //平台审方途径下才发消息
+                if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode)) {
+                    if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                        //增加药师首页待处理任务---创建任务
+                        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                    }
 
+                }
             }
             //保存至电子病历
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
