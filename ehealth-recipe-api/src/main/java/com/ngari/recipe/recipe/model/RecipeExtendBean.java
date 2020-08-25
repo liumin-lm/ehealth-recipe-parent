@@ -151,7 +151,43 @@ public class RecipeExtendBean implements Serializable {
     private String symptomCode;
     @ItemProperty(alias = "煎法编码")
     private String decoctionCode;
+    @ItemProperty(alias = "煎法单价")
+    private Double decoctionPrice;
 
+    @ItemProperty(alias = "病历索引Id")
+    private Integer docIndexId;
+
+    @ItemProperty(alias = "用药说明")
+    private String medicationInstruction;
+
+    @ItemProperty(alias = "ca签名ID")
+    private String caUniqueID;
+    @ItemProperty(alias = "药师ca签名ID")
+    private String checkCAUniqueID;
+
+    public String getCheckCAUniqueID() {
+        return checkCAUniqueID;
+    }
+
+    public void setCheckCAUniqueID(String checkCAUniqueID) {
+        this.checkCAUniqueID = checkCAUniqueID;
+    }
+
+    public String getCaUniqueID() {
+        return caUniqueID;
+    }
+
+    public void setCaUniqueID(String caUniqueID) {
+        this.caUniqueID = caUniqueID;
+    }
+
+    public String getMedicationInstruction() {
+        return medicationInstruction;
+    }
+
+    public void setMedicationInstruction(String medicationInstruction) {
+        this.medicationInstruction = medicationInstruction;
+    }
 
     public String getMakeMethod() {
         return makeMethod;
@@ -555,5 +591,21 @@ public class RecipeExtendBean implements Serializable {
 
     public void setGuardianMobile(String guardianMobile) {
         this.guardianMobile = guardianMobile;
+    }
+
+    public Integer getDocIndexId() {
+        return docIndexId;
+    }
+
+    public void setDocIndexId(Integer docIndexId) {
+        this.docIndexId = docIndexId;
+    }
+
+    public Double getDecoctionPrice() {
+        return decoctionPrice;
+    }
+
+    public void setDecoctionPrice(Double decoctionPrice) {
+        this.decoctionPrice = decoctionPrice;
     }
 }

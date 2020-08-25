@@ -301,6 +301,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
     private Integer payeeCode;
 
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -1044,4 +1045,5 @@ public class RecipeOrder implements Serializable {
     public void setSendType(Integer sendType) {
         this.sendType = sendType;
     }
+
 }

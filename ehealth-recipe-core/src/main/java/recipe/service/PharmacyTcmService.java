@@ -89,6 +89,9 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm.getOrganId() == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构ID不能为空！");
         }
+        if (pharmacyTcm.getType() == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药房分类不能为空！");
+        }
 
     }
 

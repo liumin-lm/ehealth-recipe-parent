@@ -47,6 +47,11 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import eh.cdr.api.service.IDocIndexService;
+import eh.cdr.api.vo.DocIndexBean;
+import eh.cdr.api.vo.DocIndexExtBean;
+import eh.cdr.api.vo.MedicalDetailBean;
+import eh.cdr.api.vo.MedicalInfoBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -139,6 +144,9 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
+        //电子病历，将电子病历保存到cdr模块
+        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
+        emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
         //武昌需求，加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient,recipeBean,recipeId);
 
@@ -1804,6 +1812,14 @@ public class RecipeServiceSub {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeExtend != null) {
+            if(recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null){
+                DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
+                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != 0){
+                    recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                }
+            }
+
             map.put("recipeExtend", recipeExtend);
         }
 
@@ -1988,19 +2004,28 @@ public class RecipeServiceSub {
                 map.put("supportTFDS", 1);
             }
         }
+        //临沭县人民医院医保支付按钮--点击跳转到东软h5页面
+        if (recipe.getClinicOrgan() == 1002753){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            if (purchaseService.isMedicarePatient(1002753,recipe.getMpiid())){
+                map.put("supportMedicalPayment", 1);
+            }
+        }
         //date 2191011
         //添加处方详情上是否展示按钮
         boolean showButton = false;
-        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString())) && (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString())) && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString())) && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString())))) {
+        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString()))
+                && (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString()))
+                && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString()))
+                && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString()))
+                && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
-                //带药师审核，审核一次不通过，待处理无订单
+                //待药师审核，审核一次不通过，待处理无订单
                 if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
-
                     showButton = true;
                 }
             } else {
                 if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
-
                     showButton = true;
                 }
             }

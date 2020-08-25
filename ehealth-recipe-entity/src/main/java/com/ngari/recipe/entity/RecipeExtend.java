@@ -151,6 +151,11 @@ public class RecipeExtend implements Serializable {
     private String decoctionId;
     @ItemProperty(alias = "煎法text")
     private String decoctionText;
+    @ItemProperty(alias = "煎法单价")
+    private Double decoctionPrice;
+
+    @ItemProperty(alias = "病历索引Id")
+    private Integer docIndexId;
 
     public String getSymptomId() {
         return symptomId;
@@ -240,6 +245,42 @@ public class RecipeExtend implements Serializable {
 
     public void setEinvoiceNumber(String einvoiceNumber) {
         this.einvoiceNumber = einvoiceNumber;
+    }
+
+    @ItemProperty(alias = "用药说明")
+    private String medicationInstruction;
+
+    @ItemProperty(alias = "ca签名ID")
+    private String caUniqueID;
+
+    @Column(name = "caUniqueID")
+    public String getCaUniqueID() {
+        return caUniqueID;
+    }
+
+    public void setCaUniqueID(String caUniqueID) {
+        this.caUniqueID = caUniqueID;
+    }
+
+    @ItemProperty(alias = "药师ca签名ID")
+    private String checkCAUniqueID;
+
+    @Column(name = "checkCAUniqueID")
+    public String getCheckCAUniqueID() {
+        return checkCAUniqueID;
+    }
+
+    public void setCheckCAUniqueID(String checkCAUniqueID) {
+        this.checkCAUniqueID = checkCAUniqueID;
+    }
+
+    @Column(name = "medicationInstruction")
+    public String getMedicationInstruction() {
+        return medicationInstruction;
+    }
+
+    public void setMedicationInstruction(String medicationInstruction) {
+        this.medicationInstruction = medicationInstruction;
     }
 
     public RecipeExtend() {
@@ -682,5 +723,23 @@ public class RecipeExtend implements Serializable {
 
     public void setMinorUnit(String minorUnit) {
         this.minorUnit = minorUnit;
+    }
+
+    @Transient
+    public Double getDecoctionPrice() {
+        return decoctionPrice;
+    }
+
+    public void setDecoctionPrice(Double decoctionPrice) {
+        this.decoctionPrice = decoctionPrice;
+    }
+
+    @Column(name = "docIndexId")
+    public Integer getDocIndexId() {
+        return docIndexId;
+    }
+
+    public void setDocIndexId(Integer docIndexId) {
+        this.docIndexId = docIndexId;
     }
 }

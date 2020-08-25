@@ -28,4 +28,6 @@
     <reference id="basic.addressService" interface="com.ngari.patient.service.AddressService"/>
     <reference id="basic.proTitleService" interface="com.ngari.patient.service.ProTitleService"/>
     <reference id="basic.thirdPartyMappingService" interface="com.ngari.patient.service.ThirdPartyMappingService"/>
+    <reference id="basic.usingRateService" interface="com.ngari.patient.service.IUsingRateService"/>
+    <reference id="basic.usePathwaysService" interface="com.ngari.patient.service.IUsePathwaysService"/>
 </s:beans>

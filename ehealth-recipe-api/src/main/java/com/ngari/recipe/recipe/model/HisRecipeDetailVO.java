@@ -38,6 +38,8 @@ public class HisRecipeDetailVO implements Serializable{
     private String drugUnit; // varchar(10) DEFAULT NULL COMMENT '包装单位',
     @ItemProperty(alias = "每次使用剂量")
     private String useDose;// varchar(20) DEFAULT NULL COMMENT '每次使用剂量',
+    @ItemProperty(alias = "每次使用剂量特殊用法")
+    private String useDoseStr;
     @ItemProperty(alias = "包装数量")
     private Integer pack; // int(10) DEFAULT NULL COMMENT '包装数量',
     @ItemProperty(alias = "药品单价")
@@ -61,6 +63,14 @@ public class HisRecipeDetailVO implements Serializable{
     @ItemProperty(alias = "使用天数")
     private Integer useDays;
     private String drugForm;
+
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
 
     public Integer getHisrecipedetailID() {
         return hisrecipedetailID;

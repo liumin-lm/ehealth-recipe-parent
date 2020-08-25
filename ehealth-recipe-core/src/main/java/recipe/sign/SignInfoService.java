@@ -23,7 +23,10 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.sign.ISignInfoService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -34,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.ca.impl.BeijingYwxCAImpl;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -43,11 +47,10 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Dictionary;
 
 @RpcBean
 public class SignInfoService implements ISignInfoService {
@@ -141,7 +144,19 @@ public class SignInfoService implements ISignInfoService {
             if(recipeExtend!=null){
                 registerId=recipeExtend.getRegisterID();
             }
-
+            //date  20200820
+            //recipeId有的时候更新
+            request.setRecipeID(recipeId.toString());
+        }else{
+            //date  20200820
+            //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
+            request.setRecipeID(UUID.randomUUID().toString());
+        }
+        request.setStartDate(null != recipeBean.getSignDate() ? recipeBean.getSignDate() : new Date());
+        request.setEffectivePeriod(3);
+        RecipeExtendBean extend = recipeBean.getRecipeExtend();
+        if(null != extend){
+            request.setMainDieaseDescribe(extend.getMainDieaseDescribe());
         }
 
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
@@ -242,15 +257,37 @@ public class SignInfoService implements ISignInfoService {
             reqDetail.setPack(detail.getPack());
             reqDetail.setDrname(detail.getDrugName());
             reqDetail.setDrunit(detail.getUseDoseUnit());
+            //date 20200821
+            //添加CA同步字段
+            reqDetail.setUseDaysB(null != detail.getUseDays() ? detail.getUseDays().toString() : detail.getUseDaysB());
+            reqDetail.setDosageTotal(null!= detail.getUseTotalDose() ? detail.getUseTotalDose().toString() : null);
+            ctd.dictionary.Dictionary usingRateDic = null;
+            ctd.dictionary.Dictionary usePathwaysDic = null;
+            try {
+                usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+                usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            } catch (ControllerException e) {
+                logger.error("search dic error.",e);
+            }
+            if(null != usePathwaysDic){
+                reqDetail.setAdmissionName(detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():usePathwaysDic.getText(detail.getUsePathways()));
+            }
+            if (null != usingRateDic) {
+                reqDetail.setFrequencyName(detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate()));
+            }
+            reqDetail.setDosage(detail.getUseDose() == null?detail.getUseDoseStr():String.valueOf(detail.getUseDose()));
             list.add(reqDetail);
         }
         request.setOrderList(list);
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA",BeijingYwxCAImpl.class);
+        String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
+        caAccountRequestTO.setUserAccount(token);
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
-        logger.info("getTaskCode2 request info={}=", JSONObject.toJSONString(caAccountRequestTO));
+        logger.info("getTaskCode2 request info={}=", JSONUtils.toString(caAccountRequestTO));
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));

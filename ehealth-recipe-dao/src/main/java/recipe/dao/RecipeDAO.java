@@ -716,6 +716,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod(sql = "update Recipe set pushFlag=1 where recipeId in :recipeIds")
     public abstract void updatePushFlagByRecipeId(@DAOParam("recipeIds") List<Integer> recipeIds);
 
+
+    /**
+     * 修改医院确认中的处方状态
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "update Recipe set status = :status where recipeId = :recipeId and recipeId = :beforStatus")
+    public abstract void updateStatusByRecipeIdAndStatus(@DAOParam("status") Integer status,
+        @DAOParam("recipeIds") Integer recipeIds, @DAOParam("beforStatus") Integer beforStatus);
+
     /**
      * 根据需要变更的状态获取处方ID集合
      *
