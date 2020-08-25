@@ -123,14 +123,20 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
                 paWebRecipeDanger.setDangerDesc(item.getErrorInfo());
                 recipeDangers.add(paWebRecipeDanger);
             });
-            Integer intellectJudicialFlag = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "intellectJudicialFlag");
-            Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(), "needInterceptLevel");
-            String highestDrangeLevel = StringUtils.EMPTY;
-            if (!(intellectJudicialFlag == 1 && null != needInterceptLevel
-                    && Integer.valueOf(needInterceptLevel.toString()) > 3)) { //卫宁合理用药配置了等级3以上数据传空
-                highestDrangeLevel = (String) needInterceptLevel;
-            }
-            result.setHighestDrangeLevel(highestDrangeLevel);
+//            Integer intellectJudicialFlag = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "intellectJudicialFlag");
+//            Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(), "needInterceptLevel");
+//            String highestDrangeLevel = StringUtils.EMPTY;
+//            if (!(intellectJudicialFlag == 1 && null != needInterceptLevel
+//                    && Integer.valueOf(needInterceptLevel.toString()) > 3)) { //卫宁合理用药配置了等级3以上数据传空
+//                highestDrangeLevel = (String) needInterceptLevel;
+//            }
+//            result.setHighestDrangeLevel(highestDrangeLevel);
+            Object normalFlowLevel = configService.getConfiguration(recipe.getClinicOrgan(),"normalFlowLevel");
+            Object medicineReasonLevel = configService.getConfiguration(recipe.getClinicOrgan(),"medicineReasonLevel");
+            Object updateRecipeLevel = configService.getConfiguration(recipe.getClinicOrgan(),"updateRecipeLevel");
+            result.setNormalFlowLevel(String.valueOf(normalFlowLevel));
+            result.setMedicineReasonLevel(String.valueOf(medicineReasonLevel));
+            result.setUpdateRecipeLevel(String.valueOf(updateRecipeLevel));
             result.setMsg("查询成功");
             result.setRecipeDangers(recipeDangers);
             return result;

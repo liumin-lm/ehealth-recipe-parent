@@ -40,7 +40,7 @@ public class BeijingYwxCAImpl{
             requestTO.setOrganId(organId);
             CaTokenResponseTo responseTO = iCommonCAServcie.newCaTokenBussiness(requestTO);
             if (StringUtils.isNotEmpty(responseTO.getToken()) && StringUtils.isNotEmpty(responseTO.getExpireTime())) {
-                Long timeOut = Long.parseLong(responseTO.getExpireTime()) * 1000;
+                Long timeOut = Long.parseLong(responseTO.getExpireTime());
                 redisClient.setEX(AccessToken_KEY, timeOut, responseTO.getToken());
             }
         }
@@ -48,11 +48,12 @@ public class BeijingYwxCAImpl{
     }
 
     @RpcService
-    public CaAccountResponseTO getDocStatus(String openId,String token,Integer organId){
+    public CaAccountResponseTO getDocStatus(String openId,Integer organId){
       CaAccountRequestTO requestTO = new CaAccountRequestTO();
       CaAccountResponseTO responseTO = new CaAccountResponseTO();
       requestTO.setOrganId(organId);
       requestTO.setUserAccount(openId);
+      String token = CaTokenBussiness(organId);
       requestTO.setUserName(token);
       requestTO.setBusType(0);
 
