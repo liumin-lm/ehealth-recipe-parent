@@ -40,7 +40,7 @@ public class BeijingYwxCAImpl{
             requestTO.setOrganId(organId);
             CaTokenResponseTo responseTO = iCommonCAServcie.newCaTokenBussiness(requestTO);
             if (StringUtils.isNotEmpty(responseTO.getToken()) && StringUtils.isNotEmpty(responseTO.getExpireTime())) {
-                Long timeOut = Long.parseLong(responseTO.getExpireTime()) * 1000;
+                Long timeOut = Long.parseLong(responseTO.getExpireTime());
                 redisClient.setEX(AccessToken_KEY, timeOut, responseTO.getToken());
             }
         }
