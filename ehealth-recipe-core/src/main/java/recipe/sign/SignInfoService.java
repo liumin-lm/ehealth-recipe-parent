@@ -250,7 +250,9 @@ public class SignInfoService implements ISignInfoService {
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA",BeijingYwxCAImpl.class);
         String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
-        caAccountRequestTO.setUserAccount(token);
+        caAccountRequestTO.setUserName(token);
+        // 北京CAopenID
+        caAccountRequestTO.setUserAccount(recipeBean.getCaPassword());
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));

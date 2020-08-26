@@ -1598,6 +1598,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @RpcService
     public List<RecipeBean> findReadyCheckRecipeByCheckMode(Integer checkMode) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(checkMode);
