@@ -673,6 +673,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param checkMode
      * @return
      */
+    @RpcService
     List<RecipeBean>  findReadyCheckRecipeByCheckMode(Integer checkMode);
 
     @RpcService
