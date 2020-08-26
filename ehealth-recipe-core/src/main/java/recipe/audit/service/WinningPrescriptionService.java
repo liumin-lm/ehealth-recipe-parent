@@ -212,8 +212,14 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             result.setCode(RecipeCommonBaseTO.SUCCESS);
             result.setMsg("系统预审未发现处方问题");
         }
-        Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(),"needInterceptLevel");
-        result.setHighestDrangeLevel((String)needInterceptLevel);
+//        Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(),"needInterceptLevel");
+//        result.setHighestDrangeLevel((String)needInterceptLevel);
+        Object normalFlowLevel = configService.getConfiguration(recipe.getClinicOrgan(),"normalFlowLevel");
+        Object medicineReasonLevel = configService.getConfiguration(recipe.getClinicOrgan(),"medicineReasonLevel");
+        Object updateRecipeLevel = configService.getConfiguration(recipe.getClinicOrgan(),"updateRecipeLevel");
+        result.setNormalFlowLevel(String.valueOf(normalFlowLevel));
+        result.setMedicineReasonLevel(String.valueOf(medicineReasonLevel));
+        result.setUpdateRecipeLevel(String.valueOf(updateRecipeLevel));
         return result;
     }
 
