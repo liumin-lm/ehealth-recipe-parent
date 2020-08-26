@@ -13,7 +13,6 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
-import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -28,7 +27,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
-import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -651,19 +649,25 @@ public class RecipeListService extends RecipeBaseService{
             LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e);
         }
 
-        Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
+        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         try {
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
-            LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}",upderLineRecipesByHis);
+            LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", upderLineRecipesByHis);
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage(),e);
+            LOGGER.error("findHistoryRecipeList hisTask exception:{}", e.getMessage(), e);
         }
 
         //过滤重复数据并重新排序
-        List<Map<String,Object>> res=dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe,upderLineRecipesByHis);
-        //返回结果集
-        return res;
+        try {
+            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis);
+            //返回结果集
+            LOGGER.info("findHistoryRecipeList res:{}", JSONUtils.toString(res));
+            return res;
+        } catch (Exception e) {
+            LOGGER.error("findHistoryRecipeList dealRepeatDataAndSort", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**
