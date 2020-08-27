@@ -72,6 +72,14 @@ public class Recipedetail implements java.io.Serializable {
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
 	private String usePathways;
 
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+
     @ItemProperty(
             alias = "机构的频次代码"
     )
@@ -859,5 +867,23 @@ public class Recipedetail implements java.io.Serializable {
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+    @Transient
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Transient
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }
