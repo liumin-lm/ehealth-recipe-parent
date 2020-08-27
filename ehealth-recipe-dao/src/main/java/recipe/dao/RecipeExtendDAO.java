@@ -142,4 +142,13 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      */
     @DAOMethod(sql = "delete from RecipeExtend where recipeId in (:recipeIds)")
     public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+
+    /**
+     * 根据处方id批量查询
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)")
+    public abstract  List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 }

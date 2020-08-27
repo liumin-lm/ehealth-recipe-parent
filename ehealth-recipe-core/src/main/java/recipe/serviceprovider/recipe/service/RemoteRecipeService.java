@@ -86,6 +86,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -1257,9 +1258,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo) {
-        LOGGER.info("saveRecipeInfoForBjCa caSignResultTo=[{}]",JSONUtils.toString(caSignResultTo));
+        LOGGER.info("saveRecipeInfoForBjCa caSignResultTo=[{}]", JSONUtils.toString(caSignResultTo));
         // 保存ca相关信息即可
-        if(caSignResultTo != null) {
+        if (caSignResultTo != null) {
 
             SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
 
@@ -1603,6 +1604,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findReadyCheckRecipeByCheckMode(Integer checkMode) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(checkMode);
-        return changBean(recipes, RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
+        if (CollectionUtils.isNotEmpty(recipeBeans)) {
+            List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+            Map<Integer, String> map = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, RecipeExtend::getRegisterID));
+            for (RecipeBean recipeBean : recipeBeans) {
+                Integer recipeId = recipeBean.getRecipeId();
+                recipeBean.setRegisterId(map.get(recipeId));
+            }
+        }
+        return recipeBeans;
     }
 }
