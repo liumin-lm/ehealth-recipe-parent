@@ -365,7 +365,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
             orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
             orderAttr.put("trackingNumber", trackingNumber);
-            orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
+            //BUG#50679 【电子处方】配送中的订单详情页展示了完成时间 配送中不需要调用完成订单的接口
+            //orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
             LOGGER.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
 
