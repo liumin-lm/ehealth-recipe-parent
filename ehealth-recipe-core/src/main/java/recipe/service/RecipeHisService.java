@@ -1413,15 +1413,13 @@ public class RecipeHisService extends RecipeBaseService {
             if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
             }
-
+            //组织处方药品续方参数
             RecipeDetailBean mapDetail = new RecipeDetailBean();
             mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
             mapDetail.setDrugForm(organDrug.getDrugForm());
             mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
 
-
-            //组织处方药品续方参数
             DrugList drug = drugMap.get(organDrug.getDrugId());
             mapDetail.setDefaultUseDose(drug.getUseDose());
             mapDetail.setDrugCost(recipeDetail.getTotalPrice());
