@@ -1401,7 +1401,7 @@ public class RecipeHisService extends RecipeBaseService {
                 str.append("用药途径");
             }
             if (StringUtils.isNotEmpty(str)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + str.toString() + ",未在线上做维护");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + str.toString() + ",未在线上做维护，无法正常续方。");
             }
 
             //设置医生端每次剂量和剂量单位联动关系
@@ -1421,7 +1421,11 @@ public class RecipeHisService extends RecipeBaseService {
             mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
 
             DrugList drug = drugMap.get(organDrug.getDrugId());
-            mapDetail.setDefaultUseDose(drug.getUseDose());
+            if (null != drug) {
+                mapDetail.setDefaultUseDose(drug.getUseDose());
+                mapDetail.setUsingRate(drug.getUsingRate());
+                mapDetail.setUsePathways(drug.getUsePathways());
+            }
             mapDetail.setDrugCost(recipeDetail.getTotalPrice());
             mapDetail.setDrugId(organDrug.getDrugId());
             mapDetail.setDrugName(recipeDetail.getDrugName());
@@ -1440,12 +1444,10 @@ public class RecipeHisService extends RecipeBaseService {
             }
             mapDetail.setUseDoseStr(recipeDetail.getUseDose());
             mapDetail.setUseDoseUnit(recipeDetail.getUseDoseUnit());
-            mapDetail.setUsePathways(drug.getUsePathways());
             mapDetail.setUsePathwaysTextFromHis(recipeDetail.getUsePathwaysText());
             if (null != recipeDetail.getUseTotalDose()) {
                 mapDetail.setUseTotalDose(recipeDetail.getUseTotalDose().doubleValue());
             }
-            mapDetail.setUsingRate(drug.getUsingRate());
             mapDetail.setUsingRateTextFromHis(recipeDetail.getUsingRateText());
             backDetailList.add(mapDetail);
         }
