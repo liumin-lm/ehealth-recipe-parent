@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
@@ -317,6 +316,7 @@ public class HisRecipeService {
                 }else {
                     hisRecipe.setDiseaseName("无");
                 }
+                hisRecipe.setDisease(queryHisRecipResTO.getDisease());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
                     hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
                 }
@@ -344,7 +344,12 @@ public class HisRecipeService {
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
                 hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
-                hisRecipe = hisRecipeDAO.save(hisRecipe);
+                try {
+                    hisRecipe = hisRecipeDAO.save(hisRecipe);
+                } catch (Exception e) {
+                    LOGGER.error("hisRecipeDAO.save error ", e);
+                    return;
+                }
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
                         HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO, HisRecipeExt.class);
