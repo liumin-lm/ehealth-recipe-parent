@@ -1,7 +1,8 @@
 package recipe.service;
 
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.bus.appoint.model.AppointDepartBean;
+import com.ngari.bus.appoint.service.IAppointDepartService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -317,6 +318,7 @@ public class HisRecipeService {
                 }else {
                     hisRecipe.setDiseaseName("无");
                 }
+                hisRecipe.setDisease(queryHisRecipResTO.getDisease());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
                     hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
                 }
@@ -344,7 +346,12 @@ public class HisRecipeService {
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
                 hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
-                hisRecipe = hisRecipeDAO.save(hisRecipe);
+                try {
+                    hisRecipe = hisRecipeDAO.save(hisRecipe);
+                } catch (Exception e) {
+                    LOGGER.error("hisRecipeDAO.save error ", e);
+                    return;
+                }
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
                         HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO, HisRecipeExt.class);
@@ -520,7 +527,14 @@ public class HisRecipeService {
         recipe.setOrganName(hisRecipe.getOrganName());
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
-        recipe.setDepart(Integer.parseInt(hisRecipe.getDepartCode()));
+        //BUG#50592 【实施】【上海市奉贤区中心医院】【A】查询线下处方缴费提示系统繁忙
+        IAppointDepartService appointDepartService = ApplicationUtils.getBaseService(IAppointDepartService.class);
+        AppointDepartBean appointDepartBean = appointDepartService.getByOrganIDAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
+        if (appointDepartBean != null) {
+            recipe.setDepart(appointDepartBean.getDepartId());
+        } else {
+            LOGGER.info("HisRecipeService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
+        }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
             EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());

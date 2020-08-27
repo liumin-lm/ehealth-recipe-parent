@@ -1214,6 +1214,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             signResultVo.setPdfBase64(caSignResultTo.getPdfBase64());
             signResultVo.setSignRecipeCode(caSignResultTo.getSignRecipeCode());
+            signResultVo.setCode(200);
             // 如果签章数据为空，则表示CA未结束。目前只有上海胸科有签名签章，
             // 如果有异步的签名签章不全的，可以另外实现一个只有签名或只要签章的回调接口
             if (StringUtils.isEmpty(caSignResultTo.getPdfBase64())) {
@@ -1598,6 +1599,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @RpcService
     public List<RecipeBean> findReadyCheckRecipeByCheckMode(Integer checkMode) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(checkMode);

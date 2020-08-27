@@ -28,6 +28,7 @@ import com.ngari.recipe.sign.ISignInfoService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.*;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -278,7 +279,9 @@ public class SignInfoService implements ISignInfoService {
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA",BeijingYwxCAImpl.class);
         String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
-        caAccountRequestTO.setUserAccount(token);
+        caAccountRequestTO.setUserName(token);
+        // 北京CAopenID
+        caAccountRequestTO.setUserAccount(recipeBean.getCaPassword());
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
@@ -286,6 +289,10 @@ public class SignInfoService implements ISignInfoService {
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));
+        if ("-1".equals(responseTO.getMsgCode()) && null != responseTO.getData()){
+
+            throw new DAOException(609,responseTO.getData().getMsg());
+        }
         if (null != responseTO && "200".equals(responseTO.getMsgCode())) {
             return responseTO.getData().getMsg();
         }else {
