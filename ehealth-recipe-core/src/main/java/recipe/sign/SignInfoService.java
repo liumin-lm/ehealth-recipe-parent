@@ -25,6 +25,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.sign.ISignInfoService;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -260,6 +261,10 @@ public class SignInfoService implements ISignInfoService {
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));
+        if ("-1".equals(responseTO.getMsgCode()) && null != responseTO.getData()){
+
+            throw new DAOException(609,responseTO.getData().getMsg());
+        }
         if (null != responseTO && "200".equals(responseTO.getMsgCode())) {
             return responseTO.getData().getMsg();
         }else {
