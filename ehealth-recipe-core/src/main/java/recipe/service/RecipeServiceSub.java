@@ -1815,7 +1815,7 @@ public class RecipeServiceSub {
             if(recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null){
                 DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
-                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != 0){
+                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }
