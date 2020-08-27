@@ -7,8 +7,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.service.IDoctorService;
-import com.ngari.base.dto.UsePathwaysDTO;
-import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
