@@ -1531,19 +1531,26 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
-            // 需支付
-            // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
-            // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
+
             BigDecimal needFee=new BigDecimal(0.00);
-            try{
-                LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}",order.getOrderCode(),JSONUtils.toString(order));
-                if(PayConstant.PAY_FLAG_NOT_PAY==orderBean.getPayFlag()){
-                    needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee());
-                }else{
-                    needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee().subtract(new BigDecimal(orderBean.getActualPrice())));
+            //当处方状态为已完成时
+            if(RecipeStatusConstant.FINISH== recipeList.get(0).getStatus()){
+                //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）
+                orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
+            }else{
+                // 需支付
+                // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
+                // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
+                try{
+                    LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}",order.getOrderCode(),JSONUtils.toString(order));
+                    if(PayConstant.PAY_FLAG_NOT_PAY==orderBean.getPayFlag()){
+                        needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee());
+                    }else{
+                        needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee().subtract(new BigDecimal(orderBean.getActualPrice())));
+                    }
+                }catch(Exception e){
+                    LOGGER.error("getOrderDetailById needFee计算需支付 error :{}",e);
                 }
-            }catch(Exception e){
-                LOGGER.error("getOrderDetailById needFee计算需支付 error :{}",needFee);
             }
             orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO)>=0?needFee:BigDecimal.ZERO);
 

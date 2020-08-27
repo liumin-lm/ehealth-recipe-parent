@@ -16,6 +16,10 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
+import com.ngari.patient.service.IUsePathwaysService;
+import com.ngari.patient.service.IUsingRateService;
+import com.ngari.patient.dto.UsePathwaysDTO;
+import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
@@ -44,6 +48,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
@@ -417,6 +422,8 @@ public class RecipeServiceSub {
                 OrganDrugList organDrug;
                 List<String> delOrganDrugName = Lists.newArrayList();
                 PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+                com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService",IUsingRateService.class);
+                com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
                     if (oldFlag) {
@@ -440,6 +447,24 @@ public class RecipeServiceSub {
                         detail.setDosageUnit(organDrug.getUseDoseUnit());
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
+                        //频次处理
+                        if (StringUtils.isNotEmpty(detail.getUsingRateId())){
+                            UsingRateDTO usingRateDTO = usingRateService.getById(Integer.valueOf(detail.getUsingRateId()));
+                            if (usingRateDTO !=null){
+                                detail.setUsingRateTextFromHis(usingRateDTO.getText());
+                                detail.setOrganUsingRate(usingRateDTO.getUsingRateKey());
+                                detail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
+                            }
+                        }
+                        //用法处理
+                        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())){
+                            UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.valueOf(detail.getUsePathwaysId()));
+                            if (usePathwaysDTO !=null){
+                                detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
+                                detail.setOrganUsePathways(usePathwaysDTO.getPathwaysKey());
+                                detail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
+                            }
+                        }
                         //中药基础数据处理
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             if(StringUtils.isBlank(detail.getUsePathways())){
@@ -473,7 +498,6 @@ public class RecipeServiceSub {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
                         }
-
                         //添加机构药品信息
                         //date 20200225
                         detail.setProducer(organDrug.getProducer());
@@ -1815,7 +1839,7 @@ public class RecipeServiceSub {
             if(recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null){
                 DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
-                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != 0){
+                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }

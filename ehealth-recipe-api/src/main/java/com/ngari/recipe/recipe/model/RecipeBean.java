@@ -355,6 +355,10 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "过敏源")
     private List<AllergieBean> allergies;
+    /**
+     * 挂号序号
+     */
+    private String registerId;
 
     public RecipeBean() {
     }
@@ -450,6 +454,14 @@ public class RecipeBean implements Serializable {
             this.setTakeMedicine(0);
         }
 
+    }
+
+    public String getRegisterId() {
+        return registerId;
+    }
+
+    public void setRegisterId(String registerId) {
+        this.registerId = registerId;
     }
 
     public String getRecipeIdE() {
