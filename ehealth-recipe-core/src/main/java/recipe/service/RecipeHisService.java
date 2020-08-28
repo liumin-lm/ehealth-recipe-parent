@@ -1420,8 +1420,11 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeDetailBean mapDetail = new RecipeDetailBean();
             mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-            mapDetail.setDrugForm(organDrug.getDrugForm());
             mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            
+            mapDetail.setDrugForm(organDrug.getDrugForm());
+            mapDetail.setStatus(organDrug.getStatus());
+            mapDetail.setDrugId(organDrug.getDrugId());
 
             DrugList drug = drugMap.get(organDrug.getDrugId());
             if (null != drug) {
@@ -1430,7 +1433,6 @@ public class RecipeHisService extends RecipeBaseService {
                 mapDetail.setUsePathways(drug.getUsePathways());
             }
             mapDetail.setDrugCost(recipeDetail.getTotalPrice());
-            mapDetail.setDrugId(organDrug.getDrugId());
             mapDetail.setDrugName(recipeDetail.getDrugName());
             mapDetail.setDrugSpec(recipeDetail.getDrugSpec());
             mapDetail.setOrganDrugCode(recipeDetail.getDrugCode());
