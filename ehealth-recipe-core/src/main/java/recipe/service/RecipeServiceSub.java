@@ -2375,7 +2375,7 @@ public class RecipeServiceSub {
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
                     tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
-                tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
+                    tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:
