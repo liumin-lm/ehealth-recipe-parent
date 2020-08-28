@@ -528,7 +528,7 @@ public class HisRecipeService {
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
         //BUG#50592 【实施】【上海市奉贤区中心医院】【A】查询线下处方缴费提示系统繁忙
-        IAppointDepartService appointDepartService = ApplicationUtils.getBaseService(IAppointDepartService.class);
+        IAppointDepartService appointDepartService = ApplicationUtils.getBasicService(IAppointDepartService.class);
         AppointDepartBean appointDepartBean = appointDepartService.getByOrganIDAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
         if (appointDepartBean != null) {
             recipe.setDepart(appointDepartBean.getDepartId());
