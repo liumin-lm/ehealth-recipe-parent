@@ -169,7 +169,6 @@ public abstract class AbstractAuidtMode implements IAuditMode {
      * @param recipe
      */
     protected void winningRecipeAudit(Recipe recipe) {
-        LOGGER.info("winningRecipeAudit-start-parms[{}]", JSON.toJSONString(recipe));
         try {
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
