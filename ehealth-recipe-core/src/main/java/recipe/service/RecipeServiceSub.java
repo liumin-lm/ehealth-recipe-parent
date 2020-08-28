@@ -448,7 +448,7 @@ public class RecipeServiceSub {
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
                         //频次处理
-                        if (StringUtils.isEmpty(detail.getUsingRateId())){
+                        if (StringUtils.isNotEmpty(detail.getUsingRateId())){
                             UsingRateDTO usingRateDTO = usingRateService.getById(Integer.valueOf(detail.getUsingRateId()));
                             if (usingRateDTO !=null){
                                 detail.setUsingRateTextFromHis(usingRateDTO.getText());
@@ -457,7 +457,7 @@ public class RecipeServiceSub {
                             }
                         }
                         //用法处理
-                        if (StringUtils.isEmpty(detail.getUsePathwaysId())){
+                        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())){
                             UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.valueOf(detail.getUsePathwaysId()));
                             if (usePathwaysDTO !=null){
                                 detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
