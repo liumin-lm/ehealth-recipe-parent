@@ -64,11 +64,11 @@ public abstract class AbstractAuidtMode implements IAuditMode {
 
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
+            //发送消息--待审核或者待处理消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             Integer checkMode = recipe.getCheckMode();
             //卫宁审方环境不推送药师消息
             if (!new Integer(3).equals(checkMode)) {
-                //发送消息--待审核或者待处理消息
-                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     if (status == RecipeStatusConstant.READY_CHECK_YS) {
