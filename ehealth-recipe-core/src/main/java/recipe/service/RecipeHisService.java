@@ -1455,9 +1455,9 @@ public class RecipeHisService extends RecipeBaseService {
             backDetailList.add(mapDetail);
         }
         if (CollectionUtils.isEmpty(backDetailList) && StringUtils.isNotEmpty(msg)) {
-            msg.substring(0, msg.length() - 1);
-            msg.append("药品信息不全，无法正常续方。");
-            throw new DAOException(ErrorCode.SERVICE_ERROR, msg.toString());
+            String msgStr = msg.toString();
+            msgStr = msgStr.substring(0, msgStr.length() - 1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, msgStr + "药品信息不全，无法正常续方。");
         }
         LOGGER.info("offlineDrugs backDetailList = {}", JSONUtils.toString(backDetailList));
         return backDetailList;
