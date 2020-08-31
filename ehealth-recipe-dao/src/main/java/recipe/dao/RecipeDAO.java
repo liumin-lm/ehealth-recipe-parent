@@ -2881,7 +2881,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 String hql = "select r from Recipe r, RecipeExtend o where r.recipeId=o.recipeId " +
-                        " and r.ClinicOrgan =:organId and o.docIndexId is not null ";
+                        " and r.clinicOrgan =:organId and o.docIndexId is not null ";
                 Query q = ss.createQuery(hql);
                 q.setParameter("organId", organId);
                 setResult(q.list());
