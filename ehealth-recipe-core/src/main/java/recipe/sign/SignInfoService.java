@@ -146,14 +146,12 @@ public class SignInfoService implements ISignInfoService {
             if(recipeExtend!=null){
                 registerId=recipeExtend.getRegisterID();
             }
-            //date  20200820
-            //recipeId有的时候更新
-            request.setRecipeID(recipeId.toString());
-        }else{
-            //date  20200820
-            //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
-            request.setRecipeID(UUID.randomUUID().toString());
+
         }
+        //date  20200820
+        //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
+        request.setRecipeID(UUID.randomUUID().toString());
+
         request.setStartDate(null != recipeBean.getSignDate() ? recipeBean.getSignDate() : new Date());
         request.setEffectivePeriod(3);
         RecipeExtendBean extend = recipeBean.getRecipeExtend();

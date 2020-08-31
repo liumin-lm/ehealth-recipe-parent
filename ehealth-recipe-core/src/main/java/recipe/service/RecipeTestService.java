@@ -12,9 +12,11 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.account.session.ClientSession;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
@@ -288,6 +290,37 @@ public class RecipeTestService {
         map.put("effective", 0);
         map.put("payFlag", 0);
         recipeOrderDAO.updateByOrdeCode(orderCode, map);
+    }
+
+    /**
+     * 处理处方电子病历的历史数据
+     * @param organId  机构ID
+     */
+    @RpcService
+    public void saveDoc(Integer organId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
+        List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
+        for (Recipe recipe : recipes) {
+            try{
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
+                //recipeExtendBean.setRecipeId(recipeExtend.getRecipeId());
+                recipeExtendBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+                recipeExtendBean.setCurrentMedical(recipeExtend.getCurrentMedical());
+                recipeExtendBean.setHistroyMedical(recipeExtend.getHistroyMedical());
+                recipeExtendBean.setAllergyMedical(recipeExtend.getAllergyMedical());
+                recipeExtendBean.setPhysicalCheck(recipeExtend.getPhysicalCheck());
+                recipeExtendBean.setSymptomName(recipeExtend.getSymptomName());
+                recipeExtendBean.setHandleMethod(recipeExtend.getHandleMethod());
+                emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
+                recipeExtend.setDocIndexId(recipeExtendBean.getDocIndexId());
+                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+            }catch(Exception e){
+                LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
+            }
+        }
     }
 
 }

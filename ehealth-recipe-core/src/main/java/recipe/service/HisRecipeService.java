@@ -639,13 +639,10 @@ public class HisRecipeService {
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
                 recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
-                recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
-                recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
+                //recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
+                //recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
                 if (StringUtils.isEmpty(recipedetail.getUseDoseUnit())) {
                     recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
-                }
-                if (recipedetail.getUseDose() == null) {
-                    recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
                 }
             }
             recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());

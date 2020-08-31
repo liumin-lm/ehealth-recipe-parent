@@ -32,7 +32,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
 
     @Override
-    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
+    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo){
         if (status == RecipeStatusConstant.CHECK_PASS) {
             //暂时去掉，没有用到
             /*//todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
@@ -65,7 +65,12 @@ public class AuditPreMode extends AbstractAuidtMode {
             HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
             hisCheckRecipeService.sendCheckRecipeInfo(recipe);
         } else if (new Integer(3).equals(checkMode)) {
-            winningRecipeAudit(recipe);
+            try {
+                Thread.sleep(50);
+                winningRecipeAudit(recipe);
+            } catch (InterruptedException e) {
+            }
+
         }
     }
 
