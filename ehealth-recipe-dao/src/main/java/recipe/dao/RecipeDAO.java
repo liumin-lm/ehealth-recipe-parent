@@ -2876,5 +2876,20 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod(sql = "select count(*) from Recipe")
     public abstract Long getCountByAll();
 
+    public List<Recipe> findRecipeForDoc(final Integer organId) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "select r from Recipe r, RecipeExtend o where r.recipeId=o.recipeId " +
+                        " and r.ClinicOrgan =:organId and o.docIndexId is not null ";
+                Query q = ss.createQuery(hql);
+                q.setParameter("organId", organId);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        return action.getResult();
+    }
 
 }
