@@ -49,6 +49,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IRecipeAuditService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -263,8 +264,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
-        RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
-        return service.findRecipeAndDetailsAndCheckById(recipeId, null);
+        IRecipeAuditService recipeAuditService = AppContextHolder.getBean("recipeaudit.recipeAuditService", IRecipeAuditService.class);
+        //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
+        return recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
     }
 
     @RpcService
