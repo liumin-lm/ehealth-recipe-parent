@@ -132,9 +132,14 @@ public class AuditPostMode extends AbstractAuidtMode {
 
         super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
 
-        //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-        HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
-        hisCheckRecipeService.sendCheckRecipeInfo(dbRecipe);
+        Integer checkMode = dbRecipe.getCheckMode();
+        if (new Integer(2).equals(checkMode)) {
+            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+            hisCheckRecipeService.sendCheckRecipeInfo(dbRecipe);
+        } else if (new Integer(3).equals(checkMode)) {
+            winningRecipeAudit(dbRecipe);
+        }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
