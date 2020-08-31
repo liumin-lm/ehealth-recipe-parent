@@ -66,7 +66,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             hisCheckRecipeService.sendCheckRecipeInfo(recipe);
         } else if (new Integer(3).equals(checkMode)) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(50);
                 winningRecipeAudit(recipe);
             } catch (InterruptedException e) {
             }
