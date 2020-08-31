@@ -302,10 +302,15 @@ public class RecipeTestService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
         List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
+        LOGGER.info("saveDoc recipes:{}.", JSONUtils.toString(recipes));
         for (Recipe recipe : recipes) {
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
-            emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
+            try{
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+                emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
+            }catch(Exception e){
+                LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
+            }
         }
     }
 

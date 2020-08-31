@@ -1444,6 +1444,7 @@ public class RecipeHisService extends RecipeBaseService {
             mapDetail.setSalePrice(recipeDetail.getPrice());
             mapDetail.setSendNumber(recipeDetail.getAmount());
             mapDetail.setUseDays(recipeDetail.getUseDays());
+            mapDetail.setDrugUnit(recipeDetail.getUnit());
             if (null == recipeDetail.getUseDays()) {
                 mapDetail.setUseDays(Integer.valueOf(recipeDetail.getDays()));
             }
