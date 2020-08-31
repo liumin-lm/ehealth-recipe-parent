@@ -596,7 +596,7 @@ public class HisRecipeService {
             recipedetail.setRecipeId(recipeId);
             recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
             //  线下特殊用法
-            recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr());
+            recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr() + hisRecipeDetail.getUseDoseUnit());
             recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
