@@ -644,9 +644,10 @@ public class HisRecipeService {
                 if (StringUtils.isEmpty(recipedetail.getUseDoseUnit())) {
                     recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
                 }
-                if (recipedetail.getUseDose() == null) {
+                //51092 【电子处方】线下处方特殊用法展示问题,不取平台默认的剂量
+                /*if (recipedetail.getUseDose() == null) {
                     recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
-                }
+                }*/
             }
             recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
             recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
