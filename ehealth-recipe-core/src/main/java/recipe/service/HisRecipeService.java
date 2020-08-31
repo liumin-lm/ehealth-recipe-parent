@@ -644,9 +644,6 @@ public class HisRecipeService {
                 if (StringUtils.isEmpty(recipedetail.getUseDoseUnit())) {
                     recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
                 }
-                if (recipedetail.getUseDose() == null) {
-                    recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
-                }
             }
             recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
             recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
