@@ -1392,16 +1392,19 @@ public class RecipeHisService extends RecipeBaseService {
             UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, recipeDetail.getUsingRateCode());
             if (null == usingRateDTO) {
                 LOGGER.warn("validateOfflineDrug usingRateDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetail));
-                str.append("用药频次 ");
+                str.append("用药频次");
             }
 
             UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), recipeDetail.getUsePathwaysCode());
             if (null == usePathwaysDTO) {
                 LOGGER.warn("validateOfflineDrug usePathwaysDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetail));
+                if (StringUtils.isNotEmpty(str)) {
+                    str.append("、");
+                }
                 str.append("用药途径");
             }
             if (StringUtils.isNotEmpty(str)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + str.toString() + ",未在线上做维护，无法正常续方。");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + str.toString() + "未在线上做维护，无法正常续方。");
             }
 
             //设置医生端每次剂量和剂量单位联动关系
@@ -1417,8 +1420,11 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeDetailBean mapDetail = new RecipeDetailBean();
             mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-            mapDetail.setDrugForm(organDrug.getDrugForm());
             mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            
+            mapDetail.setDrugForm(organDrug.getDrugForm());
+            mapDetail.setStatus(organDrug.getStatus());
+            mapDetail.setDrugId(organDrug.getDrugId());
 
             DrugList drug = drugMap.get(organDrug.getDrugId());
             if (null != drug) {
@@ -1427,7 +1433,6 @@ public class RecipeHisService extends RecipeBaseService {
                 mapDetail.setUsePathways(drug.getUsePathways());
             }
             mapDetail.setDrugCost(recipeDetail.getTotalPrice());
-            mapDetail.setDrugId(organDrug.getDrugId());
             mapDetail.setDrugName(recipeDetail.getDrugName());
             mapDetail.setDrugSpec(recipeDetail.getDrugSpec());
             mapDetail.setOrganDrugCode(recipeDetail.getDrugCode());
@@ -1452,8 +1457,9 @@ public class RecipeHisService extends RecipeBaseService {
             backDetailList.add(mapDetail);
         }
         if (CollectionUtils.isEmpty(backDetailList) && StringUtils.isNotEmpty(msg)) {
-            msg.append("药品信息不全，无法正常续方。");
-            throw new DAOException(ErrorCode.SERVICE_ERROR, msg.toString());
+            String msgStr = msg.toString();
+            msgStr = msgStr.substring(0, msgStr.length() - 1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, msgStr + "药品信息不全，无法正常续方。");
         }
         LOGGER.info("offlineDrugs backDetailList = {}", JSONUtils.toString(backDetailList));
         return backDetailList;

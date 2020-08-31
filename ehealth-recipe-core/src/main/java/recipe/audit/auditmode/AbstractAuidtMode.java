@@ -1,10 +1,12 @@
 package recipe.audit.auditmode;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -21,6 +23,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -61,11 +64,11 @@ public abstract class AbstractAuidtMode implements IAuditMode {
 
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
+            //发送消息--待审核或者待处理消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             Integer checkMode = recipe.getCheckMode();
             //卫宁审方环境不推送药师消息
             if (!new Integer(3).equals(checkMode)) {
-                //发送消息--待审核或者待处理消息
-                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     if (status == RecipeStatusConstant.READY_CHECK_YS) {
@@ -166,11 +169,21 @@ public abstract class AbstractAuidtMode implements IAuditMode {
      * @param recipe
      */
     protected void winningRecipeAudit(Recipe recipe) {
-        IRecipeAuditService recipeAuditService = AppContextHolder.getBean("recipeaudit.recipeAuditService", IRecipeAuditService.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-        List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
-        recipeAuditService.winningRecipeAudit(recipeBean, recipeDetailBeans);
+        try {
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            //查詢处方扩展 获取对应的挂号序号
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+
+            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            recipeBean.setRegisterId(recipeExtend.getRegisterID());
+            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
+
+            IRecipeAuditService recipeAuditService = AppContextHolder.getBean("recipeaudit.recipeAuditService", IRecipeAuditService.class);
+            recipeAuditService.winningRecipeAudit(recipeBean, recipeDetailBeans);
+        }catch (Exception e){
+            LOGGER.error("winningRecipeAudit-error",e);
+        }
     }
 }

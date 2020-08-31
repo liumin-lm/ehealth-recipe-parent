@@ -7,8 +7,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.service.IDoctorService;
-import com.ngari.base.dto.UsePathwaysDTO;
-import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
@@ -450,7 +448,7 @@ public class RecipeServiceSub {
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
                         //频次处理
-                        if (StringUtils.isEmpty(detail.getUsingRateId())){
+                        if (StringUtils.isNotEmpty(detail.getUsingRateId())){
                             UsingRateDTO usingRateDTO = usingRateService.getById(Integer.valueOf(detail.getUsingRateId()));
                             if (usingRateDTO !=null){
                                 detail.setUsingRateTextFromHis(usingRateDTO.getText());
@@ -459,7 +457,7 @@ public class RecipeServiceSub {
                             }
                         }
                         //用法处理
-                        if (StringUtils.isEmpty(detail.getUsePathwaysId())){
+                        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())){
                             UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.valueOf(detail.getUsePathwaysId()));
                             if (usePathwaysDTO !=null){
                                 detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
@@ -2377,7 +2375,7 @@ public class RecipeServiceSub {
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
                     tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
-                tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
+                    tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:
