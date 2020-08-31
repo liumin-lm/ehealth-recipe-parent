@@ -306,7 +306,16 @@ public class RecipeTestService {
         for (Recipe recipe : recipes) {
             try{
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+                LOGGER.info("saveDoc recipeExtend:{}.", JSONUtils.toString(recipeExtend));
+                RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
+                recipeExtendBean.setRecipeId(recipeExtend.getRecipeId());
+                recipeExtendBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+                recipeExtendBean.setCurrentMedical(recipeExtend.getCurrentMedical());
+                recipeExtendBean.setHistroyMedical(recipeExtend.getHistroyMedical());
+                recipeExtendBean.setAllergyMedical(recipeExtend.getAllergyMedical());
+                recipeExtendBean.setPhysicalCheck(recipeExtend.getPhysicalCheck());
+                recipeExtendBean.setSymptomName(recipeExtend.getSymptomName());
+                recipeExtendBean.setHandleMethod(recipeExtend.getHandleMethod());
                 emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
             }catch(Exception e){
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
