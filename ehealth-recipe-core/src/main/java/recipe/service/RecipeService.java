@@ -613,13 +613,11 @@ public class RecipeService extends RecipeBaseService {
                 nowCheckResult.setGrabDoctorId(null);
                 recipeCheckDAO.update(nowCheckResult);
                 if (CollectionUtils.isNotEmpty(recipeCheckDetails)) {
-                    recipeCheckDetails.forEach(recipeCheckDetail -> recipeCheckDetail.setCheckId(nowCheckResult.getCheckId()));
+                    recipeCheckDetails.forEach(recipeCheckDetail -> {
+                        recipeCheckDetail.setCheckId(nowCheckResult.getCheckId());
+                        recipeCheckDetailDAO.save(recipeCheckDetail);
+                    });
                 }
-            }
-            if (CollectionUtils.isNotEmpty(recipeCheckDetails)) {
-                recipeCheckDetails.forEach(recipeCheckDetail -> {
-                    recipeCheckDetailDAO.save(recipeCheckDetail);
-                });
             }
         }
 
