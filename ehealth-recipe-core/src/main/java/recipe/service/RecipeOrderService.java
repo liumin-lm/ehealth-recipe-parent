@@ -1561,10 +1561,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setEnterpriseName(drugsEnterprise.getName());
                     orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
                     orderBean.setTel(drugsEnterprise.getTel());
-                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipeList.get(0).getPayMode())){
-                        //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
-                        orderBean.setStorePayFlag(drugsEnterprise.getStorePayFlag());
-                    }
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
@@ -1586,7 +1582,7 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
-            result.setExt(RecipeUtil.getParamFromOgainConfig(order));
+            result.setExt(RecipeUtil.getParamFromOgainConfig(order,recipeList));
             //在扩展内容中设置下载处方签的判断
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额

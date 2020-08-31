@@ -1,6 +1,5 @@
 package recipe.audit.auditmode;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -44,15 +43,11 @@ public abstract class AbstractAuidtMode implements IAuditMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuidtMode.class);
 
     @Override
-    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
+    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo)  {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //发送卡片
         RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         saveStatusAndSendMsg(status, recipe, memo);
-        Integer checkMode = recipe.getCheckMode();
-        if (new Integer(3).equals(checkMode)) {
-            winningRecipeAudit(recipe);
-        }
     }
 
     protected void saveStatusAndSendMsg(Integer status, Recipe recipe, String memo) {
