@@ -302,13 +302,11 @@ public class RecipeTestService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
         List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
-        LOGGER.info("saveDoc recipes:{}.", JSONUtils.toString(recipes));
         for (Recipe recipe : recipes) {
             try{
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                LOGGER.info("saveDoc recipeExtend:{}.", JSONUtils.toString(recipeExtend));
                 RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
-                recipeExtendBean.setRecipeId(recipeExtend.getRecipeId());
+                //recipeExtendBean.setRecipeId(recipeExtend.getRecipeId());
                 recipeExtendBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
                 recipeExtendBean.setCurrentMedical(recipeExtend.getCurrentMedical());
                 recipeExtendBean.setHistroyMedical(recipeExtend.getHistroyMedical());
@@ -317,6 +315,8 @@ public class RecipeTestService {
                 recipeExtendBean.setSymptomName(recipeExtend.getSymptomName());
                 recipeExtendBean.setHandleMethod(recipeExtend.getHandleMethod());
                 emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
+                recipeExtend.setDocIndexId(recipeExtendBean.getDocIndexId());
+                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             }catch(Exception e){
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
             }
