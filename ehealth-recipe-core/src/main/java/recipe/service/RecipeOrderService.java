@@ -1359,16 +1359,17 @@ public class RecipeOrderService extends RecipeBaseService {
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-                    List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
-                    recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipes.get(0));
+                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                    Recipe recipe = recipeDAO.getByRecipeId(recipeIdList.get(0));
+                    if (recipe != null){
+                        recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
+                    }
                     //清除医保金额
                     RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
                     recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
                     try {
                         //对于来源于HIS的处方单更新hisRecipe的状态
-                        if (CollectionUtils.isNotEmpty(recipes)) {
-                            Recipe recipe = recipes.get(0);
+                        if (recipe != null) {
                             HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
                             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                             if (hisRecipe != null) {
@@ -1380,13 +1381,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     //date 20200330
                     //调用支付平台取消支付接口
-                    Recipe recipe;
                     RecipeOrder orderNow;
                     INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                     RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                    if (CollectionUtils.isNotEmpty(recipes)) {
+                    if (recipe != null) {
                         if (null != recipeIdList.get(0)) {
-                            recipe = recipes.get(0);
                             orderNow = orderDAO.getByOrderCode(order.getOrderCode());
                             //判断订单是否是单边账的
                             if (0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())) {
