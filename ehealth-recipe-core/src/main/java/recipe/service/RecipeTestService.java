@@ -290,4 +290,13 @@ public class RecipeTestService {
         recipeOrderDAO.updateByOrdeCode(orderCode, map);
     }
 
+    /**
+     * 处理处方电子病历的历史数据
+     * @param organId  机构ID
+     */
+    @RpcService
+    public void saveDoc(Integer organId){
+
+    }
+
 }
