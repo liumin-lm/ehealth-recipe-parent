@@ -39,6 +39,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -127,118 +128,8 @@ public class SignInfoService implements ISignInfoService {
     @RpcService
     public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
         logger.info("getTaskCode2 info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
-        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
-        OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        RegulationRecipeIndicatorsReq request = new RegulationRecipeIndicatorsReq();
-
-        String registerId="";
-        Integer recipeId=recipeBean.getRecipeId();
-        if(recipeId!=null){
-            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
-            if(recipeExtend!=null){
-                registerId=recipeExtend.getRegisterID();
-            }
-
-        }
-
-        if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
-            //在线复诊
-            if( new Integer(2).equals(recipeBean.getBussSource()) ){
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(recipeBean.getClinicId());
-                if (null != consultExDTO) {
-                    registerId=consultExDTO.getRegisterNo();
-                }
-            }
-
-        }
-
-        request.setRegisterId(registerId);
-        request.setRegisterNo(registerId);
-
-        if(null != recipeBean.getDoctor()) {
-            DoctorDTO doctorDTO = doctorService.get(recipeBean.getDoctor());
-            request.setDoctorId(recipeBean.getDoctor().toString());
-            request.setDoctorName(doctorDTO.getName());
-            EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getDoctor());
-            if(employment!=null){
-                request.setDoctorNo(employment.getJobNumber());
-            }
-        }else {
-            logger.warn("getTaskCode2 RecipeBean doctor is null.");
-        }
-
-        if (recipeBean.getChecker() != null) {
-            DoctorDTO doctorDTO = doctorService.get(recipeBean.getChecker());
-            if (null == doctorDTO) {
-                logger.warn("getTaskCode2 RecipeBean checker is null. recipe.checker={}", recipeBean.getChecker());
-            }else {
-                request.setAuditDoctorCertID(doctorDTO.getIdNumber());
-                request.setAuditDoctor(doctorDTO.getName());
-                request.setAuditDoctorId(recipeBean.getChecker().toString());
-                request.setAuditProTitle(doctorDTO.getProTitle());
-                //工号：医生取开方机构的工号，药师取第一职业点的工号
-                EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getChecker());
-                if(employment!=null){
-                    request.setAuditDoctorNo(employment.getJobNumber());
-                }
-            }
-        }else {
-            logger.warn("getTaskCode2 RecipeBean checker is null");
-        }
-        request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
-        request.setIcdName(recipeBean.getOrganDiseaseName());
-
-        // 患者信息
-        PatientDTO patientDTO = patientService.get(recipeBean.getMpiid());
-        if (null == patientDTO) {
-            logger.warn("getTaskCode2 patient is null. recipe.patient={}", recipeBean.getMpiid());
-        }else {
-            request.setMpiId(patientDTO.getMpiId());
-            String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll("；", "|");
-            request.setOriginalDiagnosis(organDiseaseName);
-            request.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
-            request.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
-            request.setPatientName(patientDTO.getPatientName());
-            request.setNation(patientDTO.getNation());
-            request.setMobile(LocalStringUtil.toString(patientDTO.getMobile()));
-            request.setSex(patientDTO.getPatientSex());
-            request.setAge(DateConversion.calculateAge(patientDTO.getBirthday()));
-            request.setBirthDay(patientDTO.getBirthday());
-            //陪诊人信息
-            request.setGuardianName(patientDTO.getGuardianName());
-            request.setGuardianCertID(patientDTO.getGuardianCertificate());
-            request.setGuardianMobile(patientDTO.getMobile());
-        }
-
-        List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList(detailBeanList.size());
-        for (RecipeDetailBean detail : detailBeanList) {
-            RegulationRecipeDetailIndicatorsReq reqDetail = new RegulationRecipeDetailIndicatorsReq();
-            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCodeAndDrugId(recipeBean.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
-            if (organDrugList == null) {
-                reqDetail.setDrcode(detail.getOrganDrugCode());
-            } else {
-                reqDetail.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode());
-                reqDetail.setLicenseNumber(organDrugList.getLicenseNumber());
-                reqDetail.setDosageFormCode(organDrugList.getDrugFormCode());
-                reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
-                reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
-                reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
-            }
-
-            reqDetail.setDrmodel(detail.getDrugSpec());
-            reqDetail.setPack(detail.getPack());
-            reqDetail.setPackUnit(detail.getDrugUnit());
-            reqDetail.setDrname(detail.getDrugName());
-            //单价
-            reqDetail.setPrice(detail.getSalePrice());
-            //总价
-            reqDetail.setTotalPrice(detail.getDrugCost());
-            reqDetail.setDrunit(detail.getUseDoseUnit());
-            list.add(reqDetail);
-        }
-        request.setOrderList(list);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        RegulationRecipeIndicatorsReq request = recipeService.getCATaskRecipeReq(recipeBean, detailBeanList);
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());

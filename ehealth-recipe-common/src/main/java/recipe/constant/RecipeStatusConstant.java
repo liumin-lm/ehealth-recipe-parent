@@ -180,6 +180,11 @@ public class RecipeStatusConstant {
     public static final int SIGN_ING_CODE_PHA = 31;
 
     /**
+     * 签名中-药师
+     */
+    public static final int SIGN_NO_CODE_PHA = 32;
+
+    /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
     public static final int PATIENT_NO_OPERATOR = 101;
