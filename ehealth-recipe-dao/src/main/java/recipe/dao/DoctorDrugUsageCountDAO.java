@@ -27,5 +27,5 @@ public abstract class DoctorDrugUsageCountDAO extends HibernateSupportDelegateDA
     public abstract DoctorDrugUsageCount getDoctorUsage(@DAOParam("organId") Integer organId, @DAOParam("doctorId") Integer doctorId, @DAOParam("usageType") Integer usageType, @DAOParam("usageId") Integer usageId);
 
     @DAOMethod(sql = "update DoctorDrugUsageCount set usage_count = :usageCount where id = :id")
-    public abstract int updateUsageCountById(@DAOParam("id") Integer id, @DAOParam("usageCount") Integer usageCount);
+    public abstract void updateUsageCountById(@DAOParam("id") Integer id, @DAOParam("usageCount") Integer usageCount);
 }
