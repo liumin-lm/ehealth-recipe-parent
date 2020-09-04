@@ -27,6 +27,7 @@ import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
@@ -47,8 +48,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bean.DoctorDrugUsageRequest;
 import recipe.bean.OrganToolBean;
 import recipe.constant.DrugMatchConstant;
+import recipe.constant.ErrorCode;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -1695,4 +1699,120 @@ public class DrugToolService implements IDrugToolService {
     public List<ImportDrugRecord> findImportDrugRecordByOrganId(Integer organId){
         return importDrugRecordDAO.findImportDrugRecordByOrganId(organId);
     }
+
+
+    /**
+     * 获取医生用药频次、途径使用次数统计
+     *
+     * @param organId
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> findDrugUsageCountForDoctor(Integer organId, Integer doctorId) {
+        if (null == organId || null == doctorId){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
+        }
+        Map<String, Object> result = Maps.newHashMap();
+        com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
+        com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
+        List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+        result.put("usingRate", usingRates);
+        result.put("usePathway", usePathways);
+
+        // 处理医生使用次数排序逻辑
+        handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
+
+        return result;
+    }
+
+    /**
+     * 处方校验-目前用于增加用于频次、途径使用次数
+     * @param request
+     */
+    @RpcService
+    public void checkRecipeDrug(DoctorDrugUsageRequest request) {
+        DoctorDrugUsageCountDAO usageCountDAO = DAOFactory.getDAO(DoctorDrugUsageCountDAO.class);
+        Integer organId = request.getOrganId();
+        Integer doctorId = request.getDoctorId();
+        // 处理用药频次使用次数
+        DoctorDrugUsageCount rateCount = usageCountDAO.getDoctorUsage(organId,doctorId, RecipeSystemConstant.USAGE_TYPE_RATE,request.getUsingRateId());
+        if (null == rateCount) {
+            DoctorDrugUsageCount usageCount = new DoctorDrugUsageCount();
+            usageCount.setOrganId(organId);
+            usageCount.setDoctorId(doctorId);
+            usageCount.setDeptId(request.getDeptId());
+            usageCount.setUsageType(RecipeSystemConstant.USAGE_TYPE_RATE);
+            usageCount.setUsageId(request.getUsingRateId());
+            usageCount.setUsageCount(request.getAddCount());
+            usageCount.setCreateTime(new Date());
+            usageCount.setUpdateTime(new Date());
+            usageCountDAO.save(usageCount);
+        }else {
+            Integer usageCount = rateCount.getUsageCount() + request.getAddCount();
+            usageCountDAO.updateUsageCountById(rateCount.getId(), usageCount);
+        }
+        //处理用药途径使用次数
+        DoctorDrugUsageCount pathwayCount = usageCountDAO.getDoctorUsage(organId,doctorId,RecipeSystemConstant.USAGE_TYPE_PATHWAY,request.getUsePathwayId());
+        if (null == pathwayCount){
+            DoctorDrugUsageCount usageCount = new DoctorDrugUsageCount();
+            usageCount.setOrganId(organId);
+            usageCount.setDoctorId(doctorId);
+            usageCount.setDeptId(request.getDeptId());
+            usageCount.setUsageType(RecipeSystemConstant.USAGE_TYPE_PATHWAY);
+            usageCount.setUsageId(request.getUsePathwayId());
+            usageCount.setUsageCount(request.getAddCount());
+            usageCount.setCreateTime(new Date());
+            usageCount.setUpdateTime(new Date());
+            usageCountDAO.save(usageCount);
+        }else {
+            Integer usageCount = pathwayCount.getUsageCount() + request.getAddCount();
+            usageCountDAO.updateUsageCountById(pathwayCount.getId(), usageCount);
+        }
+    }
+
+    /**
+     * 处理医生用药频次和途径使用次数排序逻辑
+     *
+     * @param organId
+     * @param doctorId
+     * @param result
+     * @param usingRates
+     * @param usePathways
+     */
+    private void handleRateAndPathwayUsage(Integer organId, Integer doctorId, Map<String, Object> result, List<UsingRateDTO> usingRates, List<UsePathwaysDTO> usePathways) {
+        DoctorDrugUsageCountDAO usageCountDAO = DAOFactory.getDAO(DoctorDrugUsageCountDAO.class);
+        // TODO 查询使用次数记录
+        // 用药频次使用记录
+        List<DoctorDrugUsageCount> rateCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_RATE);
+        if (CollectionUtils.isNotEmpty(usingRates) && CollectionUtils.isNotEmpty(rateCounts)) {
+            List<UsingRateDTO> rateUseCount = new ArrayList<>();
+            usingRates.stream().filter(rate -> rateCounts.stream().anyMatch(count -> rate.getId().equals(count.getUsageId()))).forEach(rate -> {
+                // TODO设置使用次数
+                //rate.setUsageCount(count.getUsageCount());
+                rateUseCount.add(rate);
+            });
+
+            usingRates.removeAll(rateUseCount);
+            rateUseCount.addAll(usingRates);
+            result.put("usingRate", rateUseCount);
+        }
+        // 用药途径使用记录
+        List<DoctorDrugUsageCount> pathwayCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_PATHWAY);
+        if (CollectionUtils.isNotEmpty(usePathways) && CollectionUtils.isNotEmpty(pathwayCounts)) {
+            List<UsePathwaysDTO> pathwayUseCount = new ArrayList<>();
+
+            usePathways.stream().filter(pathway -> pathwayCounts.stream().anyMatch(count -> pathway.getId().equals(count.getUsageId()))).forEach(pathway -> {
+                // TODO设置使用次数
+                //pathway.setUsageCount(count.getUsageCount());
+                pathwayUseCount.add(pathway);
+            });
+
+            usePathways.removeAll(pathwayUseCount);
+            pathwayUseCount.addAll(usePathways);
+            result.put("usePathway", pathwayUseCount);
+        }
+    }
+
 }
