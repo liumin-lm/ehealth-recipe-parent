@@ -40,7 +40,7 @@ public class PayModeDownload implements IPurchaseService{
         //提示信息； 3。ext中存入特应性弹窗的识别特性
         //页面的弹窗信息根据处方信息中，根据配置的审核方式的不同谈处方不同的弹窗
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        Map<String, String> ext = new HashedMap();
+        Map<String, Object> ext = new HashedMap();
         //当不需要审核的时候弹出特性弹窗
         if(ReviewTypeConstant.Not_Need_Check == dbRecipe.getReviewType()){
             ext.put("popupFeature", "noCheck");

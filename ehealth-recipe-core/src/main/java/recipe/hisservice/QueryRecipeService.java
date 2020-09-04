@@ -83,7 +83,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         //转换机构组织编码
-        Integer clinicOrgan = transformOrganIdToClinicOrgan(queryRecipeReqDTO.getOrganId());
+        Integer clinicOrgan = RecipeServiceSub.transformOrganIdToClinicOrgan(queryRecipeReqDTO.getOrganId());
         if (null == clinicOrgan) {
             resultDTO.setMsgCode(-1);
             resultDTO.setMsg("平台未匹配到该组织机构编码");
@@ -511,40 +511,6 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         //若没匹配的医院诊断内码则返回空字符串
         return StringUtils.join(icdRdnList, "|");
-    }
-
-    /**
-     * 转换组织机构编码
-     *
-     * @param organId
-     * @return
-     */
-    private Integer transformOrganIdToClinicOrgan(String organId) {
-        //需要转换组织机构编码
-        Integer clinicOrgan = null;
-        try {
-            if (isClinicOrgan(organId)) {
-                return Integer.valueOf(organId);
-            }
-            IOrganService organService = BaseAPI.getService(IOrganService.class);
-            List<OrganBean> organList = organService.findByOrganizeCode(organId);
-            if (CollectionUtils.isNotEmpty(organList)) {
-                clinicOrgan = organList.get(0).getOrganId();
-            }
-        } catch (Exception e) {
-            LOGGER.error("queryRecipeInfo 平台未匹配到该组织机构编码. organId={}", organId, e);
-        }
-        return clinicOrgan;
-    }
-
-    /**
-     * 判断是否是平台机构id规则----长度为7的纯数字
-     *
-     * @param organId
-     * @return
-     */
-    private boolean isClinicOrgan(String organId) {
-        return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
     }
 
 

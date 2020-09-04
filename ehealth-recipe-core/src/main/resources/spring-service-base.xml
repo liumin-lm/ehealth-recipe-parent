@@ -48,5 +48,6 @@
     <reference id="eh.remoteFileDownloadService" interface="recipe.third.IFileDownloadService"/>
     <reference id="eh.configurationCenterUtils" interface="com.ngari.base.property.service.IConfigurationCenterUtilsService" />
     <reference id="eh.remoteCurrentUserInfoService" interface="com.ngari.base.currentuserinfo.service.ICurrentUserInfoService"/>
-
+    <!--健康卡数据上传-->
+    <reference id="eh.wholesomeService" interface="com.ngari.base.healthcard.service.IWholesomeService"/>
 </s:beans>

@@ -338,7 +338,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDatein(recipe.getSignDate());
             req.setEffectivePeriod(recipe.getValueDays());
             req.setStartDate(recipe.getSignDate());
-            req.setEndDate(DateConversion.getDateAftXDays(recipe.getSignDate(), recipe.getValueDays()));
+            if (recipe.getSignDate() !=null){
+                req.setEndDate(DateConversion.getDateAftXDays(recipe.getSignDate(), recipe.getValueDays()));
+            }
             req.setUpdateTime(now);
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());

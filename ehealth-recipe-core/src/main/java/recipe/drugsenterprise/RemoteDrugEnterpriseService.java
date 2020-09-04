@@ -135,6 +135,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     private PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise) {
         PushRecipeAndOrder pushRecipeAndOrder = new PushRecipeAndOrder();
+        pushRecipeAndOrder.setOrganId(recipe.getClinicOrgan());
         //设置处方信息
         pushRecipeAndOrder.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
         //设置订单信息

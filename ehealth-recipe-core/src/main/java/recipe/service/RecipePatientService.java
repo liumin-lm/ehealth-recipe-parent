@@ -376,12 +376,21 @@ public class RecipePatientService extends RecipeBaseService {
         }
         List<ChronicDiseaseListResTO> list = Lists.newArrayList();
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        // { "id": 1, "text": "无" , "locked": true},
+        //        { "id": 2, "text": "特慢病病种" },
+        //        { "id": 3, "text": "重症病种" },
+        //        { "id": 4, "text": "慢病病种" },
+        //        { "id": 5, "text": "重医大附属二院" }
         Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
         result.put("recipeChooseChronicDisease",diseaseType);
         if (3 == diseaseType) {
             List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(diseaseType.toString());
             list = ObjectCopyUtils.convert(chronicDiseaseList, ChronicDiseaseListResTO.class);
         } else {
+            if (1 == diseaseType){
+                result.put("chronicDiseaseList",list);
+                return result;
+            }
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
             PatientBaseInfo patientBaseInfo = new PatientBaseInfo();

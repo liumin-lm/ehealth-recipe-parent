@@ -271,7 +271,7 @@ public class RecipeValidateUtil {
                     } catch (Exception e) {
                         LOGGER.error("method covertDrugUnitdoseAndUnit 转换 error " + e.getMessage());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.error("method covertDrugUnitdoseAndUnit error " + e.getMessage());
                 }
             }

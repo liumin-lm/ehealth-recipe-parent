@@ -227,6 +227,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                                 map.put("preSettleTotalAmount", hisResult.getData().getZje());
                                 map.put("fundAmount", hisResult.getData().getYbzf());
                                 map.put("cashAmount", hisResult.getData().getYfje());
+                                //map.put("medicalSettleData", hisResult.getData().getMedicalRespData());
                                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                             } else {
                                 ext = new RecipeExtend();

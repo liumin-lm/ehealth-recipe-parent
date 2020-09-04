@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,6 +35,7 @@ import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
+import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
@@ -68,6 +70,8 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.CardDataUploadRunable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -1355,16 +1359,17 @@ public class RecipeOrderService extends RecipeBaseService {
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-                    List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
-                    recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipes.get(0));
+                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                    Recipe recipe = recipeDAO.getByRecipeId(recipeIdList.get(0));
+                    if (recipe != null){
+                        recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
+                    }
                     //清除医保金额
                     RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
                     recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
                     try {
                         //对于来源于HIS的处方单更新hisRecipe的状态
-                        if (CollectionUtils.isNotEmpty(recipes)) {
-                            Recipe recipe = recipes.get(0);
+                        if (recipe != null) {
                             HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
                             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                             if (hisRecipe != null) {
@@ -1376,13 +1381,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     //date 20200330
                     //调用支付平台取消支付接口
-                    Recipe recipe;
                     RecipeOrder orderNow;
                     INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                     RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                    if (CollectionUtils.isNotEmpty(recipes)) {
+                    if (recipe != null) {
                         if (null != recipeIdList.get(0)) {
-                            recipe = recipes.get(0);
                             orderNow = orderDAO.getByOrderCode(order.getOrderCode());
                             //判断订单是否是单边账的
                             if (0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())) {
@@ -1527,6 +1530,29 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+
+            BigDecimal needFee=new BigDecimal(0.00);
+            //当处方状态为已完成时
+            if(RecipeStatusConstant.FINISH== recipeList.get(0).getStatus()){
+                //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
+                orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
+            }else{
+                // 需支付
+                // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
+                // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
+                try{
+                    LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}",order.getOrderCode(),JSONUtils.toString(order));
+                    if(PayConstant.PAY_FLAG_NOT_PAY==orderBean.getPayFlag()){
+                        needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee());
+                    }else{
+                        needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(orderBean.getActualPrice()));
+                    }
+                }catch(Exception e){
+                    LOGGER.error("getOrderDetailById needFee计算需支付 error :{}",e);
+                }
+            }
+            orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO)>=0?needFee:BigDecimal.ZERO);
+
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
@@ -1555,17 +1581,80 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
-            result.setExt(RecipeUtil.getParamFromOgainConfig(order));
+            result.setExt(RecipeUtil.getParamFromOgainConfig(order,recipeList));
             //在扩展内容中设置下载处方签的判断
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额
             getShowAuditFeeAndTips(result, order, recipeList);
+            /*//在扩展内容中添加医保结算金额明细数据----已经要求卫宁互联网在支付回调memo字段里拼接好格式返回了所以此处不要了
+            getShowMedicalRespData(result,recipeList);*/
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
         }
 
         return result;
+    }
+
+    private void getShowMedicalRespData(RecipeResultBean result, List<Recipe> recipeList) {
+        try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            Map<String, Object> ext = result.getExt();
+            if (null == ext) {
+                ext = Maps.newHashMap();
+            }
+            if (CollectionUtils.isNotEmpty(recipeList)) {
+                Recipe nowRecipe = recipeList.get(0);
+                if (null != nowRecipe) {
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
+                    if (recipeExtend !=null
+                            && StringUtils.isNotEmpty(recipeExtend.getMedicalSettleData())){
+                        MedicalRespData data = new MedicalRespData();
+                        List<String> list = Splitter.on("|").splitToList(recipeExtend.getMedicalSettleData());
+                        if (list.size() >= 42){
+                            //本年账户支付 9
+                            data.setCurrentAccountPayment(transBigDecimal(list.get(8)));
+                            //历年账户支付 10
+                            data.setAccountPaymentHistory(transBigDecimal(list.get(9)));
+                            //本年账户余额 18
+                            data.setCurrentAccountBalance(transBigDecimal(list.get(17)));
+                            //历年账户余额 19
+                            data.setAccountBalanceHistory(transBigDecimal(list.get(18)));
+                            //基金支付     12
+                            data.setFundPayment(transBigDecimal(list.get(11)));
+                            //起付标准累计 24
+                            data.setAccumulativeMinimumPaymentStandard(transBigDecimal(list.get(23)));
+                            //自费         16
+                            data.setSelfPayment(transBigDecimal(list.get(15)));
+                            //其中历年账户（自费部分）40
+                            data.setAnnualAccountsBySelfPayment(transBigDecimal(list.get(39)));
+                            //自理         15
+                            data.setSelfCare(transBigDecimal(list.get(14)));
+                            //其中历年账户（自理部分）39
+                            data.setAnnualAccountsBySelfCare(transBigDecimal(list.get(38)));
+                            //自负         11+14+31+42
+                            data.setSelfFinancing(transBigDecimal(list.get(10)).add(transBigDecimal(list.get(13))).add(transBigDecimal(list.get(30))).add(transBigDecimal(list.get(41))));
+                            //其中历年账户（自负部分）  11
+                            data.setAnnualAccountsBySelfFinancing(transBigDecimal(list.get(10)));
+                            //合计   8
+                            data.setTotal(transBigDecimal(list.get(7)));
+                        }
+                        ext.put("medicalRespData", data);
+                        LOGGER.info("getShowMedicalRespData data={}",JSONUtils.toString(data));
+                        result.setExt(ext);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("getShowMedicalRespData error",e);
+        }
+    }
+
+    private BigDecimal transBigDecimal(String s) {
+        if (StringUtils.isEmpty(s)){
+            s = "0.00";
+        }
+        return new BigDecimal(s);
     }
 
     /**
@@ -1580,7 +1669,7 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     public void getShowAuditFeeAndTips(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Map<String, String> ext = result.getExt();
+        Map<String, Object> ext = result.getExt();
         if (null == ext) {
             ext = Maps.newHashMap();
         }
@@ -1619,7 +1708,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @date: 2019/9/29
      * @author: JRK
      */
-    private void getOrderTips(Map<String, String> ext, Recipe nowRecipe, RecipeOrder order) {
+    private void getOrderTips(Map<String, Object> ext, Recipe nowRecipe, RecipeOrder order) {
         if (nowRecipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
             ext.put("tips", RecipeServiceSub.getTipsByStatusForPatient(nowRecipe, order));
         } else {
@@ -1642,7 +1731,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //判断是否展示下载处方签按钮：1.在下载处方购药方式
         //2.是否是后置，后置：判断审核是否审核通过状态
         //3.不是后置:判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
-        Map<String, String> ext = result.getExt();
+        Map<String, Object> ext = result.getExt();
         if (null == ext) {
             ext = Maps.newHashMap();
         }
@@ -1808,7 +1897,8 @@ public class RecipeOrderService extends RecipeBaseService {
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
-
+        //健康卡数据上传
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(),"030102"));
         return result;
     }
 

@@ -77,6 +77,18 @@ public class HisRecipeDetail implements Serializable{
     @ItemProperty(alias = "使用天数(小数类型)")
     private String useDaysB;
 
+    @ItemProperty(alias = "药品剂量特殊用法")
+    private String useDoseStr;
+
+    @Column(name = "useDoseStr")
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
+
     @Column(name = "UseDaysB")
     public String getUseDaysB() {
         return useDaysB;

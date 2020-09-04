@@ -20,6 +20,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.service.RecipeOrderService;
 
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 电子处方工具类
@@ -151,12 +154,13 @@ public class RecipeUtil {
      * 从机构配置表中获取配置(可根据不同机构做不同配置)
      *
      * @param order
+     * @param recipeList
      * @return
      */
-    public static Map<String, String> getParamFromOgainConfig(RecipeOrder order) {
+    public static Map<String, Object> getParamFromOgainConfig(RecipeOrder order, List<Recipe> recipeList) {
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         Integer organId = order.getOrganId();
-        Map<String, String> map = Maps.newHashMap();
+        Map<String, Object> map = Maps.newHashMap();
         if (null != organId) {
             OrganConfigBean organConfig = iOrganConfigService.get(organId);
             if (null != organConfig) {
@@ -178,6 +182,14 @@ public class RecipeUtil {
                     LOGGER.info("getParamFromOgainConfig error msg:{}.", e.getMessage());
                 }
 
+            }
+        }
+        if (order.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipeList.get(0).getPayMode())){
+                //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
+                map.put("storePayFlag",drugsEnterprise.getStorePayFlag());
             }
         }
         return map;

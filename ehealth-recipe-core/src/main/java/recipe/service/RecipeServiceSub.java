@@ -9,11 +9,17 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
+import com.ngari.patient.service.IUsePathwaysService;
+import com.ngari.patient.service.IUsingRateService;
+import com.ngari.patient.dto.UsePathwaysDTO;
+import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
@@ -42,15 +48,20 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import eh.cdr.api.service.IDocIndexService;
+import eh.cdr.api.vo.DocIndexBean;
+import eh.cdr.api.vo.DocIndexExtBean;
+import eh.cdr.api.vo.MedicalDetailBean;
+import eh.cdr.api.vo.MedicalInfoBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -138,6 +149,9 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
+        //电子病历，将电子病历保存到cdr模块
+        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
+        emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
         //武昌需求，加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient,recipeBean,recipeId);
 
@@ -408,6 +422,8 @@ public class RecipeServiceSub {
                 OrganDrugList organDrug;
                 List<String> delOrganDrugName = Lists.newArrayList();
                 PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+                com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService",IUsingRateService.class);
+                com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
                     if (oldFlag) {
@@ -431,6 +447,24 @@ public class RecipeServiceSub {
                         detail.setDosageUnit(organDrug.getUseDoseUnit());
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
+                        //频次处理
+                        if (StringUtils.isNotEmpty(detail.getUsingRateId())){
+                            UsingRateDTO usingRateDTO = usingRateService.getById(Integer.valueOf(detail.getUsingRateId()));
+                            if (usingRateDTO !=null){
+                                detail.setUsingRateTextFromHis(usingRateDTO.getText());
+                                detail.setOrganUsingRate(usingRateDTO.getUsingRateKey());
+                                detail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
+                            }
+                        }
+                        //用法处理
+                        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())){
+                            UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.valueOf(detail.getUsePathwaysId()));
+                            if (usePathwaysDTO !=null){
+                                detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
+                                detail.setOrganUsePathways(usePathwaysDTO.getPathwaysKey());
+                                detail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
+                            }
+                        }
                         //中药基础数据处理
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             if(StringUtils.isBlank(detail.getUsePathways())){
@@ -464,7 +498,6 @@ public class RecipeServiceSub {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
                         }
-
                         //添加机构药品信息
                         //date 20200225
                         detail.setProducer(organDrug.getProducer());
@@ -1803,6 +1836,14 @@ public class RecipeServiceSub {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeExtend != null) {
+            if(recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null){
+                DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
+                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
+                    recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                }
+            }
+
             map.put("recipeExtend", recipeExtend);
         }
 
@@ -1987,19 +2028,28 @@ public class RecipeServiceSub {
                 map.put("supportTFDS", 1);
             }
         }
+        //临沭县人民医院医保支付按钮--点击跳转到东软h5页面
+        if (recipe.getClinicOrgan() == 1002753){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            if (purchaseService.isMedicarePatient(1002753,recipe.getMpiid())){
+                map.put("supportMedicalPayment", 1);
+            }
+        }
         //date 2191011
         //添加处方详情上是否展示按钮
         boolean showButton = false;
-        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString())) && (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString())) && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString())) && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString())))) {
+        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString()))
+                && (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString()))
+                && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString()))
+                && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString()))
+                && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
-                //带药师审核，审核一次不通过，待处理无订单
+                //待药师审核，审核一次不通过，待处理无订单
                 if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
-
                     showButton = true;
                 }
             } else {
                 if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
-
                     showButton = true;
                 }
             }
@@ -2325,7 +2375,7 @@ public class RecipeServiceSub {
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
                     tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
-                tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
+                    tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:
@@ -2934,5 +2984,39 @@ public class RecipeServiceSub {
         }catch(Exception e){
             LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 转换组织机构编码
+     *
+     * @param organId
+     * @return
+     */
+    public static Integer transformOrganIdToClinicOrgan(String organId) {
+        //需要转换组织机构编码
+        Integer clinicOrgan = null;
+        try {
+            if (isClinicOrgan(organId)) {
+                return Integer.valueOf(organId);
+            }
+            IOrganService organService = BaseAPI.getService(IOrganService.class);
+            List<OrganBean> organList = organService.findByOrganizeCode(organId);
+            if (CollectionUtils.isNotEmpty(organList)) {
+                clinicOrgan = organList.get(0).getOrganId();
+            }
+        } catch (Exception e) {
+            LOGGER.error("queryRecipeInfo 平台未匹配到该组织机构编码. organId={}", organId, e);
+        }
+        return clinicOrgan;
+    }
+
+    /**
+     * 判断是否是平台机构id规则----长度为7的纯数字
+     *
+     * @param organId
+     * @return
+     */
+    public static boolean isClinicOrgan(String organId) {
+        return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
     }
 }

@@ -1,9 +1,12 @@
 package recipe.audit.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -28,6 +31,7 @@ import recipe.constant.CacheConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
@@ -58,6 +62,12 @@ public class WinningPrescriptionService implements IntellectJudicialService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+
+    @Autowired
+    private OrganService organService;
 
     /**
      * 早期使用接口，不能删除
@@ -155,9 +165,21 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             }
 
             Boolean invokeRecipeAnalysis = (Boolean)configService.getConfiguration(recipe.getClinicOrgan(),"InvokeRecipeAnalysis");
+            String invokeUrl = "http://103.38.233.27:820/PAWebService.asmx";
+
+            OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
+            if (null != organ.getHospitalCode()) {
+                String paramValue = recipeParameterDao.getByName(organ.getHospitalCode() + "_winning_recipecheck");
+                if (StringUtils.isNotBlank(paramValue)) {
+                    invokeUrl = paramValue;
+                    baseData.setHospCode(organ.getHospitalCode());
+                    baseDateToString = JSONUtils.toString(baseData);
+                }
+            }
+
             if(invokeRecipeAnalysis){
                 java.net.URL endpoint;
-                endpoint = new java.net.URL("http://103.38.233.27:820/PAWebService.asmx");
+                endpoint = new java.net.URL(invokeUrl);
                 binding2 = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12(endpoint);
                 if (binding2 != null) {
                     binding2.setTimeout(20000);
@@ -212,8 +234,14 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             result.setCode(RecipeCommonBaseTO.SUCCESS);
             result.setMsg("系统预审未发现处方问题");
         }
-        Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(),"needInterceptLevel");
-        result.setHighestDrangeLevel((String)needInterceptLevel);
+//        Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(),"needInterceptLevel");
+//        result.setHighestDrangeLevel((String)needInterceptLevel);
+        Object normalFlowLevel = configService.getConfiguration(recipe.getClinicOrgan(),"normalFlowLevel");
+        Object medicineReasonLevel = configService.getConfiguration(recipe.getClinicOrgan(),"medicineReasonLevel");
+        Object updateRecipeLevel = configService.getConfiguration(recipe.getClinicOrgan(),"updateRecipeLevel");
+        result.setNormalFlowLevel(String.valueOf(normalFlowLevel));
+        result.setMedicineReasonLevel(String.valueOf(medicineReasonLevel));
+        result.setUpdateRecipeLevel(String.valueOf(updateRecipeLevel));
         return result;
     }
 

@@ -24,4 +24,9 @@
     <reference id="nc.networkclinicMsgService" interface="networkclinic.api.service.INetworkclinicMsgService"/>
     <!--随访-->
     <reference interface="com.ngari.follow.service.IRelationPatientService" id="pm.remoteRelationPatientService"/>
+    <!--电子病历-->
+    <reference id="ecdr.docIndexService" interface="eh.cdr.api.service.IDocIndexService"/>
+
+    <!--审方-->
+    <reference id="recipeaudit.recipeAuditService" interface="eh.recipeaudit.api.IRecipeAuditService"/>
 </s:beans>

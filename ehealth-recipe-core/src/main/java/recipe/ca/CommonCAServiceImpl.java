@@ -226,4 +226,25 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         }
         return caPictureResponseTO;
     }
+
+    @Override
+    public CaTokenResponseTo newCaTokenBussiness(CaTokenRequestTo requestTo) {
+        CaTokenResponseTo caTokenResponseTo = new CaTokenResponseTo();
+        try {
+            LOGGER.info("CommonCAServiceImpl newCaTokenBussiness start  requestTO={}", JSONUtils.toString(requestTo));
+            HisResponseTO<CaTokenResponseTo> responseTO = iCaHisService.caTokenBusiness(requestTo);
+            LOGGER.info("CommonCAServiceImpl newCaPictureBusiness  responseTO={}",JSONUtils.toString(responseTO));
+            if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
+                caTokenResponseTo.setToken(responseTO.getData().getToken());
+                caTokenResponseTo.setExpireTime(responseTO.getData().getExpireTime());
+            }
+            caTokenResponseTo.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            caTokenResponseTo.setMsg(responseTO.getMsg());
+        } catch (Exception e) {
+            LOGGER.error("CommonCAServiceImpl caPictureBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTo), e);
+            e.printStackTrace();
+            return caTokenResponseTo;
+        }
+        return caTokenResponseTo;
+    }
 }

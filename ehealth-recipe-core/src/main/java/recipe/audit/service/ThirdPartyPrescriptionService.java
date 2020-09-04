@@ -119,10 +119,16 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                     List<PAWebRecipeDanger> paWebRecipeDangerList = getPAWebRecipeDangers(thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList());
                     result.setRecipeDangers(paWebRecipeDangerList);
                     result.setCode(RecipeCommonBaseTO.FAIL);
-                    Object needInterceptLevel = configService.getConfiguration(recipeBean.getClinicOrgan(), "needInterceptLevel");
-                    if (Objects.nonNull(needInterceptLevel)) {
-                        result.setHighestDrangeLevel((String) needInterceptLevel);
-                    }
+//                    Object needInterceptLevel = configService.getConfiguration(recipeBean.getClinicOrgan(), "needInterceptLevel");
+//                    if (Objects.nonNull(needInterceptLevel)) {
+//                        result.setHighestDrangeLevel((String) needInterceptLevel);
+//                    }
+                    Object normalFlowLevel = configService.getConfiguration(recipeBean.getClinicOrgan(),"normalFlowLevel");
+                    Object medicineReasonLevel = configService.getConfiguration(recipeBean.getClinicOrgan(),"medicineReasonLevel");
+                    Object updateRecipeLevel = configService.getConfiguration(recipeBean.getClinicOrgan(),"updateRecipeLevel");
+                    result.setNormalFlowLevel(String.valueOf(normalFlowLevel));
+                    result.setMedicineReasonLevel(String.valueOf(medicineReasonLevel));
+                    result.setUpdateRecipeLevel(String.valueOf(updateRecipeLevel));
                 } else if (StringUtils.isNotBlank(thirdPartyRationalUseDrugResTO.getMsg()) && CollectionUtils.isEmpty(thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList())) {
                     result.setMsg(thirdPartyRationalUseDrugResTO.getMsg());
                     result.setCode(RecipeCommonBaseTO.FAIL);
@@ -234,9 +240,11 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                     LOGGER.error("analysis packThirdPartyPrescriptionData error, param: {}", recipeDetailBean.getUsingRate(), e);
                 }
             }
+            thirdPartyMedicinesData.setOrganFreq(recipeDetailBean.getOrganUsingRate());
             if (StringUtils.isNotBlank(recipeDetailBean.getUsePathways())) {
                 thirdPartyMedicinesData.setPath(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsePathways()));
             }
+            thirdPartyMedicinesData.setOrganPath(recipeDetailBean.getOrganUsePathways());
             thirdPartyMedicinesData.setTotalQty(new BigDecimal(recipeDetailBean.getUseTotalDose()));
             thirdPartyMedicinesData.setDays(String.valueOf(recipeDetailBean.getUseDays()));
             thirdPartyMedicinesData.setSpec(recipeDetailBean.getDrugSpec());

@@ -1,7 +1,8 @@
 package recipe.service;
 
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.bus.appoint.model.AppointDepartBean;
+import com.ngari.bus.appoint.service.IAppointDepartService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -9,13 +10,11 @@ import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
@@ -317,6 +316,7 @@ public class HisRecipeService {
                 }else {
                     hisRecipe.setDiseaseName("无");
                 }
+                hisRecipe.setDisease(queryHisRecipResTO.getDisease());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
                     hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
                 }
@@ -344,7 +344,12 @@ public class HisRecipeService {
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
                 hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
-                hisRecipe = hisRecipeDAO.save(hisRecipe);
+                try {
+                    hisRecipe = hisRecipeDAO.save(hisRecipe);
+                } catch (Exception e) {
+                    LOGGER.error("hisRecipeDAO.save error ", e);
+                    return;
+                }
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
                         HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO, HisRecipeExt.class);
@@ -385,6 +390,8 @@ public class HisRecipeService {
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         detail.setUsingRateText(recipeDetailTO.getUsingRateText());
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
+                        //  线下特殊用法
+                        detail.setUseDoseStr(recipeDetailTO.getUseDoseStr());
                         detail.setUseDose(recipeDetailTO.getUseDose());
                         detail.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
                         detail.setSaleName(recipeDetailTO.getSaleName());
@@ -518,7 +525,14 @@ public class HisRecipeService {
         recipe.setOrganName(hisRecipe.getOrganName());
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
-        recipe.setDepart(Integer.parseInt(hisRecipe.getDepartCode()));
+        //BUG#50592 【实施】【上海市奉贤区中心医院】【A】查询线下处方缴费提示系统繁忙
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepartDTO = appointDepartService.getByOrganIDAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
+        if (appointDepartDTO != null) {
+            recipe.setDepart(appointDepartDTO.getDepartId());
+        } else {
+            LOGGER.info("HisRecipeService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
+        }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
             EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
@@ -581,6 +595,10 @@ public class HisRecipeService {
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
             recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
+            //  线下特殊用法
+            if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDoseStr())){
+                recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr() + hisRecipeDetail.getUseDoseUnit());
+            }
             recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
@@ -623,13 +641,10 @@ public class HisRecipeService {
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
                 recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
-                recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
-                recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
+                //recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
+                //recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
                 if (StringUtils.isEmpty(recipedetail.getUseDoseUnit())) {
                     recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
-                }
-                if (recipedetail.getUseDose() == null) {
-                    recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
                 }
             }
             recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());

@@ -23,8 +23,12 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.sign.ISignInfoService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.*;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -34,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.ca.impl.BeijingYwxCAImpl;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -42,10 +47,12 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Dictionary;
 
 @RpcBean
 public class SignInfoService implements ISignInfoService {
@@ -141,6 +148,16 @@ public class SignInfoService implements ISignInfoService {
             }
 
         }
+        //date  20200820
+        //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
+        request.setRecipeID(UUID.randomUUID().toString());
+
+        request.setStartDate(null != recipeBean.getSignDate() ? recipeBean.getSignDate() : new Date());
+        request.setEffectivePeriod(3);
+        RecipeExtendBean extend = recipeBean.getRecipeExtend();
+        if(null != extend){
+            request.setMainDieaseDescribe(extend.getMainDieaseDescribe());
+        }
 
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
             //在线复诊
@@ -225,29 +242,62 @@ public class SignInfoService implements ISignInfoService {
                 reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
                 reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
                 reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
+                //处方保存之前少三个字段
+                reqDetail.setPackUnit(StringUtils.isEmpty(detail.getDrugUnit())?organDrugList.getUnit():detail.getDrugUnit());
+                //设置药品价格
+                BigDecimal price = organDrugList.getSalePrice();
+                //单价
+                reqDetail.setPrice(price);
+                //保留3位小数
+                BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                //总价
+                reqDetail.setTotalPrice(drugCost);
             }
 
             reqDetail.setDrmodel(detail.getDrugSpec());
             reqDetail.setPack(detail.getPack());
-            reqDetail.setPackUnit(detail.getDrugUnit());
             reqDetail.setDrname(detail.getDrugName());
-            //单价
-            reqDetail.setPrice(detail.getSalePrice());
-            //总价
-            reqDetail.setTotalPrice(detail.getDrugCost());
             reqDetail.setDrunit(detail.getUseDoseUnit());
+            //date 20200821
+            //添加CA同步字段
+            reqDetail.setUseDaysB(null != detail.getUseDays() ? detail.getUseDays().toString() : detail.getUseDaysB());
+            reqDetail.setDosageTotal(null!= detail.getUseTotalDose() ? detail.getUseTotalDose().toString() : null);
+            ctd.dictionary.Dictionary usingRateDic = null;
+            ctd.dictionary.Dictionary usePathwaysDic = null;
+            try {
+                usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+                usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            } catch (ControllerException e) {
+                logger.error("search dic error.",e);
+            }
+            if(null != usePathwaysDic){
+                reqDetail.setAdmissionName(detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():usePathwaysDic.getText(detail.getUsePathways()));
+            }
+            if (null != usingRateDic) {
+                reqDetail.setFrequencyName(detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate()));
+            }
+            reqDetail.setDosage(detail.getUseDose() == null?detail.getUseDoseStr():String.valueOf(detail.getUseDose()));
             list.add(reqDetail);
         }
         request.setOrderList(list);
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA",BeijingYwxCAImpl.class);
+        String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
+        caAccountRequestTO.setUserName(token);
+        // 北京CAopenID
+        caAccountRequestTO.setUserAccount(recipeBean.getCaPassword());
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
-        logger.info("getTaskCode2 request info={}=", JSONObject.toJSONString(caAccountRequestTO));
+        logger.info("getTaskCode2 request info={}=", JSONUtils.toString(caAccountRequestTO));
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));
+        if ("-1".equals(responseTO.getMsgCode()) && null != responseTO.getData()){
+
+            throw new DAOException(609,responseTO.getData().getMsg());
+        }
         if (null != responseTO && "200".equals(responseTO.getMsgCode())) {
             return responseTO.getData().getMsg();
         }else {

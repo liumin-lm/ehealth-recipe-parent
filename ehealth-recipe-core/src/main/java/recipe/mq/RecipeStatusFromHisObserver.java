@@ -43,7 +43,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         }
         HospitalStatusUpdateDTO hospitalStatusUpdateDTO = new HospitalStatusUpdateDTO();
         hospitalStatusUpdateDTO.setRecipeCode(notice.getRecipeID());
-//        hospitalStatusUpdateDTO.setClinicOrgan(LocalStringUtil.toString(notice.getOrganId()));
+        hospitalStatusUpdateDTO.setClinicOrgan(LocalStringUtil.toString(notice.getOrganId()));
         hospitalStatusUpdateDTO.setOrganId(notice.getOrganizeCode());
         hospitalStatusUpdateDTO.setPlatRecipeID(notice.getPlatRecipeID());
         hospitalStatusUpdateDTO.setUpdateRecipeCodeFlag(notice.getUpdateRecipeCodeFlag());

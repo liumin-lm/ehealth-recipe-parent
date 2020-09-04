@@ -23,6 +23,9 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -36,10 +39,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.HisCallBackService;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
+import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 import recipe.util.RedisClient;
 
@@ -333,9 +333,11 @@ public class PrescribeService {
             }else {
                 //转换组织结构编码
                 try {
-                    OrganBean organ = getOrganByOrganId(request.getOrganId());
-                    if (null != organ) {
-                        clinicOrgan = organ.getOrganId();
+                    if (StringUtils.isNotEmpty(request.getClinicOrgan())){
+                        clinicOrgan = Integer.valueOf(request.getClinicOrgan());
+                    }
+                    if (clinicOrgan == null){
+                        clinicOrgan = RecipeServiceSub.transformOrganIdToClinicOrgan(request.getOrganId());
                     }
                 } catch (Exception e) {
                     LOG.error("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
@@ -455,7 +457,7 @@ public class PrescribeService {
                             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                             attrMap.put("trackingNumber",trackingNo);
                             attrMap.put("logisticsCompany",Integer.valueOf(companyId));
-                            attrMap.put("status",OrderStatusConstant.SENDING);
+                            attrMap.put("status", OrderStatusConstant.SENDING);
                             recipeOrderDAO.updateByOrdeCode(orderCode,attrMap);
                         }
                     }

@@ -31,6 +31,7 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
@@ -48,6 +49,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IRecipeAuditService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -67,6 +69,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
@@ -77,14 +80,14 @@ import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
-import recipe.thread.GenerateSignetRecipePdfRunable;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
+import recipe.sign.SignRecipeInfoService;
+import recipe.thread.*;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -110,7 +113,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
-            service.sendSuccess(response);
+//            service.sendSuccess(response);
+            //异步处理回调方法，避免超时
+            RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
         }
     }
 
@@ -120,7 +125,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
-            service.sendFail(response);
+//            service.sendFail(response);
+            //异步处理回调方法，避免超时
+            RecipeBusiThreadPool.execute(new RecipeSendFailRunnable(response));
         }
     }
 
@@ -257,8 +264,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
-        RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
-        return service.findRecipeAndDetailsAndCheckById(recipeId, null);
+        IRecipeAuditService recipeAuditService = AppContextHolder.getBean("recipeaudit.recipeAuditService", IRecipeAuditService.class);
+        //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
+        return recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
     }
 
     @RpcService
@@ -1209,6 +1217,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             signResultVo.setPdfBase64(caSignResultTo.getPdfBase64());
             signResultVo.setSignRecipeCode(caSignResultTo.getSignRecipeCode());
+            signResultVo.setCode(200);
             // 如果签章数据为空，则表示CA未结束。目前只有上海胸科有签名签章，
             // 如果有异步的签名签章不全的，可以另外实现一个只有签名或只要签章的回调接口
             if (StringUtils.isEmpty(caSignResultTo.getPdfBase64())) {
@@ -1250,6 +1259,26 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    public void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo) {
+        LOGGER.info("saveRecipeInfoForBjCa caSignResultTo=[{}]", JSONUtils.toString(caSignResultTo));
+        // 保存ca相关信息即可
+        if (caSignResultTo != null) {
+
+            SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
+
+            SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+            signDoctorRecipeInfo.setSignCodeDoc(caSignResultTo.getSignCADate());
+            signDoctorRecipeInfo.setCaSerCodeDoc(caSignResultTo.getUserAccount());
+            signDoctorRecipeInfo.setSignBefText(caSignResultTo.getPdfBase64());
+            signDoctorRecipeInfo.setUniqueId(caSignResultTo.getUniqueId());
+
+            signDoctorRecipeInfo.setType("BeijingYwxCa");
+
+            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+        }
+    }
+
+    @Override
     public CaSealRequestTO signCreateRecipePDF(Integer recipeId, boolean isDoctor) {
         CaSealRequestTO caSealRequestTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, isDoctor);
         return caSealRequestTO;
@@ -1280,7 +1309,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit) {
         List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, flag, start, limit);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1323,7 +1352,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
         List<Recipe> recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1331,7 +1360,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
         List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes,RecipeBean.class);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
 
@@ -1342,14 +1371,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
 
     /**
-     *  转换对象
+     * 转换对象
+     *
      * @param dataList
      * @param toClass
-     * @param <T> 转换前
-     * @param <T1> 转换后
+     * @param <T>      转换前
+     * @param <T1>     转换后
      * @return
      */
-    private <T,T1> List<T1> changBean(List<T> dataList, Class<T1> toClass) {
+    private <T, T1> List<T1> changBean(List<T> dataList, Class<T1> toClass) {
         List<T1> list = Collections.emptyList();
         if (CollectionUtils.isNotEmpty(dataList)) {
             list = dataList.stream().map(t -> {
@@ -1568,6 +1598,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         RecipeRefundDAO drugsEnterpriseDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         List<RecipeRefund> recipeRefunds = drugsEnterpriseDAO.findRefundListByRecipeId(recipeId);
-        return  changBean(recipeRefunds, RecipeRefundBean.class);
+        return changBean(recipeRefunds, RecipeRefundBean.class);
+    }
+
+    @Override
+    @RpcService
+    public List<RecipeBean> findReadyCheckRecipeByCheckMode(Integer checkMode) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(checkMode);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
+        if (CollectionUtils.isNotEmpty(recipeBeans)) {
+            List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+            Map<Integer, String> map = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, RecipeExtend::getRegisterID));
+            for (RecipeBean recipeBean : recipeBeans) {
+                Integer recipeId = recipeBean.getRecipeId();
+                recipeBean.setRegisterId(map.get(recipeId));
+            }
+        }
+        return recipeBeans;
     }
 }
