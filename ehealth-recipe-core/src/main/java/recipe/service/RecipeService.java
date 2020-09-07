@@ -98,6 +98,7 @@ import recipe.service.common.RecipeSignService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
+import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -226,7 +227,12 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("openRecipeOrNotForVideo error", e);
         }
         if (openRecipeOrNotForVideo) {
-            throw new DAOException(609, "您与患者还没有有效的视频沟通，无法开具处方");
+            IVideoInfoService videoInfoService = AppContextHolder.getBean("video.videoInfoService", IVideoInfoService.class);
+            //字典eh.bus.dictionary.VideoBussType
+            Boolean canVideo = videoInfoService.haveVideoByIdAndTime(req.getClinicID(), 35, 30);
+            if (!canVideo) {
+                throw new DAOException(609, "您与患者还没有有效的视频沟通，无法开具处方");
+            }
         }
     }
 
