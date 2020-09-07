@@ -64,6 +64,7 @@ import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.Args;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,6 +219,8 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void openRecipeOrNotForVideo(CanOpenRecipeReqDTO req) {
+        Args.notNull(req.getOrganId(), "organId");
+        Args.notNull(req.getClinicID(), "clinicID");
         Boolean openRecipeOrNotForVideo = false;
         try {
             IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
