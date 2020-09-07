@@ -1874,7 +1874,7 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("获取运营平台处方支付配置异常", e);
         }
-        LOGGER.error("getRecipeAndDetailByIdImpl map", JSONUtils.toString(map));
+        LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSONUtils.toString(map));
         return map;
     }
 
