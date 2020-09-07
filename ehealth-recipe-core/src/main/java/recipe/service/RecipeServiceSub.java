@@ -11,15 +11,10 @@ import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
-import com.ngari.patient.service.IUsePathwaysService;
-import com.ngari.patient.service.IUsingRateService;
-import com.ngari.patient.dto.UsePathwaysDTO;
-import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
@@ -52,11 +47,6 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
-import eh.cdr.api.service.IDocIndexService;
-import eh.cdr.api.vo.DocIndexBean;
-import eh.cdr.api.vo.DocIndexExtBean;
-import eh.cdr.api.vo.MedicalDetailBean;
-import eh.cdr.api.vo.MedicalInfoBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -1572,11 +1562,8 @@ public class RecipeServiceSub {
 
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
-            IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-
             // 获取处方单药品总价
             RecipeUtil.getRecipeTotalPriceRange(recipe, recipedetails);
-            boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
 
             //date 20200506
             //通过订单的状态判断
@@ -1622,7 +1609,6 @@ public class RecipeServiceSub {
             //审核不通过处方单详情增加二次签名标记
             //date 20191011
             //添加一次审核不通过标志位,取消之前通过订单是否有效的判断
-            //boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
             boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()));
             if (b) {
                 map.put("secondSignFlag", canSecondAudit(recipe.getClinicOrgan()));
@@ -1707,19 +1693,6 @@ public class RecipeServiceSub {
                 recipe.setMedicalPayFlag(0);
             }
 
-            //药品价格显示处理
-            //date 2020/1/2
-            //展示修改成处方都展示药品金额
-//            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
-//                    (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
-//                            (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
-//                                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
-//                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
-//            if (!b1) {
-//                recipe.setTotalMoney(null);
-//            }
-
-            //Date:20190904
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
@@ -1901,7 +1874,7 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("获取运营平台处方支付配置异常", e);
         }
-
+        LOGGER.error("getRecipeAndDetailByIdImpl map", JSONUtils.toString(map));
         return map;
     }
 
