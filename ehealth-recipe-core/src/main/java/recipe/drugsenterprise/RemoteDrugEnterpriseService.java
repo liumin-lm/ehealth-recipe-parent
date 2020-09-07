@@ -1,5 +1,7 @@
 package recipe.drugsenterprise;
 
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
@@ -12,6 +14,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -184,6 +187,21 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //设置患者信息
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.get(recipe.getMpiid());
+        try {
+            // 从端获取患者渠道id
+            ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
+            String appKey = account.getAppId();
+            String loginId = patientDTO.getLoginId();
+            eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+            ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
+            // TODO thirdPartyEntity获取患者渠道id
+            String patientChannelId = "";
+            pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
+        } catch (Exception e) {
+            LOGGER.error("获取患者渠道id异常",e);
+        }
+
         pushRecipeAndOrder.setPatientDTO(patientDTO);
         //设置用户信息
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {

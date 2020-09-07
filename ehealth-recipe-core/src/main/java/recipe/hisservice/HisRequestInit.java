@@ -4,6 +4,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -22,6 +24,7 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
+import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -897,6 +900,21 @@ public class HisRequestInit {
                 LOGGER.warn("recipeAudit create recipeSendInfo error. recipeId={}", recipe.getRecipeId(), e);
             }
 
+        }
+        // 获取患者渠道id
+        try {
+            // 从端获取患者渠道id
+            ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
+            String appKey = account.getAppId();
+            String loginId = patientBean.getLoginId();
+            eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+            ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey, loginId);
+            // TODO thirdPartyEntity获取患者渠道id
+            String patientChannelId = "";
+            request.setPatientChannelId(patientChannelId);
+        } catch (Exception e) {
+            LOGGER.error("获取患者渠道id异常", e);
         }
 
         return request;
