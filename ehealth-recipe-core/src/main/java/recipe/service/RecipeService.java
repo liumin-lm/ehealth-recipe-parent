@@ -26,6 +26,7 @@ import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -3300,6 +3301,10 @@ public class RecipeService extends RecipeBaseService {
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
                     RecipeMsgService.batchSendMsg(recipe, status);
+                    if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                        //药师首页待处理任务---取消未结束任务
+                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                    }
                     if (RecipeStatusConstant.NO_PAY == status) {
                         memo.append("已取消,超过3天未支付");
                     } else if (RecipeStatusConstant.NO_OPERATOR == status) {
