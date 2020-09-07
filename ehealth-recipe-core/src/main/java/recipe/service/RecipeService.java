@@ -24,8 +24,7 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.RecipePDFToHisTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -46,7 +45,6 @@ import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -64,6 +62,7 @@ import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.Args;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,9 +96,9 @@ import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.sign.SignRecipeInfoService;
-import recipe.third.IFileDownloadService;
 import recipe.thread.*;
 import recipe.util.*;
+import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -218,6 +217,8 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void openRecipeOrNotForVideo(CanOpenRecipeReqDTO req) {
+        Args.notNull(req.getOrganId(), "organId");
+        Args.notNull(req.getClinicID(), "clinicID");
         Boolean openRecipeOrNotForVideo = false;
         try {
             IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -226,7 +227,12 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("openRecipeOrNotForVideo error", e);
         }
         if (openRecipeOrNotForVideo) {
-            throw new DAOException(609, "您与患者还没有有效的视频沟通，无法开具处方");
+            IVideoInfoService videoInfoService = AppContextHolder.getBean("video.videoInfoService", IVideoInfoService.class);
+            //字典eh.bus.dictionary.VideoBussType
+            Boolean canVideo = videoInfoService.haveVideoByIdAndTime(req.getClinicID(), 35, 30);
+            if (!canVideo) {
+                throw new DAOException(609, "您与患者还没有有效的视频沟通，无法开具处方");
+            }
         }
     }
 
@@ -1666,8 +1672,6 @@ public class RecipeService extends RecipeBaseService {
                 //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //date 20200526
                 memo = "当前签名处方签名成功";
-                //上传处方pdf给第三方
-                RecipeBusiThreadPool.execute(()->uploadRecipePdfToHis(recipe.getRecipeId()));
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
@@ -1742,31 +1746,6 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
                 }
             }
-        }
-
-    }
-
-    @RpcService
-    public void uploadRecipePdfToHis(Integer recipeId) {
-        try {
-            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = dao.getByRecipeId(recipeId);
-            if (recipe != null && StringUtils.isNotEmpty(recipe.getSignFile())){
-                IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-                RecipePDFToHisTO req = new RecipePDFToHisTO();
-                req.setOrganId(recipe.getClinicOrgan());
-                req.setRecipeId(recipeId);
-                req.setRecipeCode(recipe.getRecipeCode());
-                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(recipe.getSignFile());
-                if (fileMetaRecord !=null){
-                    req.setRecipePdfName(fileMetaRecord.getFileName());
-                }
-                req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
-                hisService.sendRecipePDFToHis(req);
-            }
-        }catch (Exception e){
-            LOGGER.error("uploadRecipePdfToHis error",e);
         }
 
     }
@@ -3297,6 +3276,10 @@ public class RecipeService extends RecipeBaseService {
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
                     RecipeMsgService.batchSendMsg(recipe, status);
+                    if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                        //药师首页待处理任务---取消未结束任务
+                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                    }
                     if (RecipeStatusConstant.NO_PAY == status) {
                         memo.append("已取消,超过3天未支付");
                     } else if (RecipeStatusConstant.NO_OPERATOR == status) {

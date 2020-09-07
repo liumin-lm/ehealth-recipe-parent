@@ -165,4 +165,13 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     @RpcService
     public void refundCallback(Integer busId, Integer refundStatus, String msg);
 
+    /**
+     * 更新取药窗口
+     *
+     * @param recipeId
+     * @param pharmNo
+     */
+    @RpcService
+    Boolean updatePharmNo(Integer recipeId, String pharmNo);
+
 }
