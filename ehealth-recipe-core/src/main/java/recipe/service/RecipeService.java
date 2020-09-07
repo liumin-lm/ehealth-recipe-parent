@@ -24,8 +24,6 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.RecipePDFToHisTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -47,7 +45,6 @@ import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -99,7 +96,6 @@ import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.sign.SignRecipeInfoService;
-import recipe.third.IFileDownloadService;
 import recipe.thread.*;
 import recipe.util.*;
 
@@ -1670,8 +1666,6 @@ public class RecipeService extends RecipeBaseService {
                 //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //date 20200526
                 memo = "当前签名处方签名成功";
-                //上传处方pdf给第三方
-                RecipeBusiThreadPool.execute(()->uploadRecipePdfToHis(recipe.getRecipeId()));
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
@@ -1746,31 +1740,6 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
                 }
             }
-        }
-
-    }
-
-    @RpcService
-    public void uploadRecipePdfToHis(Integer recipeId) {
-        try {
-            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = dao.getByRecipeId(recipeId);
-            if (recipe != null && StringUtils.isNotEmpty(recipe.getSignFile())){
-                IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-                RecipePDFToHisTO req = new RecipePDFToHisTO();
-                req.setOrganId(recipe.getClinicOrgan());
-                req.setRecipeId(recipeId);
-                req.setRecipeCode(recipe.getRecipeCode());
-                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(recipe.getSignFile());
-                if (fileMetaRecord !=null){
-                    req.setRecipePdfName(fileMetaRecord.getFileName());
-                }
-                req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
-                hisService.sendRecipePDFToHis(req);
-            }
-        }catch (Exception e){
-            LOGGER.error("uploadRecipePdfToHis error",e);
         }
 
     }
