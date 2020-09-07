@@ -102,8 +102,6 @@ import recipe.thread.*;
 import recipe.util.*;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -633,7 +631,9 @@ public class RecipeService extends RecipeBaseService {
         try {
             RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (recipeExtend == null) recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            if (recipeExtend == null) {
+                recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            }
             recipeExtend.setDrugEntrustment(drugEntrustment);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         } catch (Exception e) {
@@ -4008,17 +4008,9 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //异步显示对应的药品金额，
                 RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
-                //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
                 //HIS消息发送
-                if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
-                    // 111 为卫宁支付
-                    if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                        hisService.recipeDrugTake(recipeId, payFlag, result);
-                    }
-                }
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                hisService.recipeDrugTake(recipeId, payFlag, result);
             }
         }
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
@@ -4472,15 +4464,21 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Map<String, Object> findCanRecipeByAge(Map<String, String> params) {
         LOGGER.info("findCanRecipeByAge 参数{}", JSONUtils.toString(params));
-        if (StringUtils.isEmpty(params.get("mpiid"))) throw new DAOException("findCanRecipeByAge mpiid不允许为空");
-        if (StringUtils.isEmpty(params.get("organId"))) throw new DAOException("findCanRecipeByAge organId不允许为空");
+        if (StringUtils.isEmpty(params.get("mpiid"))) {
+            throw new DAOException("findCanRecipeByAge mpiid不允许为空");
+        }
+        if (StringUtils.isEmpty(params.get("organId"))) {
+            throw new DAOException("findCanRecipeByAge organId不允许为空");
+        }
         Map<String, Object> map = Maps.newHashMap();
         boolean canRecipe = false;//默认不可开处方
         //从opbase配置项获取允许开处方患者年龄 findCanRecipeByAge
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         Object findCanRecipeByAge = configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
         LOGGER.info("findCanRecipeByAge 从opbase配置项获取允许开处方患者年龄{}", findCanRecipeByAge);
-        if (findCanRecipeByAge == null) canRecipe = true;//查询不到设置值或默认值或没配置配置项 设置可开处方
+        if (findCanRecipeByAge == null) {
+            canRecipe = true;//查询不到设置值或默认值或没配置配置项 设置可开处方
+        }
         if (!canRecipe) {
             //从opbase获取患者数据
             List<String> findByMpiIdInParam = new ArrayList<>();
@@ -4500,7 +4498,9 @@ public class RecipeService extends RecipeBaseService {
                     e.printStackTrace();
                 }
                 //实际年龄>=配置年龄 设置可开处方
-                if (age >= (Integer) findCanRecipeByAge) canRecipe = true;
+                if (age >= (Integer) findCanRecipeByAge) {
+                    canRecipe = true;
+                }
             }
 
         }
@@ -4562,7 +4562,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Map<String, Object>   findisCanOpenLongRecipeAndUseDayRange(Map<String,String> params) {
         LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 参数{}",JSONUtils.toString(params));
-        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findUseDayRange organId不允许为空");
+        if(StringUtils.isEmpty(params.get("organId"))) {
+            throw new DAOException("findUseDayRange organId不允许为空");
+        }
         Map<String, Object> map = Maps.newHashMap();
 
         //获取长处方配置
