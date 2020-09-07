@@ -43,6 +43,7 @@ import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.formula.functions.Count;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.StatelessSession;
@@ -68,6 +69,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * created by shiyuping on 2019/2/1
@@ -1783,16 +1785,18 @@ public class DrugToolService implements IDrugToolService {
      */
     private void handleRateAndPathwayUsage(Integer organId, Integer doctorId, Map<String, Object> result, List<UsingRateDTO> usingRates, List<UsePathwaysDTO> usePathways) {
         DoctorDrugUsageCountDAO usageCountDAO = DAOFactory.getDAO(DoctorDrugUsageCountDAO.class);
-        // TODO 查询使用次数记录
         // 用药频次使用记录
         List<DoctorDrugUsageCount> rateCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_RATE);
         if (CollectionUtils.isNotEmpty(usingRates) && CollectionUtils.isNotEmpty(rateCounts)) {
             List<UsingRateDTO> rateUseCount = new ArrayList<>();
-            usingRates.stream().filter(rate -> rateCounts.stream().anyMatch(count -> rate.getId().equals(count.getUsageId()))).forEach(rate -> {
-                // TODO设置使用次数
-                //rate.setUsageCount(count.getUsageCount());
-                rateUseCount.add(rate);
-            });
+            for (DoctorDrugUsageCount count : rateCounts){
+                for (UsingRateDTO rate : usingRates){
+                    if (count.getUsageId().equals(rate.getId())){
+                        rate.setUsageCount(count.getUsageCount());
+                        rateUseCount.add(rate);
+                    }
+                }
+            }
 
             usingRates.removeAll(rateUseCount);
             rateUseCount.addAll(usingRates);
@@ -1802,13 +1806,14 @@ public class DrugToolService implements IDrugToolService {
         List<DoctorDrugUsageCount> pathwayCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_PATHWAY);
         if (CollectionUtils.isNotEmpty(usePathways) && CollectionUtils.isNotEmpty(pathwayCounts)) {
             List<UsePathwaysDTO> pathwayUseCount = new ArrayList<>();
-
-            usePathways.stream().filter(pathway -> pathwayCounts.stream().anyMatch(count -> pathway.getId().equals(count.getUsageId()))).forEach(pathway -> {
-                // TODO设置使用次数
-                //pathway.setUsageCount(count.getUsageCount());
-                pathwayUseCount.add(pathway);
-            });
-
+            for (DoctorDrugUsageCount count : pathwayCounts){
+                for (UsePathwaysDTO pathway : usePathways){
+                    if (count.getUsageId().equals(pathway.getId())){
+                        pathway.setUsageCount(count.getUsageCount());
+                        pathwayUseCount.add(pathway);
+                    }
+                }
+            }
             usePathways.removeAll(pathwayUseCount);
             pathwayUseCount.addAll(usePathways);
             result.put("usePathway", pathwayUseCount);
