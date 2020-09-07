@@ -77,4 +77,15 @@ public class RecipeSystemConstant {
 
     public static final String ORGAN_DISEASE_SPLIT = ";";
 
+
+    /**
+     * 使用类型-用药频次
+     */
+    public static final Integer USAGE_TYPE_RATE = 1;
+
+    /**
+     * 使用类型-用药途径
+     */
+    public static final Integer USAGE_TYPE_PATHWAY = 2;
+
 }
