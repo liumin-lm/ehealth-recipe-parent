@@ -233,6 +233,16 @@
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
+                <artifactId>ehealth-video-api</artifactId>
+                <version>${ngari.video.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-message-api</artifactId>
+                <version>${ngari.message.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
                 <artifactId>openapi-sdk-java</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>

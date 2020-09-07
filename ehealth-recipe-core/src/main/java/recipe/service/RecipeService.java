@@ -213,6 +213,24 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+     * 复诊页面点击开处方
+     * 判断视频问诊后才能开具处方 并且视频大于30s
+     */
+    @RpcService
+    public void openRecipeOrNotForVideo(CanOpenRecipeReqDTO req) {
+        Boolean openRecipeOrNotForVideo = false;
+        try {
+            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            openRecipeOrNotForVideo = (Boolean) configurationCenterUtilsService.getConfiguration(req.getOrganId(), "openRecipeOrNotForVideo");
+        } catch (Exception e) {
+            LOGGER.error("openRecipeOrNotForVideo error", e);
+        }
+        if (openRecipeOrNotForVideo) {
+            throw new DAOException(609, "您与患者还没有有效的视频沟通，无法开具处方");
+        }
+    }
+
+    /**
      * 判断医生是否可以处方
      *
      * @param doctorId 医生ID
