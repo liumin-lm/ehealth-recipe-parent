@@ -28,7 +28,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
@@ -635,12 +634,11 @@ public class RecipeHisService extends RecipeBaseService {
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext != null && StringUtils.isNotEmpty(ext.getRegisterID())) {
-                //查询已经预结算过的挂号序号
+                /*//查询已经预结算过的挂号序号
                 List<RecipeExtend> recipeExtends = recipeExtendDAO.querySettleRecipeExtendByRegisterID(ext.getRegisterID());
                 if (CollectionUtils.isEmpty(recipeExtends)) {
-                    //his作为是否返回诊察费的判断  诊察费再总金额里返回
+                    //his作为是否返回诊察费的判断  诊察费再总金额里返回*/
                     request.setRegisterID(ext.getRegisterID());
-                }
             }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
