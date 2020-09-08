@@ -111,11 +111,11 @@ public class HisRecipeVO implements Serializable{
         isHiddenRecipeDetail = hiddenRecipeDetail;
     }
 
-    public Integer isCachePlatform() {
+    public Integer getIsCachePlatform() {
         return isCachePlatform;
     }
 
-    public void setCachePlatform(Integer cachePlatform) {
+    public void setIsCachePlatform(Integer cachePlatform) {
         isCachePlatform = cachePlatform;
     }
 

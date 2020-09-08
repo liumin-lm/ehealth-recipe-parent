@@ -102,6 +102,7 @@ public class HisRecipeService {
         String cardId = (String) request.get("cardId");
         Integer start = (Integer) request.get("start");
         Integer limit = (Integer) request.get("limit");
+        start=0;limit=1000;
         Integer flag = 1;
         if (!"ongoing".equals(status)) {
             flag = 2;
@@ -143,7 +144,7 @@ public class HisRecipeService {
             List<HisRecipeVO> hisRecipeVOs=findPendingHisRecipeVo(hisRecipes);
             List<HisRecipeVO> equalsHisRecipeVOs=new ArrayList<>();
             List<HisRecipeVO> onlyExistnoPayFeeHisRecipeVOs=new ArrayList<>();
-            List<HisRecipeVO> onlyExistnoHisRecipeVOs=new ArrayList<>();
+            List<HisRecipeVO> onlyExistHisRecipeVOs=new ArrayList<>();
 
             //
             for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
@@ -180,13 +181,13 @@ public class HisRecipeService {
                 }
                 if(!isEquals){
                     //处方在cdr_his_recipe存在，在his不存在，则remove cdr_his_recipe data 并删除存储到平台的数据
-                    onlyExistnoHisRecipeVOs.add(hisRecipeVO);
+                    onlyExistHisRecipeVOs.add(hisRecipeVO);
                 }
             }
             result.addAll(equalsHisRecipeVOs);
             result.addAll(onlyExistnoPayFeeHisRecipeVOs);
             GlobalEventExecFactory.instance().getExecutor().execute(()->{
-                 deleteOnlyExistnoHisRecipeVOs(onlyExistnoHisRecipeVOs);
+                 deleteOnlyExistnoHisRecipeVOs(onlyExistHisRecipeVOs);
             });
         } else {
             //已处理
@@ -206,28 +207,30 @@ public class HisRecipeService {
         if (CollectionUtils.isEmpty(onlyExistnoHisRecipeVOs)) {
             return;
         }
-        //delete hisRecipe相关
-        List<Integer> hisRecipeIds = onlyExistnoHisRecipeVOs.stream().map(HisRecipeVO::getHisRecipeID).collect(Collectors.toList());
-        List<HisRecipe> hisRecipeList = hisRecipeDAO.findHisRecipeByhisRecipeIds(hisRecipeIds);
-        hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
         List<String> recipeCodes = onlyExistnoHisRecipeVOs.stream().map(HisRecipeVO::getRecipeCode).collect(Collectors.toList());
         //查询未支付的处方
         List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndClinicOrganAndMpiid(recipeCodes, onlyExistnoHisRecipeVOs.get(0).getClinicOrgan(),onlyExistnoHisRecipeVOs.get(0).getMpiId());
-        if (CollectionUtils.isEmpty(recipeList)) {
-            return;
+        if (!CollectionUtils.isEmpty(recipeList)) {
+            //delete recipe相关（未支付）
+            List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            recipeExtendDAO.deleteByRecipeIds(recipeIds);
+            recipeDetailDAO.deleteByRecipeIds(recipeIds);
+            recipeDAO.deleteByRecipeIds(recipeIds);
+            //delete order相关（未支付）
+            List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(orderCodeList)) {
+                recipeOrderDAO.deleteByRecipeIds(orderCodeList);
+            }
         }
-        //delete recipe相关（未支付）
-        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        recipeExtendDAO.deleteByRecipeIds(recipeIds);
-        recipeDetailDAO.deleteByRecipeIds(recipeIds);
-        recipeDAO.deleteByRecipeIds(recipeIds);
-        //delete order相关（未支付）
-        List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(orderCodeList)) {
-            recipeOrderDAO.deleteByRecipeIds(orderCodeList);
-        }
+
+
+        //查询非已支付线下处方（没转Recipe+转Recipe非已支付）
+        List<Integer> hisRecipeIds = hisRecipeDAO.findHisRecipeByPayFlag(recipeCodes, onlyExistnoHisRecipeVOs.get(0).getClinicOrgan(),onlyExistnoHisRecipeVOs.get(0).getMpiId());
+        //delete hisRecipe相关
+        //List<Integer> hisRecipeIds = onlyExistnoHisRecipeVOs.stream().map(HisRecipeVO::getHisRecipeID).collect(Collectors.toList());
+        hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
+        hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
+        hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
         LOGGER.info("deleteOnlyExistnoHisRecipeVOs is delete end ");
     }
 
@@ -304,7 +307,7 @@ public class HisRecipeService {
             List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
             hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
-            hisRecipeVO.setCachePlatform(1);
+            hisRecipeVO.setIsCachePlatform(1);
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
             if (recipe == null) {
                 hisRecipeVO.setOrderStatusText("待支付");
@@ -368,26 +371,29 @@ public class HisRecipeService {
      * @param flag
      */
     @RpcService
-    public void queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+    public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
         //查询数据
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag);
         if (null == responseTO || null == responseTO.getData()) {
-            return;
+            return null;
         }
-
+        if(responseTO.getData()==null){
+            return null;
+        }
         try {
             /** 更新数据校验*/
             hisRecipeInfoCheck(responseTO.getData());
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-
+        List<HisRecipe> recipes=new ArrayList<>();
         try {
             //数据入库
-            saveHisRecipeInfo(responseTO, patientDTO, flag);
+            recipes=saveHisRecipeInfo(responseTO, patientDTO, flag);
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
         }
+        return recipes;
     }
 
     /**
@@ -531,7 +537,7 @@ public class HisRecipeService {
                 hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
                 //未缓存在平台
-                hisRecipe.setCachePlatform(0);
+                hisRecipe.setIsCachePlatform(0);
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
 
                 if (null != queryHisRecipResTO.getDrugList()) {
@@ -556,8 +562,9 @@ public class HisRecipeService {
 
 
     @RpcService
-    public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
+    public List<HisRecipe> saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        List<HisRecipe> hisRecipes=new ArrayList<>();
         LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
@@ -630,9 +637,10 @@ public class HisRecipeService {
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
                 try {
                     hisRecipe = hisRecipeDAO.save(hisRecipe);
+                    hisRecipes.add(hisRecipe);
                 } catch (Exception e) {
                     LOGGER.error("hisRecipeDAO.save error ", e);
-                    return;
+                    return hisRecipes;
                 }
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
@@ -692,6 +700,7 @@ public class HisRecipeService {
                     }
                 }
             }else{
+                hisRecipes.add(hisRecipe1);
                 //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则将数据库里的未缴费状态更新为已缴费状态
                 if(2 == flag){
                     if(1 == hisRecipe1.getStatus()){
@@ -701,6 +710,7 @@ public class HisRecipeService {
                 }
             }
         }
+        return hisRecipes;
     }
 
     /**
@@ -755,6 +765,8 @@ public class HisRecipeService {
         //是否缓存标志是必传字段
         //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
+        List<HisRecipe> hisRecipes=new ArrayList<>();
+        //待处理
         if(!new Integer(1).equals(isCachePlatform)){
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -763,14 +775,20 @@ public class HisRecipeService {
                     throw new DAOException(609, "患者信息不存在");
                 }
                 recipeCodeThreadLocal.set(recipeCode);
-                //线下处方处理
-                queryHisRecipeInfo(new Integer(organId), patientDTO, 1, 1);
+                //线下处方处理(存储到cdr_his相关表)
+                hisRecipes=queryHisRecipeInfo(new Integer(organId), patientDTO, 180, 1);
+                if(CollectionUtils.isEmpty(hisRecipes)){
+                    return null;
+                }else{
+                    hisRecipeId=hisRecipes.get(0).getHisRecipeID();
+                }
             }catch(Exception e){
                 LOGGER.error("getHisRecipeDetail error hisRecipeId:{}",hisRecipeId,e);
             }finally {
                 recipeCodeThreadLocal.remove();
             }
         }
+        //存储到recipe相关表
         return getHisRecipeDetailByHisRecipeId(hisRecipeId);
 
     }
