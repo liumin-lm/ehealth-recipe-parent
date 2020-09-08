@@ -1739,38 +1739,42 @@ public class DrugToolService implements IDrugToolService {
         Integer organId = request.getOrganId();
         Integer doctorId = request.getDoctorId();
         // 处理用药频次使用次数
-        DoctorDrugUsageCount rateCount = usageCountDAO.getDoctorUsage(organId,doctorId, RecipeSystemConstant.USAGE_TYPE_RATE,request.getUsingRateId());
-        if (null == rateCount) {
-            DoctorDrugUsageCount usageCount = new DoctorDrugUsageCount();
-            usageCount.setOrganId(organId);
-            usageCount.setDoctorId(doctorId);
-            usageCount.setDeptId(request.getDeptId());
-            usageCount.setUsageType(RecipeSystemConstant.USAGE_TYPE_RATE);
-            usageCount.setUsageId(request.getUsingRateId());
-            usageCount.setUsageCount(request.getAddCount());
-            usageCount.setCreateTime(new Date());
-            usageCount.setUpdateTime(new Date());
-            usageCountDAO.save(usageCount);
-        }else {
-            Integer usageCount = rateCount.getUsageCount() + request.getAddCount();
-            usageCountDAO.updateUsageCountById(rateCount.getId(), usageCount);
+        if (null != request.getUsingRateId()){
+            DoctorDrugUsageCount rateCount = usageCountDAO.getDoctorUsage(organId,doctorId, RecipeSystemConstant.USAGE_TYPE_RATE,request.getUsingRateId());
+            if (null == rateCount) {
+                DoctorDrugUsageCount usageCount = new DoctorDrugUsageCount();
+                usageCount.setOrganId(organId);
+                usageCount.setDoctorId(doctorId);
+                usageCount.setDeptId(request.getDeptId());
+                usageCount.setUsageType(RecipeSystemConstant.USAGE_TYPE_RATE);
+                usageCount.setUsageId(request.getUsingRateId());
+                usageCount.setUsageCount(request.getAddCount());
+                usageCount.setCreateTime(new Date());
+                usageCount.setUpdateTime(new Date());
+                usageCountDAO.save(usageCount);
+            }else {
+                Integer usageCount = rateCount.getUsageCount() + request.getAddCount();
+                usageCountDAO.updateUsageCountById(rateCount.getId(), usageCount);
+            }
         }
         //处理用药途径使用次数
-        DoctorDrugUsageCount pathwayCount = usageCountDAO.getDoctorUsage(organId,doctorId,RecipeSystemConstant.USAGE_TYPE_PATHWAY,request.getUsePathwayId());
-        if (null == pathwayCount){
-            DoctorDrugUsageCount usageCount = new DoctorDrugUsageCount();
-            usageCount.setOrganId(organId);
-            usageCount.setDoctorId(doctorId);
-            usageCount.setDeptId(request.getDeptId());
-            usageCount.setUsageType(RecipeSystemConstant.USAGE_TYPE_PATHWAY);
-            usageCount.setUsageId(request.getUsePathwayId());
-            usageCount.setUsageCount(request.getAddCount());
-            usageCount.setCreateTime(new Date());
-            usageCount.setUpdateTime(new Date());
-            usageCountDAO.save(usageCount);
-        }else {
-            Integer usageCount = pathwayCount.getUsageCount() + request.getAddCount();
-            usageCountDAO.updateUsageCountById(pathwayCount.getId(), usageCount);
+        if (null != request.getUsePathwayId()){
+            DoctorDrugUsageCount pathwayCount = usageCountDAO.getDoctorUsage(organId,doctorId,RecipeSystemConstant.USAGE_TYPE_PATHWAY,request.getUsePathwayId());
+            if (null == pathwayCount){
+                DoctorDrugUsageCount usageCount = new DoctorDrugUsageCount();
+                usageCount.setOrganId(organId);
+                usageCount.setDoctorId(doctorId);
+                usageCount.setDeptId(request.getDeptId());
+                usageCount.setUsageType(RecipeSystemConstant.USAGE_TYPE_PATHWAY);
+                usageCount.setUsageId(request.getUsePathwayId());
+                usageCount.setUsageCount(request.getAddCount());
+                usageCount.setCreateTime(new Date());
+                usageCount.setUpdateTime(new Date());
+                usageCountDAO.save(usageCount);
+            }else {
+                Integer usageCount = pathwayCount.getUsageCount() + request.getAddCount();
+                usageCountDAO.updateUsageCountById(pathwayCount.getId(), usageCount);
+            }
         }
     }
 
