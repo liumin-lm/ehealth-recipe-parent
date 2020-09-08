@@ -634,8 +634,13 @@ public class RecipeHisService extends RecipeBaseService {
                 request.setInsuredAreaType("1");
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (ext !=null){
-                request.setRegisterID(ext.getRegisterID());
+            if (ext != null && StringUtils.isNotEmpty(ext.getRegisterID())) {
+                //查询已经预结算过的挂号序号
+                List<RecipeExtend> recipeExtends = recipeExtendDAO.querySettleRecipeExtendByRegisterID(ext.getRegisterID());
+                if (CollectionUtils.isEmpty(recipeExtends)) {
+                    //his作为是否返回诊察费的判断  诊察费再总金额里返回
+                    request.setRegisterID(ext.getRegisterID());
+                }
             }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
