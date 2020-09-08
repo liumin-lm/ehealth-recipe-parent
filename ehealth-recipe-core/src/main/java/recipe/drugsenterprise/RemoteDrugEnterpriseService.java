@@ -771,6 +771,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         return null;
     }
 
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
     @RpcService
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
