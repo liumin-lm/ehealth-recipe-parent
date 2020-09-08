@@ -1795,7 +1795,7 @@ public class DrugToolService implements IDrugToolService {
             List<UsingRateDTO> rateUseCount = new ArrayList<>();
             for (DoctorDrugUsageCount count : rateCounts){
                 for (UsingRateDTO rate : usingRates){
-                    if (count.getUsageId().equals(rate.getId())){
+                    if (rate.getId().equals(count.getUsageId())){
                         rate.setUsageCount(count.getUsageCount());
                         rateUseCount.add(rate);
                     }
@@ -1812,7 +1812,7 @@ public class DrugToolService implements IDrugToolService {
             List<UsePathwaysDTO> pathwayUseCount = new ArrayList<>();
             for (DoctorDrugUsageCount count : pathwayCounts){
                 for (UsePathwaysDTO pathway : usePathways){
-                    if (count.getUsageId().equals(pathway.getId())){
+                    if (pathway.getId().equals(count.getUsageId())){
                         pathway.setUsageCount(count.getUsageCount());
                         pathwayUseCount.add(pathway);
                     }
