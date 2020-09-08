@@ -38,6 +38,11 @@ public class HyRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         return DrugEnterpriseResult.getSuccess();
     }

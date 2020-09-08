@@ -111,6 +111,11 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         }
     }
 
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
     @RpcService
     public void test(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);

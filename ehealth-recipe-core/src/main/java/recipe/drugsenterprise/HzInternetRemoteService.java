@@ -100,6 +100,11 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         return getRealization(recipeIds).pushRecipeInfo(recipeIds, enterprise);
     }
