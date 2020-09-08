@@ -291,17 +291,6 @@ public class PurchaseService {
         } finally {
             //订单创建完解锁
             unLock(recipeId);
-            //此处将HIS处方状态进行调整
-            try{
-                //对于来源于HIS的处方单更新hisRecipe的状态
-                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-                if (hisRecipe != null) {
-                    hisRecipeDAO.updateHisRecieStatus(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode(), 2);
-                }
-            }catch (Exception e){
-                LOG.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", dbRecipe.getRecipeId(), e.getMessage(),e);
-            }
         }
 
         return result;
