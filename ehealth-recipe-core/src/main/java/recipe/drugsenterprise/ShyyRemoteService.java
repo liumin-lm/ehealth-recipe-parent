@@ -70,6 +70,11 @@ public class ShyyRemoteService  extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("ShyyRemoteService.scanStock recipeId:{}.", recipeId);
         DrugEnterpriseResult drugEnterpriseResult = DrugEnterpriseResult.getSuccess();

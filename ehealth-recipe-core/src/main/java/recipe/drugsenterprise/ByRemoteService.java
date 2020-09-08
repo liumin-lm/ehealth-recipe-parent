@@ -626,6 +626,11 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         LOGGER.info("ByRemoteService.findSupportDep:[{}]", JSONUtils.toString(recipeIds));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();

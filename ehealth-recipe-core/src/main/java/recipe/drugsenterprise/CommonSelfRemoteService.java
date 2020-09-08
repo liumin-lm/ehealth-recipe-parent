@@ -217,4 +217,9 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "有库存";
     }
+
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
 }

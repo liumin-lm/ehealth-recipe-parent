@@ -580,7 +580,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit);
+    List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds, int flag, int start, int limit);
 
     /**
      * 审核不通过后处理
@@ -678,6 +678,16 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo);
+
+
+    /**
+     * 查询药品id 根据处方id
+     *
+     * @param organIds
+     * @return
+     */
+    @RpcService
+    List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,Integer  type);
 
 }
 

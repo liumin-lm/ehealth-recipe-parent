@@ -193,6 +193,8 @@ public abstract class AccessDrugEnterpriseService {
      */
     public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId);
 
+    public abstract boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose);
+
     /**
      * 库存检验
      *
