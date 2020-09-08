@@ -270,6 +270,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                             if (drugsEnterpriseBean.getOrganId() != null){
                                 OrganDTO byOrganId = bean.getByOrganId(drugsEnterpriseBean.getOrganId());
                                 map.put("organName", byOrganId.getName());
+                            }else {
+                                map.put("organName", null);
                             }
                             drugsEnterpriseBean.setPharmacyInfo(map);
                             break;
