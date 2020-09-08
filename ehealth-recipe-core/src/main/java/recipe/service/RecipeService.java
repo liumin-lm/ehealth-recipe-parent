@@ -1779,8 +1779,8 @@ public class RecipeService extends RecipeBaseService {
             result.setMsg(resultVo.getMsg());
             if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                 result.setCode(RecipeResultBean.SUCCESS);
-                //保存签名值、时间戳、电子签章文件
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                //保存签名值、时间戳、电子签章文件（date20200908将修改成CA独用的方法）
+                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                 resultVo.setFileId(fileId);
                 signRecipeInfoSave(recipeId, true, resultVo, organId);
                 try {
@@ -1955,9 +1955,9 @@ public class RecipeService extends RecipeBaseService {
                 return;
             }
             if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
-                //保存签名值、时间戳、电子签章文件
+                //保存签名值、时间戳、电子签章文件（date20200908将修改成CA独用的方法）
                 checkResult.setCode(RecipeResultBean.SUCCESS);
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                 resultVo.setFileId(fileId);
                 signRecipeInfoSave(recipeId, false, resultVo, organId);
             } else {
@@ -1977,7 +1977,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         //首先判断当前ca是否是有结束结果的
-        if (-1 == resultVo.getResultCode() && RecipeResultBean.FAIL.equals(resultVo.getCode())) {
+        if (-1 == resultVo.getResultCode()) {
             LOGGER.info("当期处方{}药师ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
