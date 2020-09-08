@@ -1307,7 +1307,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds, int flag, int start, int limit) {
-        List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ,recipeIds ,flag, start, limit);
+        List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ ,flag, start, limit);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
