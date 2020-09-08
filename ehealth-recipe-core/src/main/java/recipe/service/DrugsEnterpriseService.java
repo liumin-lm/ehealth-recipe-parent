@@ -1,8 +1,10 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
@@ -10,6 +12,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -243,9 +246,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final Integer organId ,int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, start, limit);
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType,organId, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
 
         if(null == createType || createType.equals(0)){
@@ -263,6 +266,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                             map.put("pharmacyLongitude", pharmacy.getPharmacyLongitude());
                             //获取药店纬度
                             map.put("pharmacyLatitude", pharmacy.getPharmacyLatitude());
+                            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+                            if (drugsEnterpriseBean.getOrganId() != null){
+                                OrganDTO byOrganId = bean.getByOrganId(drugsEnterpriseBean.getOrganId());
+                                map.put("organName", byOrganId.getName());
+                            }
                             drugsEnterpriseBean.setPharmacyInfo(map);
                             break;
                         }
