@@ -1192,6 +1192,9 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) {
+        if (organId == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药企关联机构ID参数为null！");
+        }
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
         SaleDrugList saleDrugList;
         for (OrganDrugList organDrugList : drugs) {
