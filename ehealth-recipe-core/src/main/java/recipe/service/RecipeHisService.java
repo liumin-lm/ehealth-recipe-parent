@@ -1082,7 +1082,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (null != details && !details.isEmpty()) {
             for (Recipedetail detail : details) {
                 RecipeOrderItemTO item = new RecipeOrderItemTO();
-                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), detail.getOrganDrugCode());
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipeBean.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                 if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                     item.setDosage(detail.getUseDoseStr());
                 } else {
