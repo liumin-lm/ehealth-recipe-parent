@@ -16,7 +16,6 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
@@ -599,11 +598,10 @@ public class HisRequestInit {
                         //挂号序号
                         //查询已经预结算过的挂号序号
                         if (StringUtils.isNotEmpty(extend.getRegisterID())) {
-                            List<RecipeExtend> recipeExtends = extendDAO.querySettleRecipeExtendByRegisterID(extend.getRegisterID());
+                           /* List<RecipeExtend> recipeExtends = extendDAO.querySettleRecipeExtendByRegisterID(extend.getRegisterID());
                             if (CollectionUtils.isEmpty(recipeExtends)) {
-                                //his作为是否返回诊察费的判断  诊察费已在预结算总金额里返回
-                                requestTO.setRegisterID(extend.getRegisterID());
-                            }
+                                //his作为是否返回诊察费的判断  诊察费已在预结算总金额里返回*/
+                            requestTO.setRegisterID(extend.getRegisterID());
                         }
 
                         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
