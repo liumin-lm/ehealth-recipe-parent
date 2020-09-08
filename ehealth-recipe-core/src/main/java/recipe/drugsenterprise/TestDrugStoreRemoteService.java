@@ -54,6 +54,11 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);

@@ -36,6 +36,11 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
         return DrugEnterpriseResult.getSuccess();

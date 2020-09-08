@@ -86,6 +86,11 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (ObjectUtils.isEmpty(recipeIds)) {

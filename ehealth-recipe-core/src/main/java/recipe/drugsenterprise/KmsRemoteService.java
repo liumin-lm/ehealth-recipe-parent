@@ -106,6 +106,11 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         return "无库存";
     }
 
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
     @RpcService
     public void test(Integer recipeId) {
         List<Integer> recipeIds = Arrays.asList(recipeId);

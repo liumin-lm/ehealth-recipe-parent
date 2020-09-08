@@ -91,6 +91,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         return "暂不支持库存查询";
     }
 
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
     /*
      * @description 获取天猫大药房的跳转url并且发送处方
      * @author gmw

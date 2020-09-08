@@ -159,6 +159,11 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         return "暂不支持库存查询";
     }
 
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
     /**
      * @method  sendTokenAndUpdateHttpRequest
      * @description 发送http请求获得新的token信息,并更新

@@ -83,6 +83,11 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return "暂不支持库存查询";
     }
 
+    @Override
+    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag, Double useTotalDose) {
+        return false;
+    }
+
     @RpcService
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
