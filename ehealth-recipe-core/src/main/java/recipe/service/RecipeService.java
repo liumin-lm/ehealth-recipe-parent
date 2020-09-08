@@ -29,8 +29,6 @@ import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
-import com.ngari.patient.service.*;
-import com.ngari.patient.utils.LocalStringUtil;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
@@ -231,7 +229,7 @@ public class RecipeService extends RecipeBaseService {
             //字典eh.bus.dictionary.VideoBussType
             Boolean canVideo = videoInfoService.haveVideoByIdAndTime(req.getClinicID(), 35, 30);
             if (!canVideo) {
-                throw new DAOException(609, "您与患者还没有有效的视频沟通，无法开具处方");
+                throw new DAOException(609, "您与患者的视频未达到医院规定时长，无法开具处方。若达到时长请稍后再次尝试开具处方");
             }
         }
     }

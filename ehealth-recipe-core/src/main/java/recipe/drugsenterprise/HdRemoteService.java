@@ -603,7 +603,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores)) {
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
             LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
             sendHdRecipe.setGiveMode("4");
             sendHdRecipe.setPharmacyCode(organStore);
