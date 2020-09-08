@@ -301,10 +301,10 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方发起者urt")
     private Integer requestUrt;
 
-    @ItemProperty(alias="当前clientId")
+    @ItemProperty(alias = "当前clientId")
     private Integer currentClient;
 
-    @ItemProperty(alias="监管平台同步标记: 0未同步，1已同步")
+    @ItemProperty(alias = "监管平台同步标记: 0未同步，1已同步")
     private Integer syncFlag;
 
     @ItemProperty(alias = "签名的处方img")
@@ -335,10 +335,10 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
     private Integer recipeSource;
 
-    @ItemProperty(alias="医生处方数字签名值")
+    @ItemProperty(alias = "医生处方数字签名值")
     private String signRecipeCode;
 
-    @ItemProperty(alias="药师处方数字签名值")
+    @ItemProperty(alias = "药师处方数字签名值")
     private String signPharmacistCode;
 
     @ItemProperty(alias = "医生处方数字签名可信服务器时间")
@@ -1409,5 +1409,5 @@ public class Recipe implements Serializable {
     public void setDispensPeople(String dispensPeople) {
         this.dispensPeople = dispensPeople;
     }
-
 }
+
