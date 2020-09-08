@@ -1541,9 +1541,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         Map<String, Object> map = new HashMap<>();
-        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
-        Map<String, String> drug = new HashMap<>();
+        List<Map<String, Object>> hdDrugCodes = new ArrayList<>();
+        Map<String, Object> drug = new HashMap<>();
         drug.put("drugCode", saleDrugList.getOrganDrugCode());
+        drug.put("total", useTotalDose);
         hdDrugCodes.add(drug);
         map.put("drugList", hdDrugCodes);
         if (new Integer(1).equals(flag)) {
