@@ -54,4 +54,8 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
      */
     @DAOMethod(sql = "delete from HisRecipe where hisRecipeId in (:hisRecipeIds)")
     public abstract void deleteByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
+    @DAOMethod(sql = " From HisRecipe where hisRecipeId in (:hisRecipeIds)")
+    public abstract List<HisRecipe> findHisRecipeByhisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
 }
