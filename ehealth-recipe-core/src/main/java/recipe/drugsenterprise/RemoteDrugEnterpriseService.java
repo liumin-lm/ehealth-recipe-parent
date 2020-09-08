@@ -94,6 +94,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     recipeExtendDAO.update(recipeExtend);
                 }
             }
+            //上传处方pdf给第三方
+            RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipe.getRecipeId()));
         }
     }
 
@@ -132,8 +134,6 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 }
             }
         }
-        //上传处方pdf给第三方
-        RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipeId));
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
     }
