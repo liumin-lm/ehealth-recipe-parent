@@ -841,7 +841,18 @@ public class HisRecipeService {
     private Recipe saveRecipeFromHisRecipe(HisRecipe hisRecipe) {
         Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
         if (haveRecipe != null) {
-            return haveRecipe;
+            //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则先删除，后增加
+            if(new Integer(0).equals(haveRecipe.getPayFlag())
+                    &&!StringUtils.isEmpty(hisRecipe.getMpiId())
+                    &&!hisRecipe.getMpiId().equals(haveRecipe.getMpiid())){
+                //修改处方患者信息
+                haveRecipe.setMpiid(hisRecipe.getMpiId());
+                haveRecipe.setPatientName(hisRecipe.getPatientName());
+                haveRecipe.setPatientID(hisRecipe.getPatientNumber());
+                recipeDAO.saveRecipe(haveRecipe);
+            }else{
+                return haveRecipe;
+            }
         }
         Recipe recipe = new Recipe();
         recipe.setBussSource(0);
