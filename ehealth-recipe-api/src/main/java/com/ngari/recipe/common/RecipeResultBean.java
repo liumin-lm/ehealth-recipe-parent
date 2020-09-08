@@ -20,6 +20,8 @@ public class RecipeResultBean implements Serializable {
 
     public static final Integer NO_ADDRESS = -1;
 
+    public static final Integer CHECKFAIL = 5;
+
     private static final long serialVersionUID = 8407331602023924130L;
 
     private Integer code;

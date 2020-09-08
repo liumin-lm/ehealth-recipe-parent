@@ -1908,7 +1908,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * 对来源于HIS的处方单状态更新为已处理
      * @param recipes
      */
-    private void updateHisRecieStatus(List<Recipe> recipes) {
+    public void updateHisRecieStatus(List<Recipe> recipes) {
         try{
             HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode());

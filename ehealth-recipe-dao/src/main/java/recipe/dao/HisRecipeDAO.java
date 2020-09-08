@@ -44,6 +44,9 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     @DAOMethod(sql = " From HisRecipe where mpiId=:mpiId and clinicOrgan=:clinicOrgan and recipeCode=:recipeCode")
     public abstract HisRecipe getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
+    @DAOMethod(sql = " From HisRecipe where mpiId=:mpiId and clinicOrgan=:clinicOrgan and recipeCode=:recipeCode")
+    public abstract HisRecipe getHisRecipeRecipeCodeAndClinicOrgan( @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
+
     /**
      * 根据处方id批量删除
      *
@@ -51,4 +54,8 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
      */
     @DAOMethod(sql = "delete from HisRecipe where hisRecipeId in (:hisRecipeIds)")
     public abstract void deleteByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
+    @DAOMethod(sql = " From HisRecipe where hisRecipeId in (:hisRecipeIds)")
+    public abstract List<HisRecipe> findHisRecipeByhisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
 }
