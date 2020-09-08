@@ -3235,6 +3235,8 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                 }
             }
+            //修改cdr_his_recipe status为已处理
+            orderService.updateHisRecieStatus(recipes);
         }
         for (Integer status : statusList) {
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
@@ -3321,6 +3323,8 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                     }
                 }
+                //修改cdr_his_recipe status为已处理
+                orderService.updateHisRecieStatus(recipeList);
             }
         }
 
