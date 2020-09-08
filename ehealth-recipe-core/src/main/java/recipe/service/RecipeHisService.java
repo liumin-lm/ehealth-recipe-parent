@@ -1521,7 +1521,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param mpiId     患者id
      * @return
      */
-    private ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
+    public ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id 为空");
         }

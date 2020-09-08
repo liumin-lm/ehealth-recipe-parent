@@ -901,21 +901,6 @@ public class HisRequestInit {
             }
 
         }
-        // 获取患者渠道id
-        try {
-            // 从端获取患者渠道id
-            ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-            SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-            String appKey = account.getAppId();
-            String loginId = patientBean.getLoginId();
-            eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
-            ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey, loginId);
-            // TODO thirdPartyEntity获取患者渠道id
-            String patientChannelId = "";
-            request.setPatientChannelId(patientChannelId);
-        } catch (Exception e) {
-            LOGGER.error("获取患者渠道id异常", e);
-        }
 
         return request;
     }

@@ -25,10 +25,10 @@ public class DoctorDrugUsageRequest implements Serializable {
     @Verify(desc = "药品id列表", isNotNull = false)
     private List<Integer> drugIds;
 
-    @Verify(desc = "用药频次id", isInt = true)
+    @Verify(desc = "用药频次id", isNotNull = false, isInt = true)
     private Integer usingRateId;
 
-    @Verify(desc = "用药途径id", isInt = true)
+    @Verify(desc = "用药途径id", isNotNull = false, isInt = true)
     private Integer usePathwayId;
     
     @Verify(desc = "使用次数", isNotNull = false, isInt = true)
