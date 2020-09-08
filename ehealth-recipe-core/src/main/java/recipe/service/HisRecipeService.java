@@ -147,10 +147,10 @@ public class HisRecipeService {
 
             //
             for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
-                String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan();
+                String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode();
                 Boolean isEquals=false;
                 for(HisRecipeVO hisRecipeVO:hisRecipeVOs){
-                    String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getClinicOrgan();
+                    String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getRecipeCode();
                     if(!StringUtils.isEmpty(noPayFeeHisRecipeVOKey)){
                         if(noPayFeeHisRecipeVOKey.equals(hisRecipeVoKey)){
                             //处方在cdr_his_recipe存在，在his存在，则取cdr_his_recipe
@@ -167,10 +167,10 @@ public class HisRecipeService {
             }
 
             for(HisRecipeVO hisRecipeVO:hisRecipeVOs){
-                String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getClinicOrgan();
+                String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getRecipeCode();
                 Boolean isEquals=false;
                 for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
-                    String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan();
+                    String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan();
                     if(!StringUtils.isEmpty(noPayFeeHisRecipeVOKey)){
                         if(noPayFeeHisRecipeVOKey.equals(hisRecipeVoKey)){
                             isEquals=true;
