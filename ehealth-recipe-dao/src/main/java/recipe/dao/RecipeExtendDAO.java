@@ -29,8 +29,8 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
 
     public RecipeExtendDAO() {
         super();
-        this.setEntityName(RecipeExtend.class.getName());
-        this.setKeyField("recipeId");
+        setEntityName(RecipeExtend.class.getName());
+        setKeyField("recipeId");
     }
 
     /**
@@ -74,10 +74,10 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         if(null == recipeExtend.getRecipeId()){
             return;
         }
-        if (ObjectUtils.isEmpty(this.getByRecipeId(recipeExtend.getRecipeId()))) {
-            this.save(recipeExtend);
+        if (ObjectUtils.isEmpty(getByRecipeId(recipeExtend.getRecipeId()))) {
+            save(recipeExtend);
         } else {
-            this.update(recipeExtend);
+            update(recipeExtend);
         }
     }
 
@@ -150,5 +150,13 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      * @param recipeIds
      */
     @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)")
-    public abstract  List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+    public abstract List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+    /**
+     * 根据处方挂号序号查询已经做过预结算的
+     *
+     * @param registerID
+     */
+    @DAOMethod(sql = "from RecipeExtend where registerID =:registerID and preSettleTotalAmount is not null")
+    public abstract List<RecipeExtend> querySettleRecipeExtendByRegisterID(@DAOParam("registerID") String registerID);
 }

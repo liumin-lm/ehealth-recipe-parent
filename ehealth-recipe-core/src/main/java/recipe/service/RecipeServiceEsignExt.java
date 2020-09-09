@@ -238,6 +238,77 @@ public class RecipeServiceEsignExt {
         }
     }
 
+    /**
+     * CA专用的处方保存CA相关信息
+     * @param recipeId
+     * @return
+     * @throws Exception
+     */
+    @RpcService
+    public static String saveSignRecipePDFCA(String pdfBase64,Integer recipeId, String loginId,String signCADate,
+                                           String signRecipeCode,Boolean isDoctor, String fileId){
+        LOGGER.info("saveSignRecipePDFCA start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
+                pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
+//        String fileId = null;
+        try {
+            if (null != pdfBase64) {
+                //组装生成pdf的参数
+                String fileName = "recipe_" + recipeId + ".pdf";
+                BASE64Decoder d = new BASE64Decoder();
+                byte[] data = new byte[0];
+                try {
+                    data = d.decodeBuffer(pdfBase64);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                fileId = uploadRecipeSignFile(data, fileName, loginId);
+                if (null == fileId) {
+                    LOGGER.info("saveSignRecipePDFCA上传文件失败,fileName=" + fileName);
+                }
+            }
+
+            Map<String, Object> attrMap = Maps.newHashMap();
+            if (isDoctor) {
+                //医生签名时间戳
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signCADate", signCADate);
+                }
+                //医生签名值
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signRecipeCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("signFile", fileId);
+                }
+                attrMap.put("signDate", new Date());
+            } else {
+                //药师签名时间戳
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signPharmacistCADate", signCADate);
+                }
+
+                //药师签名值
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signPharmacistCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("chemistSignFile", fileId);
+                }
+                attrMap.put("CheckDateYs", new Date());
+
+            }
+            //保存签名值
+            boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+            LOGGER.info("saveSignRecipePDFCA 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult,recipeId,attrMap.toString());
+            String reuslt = upResult?"success":"fail";
+            return reuslt;
+        } catch (Exception e){
+            e.printStackTrace();
+            LOGGER.error("saveSignRecipePDFCA 保存签名 ",e);
+            return null;
+        }
+    }
+
     public static String saveSignRecipePDF2(String pdfBase64,Integer recipeId, String loginId,String signCADate,
                                            String signRecipeCode,Boolean isDoctor, String fileId){
         LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",

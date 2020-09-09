@@ -10,6 +10,7 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -603,7 +604,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores)) {
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
             LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
             sendHdRecipe.setGiveMode("4");
             sendHdRecipe.setPharmacyCode(organStore);
@@ -1536,15 +1537,15 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public boolean getDrugInventoryForApp(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId, Integer flag,Double useTotalDose) {
+    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
         tokenUpdateImpl(drugsEnterprise);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
         Map<String, Object> map = new HashMap<>();
         List<Map<String, Object>> hdDrugCodes = new ArrayList<>();
         Map<String, Object> drug = new HashMap<>();
         drug.put("drugCode", saleDrugList.getOrganDrugCode());
-        drug.put("total", useTotalDose);
+        drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
         hdDrugCodes.add(drug);
         map.put("drugList", hdDrugCodes);
         if (new Integer(1).equals(flag)) {
@@ -1580,7 +1581,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                         Map<String, Object> drugMap = (Map<String, Object>) drugs;
                         try{
                             BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                            if (availableSumQty.doubleValue() > useTotalDose) {
+                            if (availableSumQty.doubleValue() > recipeDetailBean.getUseTotalDose()) {
                                 return true;
                             }
                         }catch(Exception e){
@@ -1615,8 +1616,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 JSONObject jsonObject = JSONObject.parseObject(responseStr);
-                List drugList = (List)jsonObject.get("drugList");
+                boolean success = (boolean)jsonObject.get("success");
                 LOGGER.info("getDrugInventoryForApp responseStr:{}.", responseStr);
+                if (success) {
+                    return true;
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

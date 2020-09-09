@@ -1,6 +1,8 @@
 package recipe.sign;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -282,9 +284,13 @@ public class SignInfoService implements ISignInfoService {
         request.setOrderList(list);
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
-        BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA",BeijingYwxCAImpl.class);
-        String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
-        caAccountRequestTO.setUserName(token);
+        IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        String thirdCASign = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "thirdCASign");
+        if ("bjYwxCA".equals(thirdCASign)) {
+            BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA", BeijingYwxCAImpl.class);
+            String token = beijingYwxCA.CaTokenBussiness(recipeBean.getClinicOrgan());
+            caAccountRequestTO.setUserName(token);
+        }
         // 北京CAopenID
         caAccountRequestTO.setUserAccount(recipeBean.getCaPassword());
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
