@@ -168,6 +168,13 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t where t.name = :name")
     public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByName(@DAOParam("name") String name);
+    /**
+     * 根据机构Id获取药企
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "select t from DrugsEnterprise t where t.organId = :organId")
+    public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByOrhanId(@DAOParam("organId") Integer organId);
 
     /**
      * 根据药企名称分页查询药企
