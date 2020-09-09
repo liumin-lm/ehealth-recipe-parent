@@ -2,9 +2,11 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
@@ -233,6 +235,34 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         }
 
         return result;
+    }
+
+    @RpcService
+    public DrugsEnterpriseBean  getDrugsEnterpriseById(Integer drugsEnterpriseId ){
+        if(drugsEnterpriseId == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药企Id为null!");
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsEnterpriseId);
+        if (drugsEnterprise == null){
+            return null;
+        }
+        return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+    }
+
+    @RpcService
+    public List<DrugsEnterpriseBean>  getDrugsEnterprise(){
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        Integer organId = urt.getOrganId();
+        if(organId == null){
+            return null;
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> allDrugsEnterpriseByOrhanId = drugsEnterpriseDAO.findAllDrugsEnterpriseByOrhanId(organId);
+        if (allDrugsEnterpriseByOrhanId == null){
+            return null;
+        }
+        return ObjectCopyUtils.convert(allDrugsEnterpriseByOrhanId, DrugsEnterpriseBean.class);
     }
 
 
