@@ -15,7 +15,7 @@
 
     <!--药品搜索服务-->
     <reference id="es.drugSearchService" interface="es.api.DrugSearchService"/>
-
+    <!--监管平台-->
     <reference id="jgpt.minkeOrganService" interface="com.ngari.jgpt.zjs.service.IMinkeOrganService"/>
 
     <!--优惠券-->
@@ -29,4 +29,6 @@
 
     <!--审方-->
     <reference id="recipeaudit.recipeAuditService" interface="eh.recipeaudit.api.IRecipeAuditService"/>
+    <!--视频-->
+    <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
 </s:beans>

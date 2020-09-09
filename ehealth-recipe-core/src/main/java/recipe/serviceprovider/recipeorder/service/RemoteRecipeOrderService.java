@@ -22,6 +22,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeRefundDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -207,6 +208,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
      * @param depId 药企ID
      * @return RecipeOrderBean
      */
+    @Override
     @RpcService
     public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
         List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, organIds, depId, drugId, orderColumn, orderType, start, limit);
@@ -224,6 +226,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
      * @param depId 药企ID
      * @return RecipeOrderBean
      */
+    @Override
     @RpcService
     public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
         List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeDrug(startTime, endTime, organId, organIds, depId, recipeId, orderColumn, orderType, start, limit);
@@ -312,6 +315,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         }
 
 
+    }
+
+    @Override
+    public Boolean updatePharmNo(Integer recipeId, String pharmNo) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        return recipeDetailDAO.updateRecipeDetailByRecipeId(recipeId, ImmutableMap.of("pharmNo", pharmNo));
     }
 
 }

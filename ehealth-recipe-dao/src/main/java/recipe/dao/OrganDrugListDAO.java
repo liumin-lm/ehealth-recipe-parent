@@ -1,11 +1,12 @@
 package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drug.model.DepSaleDrugInfo;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -18,7 +19,6 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
-import io.netty.util.internal.ObjectUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.log4j.Logger;
@@ -31,7 +31,6 @@ import recipe.dao.bean.DrugListAndOrganDrugList;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 医疗机构用药目录dao
@@ -46,8 +45,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
 
     public OrganDrugListDAO() {
         super();
-        this.setEntityName(OrganDrugList.class.getName());
-        this.setKeyField("organDrugId");
+        setEntityName(OrganDrugList.class.getName());
+        setKeyField("organDrugId");
     }
 
     /**
@@ -133,6 +132,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     public int getCountByOrganIdAndStatus(final List<Integer> organIdList) {
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select count(OrganDrugId) From OrganDrugList where organId in (");
@@ -152,12 +152,13 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     }
 
     /**
-     * 根据医院药品编码 和机构编码查询 医院药品
+     * 根据医院药品编码 和机构编码查询 医院药品------有可能查到多条记录故应废弃
      *
      * @param organId
      * @param organDrugCode
      * @return
      */
+    @Deprecated
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode and status = 1")
     public abstract OrganDrugList getByOrganIdAndOrganDrugCode(@DAOParam("organId") int organId, @DAOParam("organDrugCode") String organDrugCode);
 
@@ -671,6 +672,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId")
     public abstract long getUsefulTotal();
+
+    /**
+     * 统计医院药品数量
+     *
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from OrganDrugList where organId=:organId")
+    public abstract long getTotal(@DAOParam("organId") Integer organId);
 
     @DAOMethod(sql = "from OrganDrugList where organDrugId in (:organDrugId) ", limit = 0)
     public abstract List<OrganDrugList> findByOrganDrugIds(@DAOParam("organDrugId") List<Integer> organDrugId);

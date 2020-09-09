@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -192,6 +193,8 @@ public abstract class AccessDrugEnterpriseService {
      * @return  库存
      */
     public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId);
+
+    public abstract boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag);
 
     /**
      * 库存检验

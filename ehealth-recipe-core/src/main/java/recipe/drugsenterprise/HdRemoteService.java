@@ -10,6 +10,7 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -603,7 +604,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores)) {
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
             LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
             sendHdRecipe.setGiveMode("4");
             sendHdRecipe.setPharmacyCode(organStore);
@@ -1533,6 +1534,105 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         }
         return "暂不支持库存查询";
+    }
+
+    @Override
+    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
+        tokenUpdateImpl(drugsEnterprise);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+        Map<String, Object> map = new HashMap<>();
+        List<Map<String, Object>> hdDrugCodes = new ArrayList<>();
+        Map<String, Object> drug = new HashMap<>();
+        drug.put("drugCode", saleDrugList.getOrganDrugCode());
+        drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
+        hdDrugCodes.add(drug);
+        map.put("drugList", hdDrugCodes);
+        if (new Integer(1).equals(flag)) {
+            //配送到家
+            String methodName = "sendScanStock";
+
+            //对浙四进行个性化处理,推送到指定药店配送
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+            String storeOrganName = organId + "_" + "hd_organ_store";
+            String organStore = recipeParameterDao.getByName(storeOrganName);
+
+            if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
+                LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+                map.put("pharmacyCode", organStore);
+            }
+
+            String requestParames = JSONUtils.toString(map);
+            //访问库存足够的药店列表以及药店下的药品的信息
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HdHttpUrlEnum httpUrl;
+            try {
+                httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+                CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+                //当相应状态为200时返回json
+                HttpEntity httpEntity = response.getEntity();
+                String responseStr = EntityUtils.toString(httpEntity);
+                JSONObject jsonObject = JSONObject.parseObject(responseStr);
+                List drugList = (List)jsonObject.get("drugList");
+
+                if (drugList != null && drugList.size() > 0) {
+                    for (Object drugs : drugList) {
+                        Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                        try{
+                            BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                            if (availableSumQty.doubleValue() > recipeDetailBean.getUseTotalDose()) {
+                                return true;
+                            }
+                        }catch(Exception e){
+                            return false;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                }
+            }
+        } else {
+            //到店取药
+            tokenUpdateImpl(drugsEnterprise);
+            String methodName = "findSupportDep";
+            map.put("range", "0");
+            String requestParames = JSONUtils.toString(map);
+            LOGGER.info("requestParames :{}.", requestParames);
+            //访问库存足够的药店列表以及药店下的药品的信息
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HdHttpUrlEnum httpUrl;
+            try {
+                httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+                CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+                //当相应状态为200时返回json
+                HttpEntity httpEntity = response.getEntity();
+                String responseStr = EntityUtils.toString(httpEntity);
+                JSONObject jsonObject = JSONObject.parseObject(responseStr);
+                boolean success = (boolean)jsonObject.get("success");
+                LOGGER.info("getDrugInventoryForApp responseStr:{}.", responseStr);
+                if (success) {
+                    return true;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                }
+            }
+        }
+        return false;
     }
 
     private static CloseableHttpResponse sendHttpRequest(CloseableHttpClient httpClient, String requestStr, HdHttpUrlEnum httpUrl, DrugsEnterprise drugsEnterprise) throws IOException {

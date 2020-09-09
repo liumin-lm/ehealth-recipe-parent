@@ -24,14 +24,12 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.RecipePDFToHisTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
-import com.ngari.patient.utils.LocalStringUtil;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
@@ -46,7 +44,6 @@ import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -64,6 +61,7 @@ import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.Args;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,9 +96,9 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
-import recipe.third.IFileDownloadService;
 import recipe.thread.*;
 import recipe.util.*;
+import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -214,6 +212,31 @@ public class RecipeService extends RecipeBaseService {
     public List<RecipeBean> findRecipe(int start, int limit) {
         List<Recipe> recipes = DAOFactory.getDAO(RecipeDAO.class).findRecipeByStartAndLimit(start, limit);
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
+    /**
+     * 复诊页面点击开处方
+     * 判断视频问诊后才能开具处方 并且视频大于30s
+     */
+    @RpcService
+    public void openRecipeOrNotForVideo(CanOpenRecipeReqDTO req) {
+        Args.notNull(req.getOrganId(), "organId");
+        Args.notNull(req.getClinicID(), "clinicID");
+        Boolean openRecipeOrNotForVideo = false;
+        try {
+            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            openRecipeOrNotForVideo = (Boolean) configurationCenterUtilsService.getConfiguration(req.getOrganId(), "openRecipeOrNotForVideo");
+        } catch (Exception e) {
+            LOGGER.error("openRecipeOrNotForVideo error", e);
+        }
+        if (openRecipeOrNotForVideo) {
+            IVideoInfoService videoInfoService = AppContextHolder.getBean("video.videoInfoService", IVideoInfoService.class);
+            //字典eh.bus.dictionary.VideoBussType
+            Boolean canVideo = videoInfoService.haveVideoByIdAndTime(req.getClinicID(), 35, 30);
+            if (!canVideo) {
+                throw new DAOException(609, "您与患者的视频未达到医院规定时长，无法开具处方。若达到时长请稍后再次尝试开具处方");
+            }
+        }
     }
 
     /**
@@ -635,7 +658,9 @@ public class RecipeService extends RecipeBaseService {
         try {
             RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (recipeExtend == null) recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            if (recipeExtend == null) {
+                recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            }
             recipeExtend.setDrugEntrustment(drugEntrustment);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         } catch (Exception e) {
@@ -1650,8 +1675,6 @@ public class RecipeService extends RecipeBaseService {
                 //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //date 20200526
                 memo = "当前签名处方签名成功";
-                //上传处方pdf给第三方
-                RecipeBusiThreadPool.execute(()->uploadRecipePdfToHis(recipe.getRecipeId()));
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
@@ -1730,31 +1753,6 @@ public class RecipeService extends RecipeBaseService {
 
     }
 
-    @RpcService
-    public void uploadRecipePdfToHis(Integer recipeId) {
-        try {
-            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = dao.getByRecipeId(recipeId);
-            if (recipe != null && StringUtils.isNotEmpty(recipe.getSignFile())){
-                IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-                RecipePDFToHisTO req = new RecipePDFToHisTO();
-                req.setOrganId(recipe.getClinicOrgan());
-                req.setRecipeId(recipeId);
-                req.setRecipeCode(recipe.getRecipeCode());
-                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(recipe.getSignFile());
-                if (fileMetaRecord !=null){
-                    req.setRecipePdfName(fileMetaRecord.getFileName());
-                }
-                req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
-                hisService.sendRecipePDFToHis(req);
-            }
-        }catch (Exception e){
-            LOGGER.error("uploadRecipePdfToHis error",e);
-        }
-
-    }
-
     //date 20200610
     //上海胸科ca通过回调的方式回写医生ca结果给平台触发业务流程
     @RpcService
@@ -1784,8 +1782,8 @@ public class RecipeService extends RecipeBaseService {
             result.setMsg(resultVo.getMsg());
             if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                 result.setCode(RecipeResultBean.SUCCESS);
-                //保存签名值、时间戳、电子签章文件
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                //保存签名值、时间戳、电子签章文件（date20200908将修改成CA独用的方法）
+                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                 resultVo.setFileId(fileId);
                 signRecipeInfoSave(recipeId, true, resultVo, organId);
                 try {
@@ -1960,9 +1958,9 @@ public class RecipeService extends RecipeBaseService {
                 return;
             }
             if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
-                //保存签名值、时间戳、电子签章文件
+                //保存签名值、时间戳、电子签章文件（date20200908将修改成CA独用的方法）
                 checkResult.setCode(RecipeResultBean.SUCCESS);
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                 resultVo.setFileId(fileId);
                 signRecipeInfoSave(recipeId, false, resultVo, organId);
             } else {
@@ -1982,7 +1980,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         //首先判断当前ca是否是有结束结果的
-        if (-1 == resultVo.getResultCode() && RecipeResultBean.FAIL.equals(resultVo.getCode())) {
+        if (-1 == resultVo.getResultCode()) {
             LOGGER.info("当期处方{}药师ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
@@ -3154,12 +3152,10 @@ public class RecipeService extends RecipeBaseService {
             //查询起始下标
             int startIndex = 0;
             boolean finishFlag = true;
+            long total = organDrugListDAO.getTotal(oid);
             while (finishFlag) {
                 List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
-                if (CollectionUtils.isEmpty(drugInfoList)) {
-                    LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
-                    finishFlag = false;
-                } else {
+                if (!CollectionUtils.isEmpty(drugInfoList)) {
                     //是否有效标志 1-有效 0-无效
                     for (DrugInfoTO drug : drugInfoList) {
                         OrganDrugList organDrug = drugMap.get(drug.getDrcode());
@@ -3170,7 +3166,11 @@ public class RecipeService extends RecipeBaseService {
                         updateNum++;
                         LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
                     }
-                    startIndex++;
+                }
+                startIndex++;
+                if (startIndex >= total){
+                    LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
+                    finishFlag = false;
                 }
             }
         }
@@ -3235,6 +3235,8 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                 }
             }
+            //修改cdr_his_recipe status为已处理
+            orderService.updateHisRecieStatus(recipes);
         }
         for (Integer status : statusList) {
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
@@ -3281,6 +3283,10 @@ public class RecipeService extends RecipeBaseService {
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
                     RecipeMsgService.batchSendMsg(recipe, status);
+                    if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                        //药师首页待处理任务---取消未结束任务
+                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                    }
                     if (RecipeStatusConstant.NO_PAY == status) {
                         memo.append("已取消,超过3天未支付");
                     } else if (RecipeStatusConstant.NO_OPERATOR == status) {
@@ -3321,6 +3327,8 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                     }
                 }
+                //修改cdr_his_recipe status为已处理
+                orderService.updateHisRecieStatus(recipeList);
             }
         }
 
@@ -4017,17 +4025,9 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //异步显示对应的药品金额，
                 RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
-                //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
                 //HIS消息发送
-                if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
-                    // 111 为卫宁支付
-                    if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                        hisService.recipeDrugTake(recipeId, payFlag, result);
-                    }
-                }
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                hisService.recipeDrugTake(recipeId, payFlag, result);
             }
         }
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
@@ -4481,15 +4481,21 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Map<String, Object> findCanRecipeByAge(Map<String, String> params) {
         LOGGER.info("findCanRecipeByAge 参数{}", JSONUtils.toString(params));
-        if (StringUtils.isEmpty(params.get("mpiid"))) throw new DAOException("findCanRecipeByAge mpiid不允许为空");
-        if (StringUtils.isEmpty(params.get("organId"))) throw new DAOException("findCanRecipeByAge organId不允许为空");
+        if (StringUtils.isEmpty(params.get("mpiid"))) {
+            throw new DAOException("findCanRecipeByAge mpiid不允许为空");
+        }
+        if (StringUtils.isEmpty(params.get("organId"))) {
+            throw new DAOException("findCanRecipeByAge organId不允许为空");
+        }
         Map<String, Object> map = Maps.newHashMap();
         boolean canRecipe = false;//默认不可开处方
         //从opbase配置项获取允许开处方患者年龄 findCanRecipeByAge
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         Object findCanRecipeByAge = configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
         LOGGER.info("findCanRecipeByAge 从opbase配置项获取允许开处方患者年龄{}", findCanRecipeByAge);
-        if (findCanRecipeByAge == null) canRecipe = true;//查询不到设置值或默认值或没配置配置项 设置可开处方
+        if (findCanRecipeByAge == null) {
+            canRecipe = true;//查询不到设置值或默认值或没配置配置项 设置可开处方
+        }
         if (!canRecipe) {
             //从opbase获取患者数据
             List<String> findByMpiIdInParam = new ArrayList<>();
@@ -4509,7 +4515,9 @@ public class RecipeService extends RecipeBaseService {
                     e.printStackTrace();
                 }
                 //实际年龄>=配置年龄 设置可开处方
-                if (age >= (Integer) findCanRecipeByAge) canRecipe = true;
+                if (age >= (Integer) findCanRecipeByAge) {
+                    canRecipe = true;
+                }
             }
 
         }
@@ -4571,7 +4579,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Map<String, Object>   findisCanOpenLongRecipeAndUseDayRange(Map<String,String> params) {
         LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 参数{}",JSONUtils.toString(params));
-        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findUseDayRange organId不允许为空");
+        if(StringUtils.isEmpty(params.get("organId"))) {
+            throw new DAOException("findUseDayRange organId不允许为空");
+        }
         Map<String, Object> map = Maps.newHashMap();
 
         //获取长处方配置

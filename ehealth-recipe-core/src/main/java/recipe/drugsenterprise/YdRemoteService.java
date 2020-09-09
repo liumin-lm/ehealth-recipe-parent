@@ -2,6 +2,7 @@ package recipe.drugsenterprise;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -46,6 +47,11 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
+    }
+
+    @Override
+    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return false;
     }
 
     private StdInputVo stdInputVo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) throws Exception {

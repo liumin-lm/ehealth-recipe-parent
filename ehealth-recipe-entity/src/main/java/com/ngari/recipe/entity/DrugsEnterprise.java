@@ -35,6 +35,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企固定编码")
     private String enterpriseCode;
 
+    @ItemProperty(alias = "药企关键机构")
+    private Integer organId;
+
     @ItemProperty(alias = "药企分配appKey从开放平台获取")
     private String appKey;
 
@@ -435,6 +438,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setOperationType(Integer operationType) {
         this.operationType = operationType;
+    }
+
+    @Column(name = "organId")
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
     }
 
     @Override

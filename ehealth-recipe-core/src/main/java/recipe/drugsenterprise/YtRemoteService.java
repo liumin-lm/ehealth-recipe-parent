@@ -9,6 +9,7 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -157,6 +158,11 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", drugId, drugsEnterprise.getName(), e.getMessage(),e);
         }
         return "暂不支持库存查询";
+    }
+
+    @Override
+    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return false;
     }
 
     /**

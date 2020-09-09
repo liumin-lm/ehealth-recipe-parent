@@ -168,6 +168,13 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t where t.name = :name")
     public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByName(@DAOParam("name") String name);
+    /**
+     * 根据机构Id获取药企
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "select t from DrugsEnterprise t where t.organId = :organId")
+    public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByOrhanId(@DAOParam("organId") Integer organId);
 
     /**
      * 根据药企名称分页查询药企
@@ -177,7 +184,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param limit
      * @return
      */
-    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
+    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByStartAndLimit(final String name, final Integer createType,final Integer organId , final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugsEnterprise>>() {
             @SuppressWarnings("unchecked")
             public void execute(StatelessSession ss) throws DAOException {
@@ -191,6 +198,10 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 if (null != createType) {
                     hql.append(" and d.createType = :createType");
                     params.put("createType", createType);
+                }
+                if (null != organId) {
+                    hql.append(" and d.organId = :organId");
+                    params.put("organId", organId);
                 }
 
                 hql.append(" order by d.createDate desc ");

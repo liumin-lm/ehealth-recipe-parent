@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.slf4j.Logger;
@@ -51,6 +52,11 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "有库存";
+    }
+
+    @Override
+    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return false;
     }
 
     @Override

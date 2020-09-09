@@ -165,7 +165,63 @@ public class PurchaseService {
      */
     @RpcService
     public OrderCreateResult orderForRecipe(Integer recipeId, Map<String, String> extInfo) {
+        OrderCreateResult orderCreateResult=checkOrderInfo(recipeId, extInfo);
+        if(RecipeResultBean.FAIL==orderCreateResult.getCode()){
+            return orderCreateResult;
+        }
         return order(recipeId, extInfo);
+    }
+
+    /**
+     *
+     * @param recipeId
+     * 确认订单校验
+     * @param extInfo
+     * @return
+     */
+    private OrderCreateResult checkOrderInfo(Integer recipeId, Map<String, String> extInfo) {
+        //确认页提交订单点击提交按钮时， 需要再次判断该处方单的状态, 若处方更新了诊断和药品信息或者删除了处方或处方已支付, 则提示患者该处方已做变更, 需要从新进入处理;
+        OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.get(recipeId);
+        //判断是否删除处方
+        if (null == dbRecipe) {
+            result.setCode(RecipeResultBean.CHECKFAIL);
+            result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+            LOG.info("checkOrderInfo recipeId:{} 处方不存在",recipeId);
+            return result;
+        }
+        //判断是订单是否已支付
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
+            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+            if(new Integer(1).equals(order.getPayFlag())){
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} 您的订单已支付",recipeId);
+            }
+        }
+        //判断诊断和药品信息是否已更改
+        if (null != dbRecipe) {
+            String organDiseaseId = MapValueUtil.getString(extInfo, "organDiseaseId");
+            String organDiseaseName = MapValueUtil.getString(extInfo, "organDiseaseName");
+            if (!organDiseaseId.equals(dbRecipe.getOrganDiseaseId()) || !organDiseaseName.equals(dbRecipe.getOrganDiseaseName())) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更1",recipeId);
+                return result;
+            }
+            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(),dbRecipe.getClinicId(),dbRecipe.getRecipeCode());
+            if (!organDiseaseId.equals(hisRecipe.getDisease()) || !organDiseaseName.equals(hisRecipe.getDiseaseName())) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2",recipeId);
+                return result;
+            }
+
+        }
+        return result;
     }
 
     /**
@@ -291,17 +347,6 @@ public class PurchaseService {
         } finally {
             //订单创建完解锁
             unLock(recipeId);
-            //此处将HIS处方状态进行调整
-            try{
-                //对于来源于HIS的处方单更新hisRecipe的状态
-                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-                if (hisRecipe != null) {
-                    hisRecipeDAO.updateHisRecieStatus(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode(), 2);
-                }
-            }catch (Exception e){
-                LOG.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", dbRecipe.getRecipeId(), e.getMessage(),e);
-            }
         }
 
         return result;
