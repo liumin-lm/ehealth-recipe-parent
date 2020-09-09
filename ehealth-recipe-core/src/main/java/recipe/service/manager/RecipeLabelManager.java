@@ -1,8 +1,9 @@
 package recipe.service.manager;
 
-import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import ctd.persistence.exception.DAOException;
+import eh.entity.base.Scratchable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import recipe.service.RecipeServiceSub;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +32,7 @@ public class RecipeLabelManager {
     private IScratchableService scratchableService;
 
 
-    public Map<String, Map<String, Object>> queryRecipeLabelById(Integer recipeId, Integer organId) {
+    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(Integer recipeId, Integer organId) {
         if (null == recipeId || null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "parameter is null!");
         }
@@ -38,43 +40,47 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null!");
         }
-        Map<String, Object> labelMap = scratchableService.findRecipeDetailList(organId.toString());
+        Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
         if (CollectionUtils.isEmpty(labelMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "labelMap is null!");
         }
-        Map<String, Map<String, Object>> resultMap = new HashMap<>();
+        Map<String, List<RecipeLabelVO>> resultMap = new HashMap<>();
         labelMap.forEach((k, v) -> {
-            List<ScratchableBean> value = (List<ScratchableBean>) v;
+            List<Scratchable> value = (List<Scratchable>) v;
             if (CollectionUtils.isEmpty(value)) {
                 return;
             }
-            Map<String, Object> map = getValue(value, recipeMap);
-            resultMap.put(k, map);
+            List<RecipeLabelVO> list = getValue(value, recipeMap);
+            resultMap.put(k, list);
         });
         return resultMap;
     }
 
-    private Map<String, Object> getValue(List<ScratchableBean> scratchableList, Map<String, Object> recipeMap) {
-        Map<String, Object> boxLinkMap = new HashMap<>();
+    private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap) {
+        List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
         scratchableList.forEach(a -> {
             if (StringUtils.isEmpty(a.getBoxLink())) {
                 return;
             }
+            RecipeLabelVO recipeLabel = new RecipeLabelVO();
+            recipeLabel.setName(a.getBoxTxt());
+            recipeLabel.setEnglishName(a.getBoxLink());
             Object obj = recipeMap.get(a.getBoxLink());
             if (null != obj) {
-                boxLinkMap.put(a.getBoxTxt(), obj);
+                recipeLabel.setValue(obj);
             } else {
                 String[] boxLink = a.getBoxLink().split("\\.");
                 if (2 == boxLink.length) {
                     obj = recipeMap.get(boxLink[0]);
                     String str = getFieldValueByName(boxLink[1], obj);
-                    boxLinkMap.put(a.getBoxTxt(), str);
+                    recipeLabel.setValue(str);
                 } else {
                     logger.error("RecipeLabelManager getValue boxLink ={}", JSONUtils.toBytes(boxLink));
                 }
             }
+            recipeLabelList.add(recipeLabel);
         });
-        return boxLinkMap;
+        return recipeLabelList;
     }
 
     public String getFieldValueByName(String fieldName, Object o) {

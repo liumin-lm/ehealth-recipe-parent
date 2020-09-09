@@ -34,6 +34,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -3500,10 +3501,10 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
-    public Map<String, Map<String, Object>> queryRecipeLabelById(int recipeId, Integer organId) {
+    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
         //checkUserHasPermission(recipeId);
 
-        Map<String, Map<String, Object>> result = recipeLabelManager.queryRecipeLabelById(recipeId, organId);
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(recipeId, organId);
         return result;
     }
 
