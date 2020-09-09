@@ -1871,6 +1871,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 useCoupon(nowRecipe, payMode);
                 sendTfdsMsg(nowRecipe, payMode, orderCode);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
+                attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
                 //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
                 if (0 == order.getActualPrice() && !RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())) {
@@ -1881,7 +1882,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 } else {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
-                attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 attrMap.put("effective", 1);
             }
         }
