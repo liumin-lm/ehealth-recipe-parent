@@ -2,7 +2,10 @@ package recipe.util;
 
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.util.Date;
@@ -15,7 +18,7 @@ import java.util.Map;
  * @date:2016/6/2.
  */
 public class MapValueUtil {
-
+    private static final Logger logger = LoggerFactory.getLogger(MapValueUtil.class);
     public static String getString(Map<String, ? extends Object> map, String key) {
         Object obj = getObject(map, key);
         if (null == obj) {
@@ -212,6 +215,45 @@ public class MapValueUtil {
             e.printStackTrace();
         }
         return localhostIP;
+    }
+
+
+    /**
+     * 根据字段名获取 对象中的get值
+     *
+     * @param fieldName 字段名
+     * @param o         对象
+     * @return
+     */
+    public static String getFieldValueByName(String fieldName, Object o) {
+        if (org.springframework.util.StringUtils.isEmpty(fieldName) || null == o) {
+            logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toBytes(o));
+            return null;
+        }
+        try {
+            String getter = "get" + captureName(fieldName);
+            Method method = o.getClass().getMethod(getter);
+            Object value = method.invoke(o);
+            if (null == value) {
+                return "";
+            }
+            return value.toString();
+        } catch (Exception e) {
+            logger.error("getFieldValueByName error fieldName ={}", fieldName, e);
+            return null;
+        }
+    }
+
+    /**
+     * 首字母转大写，性能比java自带工具类转大写方法略好
+     *
+     * @param str
+     * @return
+     */
+    public static String captureName(String str) {
+        char[] cs = str.toCharArray();
+        cs[0] -= 32;
+        return String.valueOf(cs);
     }
 
 }
