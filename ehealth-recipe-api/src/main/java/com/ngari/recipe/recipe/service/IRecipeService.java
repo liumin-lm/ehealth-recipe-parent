@@ -681,7 +681,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
 
     /**
-     * 查询药品id 根据处方id
+     * 查询处方id
      *
      * @param organIds
      * @return
