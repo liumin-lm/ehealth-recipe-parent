@@ -116,6 +116,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         position.put("LATITUDE", "30.255732");
         map.put("POSITION", position);
         List list = new ArrayList();
+        List<String> result1 = new ArrayList<>();
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
@@ -132,6 +133,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 drugMap.put("MSUNITNO", organDrugList.getUnit());
                 list.add(drugMap);
             }
+            result1.add(recipeDetailBean.getDrugName());
         }
         sendInfo.put("DETAILS", list);
         sendInfo.put("HOSCODE", organDTO.getOrganizeCode());
@@ -141,8 +143,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
-        List<String> result1 = new ArrayList<>();
-        result1.add("111");
+
         return result1;
     }
 
