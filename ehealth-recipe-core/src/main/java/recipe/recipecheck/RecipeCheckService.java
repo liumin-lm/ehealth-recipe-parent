@@ -136,7 +136,7 @@ public class RecipeCheckService {
             return Lists.newArrayList();
         }
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
+        List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(),null,null, request.getStatus(),
                 start, limit);
         List<Map<String, Object>> mapList = covertRecipeListPageInfo(list,request.getStatus());
         return mapList;

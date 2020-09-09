@@ -211,6 +211,13 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                     request.setDoctorName(recipe.getDoctorName());
                     request.setDepartId(recipe.getDepart() + "");
 
+                    //默认是医保，医生选择了自费时，强制设置为自费
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if(recipeExtend != null && recipeExtend.getMedicalType() != null && "0".equals(recipeExtend.getMedicalType())){
+                        request.setIszfjs("1");
+                    } else {
+                        request.setIszfjs("0");
+                    }
                     request.setBxh(bxh);
 
                     try {
@@ -225,8 +232,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                     if(hisResult != null && "200".equals(hisResult.getMsgCode())){
                         LOGGER.info("recipeMedicalPreSettle-success. recipeId={},result={}", recipeId, JSONUtils.toString(hisResult));
                         if(hisResult.getData() != null){
-                            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                            if(ext != null){
+                            if(recipeExtend != null){
                                 Map<String, String> map = new HashMap<String, String>();
                                 map.put("registerNo", hisResult.getData().getGhxh());
                                 map.put("hisSettlementNo", hisResult.getData().getSjh());
@@ -236,14 +242,14 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                                 //map.put("medicalSettleData", hisResult.getData().getMedicalRespData());
                                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                             } else {
-                                ext = new RecipeExtend();
-                                ext.setRecipeId(recipe.getRecipeId());
-                                ext.setRegisterNo(hisResult.getData().getGhxh());
-                                ext.setHisSettlementNo(hisResult.getData().getSjh());
-                                ext.setPreSettletotalAmount(hisResult.getData().getZje());
-                                ext.setFundAmount(hisResult.getData().getYbzf());
-                                ext.setCashAmount(hisResult.getData().getYfje());
-                                recipeExtendDAO.save(ext);
+                                recipeExtend = new RecipeExtend();
+                                recipeExtend.setRecipeId(recipe.getRecipeId());
+                                recipeExtend.setRegisterNo(hisResult.getData().getGhxh());
+                                recipeExtend.setHisSettlementNo(hisResult.getData().getSjh());
+                                recipeExtend.setPreSettletotalAmount(hisResult.getData().getZje());
+                                recipeExtend.setFundAmount(hisResult.getData().getYbzf());
+                                recipeExtend.setCashAmount(hisResult.getData().getYfje());
+                                recipeExtendDAO.save(recipeExtend);
                             }
                         }
                         result.setCode(DrugEnterpriseResult.SUCCESS);

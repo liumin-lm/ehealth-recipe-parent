@@ -1132,6 +1132,8 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setDrugID(detail.getDrugId());
                 //date 20200701 预校验添加平台药品医嘱ID
                 item.setOrderID(detail.getRecipeDetailId().toString());
+                // 黄河医院 剂型名称
+                item.setDrugForm(detail.getDrugForm());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
