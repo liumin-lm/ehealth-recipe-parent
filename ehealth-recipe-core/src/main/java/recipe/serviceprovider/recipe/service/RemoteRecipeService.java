@@ -1306,8 +1306,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds, int flag, int start, int limit) {
-        List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ ,flag, start, limit);
+    public List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit) {
+        List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ ,recipeIds,recipeTypes,flag, start, limit);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
@@ -1621,8 +1621,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
     @RpcService
     @Override
-    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,Integer type) {
+    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,List<Integer>recipeTypes,Integer type) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return   recipeDAO.queryRecipeIdByOrgan(organIds,type);
+        return   recipeDAO.queryRecipeIdByOrgan(organIds,recipeTypes,type);
     }
 }
