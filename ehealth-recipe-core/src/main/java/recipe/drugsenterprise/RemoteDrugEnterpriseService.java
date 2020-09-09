@@ -6,13 +6,13 @@ import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.RecipePDFToHisTO;
-import com.ngari.consult.ConsultAPI;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
+import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -482,7 +482,6 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
 
     }
-
     @RpcService
     public Map<String, Object> test(){
         DrugsDataBean drugsDataBean = new DrugsDataBean();
@@ -733,7 +732,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             return result;
         }
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
-            AccessDrugEnterpriseService drugEnterpriseService = getServiceByDep(drugsEnterprise);
+            AccessDrugEnterpriseService drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
             result = drugEnterpriseService.findSupportDep(recipeIds, ext, drugsEnterprise);
             LOGGER.info("findSupportDep recipeIds={}, DrugEnterpriseResult={}", JSONUtils.toString(recipeIds), JSONUtils.toString(result));
         } else {
@@ -766,7 +765,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 if (null != drugsEnterprise) {
                     List<Integer> drugIdList = saleDrugListDAO.findSynchroDrug(drugsEnterprise.getId());
                     if (CollectionUtils.isNotEmpty(drugIdList)) {
-                        drugEnterpriseService = getServiceByDep(drugsEnterprise);
+                        drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
                         if (null != drugEnterpriseService) {
                             LOGGER.info("syncDrugTask 开始同步药企[{}]药品，药品数量[{}]", drugsEnterprise.getName(), drugIdList.size());
                             drugEnterpriseService.syncEnterpriseDrug(drugsEnterprise, drugIdList);
@@ -851,7 +850,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             if (null != depId) {
                 DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
                 if (null != dep) {
-                    result.setAccessDrugEnterpriseService(getServiceByDep(dep));
+                    result.setAccessDrugEnterpriseService(this.getServiceByDep(dep));
                     result.setDrugsEnterprise(dep);
                 } else {
                     result.setCode(DrugEnterpriseResult.FAIL);
