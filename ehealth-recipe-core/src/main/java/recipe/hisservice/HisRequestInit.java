@@ -600,7 +600,14 @@ public class HisRequestInit {
                         //参保地行政区划代码
                         requestTO.setInsuredArea(extend.getInsuredArea());
                         //挂号序号
-                        requestTO.setRegisterID(extend.getRegisterID());
+                        //查询已经预结算过的挂号序号
+                        if (StringUtils.isNotEmpty(extend.getRegisterID())) {
+                           /* List<RecipeExtend> recipeExtends = extendDAO.querySettleRecipeExtendByRegisterID(extend.getRegisterID());
+                            if (CollectionUtils.isEmpty(recipeExtends)) {
+                                //his作为是否返回诊察费的判断  诊察费已在预结算总金额里返回*/
+                            requestTO.setRegisterID(extend.getRegisterID());
+                        }
+
                         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                         //获取医保支付流程配置（2-原省医保 3-长三角）
                         Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");

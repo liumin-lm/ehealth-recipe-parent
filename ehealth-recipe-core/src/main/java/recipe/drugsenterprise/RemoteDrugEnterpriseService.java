@@ -6,9 +6,10 @@ import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
+import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -22,8 +23,10 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -44,6 +47,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.*;
 
@@ -101,6 +105,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     recipeExtendDAO.update(recipeExtend);
                 }
             }
+            //上传处方pdf给第三方
+            RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipe.getRecipeId()));
         }
     }
 
@@ -141,6 +147,32 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
+    }
+
+
+    @RpcService
+    public void uploadRecipePdfToHis(Integer recipeId) {
+        try {
+            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = dao.getByRecipeId(recipeId);
+            if (recipe != null && StringUtils.isNotEmpty(recipe.getSignFile())) {
+                IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+                RecipePDFToHisTO req = new RecipePDFToHisTO();
+                req.setOrganId(recipe.getClinicOrgan());
+                req.setRecipeId(recipeId);
+                req.setRecipeCode(recipe.getRecipeCode());
+                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(recipe.getSignFile());
+                if (fileMetaRecord != null) {
+                    req.setRecipePdfName(fileMetaRecord.getFileName());
+                }
+                req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
+                hisService.sendRecipePDFToHis(req);
+            }
+        } catch (Exception e) {
+            LOGGER.error("uploadRecipePdfToHis error", e);
+        }
+
     }
 
     private PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise) {
@@ -202,8 +234,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             String loginId = patientDTO.getLoginId();
             eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
             ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
-            // TODO thirdPartyEntity获取患者渠道id
-            String patientChannelId = "";
+            // thirdPartyEntity获取患者渠道id
+            String patientChannelId = thirdPartyEntity.getSource();
             pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
         } catch (Exception e) {
             LOGGER.error("获取患者渠道id异常",e);
@@ -293,7 +325,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     @RpcService
     public DrugEnterpriseResult pushSingleRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
+        result.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
         if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
             result = result.getAccessDrugEnterpriseService().pushRecipe(hospitalRecipeDTO, drugsEnterprise);
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
@@ -319,7 +351,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (null != depId) {
             dep = drugsEnterpriseDAO.get(depId);
             if (null != dep) {
-                result.setAccessDrugEnterpriseService(this.getServiceByDep(dep));
+                result.setAccessDrugEnterpriseService(getServiceByDep(dep));
             } else {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg("药企" + depId + "未找到");
@@ -372,13 +404,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (null == drugsEnterprise) {
             //药企对象为空，则通过处方id获取相应药企实现
-            DrugEnterpriseResult result1 = this.getServiceByRecipeId(recipeId);
+            DrugEnterpriseResult result1 = getServiceByRecipeId(recipeId);
             if (DrugEnterpriseResult.SUCCESS.equals(result1.getCode())) {
                 drugEnterpriseService = result1.getAccessDrugEnterpriseService();
                 drugsEnterprise = result1.getDrugsEnterprise();
             }
         } else {
-            drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
+            drugEnterpriseService = getServiceByDep(drugsEnterprise);
         }
 
         if (null != drugEnterpriseService) {
@@ -427,7 +459,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         LOGGER.info("getDrugInventory depId:{}, drugId:{}", depId, drugId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
+        result.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
@@ -450,7 +482,6 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
 
     }
-
     @RpcService
     public Map<String, Object> test(){
         DrugsDataBean drugsDataBean = new DrugsDataBean();
@@ -678,6 +709,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      * @param ext       额外信息
      * @return 供应商信息
      */
+    @Override
     @RpcService
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -749,12 +781,14 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     }
 
 
+    @Override
     @RpcService
     public void updateAccessTokenById(Integer code, Integer depId) {
         AccessDrugEnterpriseService drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
         drugEnterpriseService.updateAccessTokenById(code, depId);
     }
 
+    @Override
     public String updateAccessToken(List<Integer> drugsEnterpriseIds) {
         AccessDrugEnterpriseService drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
         return drugEnterpriseService.updateAccessToken(drugsEnterpriseIds);

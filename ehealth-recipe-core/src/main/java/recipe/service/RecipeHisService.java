@@ -380,28 +380,35 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
             //线上支付完成需要发送消息（结算）（省医保则是医保结算）
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
-                PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
-                PayNotifyResTO response = service.payNotify(payNotifyReq);
-                if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
-                    //结算成功
-                    Recipedetail detail = new Recipedetail();
-                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-                    detail.setPharmNo(response.getData().getWindows());
-                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
-                } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) ||
-                        (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
-                    //前置机返回结算失败，或者医保结算前置机返回null
-                    result.setCode(RecipeResultBean.FAIL);
-                    if (response != null && response.getMsg() != null) {
-                        result.setError(response.getMsg());
-                    } else {
-                        result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                    // 111 为卫宁支付---卫宁付不走前置机的his结算
+                    if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
+                        PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
+                        PayNotifyResTO response = service.payNotify(payNotifyReq);
+                        if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
+                            //结算成功
+                            Recipedetail detail = new Recipedetail();
+                            detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+                            detail.setPharmNo(response.getData().getWindows());
+                            HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                        } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
+                            //前置机返回结算失败，或者医保结算前置机返回null
+                            result.setCode(RecipeResultBean.FAIL);
+                            if (response != null && response.getMsg() != null) {
+                                result.setError(response.getMsg());
+                            } else {
+                                result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                            }
+                            HisCallBackService.havePayFail(recipe.getRecipeId());
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
+                        } else {
+                            //非医保结算前置机返回null可能未对接接口
+                            LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
+                        }
                     }
-                    HisCallBackService.havePayFail(recipe.getRecipeId());
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
-                } else {
-                    //非医保结算前置机返回null可能未对接接口
-                    LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                 }
             }
 
@@ -630,8 +637,12 @@ public class RecipeHisService extends RecipeBaseService {
                 request.setInsuredAreaType("1");
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (ext !=null){
-                request.setRegisterID(ext.getRegisterID());
+            if (ext != null && StringUtils.isNotEmpty(ext.getRegisterID())) {
+                /*//查询已经预结算过的挂号序号
+                List<RecipeExtend> recipeExtends = recipeExtendDAO.querySettleRecipeExtendByRegisterID(ext.getRegisterID());
+                if (CollectionUtils.isEmpty(recipeExtends)) {
+                    //his作为是否返回诊察费的判断  诊察费再总金额里返回*/
+                    request.setRegisterID(ext.getRegisterID());
             }
             try {
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
@@ -849,7 +860,7 @@ public class RecipeHisService extends RecipeBaseService {
             //外带药处方则不进行校验
             return RecipeResultBean.getSuccess();
         }
-        return this.scanDrugStock(recipe, detailList);
+        return scanDrugStock(recipe, detailList);
     }
 
 
@@ -1078,7 +1089,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (null != details && !details.isEmpty()) {
             for (Recipedetail detail : details) {
                 RecipeOrderItemTO item = new RecipeOrderItemTO();
-                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), detail.getOrganDrugCode());
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipeBean.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                 if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                     item.setDosage(detail.getUseDoseStr());
                 } else {
