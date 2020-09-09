@@ -234,8 +234,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             String loginId = patientDTO.getLoginId();
             eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
             ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
-            // TODO thirdPartyEntity获取患者渠道id
-            String patientChannelId = "";
+            // thirdPartyEntity获取患者渠道id
+            String patientChannelId = thirdPartyEntity.getSource();
             pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
         } catch (Exception e) {
             LOGGER.error("获取患者渠道id异常",e);
