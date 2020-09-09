@@ -1,9 +1,7 @@
 package recipe.service.common;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
@@ -23,7 +21,6 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.params.ParameterConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -31,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -605,6 +601,7 @@ public class RecipeSignService {
                         rMap.put("canContinueFlag", -1);
                         rMap.put("msg", rMap.get("errorMsg"));
                     }
+                    RecipeLogService.saveRecipeLog(recipeBean.getRecipeId(), recipeBean.getStatus(), recipeBean.getStatus(), "处方预校验失败");
                 }
                 LOG.info("当前处方预校验返回结果map{}", rMap);
                 return checkResult;

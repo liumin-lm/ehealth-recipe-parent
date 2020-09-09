@@ -34,10 +34,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
-import com.ngari.recipe.recipe.model.HisSendResTO;
-import com.ngari.recipe.recipe.model.OrderRepTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -83,6 +80,7 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1625,7 +1623,37 @@ public class RecipeHisService extends RecipeBaseService {
         if (null == response) {
             return result;
         }
-        result.put("hisRecipe", response.getData());
+        List<RecipeInfoTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return result;
+        }
+        List<RecipeBean> recipes = Lists.newArrayList();
+        for (RecipeInfoTO recipeInfoTO: data){
+            HisRecipeBean recipeBean = ObjectCopyUtils.convert(recipeInfoTO, HisRecipeBean.class);
+            recipeBean.setSignDate(recipeInfoTO.getSignTime());
+            recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
+            recipeBean.setDepartText(recipeInfoTO.getDepartName());
+            List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
+            List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+            for (RecipeDetailTO recipeDetailTO: detailData){
+                HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+                detailBean.setDrugUnit(recipeDetailTO.getUnit());
+                detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+                detailBean.setUseDays(recipeDetailTO.getDays());
+                detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+                hisRecipeDetailBeans.add(detailBean);
+            }
+            recipeBean.setDetailData(hisRecipeDetailBeans);
+            recipeBean.setClinicOrgan(organId);
+            recipeBean.setOrganName(organDTO.getShortName());
+            RecipeBean r=RecipeServiceSub.convertHisRecipeForRAP(recipeBean);
+            recipes.add(r);
+
+        }
+        result.put("hisRecipe", recipes);
         result.put("patient", convertSensitivePatientForRAP(patientDTO));
         return result;
         //转换平台字段
@@ -1639,13 +1667,14 @@ public class RecipeHisService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<RecipeDetailTO> queryHisInsureRecipeInfo(Integer organId,String mpiId,String recipeCode,String serialNumber) {
+    public List<HisRecipeDetailBean> queryHisInsureRecipeInfo(Integer organId,String mpiId,String recipeCode,String serialNumber) {
         LOGGER.info("queryHisInsureRecipeInfo organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
-        List<RecipeDetailTO>  response =  queryHisInsureRecipeInfoFromHis(organId,mpiId,recipeCode,serialNumber);
+        List<HisRecipeDetailBean>  response =  queryHisInsureRecipeInfoFromHis(organId,mpiId,recipeCode,serialNumber);
         return response;
     }
 
-    private List<RecipeDetailTO>  queryHisInsureRecipeInfoFromHis(Integer organId, String mpiId, String recipeCode,String serialNumber) {
+    private List<HisRecipeDetailBean>  queryHisInsureRecipeInfoFromHis(Integer organId, String mpiId, String recipeCode,String serialNumber) {
+        List<HisRecipeDetailBean> recipeDetailTOs=new ArrayList<>();
         LOGGER.info("queryHisInsureRecipeInfoFromHis organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
@@ -1690,6 +1719,23 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         LOGGER.info("queryHisInsureRecipeInfoFromHis res={}", JSONUtils.toString(response));
-        return response.getData();
+
+        List<RecipeDetailTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return recipeDetailTOs;
+        }
+
+        for (RecipeDetailTO recipeDetailTO: data){
+            HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+            detailBean.setDrugUnit(recipeDetailTO.getUnit());
+            detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+            detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+            detailBean.setUseDays(recipeDetailTO.getDays());
+            detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+            detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+            recipeDetailTOs.add(detailBean);
+        }
+        return recipeDetailTOs;
     }
 }

@@ -434,17 +434,19 @@ public class HisRecipeService {
     private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTO) {
         if(!StringUtils.isEmpty(recipeCodeThreadLocal.get())){
             String recipeCode=recipeCodeThreadLocal.get();
-            LOGGER.info("queryHisRecipeInfo recipeCodeThreadLocal:{}",recipeCode);
-            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
-            List<QueryHisRecipResTO> queryHisRecipResTOFilters=new ArrayList<>();
-            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
-                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
-                    if(recipeCode.equals(queryHisRecipResTO.getRecipeCode())){
-                        queryHisRecipResTOFilters.add(queryHisRecipResTO);
+            if(responseTO!=null){
+                LOGGER.info("queryHisRecipeInfo recipeCodeThreadLocal:{}",recipeCode);
+                List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
+                List<QueryHisRecipResTO> queryHisRecipResTOFilters=new ArrayList<>();
+                if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
+                    for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
+                        if(recipeCode.equals(queryHisRecipResTO.getRecipeCode())){
+                            queryHisRecipResTOFilters.add(queryHisRecipResTO);
+                        }
                     }
                 }
+                responseTO.setData(queryHisRecipResTOFilters);
             }
-            responseTO.setData(queryHisRecipResTOFilters);
         }
         return responseTO;
     }
@@ -547,6 +549,9 @@ public class HisRecipeService {
                     }
                     hisRecipeVO.setRecipeDetail(hisRecipeDetailVOs);
                 }
+                hisRecipeVOs.add(hisRecipeVO);
+            }else{
+                HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
                 hisRecipeVOs.add(hisRecipeVO);
             }
         }
@@ -782,6 +787,9 @@ public class HisRecipeService {
             }
         }
         //存储到recipe相关表
+        if(hisRecipeId==null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "hisRecipeId不能为空！");
+        }
         return getHisRecipeDetailByHisRecipeId(hisRecipeId);
 
     }
