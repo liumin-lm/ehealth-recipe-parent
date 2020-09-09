@@ -96,14 +96,13 @@ import recipe.purchase.PurchaseService;
 import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
+import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.third.IFileDownloadService;
 import recipe.thread.*;
 import recipe.util.*;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -167,6 +166,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private RecipeLabelManager recipeLabelManager;
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
@@ -3489,6 +3491,13 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
+    public Map<String, Map<String, Object>> queryRecipeLabelById(int recipeId, Integer organId) {
+        //checkUserHasPermission(recipeId);
+
+        Map<String, Map<String, Object>> result = recipeLabelManager.queryRecipeLabelById(recipeId, organId);
+        return result;
+    }
 
     /**
      * 获取该处方的购药方式(用于判断这个处方是不是被处理)
