@@ -42,6 +42,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -84,6 +85,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * @author yu_yun
@@ -1554,4 +1557,137 @@ public class RecipeHisService extends RecipeBaseService {
         return consultExDTO;
     }
 
+    /**
+     * 查询用药记录列表
+     * @param organId
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> queryHisInsureRecipeList(Integer organId, String mpiId) {
+        LOGGER.info("queryHisInsureRecipeList organId={},mpiId={}", organId, mpiId);
+        Map<String, Object> response = queryHisInsureRecipeListFromHis(organId, mpiId);
+        return response;
+    }
+
+    private Map<String, Object> queryHisInsureRecipeListFromHis(Integer organId, String mpiId) {
+        LOGGER.info("queryHisInsureRecipeListFromHis  organId={},mpiId={}", organId, mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        Map<String, Object> result = Maps.newHashMap();
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            throw new DAOException(609, "找不到该机构");
+        }
+        String cardId = null;
+        String cardType = null;
+        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        if (null != consultExDTO) {
+            cardId = consultExDTO.getCardId();
+            cardType = consultExDTO.getCardType();
+        }
+        Date endDate = DateTime.now().toDate();
+        Date startDate = DateConversion.getDateTimeDaysAgo(90);
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(cardId);
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        patientBaseInfo.setCardID(cardId);
+        patientBaseInfo.setCardType(cardType);
+        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
+        if (StringUtils.isNotEmpty(cityCardNumber)) {
+            patientBaseInfo.setCityCardNumber(cityCardNumber);
+        }
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setOrgan(organId);
+
+        LOGGER.info("queryHisInsureRecipeListFromHis request={}", JSONUtils.toString(request));
+        QueryRecipeResponseTO response = null;
+        try {
+            response = hisService.queryHisInsureRecipeList(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        LOGGER.info("queryHisInsureRecipeListFromHis res={}", JSONUtils.toString(response));
+        if (null == response) {
+            return result;
+        }
+        result.put("hisRecipe", response.getData());
+        result.put("patient", convertSensitivePatientForRAP(patientDTO));
+        return result;
+        //转换平台字段
+    }
+
+    /**
+     * 查询用药记录详情
+     * @param organId
+     * @param mpiId
+     * @param recipeCode
+     * @return
+     */
+    @RpcService
+    public List<RecipeDetailTO> queryHisInsureRecipeInfo(Integer organId,String mpiId,String recipeCode,String serialNumber) {
+        LOGGER.info("queryHisInsureRecipeInfo organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
+        List<RecipeDetailTO>  response =  queryHisInsureRecipeInfoFromHis(organId,mpiId,recipeCode,serialNumber);
+        return response;
+    }
+
+    private List<RecipeDetailTO>  queryHisInsureRecipeInfoFromHis(Integer organId, String mpiId, String recipeCode,String serialNumber) {
+        LOGGER.info("queryHisInsureRecipeInfoFromHis organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        Map<String, Object> result = Maps.newHashMap();
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            throw new DAOException(609, "找不到该机构");
+        }
+        String cardId = null;
+        String cardType = null;
+        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        if (null != consultExDTO) {
+            cardId = consultExDTO.getCardId();
+            cardType = consultExDTO.getCardType();
+        }
+
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(cardId);
+        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
+        if (StringUtils.isNotEmpty(cityCardNumber)) {
+            patientBaseInfo.setCityCardNumber(cityCardNumber);
+        }
+        request.setPatientInfo(patientBaseInfo);
+
+        request.setOrgan(organId);
+        request.setRecipeCode(recipeCode);
+        request.setSerialNumber(serialNumber);
+        LOGGER.info("queryHisInsureRecipeInfoFromHis request={}", JSONUtils.toString(request));
+        HisResponseTO<List<RecipeDetailTO>> response= new HisResponseTO<>();
+        try {
+            response = hisService.queryHisInsureRecipeInfo(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        LOGGER.info("queryHisInsureRecipeInfoFromHis res={}", JSONUtils.toString(response));
+        return response.getData();
+    }
 }
