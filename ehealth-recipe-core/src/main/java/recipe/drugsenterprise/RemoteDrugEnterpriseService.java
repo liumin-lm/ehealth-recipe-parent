@@ -562,7 +562,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         }
                     }
                     supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
-                    supportOnlineList.add(supportOnlineMap);
+                    if (!supportOnlineMap.isEmpty()) {
+                        supportOnlineList.add(supportOnlineMap);
+                    }
                 }
 
                 if (payModeSupport(drugsEnterprise , 3)) {
@@ -576,7 +578,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         }
                     }
                     toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
-                    toStoreList.add(toStoreMap);
+                    if (!toStoreMap.isEmpty()) {
+                        toStoreList.add(toStoreMap);
+                    }
                 }
             }
 
