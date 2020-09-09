@@ -1858,12 +1858,12 @@ public class RecipeOrderService extends RecipeBaseService {
             Recipe nowRecipe = recipes.get(0);
             Integer reviewType = nowRecipe.getReviewType();
             Integer giveMode = nowRecipe.getGiveMode();
-            attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
-            attrMap.put("effective", 1);
             //首先判断是否支付成功调用，还是支付前调用
             if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 //支付成功后
                 attrMap.put("payTime", Calendar.getInstance().getTime());
+                attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
+                attrMap.put("effective", 1);
                 //退款标记
                 attrMap.put("refundFlag", 0);
                 //date 20191017
@@ -1883,6 +1883,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 } else {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
+                attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
+                attrMap.put("effective", 1);
             }
         }
         updateOrderInfo(orderCode, attrMap, result);

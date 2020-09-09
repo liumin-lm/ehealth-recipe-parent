@@ -1435,13 +1435,13 @@ public class HisRecipeService {
         request.setRecipeCode(recipeCode);
         request.setSerialNumber(serialNumber);
         LOGGER.info("queryHisInsureRecipeInfoFromHis request={}", JSONUtils.toString(request));
-        List<RecipeDetailTO>  response = null;
+        HisResponseTO<List<RecipeDetailTO>> response= new HisResponseTO<>();
         try {
             response = hisService.queryHisInsureRecipeInfo(request);
         } catch (Exception e) {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         LOGGER.info("queryHisInsureRecipeInfoFromHis res={}", JSONUtils.toString(response));
-        return response;
+        return response.getData();
     }
 }
