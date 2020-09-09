@@ -1667,13 +1667,14 @@ public class RecipeHisService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<RecipeDetailTO> queryHisInsureRecipeInfo(Integer organId,String mpiId,String recipeCode,String serialNumber) {
+    public List<HisRecipeDetailBean> queryHisInsureRecipeInfo(Integer organId,String mpiId,String recipeCode,String serialNumber) {
         LOGGER.info("queryHisInsureRecipeInfo organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
-        List<RecipeDetailTO>  response =  queryHisInsureRecipeInfoFromHis(organId,mpiId,recipeCode,serialNumber);
+        List<HisRecipeDetailBean>  response =  queryHisInsureRecipeInfoFromHis(organId,mpiId,recipeCode,serialNumber);
         return response;
     }
 
-    private List<RecipeDetailTO>  queryHisInsureRecipeInfoFromHis(Integer organId, String mpiId, String recipeCode,String serialNumber) {
+    private List<HisRecipeDetailBean>  queryHisInsureRecipeInfoFromHis(Integer organId, String mpiId, String recipeCode,String serialNumber) {
+        List<HisRecipeDetailBean> recipeDetailTOs=new ArrayList<>();
         LOGGER.info("queryHisInsureRecipeInfoFromHis organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
@@ -1718,6 +1719,23 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         LOGGER.info("queryHisInsureRecipeInfoFromHis res={}", JSONUtils.toString(response));
-        return response.getData();
+
+        List<RecipeDetailTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return recipeDetailTOs;
+        }
+
+        for (RecipeDetailTO recipeDetailTO: data){
+            HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+            detailBean.setDrugUnit(recipeDetailTO.getUnit());
+            detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+            detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+            detailBean.setUseDays(recipeDetailTO.getDays());
+            detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+            detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+            recipeDetailTOs.add(detailBean);
+        }
+        return recipeDetailTOs;
     }
 }
