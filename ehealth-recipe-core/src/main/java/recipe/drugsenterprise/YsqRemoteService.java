@@ -18,6 +18,7 @@ import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -94,9 +95,53 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
-
-        return false;
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(drugsDataBean.getOrganId());
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        //最终发给药企的json数据
+        Map<String, Object> sendInfo = new HashMap<>(1);
+        //同时生成订单 0不生成 1生成
+        sendInfo.put("EXEC_ORD", "0");
+        List<Map<String, Object>> titlesInfoList = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("DOCTOR", "黄晨屹");
+        map.put("HOSNAME", organDTO.getName());
+        map.put("AGE", 23);
+        map.put("RECEIVENAME", "李笑飞");
+        map.put("RANGE", 20000);
+        Map<String, Object> position = new HashMap<>();
+        position.put("LONGITUDE", "120.201685");
+        position.put("LATITUDE", "30.255732");
+        map.put("POSITION", position);
+        List list = new ArrayList();
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
+            Map drugMap = new HashMap();
+            drugMap.put("BILLQTY", recipeDetailBean.getUseTotalDose());
+            drugMap.put("DISEASE1", organDrugList.getUsePathways());
+            drugMap.put("NAME", saleDrugList.getSaleName());
+            drugMap.put("PRODUCER", organDrugList.getProducer());
+            drugMap.put("GOODS", saleDrugList.getOrganDrugCode());
+            drugMap.put("GNAME", saleDrugList.getDrugName());
+            drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
+            drugMap.put("SPEC", organDrugList.getDrugSpec());
+            drugMap.put("MSUNITNO", organDrugList.getUnit());
+            list.add(drugMap);
+        }
+        sendInfo.put("DETAILS", list);
+        sendInfo.put("HOSCODE", organDTO.getOrganizeCode());
+        String sendInfoStr = JSONUtils.toString(sendInfo);
+        String methodName = "CheckPrescriptionFialDetail";
+        LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), methodName, sendInfoStr);
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        //发送药企信息
+        sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
+        List<String> result1 = new ArrayList<>();
+        result1.add("111");
+        return result1;
     }
 
     @Override
