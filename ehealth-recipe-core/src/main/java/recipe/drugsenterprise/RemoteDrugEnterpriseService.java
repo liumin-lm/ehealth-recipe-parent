@@ -580,10 +580,14 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 }
             }
 
-            payOnlineType.put("配送到家", supportOnlineList);
-            toStoreType.put("药店取药", toStoreList);
-            result.add(payOnlineType);
-            result.add(toStoreType);
+            if (CollectionUtils.isNotEmpty(supportOnlineList)) {
+                payOnlineType.put("配送到家", supportOnlineList);
+                result.add(payOnlineType);
+            }
+            if (CollectionUtils.isNotEmpty(toStoreList)) {
+                toStoreType.put("药店取药", toStoreList);
+                result.add(toStoreType);
+            }
         }
         if (configurations.contains("supportToHos")) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
