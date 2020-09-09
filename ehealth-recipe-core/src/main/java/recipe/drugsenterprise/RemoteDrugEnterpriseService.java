@@ -561,8 +561,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                             haveInventoryForOnlineList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 1);
                         }
                     }
-                    supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
-                    if (!supportOnlineMap.isEmpty()) {
+                    if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
+                        supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
                         supportOnlineList.add(supportOnlineMap);
                     }
                 }
@@ -577,8 +577,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                             haveInventoryForStoreList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 2);
                         }
                     }
-                    toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
-                    if (!toStoreMap.isEmpty()) {
+                    if (CollectionUtils.isNotEmpty(haveInventoryForStoreList)) {
+                        toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
                         toStoreList.add(toStoreMap);
                     }
                 }

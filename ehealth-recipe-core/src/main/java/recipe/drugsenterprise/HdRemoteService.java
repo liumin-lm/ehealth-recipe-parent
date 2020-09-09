@@ -1547,10 +1547,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         Map<String, String> drugData = new HashMap<>();
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
-            drug.put("drugCode", saleDrugList.getOrganDrugCode());
-            drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
-            hdDrugCodes.add(drug);
-            drugData.put(saleDrugList.getOrganDrugCode(), recipeDetailBean.getUseTotalDose() + "&&" + recipeDetailBean.getDrugName());
+            if (saleDrugList != null) {
+                drug.put("drugCode", saleDrugList.getOrganDrugCode());
+                drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
+                hdDrugCodes.add(drug);
+                drugData.put(saleDrugList.getOrganDrugCode(), recipeDetailBean.getUseTotalDose() + "&&" + recipeDetailBean.getDrugName());
+            }
         }
         map.put("drugList", hdDrugCodes);
         List<String> result = new ArrayList<>();
@@ -1628,25 +1630,27 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 JSONObject jsonObject = JSONObject.parseObject(responseStr);
-                List data = (List)jsonObject.get("data");
+                List datas = (List)jsonObject.get("data");
                 LOGGER.info("responseStr :{}.", responseStr);
-                Map<String, Object> drugMap = (Map<String, Object>) data;
-                List drugInvs = (List)drugMap.get("drugInvs");
-                for (Object drugs : drugInvs) {
-                    Map<String, Object> drugResult = (Map<String, Object>) drugs;
-                    try{
-                        BigDecimal availableSumQty = (BigDecimal)drugResult.get("invQty");
-                        String drugCode = (String)drugResult.get("drugCode");
-                        String drugValue = drugData.get(drugCode);
-                        if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
-                            String[] values = drugValue.split("&&");
-                            double useTotalDose = Double.parseDouble(values[0]);
-                            if (availableSumQty.doubleValue() > useTotalDose) {
-                                result.add(values[1]);
+                for (Object data : datas) {
+                    Map<String, Object> drugMap = (Map<String, Object>) data;
+                    List drugInvs = (List)drugMap.get("drugInvs");
+                    for (Object drugs : drugInvs) {
+                        Map<String, Object> drugResult = (Map<String, Object>) drugs;
+                        try{
+                            Double availableSumQty = Double.parseDouble((String)drugResult.get("invQty"));
+                            String drugCode = (String)drugResult.get("drugCode");
+                            String drugValue = drugData.get(drugCode);
+                            if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
+                                String[] values = drugValue.split("&&");
+                                double useTotalDose = Double.parseDouble(values[0]);
+                                if (availableSumQty > useTotalDose) {
+                                    result.add(values[1]);
+                                }
                             }
+                        }catch(Exception e){
+                            e.printStackTrace();
                         }
-                    }catch(Exception e){
-
                     }
                 }
             } catch (Exception e) {

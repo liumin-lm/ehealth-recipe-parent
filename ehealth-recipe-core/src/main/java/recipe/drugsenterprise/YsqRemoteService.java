@@ -120,16 +120,18 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
             Map drugMap = new HashMap();
-            drugMap.put("BILLQTY", recipeDetailBean.getUseTotalDose());
-            drugMap.put("DISEASE1", organDrugList.getUsePathways());
-            drugMap.put("NAME", saleDrugList.getSaleName());
-            drugMap.put("PRODUCER", organDrugList.getProducer());
-            drugMap.put("GOODS", saleDrugList.getOrganDrugCode());
-            drugMap.put("GNAME", saleDrugList.getDrugName());
-            drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
-            drugMap.put("SPEC", organDrugList.getDrugSpec());
-            drugMap.put("MSUNITNO", organDrugList.getUnit());
-            list.add(drugMap);
+            if (saleDrugList != null && organDrugList != null) {
+                drugMap.put("BILLQTY", recipeDetailBean.getUseTotalDose());
+                drugMap.put("DISEASE1", organDrugList.getUsePathways());
+                drugMap.put("NAME", saleDrugList.getSaleName());
+                drugMap.put("PRODUCER", organDrugList.getProducer());
+                drugMap.put("GOODS", saleDrugList.getOrganDrugCode());
+                drugMap.put("GNAME", saleDrugList.getDrugName());
+                drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
+                drugMap.put("SPEC", organDrugList.getDrugSpec());
+                drugMap.put("MSUNITNO", organDrugList.getUnit());
+                list.add(drugMap);
+            }
         }
         sendInfo.put("DETAILS", list);
         sendInfo.put("HOSCODE", organDTO.getOrganizeCode());
