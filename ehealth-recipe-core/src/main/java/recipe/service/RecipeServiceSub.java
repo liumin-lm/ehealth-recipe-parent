@@ -32,7 +32,7 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
-import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+//import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -47,11 +47,14 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.model.AuditMedicinesDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -115,6 +118,9 @@ public class RecipeServiceSub {
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
     private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
+
+    @Autowired
+    private static IAuditMedicinesService iAuditMedicinesService;
 
     /**
      * @param recipeBean
@@ -1620,10 +1626,10 @@ public class RecipeServiceSub {
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
                 List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                 map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
-                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-                List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+//                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+                List<eh.recipeaudit.model.AuditMedicineIssueDTO> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                    List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                    List<eh.recipeaudit.model.AuditMedicineIssueDTO> resultMedicineIssues = new ArrayList<>();
                     auditMedicineIssues.forEach(item -> {
                         if (null == item.getMedicineId()) {
                             resultMedicineIssues.add(item);
@@ -2222,13 +2228,13 @@ public class RecipeServiceSub {
     }
 
     public static List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
-        AuditMedicineIssueDAO issueDao = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        AuditMedicinesDAO medicinesDao = DAOFactory.getDAO(AuditMedicinesDAO.class);
-        List<AuditMedicines> medicines = medicinesDao.findMedicinesByRecipeId(recipeId);
+//        AuditMedicineIssueDAO issueDao = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+//        AuditMedicinesDAO medicinesDao = DAOFactory.getDAO(AuditMedicinesDAO.class);
+        List<AuditMedicinesDTO> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
         List<AuditMedicinesDTO> list = Lists.newArrayList();
         if (medicines != null && medicines.size() > 0) {
             list = ObjectCopyUtils.convert(medicines, AuditMedicinesDTO.class);
-            List<AuditMedicineIssue> issues = issueDao.findIssueByRecipeId(recipeId);
+            List<eh.recipeaudit.model.AuditMedicineIssueDTO> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
            /* Map<Integer,AuditMedicineIssue> maps = Maps.uniqueIndex(issues.iterator(),  new Function<AuditMedicineIssue, Integer>() {
                 @Override
                 public Integer apply(AuditMedicineIssue entity) {
@@ -2236,10 +2242,10 @@ public class RecipeServiceSub {
                 }
             });*/
             if (issues != null && issues.size() > 0) {
-                List<AuditMedicineIssue> issueList;
+                List<eh.recipeaudit.model.AuditMedicineIssueDTO> issueList;
                 for (AuditMedicinesDTO auditMedicinesDTO : list) {
                     issueList = Lists.newArrayList();
-                    for (AuditMedicineIssue auditMedicineIssue : issues) {
+                    for (eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue : issues) {
                         if (null != auditMedicineIssue.getMedicineId() && auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
                             issueList.add(auditMedicineIssue);
                         }
