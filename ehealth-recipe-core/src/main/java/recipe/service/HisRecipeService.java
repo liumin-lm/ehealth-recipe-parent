@@ -221,9 +221,11 @@ public class HisRecipeService {
         List<Integer> hisRecipeIds = hisRecipeDAO.findHisRecipeByPayFlag(recipeCodes, onlyExistnoHisRecipeVOs.get(0).getClinicOrgan(),onlyExistnoHisRecipeVOs.get(0).getMpiId());
         //delete hisRecipe相关
         //List<Integer> hisRecipeIds = onlyExistnoHisRecipeVOs.stream().map(HisRecipeVO::getHisRecipeID).collect(Collectors.toList());
-        hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
+        if(!CollectionUtils.isEmpty(hisRecipeIds)){
+            hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
+            hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
+            hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
+        }
         LOGGER.info("deleteOnlyExistnoHisRecipeVOs is delete end ");
     }
 
@@ -460,6 +462,9 @@ public class HisRecipeService {
      */
     public List<HisRecipeVO> covertToHisRecipeObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
         List<HisRecipeVO> hisRecipeVOs=new ArrayList<>();
+        if(responseTO==null){
+            return hisRecipeVOs;
+        }
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
@@ -1167,6 +1172,9 @@ public class HisRecipeService {
      */
     private void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO) {
         LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}", JSONUtils.toString(hisRecipeTO));
+        if(CollectionUtils.isEmpty(hisRecipeTO)){
+            return;
+        }
         Integer clinicOrgan = hisRecipeTO.get(0).getClinicOrgan();
         if (null == clinicOrgan) {
             LOGGER.info("hisRecipeInfoCheck his data error clinicOrgan is null");

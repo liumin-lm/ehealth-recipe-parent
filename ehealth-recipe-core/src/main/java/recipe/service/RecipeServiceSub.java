@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.aliyun.oss.common.utils.DateUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -81,6 +82,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -746,6 +748,8 @@ public class RecipeServiceSub {
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -761,6 +765,13 @@ public class RecipeServiceSub {
             paramMap.put("pName", p.getPatientName());
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
+            //date 20200908 添加体重字段，住院病历号，就诊卡号
+            paramMap.put("pWeight", p.getWeight() + "kg");
+            paramMap.put("pHisID", recipe.getPatientID());
+            if(null != extend){
+                paramMap.put("pCardNo", extend.getCardNo());
+            }
+
             paramMap.put("pType", DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(p.getPatientType()));
             paramMap.put("doctor", DictionaryController.instance().get("eh.base.dictionary.Doctor").getText(recipe.getDoctor()));
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
@@ -830,6 +841,8 @@ public class RecipeServiceSub {
     public static Map<String, Object> createParamMapForChineseMedicine(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -845,6 +858,20 @@ public class RecipeServiceSub {
             paramMap.put("pName", p.getPatientName());
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
+            //date 20200908 添加体重字段，住院病历号，就诊卡号
+            paramMap.put("pWeight", p.getWeight() + "kg");
+            paramMap.put("pHisID", recipe.getPatientID());
+            //date 20200909 添加字段，嘱托,煎法,制法,次量,每付取汁,天数
+            paramMap.put("tcmRecipeMemo", recipe.getRecipeMemo());
+
+            if(null != extend){
+                paramMap.put("pCardNo", extend.getCardNo());
+                paramMap.put("tcmDecoction", extend.getDecoctionText());
+                paramMap.put("tcmJuice", extend.getJuice() + extend.getJuiceUnit());
+                paramMap.put("tcmMinor", extend.getMinor() + extend.getMinorUnit());
+                paramMap.put("tcmMakeMethod", extend.getMakeMethodText());
+            }
+
             paramMap.put("pType", DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(p.getPatientType()));
             paramMap.put("doctor", DictionaryController.instance().get("eh.base.dictionary.Doctor").getText(recipe.getDoctor()));
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
@@ -897,6 +924,7 @@ public class RecipeServiceSub {
                     paramMap.put("tcmUsingRate", d.getUsingRate());
                 }
 
+                paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -1459,6 +1487,9 @@ public class RecipeServiceSub {
 
     public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
         RecipeBean r = new RecipeBean();
+        r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
         r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
@@ -1469,7 +1500,9 @@ public class RecipeServiceSub {
             stringBuilder.append(recipedetail.getDrugName());
             stringBuilder.append(" ").append((recipedetail.getDrugSpec()) == null ? "" : recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit() == null ? "" : recipedetail.getDrugUnit()).append("、");
         }
-        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        if(stringBuilder.length()>0){
+            stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        }
         r.setRecipeDrugName(stringBuilder.toString());
 
         r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));

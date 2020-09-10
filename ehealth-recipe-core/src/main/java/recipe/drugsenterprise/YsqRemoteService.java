@@ -826,22 +826,16 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("IDENTIFICATION", patient.getCertificate());
             //recipeMap.put("USERID", recipe.getPatientID());
             recipeMap.put("TELPHONE", patient.getMobile());
-            if (sendRecipe) {
-                recipeMap.put("RECEIVENAME", order.getReceiver());
-                recipeMap.put("RECEIVETEL", order.getRecMobile());
-                recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
-            } else {
-                recipeMap.put("RECEIVENAME", patient.getPatientName());
-                recipeMap.put("RECEIVETEL", patient.getMobile());
-                recipeMap.put("ACCAMOUNT", recipe.getTotalMoney().toString());
-            }
+            recipeMap.put("RECEIVENAME", order.getReceiver());
+            recipeMap.put("RECEIVETEL", order.getRecMobile());
+            recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
             recipeMap.put("ALLERGY", "");
             recipeMap.put("REMARK", StringUtils.defaultString(recipe.getMemo(), ""));
             recipeMap.put("DEPT", iDepartmentService.getNameById(recipe.getDepart()));
             recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
             //放置药店编码和名称
-            if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+            if (StringUtils.isNotEmpty(order.getDrugStoreCode())) {
                 recipeMap.put("GYSCODE", order.getDrugStoreCode());
                 recipeMap.put("GYSNAME", order.getDrugStoreName());
             }
@@ -875,15 +869,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         drugListMap.put(drugId, drug);
                     }
 
-                    if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
-                        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
-                        LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
-                        if (saleDrugList != null) {
-                            detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
-                        }
-                    } else {
-                        detailMap.put("GOODS", drugId.toString());
+
+                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                    LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
+                    if (saleDrugList != null) {
+                        detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
                     }
+
                     detailMap.put("NAME", drug.getSaleName());
                     detailMap.put("GNAME", drug.getDrugName());
                     detailMap.put("SPEC", drug.getDrugSpec());
