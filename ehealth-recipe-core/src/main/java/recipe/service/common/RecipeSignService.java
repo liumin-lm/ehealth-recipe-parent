@@ -37,7 +37,6 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
@@ -276,7 +275,7 @@ public class RecipeSignService {
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
             if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
-                RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 //不用发药师消息
                 sendYsCheck = false;
                 //跳过人工审核
@@ -285,7 +284,7 @@ public class RecipeSignService {
                 checkResult.setCheckDoctorId(dbRecipe.getDoctor());
                 checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
                 try {
-                    checkService.autoPassForCheckYs(checkResult);
+                    recipeService.autoPassForCheckYs(checkResult);
                 } catch (Exception e) {
                     LOG.error("sign 药师自动审核失败. recipeId={}", recipeId,e);
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,

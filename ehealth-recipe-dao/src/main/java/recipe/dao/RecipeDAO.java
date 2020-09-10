@@ -23,6 +23,9 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -936,7 +939,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 q.setParameterList("organ", organ);
                 if (flag == 1 || flag == notPass) {
                     q.setParameterList("recipeIds", recipeIds);
-                }else {
+                } else {
                     q.setParameterList("recipeTypes", recipeTypes);
                 }
                 q.setFirstResult(start);
@@ -1225,14 +1228,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
                 checkResult = RecipePharmacistCheckConstant.Second_Sign;
             } else {
-                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-                List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+                IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+                RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipe.getRecipeId());
                 //有审核记录就展示
-                if (CollectionUtils.isNotEmpty(recipeCheckList)) {
-                    RecipeCheck recipeCheck = recipeCheckList.get(0);
-                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
+                if(recipeCheckBean != null) {
+                    if (null != recipeCheckBean.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheckBean.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                    } else if (null != recipeCheckBean.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheckBean.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                 }
@@ -2993,7 +2995,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param type     0 包含1和2   1医生强制通过  2不包含医生强制通过
      * @return
      */
-    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer>recipeTypes,Integer type) {
+    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer> recipeTypes, Integer type) {
         HibernateStatelessResultAction<List<Integer>> action = new AbstractHibernateStatelessResultAction<List<Integer>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {

@@ -26,6 +26,9 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -632,13 +635,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         //添加挂号序号
                         recipeMap.put("REGISTRATIONNUMBER", recipeExtend.getRegisterID());
                     }
-                    RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-                    RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipeId);
-                    if (recipeCheck != null) {
-                        recipeMap.put("REVIEWUSER", recipeCheck.getCheckerName());
+                    IRecipeCheckService recipeCheckService=  RecipeAuditAPI.getService(IRecipeCheckService.class,"recipeCheckServiceImpl");
+                    RecipeCheckBean recipeCheckBean = recipeCheckService.getByRecipeId(recipe.getRecipeId());
+                    if (recipeCheckBean != null) {
+                        recipeMap.put("REVIEWUSER", recipeCheckBean.getCheckerName());
                         recipeMap.put("REVIEWSTATE", "true");
-                        recipeMap.put("REVIEWMSG", recipeCheck.getMemo());
-                        recipeMap.put("REVIEWTIME", recipeCheck.getCheckDate());
+                        recipeMap.put("REVIEWMSG", recipeCheckBean.getMemo());
+                        recipeMap.put("REVIEWTIME", recipeCheckBean.getCheckDate());
                     }
 
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
