@@ -1203,7 +1203,14 @@ public class DrugToolService implements IDrugToolService {
         for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
             SaleDrugList sales = saleDrugListDAO.getByOrganIdAndDrugCode(organDrugList.getOrganId(), organDrugList.getOrganDrugCode());
-            if (sales == null) {
+            SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
+            if (sales != null) {
+                sales.setPrice(organDrugList.getSalePrice());
+                sales.setLastModify(new Date());
+                saleDrugListDAO.update(sales);
+                update++;
+
+            }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
                 saleDrugList.setDrugSpec(organDrugList.getDrugSpec());
@@ -1220,21 +1227,8 @@ public class DrugToolService implements IDrugToolService {
                 saleDrugList.setLastModify(new Date());
                 saleDrugListDAO.save(saleDrugList);
                 save++;
-            }else {
-                sales.setDrugId(organDrugList.getDrugId());
-                sales.setDrugName(organDrugList.getDrugName());
-                sales.setDrugSpec(organDrugList.getDrugSpec());
-                sales.setOrganId(depId);
-                sales.setStatus(1);
-                sales.setPrice(organDrugList.getSalePrice());
-                if (flag) {
-                    sales.setOrganDrugCode(organDrugList.getOrganDrugCode());
-                } else {
-                    sales.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
-                }
-                sales.setLastModify(new Date());
-                saleDrugListDAO.update(sales);
-                update++;
+            }else{
+                continue;
             }
 
         }
