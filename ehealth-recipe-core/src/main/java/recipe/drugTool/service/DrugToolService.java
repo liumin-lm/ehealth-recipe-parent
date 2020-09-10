@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
@@ -1197,10 +1198,20 @@ public class DrugToolService implements IDrugToolService {
         }
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
         SaleDrugList saleDrugList;
+        Integer save=0;
+        Integer update=0;
         for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
-            SaleDrugList sales = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
-            if (sales == null) {
+            List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(organDrugList.getOrganId(), organDrugList.getOrganDrugCode());
+            SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
+            if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
+                SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
+                saleDrugList1.setPrice(organDrugList.getSalePrice());
+                saleDrugList1.setLastModify(new Date());
+                saleDrugListDAO.update(saleDrugList1);
+                update++;
+
+            }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
                 saleDrugList.setDrugSpec(organDrugList.getDrugSpec());
@@ -1216,11 +1227,13 @@ public class DrugToolService implements IDrugToolService {
                 saleDrugList.setCreateDt(new Date());
                 saleDrugList.setLastModify(new Date());
                 saleDrugListDAO.save(saleDrugList);
+                save++;
+            }else{
+                continue;
             }
 
         }
-
-
+        throw new DAOException(DAOException.VALUE_NEEDED, "新增"+save+"个药品，更新"+update+"个药品。");
     }
 
     /**

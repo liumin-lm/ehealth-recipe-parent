@@ -3,6 +3,7 @@ package recipe.drugsenterprise;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
@@ -194,7 +195,7 @@ public abstract class AccessDrugEnterpriseService {
      */
     public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId);
 
-    public abstract boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag);
+    public abstract List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag);
 
     /**
      * 库存检验

@@ -29,6 +29,24 @@ public class HisRecipeBean implements Serializable {
     private String doctorName;
     private Integer checkStatus;
     private List<HisRecipeDetailBean> detailData;
+    private Integer queryStatus;
+    private String serialNumber;
+
+    public Integer getQueryStatus() {
+        return queryStatus;
+    }
+
+    public void setQueryStatus(Integer queryStatus) {
+        this.queryStatus = queryStatus;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
 
     public String getRegisteredId() {
         return registeredId;

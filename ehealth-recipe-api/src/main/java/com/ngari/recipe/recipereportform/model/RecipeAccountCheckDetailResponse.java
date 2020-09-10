@@ -41,4 +41,6 @@ public class RecipeAccountCheckDetailResponse implements Serializable{
     private String tradeNo; //商户订单号
 
     private String mpiId; //用户mpiid
+
+    private String recipeCode; //his处方单号
 }

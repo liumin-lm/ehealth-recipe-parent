@@ -13,8 +13,9 @@ import org.springframework.util.StringUtils;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.ErrorCode;
 import recipe.service.RecipeServiceSub;
+import recipe.util.ByteUtils;
+import recipe.util.MapValueUtil;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,8 +32,16 @@ public class RecipeLabelManager {
     @Autowired
     private IScratchableService scratchableService;
 
-
+    /**
+     * 获取处方签 配置 给前端展示。
+     * 1获取处方信息，2获取运营平台配置，3替换运营平台配置字段值，4返回对象给前端展示
+     *
+     * @param recipeId 处方id
+     * @param organId  机构id
+     * @return
+     */
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(Integer recipeId, Integer organId) {
+        logger.info("RecipeLabelManager queryRecipeLabelById recipeId={},organId={}", recipeId, organId);
         if (null == recipeId || null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "parameter is null!");
         }
@@ -50,13 +59,27 @@ public class RecipeLabelManager {
             if (CollectionUtils.isEmpty(value)) {
                 return;
             }
-            List<RecipeLabelVO> list = getValue(value, recipeMap);
-            resultMap.put(k, list);
+            try {
+                List<RecipeLabelVO> list = getValue(value, recipeMap);
+                resultMap.put(k, list);
+            } catch (Exception e) {
+                logger.error("RecipeLabelManager queryRecipeLabelById error ", e);
+            }
         });
+        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toBytes(resultMap));
         return resultMap;
     }
 
+    /**
+     * 根据运营平台配置 组织字段值对象
+     * todo 暂时支持固定格式解析 （目前需求如此，后续如需求变更） 可优化为全格式解析
+     *
+     * @param scratchableList
+     * @param recipeMap
+     * @return
+     */
     private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap) {
+        logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toBytes(scratchableList), JSONUtils.toBytes(recipeMap));
         List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
         scratchableList.forEach(a -> {
             if (StringUtils.isEmpty(a.getBoxLink())) {
@@ -65,45 +88,40 @@ public class RecipeLabelManager {
             RecipeLabelVO recipeLabel = new RecipeLabelVO();
             recipeLabel.setName(a.getBoxTxt());
             recipeLabel.setEnglishName(a.getBoxLink());
+
             Object obj = recipeMap.get(a.getBoxLink());
+            String[] boxLinks = a.getBoxLink().split(ByteUtils.COMMA);
+
             if (null != obj) {
+                //一层结构对象
                 recipeLabel.setValue(obj);
+            } else if (boxLinks.length > 1) {
+                //一层结构 逗号 分隔对象
+                StringBuilder value = new StringBuilder();
+                for (String boxLink : boxLinks) {
+                    obj = recipeMap.get(boxLink);
+                    if (null == obj) {
+                        logger.warn("RecipeLabelManager getValue boxLink ={}", JSONUtils.toBytes(boxLink));
+                        continue;
+                    }
+                    value.append(obj).append(ByteUtils.COMMA);
+                }
+                if (!StringUtils.isEmpty(value)) {
+                    recipeLabel.setValue(value.toString());
+                }
             } else {
-                String[] boxLink = a.getBoxLink().split("\\.");
-                if (2 == boxLink.length) {
-                    obj = recipeMap.get(boxLink[0]);
-                    String str = getFieldValueByName(boxLink[1], obj);
+                //两层对象获取字段
+                boxLinks = a.getBoxLink().split(ByteUtils.DOT);
+                if (2 == boxLinks.length) {
+                    obj = recipeMap.get(boxLinks[0]);
+                    String str = MapValueUtil.getFieldValueByName(boxLinks[1], obj);
                     recipeLabel.setValue(str);
                 } else {
-                    logger.error("RecipeLabelManager getValue boxLink ={}", JSONUtils.toBytes(boxLink));
+                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toBytes(boxLinks));
                 }
             }
             recipeLabelList.add(recipeLabel);
         });
         return recipeLabelList;
-    }
-
-    public String getFieldValueByName(String fieldName, Object o) {
-        if (StringUtils.isEmpty(fieldName) || null == o) {
-            return null;
-        }
-        try {
-            String getter = "get" + captureName(fieldName);
-            Method method = o.getClass().getMethod(getter);
-            Object value = method.invoke(o);
-            if (null == value) {
-                return "";
-            }
-            return value.toString();
-        } catch (Exception e) {
-            logger.error("getFieldValueByName error fieldName ={}", fieldName, e);
-            return null;
-        }
-    }
-
-    public static String captureName(String name) {
-        char[] cs = name.toCharArray();
-        cs[0] -= 32;
-        return String.valueOf(cs);
     }
 }

@@ -164,7 +164,7 @@ public class HisRecipeService {
                 String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getRecipeCode();
                 Boolean isEquals=false;
                 for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
-                    String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan();
+                    String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode();
                     if(!StringUtils.isEmpty(noPayFeeHisRecipeVOKey)){
                         if(noPayFeeHisRecipeVOKey.equals(hisRecipeVoKey)){
                             isEquals=true;
@@ -221,9 +221,11 @@ public class HisRecipeService {
         List<Integer> hisRecipeIds = hisRecipeDAO.findHisRecipeByPayFlag(recipeCodes, onlyExistnoHisRecipeVOs.get(0).getClinicOrgan(),onlyExistnoHisRecipeVOs.get(0).getMpiId());
         //delete hisRecipe相关
         //List<Integer> hisRecipeIds = onlyExistnoHisRecipeVOs.stream().map(HisRecipeVO::getHisRecipeID).collect(Collectors.toList());
-        hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
+        if(!CollectionUtils.isEmpty(hisRecipeIds)){
+            hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
+            hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
+            hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
+        }
         LOGGER.info("deleteOnlyExistnoHisRecipeVOs is delete end ");
     }
 
@@ -419,6 +421,7 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
+
         //过滤数据
         responseTO=filterData(responseTO);
         return responseTO;
@@ -434,17 +437,19 @@ public class HisRecipeService {
     private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTO) {
         if(!StringUtils.isEmpty(recipeCodeThreadLocal.get())){
             String recipeCode=recipeCodeThreadLocal.get();
-            LOGGER.info("queryHisRecipeInfo recipeCodeThreadLocal:{}",recipeCode);
-            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
-            List<QueryHisRecipResTO> queryHisRecipResTOFilters=new ArrayList<>();
-            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
-                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
-                    if(recipeCode.equals(queryHisRecipResTO.getRecipeCode())){
-                        queryHisRecipResTOFilters.add(queryHisRecipResTO);
+            if(responseTO!=null){
+                LOGGER.info("queryHisRecipeInfo recipeCodeThreadLocal:{}",recipeCode);
+                List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
+                List<QueryHisRecipResTO> queryHisRecipResTOFilters=new ArrayList<>();
+                if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
+                    for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
+                        if(recipeCode.equals(queryHisRecipResTO.getRecipeCode())){
+                            queryHisRecipResTOFilters.add(queryHisRecipResTO);
+                        }
                     }
                 }
+                responseTO.setData(queryHisRecipResTOFilters);
             }
-            responseTO.setData(queryHisRecipResTOFilters);
         }
         return responseTO;
     }
@@ -458,6 +463,9 @@ public class HisRecipeService {
      */
     public List<HisRecipeVO> covertToHisRecipeObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
         List<HisRecipeVO> hisRecipeVOs=new ArrayList<>();
+        if(responseTO==null){
+            return hisRecipeVOs;
+        }
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
@@ -547,6 +555,9 @@ public class HisRecipeService {
                     }
                     hisRecipeVO.setRecipeDetail(hisRecipeDetailVOs);
                 }
+                hisRecipeVOs.add(hisRecipeVO);
+            }else{
+                HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
                 hisRecipeVOs.add(hisRecipeVO);
             }
         }
@@ -782,6 +793,9 @@ public class HisRecipeService {
             }
         }
         //存储到recipe相关表
+        if(hisRecipeId==null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "hisRecipeId不能为空！");
+        }
         return getHisRecipeDetailByHisRecipeId(hisRecipeId);
 
     }
@@ -1159,6 +1173,9 @@ public class HisRecipeService {
      */
     private void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO) {
         LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}", JSONUtils.toString(hisRecipeTO));
+        if(CollectionUtils.isEmpty(hisRecipeTO)){
+            return;
+        }
         Integer clinicOrgan = hisRecipeTO.get(0).getClinicOrgan();
         if (null == clinicOrgan) {
             LOGGER.info("hisRecipeInfoCheck his data error clinicOrgan is null");

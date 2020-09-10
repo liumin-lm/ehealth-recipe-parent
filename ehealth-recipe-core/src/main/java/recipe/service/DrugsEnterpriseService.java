@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.Advice.IAdviceService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -251,18 +252,24 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     }
 
     @RpcService
-    public List<DrugsEnterpriseBean>  getDrugsEnterprise(){
+    public QueryResult<DrugsEnterpriseBean>  getDrugsEnterprise(Integer status){
         UserRoleToken urt = UserRoleToken.getCurrent();
-        Integer organId = urt.getOrganId();
-        if(organId == null){
-            return null;
-        }
+        String manageUnit = urt.getManageUnit();
+        QueryResult<DrugsEnterpriseBean> result = new QueryResult<>();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> allDrugsEnterpriseByOrhanId = drugsEnterpriseDAO.findAllDrugsEnterpriseByOrhanId(organId);
-        if (allDrugsEnterpriseByOrhanId == null){
-            return null;
+        if (manageUnit.equals("eh")){
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(manageUnit, null,status);
+        }else if (manageUnit.startsWith("yq")){
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(manageUnit, null,status);
+        }else{
+            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+            List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit("%"+manageUnit+"%");
+            if (organIdsByManageUnit == null){
+                return result;
+            }
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(null, organIdsByManageUnit,status);
         }
-        return ObjectCopyUtils.convert(allDrugsEnterpriseByOrhanId, DrugsEnterpriseBean.class);
+        return result;
     }
 
 
@@ -278,9 +285,20 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     @RpcService
     public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final Integer organId ,int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType,organId, start, limit);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String manageUnit = urt.getManageUnit();
+        QueryResult result = new QueryResult<>();
+        if (!manageUnit.equals("eh")){
+            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+            List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit("%"+manageUnit+"%");
+            if (organIdsByManageUnit == null){
+                return result;
+            }
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType,organId,organIdsByManageUnit, start, limit);
+        }else {
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType,organId,null, start, limit);
+        }
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
-
         if(null == createType || createType.equals(0)){
             PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
             List<Pharmacy> listS = pharmacyDAO.find1();
