@@ -59,8 +59,12 @@ public class RecipeLabelManager {
             if (CollectionUtils.isEmpty(value)) {
                 return;
             }
-            List<RecipeLabelVO> list = getValue(value, recipeMap);
-            resultMap.put(k, list);
+            try {
+                List<RecipeLabelVO> list = getValue(value, recipeMap);
+                resultMap.put(k, list);
+            } catch (Exception e) {
+                logger.error("RecipeLabelManager queryRecipeLabelById error ", e);
+            }
         });
         logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toBytes(resultMap));
         return resultMap;
@@ -97,10 +101,10 @@ public class RecipeLabelManager {
                 for (String boxLink : boxLinks) {
                     obj = recipeMap.get(boxLink);
                     if (null == obj) {
-                        logger.error("RecipeLabelManager getValue boxLink ={}", JSONUtils.toBytes(boxLink));
+                        logger.warn("RecipeLabelManager getValue boxLink ={}", JSONUtils.toBytes(boxLink));
                         continue;
                     }
-                    value.append(obj).append(",");
+                    value.append(obj).append(ByteUtils.COMMA);
                 }
                 if (!StringUtils.isEmpty(value)) {
                     recipeLabel.setValue(value.toString());
@@ -113,7 +117,7 @@ public class RecipeLabelManager {
                     String str = MapValueUtil.getFieldValueByName(boxLinks[1], obj);
                     recipeLabel.setValue(str);
                 } else {
-                    logger.error("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toBytes(boxLinks));
+                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toBytes(boxLinks));
                 }
             }
             recipeLabelList.add(recipeLabel);

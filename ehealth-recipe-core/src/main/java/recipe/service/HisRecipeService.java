@@ -164,7 +164,7 @@ public class HisRecipeService {
                 String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getRecipeCode();
                 Boolean isEquals=false;
                 for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
-                    String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan();
+                    String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode();
                     if(!StringUtils.isEmpty(noPayFeeHisRecipeVOKey)){
                         if(noPayFeeHisRecipeVOKey.equals(hisRecipeVoKey)){
                             isEquals=true;
@@ -421,6 +421,7 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
+
         //过滤数据
         responseTO=filterData(responseTO);
         return responseTO;
