@@ -48,18 +48,17 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
-import eh.recipeaudit.api.IAuditMedicinesService;
-import eh.recipeaudit.model.AuditMedicinesDTO;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.module.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.model.AuditMedicinesDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -74,7 +73,6 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.sign.SignRecipeInfoService;
@@ -86,7 +84,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,10 +120,10 @@ public class RecipeServiceSub {
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
-    private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
-    ;
+    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+
 
     /**
      * @param recipeBean
@@ -155,7 +152,7 @@ public class RecipeServiceSub {
         EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
         emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
         //武昌需求，加入处方扩展信息---扩展信息处理
-        doWithRecipeExtend(patient,recipeBean,recipeId);
+        doWithRecipeExtend(patient, recipeBean, recipeId);
 
         //加入历史患者
         saveOperationRecordsForRecipe(patient, recipe);
@@ -182,13 +179,13 @@ public class RecipeServiceSub {
                 }
             }
             //慢病开关
-            if (recipeExtend.getRecipeChooseChronicDisease()==null){
+            if (recipeExtend.getRecipeChooseChronicDisease() == null) {
                 try {
                     IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer recipeChooseChronicDisease = (Integer)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
+                    Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
                     recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
-                }catch (Exception e){
-                    LOGGER.error("doWithRecipeExtend 获取开关异常",e);
+                } catch (Exception e) {
+                    LOGGER.error("doWithRecipeExtend 获取开关异常", e);
                 }
             }
 
@@ -424,7 +421,7 @@ public class RecipeServiceSub {
                 OrganDrugList organDrug;
                 List<String> delOrganDrugName = Lists.newArrayList();
                 PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
-                com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService",IUsingRateService.class);
+                com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
                 com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
@@ -450,18 +447,18 @@ public class RecipeServiceSub {
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
                         //频次处理
-                        if (StringUtils.isNotEmpty(detail.getUsingRateId())){
+                        if (StringUtils.isNotEmpty(detail.getUsingRateId())) {
                             UsingRateDTO usingRateDTO = usingRateService.getById(Integer.valueOf(detail.getUsingRateId()));
-                            if (usingRateDTO !=null){
+                            if (usingRateDTO != null) {
                                 detail.setUsingRateTextFromHis(usingRateDTO.getText());
                                 detail.setOrganUsingRate(usingRateDTO.getUsingRateKey());
                                 detail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
                             }
                         }
                         //用法处理
-                        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())){
+                        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())) {
                             UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.valueOf(detail.getUsePathwaysId()));
-                            if (usePathwaysDTO !=null){
+                            if (usePathwaysDTO != null) {
                                 detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
                                 detail.setOrganUsePathways(usePathwaysDTO.getPathwaysKey());
                                 detail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
@@ -469,10 +466,10 @@ public class RecipeServiceSub {
                         }
                         //中药基础数据处理
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                            if(StringUtils.isBlank(detail.getUsePathways())){
+                            if (StringUtils.isBlank(detail.getUsePathways())) {
                                 detail.setUsePathways(recipe.getTcmUsePathways());
                             }
-                            if(StringUtils.isBlank(detail.getUsingRate())){
+                            if (StringUtils.isBlank(detail.getUsingRate())) {
                                 detail.setUsingRate(recipe.getTcmUsingRate());
                             }
 
@@ -481,7 +478,7 @@ public class RecipeServiceSub {
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            if(detail.getUseDays()==null){
+                            if (detail.getUseDays() == null) {
                                 detail.setUseDays(recipe.getCopyNum());
                             }
                             if (detail.getUseDose() != null) {
@@ -493,7 +490,7 @@ public class RecipeServiceSub {
 //                            if(null != recipe.getCopyNum()){
 //                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
 //                            }
-                            if(detail.getUseDays()==null){
+                            if (detail.getUseDays() == null) {
                                 detail.setUseDays(recipe.getCopyNum());
                             }
                             if (detail.getUseDose() != null) {
@@ -518,9 +515,9 @@ public class RecipeServiceSub {
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
                         //药房处理
-                        if (detail.getPharmacyId() != null && StringUtils.isEmpty(detail.getPharmacyName())){
+                        if (detail.getPharmacyId() != null && StringUtils.isEmpty(detail.getPharmacyName())) {
                             PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
-                            if(pharmacyTcm!=null){
+                            if (pharmacyTcm != null) {
                                 detail.setPharmacyName(pharmacyTcm.getPharmacyName());
                             }
                         }
@@ -545,7 +542,7 @@ public class RecipeServiceSub {
                 success = true;
             } else {
                 LOGGER.warn("setDetailsInfo organDrugList. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
-                throw new DAOException(ErrorCode.SERVICE_ERROR,"药品已失效，请重新选择药品");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品已失效，请重新选择药品");
             }
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
@@ -747,7 +744,7 @@ public class RecipeServiceSub {
      *
      * @param recipe  处方对象
      * @param details 处方详情
-     * @return Map<String, Object>
+     * @return Map<String   ,       Object>
      */
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
@@ -917,14 +914,14 @@ public class RecipeServiceSub {
                     dTotal = dTotal + "*" + d.getMemo();
                 }
                 paramMap.put("drugInfo" + i, dName + "¨" + dTotal);
-                if (StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))) {
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
                     paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
-                } else {
+                }else{
                     paramMap.put("tcmUsePathways", d.getUsePathways());
                 }
-                if (StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))) {
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))){
                     paramMap.put("tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()));
-                } else {
+                }else{
                     paramMap.put("tcmUsingRate", d.getUsingRate());
                 }
 
@@ -1257,10 +1254,10 @@ public class RecipeServiceSub {
                     tips = "待处理";
                     break;
                 case RecipeStatusConstant.REVOKE:
-                    if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                    if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))) {
                         cancelReason = "由于患者申请退费成功，该处方已取消。";
                         tips = "已取消";
-                    }else{
+                    } else {
                         tips = "已撤销";
                         cancelReason = "由于您已撤销，该处方单已失效";
                         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
@@ -1587,21 +1584,21 @@ public class RecipeServiceSub {
         map.put("patient", patient);
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
         //隐方
-        boolean isHiddenRecipeDetail=false;
-        if(isDoctor==false){
-            boolean isReturnRecipeDetail=recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
-            if(!isReturnRecipeDetail){
-                List<RecipeDetailBean> recipeDetailVOs=(List<RecipeDetailBean>)map.get("recipedetails");
-                if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
-                    for(int j=0;j<recipeDetailVOs.size();j++){
+        boolean isHiddenRecipeDetail = false;
+        if (isDoctor == false) {
+            boolean isReturnRecipeDetail = recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
+            if (!isReturnRecipeDetail) {
+                List<RecipeDetailBean> recipeDetailVOs = (List<RecipeDetailBean>) map.get("recipedetails");
+                if (recipeDetailVOs != null && recipeDetailVOs.size() > 0) {
+                    for (int j = 0; j < recipeDetailVOs.size(); j++) {
                         recipeDetailVOs.get(j).setDrugName(null);
                         recipeDetailVOs.get(j).setDrugSpec(null);
                     }
                 }
             }
-            isHiddenRecipeDetail=!isReturnRecipeDetail;
+            isHiddenRecipeDetail = !isReturnRecipeDetail;
         }
-        map.put("isHiddenRecipeDetail",isHiddenRecipeDetail);
+        map.put("isHiddenRecipeDetail", isHiddenRecipeDetail);
 
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
@@ -1618,10 +1615,9 @@ public class RecipeServiceSub {
             Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
             map.put("tips", MapValueUtil.getString(tipMap, "tips"));
-
-            RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+            IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
-            List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
+            List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
             map.put("reasonAndDetails", mapList);
 
             //设置处方撤销标识 true:可以撤销, false:不可撤销
@@ -2126,15 +2122,13 @@ public class RecipeServiceSub {
 
     private static boolean isShowChecker(int recipeId, Recipe recipe) {
         boolean showChecker = false;
-        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
-        if (CollectionUtils.isNotEmpty(recipeCheckList)) {
-            LOGGER.info("当前处方已有审核记录{}", recipeId);
-            //取最新的审核记录
-            RecipeCheck recipeCheck = recipeCheckList.get(0);
-            //判断是否是通过的
-            if (null != recipeCheck.getCheckStatus() && 1 == recipeCheck.getCheckStatus()) {
+        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipe.getRecipeId());
+        LOGGER.info("当前处方已有审核记录{}", recipeId);
+        //判断是否是通过的
+        if (recipeCheckBean != null) {
+            if (null != recipeCheckBean.getCheckStatus() && 1 == recipeCheckBean.getCheckStatus()) {
                 LOGGER.info("当前处方已有审核通过记录{}", recipeId);
                 //判断有没有不通过的记录，没有就说明是直接审核通过的
                 List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.CHECK_NOT_PASS_YS);
