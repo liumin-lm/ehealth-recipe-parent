@@ -212,8 +212,15 @@ public class PurchaseService {
                 return result;
             }
             HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(),dbRecipe.getClinicId(),dbRecipe.getRecipeCode());
-            if (!organDiseaseId.equals(hisRecipe.getDisease()) || !organDiseaseName.equals(hisRecipe.getDiseaseName())) {
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(),dbRecipe.getClinicOrgan(),dbRecipe.getRecipeCode());
+            if(hisRecipe!=null){
+                if (!organDiseaseId.equals(hisRecipe.getDisease()) || !organDiseaseName.equals(hisRecipe.getDiseaseName())) {
+                    result.setCode(RecipeResultBean.CHECKFAIL);
+                    result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                    LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2",recipeId);
+                    return result;
+                }
+            }else{
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2",recipeId);
