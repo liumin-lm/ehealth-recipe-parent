@@ -1490,7 +1490,6 @@ public class RecipeServiceSub {
         RecipeBean r = new RecipeBean();
         r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
         r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
