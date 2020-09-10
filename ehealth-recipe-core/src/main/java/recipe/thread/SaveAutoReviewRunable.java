@@ -2,11 +2,10 @@ package recipe.thread;
 
 import com.google.common.collect.Lists;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
-import com.ngari.recipe.audit.model.AuditMedicinesDTO;
-import com.ngari.recipe.entity.AuditMedicineIssue;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
+import eh.recipeaudit.api.IAuditMedicinesService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +15,6 @@ import recipe.audit.bean.Issue;
 import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
-import recipe.dao.AuditMedicineIssueDAO;
-import recipe.dao.AuditMedicinesDAO;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,15 +46,16 @@ public class SaveAutoReviewRunable implements Runnable {
         Integer recipeId = this.recipe.getRecipeId();
         LOGGER.info("SaveAutoReview start. recipeId={}", recipeId);
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
-        AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+        IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+//        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
+//        AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
         AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
-        List<AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
+        List<eh.recipeaudit.model.AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
         List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
         List<PAWebRecipeDanger> recipeDangers = autoAuditResult.getRecipeDangers();
         if (CollectionUtils.isNotEmpty(recipeDangers)) {
-            recipeDangers.forEach(item->{
-                AuditMedicineIssue auditMedicineIssue = new AuditMedicineIssue();
+            recipeDangers.forEach(item -> {
+                eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue = new eh.recipeaudit.model.AuditMedicineIssueDTO();
                 auditMedicineIssue.setRecipeId(recipeId);
                 auditMedicineIssue.setLvl(item.getDangerType());
                 auditMedicineIssue.setLvlCode(item.getDangerLevel());
@@ -68,22 +65,22 @@ public class SaveAutoReviewRunable implements Runnable {
                 auditMedicineIssue.setLastModify(new Date());
                 auditMedicineIssue.setDetailUrl(item.getDetailUrl());
                 auditMedicineIssue.setLogicalDeleted(0);
-                auditMedicineIssueDAO.save(auditMedicineIssue);
+                iAuditMedicinesService.saveAuditMedicineIssue(auditMedicineIssue);
             });
         }
         if (CollectionUtils.isEmpty(paResultList)) {
-            AuditMedicinesDTO auditMedicinesDTO = new AuditMedicinesDTO();
+            eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
             auditMedicinesDTO.setRecipeId(recipeId);
             auditMedicinesDTO.setRemark(autoAuditResult.getMsg());
             auditMedicinesList.add(auditMedicinesDTO);
-            auditMedicinesDAO.save(recipeId, auditMedicinesList);
-        } else if(CollectionUtils.isNotEmpty(paResultList)) {
-            AuditMedicinesDTO auditMedicinesDTO;
+            iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
+        } else if (CollectionUtils.isNotEmpty(paResultList)) {
+            eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO;
             List<Issue> issueList;
             List<AuditMedicineIssueDTO> auditMedicineIssues;
             AuditMedicineIssueDTO auditIssueDTO;
             for (PAWebMedicines paMedicine : paResultList) {
-                auditMedicinesDTO = new AuditMedicinesDTO();
+                auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
                 auditMedicinesDTO.setRecipeId(recipeId);
                 auditMedicinesDTO.setCode(paMedicine.getCode());
                 auditMedicinesDTO.setName(paMedicine.getName());
@@ -102,7 +99,8 @@ public class SaveAutoReviewRunable implements Runnable {
                 }
                 auditMedicinesList.add(auditMedicinesDTO);
             }
-            auditMedicinesDAO.save(recipeId, auditMedicinesList);
+//            auditMedicinesDAO.save(recipeId, auditMedicinesList);
+            iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
         }
 
         LOGGER.info("SaveAutoReview finish. recipeId={}", recipeId);

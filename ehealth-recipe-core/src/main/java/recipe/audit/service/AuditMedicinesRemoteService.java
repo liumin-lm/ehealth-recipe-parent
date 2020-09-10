@@ -1,5 +1,6 @@
 package recipe.audit.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.audit.service.IAuditMedicinesService;
 import ctd.util.AppContextHolder;
@@ -22,7 +23,8 @@ public class AuditMedicinesRemoteService implements IAuditMedicinesService {
     @RpcService
     public List<AuditMedicinesDTO> getAuditmedicinesResult(int recipeId) {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        return recipeService.getAuditMedicineIssuesByRecipeId(recipeId);
+        List<eh.recipeaudit.model.AuditMedicinesDTO> auditMedicines = recipeService.getAuditMedicineIssuesByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(auditMedicines, AuditMedicinesDTO.class);
     }
 
 }

@@ -24,11 +24,15 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.model.AuditMedicineIssueDTO;
+import eh.recipeaudit.model.AuditMedicinesDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -36,7 +40,6 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -52,13 +55,15 @@ import java.util.*;
 @RpcBean("commonSyncSupervisionForIHosService")
 @Deprecated
 public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisionService {
-
     /**
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSyncSupervisionForIHosService.class);
 
     private static String HIS_SUCCESS = "200";
+
+    @Autowired
+    private IAuditMedicinesService iAuditMedicinesService;
 
     /**
      * 处方核销接口
@@ -219,7 +224,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         OrganService organService = BasicAPI.getService(OrganService.class);
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
 
-        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
+//        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
         List<RecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
@@ -244,8 +249,8 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         DepartmentDTO departmentDTO;
         DoctorDTO doctorDTO;
         PatientDTO patientDTO;
-        List<AuditMedicines> medicineList;
-        AuditMedicines medicine;
+        List<AuditMedicinesDTO> medicineList;
+        AuditMedicinesDTO medicine;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
         for (Recipe recipe : recipeList) {
@@ -360,7 +365,8 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             req.setRecipeUniqueID(recipe.getRecipeId().toString());
             //互联网医院处方都是经过合理用药审查
             req.setRationalFlag("1");
-            medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+//            medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+            medicineList =  iAuditMedicinesService.findMedicinesByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(medicineList)) {
                 req.setRationalFlag("0");
             } else if (1 == medicineList.size()) {
@@ -465,10 +471,10 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
      * @param recipeId
      */
     private String setRationalDrug(Integer recipeId) {
-        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        List<AuditMedicineIssue> issueList = issueDAO.findIssueByRecipeId(recipeId);
+//        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+        List<AuditMedicineIssueDTO> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
         StringBuilder sb = new StringBuilder();
-        for (AuditMedicineIssue issue : issueList) {
+        for (AuditMedicineIssueDTO issue : issueList) {
             sb.append(issue.getDetail());
         }
 
@@ -478,7 +484,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
     /**
      * 处方核销状态判断，处方完成及开始配送都当做已核销处理
      *
-     * @param status 0未核销 1已核销
+     * status 0未核销 1已核销
      * @return
      */
     private String getVerificationStatus(Recipe recipe) {
