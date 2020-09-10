@@ -1232,8 +1232,6 @@ public class DrugToolService implements IDrugToolService {
                 } else {
                     sales.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
                 }
-                sales.setInventory(new BigDecimal(100));
-                sales.setCreateDt(new Date());
                 sales.setLastModify(new Date());
                 saleDrugListDAO.update(sales);
                 update++;
