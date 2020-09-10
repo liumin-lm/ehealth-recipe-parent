@@ -121,8 +121,7 @@ public class RecipeServiceSub {
 
     private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
 
-    @Autowired
-    private static IAuditMedicinesService iAuditMedicinesService;
+    private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
     /**
      * @param recipeBean
