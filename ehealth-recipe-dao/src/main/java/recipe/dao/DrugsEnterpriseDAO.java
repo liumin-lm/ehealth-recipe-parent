@@ -246,7 +246,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                     hql.append(" and d.createType = :createType");
                     params.put("createType", createType);
                 }
-                if (ids == null) {
+                if (ids != null) {
                     hql.append(" and d.organId in :ids ");
                     params.put("ids", ids);
                 }
