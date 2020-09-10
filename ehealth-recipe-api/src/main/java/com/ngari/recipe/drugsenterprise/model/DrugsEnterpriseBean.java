@@ -32,6 +32,7 @@ public class DrugsEnterpriseBean implements Serializable {
     private String enterpriseCode;
 
     @ItemProperty(alias = "药企关键机构")
+    @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer organId;
 
     @ItemProperty(alias = "药企分配appKey从开放平台获取")
