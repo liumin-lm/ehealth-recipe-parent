@@ -1,6 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
@@ -55,8 +56,8 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return false;
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return null;
     }
 
     @Override
