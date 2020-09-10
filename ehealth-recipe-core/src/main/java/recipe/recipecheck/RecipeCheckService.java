@@ -36,6 +36,8 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.model.AuditMedicineIssueDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,6 +90,9 @@ public class RecipeCheckService {
 
     @Resource
     private AuditModeContext auditModeContext;
+
+    @Autowired
+    private IAuditMedicinesService iAuditMedicinesService;
 
     private static final String RECIPEID_SECRET = "1234567890123gmw";
 
@@ -578,10 +583,10 @@ public class RecipeCheckService {
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
             map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
-            AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-            List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+//            AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+            List<AuditMedicineIssueDTO> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
             if(CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                List<AuditMedicineIssueDTO> resultMedicineIssues = new ArrayList<>();
                 auditMedicineIssues.forEach(item -> {
                     if (null == item.getMedicineId()) {
                         resultMedicineIssues.add(item);

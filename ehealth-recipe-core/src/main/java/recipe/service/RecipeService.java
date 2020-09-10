@@ -3081,7 +3081,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
+    public List<eh.recipeaudit.model.AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 
