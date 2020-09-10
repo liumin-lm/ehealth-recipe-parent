@@ -33,7 +33,7 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
-import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+//import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -122,8 +122,8 @@ public class RecipeServiceSub {
 
     private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
 
-    @Autowired
-    private static IAuditMedicinesService iAuditMedicinesService;
+    private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+
 
     /**
      * @param recipeBean
