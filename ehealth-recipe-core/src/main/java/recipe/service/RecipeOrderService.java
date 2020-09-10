@@ -1870,6 +1870,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 //添加使用优惠券(支付后释放)
                 useCoupon(nowRecipe, payMode);
                 sendTfdsMsg(nowRecipe, payMode, orderCode);
+                //支付成功后，对来源于HIS的处方单状态更新为已处理
+                updateHisRecieStatus(recipes);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
@@ -1902,6 +1904,22 @@ public class RecipeOrderService extends RecipeBaseService {
         //健康卡数据上传
         RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(),"030102"));
         return result;
+    }
+
+    /**
+     * 对来源于HIS的处方单状态更新为已处理
+     * @param recipes
+     */
+    public void updateHisRecieStatus(List<Recipe> recipes) {
+        try{
+            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode());
+            if (hisRecipe != null) {
+                hisRecipeDAO.updateHisRecieStatus(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode(), 2);
+            }
+        }catch (Exception e){
+            LOGGER.info("updateHisRecieStatus 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", recipes.get(0).getRecipeId(), e.getMessage(),e);
+        }
     }
 
 

@@ -1,8 +1,13 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.Advice.IAdviceService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
@@ -10,6 +15,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -232,6 +238,40 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         return result;
     }
 
+    @RpcService
+    public DrugsEnterpriseBean  getDrugsEnterpriseById(Integer drugsEnterpriseId ){
+        if(drugsEnterpriseId == null){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药企Id为null!");
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsEnterpriseId);
+        if (drugsEnterprise == null){
+            return null;
+        }
+        return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+    }
+
+    @RpcService
+    public QueryResult<DrugsEnterpriseBean>  getDrugsEnterprise(Integer status){
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String manageUnit = urt.getManageUnit();
+        QueryResult<DrugsEnterpriseBean> result = new QueryResult<>();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        if (manageUnit.equals("eh")){
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(manageUnit, null,status);
+        }else if (manageUnit.startsWith("yq")){
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(manageUnit, null,status);
+        }else{
+            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+            List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit("%"+manageUnit+"%");
+            if (organIdsByManageUnit == null){
+                return result;
+            }
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(null, organIdsByManageUnit,status);
+        }
+        return result;
+    }
+
 
     /**
      * 根据药企名称分页查询药企
@@ -243,11 +283,22 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final Integer organId ,int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, start, limit);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String manageUnit = urt.getManageUnit();
+        QueryResult result = new QueryResult<>();
+        if (!manageUnit.equals("eh")){
+            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+            List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit("%"+manageUnit+"%");
+            if (organIdsByManageUnit == null){
+                return result;
+            }
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType,organId,organIdsByManageUnit, start, limit);
+        }else {
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType,organId,null, start, limit);
+        }
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
-
         if(null == createType || createType.equals(0)){
             PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
             List<Pharmacy> listS = pharmacyDAO.find1();
@@ -263,6 +314,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                             map.put("pharmacyLongitude", pharmacy.getPharmacyLongitude());
                             //获取药店纬度
                             map.put("pharmacyLatitude", pharmacy.getPharmacyLatitude());
+                            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+                            if (drugsEnterpriseBean.getOrganId() != null){
+                                OrganDTO byOrganId = bean.getByOrganId(drugsEnterpriseBean.getOrganId());
+                                map.put("organName", byOrganId.getName());
+                            }else {
+                                map.put("organName", null);
+                            }
                             drugsEnterpriseBean.setPharmacyInfo(map);
                             break;
                         }

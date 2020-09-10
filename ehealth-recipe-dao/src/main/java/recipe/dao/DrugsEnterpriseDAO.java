@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -168,6 +169,13 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t where t.name = :name")
     public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByName(@DAOParam("name") String name);
+    /**
+     * 根据机构Id获取药企
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "select t from DrugsEnterprise t where t.organId = :organId")
+    public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByOrhanId(@DAOParam("organId") Integer organId);
 
     /**
      * 根据药企名称分页查询药企
@@ -177,7 +185,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param limit
      * @return
      */
-    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
+    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByStartAndLimit(final String name, final Integer createType,final Integer organId , final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugsEnterprise>>() {
             @SuppressWarnings("unchecked")
             public void execute(StatelessSession ss) throws DAOException {
@@ -192,6 +200,10 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                     hql.append(" and d.createType = :createType");
                     params.put("createType", createType);
                 }
+                if (null != organId) {
+                    hql.append(" and d.organId = :organId");
+                    params.put("organId", organId);
+                }
 
                 hql.append(" order by d.createDate desc ");
 
@@ -205,6 +217,100 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
                 setResult(new QueryResult<DrugsEnterprise>(total, query.getFirstResult(), query.getMaxResults(), query.list()));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据药企名称分页查询药企(非第三方应用)
+     *
+     * @param name
+     * @param start
+     * @param limit
+     * @return
+     */
+    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByOrganId(final String name, final Integer createType,final Integer organId ,List<Integer> ids , final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugsEnterprise>>() {
+            @SuppressWarnings("unchecked")
+            public void execute(StatelessSession ss) throws DAOException {
+                long total = 0;
+                StringBuilder hql = new StringBuilder("FROM DrugsEnterprise d WHERE 1=1 ");
+                HashMap<String, Object> params = Maps.newHashMap();
+                if (!StringUtils.isEmpty(name)) {
+                    hql.append(" and d.name like :name");
+                    params.put("name", "%" + name + "%");
+                }
+                if (null != createType) {
+                    hql.append(" and d.createType = :createType");
+                    params.put("createType", createType);
+                }
+                if (ids != null) {
+                    hql.append(" and d.organId in :ids ");
+                    params.put("ids", ids);
+                }
+                if (null != organId) {
+                    hql.append(" and d.organId = :organId");
+                    params.put("organId", organId);
+                }
+                hql.append(" order by d.createDate desc ");
+
+                Query query = ss.createQuery("SELECT count(*) " + hql.toString());
+                query.setProperties(params);
+                //获取总条数
+                total = (long) query.uniqueResult();
+
+                query = ss.createQuery("SELECT d " + hql.toString());
+                query.setProperties(params);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                setResult(new QueryResult<DrugsEnterprise>(total, query.getFirstResult(), query.getMaxResults(), query.list()));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
+    /**
+     * 根据药企名称分页查询药企
+     *
+     * @param manageUnit
+     * @param ids
+     * @return
+     */
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseResultByManageUnit(String manageUnit, List<Integer> ids ,final Integer status) {
+        HibernateStatelessResultAction<QueryResult<DrugsEnterpriseBean>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugsEnterpriseBean>>() {
+            @SuppressWarnings("unchecked")
+            public void execute(StatelessSession ss) throws DAOException {
+                long total = 0;
+                StringBuilder hql = new StringBuilder("FROM DrugsEnterprise d WHERE 1=1 ");
+                HashMap<String, Object> params = Maps.newHashMap();
+                if (manageUnit == null) {
+                    hql.append(" and d.organId in :ids ");
+                    params.put("ids", ids);
+                }
+                if (manageUnit != null && manageUnit.startsWith("yq")) {
+                    hql.append(" and d.manageUnit like :manageUnit ");
+                    params.put("manageUnit",  manageUnit + "%");
+                }
+                if (status != null) {
+                    hql.append(" and d.status =:status ");
+                    params.put("status", status);
+                }
+
+                hql.append(" order by d.createDate desc ");
+
+                Query query = ss.createQuery("SELECT count(*) " + hql.toString());
+                query.setProperties(params);
+                //获取总条数
+                total = (long) query.uniqueResult();
+
+                query = ss.createQuery("SELECT d " + hql.toString());
+                query.setProperties(params);
+                List<DrugsEnterpriseBean> list = query.list();
+                setResult(new QueryResult<DrugsEnterpriseBean>(total, 0, (int) total, list));
             }
         };
         HibernateSessionTemplate.instance().execute(action);

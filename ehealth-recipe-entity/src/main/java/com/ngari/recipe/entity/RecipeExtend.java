@@ -157,6 +157,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "病历索引Id")
     private Integer docIndexId;
 
+    @ItemProperty(alias = "皮肤反应测验")
+    private String skinTest;
+
     public String getSymptomId() {
         return symptomId;
     }
@@ -741,5 +744,14 @@ public class RecipeExtend implements Serializable {
 
     public void setDocIndexId(Integer docIndexId) {
         this.docIndexId = docIndexId;
+    }
+
+    @Column(name = "skin_test")
+    public String getSkinTest() {
+        return skinTest;
+    }
+
+    public void setSkinTest(String skinTest) {
+        this.skinTest = skinTest;
     }
 }

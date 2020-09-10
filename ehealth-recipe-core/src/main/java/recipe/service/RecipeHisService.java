@@ -34,14 +34,12 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
-import com.ngari.recipe.recipe.model.HisSendResTO;
-import com.ngari.recipe.recipe.model.OrderRepTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -82,8 +80,11 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * @author yu_yun
@@ -1131,6 +1132,8 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setDrugID(detail.getDrugId());
                 //date 20200701 预校验添加平台药品医嘱ID
                 item.setOrderID(detail.getRecipeDetailId().toString());
+                // 黄河医院 剂型名称
+                item.setDrugForm(detail.getDrugForm());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
@@ -1532,7 +1535,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param mpiId     患者id
      * @return
      */
-    private ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
+    public ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id 为空");
         }
@@ -1554,4 +1557,185 @@ public class RecipeHisService extends RecipeBaseService {
         return consultExDTO;
     }
 
+    /**
+     * 查询用药记录列表
+     * @param organId
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> queryHisInsureRecipeList(Integer organId, String mpiId) {
+        LOGGER.info("queryHisInsureRecipeList organId={},mpiId={}", organId, mpiId);
+        Map<String, Object> response = queryHisInsureRecipeListFromHis(organId, mpiId);
+        return response;
+    }
+
+    private Map<String, Object> queryHisInsureRecipeListFromHis(Integer organId, String mpiId) {
+        LOGGER.info("queryHisInsureRecipeListFromHis  organId={},mpiId={}", organId, mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        Map<String, Object> result = Maps.newHashMap();
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            throw new DAOException(609, "找不到该机构");
+        }
+        String cardId = null;
+        String cardType = null;
+        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        if (null != consultExDTO) {
+            cardId = consultExDTO.getCardId();
+            cardType = consultExDTO.getCardType();
+        }
+        Date endDate = DateTime.now().toDate();
+        Date startDate = DateConversion.getDateTimeDaysAgo(90);
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(cardId);
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        patientBaseInfo.setCardID(cardId);
+        patientBaseInfo.setCardType(cardType);
+        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
+        if (StringUtils.isNotEmpty(cityCardNumber)) {
+            patientBaseInfo.setCityCardNumber(cityCardNumber);
+        }
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setOrgan(organId);
+
+        LOGGER.info("queryHisInsureRecipeListFromHis request={}", JSONUtils.toString(request));
+        QueryRecipeResponseTO response = null;
+        try {
+            response = hisService.queryHisInsureRecipeList(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        LOGGER.info("queryHisInsureRecipeListFromHis res={}", JSONUtils.toString(response));
+        if (null == response) {
+            return result;
+        }
+        List<RecipeInfoTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return result;
+        }
+        List<RecipeBean> recipes = Lists.newArrayList();
+        for (RecipeInfoTO recipeInfoTO: data){
+            HisRecipeBean recipeBean = ObjectCopyUtils.convert(recipeInfoTO, HisRecipeBean.class);
+            recipeBean.setSignDate(recipeInfoTO.getSignTime());
+            recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
+            recipeBean.setDepartText(recipeInfoTO.getDepartName());
+            List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
+            List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+            for (RecipeDetailTO recipeDetailTO: detailData){
+                HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+                detailBean.setDrugUnit(recipeDetailTO.getUnit());
+                detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+                detailBean.setUseDays(recipeDetailTO.getDays());
+                detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+                hisRecipeDetailBeans.add(detailBean);
+            }
+            recipeBean.setDetailData(hisRecipeDetailBeans);
+            recipeBean.setClinicOrgan(organId);
+            recipeBean.setOrganName(organDTO.getShortName());
+            RecipeBean r=RecipeServiceSub.convertHisRecipeForRAP(recipeBean);
+            recipes.add(r);
+
+        }
+        result.put("hisRecipe", recipes);
+        result.put("patient", convertSensitivePatientForRAP(patientDTO));
+        return result;
+        //转换平台字段
+    }
+
+    /**
+     * 查询用药记录详情
+     * @param organId
+     * @param mpiId
+     * @param recipeCode
+     * @return
+     */
+    @RpcService
+    public List<HisRecipeDetailBean> queryHisInsureRecipeInfo(Integer organId,String mpiId,String recipeCode,String serialNumber) {
+        LOGGER.info("queryHisInsureRecipeInfo organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
+        List<HisRecipeDetailBean>  response =  queryHisInsureRecipeInfoFromHis(organId,mpiId,recipeCode,serialNumber);
+        return response;
+    }
+
+    private List<HisRecipeDetailBean>  queryHisInsureRecipeInfoFromHis(Integer organId, String mpiId, String recipeCode,String serialNumber) {
+        List<HisRecipeDetailBean> recipeDetailTOs=new ArrayList<>();
+        LOGGER.info("queryHisInsureRecipeInfoFromHis organId={},mpiId={},recipeCode={} ,serialNumber={}", organId,mpiId,recipeCode,serialNumber);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        Map<String, Object> result = Maps.newHashMap();
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            throw new DAOException(609, "找不到该机构");
+        }
+        String cardId = null;
+        String cardType = null;
+        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        if (null != consultExDTO) {
+            cardId = consultExDTO.getCardId();
+            cardType = consultExDTO.getCardType();
+        }
+
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(cardId);
+        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
+        if (StringUtils.isNotEmpty(cityCardNumber)) {
+            patientBaseInfo.setCityCardNumber(cityCardNumber);
+        }
+        request.setPatientInfo(patientBaseInfo);
+
+        request.setOrgan(organId);
+        request.setRecipeCode(recipeCode);
+        request.setSerialNumber(serialNumber);
+        LOGGER.info("queryHisInsureRecipeInfoFromHis request={}", JSONUtils.toString(request));
+        HisResponseTO<List<RecipeDetailTO>> response= new HisResponseTO<>();
+        try {
+            response = hisService.queryHisInsureRecipeInfo(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        LOGGER.info("queryHisInsureRecipeInfoFromHis res={}", JSONUtils.toString(response));
+
+        List<RecipeDetailTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return recipeDetailTOs;
+        }
+
+        for (RecipeDetailTO recipeDetailTO: data){
+            HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+            detailBean.setDrugUnit(recipeDetailTO.getUnit());
+            detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+            detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+            detailBean.setUseDays(recipeDetailTO.getDays());
+            detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+            detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+            recipeDetailTOs.add(detailBean);
+        }
+        return recipeDetailTOs;
+    }
 }

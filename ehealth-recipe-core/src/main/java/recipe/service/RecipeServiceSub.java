@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.aliyun.oss.common.utils.DateUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -11,15 +12,10 @@ import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
-import com.ngari.patient.service.IUsePathwaysService;
-import com.ngari.patient.service.IUsingRateService;
-import com.ngari.patient.dto.UsePathwaysDTO;
-import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
@@ -52,11 +48,6 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
-import eh.cdr.api.service.IDocIndexService;
-import eh.cdr.api.vo.DocIndexBean;
-import eh.cdr.api.vo.DocIndexExtBean;
-import eh.cdr.api.vo.MedicalDetailBean;
-import eh.cdr.api.vo.MedicalInfoBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -88,6 +79,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -750,6 +742,8 @@ public class RecipeServiceSub {
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -765,6 +759,13 @@ public class RecipeServiceSub {
             paramMap.put("pName", p.getPatientName());
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
+            //date 20200908 添加体重字段，住院病历号，就诊卡号
+            paramMap.put("pWeight", p.getWeight() + "kg");
+            paramMap.put("pHisID", recipe.getPatientID());
+            if(null != extend){
+                paramMap.put("pCardNo", extend.getCardNo());
+            }
+
             paramMap.put("pType", DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(p.getPatientType()));
             paramMap.put("doctor", DictionaryController.instance().get("eh.base.dictionary.Doctor").getText(recipe.getDoctor()));
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
@@ -834,6 +835,8 @@ public class RecipeServiceSub {
     public static Map<String, Object> createParamMapForChineseMedicine(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -849,6 +852,20 @@ public class RecipeServiceSub {
             paramMap.put("pName", p.getPatientName());
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
+            //date 20200908 添加体重字段，住院病历号，就诊卡号
+            paramMap.put("pWeight", p.getWeight() + "kg");
+            paramMap.put("pHisID", recipe.getPatientID());
+            //date 20200909 添加字段，嘱托,煎法,制法,次量,每付取汁,天数
+            paramMap.put("tcmRecipeMemo", recipe.getRecipeMemo());
+
+            if(null != extend){
+                paramMap.put("pCardNo", extend.getCardNo());
+                paramMap.put("tcmDecoction", extend.getDecoctionText());
+                paramMap.put("tcmJuice", extend.getJuice() + extend.getJuiceUnit());
+                paramMap.put("tcmMinor", extend.getMinor() + extend.getMinorUnit());
+                paramMap.put("tcmMakeMethod", extend.getMakeMethodText());
+            }
+
             paramMap.put("pType", DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(p.getPatientType()));
             paramMap.put("doctor", DictionaryController.instance().get("eh.base.dictionary.Doctor").getText(recipe.getDoctor()));
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
@@ -901,6 +918,7 @@ public class RecipeServiceSub {
                     paramMap.put("tcmUsingRate", d.getUsingRate());
                 }
 
+                paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -1463,6 +1481,9 @@ public class RecipeServiceSub {
 
     public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
         RecipeBean r = new RecipeBean();
+        r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
         r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
@@ -1473,7 +1494,9 @@ public class RecipeServiceSub {
             stringBuilder.append(recipedetail.getDrugName());
             stringBuilder.append(" ").append((recipedetail.getDrugSpec()) == null ? "" : recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit() == null ? "" : recipedetail.getDrugUnit()).append("、");
         }
-        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        if(stringBuilder.length()>0){
+            stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        }
         r.setRecipeDrugName(stringBuilder.toString());
 
         r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
@@ -1572,11 +1595,8 @@ public class RecipeServiceSub {
 
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
-            IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-
             // 获取处方单药品总价
             RecipeUtil.getRecipeTotalPriceRange(recipe, recipedetails);
-            boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
 
             //date 20200506
             //通过订单的状态判断
@@ -1622,7 +1642,6 @@ public class RecipeServiceSub {
             //审核不通过处方单详情增加二次签名标记
             //date 20191011
             //添加一次审核不通过标志位,取消之前通过订单是否有效的判断
-            //boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
             boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()));
             if (b) {
                 map.put("secondSignFlag", canSecondAudit(recipe.getClinicOrgan()));
@@ -1707,19 +1726,6 @@ public class RecipeServiceSub {
                 recipe.setMedicalPayFlag(0);
             }
 
-            //药品价格显示处理
-            //date 2020/1/2
-            //展示修改成处方都展示药品金额
-//            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
-//                    (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
-//                            (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
-//                                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
-//                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
-//            if (!b1) {
-//                recipe.setTotalMoney(null);
-//            }
-
-            //Date:20190904
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
@@ -1901,7 +1907,7 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("获取运营平台处方支付配置异常", e);
         }
-
+        LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSONUtils.toString(map));
         return map;
     }
 

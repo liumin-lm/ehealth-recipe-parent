@@ -3,19 +3,17 @@ package recipe.drugsenterprise;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.alijk.bqhospital.alijk.dto.BaseResult;
 import com.alijk.bqhospital.alijk.service.AlihealthHospitalService;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
-import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.taobao.api.FileItem;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionAddRequest;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionGetRequest;
@@ -51,8 +49,6 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
 
-import javax.annotation.Nullable;
-import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -331,6 +327,11 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return null;
     }
 
     @Override

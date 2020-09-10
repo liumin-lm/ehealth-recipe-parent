@@ -301,10 +301,10 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方发起者urt")
     private Integer requestUrt;
 
-    @ItemProperty(alias="当前clientId")
+    @ItemProperty(alias = "当前clientId")
     private Integer currentClient;
 
-    @ItemProperty(alias="监管平台同步标记: 0未同步，1已同步")
+    @ItemProperty(alias = "监管平台同步标记: 0未同步，1已同步")
     private Integer syncFlag;
 
     @ItemProperty(alias = "签名的处方img")
@@ -335,20 +335,23 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
     private Integer recipeSource;
 
-    @ItemProperty(alias="医生处方数字签名值")
+    @ItemProperty(alias = "医生处方数字签名值")
     private String signRecipeCode;
 
-    @ItemProperty(alias="药师处方数字签名值")
+    @ItemProperty(alias = "药师处方数字签名值")
     private String signPharmacistCode;
 
-    @ItemProperty(alias="医生处方数字签名可信服务器时间")
+    @ItemProperty(alias = "医生处方数字签名可信服务器时间")
     private String signCADate;
 
-    @ItemProperty(alias="药师处方数字签名可信服务器时间")
+    @ItemProperty(alias = "药师处方数字签名可信服务器时间")
     private String signPharmacistCADate;
 
     @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
     private Integer recipePayType;
+
+    @ItemProperty(alias = "调配人")
+    private String dispensPeople;
 
     public Recipe() {
     }
@@ -1397,4 +1400,14 @@ public class Recipe implements Serializable {
     public void setRecipePayType(Integer recipePayType) {
         this.recipePayType = recipePayType;
     }
+
+    @Column(name = "dispens_people")
+    public String getDispensPeople() {
+        return dispensPeople;
+    }
+
+    public void setDispensPeople(String dispensPeople) {
+        this.dispensPeople = dispensPeople;
+    }
 }
+

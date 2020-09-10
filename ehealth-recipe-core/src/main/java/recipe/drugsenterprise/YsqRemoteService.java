@@ -18,9 +18,11 @@ import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -90,6 +92,59 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(drugsDataBean.getOrganId());
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        //最终发给药企的json数据
+        Map<String, Object> sendInfo = new HashMap<>(1);
+        //同时生成订单 0不生成 1生成
+        sendInfo.put("EXEC_ORD", "0");
+        List<Map<String, Object>> titlesInfoList = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("DOCTOR", "黄晨屹");
+        map.put("HOSNAME", organDTO.getName());
+        map.put("AGE", 23);
+        map.put("RECEIVENAME", "李笑飞");
+        map.put("RANGE", 20000);
+        Map<String, Object> position = new HashMap<>();
+        position.put("LONGITUDE", "120.201685");
+        position.put("LATITUDE", "30.255732");
+        map.put("POSITION", position);
+        List list = new ArrayList();
+        List<String> result1 = new ArrayList<>();
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
+            Map drugMap = new HashMap();
+            if (saleDrugList != null && organDrugList != null) {
+                drugMap.put("BILLQTY", recipeDetailBean.getUseTotalDose());
+                drugMap.put("DISEASE1", organDrugList.getUsePathways());
+                drugMap.put("NAME", saleDrugList.getSaleName());
+                drugMap.put("PRODUCER", organDrugList.getProducer());
+                drugMap.put("GOODS", saleDrugList.getOrganDrugCode());
+                drugMap.put("GNAME", saleDrugList.getDrugName());
+                drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
+                drugMap.put("SPEC", organDrugList.getDrugSpec());
+                drugMap.put("MSUNITNO", organDrugList.getUnit());
+                list.add(drugMap);
+            }
+            result1.add(recipeDetailBean.getDrugName());
+        }
+        sendInfo.put("DETAILS", list);
+        sendInfo.put("HOSCODE", organDTO.getOrganizeCode());
+        String sendInfoStr = JSONUtils.toString(sendInfo);
+        String methodName = "CheckPrescriptionFialDetail";
+        LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), methodName, sendInfoStr);
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        //发送药企信息
+        sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
+
+        return result1;
     }
 
     @Override
@@ -771,22 +826,16 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("IDENTIFICATION", patient.getCertificate());
             //recipeMap.put("USERID", recipe.getPatientID());
             recipeMap.put("TELPHONE", patient.getMobile());
-            if (sendRecipe) {
-                recipeMap.put("RECEIVENAME", order.getReceiver());
-                recipeMap.put("RECEIVETEL", order.getRecMobile());
-                recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
-            } else {
-                recipeMap.put("RECEIVENAME", patient.getPatientName());
-                recipeMap.put("RECEIVETEL", patient.getMobile());
-                recipeMap.put("ACCAMOUNT", recipe.getTotalMoney().toString());
-            }
+            recipeMap.put("RECEIVENAME", order.getReceiver());
+            recipeMap.put("RECEIVETEL", order.getRecMobile());
+            recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
             recipeMap.put("ALLERGY", "");
             recipeMap.put("REMARK", StringUtils.defaultString(recipe.getMemo(), ""));
             recipeMap.put("DEPT", iDepartmentService.getNameById(recipe.getDepart()));
             recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
             //放置药店编码和名称
-            if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+            if (StringUtils.isNotEmpty(order.getDrugStoreCode())) {
                 recipeMap.put("GYSCODE", order.getDrugStoreCode());
                 recipeMap.put("GYSNAME", order.getDrugStoreName());
             }
@@ -820,15 +869,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         drugListMap.put(drugId, drug);
                     }
 
-                    if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
-                        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
-                        LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
-                        if (saleDrugList != null) {
-                            detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
-                        }
-                    } else {
-                        detailMap.put("GOODS", drugId.toString());
+
+                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                    LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
+                    if (saleDrugList != null) {
+                        detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
                     }
+
                     detailMap.put("NAME", drug.getSaleName());
                     detailMap.put("GNAME", drug.getDrugName());
                     detailMap.put("SPEC", drug.getDrugSpec());

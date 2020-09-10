@@ -100,6 +100,25 @@ public class HisRecipeVO implements Serializable{
     private List<HisRecipeDetailVO> recipeDetail;
     @ItemProperty(alias = "是否隐方")
     private boolean isHiddenRecipeDetail;
+    @ItemProperty(alias = "是否缓存在平台")
+    private Integer isCachePlatform;
+
+    public boolean isHiddenRecipeDetail() {
+        return isHiddenRecipeDetail;
+    }
+
+    public void setHiddenRecipeDetail(boolean hiddenRecipeDetail) {
+        isHiddenRecipeDetail = hiddenRecipeDetail;
+    }
+
+    public Integer getIsCachePlatform() {
+        return isCachePlatform;
+    }
+
+    public void setIsCachePlatform(Integer cachePlatform) {
+        isCachePlatform = cachePlatform;
+    }
+
     public Integer getHisRecipeID() {
         return hisRecipeID;
     }

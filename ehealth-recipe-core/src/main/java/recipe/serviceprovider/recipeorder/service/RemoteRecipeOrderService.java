@@ -12,6 +12,7 @@ import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.*;
@@ -87,6 +88,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     @Override
     public void updateOrderInfo(String orderCode, Map<String, Object> map) {
+        LOGGER.info("RemoteRecipeOrderService updateOrderInfo orderCode={}, map={}", orderCode, JSONUtils.toString(map));
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         service.updateOrderInfo(orderCode, map, null);
     }

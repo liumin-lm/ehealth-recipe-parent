@@ -34,6 +34,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -94,6 +95,7 @@ import recipe.purchase.PurchaseService;
 import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
+import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
@@ -163,6 +165,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private RecipeLabelManager recipeLabelManager;
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
@@ -3148,12 +3153,10 @@ public class RecipeService extends RecipeBaseService {
             //查询起始下标
             int startIndex = 0;
             boolean finishFlag = true;
+            long total = organDrugListDAO.getTotal(oid);
             while (finishFlag) {
                 List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
-                if (CollectionUtils.isEmpty(drugInfoList)) {
-                    LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
-                    finishFlag = false;
-                } else {
+                if (!CollectionUtils.isEmpty(drugInfoList)) {
                     //是否有效标志 1-有效 0-无效
                     for (DrugInfoTO drug : drugInfoList) {
                         OrganDrugList organDrug = drugMap.get(drug.getDrcode());
@@ -3164,7 +3167,11 @@ public class RecipeService extends RecipeBaseService {
                         updateNum++;
                         LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
                     }
-                    startIndex++;
+                }
+                startIndex++;
+                if (startIndex >= total){
+                    LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
+                    finishFlag = false;
                 }
             }
         }
@@ -3229,6 +3236,8 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                 }
             }
+            //修改cdr_his_recipe status为已处理
+            orderService.updateHisRecieStatus(recipes);
         }
         for (Integer status : statusList) {
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
@@ -3319,6 +3328,8 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                     }
                 }
+                //修改cdr_his_recipe status为已处理
+                orderService.updateHisRecieStatus(recipeList);
             }
         }
 
@@ -3489,6 +3500,13 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
+    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
+        //checkUserHasPermission(recipeId);
+
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(recipeId, organId);
+        return result;
+    }
 
     /**
      * 获取该处方的购药方式(用于判断这个处方是不是被处理)
