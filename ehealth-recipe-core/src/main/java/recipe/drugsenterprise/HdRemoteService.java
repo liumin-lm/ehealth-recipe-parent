@@ -7,6 +7,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -1537,17 +1538,24 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public boolean getDrugInventoryForApp(RecipeDetailBean recipeDetailBean, Integer organId, DrugsEnterprise drugsEnterprise, Integer flag) {
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         tokenUpdateImpl(drugsEnterprise);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
         Map<String, Object> map = new HashMap<>();
         List<Map<String, Object>> hdDrugCodes = new ArrayList<>();
         Map<String, Object> drug = new HashMap<>();
-        drug.put("drugCode", saleDrugList.getOrganDrugCode());
-        drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
-        hdDrugCodes.add(drug);
+        Map<String, String> drugData = new HashMap<>();
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                drug.put("drugCode", saleDrugList.getOrganDrugCode());
+                drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
+                hdDrugCodes.add(drug);
+                drugData.put(saleDrugList.getOrganDrugCode(), recipeDetailBean.getUseTotalDose() + "&&" + recipeDetailBean.getDrugName());
+            }
+        }
         map.put("drugList", hdDrugCodes);
+        List<String> result = new ArrayList<>();
         if (new Integer(1).equals(flag)) {
             //配送到家
             String methodName = "sendScanStock";
@@ -1555,10 +1563,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             //对浙四进行个性化处理,推送到指定药店配送
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             String hdStores = recipeParameterDao.getByName("hd_store_payonline");
-            String storeOrganName = organId + "_" + "hd_organ_store";
+            String storeOrganName = drugsDataBean.getOrganId() + "_" + "hd_organ_store";
             String organStore = recipeParameterDao.getByName(storeOrganName);
 
-            if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
+            if (StringUtils.isNotEmpty(hdStores) && drugsDataBean.getOrganId() != null && hasOrgan(drugsDataBean.getOrganId().toString(),hdStores)) {
                 LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
                 map.put("pharmacyCode", organStore);
             }
@@ -1581,11 +1589,17 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                         Map<String, Object> drugMap = (Map<String, Object>) drugs;
                         try{
                             BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                            if (availableSumQty.doubleValue() > recipeDetailBean.getUseTotalDose()) {
-                                return true;
+                            String drugCode = (String)drugMap.get("drugCode");
+                            String drugValue = drugData.get(drugCode);
+                            if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
+                                String[] values = drugValue.split("&&");
+                                double useTotalDose = Double.parseDouble(values[0]);
+                                if (availableSumQty.doubleValue() > useTotalDose) {
+                                    result.add(values[1]);
+                                }
                             }
                         }catch(Exception e){
-                            return false;
+
                         }
                     }
                 }
@@ -1616,10 +1630,28 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 JSONObject jsonObject = JSONObject.parseObject(responseStr);
-                boolean success = (boolean)jsonObject.get("success");
-                LOGGER.info("getDrugInventoryForApp responseStr:{}.", responseStr);
-                if (success) {
-                    return true;
+                List datas = (List)jsonObject.get("data");
+                LOGGER.info("responseStr :{}.", responseStr);
+                for (Object data : datas) {
+                    Map<String, Object> drugMap = (Map<String, Object>) data;
+                    List drugInvs = (List)drugMap.get("drugInvs");
+                    for (Object drugs : drugInvs) {
+                        Map<String, Object> drugResult = (Map<String, Object>) drugs;
+                        try{
+                            Double availableSumQty = Double.parseDouble((String)drugResult.get("invQty"));
+                            String drugCode = (String)drugResult.get("drugCode");
+                            String drugValue = drugData.get(drugCode);
+                            if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
+                                String[] values = drugValue.split("&&");
+                                double useTotalDose = Double.parseDouble(values[0]);
+                                if (availableSumQty > useTotalDose) {
+                                    result.add(values[1]);
+                                }
+                            }
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1632,7 +1664,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 }
             }
         }
-        return false;
+        return result;
     }
 
     private static CloseableHttpResponse sendHttpRequest(CloseableHttpClient httpClient, String requestStr, HdHttpUrlEnum httpUrl, DrugsEnterprise drugsEnterprise) throws IOException {

@@ -285,9 +285,20 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     @RpcService
     public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final Integer organId ,int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType,organId, start, limit);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String manageUnit = urt.getManageUnit();
+        QueryResult result = new QueryResult<>();
+        if (!manageUnit.equals("eh")){
+            OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+            List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit("%"+manageUnit+"%");
+            if (organIdsByManageUnit == null){
+                return result;
+            }
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType,organId,organIdsByManageUnit, start, limit);
+        }else {
+            result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType,organId,null, start, limit);
+        }
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
-
         if(null == createType || createType.equals(0)){
             PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
             List<Pharmacy> listS = pharmacyDAO.find1();
