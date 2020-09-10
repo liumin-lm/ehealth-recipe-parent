@@ -8,6 +8,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
+import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -20,8 +22,6 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.recipecheck.HisCheckRecipeService;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -135,8 +135,9 @@ public class AuditPostMode extends AbstractAuidtMode {
         Integer checkMode = dbRecipe.getCheckMode();
         if (new Integer(2).equals(checkMode)) {
             //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
-            hisCheckRecipeService.sendCheckRecipeInfo(dbRecipe);
+            IRecipeAuditService recipeAuditService=RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
+            RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
+            recipeAuditService.sendCheckRecipeInfo(recipeBean);
         } else if (new Integer(3).equals(checkMode)) {
             winningRecipeAudit(dbRecipe);
         }
@@ -147,14 +148,14 @@ public class AuditPostMode extends AbstractAuidtMode {
                 //目前只有水果湖社区医院在用
                 Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
                 if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
-                    RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                    RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                     //跳过人工审核
                     CheckYsInfoBean checkResult = new CheckYsInfoBean();
                     checkResult.setRecipeId(dbRecipe.getRecipeId());
                     checkResult.setCheckDoctorId(dbRecipe.getDoctor());
                     checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
                     try {
-                        checkService.autoPassForCheckYs(checkResult);
+                        recipeService.autoPassForCheckYs(checkResult);
                     } catch (Exception e) {
                         LOGGER.error("updateRecipePayResultImplForOrder 药师自动审核失败. recipeId={}", dbRecipe.getRecipeId(),e);
                         RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status,

@@ -3,23 +3,18 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
-import com.ngari.platform.recipe.mode.EnterpriseResTo;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +22,6 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
-import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
@@ -190,16 +184,16 @@ public class RecipeTimedTaskService {
     /**
      * 通知前置机去HIS查询审方状态
      */
-    @RpcService
-    public void noticeGetHisCheckStatusTask(){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(2);
-        for (Recipe recipe : recipes) {
-            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
-            hisCheckRecipeService.sendCheckRecipeInfo(recipe);
-        }
-    }
+//    @RpcService
+//    public void noticeGetHisCheckStatusTask(){
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(2);
+//        for (Recipe recipe : recipes) {
+//            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+//            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+//            hisCheckRecipeService.sendCheckRecipeInfo(recipe);
+//        }
+//    }
 
     /**
      * 更新机构药品目录方便运维做shadow心跳检测

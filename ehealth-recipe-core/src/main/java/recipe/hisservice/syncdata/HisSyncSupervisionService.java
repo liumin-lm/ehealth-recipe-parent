@@ -25,12 +25,16 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.model.AuditMedicineIssueDTO;
+import eh.recipeaudit.model.AuditMedicinesDTO;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
@@ -55,6 +59,9 @@ import static ctd.persistence.DAOFactory.getDAO;
  */
 @RpcBean("hisSyncSupervisionService")
 public class HisSyncSupervisionService implements ICommonSyncSupervisionService {
+
+    @Autowired
+    private IAuditMedicinesService iAuditMedicinesService;
     /**
      * logger
      */
@@ -111,7 +118,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      */
     public void splicingBackRecipeData(List<Recipe> recipeList,List<RegulationRecipeIndicatorsReq> request) {
 
-        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
+//        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
@@ -149,8 +156,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientDTO patientDTO;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
-        List<AuditMedicines> medicineList;
-        AuditMedicines medicine;
+        List<AuditMedicinesDTO> medicineList;
+        AuditMedicinesDTO medicine;
         RecipeExtend recipeExtend;
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
@@ -308,7 +315,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setCheckDate(recipe.getCheckDateYs());
             //互联网医院处方都是经过合理用药审查
             req.setRationalFlag("1");
-            medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+            //medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+            medicineList = iAuditMedicinesService.findMedicinesByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(medicineList)) {
                 req.setRationalFlag("0");
             } else if (1 == medicineList.size()) {
@@ -928,10 +936,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipeId
      */
     private String setRationalDrug(Integer recipeId) {
-        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        List<AuditMedicineIssue> issueList = issueDAO.findIssueByRecipeId(recipeId);
+//        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+        List<AuditMedicineIssueDTO> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
         StringBuilder sb = new StringBuilder();
-        for (AuditMedicineIssue issue : issueList) {
+        for (AuditMedicineIssueDTO issue : issueList) {
             sb.append(issue.getDetail());
         }
 

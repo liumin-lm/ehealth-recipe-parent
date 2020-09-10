@@ -18,6 +18,7 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -50,6 +51,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -76,7 +78,6 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
@@ -197,8 +198,23 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public long getUncheckedRecipeNum(int doctorId) {
-        RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
-        return service.getUncheckedRecipeNum(doctorId);
+        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+        if (CollectionUtils.isEmpty(organIds)) {
+            return 0;
+        }
+        //flag = 0 查询待药师审核的条数
+        Long num = this.getRecipeCountByFlag(organIds, 0);
+        return null == num ? 0 : num;
+    }
+
+    private List<Integer> findAPOrganIdsByDoctorId(Integer doctorId) {
+        List<Integer> organIds = null;
+        if (null != doctorId) {
+            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+            organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
+        }
+
+        return organIds;
     }
 
     @RpcService
@@ -264,7 +280,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
-        IRecipeAuditService recipeAuditService = AppContextHolder.getBean("recipeaudit.recipeAuditService", IRecipeAuditService.class);
+        IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
         //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
         return recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
     }
@@ -921,7 +937,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return resMap;
         }
         try {
-            RecipeCheckService recipeService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+            IRecipeAuditService iRecipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
 
             //date 20200519
@@ -961,7 +977,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             paramMap.put("failMemo", req.getMemo());
             //审核时间
             paramMap.put("auditTime", req.getAuditTime());
-            Map<String, Object> result = recipeService.saveCheckResult(paramMap);
+            Map<String, Object> result = iRecipeAuditService.saveCheckResult(paramMap);
             //错误消息返回
             if (result != null && result.get("msg") != null) {
                 resMap.put("msg", result.get("msg"));
@@ -1306,8 +1322,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit) {
-        List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ ,recipeIds,recipeTypes,flag, start, limit);
+    public List<RecipeBean> findRecipeByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
@@ -1619,10 +1635,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return recipeBeans;
     }
+
     @RpcService
     @Override
-    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,List<Integer>recipeTypes,Integer type) {
+    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer> recipeTypes, Integer type) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return   recipeDAO.queryRecipeIdByOrgan(organIds,recipeTypes,type);
+        return recipeDAO.queryRecipeIdByOrgan(organIds, recipeTypes, type);
     }
 }

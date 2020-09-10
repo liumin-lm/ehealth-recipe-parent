@@ -31,6 +31,9 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -277,10 +280,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 LOGGER.error("getPushRecipeAndOrder:{}处方，获取处方图片服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
             }
         }
-        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-        RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipe.getRecipeId());
-        if (recipeCheck != null && StringUtils.isNotEmpty(recipeCheck.getCheckerName())) {
-            expandDTO.setCheckerName(recipeCheck.getCheckerName());
+        IRecipeCheckService recipeCheckService=  RecipeAuditAPI.getService(IRecipeCheckService.class,"recipeCheckServiceImpl");
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getByRecipeId(recipe.getRecipeId());
+        if (recipeCheckBean != null && StringUtils.isNotEmpty(recipeCheckBean.getCheckerName())) {
+            expandDTO.setCheckerName(recipeCheckBean.getCheckerName());
         }
         pushRecipeAndOrder.setExpandDTO(expandDTO);
         //设置科室信息
@@ -608,12 +611,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         recipedetail.setPack(organDrugList.getPack());
                         recipedetail.setDrugUnit(organDrugList.getUnit());
                         recipedetail.setProducerCode(organDrugList.getProducerCode());
-                    }
-                    recipedetails.add(recipedetail);
-                    DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
-                    if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
-                        //表示有库存
-                        list.add(recipeDetailBean.getDrugName());
+                        recipedetails.add(recipedetail);
+                        DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
+                        if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
+                            //表示有库存
+                            list.add(recipeDetailBean.getDrugName());
+                        }
                     }
                 }
                 Map<String, List> map = new HashMap<>();

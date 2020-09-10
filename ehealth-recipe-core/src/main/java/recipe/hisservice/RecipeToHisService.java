@@ -21,6 +21,8 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,7 +33,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.RecipeDAO;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 
@@ -144,7 +145,7 @@ public class RecipeToHisService {
         try {
             RecipeListQueryResTO response = hisService.listQuery(request);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-            RecipeCheckService recipeCheckService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+            IRecipeAuditService recipeAuditService= RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             LOGGER.info("listQuery response={}", JSONUtils.toString(response));
             if (null == response || null == response.getMsgCode()) {
@@ -194,7 +195,7 @@ public class RecipeToHisService {
                                 checkParam.put("checker",recipe.getChecker());
                                 //是否是线下药师审核标记
                                 checkParam.put("hosAuditFlag",1);
-                                recipeCheckService.saveCheckResult(checkParam);
+                                recipeAuditService.saveCheckResult(checkParam);
                                 LOGGER.info("线下审方生成线上药师电子签名--end");
                             } else {
                                 LOGGER.warn("listQuery 审核医生[{}]在平台没有执业点", rep.getAuditDoctorName());

@@ -153,19 +153,19 @@ public class RecipeTestService {
         return drugListExtService.findDrugListsByNameOrCodePageStaitc(organId, drugType, drugName, start);
     }
 
-    @RpcService
-    public void updateCheckerName(){
-        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        List<RecipeCheck> recipeChecks = recipeCheckDAO.findAllRecipeCheck();
-        for (RecipeCheck recipeCheck : recipeChecks) {
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipeCheck.getChecker());
-            if (doctorDTO != null) {
-                recipeCheck.setCheckerName(doctorDTO.getName());
-                recipeCheckDAO.update(recipeCheck);
-            }
-        }
-    }
+//    @RpcService
+//    public void updateCheckerName(){
+//        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+//        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+//        List<RecipeCheck> recipeChecks = recipeCheckDAO.findAllRecipeCheck();
+//        for (RecipeCheck recipeCheck : recipeChecks) {
+//            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipeCheck.getChecker());
+//            if (doctorDTO != null) {
+//                recipeCheck.setCheckerName(doctorDTO.getName());
+//                recipeCheckDAO.update(recipeCheck);
+//            }
+//        }
+//    }
 
     @RpcService
     public String testChangePdf(String ossid){

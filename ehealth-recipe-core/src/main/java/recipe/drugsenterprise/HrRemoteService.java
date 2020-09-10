@@ -65,8 +65,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     @Resource
     private RecipeOrderDAO recipeOrderDAO;
 
-    @Resource
-    private RecipeCheckDAO recipeCheckDAO;
 
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
