@@ -223,6 +223,55 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         return action.getResult();
     }
 
+    /**
+     * 根据药企名称分页查询药企(非第三方应用)
+     *
+     * @param name
+     * @param start
+     * @param limit
+     * @return
+     */
+    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByOrganId(final String name, final Integer createType,final Integer organId ,List<Integer> ids , final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugsEnterprise>>() {
+            @SuppressWarnings("unchecked")
+            public void execute(StatelessSession ss) throws DAOException {
+                long total = 0;
+                StringBuilder hql = new StringBuilder("FROM DrugsEnterprise d WHERE 1=1 ");
+                HashMap<String, Object> params = Maps.newHashMap();
+                if (!StringUtils.isEmpty(name)) {
+                    hql.append(" and d.name like :name");
+                    params.put("name", "%" + name + "%");
+                }
+                if (null != createType) {
+                    hql.append(" and d.createType = :createType");
+                    params.put("createType", createType);
+                }
+                if (ids != null) {
+                    hql.append(" and d.organId in :ids ");
+                    params.put("ids", ids);
+                }
+                if (null != organId) {
+                    hql.append(" and d.organId = :organId");
+                    params.put("organId", organId);
+                }
+                hql.append(" order by d.createDate desc ");
+
+                Query query = ss.createQuery("SELECT count(*) " + hql.toString());
+                query.setProperties(params);
+                //获取总条数
+                total = (long) query.uniqueResult();
+
+                query = ss.createQuery("SELECT d " + hql.toString());
+                query.setProperties(params);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                setResult(new QueryResult<DrugsEnterprise>(total, query.getFirstResult(), query.getMaxResults(), query.list()));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     /**
      * 根据药企名称分页查询药企

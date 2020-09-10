@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
@@ -1197,9 +1198,11 @@ public class DrugToolService implements IDrugToolService {
         }
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
         SaleDrugList saleDrugList;
+        Integer save=0;
+        Integer update=0;
         for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
-            SaleDrugList sales = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
+            SaleDrugList sales = saleDrugListDAO.getByOrganIdAndDrugCode(organDrugList.getOrganId(), organDrugList.getOrganDrugCode());
             if (sales == null) {
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
@@ -1216,11 +1219,26 @@ public class DrugToolService implements IDrugToolService {
                 saleDrugList.setCreateDt(new Date());
                 saleDrugList.setLastModify(new Date());
                 saleDrugListDAO.save(saleDrugList);
+                save++;
+            }else {
+                sales.setDrugId(organDrugList.getDrugId());
+                sales.setDrugName(organDrugList.getDrugName());
+                sales.setDrugSpec(organDrugList.getDrugSpec());
+                sales.setOrganId(depId);
+                sales.setStatus(1);
+                sales.setPrice(organDrugList.getSalePrice());
+                if (flag) {
+                    sales.setOrganDrugCode(organDrugList.getOrganDrugCode());
+                } else {
+                    sales.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
+                }
+                sales.setLastModify(new Date());
+                saleDrugListDAO.update(sales);
+                update++;
             }
 
         }
-
-
+        throw new DAOException(DAOException.VALUE_NEEDED, "新增"+save+"个药品，更新"+update+"个药品。");
     }
 
     /**
