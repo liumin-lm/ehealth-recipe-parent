@@ -50,10 +50,6 @@ import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.model.AuditMedicinesDTO;
-import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.module.RecipeCheckBean;
-import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -123,10 +119,10 @@ public class RecipeServiceSub {
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
-    private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
-    ;
+    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
 
-    private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+    @Autowired
+    private static IAuditMedicinesService iAuditMedicinesService;
 
     /**
      * @param recipeBean
@@ -747,7 +743,7 @@ public class RecipeServiceSub {
      *
      * @param recipe  处方对象
      * @param details 处方详情
-     * @return Map<String, Object>
+     * @return Map<String   ,       Object>
      */
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
@@ -917,14 +913,14 @@ public class RecipeServiceSub {
                     dTotal = dTotal + "*" + d.getMemo();
                 }
                 paramMap.put("drugInfo" + i, dName + "¨" + dTotal);
-                if (StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))) {
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
                     paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
-                } else {
+                }else{
                     paramMap.put("tcmUsePathways", d.getUsePathways());
                 }
-                if (StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))) {
+                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))){
                     paramMap.put("tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()));
-                } else {
+                }else{
                     paramMap.put("tcmUsingRate", d.getUsingRate());
                 }
 
