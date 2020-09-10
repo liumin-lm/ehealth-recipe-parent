@@ -1172,6 +1172,9 @@ public class HisRecipeService {
      */
     private void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO) {
         LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}", JSONUtils.toString(hisRecipeTO));
+        if(CollectionUtils.isEmpty(hisRecipeTO)){
+            return;
+        }
         Integer clinicOrgan = hisRecipeTO.get(0).getClinicOrgan();
         if (null == clinicOrgan) {
             LOGGER.info("hisRecipeInfoCheck his data error clinicOrgan is null");
