@@ -611,12 +611,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         recipedetail.setPack(organDrugList.getPack());
                         recipedetail.setDrugUnit(organDrugList.getUnit());
                         recipedetail.setProducerCode(organDrugList.getProducerCode());
-                    }
-                    recipedetails.add(recipedetail);
-                    DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
-                    if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
-                        //表示有库存
-                        list.add(recipeDetailBean.getDrugName());
+                        recipedetails.add(recipedetail);
+                        DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
+                        if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
+                            //表示有库存
+                            list.add(recipeDetailBean.getDrugName());
+                        }
                     }
                 }
                 Map<String, List> map = new HashMap<>();

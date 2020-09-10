@@ -133,20 +133,44 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 drugMap.put("GNAME", saleDrugList.getDrugName());
                 drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
                 drugMap.put("SPEC", organDrugList.getDrugSpec());
+                drugMap.put("PRC", saleDrugList.getPrice());
+                drugMap.put("DISEASENAME", "每日一次");
+                drugMap.put("DISEASENAME1", "口服");
                 drugMap.put("MSUNITNO", organDrugList.getUnit());
+                drugMap.put("DISEASE", "qd");
                 list.add(drugMap);
             }
             result1.add(recipeDetailBean.getDrugName());
         }
-        sendInfo.put("DETAILS", list);
-        sendInfo.put("HOSCODE", organDTO.getOrganizeCode());
+        map.put("REMARK", "无");
+        map.put("YIBAOBILL", 1);
+        map.put("RECEIVETEL", "13777407051");
+        map.put("DEPT", "全科行政");
+        map.put("PATIENTSENDADDR", "");
+        map.put("TELPHONE", "13777407051");
+        map.put("HOSCODE", "1223000042416122XC");
+        map.put("ALLERGY", "");
+        map.put("DOCTORCODE","15645");
+        map.put("ACCAMOUNT", "0.10");
+        map.put("SEX", "男");
+        map.put("IDENTIFICATION", "");
+        map.put("PRESCRIPTDATE", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+        map.put("DIAGNOSIS", "测试1000");
+        map.put("METHOD", "");
+        map.put("PATNAME", "李笑飞");
+        map.put("INBILLNO", "1005144-" + UUID.randomUUID().toString());
+        map.put("VALIDDATE", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+
+        Map details = new HashMap();
+        map.put("DETAILS", list);
+        titlesInfoList.add(map);
+        sendInfo.put("TITLES", titlesInfoList);
         String sendInfoStr = JSONUtils.toString(sendInfo);
         String methodName = "CheckPrescriptionFialDetail";
         LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), methodName, sendInfoStr);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
-
         return result1;
     }
 
