@@ -1463,7 +1463,9 @@ public class RecipeServiceSub {
             stringBuilder.append(recipedetail.getDrugName());
             stringBuilder.append(" ").append((recipedetail.getDrugSpec()) == null ? "" : recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit() == null ? "" : recipedetail.getDrugUnit()).append("、");
         }
-        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        if(stringBuilder.length()>0){
+            stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        }
         r.setRecipeDrugName(stringBuilder.toString());
 
         r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
