@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.aliyun.oss.common.utils.DateUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -33,7 +32,6 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
-//import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -87,6 +85,8 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+//import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 
 /**
  * 供recipeService调用
@@ -1558,6 +1558,13 @@ public class RecipeServiceSub {
                 //对监护人信息进行脱敏处理
                 patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
             }
+            if (StringUtils.isNotEmpty(patient.getMobile())) {
+                patient.setMobile(LocalStringUtil.coverMobile((patient.getMobile())));
+            }
+            if (StringUtils.isNotEmpty(patient.getIdcard())) {
+                patient.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
+            }
+
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
