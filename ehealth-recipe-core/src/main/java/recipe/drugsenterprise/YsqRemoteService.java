@@ -96,7 +96,26 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
-        return "暂不支持库存查询";
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+        if(CollectionUtils.isNotEmpty(organDrugLists)){
+            OrganDrugList organDrugList = organDrugLists.get(0);
+            DrugsDataBean drugsDataBean = new DrugsDataBean();
+            drugsDataBean.setOrganId(organId);
+            List<RecipeDetailBean> recipeDetailBeans = new ArrayList<>();
+            RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+            recipeDetailBean.setOrganDrugCode(organDrugList.getOrganDrugCode());
+            recipeDetailBean.setDrugId(drugId);
+            recipeDetailBean.setDrugName(organDrugList.getDrugName());
+            recipeDetailBean.setUseTotalDose(5.0);
+            recipeDetailBeans.add(recipeDetailBean);
+            drugsDataBean.setRecipeDetailBeans(recipeDetailBeans);
+            List<String> result = getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 1);
+            if (CollectionUtils.isNotEmpty(result)) {
+                return "有库存";
+            }
+        }
+        return "无库存";
     }
 
     @Override
