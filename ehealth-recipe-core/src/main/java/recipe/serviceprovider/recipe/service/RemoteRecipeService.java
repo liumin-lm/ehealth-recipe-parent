@@ -15,11 +15,8 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
@@ -59,7 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
@@ -81,14 +77,12 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
-import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -840,8 +834,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
             if (recipe != null) {
-                //货到付款、药店取药不走卫宁付
-                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                //货到付款不走卫宁付。。。药店取药可以走卫宁付了
+                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
                     return map;
                 }
             }
@@ -1557,6 +1551,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      *
      * @return Map<String, Object>
      */
+    @Override
     @RpcService
     public Map<String, Object> findRecipeCanRefundByClinicId(Map<String, String> params) {
         LOGGER.info("findRecipeCanRefundByClinicId 参数{}", JSONUtils.toString(params));
