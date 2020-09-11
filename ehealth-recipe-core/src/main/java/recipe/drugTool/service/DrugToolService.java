@@ -1200,6 +1200,7 @@ public class DrugToolService implements IDrugToolService {
         SaleDrugList saleDrugList;
         Integer save=0;
         Integer update=0;
+        StringBuilder successMsg = new StringBuilder();
         for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
             List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(organDrugList.getOrganId(), organDrugList.getOrganDrugCode());
@@ -1210,7 +1211,7 @@ public class DrugToolService implements IDrugToolService {
                 saleDrugList1.setLastModify(new Date());
                 saleDrugListDAO.update(saleDrugList1);
                 update++;
-
+                successMsg.append("药品"+saleDrugList.getDrugName()+"("+saleDrugList.getDrugId()+")价格更改").append(";");
             }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
@@ -1228,11 +1229,13 @@ public class DrugToolService implements IDrugToolService {
                 saleDrugList.setLastModify(new Date());
                 saleDrugListDAO.save(saleDrugList);
                 save++;
+                successMsg.append("新增药品"+saleDrugList.getDrugName()+"("+saleDrugList.getDrugId()+")").append(";");
             }else{
                 continue;
             }
 
         }
+        LOGGER.info("addOrganDrugDataToSaleDrugList 新增（save）= " + save + " 个药品 ：修改（update）= " +update+" 个药品,详细信息:"+successMsg+"!");
         throw new DAOException(DAOException.VALUE_NEEDED, "新增"+save+"个药品，更新"+update+"个药品。");
     }
 
