@@ -91,10 +91,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (responseTO != null && responseTO.isSuccess()) {
             //推送药企处方成功,判断是否为扁鹊平台
             if (RecipeServiceSub.isBQEnterprise(recipe.getClinicOrgan())) {
-                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("bqEnterprise");
-                if (drugsEnterprise != null) {
-                    recipe.setEnterpriseId(drugsEnterprise.getId());
+                if ("bqEnterprise".equals(enterprise.getAccount())){
+                    recipe.setEnterpriseId(enterprise.getId());
                     recipe.setPushFlag(1);
                     RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                     recipeDAO.update(recipe);

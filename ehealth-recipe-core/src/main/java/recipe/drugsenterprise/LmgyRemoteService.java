@@ -73,13 +73,6 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseResult.getSuccess();
     }
 
-    @RpcService
-    public void test(Integer recipeId){
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(251);
-        scanStock(recipeId, drugsEnterprise);
-    }
-
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
