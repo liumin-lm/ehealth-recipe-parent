@@ -17,10 +17,7 @@ import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 处方签
@@ -30,6 +27,10 @@ import java.util.Map;
 @Service
 public class RecipeLabelManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    //机构配置展示特殊字段
+    private final static List<String> CONFIG_STRING = Arrays.asList("recipeDetailRemark");
+
     @Autowired
     private IScratchableService scratchableService;
 
@@ -94,8 +95,8 @@ public class RecipeLabelManager {
             }
             /**根据模版匹配 value*/
             Object value = recipeMap.get(a.getBoxLink());
-            if (null == value) {
-                value = configService.getConfiguration(organId, "recipeDetailRemark");
+            if (null == value && CONFIG_STRING.contains(a.getBoxLink())) {
+                value = configService.getConfiguration(organId, a.getBoxLink());
             }
 
             if (null == value) {
