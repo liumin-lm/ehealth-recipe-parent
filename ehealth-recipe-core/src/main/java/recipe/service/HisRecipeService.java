@@ -571,8 +571,40 @@ public class HisRecipeService {
         List<HisRecipe> hisRecipes=new ArrayList<>();
         LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
-            HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
-                    patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
+//            HisRecipe hisRecipe2 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
+//                    patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
+            HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
+            if(hisRecipe1!=null){
+                if(!patientDTO.getMpiId().equals(hisRecipe1.getMpiId())){
+                    List<Integer> hisRecipeIds=new ArrayList<>();
+                    hisRecipeIds.add(hisRecipe1.getHisRecipeID());
+                    //同recipeCode,organId不是本人生成的线下处方
+                    Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+                    //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则先删除后新增
+                    if (haveRecipe != null) {
+                        if(new Integer(0).equals(haveRecipe.getPayFlag())
+                                &&!StringUtils.isEmpty(patientDTO.getMpiId())
+                                &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
+                            hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
+                            hisRecipe1=null;
+                        }
+                    }else{
+                        hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
+                        hisRecipe1=null;
+                    }
+                }else{
+                    //本人
+                    hisRecipes.add(hisRecipe1);
+                    //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则将数据库里的未缴费状态更新为已缴费状态
+                    if(2 == flag){
+                        if(1 == hisRecipe1.getStatus()){
+                            hisRecipe1.setStatus(queryHisRecipResTO.getStatus());
+                            hisRecipeDAO.update(hisRecipe1);
+                        }
+                    }
+                }
+            }
+
             //数据库不存在处方信息，则新增
             if (null == hisRecipe1) {
                 HisRecipe hisRecipe = new HisRecipe();
@@ -701,15 +733,6 @@ public class HisRecipeService {
                         }
                         detail.setStatus(1);
                         hisRecipeDetailDAO.save(detail);
-                    }
-                }
-            }else{
-                hisRecipes.add(hisRecipe1);
-                //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则将数据库里的未缴费状态更新为已缴费状态
-                if(2 == flag){
-                    if(1 == hisRecipe1.getStatus()){
-                        hisRecipe1.setStatus(queryHisRecipResTO.getStatus());
-                        hisRecipeDAO.update(hisRecipe1);
                     }
                 }
             }
@@ -848,7 +871,7 @@ public class HisRecipeService {
     private Recipe saveRecipeFromHisRecipe(HisRecipe hisRecipe) {
         Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
         if (haveRecipe != null) {
-            //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则先删除，后增加
+            //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则替换用户信息
             if(new Integer(0).equals(haveRecipe.getPayFlag())
                     &&!StringUtils.isEmpty(hisRecipe.getMpiId())
                     &&!hisRecipe.getMpiId().equals(haveRecipe.getMpiid())){
@@ -856,10 +879,9 @@ public class HisRecipeService {
                 haveRecipe.setMpiid(hisRecipe.getMpiId());
                 haveRecipe.setPatientName(hisRecipe.getPatientName());
                 haveRecipe.setPatientID(hisRecipe.getPatientNumber());
-                recipeDAO.saveRecipe(haveRecipe);
-            }else{
-                return haveRecipe;
+                recipeDAO.update(haveRecipe);
             }
+            return haveRecipe;
         }
         Recipe recipe = new Recipe();
         recipe.setBussSource(0);
