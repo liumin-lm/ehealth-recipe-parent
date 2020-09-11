@@ -1637,4 +1637,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.queryRecipeIdByOrgan(organIds, recipeTypes, type);
     }
+
+    @Override
+    public List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes);
+        return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
+    @Override
+    public List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer> recipeIds) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        return ObjectCopyUtils.convert(recipedetails,RecipeDetailBean.class);
+    }
 }

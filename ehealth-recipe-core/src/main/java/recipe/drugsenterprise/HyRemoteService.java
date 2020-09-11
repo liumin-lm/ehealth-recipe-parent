@@ -9,6 +9,7 @@ import ctd.util.annotation.RpcService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class HyRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
