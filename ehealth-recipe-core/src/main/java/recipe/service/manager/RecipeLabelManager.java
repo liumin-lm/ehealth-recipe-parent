@@ -1,5 +1,6 @@
 package recipe.service.manager;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import ctd.persistence.exception.DAOException;
@@ -32,6 +33,9 @@ public class RecipeLabelManager {
     @Autowired
     private IScratchableService scratchableService;
 
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
+
     /**
      * 获取处方签 配置 给前端展示。
      * 1获取处方信息，2获取运营平台配置，3替换运营平台配置字段值，4返回对象给前端展示
@@ -49,6 +53,9 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null!");
         }
+        //处理特殊字段拼接
+        setRecipeMap(recipeMap);
+
         Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
         if (CollectionUtils.isEmpty(labelMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "labelMap is null!");
@@ -60,7 +67,7 @@ public class RecipeLabelManager {
                 return;
             }
             try {
-                List<RecipeLabelVO> list = getValue(value, recipeMap);
+                List<RecipeLabelVO> list = getValue(value, recipeMap, organId);
                 resultMap.put(k, list);
             } catch (Exception e) {
                 logger.error("RecipeLabelManager queryRecipeLabelById error ", e);
@@ -72,56 +79,58 @@ public class RecipeLabelManager {
 
     /**
      * 根据运营平台配置 组织字段值对象
-     * todo 暂时支持固定格式解析 （目前需求如此，后续如需求变更） 可优化为全格式解析
+     * todo 暂时需求如此 仅支持固定格式解析 （patient.patientName 这种一层对象解析）
      *
      * @param scratchableList
      * @param recipeMap
      * @return
      */
-    private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap) {
+    private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap, Integer organId) {
         logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toBytes(scratchableList), JSONUtils.toBytes(recipeMap));
         List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
         scratchableList.forEach(a -> {
             if (StringUtils.isEmpty(a.getBoxLink())) {
                 return;
             }
-            RecipeLabelVO recipeLabel = new RecipeLabelVO();
-            recipeLabel.setName(a.getBoxTxt());
-            recipeLabel.setEnglishName(a.getBoxLink());
+            /**根据模版匹配 value*/
+            Object value = recipeMap.get(a.getBoxLink());
+            if (null == value) {
+                value = configService.getConfiguration(organId, "recipeDetailRemark");
+            }
 
-            Object obj = recipeMap.get(a.getBoxLink());
-            String[] boxLinks = a.getBoxLink().split(ByteUtils.COMMA);
-
-            if (null != obj) {
-                //一层结构对象
-                recipeLabel.setValue(obj);
-            } else if (boxLinks.length > 1) {
-                //一层结构 逗号 分隔对象
-                StringBuilder value = new StringBuilder();
-                for (String boxLink : boxLinks) {
-                    obj = recipeMap.get(boxLink);
-                    if (null == obj) {
-                        logger.warn("RecipeLabelManager getValue boxLink ={}", JSONUtils.toBytes(boxLink));
-                        continue;
-                    }
-                    value.append(obj).append(ByteUtils.COMMA);
-                }
-                if (!StringUtils.isEmpty(value)) {
-                    recipeLabel.setValue(value.toString());
-                }
-            } else {
-                //两层对象获取字段
-                boxLinks = a.getBoxLink().split(ByteUtils.DOT);
-                if (2 == boxLinks.length) {
-                    obj = recipeMap.get(boxLinks[0]);
-                    String str = MapValueUtil.getFieldValueByName(boxLinks[1], obj);
-                    recipeLabel.setValue(str);
+            if (null == value) {
+                //对象获取字段
+                String[] boxLinks = a.getBoxLink().split(ByteUtils.DOT);
+                Object key = recipeMap.get(boxLinks[0]);
+                if (2 == boxLinks.length && null != key) {
+                    value = MapValueUtil.getFieldValueByName(boxLinks[1], key);
                 } else {
                     logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toBytes(boxLinks));
                 }
             }
+
+            //组织返回对象
+            RecipeLabelVO recipeLabel = new RecipeLabelVO();
+            recipeLabel.setName(a.getBoxTxt());
+            recipeLabel.setEnglishName(a.getBoxLink());
+            recipeLabel.setValue(value);
             recipeLabelList.add(recipeLabel);
         });
         return recipeLabelList;
+    }
+
+    /**
+     * 处理特殊模版匹配规则
+     *
+     * @param recipeMap
+     */
+    private void setRecipeMap(Map<String, Object> recipeMap) {
+        String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
+        String doctorSignImgToken = null == recipeMap.get("doctorSignImgToken") ? "" : recipeMap.get("doctorSignImgToken").toString();
+        recipeMap.put("doctorSignImg,doctorSignImgToken", doctorSignImg + ByteUtils.COMMA + doctorSignImgToken);
+        String checkerSignImg = null == recipeMap.get("checkerSignImg") ? "" : recipeMap.get("checkerSignImg").toString();
+        String checkerSignImgToken = null == recipeMap.get("checkerSignImgToken") ? "" : recipeMap.get("checkerSignImgToken").toString();
+        recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
+
     }
 }
