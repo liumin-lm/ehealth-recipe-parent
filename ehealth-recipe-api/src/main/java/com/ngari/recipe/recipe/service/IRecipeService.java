@@ -691,5 +691,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,List<Integer>recipeTypes,Integer  type);
 
+
+    /**
+     * 根据机构id 和处方类型 查询处方info
+     *
+     * @param organIds
+     * @return
+     */
+    @RpcService
+    List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds,List<Integer>recipeTypes);
+
 }
 
