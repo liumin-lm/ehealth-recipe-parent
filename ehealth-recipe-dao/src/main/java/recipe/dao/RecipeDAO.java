@@ -3016,4 +3016,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
         return action.getResult();
     }
+
+//    @DAOMethod(sql = "from Recipe where clinicOrgan in(:organIds) and  recipeType in(:recipeTypes) and  checkMode<3  and status not in (9,31)  and checkOrgan IS NOT NULL")
+//    public abstract List<Recipe> queryRecipeInfoByOrganAndRecipeType(@DAOParam("organIds") List<Integer> organIds,
+//                                                        @DAOParam("recipeTypes") List<Integer> recipeTypes);
+
+    public List<Recipe> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where clinicOrgan in(:organIds) and  recipeType in(:recipeTypes) and  checkMode<3  and status not in (9,31)  and checkOrgan IS NOT NULL");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("organIds", organIds);
+                q.setParameterList("recipeTypes", recipeTypes);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        return action.getResult();
+    }
+
+
 }
