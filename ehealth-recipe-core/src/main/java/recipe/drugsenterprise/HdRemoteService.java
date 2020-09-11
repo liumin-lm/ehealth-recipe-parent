@@ -1615,7 +1615,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } else {
             //到店取药
-            tokenUpdateImpl(drugsEnterprise);
             String methodName = "findSupportDep";
             map.put("range", "0");
             String requestParames = JSONUtils.toString(map);
@@ -1634,7 +1633,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.info("responseStr :{}.", responseStr);
                 if (CollectionUtils.isNotEmpty(datas)) {
                     for (Object data : datas) {
-                        Map<String, Object> drugMap = (Map<String, Object>) data;
+                        Map<String, Object> drugMap = (Map<String, Object>)data;
                         List drugInvs = (List)drugMap.get("drugInvs");
                         for (Object drugs : drugInvs) {
                             Map<String, Object> drugResult = (Map<String, Object>) drugs;
