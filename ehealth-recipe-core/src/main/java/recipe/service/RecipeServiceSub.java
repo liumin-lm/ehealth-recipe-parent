@@ -1493,7 +1493,7 @@ public class RecipeServiceSub {
 
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
-        r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
+        r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType())?null:Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         StringBuilder stringBuilder = new StringBuilder();
