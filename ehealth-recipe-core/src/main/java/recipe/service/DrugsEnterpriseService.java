@@ -248,7 +248,32 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         if (drugsEnterprise == null){
             return null;
         }
-        return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+        PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+        List<Pharmacy> listS = pharmacyDAO.find1();
+        DrugsEnterpriseBean drugsEnterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+        if(0 == drugsEnterpriseBean.getCreateType()){
+            for(Pharmacy pharmacy : listS){
+                if(pharmacy.getDrugsenterpriseId().equals(drugsEnterpriseBean.getId())){
+                    HashMap<String, String> map = new HashMap<String, String> ();
+                    map.put("pharmacyAddress", pharmacy.getPharmacyAddress());
+                    map.put("pharmacyPhone", pharmacy.getPharmacyPhone());
+                    //获取药店经度
+                    map.put("pharmacyLongitude", pharmacy.getPharmacyLongitude());
+                    //获取药店纬度
+                    map.put("pharmacyLatitude", pharmacy.getPharmacyLatitude());
+                    OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+                    if (drugsEnterpriseBean.getOrganId() != null){
+                        OrganDTO byOrganId = bean.getByOrganId(drugsEnterpriseBean.getOrganId());
+                        map.put("organName", byOrganId.getName());
+                    }else {
+                        map.put("organName", null);
+                    }
+                    drugsEnterpriseBean.setPharmacyInfo(map);
+                    break;
+                }
+            }
+        }
+        return drugsEnterpriseBean;
     }
 
     @RpcService

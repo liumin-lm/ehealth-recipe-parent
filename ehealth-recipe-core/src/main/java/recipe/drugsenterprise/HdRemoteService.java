@@ -1599,12 +1599,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                                 }
                             }
                         }catch(Exception e){
-
+                            LOGGER.info("getDrugInventoryForApp 配送处理数据 error msg:{}.", e.getMessage(), e);
                         }
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.info("getDrugInventoryForApp 配送解析数据 error msg:{}.", e.getMessage(), e);
             } finally {
                 try {
                     httpClient.close();
@@ -1632,35 +1632,36 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 JSONObject jsonObject = JSONObject.parseObject(responseStr);
                 List datas = (List)jsonObject.get("data");
                 LOGGER.info("responseStr :{}.", responseStr);
-                for (Object data : datas) {
-                    Map<String, Object> drugMap = (Map<String, Object>) data;
-                    List drugInvs = (List)drugMap.get("drugInvs");
-                    for (Object drugs : drugInvs) {
-                        Map<String, Object> drugResult = (Map<String, Object>) drugs;
-                        try{
-                            Double availableSumQty = Double.parseDouble((String)drugResult.get("invQty"));
-                            String drugCode = (String)drugResult.get("drugCode");
-                            String drugValue = drugData.get(drugCode);
-                            if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
-                                String[] values = drugValue.split("&&");
-                                double useTotalDose = Double.parseDouble(values[0]);
-                                if (availableSumQty > useTotalDose) {
-                                    result.add(values[1]);
+                if (CollectionUtils.isNotEmpty(datas)) {
+                    for (Object data : datas) {
+                        Map<String, Object> drugMap = (Map<String, Object>) data;
+                        List drugInvs = (List)drugMap.get("drugInvs");
+                        for (Object drugs : drugInvs) {
+                            Map<String, Object> drugResult = (Map<String, Object>) drugs;
+                            try{
+                                Double availableSumQty = Double.parseDouble((String)drugResult.get("invQty"));
+                                String drugCode = (String)drugResult.get("drugCode");
+                                String drugValue = drugData.get(drugCode);
+                                if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
+                                    String[] values = drugValue.split("&&");
+                                    double useTotalDose = Double.parseDouble(values[0]);
+                                    if (availableSumQty > useTotalDose) {
+                                        result.add(values[1]);
+                                    }
                                 }
+                            }catch(Exception e){
+                                LOGGER.info("getDrugInventoryForApp 药店解析数据 error msg:{}.", e.getMessage(), e);
                             }
-                        }catch(Exception e){
-                            e.printStackTrace();
                         }
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.info("getDrugInventoryForApp 药店处理数据 error msg:{}.", e.getMessage(), e);
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-
                 }
             }
         }

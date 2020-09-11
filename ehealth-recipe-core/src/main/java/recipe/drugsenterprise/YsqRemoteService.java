@@ -27,6 +27,9 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -78,6 +81,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final String PRESCRIPTION_GYS_LISTS = "PrescriptionGYSLists";
 
+    private static final String CHECK_PRESCRIPTION_FIALDETAIL = "CheckPrescriptionFialDetail";
+
     public static final String YSQ_SPLIT = "-";
 
     private static final String KEY_RCP_DRUG_INVENTORY_LOCK = "RCP_DRUG_INVENTORY_";
@@ -116,7 +121,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         position.put("LATITUDE", "30.255732");
         map.put("POSITION", position);
         List list = new ArrayList();
-        List<String> result1 = new ArrayList<>();
+        List<String> resultDrugList = new ArrayList<>();
+        Map<String, String> drugData = new HashMap<>();
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
@@ -130,21 +136,62 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 drugMap.put("GNAME", saleDrugList.getDrugName());
                 drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
                 drugMap.put("SPEC", organDrugList.getDrugSpec());
+                drugMap.put("PRC", saleDrugList.getPrice());
+                drugMap.put("DISEASENAME", "每日一次");
+                drugMap.put("DISEASENAME1", "口服");
                 drugMap.put("MSUNITNO", organDrugList.getUnit());
+                drugMap.put("DISEASE", "qd");
                 list.add(drugMap);
+                drugData.put(saleDrugList.getOrganDrugCode(), recipeDetailBean.getDrugName());
             }
-            result1.add(recipeDetailBean.getDrugName());
         }
-        sendInfo.put("DETAILS", list);
-        sendInfo.put("HOSCODE", organDTO.getOrganizeCode());
+        map.put("REMARK", "无");
+        map.put("YIBAOBILL", 1);
+        map.put("RECEIVETEL", "13777407051");
+        map.put("DEPT", "全科行政");
+        map.put("PATIENTSENDADDR", "");
+        map.put("TELPHONE", "13777407051");
+        map.put("HOSCODE", "1223000042416122XC");
+        map.put("ALLERGY", "");
+        map.put("DOCTORCODE","15645");
+        map.put("ACCAMOUNT", "0.10");
+        map.put("SEX", "男");
+        map.put("IDENTIFICATION", "");
+        map.put("PRESCRIPTDATE", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+        map.put("DIAGNOSIS", "测试1000");
+        if (new Integer(1).equals(flag)) {
+            map.put("METHOD", "0");
+        } else {
+            map.put("METHOD", "1");
+        }
+        map.put("PATNAME", "李笑飞");
+        map.put("INBILLNO", "1005144-" + UUID.randomUUID().toString());
+        map.put("VALIDDATE", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+
+        map.put("DETAILS", list);
+        titlesInfoList.add(map);
+        sendInfo.put("TITLES", titlesInfoList);
         String sendInfoStr = JSONUtils.toString(sendInfo);
         String methodName = "CheckPrescriptionFialDetail";
         LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), methodName, sendInfoStr);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
-
-        return result1;
+        if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
+            List resultList = (List)result.getObject();
+            if (CollectionUtils.isNotEmpty(resultList)) {
+                for (Object drugs : resultList) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                    String drugCode = (String)drugMap.get("DRUGCODE");
+                    Integer drugStatus = (Integer)drugMap.get("DRUGSTATUS");
+                    String drugValue = drugData.get(drugCode);
+                    if (new Integer(1).equals(drugStatus)) {
+                        resultDrugList.add(drugValue);
+                    }
+                }
+            }
+        }
+        return resultDrugList;
     }
 
     @Override
@@ -558,7 +605,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         result.setMsg(drugEpName + "接口调用返回可用药店列表为空");
                         result.setCode(DrugEnterpriseResult.FAIL);
                     }
-                } else {
+                } else if (CHECK_PRESCRIPTION_FIALDETAIL.equals(method)) {
+                    List details = MapValueUtil.getList(resultMap, "DETAILS");
+                    result.setObject(details);
+                }else {
                     result.setMsg("调用[" + drugEpName + "][" + method + "]成功");
                 }
             } else {
@@ -680,13 +730,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         //添加挂号序号
                         recipeMap.put("REGISTRATIONNUMBER", recipeExtend.getRegisterID());
                     }
-                    RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-                    RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipeId);
-                    if (recipeCheck != null) {
-                        recipeMap.put("REVIEWUSER", recipeCheck.getCheckerName());
+                    IRecipeCheckService recipeCheckService=  RecipeAuditAPI.getService(IRecipeCheckService.class,"recipeCheckServiceImpl");
+                    RecipeCheckBean recipeCheckBean = recipeCheckService.getByRecipeId(recipe.getRecipeId());
+                    if (recipeCheckBean != null) {
+                        recipeMap.put("REVIEWUSER", recipeCheckBean.getCheckerName());
                         recipeMap.put("REVIEWSTATE", "true");
-                        recipeMap.put("REVIEWMSG", recipeCheck.getMemo());
-                        recipeMap.put("REVIEWTIME", recipeCheck.getCheckDate());
+                        recipeMap.put("REVIEWMSG", recipeCheckBean.getMemo());
+                        recipeMap.put("REVIEWTIME", recipeCheckBean.getCheckDate());
                     }
 
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
@@ -751,11 +801,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("ISPAYMENT", "0");
             }
 
-            if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
-                recipeMap.put("HOSCODE", organ.getOrganizeCode());
-            } else {
-                recipeMap.put("HOSCODE", organ.getOrganId().toString());
-            }
+            recipeMap.put("HOSCODE", organ.getOrganizeCode());
+
             recipeMap.put("HOSNAME", organ.getName());
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
