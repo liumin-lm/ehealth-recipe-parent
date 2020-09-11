@@ -1636,15 +1636,17 @@ public class RecipeHisService extends RecipeBaseService {
             recipeBean.setDepartText(recipeInfoTO.getDepartName());
             List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
             List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
-            for (RecipeDetailTO recipeDetailTO: detailData){
-                HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
-                detailBean.setDrugUnit(recipeDetailTO.getUnit());
-                detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
-                detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
-                detailBean.setUseDays(recipeDetailTO.getDays());
-                detailBean.setUseTotalDose(recipeDetailTO.getAmount());
-                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
-                hisRecipeDetailBeans.add(detailBean);
+            if(!CollectionUtils.isEmpty(detailData)){
+                for (RecipeDetailTO recipeDetailTO: detailData){
+                    HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+                    detailBean.setDrugUnit(recipeDetailTO.getUnit());
+                    detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                    detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+                    detailBean.setUseDays(recipeDetailTO.getDays());
+                    detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                    detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+                    hisRecipeDetailBeans.add(detailBean);
+                }
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
             recipeBean.setClinicOrgan(organId);
