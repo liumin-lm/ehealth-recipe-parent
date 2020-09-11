@@ -1623,7 +1623,11 @@ public class RecipeService extends RecipeBaseService {
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
-            String CANewOldWay = "new";
+            String CANewOldWay = "old";
+            Object caProcessType = configService.getConfiguration(recipe.getClinicOrgan(), "CAProcessType");
+            if(null != caProcessType){
+                CANewOldWay = caProcessType.toString();
+            }
             RecipeResultBean recipeSignResult;
             if("old".equals(CANewOldWay)){
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
@@ -2144,29 +2148,51 @@ public class RecipeService extends RecipeBaseService {
                     return rMap;
                 }
             }
-            //第四步签名（发送his前更新处方状态---医院确认中）
-            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
-            //HIS消息发送--异步处理
-            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
-
-            //获取处方签名结果
-            Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
-            if (result) {
-                //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
-                if (!recipeBean.canMedicalPay()) {
-                    //发送卡片
-                    Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-                    List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-                    RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+            //先预留
+//            //第四步签名（发送his前更新处方状态---医院确认中）
+//            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+//            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
+//            //HIS消息发送--异步处理
+//            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+//
+//            //获取处方签名结果
+//            Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
+//            if (result) {
+//                //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
+//                if (!recipeBean.canMedicalPay()) {
+//                    //发送卡片
+//                    Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+//                    List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+//                    RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+//                }
+//                //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
+//                doHisReturnSuccessForOrgan(recipeBean, rMap);
+//            }
+//            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+//            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
+//                //更新审方信息
+//                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+//            }
+            //跳转所需要的复诊信息
+            Integer consultId = recipeBean.getClinicId();
+            Integer bussSource = recipeBean.getBussSource();
+            if (consultId != null) {
+                if (null != rMap && null == rMap.get("consultId")) {
+                    rMap.put("consultId", consultId);
+                    rMap.put("bussSource", bussSource);
                 }
-                //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
-                doHisReturnSuccessForOrgan(recipeBean, rMap);
             }
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
-                //更新审方信息
-                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            String CANewOldWay = "old";
+            Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
+            if(null != caProcessType){
+                CANewOldWay = caProcessType.toString();
+            }
+            //触发CA前置操作
+            if("new".equals(CANewOldWay)){
+                AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
+            }else{
+                //老版默认走后置的逻辑，直接将处方推his
+                new CaAfterProcessType().signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
         } catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
@@ -5229,7 +5255,11 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("bussSource", bussSource);
                 }
             }
-            String CANewOldWay = "new";
+            String CANewOldWay = "old";
+            Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
+            if(null != caProcessType){
+                CANewOldWay = caProcessType.toString();
+            }
             //触发CA前置操作
             if("new".equals(CANewOldWay)){
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
@@ -5369,8 +5399,12 @@ public class RecipeService extends RecipeBaseService {
         //设置处方的状态，如果失败不走下面逻辑
         /**************/
         //触发CA操作
-        //兼容新老版本
-        String CANewOldWay = "new";
+        //兼容新老版本,根据配置项判断CA的新老流程走向
+        String CANewOldWay = "old";
+        Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
+        if(null != caProcessType){
+            CANewOldWay = caProcessType.toString();
+        }
         if("new".equals(CANewOldWay)){
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{

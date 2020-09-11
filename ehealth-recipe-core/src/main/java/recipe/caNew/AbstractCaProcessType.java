@@ -61,10 +61,12 @@ public abstract class AbstractCaProcessType {
         //根据机构配置的CA模式获取具体的实现
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         //添加按钮配置项key
-        //String CAType = configService.getConfiguration(organId, "payModeDeploy").toString();
+        Object caFromHisCallBackOrder = configService.getConfiguration(organId, "CAFromHisCallBackOrder");
         //先给个默认值
         String CAType = "before";
-
+        if(null != caFromHisCallBackOrder){
+            CAType = caFromHisCallBackOrder.toString();
+        }
         return CARecipeTypeEnum.getCaProcessType(CAType);
 
     }
@@ -128,6 +130,11 @@ public abstract class AbstractCaProcessType {
 
         String memo = "";
         String CANewOldWay = "old";
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        Object caProcessType = configService.getConfiguration(recipe.getClinicOrgan(), "CAProcessType");
+        if(null != caProcessType){
+            CANewOldWay = caProcessType.toString();
+        }
         //兼容新老版本，日志
         if("old".equals(CANewOldWay)){
             memo = "HIS审核返回：写入his成功，审核通过";
