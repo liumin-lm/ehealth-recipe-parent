@@ -28,7 +28,9 @@ import java.util.*;
 public class RecipeLabelManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    //机构配置展示特殊字段
+    /**
+     * 机构配置展示特殊字段
+     */
     private final static List<String> CONFIG_STRING = Arrays.asList("recipeDetailRemark");
 
     @Autowired
