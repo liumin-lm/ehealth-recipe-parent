@@ -5,9 +5,13 @@ import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
+import ctd.util.JSONUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import recipe.constant.ErrorCode;
 
 import javax.persistence.Entity;
 import java.beans.IntrospectionException;
@@ -21,7 +25,7 @@ import java.util.Map;
  * @since 2020/7/22
  */
 public interface ExtendDao {
-
+    Logger logger = LoggerFactory.getLogger(ExtendDao.class);
     /**
      * updateNonNullField
      * 单表非null 字段更新
@@ -31,21 +35,27 @@ public interface ExtendDao {
      * @return success
      */
     default boolean updateNonNullFieldByPrimaryKey(Object entity, String keyField) {
-        Assert.notNull(entity);
-        Assert.notNull(keyField);
-        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
-            @Override
-            public void execute(StatelessSession statelessSession) throws Exception {
-                Map<String, Object> param = Maps.newHashMap();
-                String hql = assembleHqlForUpdateNonNullField(entity, param, keyField);
-                Query query = statelessSession.createQuery(hql);
-                param.remove(keyField);
-                param.forEach(query::setParameter);
-                setResult(query.executeUpdate() > 0);
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
+        try {
+            logger.info("updateNonNullFieldByPrimaryKey entity = {} ,keyField = {}", JSONUtils.toBytes(entity), keyField);
+            Assert.notNull(entity);
+            Assert.notNull(keyField);
+            HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+                @Override
+                public void execute(StatelessSession statelessSession) throws Exception {
+                    Map<String, Object> param = Maps.newHashMap();
+                    String hql = assembleHqlForUpdateNonNullField(entity, param, keyField);
+                    Query query = statelessSession.createQuery(hql);
+                    param.remove(keyField);
+                    param.forEach(query::setParameter);
+                    setResult(query.executeUpdate() > 0);
+                }
+            };
+            HibernateSessionTemplate.instance().execute(action);
+            return action.getResult();
+        } catch (Exception e) {
+            logger.error("updateNonNullFieldByPrimaryKey error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**
@@ -99,7 +109,10 @@ public interface ExtendDao {
         if (param.size() < 2) {
             throw new DAOException("no NonNull field");
         }
-        return hql.substring(0, hql.length() - 2) + " where " + keyField + " = " + param
+        String result = hql.substring(0, hql.length() - 2) + " where " + keyField + " = " + param
                 .get(keyField);
+
+        logger.info("assembleHqlForUpdateNonNullField result = {}", result);
+        return result;
     }
 }
