@@ -345,6 +345,10 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String number = recipeParameterDao.getByName("gy_drug_inventory");
+        return getInvertoryResult(drugId, drugsEnterprise, number);
+    }
+
+    private String getInvertoryResult(Integer drugId, DrugsEnterprise drugsEnterprise, String number) {
         String method = "scanStock";
         Map<String, Object> recipeInfo = Maps.newHashMap();
         Map<String, Object> sendMap = Maps.newHashMap();
@@ -367,7 +371,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSONUtils.toString(sendMap);
         LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), method, sendInfoStr);
 
-        String backMsg = null;
+        String backMsg = "";
         try {
             backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
             if (StringUtils.isEmpty(backMsg)) {
@@ -400,7 +404,18 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return null;
+        List<String> result = new ArrayList<>();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                String inventory = getInvertoryResult(saleDrugList.getDrugId(), drugsEnterprise, recipeDetailBean.getUseTotalDose().toString());
+                if (StringUtils.isNotEmpty(inventory) && "有库存".equals(inventory)) {
+                    result.add(recipeDetailBean.getDrugName());
+                }
+            }
+        }
+        return result;
     }
 
     @Override
