@@ -218,6 +218,14 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return null;
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<String> result = new ArrayList<>();
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                result.add(recipeDetailBean.getDrugName());
+            }
+        }
+        return result;
     }
 }
