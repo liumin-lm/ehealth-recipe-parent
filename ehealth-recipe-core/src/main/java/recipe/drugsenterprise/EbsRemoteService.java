@@ -316,12 +316,21 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("getDrugInventory error:{}.", e.getMessage(), e);
             return "无库存";
         }
-        return "有库存";
+        return "无库存";
     }
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return null;
+        List<String> result = new ArrayList<>();
+        if (new Integer(1).equals(flag)) {
+            for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+                String inventory = getDrugInventory(recipeDetailBean.getDrugId(), drugsEnterprise, drugsDataBean.getOrganId());
+                if (StringUtils.isNotEmpty(inventory) && "有库存".equals(inventory)) {
+                    result.add(recipeDetailBean.getDrugName());
+                }
+            }
+        }
+        return result;
     }
 
     @Override
