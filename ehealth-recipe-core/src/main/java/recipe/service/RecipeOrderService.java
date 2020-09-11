@@ -2079,6 +2079,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setCertificateType(patient.getCertificateType());
                 patientBaseInfo.setCertificate(patient.getCertificate());
                 patientBaseInfo.setMobile(patient.getMobile());
+                patientBaseInfo.setPatientID(recipe.getPatientID());
+                patientBaseInfo.setMpi(recipe.getRequestMpiId());
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
             if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
