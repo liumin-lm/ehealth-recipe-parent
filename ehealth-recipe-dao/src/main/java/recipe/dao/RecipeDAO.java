@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
+import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
 import recipe.util.SqlOperInfo;
 
@@ -54,7 +55,7 @@ import java.util.stream.Stream;
  * @author yuyun
  */
 @RpcSupportDAO
-public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
+public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> implements ExtendDao {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
@@ -62,6 +63,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         super();
         this.setEntityName(Recipe.class.getName());
         this.setKeyField("recipeId");
+    }
+
+    public boolean updateNonNullFieldByPrimaryKey(Recipe recipe) {
+        return updateNonNullFieldByPrimaryKey(recipe, "recipeId");
     }
 
     @DAOMethod(sql = "from Recipe where fromflag in (1,2) order by createDate desc")
