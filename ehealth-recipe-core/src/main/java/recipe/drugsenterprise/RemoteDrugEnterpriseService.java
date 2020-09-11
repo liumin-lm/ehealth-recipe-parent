@@ -568,7 +568,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     }
                 }
 
-                if (payModeSupport(drugsEnterprise , 3)) {
+                if (payModeSupport(drugsEnterprise , 3) && configurations.contains("supportTFDS")) {
                     haveInventoryForStoreList = new ArrayList<>();
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
