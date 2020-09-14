@@ -51,4 +51,6 @@
     <!--健康卡数据上传-->
     <reference id="eh.wholesomeService" interface="com.ngari.base.healthcard.service.IWholesomeService"/>
     <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>
+
+    <reference id="eh.commonService" interface="com.ngari.base.common.ICommonService"/>
 </s:beans>
