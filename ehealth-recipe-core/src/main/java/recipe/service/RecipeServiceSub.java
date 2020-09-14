@@ -889,7 +889,7 @@ public class RecipeServiceSub {
             paramMap.put("mobile", p.getMobile());
             paramMap.put("loginId", p.getLoginId());
             paramMap.put("label", recipeType + "处方");
-            paramMap.put("copyNum", recipe.getCopyNum() + "剂");
+            paramMap.put("copyNum", recipe.getCopyNum() + "贴");
             paramMap.put("recipeMemo", recipe.getRecipeMemo());
             int i = 0;
             for (Recipedetail d : details) {
@@ -913,7 +913,7 @@ public class RecipeServiceSub {
                     //备注
                     dTotal = dTotal + "*" + d.getMemo();
                 }
-                paramMap.put("drugInfo" + i, dName + "¨" + dTotal);
+                paramMap.put("drugInfo" + i, dName + "：" + dTotal);
                 if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
                     paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
                 }else{
@@ -1497,7 +1497,7 @@ public class RecipeServiceSub {
 
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
-        r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
+        r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType())?null:Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         StringBuilder stringBuilder = new StringBuilder();

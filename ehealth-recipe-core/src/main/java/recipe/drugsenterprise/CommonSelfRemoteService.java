@@ -1,17 +1,17 @@
 package recipe.drugsenterprise;
 
+import com.ngari.his.recipe.mode.DrugInfoResponseTO;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -21,10 +21,8 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
+import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
@@ -218,6 +216,38 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return null;
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<String> result = new ArrayList<>();
+        if(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType() == drugsEnterprise.getSendType()){
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsDataBean.getOrganId());
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    OrganDrugList organDrugList = organDrugLists.get(0);
+                    List<Recipedetail> recipedetails = new ArrayList<>();
+                    Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
+                    if (organDrugList != null) {
+                        recipedetail.setPack(organDrugList.getPack());
+                        recipedetail.setDrugUnit(organDrugList.getUnit());
+                        recipedetail.setProducerCode(organDrugList.getProducerCode());
+                        recipedetails.add(recipedetail);
+                        DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
+                        if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
+                            //表示有库存
+                            result.add(recipeDetailBean.getDrugName());
+                        }
+                    }
+                }
+            }
+        } else {
+            for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+                if (saleDrugList != null) {
+                    result.add(recipeDetailBean.getDrugName());
+                }
+            }
+        }
+        return result;
     }
 }

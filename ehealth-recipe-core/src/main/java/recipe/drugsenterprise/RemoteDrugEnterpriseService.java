@@ -605,7 +605,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     List<Recipedetail> recipedetails = new ArrayList<>();
                     Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
                     OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
-                    if (organDrugList != null) {
+                    if (organDrugList != null && !isBloneHos(organDrugList)) {
                         recipedetail.setPack(organDrugList.getPack());
                         recipedetail.setDrugUnit(organDrugList.getUnit());
                         recipedetail.setProducerCode(organDrugList.getProducerCode());
@@ -645,6 +645,22 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         return result;
     }
 
+    private static boolean isBloneHos(OrganDrugList organDrugList) {
+        if (organDrugList != null && StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            if (organDrugList.getPharmacy().contains(",")) {
+                String[] pharmacys = organDrugList.getPharmacy().split(",");
+                for (String pharmacy : pharmacys) {
+                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(Integer.parseInt(pharmacy));
+                    if (pharmacyTcm != null && "院外药房".equals(pharmacyTcm.getType())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * 查询药企是否支持指定的购药方式
      * @param drugsEnterprise  药企
@@ -668,7 +684,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             } else {
                 return false;
             }
-        } else if (new Integer(3).equals(drugsEnterprise.getPayModeSupport())) {
+        } else if (new Integer(3).equals(type)) {
             //支持药店取药
             return to_tfds_list.contains(drugsEnterprise.getPayModeSupport());
         } else {

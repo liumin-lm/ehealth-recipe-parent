@@ -165,6 +165,17 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "药师ca签名ID")
     private String checkCAUniqueID;
 
+    @ItemProperty(alias = "his返回的处方总金额")
+    private String deliveryRecipeFee;
+
+    public String getDeliveryRecipeFee() {
+        return deliveryRecipeFee;
+    }
+
+    public void setDeliveryRecipeFee(String deliveryRecipeFee) {
+        this.deliveryRecipeFee = deliveryRecipeFee;
+    }
+
     public String getCheckCAUniqueID() {
         return checkCAUniqueID;
     }
