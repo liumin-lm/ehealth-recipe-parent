@@ -273,7 +273,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         //当医保支付开关端配置关闭时才走老逻辑
         ICommonService commonService = BaseAPI.getService(ICommonService.class);
         Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
-        if (medicalPayConfig) {
+        if (!medicalPayConfig) {
             result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
             if (DrugEnterpriseResult.FAIL.equals(result.getCode())) {
                 LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}", recipeId, JSONUtils.toString(result));
