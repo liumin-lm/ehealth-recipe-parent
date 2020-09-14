@@ -1066,9 +1066,13 @@ public class RecipeHisService extends RecipeBaseService {
         //处方数量
         hisCheckRecipeReqTO.setRecipeNum("1");
         //诊断代码
-        hisCheckRecipeReqTO.setIcdCode(RecipeUtil.getCode(recipeBean.getOrganDiseaseId()));
+        if (StringUtils.isNotBlank(recipeBean.getOrganDiseaseId())){
+            hisCheckRecipeReqTO.setIcdCode(RecipeUtil.getCode(recipeBean.getOrganDiseaseId()));
+        }
         //诊断名称
-        hisCheckRecipeReqTO.setIcdName(RecipeUtil.getCode(recipeBean.getOrganDiseaseName()));
+        if (StringUtils.isNotBlank(recipeBean.getOrganDiseaseName())){
+            hisCheckRecipeReqTO.setIcdName(RecipeUtil.getCode(recipeBean.getOrganDiseaseName()));
+        }
         //科室代码---行政科室代码
         DepartmentDTO departmentDTO = departmentService.getById(recipeBean.getDepart());
         if (departmentDTO != null) {

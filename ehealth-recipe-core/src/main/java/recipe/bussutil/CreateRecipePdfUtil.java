@@ -88,7 +88,6 @@ public class CreateRecipePdfUtil {
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 8);
 
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设置中药文字在页面中的坐标
@@ -101,10 +100,13 @@ public class CreateRecipePdfUtil {
 //            page.newlineShowText(" . .");
 //            page.newlineShowText(total);
             //设中药文字在页面中的坐标 date20200910
-            page.setTextMatrix(40, 30);
+            //设中药文字在页面中的坐标 date20200910
+            page.setFontAndSize(bf, 10);
+            page.setTextMatrix(410, 135);
             page.showText("药品价格 ：" + total);
         } else {
             //设置西药文字在页面中的坐标
+            page.setFontAndSize(bf, 8);
             page.setTextMatrix(30, 30);
             page.showText("药品价格 ：" + total);
         }
