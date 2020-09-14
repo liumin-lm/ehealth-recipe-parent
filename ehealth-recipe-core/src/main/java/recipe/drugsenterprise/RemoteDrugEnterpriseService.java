@@ -651,7 +651,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     private static boolean isBloneHos(OrganDrugList organDrugList) {
         if (organDrugList != null && StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
             PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
-            if (organDrugList.getPharmacy().contains(",")) {
+            if (StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
                 String[] pharmacys = organDrugList.getPharmacy().split(",");
                 for (String pharmacy : pharmacys) {
                     PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(Integer.parseInt(pharmacy));

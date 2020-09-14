@@ -671,7 +671,7 @@ public class RecipeHisService extends RecipeBaseService {
             //获取杭州市市民卡
             if (depId != null) {
                 DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
-                if (drugEnterprise != null && "hzInternet".equals(drugEnterprise.getAccount())) {
+                if (drugEnterprise != null) {
                     HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
                     //杭州市互联网医院监管中心 管理单元eh3301
                     OrganService organService = ApplicationUtils.getBasicService(OrganService.class);

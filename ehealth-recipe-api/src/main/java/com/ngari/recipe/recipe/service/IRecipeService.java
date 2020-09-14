@@ -716,5 +716,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     String getRecipeParameterValue(String paramName);
+
 }
 
