@@ -46,12 +46,12 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.AuditMedicinesDTO;
 import eh.recipeaudit.module.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
-import eh.recipeaudit.api.IAuditMedicinesService;
-import eh.recipeaudit.model.AuditMedicinesDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -82,7 +82,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1425,9 +1424,14 @@ public class RecipeServiceSub {
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());
         p.setPatientType(patient.getPatientType());
-        p.setIdcard(patient.getCertificate());
         p.setStatus(patient.getStatus());
-//        p.setMobile(patient.getMobile());
+        if (StringUtils.isNotEmpty(patient.getMobile())) {
+            p.setMobile(LocalStringUtil.coverMobile((patient.getMobile())));
+        }
+        if (StringUtils.isNotEmpty(patient.getIdcard())) {
+            p.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
+        }
+        p.setAddress(patient.getAddress());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
         p.setSignFlag(patient.getSignFlag());
@@ -1558,12 +1562,7 @@ public class RecipeServiceSub {
                 //对监护人信息进行脱敏处理
                 patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
             }
-            if (StringUtils.isNotEmpty(patient.getMobile())) {
-                patient.setMobile(LocalStringUtil.coverMobile((patient.getMobile())));
-            }
-            if (StringUtils.isNotEmpty(patient.getIdcard())) {
-                patient.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
-            }
+
 
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);

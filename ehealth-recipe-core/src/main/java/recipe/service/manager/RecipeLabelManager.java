@@ -76,7 +76,7 @@ public class RecipeLabelManager {
                 logger.error("RecipeLabelManager queryRecipeLabelById error ", e);
             }
         });
-        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toBytes(resultMap));
+        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toString(resultMap));
         return resultMap;
     }
 
@@ -89,7 +89,7 @@ public class RecipeLabelManager {
      * @return
      */
     private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap, Integer organId) {
-        logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toBytes(scratchableList), JSONUtils.toBytes(recipeMap));
+        logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toString(scratchableList), JSONUtils.toString(recipeMap));
         List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
         scratchableList.forEach(a -> {
             if (StringUtils.isEmpty(a.getBoxLink())) {
@@ -108,7 +108,7 @@ public class RecipeLabelManager {
                 if (2 == boxLinks.length && null != key) {
                     value = MapValueUtil.getFieldValueByName(boxLinks[1], key);
                 } else {
-                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toBytes(boxLinks));
+                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toString(boxLinks));
                 }
             }
 
