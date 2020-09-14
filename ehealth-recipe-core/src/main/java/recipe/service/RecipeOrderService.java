@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -2091,7 +2092,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     String appKey = account.getAppId();
                     String loginId = patient.getLoginId();
                     eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+                    LOGGER.info("queryPatientTid req: appKey={},loginId={}",appKey,loginId);
                     ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
+                    LOGGER.info("queryPatientTid res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
                     patientBaseInfo.setTid(thirdPartyEntity.getTid());
                 } catch (Exception e) {
                     LOGGER.error("黄河医院获取药企用户tid异常",e);

@@ -226,12 +226,12 @@ public class MapValueUtil {
      * @return
      */
     public static String getFieldValueByName(String fieldName, Object o) {
-        if (org.springframework.util.StringUtils.isEmpty(fieldName) || null == o) {
+        if (StringUtils.isEmpty(fieldName) || null == o) {
             logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toString(o));
             return null;
         }
         try {
-            String getter = "get" + captureName(fieldName);
+            String getter = "get" + captureName(fieldName.trim());
             Method method = o.getClass().getMethod(getter);
             Object value = method.invoke(o);
             if (null == value) {

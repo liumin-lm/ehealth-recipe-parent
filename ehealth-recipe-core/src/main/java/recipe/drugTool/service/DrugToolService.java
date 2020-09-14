@@ -1203,7 +1203,7 @@ public class DrugToolService implements IDrugToolService {
         StringBuilder successMsg = new StringBuilder();
         for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
-            List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(organDrugList.getOrganId(), organDrugList.getOrganDrugCode());
+            List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(depId, organDrugList.getOrganDrugCode());
             SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
                 SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);

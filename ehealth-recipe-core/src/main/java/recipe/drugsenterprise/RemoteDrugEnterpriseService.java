@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
@@ -234,7 +235,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             String appKey = account.getAppId();
             String loginId = patientDTO.getLoginId();
             eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+            LOGGER.info("queryPatientChannelId req: appKey={},loginId={}",appKey,loginId);
             ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
+            LOGGER.info("queryPatientChannelId res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
             // thirdPartyEntity获取患者渠道id
             String patientChannelId = thirdPartyEntity.getSource();
             pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
