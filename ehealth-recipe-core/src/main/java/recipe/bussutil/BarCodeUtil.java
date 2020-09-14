@@ -110,7 +110,7 @@ public class BarCodeUtil {
 
         //盖章
         image.scaleAbsolute(90, 90);
-        image.setAbsolutePosition(250, 710);
+        image.setAbsolutePosition(250, 740);
         //image.setAbsolutePosition(140, 750);
         page.addImage(image);
 
@@ -121,7 +121,7 @@ public class BarCodeUtil {
 
         //药师签名
         image.scaleAbsolute(30, 30);
-        image.setAbsolutePosition(310, 100);
+        image.setAbsolutePosition(350, 100);
         page.addImage(image);
 
         //将文字贴入pdf
