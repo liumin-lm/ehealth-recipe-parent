@@ -12,10 +12,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
@@ -23,7 +20,6 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
-import eh.utils.MapValueUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +27,10 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeService;
 
@@ -77,7 +73,14 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         //0医院取药 1物流配送 2药店取药 3未知
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+
         Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeIds.get(0));
+        //如果走杭州市医保预结算了就不走这里去做his结算了
+        if (extend != null && StringUtils.isNotEmpty(extend.getPreSettletotalAmount())) {
+            return DrugEnterpriseResult.getSuccess();
+        }
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);

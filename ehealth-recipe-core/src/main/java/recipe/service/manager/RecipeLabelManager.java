@@ -76,7 +76,7 @@ public class RecipeLabelManager {
                 logger.error("RecipeLabelManager queryRecipeLabelById error ", e);
             }
         });
-        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toBytes(resultMap));
+        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toString(resultMap));
         return resultMap;
     }
 
@@ -89,33 +89,34 @@ public class RecipeLabelManager {
      * @return
      */
     private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap, Integer organId) {
-        logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toBytes(scratchableList), JSONUtils.toBytes(recipeMap));
+        logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toString(scratchableList), JSONUtils.toString(recipeMap));
         List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
         scratchableList.forEach(a -> {
             if (StringUtils.isEmpty(a.getBoxLink())) {
                 return;
             }
+            String boxLink = a.getBoxLink().trim();
             /**根据模版匹配 value*/
-            Object value = recipeMap.get(a.getBoxLink());
-            if (null == value && CONFIG_STRING.contains(a.getBoxLink())) {
-                value = configService.getConfiguration(organId, a.getBoxLink());
+            Object value = recipeMap.get(boxLink);
+            if (null == value && CONFIG_STRING.contains(boxLink)) {
+                value = configService.getConfiguration(organId, boxLink);
             }
 
             if (null == value) {
                 //对象获取字段
-                String[] boxLinks = a.getBoxLink().split(ByteUtils.DOT);
+                String[] boxLinks = boxLink.split(ByteUtils.DOT);
                 Object key = recipeMap.get(boxLinks[0]);
                 if (2 == boxLinks.length && null != key) {
                     value = MapValueUtil.getFieldValueByName(boxLinks[1], key);
                 } else {
-                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toBytes(boxLinks));
+                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toString(boxLinks));
                 }
             }
 
             //组织返回对象
             RecipeLabelVO recipeLabel = new RecipeLabelVO();
             recipeLabel.setName(a.getBoxTxt());
-            recipeLabel.setEnglishName(a.getBoxLink());
+            recipeLabel.setEnglishName(boxLink);
             recipeLabel.setValue(value);
             recipeLabelList.add(recipeLabel);
         });

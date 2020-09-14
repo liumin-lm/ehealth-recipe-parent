@@ -283,11 +283,11 @@ public class CreateRecipePdfUtil {
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //中药
             //修改了印章的坐标点 date 20200909 居中
-            image.setAbsolutePosition(250, 710);
+            image.setAbsolutePosition(250, 740);
         } else {
             //西药
             //修改了印章的坐标点 date 20200909 居中
-            image.setAbsolutePosition(250, 710);
+            image.setAbsolutePosition(250, 740);
         }
         page.addImage(image);
 

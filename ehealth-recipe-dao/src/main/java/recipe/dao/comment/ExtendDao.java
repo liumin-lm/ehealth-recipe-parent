@@ -36,7 +36,7 @@ public interface ExtendDao {
      */
     default boolean updateNonNullFieldByPrimaryKey(Object entity, String keyField) {
         try {
-            logger.info("updateNonNullFieldByPrimaryKey entity = {} ,keyField = {}", JSONUtils.toBytes(entity), keyField);
+            logger.info("updateNonNullFieldByPrimaryKey entity = {} ,keyField = {}", JSONUtils.toString(entity), keyField);
             Assert.notNull(entity);
             Assert.notNull(keyField);
             HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
