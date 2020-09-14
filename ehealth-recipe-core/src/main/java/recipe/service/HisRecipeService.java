@@ -421,7 +421,20 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
-
+//        if(responseTO!=null){
+//            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
+//            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
+//                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
+//                    if(1==queryHisRecipResTO.getStatus()){
+//                        queryHisRecipResTO.setRecipeCode("444");
+//                    }
+//                    if(2==queryHisRecipResTO.getStatus()){
+//                        queryHisRecipResTO.setRecipeCode("111");
+//                        queryHisRecipResTO.setStatus(1);
+//                    }
+//                }
+//            }
+//        }
         //过滤数据
         responseTO=filterData(responseTO);
         return responseTO;
@@ -540,6 +553,9 @@ public class HisRecipeService {
                 //未缓存在平台
                 hisRecipe.setIsCachePlatform(0);
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
+                //设置其它信息
+                hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
+                setOtherInfo(hisRecipeVO,queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
 
                 if (null != queryHisRecipResTO.getDrugList()) {
                     List<HisRecipeDetailVO> hisRecipeDetailVOs=new ArrayList<>();
@@ -557,11 +573,46 @@ public class HisRecipeService {
                 }
                 hisRecipeVOs.add(hisRecipeVO);
             }else{
-                HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
-                hisRecipeVOs.add(hisRecipeVO);
+                //如果为已支付，不予返回
+                if(!new Integer("2").equals(hisRecipe1.getStatus())){
+                    HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
+                    setOtherInfo(hisRecipeVO,queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+                    hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
+                    hisRecipeVOs.add(hisRecipeVO);
+                }
             }
+
         }
         return hisRecipeVOs;
+    }
+
+    private void setOtherInfo(HisRecipeVO hisRecipeVO, String recipeCode, Integer clinicOrgan) {
+        Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+        if (recipe == null) {
+            hisRecipeVO.setOrderStatusText("待支付");
+            hisRecipeVO.setFromFlag(1);
+            hisRecipeVO.setJumpPageType(0);
+        }
+        else {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
+                    //表示该处方来源于HIS
+                    hisRecipeVO.setOrderStatusText("待支付");
+                    hisRecipeVO.setFromFlag(1);
+                    hisRecipeVO.setJumpPageType(0);
+                } else {
+                    //表示该处方来源于平台
+                    hisRecipeVO.setOrderStatusText("待支付");
+                    hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setJumpPageType(0);
+                    hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
+                    hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+                    List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+                    hisRecipeVO.setRecipeDetail(recipeDetailVOS);
+                }
+            }
+        }
     }
 
 
