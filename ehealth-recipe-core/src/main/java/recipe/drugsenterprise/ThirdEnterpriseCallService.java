@@ -1302,7 +1302,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, start, limit);
+        Integer organId=null;
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType,organId, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
         result.setItems(list);
         return result;

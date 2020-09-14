@@ -8,10 +8,8 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipesQueryVO;
-import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -25,6 +23,9 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
+import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
 import recipe.util.SqlOperInfo;
 
@@ -53,13 +55,18 @@ import java.util.stream.Stream;
  * @author yuyun
  */
 @RpcSupportDAO
-public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
+public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> implements ExtendDao {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
     public RecipeDAO() {
         super();
         this.setEntityName(Recipe.class.getName());
         this.setKeyField("recipeId");
+    }
+
+    public boolean updateNonNullFieldByPrimaryKey(Recipe recipe) {
+        return updateNonNullFieldByPrimaryKey(recipe, "recipeId");
     }
 
     @DAOMethod(sql = "from Recipe where fromflag in (1,2) order by createDate desc")
@@ -448,6 +455,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public int getCountByDoctorIdAndStatus(final int doctorId, final List<Integer> recipeStatus,
                                            final String conditionOper, final boolean containDel) {
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
             public void execute(StatelessSession ss) throws DAOException {
                 String hql = getBaseHqlByConditions(false, recipeStatus, conditionOper, containDel);
                 if (StringUtils.isNotEmpty(hql)) {
@@ -560,6 +568,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     public Integer updateOrSaveRecipeAndDetail(final Recipe recipe, final List<Recipedetail> recipedetails, final boolean update) {
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
             public void execute(StatelessSession ss) throws DAOException {
                 Recipe dbRecipe;
                 if (update) {
@@ -724,7 +733,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     @DAOMethod(sql = "update Recipe set status = :status where recipeId = :recipeId and recipeId = :beforStatus")
     public abstract void updateStatusByRecipeIdAndStatus(@DAOParam("status") Integer status,
-        @DAOParam("recipeIds") Integer recipeIds, @DAOParam("beforStatus") Integer beforStatus);
+                                                         @DAOParam("recipeIds") Integer recipeIds, @DAOParam("beforStatus") Integer beforStatus);
 
     /**
      * 根据需要变更的状态获取处方ID集合
@@ -858,7 +867,50 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param limit
      * @return
      */
-    public List<Recipe> findRecipeByFlag(final List<Integer> organ, final int flag, final int start, final int limit) {
+//    public List<Recipe> findRecipeByFlag(final List<Integer> organ, final int flag, final int start, final int limit) {
+//        final int notPass = 2;
+//        final int all = 3;
+//        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+//            @Override
+//            public void execute(StatelessSession ss) throws Exception {
+//                StringBuilder hql = new StringBuilder();
+//                //0是待药师审核
+//                if (flag == 0) {
+//                    hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<3 and status = " + RecipeStatusConstant.READY_CHECK_YS);
+//                }
+//                //1是审核通过
+//                else if (flag == 1) {
+//                    hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId  and r.checkMode<3  and r.clinicOrgan in (:organ)" +
+//                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status not in (9,31)");
+//                }
+//                //2是审核未通过
+//                else if (flag == notPass) {
+//                    hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId  and r.checkMode<3  and r.clinicOrgan in (:organ)" +
+//                            "and rc.checkStatus = 0 and rc.checker is not null and r.supplementaryMemo is null and r.status not in (9,31)");
+//                }
+//                //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
+//                else if (flag == all) {
+//                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<3   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
+//                } else {
+//                    throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
+//                }
+//                hql.append("order by signDate desc");
+//                Query q;
+//                if (flag == all) {
+//                    q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
+//                } else {
+//                    q = ss.createQuery(hql.toString());
+//                }
+//                q.setParameterList("organ", organ);
+//                q.setFirstResult(start);
+//                q.setMaxResults(limit);
+//                setResult(q.list());
+//            }
+//        };
+//        HibernateSessionTemplate.instance().execute(action);
+//        return action.getResult();
+//    }
+    public List<Recipe> findRecipeByFlag(final List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, final int flag, final int start, final int limit) {
         final int notPass = 2;
         final int all = 3;
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
@@ -869,21 +921,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 if (flag == 0) {
                     hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<3 and status = " + RecipeStatusConstant.READY_CHECK_YS);
                 }
-                //1是审核通过
-                else if (flag == 1) {
-                    hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId  and r.checkMode<3  and r.clinicOrgan in (:organ)" +
-                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status not in (9,31)");
-                }
-                //2是审核未通过
-                else if (flag == notPass) {
-                    hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId  and r.checkMode<3  and r.clinicOrgan in (:organ)" +
-                            "and rc.checkStatus = 0 and rc.checker is not null and r.supplementaryMemo is null and r.status not in (9,31)");
+                //1是审核通过  2是审核未通过
+                else if (flag == 1 || flag == notPass) {
+                    hql.append("from Recipe where clinicOrgan in (:organ) and recipeId in (:recipeIds)");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
                     hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<3   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
+                }
+                if (flag == 0 || flag == all) {
+                    hql.append(" and  recipeType in(:recipeTypes)");
                 }
                 hql.append("order by signDate desc");
                 Query q;
@@ -893,6 +942,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     q = ss.createQuery(hql.toString());
                 }
                 q.setParameterList("organ", organ);
+                if (flag == 1 || flag == notPass) {
+                    q.setParameterList("recipeIds", recipeIds);
+                } else {
+                    q.setParameterList("recipeTypes", recipeTypes);
+                }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 setResult(q.list());
@@ -1086,6 +1140,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
+                    @Override
                     public void execute(StatelessSession ss) throws Exception {
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k").addScalar("count", LongType.INSTANCE);
@@ -1178,14 +1233,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
                 checkResult = RecipePharmacistCheckConstant.Second_Sign;
             } else {
-                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-                List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+                IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+                RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipe.getRecipeId());
                 //有审核记录就展示
-                if (CollectionUtils.isNotEmpty(recipeCheckList)) {
-                    RecipeCheck recipeCheck = recipeCheckList.get(0);
-                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
+                if(recipeCheckBean != null) {
+                    if (null != recipeCheckBean.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheckBean.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                    } else if (null != recipeCheckBean.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheckBean.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                 }
@@ -1213,6 +1267,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         final DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         HibernateStatelessResultAction<List<Map>> action =
                 new AbstractHibernateStatelessResultAction<List<Map>>() {
+                    @Override
                     public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
                         System.out.println(preparedHql);
@@ -1249,15 +1304,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 }
                             }
 
-                        for (Object[] obj : objectList) {
-                            Recipe recipe = (Recipe)obj[0];
-                            String mpiId = recipe.getMpiid();
-                            Integer doctorId = recipe.getDoctor();
-                            PatientDTO patient = patientBeanMap.get(mpiId);
-                            DoctorDTO doctor = doctorBeanMap.get(doctorId);
-                            Map<String, Object> map = Maps.newHashMap();
-                            BeanUtils.map(recipe, map);
-                            //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
+                            for (Object[] obj : objectList) {
+                                Recipe recipe = (Recipe) obj[0];
+                                String mpiId = recipe.getMpiid();
+                                Integer doctorId = recipe.getDoctor();
+                                PatientDTO patient = patientBeanMap.get(mpiId);
+                                DoctorDTO doctor = doctorBeanMap.get(doctorId);
+                                Map<String, Object> map = Maps.newHashMap();
+                                BeanUtils.map(recipe, map);
+                                //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
 
                                 RecipeOrder order = (RecipeOrder) obj[1];
                                 map.put("recipeOrder", order);
@@ -1315,9 +1370,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                         map.put("patientMobile", patient.getMobile());
                                     }
                                 }
-                            if (doctor != null) {
-                                map.put("doctorMobile", doctor.getMobile());
-                            }
+                                if (doctor != null) {
+                                    map.put("doctorMobile", doctor.getMobile());
+                                }
 
                                 if (null != order) {
                                     map.put("payTime", order.getPayTime());
@@ -1350,6 +1405,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         final StringBuilder sbHql = this.generateRecipeMsgHQLforStatistics(recipesQueryVO);
         HibernateStatelessResultAction<List<Object[]>> action =
                 new AbstractHibernateStatelessResultAction<List<Object[]>>() {
+                    @Override
                     public void execute(StatelessSession ss) {
                         LOGGER.info("RecipeDAO findRecipesByInfoForExcel sbHql = {} ", sbHql);
                         Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString());
@@ -1481,8 +1537,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                              Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType
 
     ) {
-        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
-                //new StringBuilder("select r.recipeId,o.orderCode from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1 ");
+//        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
+        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where r.checker is not null");
+        //new StringBuilder("select r.recipeId,o.orderCode from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1 ");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1976,7 +2033,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return
      */
     public List<Symptom> findCommonSymptomByDoctorAndOrganId(final int doctor, final int organId,
-                                                           final int start, final int limit) {
+                                                             final int start, final int limit) {
         final List<String> organSymptomIdsTemp = findCommonSymptomIdByDoctorAndOrganId(doctor, organId);
         if (organSymptomIdsTemp == null || organSymptomIdsTemp.size() == 0) {
             return Lists.newArrayList();
@@ -2124,6 +2181,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     public HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate) {
         HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "select clinicOrgan, count(*) as count from Recipe a  where a.fromflag=1 and a.createDate between :startDate and :endDate  group by clinicOrgan");
@@ -2155,6 +2213,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     public HashMap<Object, Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
         HibernateStatelessResultAction<HashMap<Object, Integer>> action = new AbstractHibernateStatelessResultAction<HashMap<Object, Integer>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "select count(*) as count, HOUR(a.createDate) as hour from Recipe a  where a.fromflag=1 and a.createDate between :startDate and :endDate  group by HOUR(a.createDate)");
@@ -2176,6 +2235,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     //根据机构归类的业务量
     public HashMap<Integer, Long> getCountGroupByOrgan() {
         HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "select clinicOrgan, count(*) as count from Recipe a where a.fromflag=1 group by clinicOrgan");
@@ -2194,6 +2254,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     public HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor() {
         HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "select doctor, count(*) as count from Recipe a where a.doctor > 0 and a.fromflag=1  group by doctor");
@@ -2212,6 +2273,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     public List<String> findAllMpiIdsFromHis() {
         HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "select mpiid from Recipe where fromflag=0 group by mpiid");
@@ -2241,6 +2303,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     public List<Recipe> findSyncRecipeList(final String startDate, final String endDate) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 //TODO 药师未审核的数据暂时不上传
                 StringBuilder hql = new StringBuilder(
@@ -2764,18 +2827,55 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder hql = new StringBuilder();
                 hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10  ");
                 //通过条件查询status
-                if (tapStatus == null || tapStatus == 0) ;
-                else if (tapStatus == 1) hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
-                else if (tapStatus == 2)
+                if (tapStatus == null || tapStatus == 0) {
+                    ;
+                } else if (tapStatus == 1) {
+                    hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
+                } else if (tapStatus == 2) {
                     hql.append("and status not in(" + RecipeStatusConstant.UNSIGN + "," + RecipeStatusConstant.CHECK_NOT_PASS_YS + "," + RecipeStatusConstant.CHECK_NOT_PASS + "," + RecipeStatusConstant.HIS_FAIL + "," + RecipeStatusConstant.NO_DRUG + "," + RecipeStatusConstant.NO_PAY + "," + RecipeStatusConstant.NO_OPERATOR + "," + RecipeStatusConstant.RECIPE_MEDICAL_FAIL + "," + RecipeStatusConstant.EXPIRED + "," + RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN + "," + RecipeStatusConstant.FINISH + "," + RecipeStatusConstant.REVOKE + ") ");
-                else if (tapStatus == 3)
+                } else if (tapStatus == 3) {
                     hql.append("and status in (" + RecipeStatusConstant.CHECK_NOT_PASS_YS + "," + RecipeStatusConstant.CHECK_NOT_PASS + ") ");//审核未通过
-                else if (tapStatus == 4)
+                } else if (tapStatus == 4) {
                     hql.append("and status in (" + RecipeStatusConstant.HIS_FAIL + "," + RecipeStatusConstant.NO_DRUG + "," + RecipeStatusConstant.NO_PAY + "," + RecipeStatusConstant.NO_OPERATOR + "," + RecipeStatusConstant.RECIPE_MEDICAL_FAIL + "," + RecipeStatusConstant.EXPIRED + "," + RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN + "," + RecipeStatusConstant.FINISH + "," + RecipeStatusConstant.REVOKE + ") ");//[ 已结束 ]：包括 [ 已取消 ]、[ 已完成 ]、[ 已撤销 ]
+                }
                 hql.append("order by createDate desc ");
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("doctorId", doctorId);
                 query.setParameter("recipeId", recipeId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+
+    public List<Recipe> findRecipesByTabstatusForDoctorNew(final Integer doctorId, final int start, final int limit, final Integer tapStatus) {
+
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and status!=10  ");
+                //通过条件查询status
+                if (tapStatus == null || tapStatus == 0) {
+                    ;
+                } else if (tapStatus == 1) {
+                    hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
+                } else if (tapStatus == 2) {
+                    hql.append("and status not in(" + RecipeStatusConstant.UNSIGN + "," + RecipeStatusConstant.CHECK_NOT_PASS_YS + "," + RecipeStatusConstant.CHECK_NOT_PASS + "," + RecipeStatusConstant.HIS_FAIL + "," + RecipeStatusConstant.NO_DRUG + "," + RecipeStatusConstant.NO_PAY + "," + RecipeStatusConstant.NO_OPERATOR + "," + RecipeStatusConstant.RECIPE_MEDICAL_FAIL + "," + RecipeStatusConstant.EXPIRED + "," + RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN + "," + RecipeStatusConstant.FINISH + "," + RecipeStatusConstant.REVOKE + ") ");
+                } else if (tapStatus == 3) {
+                    hql.append("and status in (" + RecipeStatusConstant.CHECK_NOT_PASS_YS + "," + RecipeStatusConstant.CHECK_NOT_PASS + ") ");//审核未通过
+                } else if (tapStatus == 4) {
+                    hql.append("and status in (" + RecipeStatusConstant.HIS_FAIL + "," + RecipeStatusConstant.NO_DRUG + "," + RecipeStatusConstant.NO_PAY + "," + RecipeStatusConstant.NO_OPERATOR + "," + RecipeStatusConstant.RECIPE_MEDICAL_FAIL + "," + RecipeStatusConstant.EXPIRED + "," + RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN + "," + RecipeStatusConstant.FINISH + "," + RecipeStatusConstant.REVOKE + ") ");//[ 已结束 ]：包括 [ 已取消 ]、[ 已完成 ]、[ 已撤销 ]
+                }
+                hql.append("order by createDate desc ");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("doctorId", doctorId);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
@@ -2891,5 +2991,57 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan and mpiid=:mpiid and payFlag!=1")
+    public abstract List<Recipe> findByRecipeCodeAndClinicOrganAndMpiid(@DAOParam("recipeCodeList") List<String> recipeCodeList,
+                                                                        @DAOParam("clinicOrgan") Integer clinicOrgan, @DAOParam("mpiid") String mpiid);
+
+    /**
+     * @param organIds
+     * @param type     0 包含1和2   1医生强制通过  2不包含医生强制通过
+     * @return
+     */
+    public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer> recipeTypes, Integer type) {
+        HibernateStatelessResultAction<List<Integer>> action = new AbstractHibernateStatelessResultAction<List<Integer>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select recipeId from Recipe where clinicOrgan in(:organIds) and  checkMode<3  and status not in (9,31)  and checkOrgan IS NOT NULL");
+                hql.append(" and  recipeType in(:recipeTypes)");
+                if (type.equals(1)) {
+                    hql.append(" and  supplementaryMemo IS NOT NULL");
+                } else if (type.equals(2)) {
+                    hql.append(" and  supplementaryMemo IS NULL");
+                }
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("organIds", organIds);
+                q.setParameterList("recipeTypes", recipeTypes);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        return action.getResult();
+    }
+
+//    @DAOMethod(sql = "from Recipe where clinicOrgan in(:organIds) and  recipeType in(:recipeTypes) and  checkMode<3  and status not in (9,31)  and checkOrgan IS NOT NULL")
+//    public abstract List<Recipe> queryRecipeInfoByOrganAndRecipeType(@DAOParam("organIds") List<Integer> organIds,
+//                                                        @DAOParam("recipeTypes") List<Integer> recipeTypes);
+
+    public List<Recipe> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where clinicOrgan in(:organIds) and  recipeType in(:recipeTypes) and  checkMode<3  and status not in (9,31)  and checkOrgan IS NOT NULL");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("organIds", organIds);
+                q.setParameterList("recipeTypes", recipeTypes);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        return action.getResult();
+    }
+
 
 }

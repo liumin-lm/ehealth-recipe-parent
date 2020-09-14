@@ -4,6 +4,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -22,6 +24,9 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
+import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -40,7 +45,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -597,7 +601,14 @@ public class HisRequestInit {
                         //参保地行政区划代码
                         requestTO.setInsuredArea(extend.getInsuredArea());
                         //挂号序号
-                        requestTO.setRegisterID(extend.getRegisterID());
+                        //查询已经预结算过的挂号序号
+                        if (StringUtils.isNotEmpty(extend.getRegisterID())) {
+                           /* List<RecipeExtend> recipeExtends = extendDAO.querySettleRecipeExtendByRegisterID(extend.getRegisterID());
+                            if (CollectionUtils.isEmpty(recipeExtends)) {
+                                //his作为是否返回诊察费的判断  诊察费已在预结算总金额里返回*/
+                            requestTO.setRegisterID(extend.getRegisterID());
+                        }
+
                         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                         //获取医保支付流程配置（2-原省医保 3-长三角）
                         Integer insuredAreaType = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "provincialMedicalPayFlag");
@@ -847,7 +858,6 @@ public class HisRequestInit {
         request.setRecipeAuditDetailReqTO(detailList);
         List<RecipeCheckDetail> recipeCheckDetailList = resutlBean.getCheckDetailList();
         if (CollectionUtils.isNotEmpty(recipeCheckDetailList)) {
-            RecipeCheckService recipeCheckService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
 
@@ -876,7 +886,7 @@ public class HisRequestInit {
                     detailIdList = JSONUtils.parse(detail.getRecipeDetailIds(), List.class);
                     for (Integer detailId : detailIdList) {
                         auditDetail = new RecipeAuditDetailReqTO();
-                        auditDetail.setReason(recipeCheckService.getReasonDicList(reasonIdList));
+                        auditDetail.setReason(getReasonDicList(reasonIdList));
                         drug = drugInfo.get(detailId);
                         auditDetail.setDrugCode(drugCodeMap.get(detailId));
                         auditDetail.setDrugName(drug.getSaleName());
@@ -900,6 +910,24 @@ public class HisRequestInit {
         }
 
         return request;
+    }
+
+    public static List<String> getReasonDicList(List<Integer> reList) {
+        List<String> reasonList = new ArrayList<>();
+        try {
+            Dictionary dictionary = DictionaryController.instance().get("eh.cdr.dictionary.Reason");
+            if (null != reList) {
+                for (Integer key : reList) {
+                    String reason = dictionary.getText(key);
+                    if (StringUtils.isNotEmpty(reason)) {
+                        reasonList.add(reason);
+                    }
+                }
+            }
+        } catch (ControllerException e) {
+            LOGGER.error("获取审核不通过原因字典文本出错reasonIds:" + JSONUtils.toString(reList), e);
+        }
+        return reasonList;
     }
 
     public static DocIndexToHisReqTO initDocIndexToHisReqTO(Recipe recipe) {

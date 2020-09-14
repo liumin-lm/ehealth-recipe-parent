@@ -104,7 +104,13 @@ public class ShanghaiCAImpl implements CAInterface {
             caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
 
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
-            if (responseDateTO == null || responseDateTO.getCode() != 200) {
+            if(responseDateTO == null){
+                signResultVo.setCode(RecipeResultBean.FAIL);
+                signResultVo.setResultCode(0);
+                signResultVo.setMsg("caSignDateBusiness res is null");
+                return signResultVo;
+            }
+            if (responseDateTO.getCode() != 200) {
                 signResultVo.setResultCode(0);
                 signResultVo.setMsg(responseDateTO.getMsg());
                 signResultVo.setCode(responseDateTO.getCode());
@@ -125,7 +131,7 @@ public class ShanghaiCAImpl implements CAInterface {
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
             if (responseSealTO == null){
                 signResultVo.setCode(RecipeResultBean.FAIL);
-                signResultVo.setResultCode(-1);
+                signResultVo.setResultCode(0);
                 signResultVo.setMsg("caSealBusiness res is null");
                 return signResultVo;
             }

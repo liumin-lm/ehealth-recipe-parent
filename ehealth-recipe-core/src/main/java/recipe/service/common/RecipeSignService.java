@@ -1,9 +1,7 @@
 package recipe.service.common;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
@@ -23,7 +21,6 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.params.ParameterConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -31,13 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
@@ -276,7 +271,7 @@ public class RecipeSignService {
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
             if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
-                RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 //不用发药师消息
                 sendYsCheck = false;
                 //跳过人工审核
@@ -285,7 +280,7 @@ public class RecipeSignService {
                 checkResult.setCheckDoctorId(dbRecipe.getDoctor());
                 checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
                 try {
-                    checkService.autoPassForCheckYs(checkResult);
+                    recipeService.autoPassForCheckYs(checkResult);
                 } catch (Exception e) {
                     LOG.error("sign 药师自动审核失败. recipeId={}", recipeId,e);
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
@@ -605,6 +600,7 @@ public class RecipeSignService {
                         rMap.put("canContinueFlag", -1);
                         rMap.put("msg", rMap.get("errorMsg"));
                     }
+                    RecipeLogService.saveRecipeLog(recipeBean.getRecipeId(), recipeBean.getStatus(), recipeBean.getStatus(), "处方预校验失败");
                 }
                 LOG.info("当前处方预校验返回结果map{}", rMap);
                 return checkResult;

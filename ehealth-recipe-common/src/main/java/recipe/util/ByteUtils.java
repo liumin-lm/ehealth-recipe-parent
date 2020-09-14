@@ -1,22 +1,23 @@
 package recipe.util;
 
 public class ByteUtils {
+	public static String COMMA = ",";
+	public static String DOT = "\\.";
 
 	/**
-	 * 私有构造函数，不允许本类生成实例 
+	 * 私有构造函数，不允许本类生成实例
 	 */
-	private ByteUtils(){
-		
+	private ByteUtils() {
+
 	}
-	
-	private final static String[] hexDigits = { "0", "1", "2", "3", "4", "5",
-		"6", "7", "8", "9", "A", "B", "C", "D", "E", "F" };
+
+	private final static String[] hexDigits = {"0", "1", "2", "3", "4", "5",
+			"6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
 	/**
 	 * 转换字节数组为16进制字串
-	 * 
-	 * @param b
-	 *            字节数组
+	 *
+	 * @param b 字节数组
 	 * @return 16进制字串
 	 */
 	public static String byteArrayToHexString(byte[] b) {

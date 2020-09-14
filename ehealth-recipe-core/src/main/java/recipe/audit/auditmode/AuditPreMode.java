@@ -7,6 +7,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
+import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -15,7 +17,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -62,8 +63,9 @@ public class AuditPreMode extends AbstractAuidtMode {
         Integer checkMode = recipe.getCheckMode();
         if (new Integer(2).equals(checkMode)) {
             //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
-            hisCheckRecipeService.sendCheckRecipeInfo(recipe);
+            IRecipeAuditService recipeAuditService=    RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
+            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            recipeAuditService.sendCheckRecipeInfo(recipeBean);
         } else if (new Integer(3).equals(checkMode)) {
                 winningRecipeAudit(recipe);
         }

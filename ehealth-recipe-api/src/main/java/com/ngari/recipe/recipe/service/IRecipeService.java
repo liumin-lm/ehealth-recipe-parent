@@ -574,13 +574,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * 根据审核状态查询处方列表
      *
      * @param organ 机构集合
+     * @param recipeIds 处方集合
+     * @param recipeTypes 处方类型集合
      * @param flag  审核标记
      * @param start 当前页
      * @param limit 页数
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit);
+    List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit);
 
     /**
      * 审核不通过后处理
@@ -678,6 +680,37 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo);
+
+
+    /**
+     * 查询处方id
+     *
+     * @param organIds
+     * @return
+     */
+    @RpcService
+    List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,List<Integer>recipeTypes,Integer  type);
+
+
+    /**
+     * 根据机构id 和处方类型 查询处方info
+     *
+     * @param organIds
+     * @return
+     */
+    @RpcService
+    List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds,List<Integer>recipeTypes);
+
+
+    /**
+     * 根据处方id 查询处方详情信息
+     *
+     * @param recipeIds
+     * @return
+     */
+    @RpcService
+    List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer>recipeIds);
+
 
 }
 

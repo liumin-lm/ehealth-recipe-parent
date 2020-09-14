@@ -261,5 +261,15 @@ public abstract class RecipeDetailDAO extends
         return action.getResult();
     }
 
+    /**
+     * 供 处方单详情服务 调用
+     *
+     * @param recipeIds 处方序号
+     * @return List<Recipedetail>
+     * @author luf
+     */
+    @DAOMethod(sql = "from Recipedetail where recipeId in (:recipeIds) and status=1",limit = 0)
+    public abstract List<Recipedetail> findByRecipeIdList(@DAOParam("recipeIds") List<Integer> recipeIds);
+
 
 }

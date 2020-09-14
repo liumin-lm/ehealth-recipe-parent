@@ -4,14 +4,17 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -60,6 +63,10 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return getInventoryResult(drugId, drugsEnterprise, 3);
+    }
+
+    private String getInventoryResult(Integer drugId, DrugsEnterprise drugsEnterprise, Integer number) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         String goodsqtyMethod = recipeParameterDao.getByName("kms-goodsqty");
@@ -71,7 +78,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             if (saleDrugList != null) {
                 HdDrugRequestData drugBean = new HdDrugRequestData();
                 drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
-                drugBean.setTotal("5");
+                drugBean.setTotal(number.toString());
                 DrugList drugList = drugListDAO.getById(drugId);
                 drugBean.setUnit(drugList.getUnit());
                 list.add(drugBean);
@@ -104,6 +111,22 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             return "无库存";
         }
         return "无库存";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        List<String> result = new ArrayList<>();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                String inventory = getInventoryResult(recipeDetailBean.getDrugId(), drugsEnterprise, recipeDetailBean.getUseTotalDose().intValue());
+                if (StringUtils.isNotEmpty(inventory) && "有库存".equals(inventory)) {
+                    result.add(recipeDetailBean.getDrugName());
+                }
+            }
+        }
+        return result;
     }
 
     @RpcService

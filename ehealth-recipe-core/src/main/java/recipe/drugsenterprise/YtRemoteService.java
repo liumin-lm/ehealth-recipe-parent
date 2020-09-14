@@ -6,9 +6,11 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -83,10 +85,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final Integer ytValidDay = 3;
 
-    private static final Integer ytCostType = 1;
-
-    private static final Double ytTransFee = 0d;
-
     private static final Integer ytIfPay = 1;
 
     private static final Integer ytSource = 4;
@@ -143,6 +141,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if ("yt_sy".equals(drugsEnterprise.getAccount())) {
             pharmacy.setPharmacyCode("YK45286");
         }
+        String stockResponse = getInventoryResult(drugsEnterprise, saleDrug, pharmacy);
+        if (stockResponse != null) return stockResponse;
+        return "暂不支持库存查询";
+    }
+
+    private String getInventoryResult(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy) {
         try{
             CloseableHttpClient httpClient = HttpClients.createDefault();
             CloseableHttpResponse response = sendStockHttpRequest(drugsEnterprise, saleDrug, pharmacy, httpClient);
@@ -154,9 +158,60 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 return stockResponse.getStock().toString();
             }
         }catch (Exception e){
-            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", drugId, drugsEnterprise.getName(), e.getMessage(),e);
+            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", saleDrug.getDrugId(), drugsEnterprise.getName(), e.getMessage(),e);
         }
-        return "暂不支持库存查询";
+        return null;
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<String> result = new ArrayList<>();
+        if (new Integer(1).equals(flag)) {
+            //配送
+            for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+                if (saleDrugList != null) {
+                    String drugInventory = getDrugInventory(saleDrugList.getDrugId(), drugsEnterprise, drugsDataBean.getOrganId());
+                    if (!"暂不支持库存查询".equals(drugInventory)) {
+                        try {
+                            Double inventory = Double.parseDouble(drugInventory);
+                            if (recipeDetailBean.getUseTotalDose() <= inventory) {
+                                result.add(recipeDetailBean.getDrugName());
+                            }
+                        } catch(Exception e){
+                            LOGGER.info("YtRemoteService.getDrugInventoryForApp:医生端查询药品库存失败,{},{}", drugsEnterprise.getName(), e.getMessage(),e);
+                        }
+                    }
+                }
+            }
+        } else {
+            //药店取药
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+            List<Pharmacy> pharmacies = pharmacyDAO.findByDrugsenterpriseIdAndStatus(drugsEnterprise.getId(), 1);
+            for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsDataBean.getOrganId());
+                if (saleDrugList != null) {
+                    for (Pharmacy pharmacy : pharmacies) {
+                        String stockResponse = getInventoryResult(drugsEnterprise, saleDrugList, pharmacy);
+                        if (StringUtils.isNotEmpty(stockResponse)) {
+                            if (!"暂不支持库存查询".equals(stockResponse)) {
+                                try {
+                                    Double inventory = Double.parseDouble(stockResponse);
+                                    if (recipeDetailBean.getUseTotalDose() <= inventory) {
+                                        result.add(recipeDetailBean.getDrugName());
+                                        break;
+                                    }
+                                } catch(Exception e){
+                                    LOGGER.info("YtRemoteService.getDrugInventoryForApp:医生端药店取药查询药品库存失败,{},{}", drugsEnterprise.getName(), e.getMessage(),e);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**

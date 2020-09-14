@@ -88,20 +88,25 @@ public class CreateRecipePdfUtil {
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 8);
 
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设置中药文字在页面中的坐标
-            page.setTextMatrix(20, 177);
-            page.showText("药");
-            page.setLeading(8);
-            page.newlineShowText("品");
-            page.newlineShowText("价");
-            page.newlineShowText("格");
-            page.newlineShowText(" . .");
-            page.newlineShowText(total);
+//            page.setTextMatrix(20, 177);
+//            page.showText("药");
+//            page.setLeading(8);
+//            page.newlineShowText("品");
+//            page.newlineShowText("价");
+//            page.newlineShowText("格");
+//            page.newlineShowText(" . .");
+//            page.newlineShowText(total);
+            //设中药文字在页面中的坐标 date20200910
+            //设中药文字在页面中的坐标 date20200910
+            page.setFontAndSize(bf, 10);
+            page.setTextMatrix(410, 135);
+            page.showText("药品价格 ：" + total);
         } else {
             //设置西药文字在页面中的坐标
+            page.setFontAndSize(bf, 8);
             page.setTextMatrix(30, 30);
             page.showText("药品价格 ：" + total);
         }
@@ -196,7 +201,9 @@ public class CreateRecipePdfUtil {
         //显示的大小为原尺寸的20%
         image.scalePercent(50);
         //设置图片在页面中的坐标
-        image.setAbsolutePosition(285, 781);
+        //image.setAbsolutePosition(285, 781);
+        //date 20200909 修改位置居左
+        image.setAbsolutePosition(20, 781);
         page.addImage(image);
         stamper.close();
         reader.close();
@@ -258,7 +265,7 @@ public class CreateRecipePdfUtil {
     /**
      * 在pdf追加图片
      *
-     * @param file 处方pdf 文件
+     * @param output 处方pdf 文件
      * @param url  印章图片
      * @param type 处方类型
      * @throws Exception
@@ -275,10 +282,12 @@ public class CreateRecipePdfUtil {
         image.scaleAbsolute(90, 90);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //中药
-            image.setAbsolutePosition(500, 200);
+            //修改了印章的坐标点 date 20200909 居中
+            image.setAbsolutePosition(250, 740);
         } else {
             //西药
-            image.setAbsolutePosition(140, 750);
+            //修改了印章的坐标点 date 20200909 居中
+            image.setAbsolutePosition(250, 740);
         }
         page.addImage(image);
 

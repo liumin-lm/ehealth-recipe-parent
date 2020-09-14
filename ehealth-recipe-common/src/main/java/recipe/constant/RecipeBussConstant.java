@@ -99,6 +99,11 @@ public class RecipeBussConstant {
     public static Integer RECIPETYPE_WM = 1;
 
     /**
+     * 处方类型-中成药  chinese patent medicine.
+     */
+    public static Integer RECIPETYPE_CPM = 2;
+
+    /**
      * 处方类型-中药  traditional Chinese medicine
      */
     public static Integer RECIPETYPE_TCM = 3;

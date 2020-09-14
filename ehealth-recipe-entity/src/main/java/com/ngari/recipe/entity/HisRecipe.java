@@ -111,6 +111,8 @@ public class HisRecipe implements Serializable {
     private String receiverName;
     @ItemProperty(alias = "收货人电话")
     private String receiverTel;
+    @ItemProperty(alias = "是否缓存在平台")
+    private Integer isCachePlatform;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -510,5 +512,14 @@ public class HisRecipe implements Serializable {
 
     public void setReceiverTel(String receiverTel) {
         this.receiverTel = receiverTel;
+    }
+
+    @Transient
+    public Integer getIsCachePlatform() {
+        return isCachePlatform;
+    }
+
+    public void setIsCachePlatform(Integer cachePlatform) {
+        isCachePlatform = cachePlatform;
     }
 }

@@ -116,7 +116,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from SaleDrugList where drugId=:drugId and organId=:organId ")
+    @DAOMethod(sql = "from SaleDrugList where drugId=:drugId and organId=:organId and status = 1 ")
     public abstract SaleDrugList getByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
 
     /**
@@ -373,6 +373,15 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "from SaleDrugList where organId=:organId and organDrugCode =:drugCode ")
     public abstract SaleDrugList getByOrganIdAndDrugCode(@DAOParam("organId") int organId, @DAOParam("drugCode") String drugCode);
+
+    /**
+     * 根据药品编码获取数据
+     * @param organId
+     * @param drugCode
+     * @return
+     */
+    @DAOMethod(sql = "from SaleDrugList where organId=:organId and organDrugCode =:drugCode ")
+    public abstract List<SaleDrugList> findByOrganIdAndDrugCode(@DAOParam("organId") int organId, @DAOParam("drugCode") String drugCode);
 
 
     /**

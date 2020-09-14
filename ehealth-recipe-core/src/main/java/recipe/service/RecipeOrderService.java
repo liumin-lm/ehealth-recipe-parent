@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -42,6 +44,7 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
+import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -1858,19 +1861,22 @@ public class RecipeOrderService extends RecipeBaseService {
             Recipe nowRecipe = recipes.get(0);
             Integer reviewType = nowRecipe.getReviewType();
             Integer giveMode = nowRecipe.getGiveMode();
-            attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
-            attrMap.put("effective", 1);
             //首先判断是否支付成功调用，还是支付前调用
             if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 //支付成功后
                 attrMap.put("payTime", Calendar.getInstance().getTime());
+                attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
+                attrMap.put("effective", 1);
                 //退款标记
                 attrMap.put("refundFlag", 0);
                 //date 20191017
                 //添加使用优惠券(支付后释放)
                 useCoupon(nowRecipe, payMode);
                 sendTfdsMsg(nowRecipe, payMode, orderCode);
+                //支付成功后，对来源于HIS的处方单状态更新为已处理
+                updateHisRecieStatus(recipes);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
+                attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
                 //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
                 if (0 == order.getActualPrice() && !RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())) {
@@ -1881,6 +1887,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 } else {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
+                attrMap.put("effective", 1);
             }
         }
         updateOrderInfo(orderCode, attrMap, result);
@@ -1900,6 +1907,22 @@ public class RecipeOrderService extends RecipeBaseService {
         //健康卡数据上传
         RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(),"030102"));
         return result;
+    }
+
+    /**
+     * 对来源于HIS的处方单状态更新为已处理
+     * @param recipes
+     */
+    public void updateHisRecieStatus(List<Recipe> recipes) {
+        try{
+            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode());
+            if (hisRecipe != null) {
+                hisRecipeDAO.updateHisRecieStatus(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode(), 2);
+            }
+        }catch (Exception e){
+            LOGGER.info("updateHisRecieStatus 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", recipes.get(0).getRecipeId(), e.getMessage(),e);
+        }
     }
 
 
@@ -2059,6 +2082,20 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setCertificateType(patient.getCertificateType());
                 patientBaseInfo.setCertificate(patient.getCertificate());
                 patientBaseInfo.setMobile(patient.getMobile());
+                patientBaseInfo.setPatientID(recipe.getPatientID());
+                patientBaseInfo.setMpi(recipe.getRequestMpiId());
+                // 黄河医院获取药企患者id
+                try {
+                    ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+                    SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
+                    String appKey = account.getAppId();
+                    String loginId = patient.getLoginId();
+                    eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+                    ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
+                    patientBaseInfo.setTid(thirdPartyEntity.getTid());
+                } catch (Exception e) {
+                    LOGGER.error("黄河医院获取药企用户tid异常",e);
+                }
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
             if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
