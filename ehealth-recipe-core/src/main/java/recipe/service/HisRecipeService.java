@@ -844,6 +844,7 @@ public class HisRecipeService {
         //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
         List<HisRecipe> hisRecipes=new ArrayList<>();
+        Map<String,Object> map = initReturnMap();
         //待处理
         if(!new Integer(1).equals(isCachePlatform)){
             try{
@@ -856,7 +857,7 @@ public class HisRecipeService {
                 //线下处方处理(存储到cdr_his相关表)
                 hisRecipes=queryHisRecipeInfo(new Integer(organId), patientDTO, 180, 1);
                 if(CollectionUtils.isEmpty(hisRecipes)){
-                    return null;
+                    return map;
                 }else{
                     hisRecipeId=hisRecipes.get(0).getHisRecipeID();
                 }
@@ -872,6 +873,14 @@ public class HisRecipeService {
         }
         return getHisRecipeDetailByHisRecipeId(hisRecipeId);
 
+    }
+
+    private Map<String, Object> initReturnMap() {
+        Map<String ,Object> map=new HashMap<>();
+        map.put("hisRecipeDetails", null);
+        map.put("hisRecipeExts", null);
+        map.put("showText", null);
+        return map;
     }
 
     /**
