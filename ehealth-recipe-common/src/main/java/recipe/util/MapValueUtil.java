@@ -227,7 +227,7 @@ public class MapValueUtil {
      */
     public static String getFieldValueByName(String fieldName, Object o) {
         if (org.springframework.util.StringUtils.isEmpty(fieldName) || null == o) {
-            logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toBytes(o));
+            logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toString(o));
             return null;
         }
         try {
