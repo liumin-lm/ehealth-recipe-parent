@@ -1435,6 +1435,7 @@ public class RecipeServiceSub {
         if (StringUtils.isNotEmpty(patient.getIdcard())) {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
         }
+        p.setWeight(patient.getWeight());
         p.setAddress(patient.getAddress());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
