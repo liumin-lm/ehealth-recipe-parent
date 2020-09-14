@@ -711,6 +711,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer>recipeIds);
 
-
+    /**
+     * 获取parametervalue
+     * @return
+     */
+    String getRecipeParameterValue(String paramName);
 }
 
