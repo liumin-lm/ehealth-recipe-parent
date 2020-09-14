@@ -107,6 +107,9 @@ public class RecipeLabelManager {
                 String[] boxLinks = boxLink.split(ByteUtils.DOT);
                 Object key = recipeMap.get(boxLinks[0]);
                 if (2 == boxLinks.length && null != key) {
+                    if (key instanceof List && !CollectionUtils.isEmpty((List) key)) {
+                        key = ((List) key).get(0);
+                    }
                     value = MapValueUtil.getFieldValueByName(boxLinks[1], key);
                 } else {
                     logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toString(boxLinks));
