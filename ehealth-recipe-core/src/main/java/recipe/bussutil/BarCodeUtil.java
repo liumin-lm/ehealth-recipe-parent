@@ -116,20 +116,20 @@ public class BarCodeUtil {
 
         //医生签名
         image.scaleAbsolute(30, 30);
-        image.setAbsolutePosition(90, 100);
+        image.setAbsolutePosition(105, 75);
         page.addImage(image);
 
         //药师签名
         image.scaleAbsolute(30, 30);
-        image.setAbsolutePosition(460, 100);
+        image.setAbsolutePosition(310, 100);
         page.addImage(image);
 
         //将文字贴入pdf
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 8);
-        page.setTextMatrix(40, 30); //设置文字在页面中的坐标
+        page.setFontAndSize(bf, 10);
+        page.setTextMatrix(410, 135); //设置文字在页面中的坐标
         String s = "药品价格 ： " + " 34";
         page.showText(s);
         page.endText();
