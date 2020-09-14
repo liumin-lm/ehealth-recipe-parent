@@ -684,7 +684,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             } else {
                 return false;
             }
-        } else if (new Integer(3).equals(drugsEnterprise.getPayModeSupport())) {
+        } else if (new Integer(3).equals(type)) {
             //支持药店取药
             return to_tfds_list.contains(drugsEnterprise.getPayModeSupport());
         } else {
