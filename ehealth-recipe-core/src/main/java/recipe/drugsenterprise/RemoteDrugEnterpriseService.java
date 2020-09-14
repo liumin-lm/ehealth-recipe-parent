@@ -605,7 +605,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     List<Recipedetail> recipedetails = new ArrayList<>();
                     Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
                     OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
-                    if (organDrugList != null) {
+                    if (organDrugList != null && !isBloneHos(organDrugList)) {
                         recipedetail.setPack(organDrugList.getPack());
                         recipedetail.setDrugUnit(organDrugList.getUnit());
                         recipedetail.setProducerCode(organDrugList.getProducerCode());
@@ -643,6 +643,22 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
         }
         return result;
+    }
+
+    private static boolean isBloneHos(OrganDrugList organDrugList) {
+        if (organDrugList != null && StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            if (organDrugList.getPharmacy().contains(",")) {
+                String[] pharmacys = organDrugList.getPharmacy().split(",");
+                for (String pharmacy : pharmacys) {
+                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(Integer.parseInt(pharmacy));
+                    if (pharmacyTcm != null && "院外药房".equals(pharmacyTcm.getType())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
