@@ -767,7 +767,9 @@ public class RecipeServiceSub {
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
             //date 20200908 添加体重字段，住院病历号，就诊卡号
-            paramMap.put("pWeight", p.getWeight() + "kg");
+            if(StringUtils.isNotEmpty(p.getWeight())){
+                paramMap.put("pWeight", p.getWeight() + "kg");
+            }
             paramMap.put("pHisID", recipe.getPatientID());
             if(null != extend){
                 paramMap.put("pCardNo", extend.getCardNo());
@@ -860,7 +862,9 @@ public class RecipeServiceSub {
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
             //date 20200908 添加体重字段，住院病历号，就诊卡号
-            paramMap.put("pWeight", p.getWeight() + "kg");
+            if(StringUtils.isNotEmpty(p.getWeight())) {
+                paramMap.put("pWeight", p.getWeight() + "kg");
+            }
             paramMap.put("pHisID", recipe.getPatientID());
             //date 20200909 添加字段，嘱托,煎法,制法,次量,每付取汁,天数
             paramMap.put("tcmRecipeMemo", recipe.getRecipeMemo());
