@@ -2,76 +2,59 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.employment.model.EmploymentBean;
-import com.ngari.base.employment.service.IEmploymentService;
+import com.ngari.base.common.ICommonService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.recipe.mode.*;
-import com.ngari.patient.dto.*;
-import com.ngari.patient.service.*;
-import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.his.recipe.mode.DeliveryList;
+import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
+import com.ngari.his.recipe.mode.MedicalPreSettleReqTO;
+import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.HealthCardService;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthPrescriptionStatusSyncRequest;
-import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatusSyncResponse;
-import com.taobao.api.ApiException;
-import com.taobao.api.DefaultTaobaoClient;
-import com.taobao.api.TaobaoClient;
-import com.taobao.api.request.*;
-import com.taobao.api.response.*;
-import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.base.constant.ErrorCode;
-import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ParameterConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
-import recipe.dao.*;
-import recipe.drugsenterprise.bean.StandardResultDTO;
-import recipe.drugsenterprise.bean.StandardStateDTO;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.drugsenterprise.compatible.HzInternetRemoteNewType;
 import recipe.drugsenterprise.compatible.HzInternetRemoteOldType;
 import recipe.drugsenterprise.compatible.HzInternetRemoteTypeInterface;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
-import recipe.service.common.RecipeCacheService;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
-import static ctd.util.AppContextHolder.getBean;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @description 杭州互联网（金投）对接服务
@@ -286,22 +269,18 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}",
                 recipeId, JSONUtils.toString(extInfo));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        //首先校验：预结算
-        //再校验：同步配送信息
 
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        //修改逻辑成：事务1 -> 平台新增，his新增
-        //事务2 -> 预交付
-
-        DrugEnterpriseResult payResult = recipeMedicalPreSettle
-                (recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
-        if(DrugEnterpriseResult.FAIL.equals(payResult.getCode())){
-            LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
-                    recipeId, JSONUtils.toString(payResult));
-            return payResult;
+        //当医保支付开关端配置关闭时才走老逻辑
+        ICommonService commonService = BaseAPI.getService(ICommonService.class);
+        Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
+        if (medicalPayConfig) {
+            result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
+            if (DrugEnterpriseResult.FAIL.equals(result.getCode())) {
+                LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}", recipeId, JSONUtils.toString(result));
+                return result;
+            }
         }
+
         RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                 ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -310,11 +289,11 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         if(StringUtils.isEmpty(extInfo.get("depId")) || StringUtils.isEmpty(extInfo.get("payMode"))){
             LOGGER.info("order 当前处方{}确认订单校验处方信息,没有传递配送药企信息，无需同步配送信息，直接返回预结算结果",
                     recipeId);
-            return payResult;
+            return result;
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(extInfo.get("depId")));
         AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-        return remoteService.sendMsgResultMap(recipeId, extInfo, payResult);
+        return remoteService.sendMsgResultMap(recipeId, extInfo, result);
 
     }
 
