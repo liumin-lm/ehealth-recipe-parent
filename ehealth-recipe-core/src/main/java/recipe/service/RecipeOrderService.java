@@ -1773,6 +1773,9 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean getOrderDetail(String orderCode) {
+        if (StringUtils.isEmpty(orderCode)) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+        }
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
