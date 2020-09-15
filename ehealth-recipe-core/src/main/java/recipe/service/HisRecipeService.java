@@ -311,10 +311,20 @@ public class HisRecipeService {
                 result.add(hisRecipeVO);
             } else {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                if (StringUtils.isEmpty(recipe.getOrderCode())) {
                     if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                         //表示该处方来源于HIS
-                        hisRecipeVO.setOrderStatusText("待支付");
+                        if(StringUtils.isEmpty(recipe.getOrderCode())){
+                            hisRecipeVO.setOrderStatusText("待支付");
+                        }else{
+                            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                            if(recipeOrder!=null){
+                                if(new Integer(0).equals(recipeOrder.getPayFlag())){
+                                    hisRecipeVO.setOrderStatusText("待支付");
+                                }else{
+                                    hisRecipeVO.setOrderStatusText("已完成");
+                                }
+                            }
+                        }
                         hisRecipeVO.setFromFlag(1);
                         hisRecipeVO.setJumpPageType(0);
                         result.add(hisRecipeVO);
@@ -330,7 +340,6 @@ public class HisRecipeService {
                         result.add(hisRecipeVO);
                     }
                 }
-            }
         }
         return result;
     }
