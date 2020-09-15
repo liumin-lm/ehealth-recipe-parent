@@ -425,7 +425,7 @@ public class HisRecipeService {
         }
         try {
             /** 更新数据校验*/
-            hisRecipeInfoCheck(responseTO.getData());
+            hisRecipeInfoCheck(responseTO.getData(), patientDTO);
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
@@ -1314,7 +1314,7 @@ public class HisRecipeService {
      *
      * @param hisRecipeTO
      */
-    private void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO) {
+    private void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO, PatientDTO patientDTO) {
         LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}", JSONUtils.toString(hisRecipeTO));
         if(CollectionUtils.isEmpty(hisRecipeTO)){
             return;
@@ -1373,6 +1373,11 @@ public class HisRecipeService {
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
             if (null == hisRecipe) {
                 return;
+            } else {
+                if (hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    return;
+                }
             }
             List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
             if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
