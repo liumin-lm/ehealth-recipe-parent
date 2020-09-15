@@ -107,6 +107,8 @@ public class HisRecipeService {
         }
         //同步查询待缴费处方[只查询，不存储]
         HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipes=queryData(organId, patientDTO, timeQuantum, 1);
+        //待缴费非本人同步处方处理
+        dealPatientInfo(noPayFeeRecipes,patientDTO);
         //异步获取已缴费处方
         RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
@@ -115,6 +117,35 @@ public class HisRecipeService {
         List<HisRecipeVO> result =mergeData(flag,noPayFeeRecipes,hisRecipes,patientDTO);
         LOGGER.info("findHisRecipe mergeData result:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(result), organId, mpiId, flag, start, limit);
         return result;
+    }
+
+    /**
+     * 待缴费非本人同步处方处理
+     * @param noPayFeeRecipe
+     * @param patientDTO
+     */
+    private void dealPatientInfo(HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipe, PatientDTO patientDTO) {
+        LOGGER.info("dealPatientInfo noPayFeeRecipe:{} patientDTO:{}",JSONUtils.toString(noPayFeeRecipe),JSONUtils.toString(patientDTO));
+        List<HisRecipeVO> noPayFeeHisRecipeVO=covertToHisRecipeObject(noPayFeeRecipe, patientDTO, 1);
+        for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan(), noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode());
+            Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode(), noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan());
+            LOGGER.info("dealPatientInfo haveRecipe:{}",JSONUtils.toString(haveRecipe) );
+            //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，
+            if (haveRecipe != null) {
+                if(new Integer(0).equals(haveRecipe.getPayFlag())
+                        &&!StringUtils.isEmpty(patientDTO.getMpiId())
+                        &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
+                    //修改处方患者信息
+                    haveRecipe.setMpiid(patientDTO.getMpiId());
+                    haveRecipe.setPatientName(patientDTO.getPatientName());
+                    haveRecipe.setPatientID(noPayFeeHisRecipeVOHisRecipeVO.getPatientNumber());
+                    recipeDAO.update(haveRecipe);
+                }
+            }
+        }
+        //修改线下处方患者信息
+        saveHisRecipeInfo(noPayFeeRecipe, patientDTO, 1);
     }
 
     /**
@@ -1353,11 +1384,50 @@ public class HisRecipeService {
                 return;
             }
             Map<String, BigDecimal> drugTotalDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseTotalDose));
+            Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDose));
+            Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDoseStr));
+            Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDays));
+            Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDaysB));
+            Map<String, String> usingRateMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsingRate));
+            Map<String, String> usePathwaysMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsePathways));
+            Map<String, String> usingRateTextMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsingRateText));
+            Map<String, String> usePathwaysTextMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsePathwaysText));
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
                 BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
                     deleteSetRecipeCode.add(recipeCode);
-                    break;
+                }
+                String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
+                if (useDays != null && useDays.equals(recipeDetailTO.getUseDays())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String useDaysB = drugUseDaysBMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usePathwaysText) && !usingRateText.equals(recipeDetailTO.getUsePathwaysText())) {
+                    deleteSetRecipeCode.add(recipeCode);
                 }
             }
         });
