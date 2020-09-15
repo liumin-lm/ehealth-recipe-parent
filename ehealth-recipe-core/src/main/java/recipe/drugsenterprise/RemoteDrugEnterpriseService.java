@@ -550,7 +550,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 supportOnlineMap = new LinkedHashMap<>();
                 toStoreMap = new LinkedHashMap<>();
                 drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
-                if (payModeSupport(drugsEnterprise , 1)) {
+                if (payModeSupport(drugsEnterprise , 1) && configurations.contains("supportOnline")) {
                     haveInventoryForOnlineList = new ArrayList<>();
                     //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
