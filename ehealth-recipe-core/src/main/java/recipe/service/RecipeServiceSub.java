@@ -452,7 +452,12 @@ public class RecipeServiceSub {
                             if (usingRateDTO != null) {
                                 detail.setUsingRateTextFromHis(usingRateDTO.getText());
                                 detail.setOrganUsingRate(usingRateDTO.getUsingRateKey());
-                                detail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
+                                if(usingRateDTO.getRelatedPlatformKey() != null){
+                                    detail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
+                                } else {
+                                    detail.setUsingRate(usingRateDTO.getUsingRateKey());
+                                }
+
                             }
                         }
                         //用法处理
@@ -461,7 +466,11 @@ public class RecipeServiceSub {
                             if (usePathwaysDTO != null) {
                                 detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
                                 detail.setOrganUsePathways(usePathwaysDTO.getPathwaysKey());
-                                detail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
+                                if(usePathwaysDTO.getRelatedPlatformKey() != null){
+                                    detail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
+                                } else {
+                                    detail.setUsePathways(usePathwaysDTO.getPathwaysKey());
+                                }
                             }
                         }
                         //中药基础数据处理
