@@ -29,6 +29,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -160,7 +161,9 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         } else {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-
+            if (recipe == null) {
+                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+            }
             DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
             //获取医保支付开关端配置
