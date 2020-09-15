@@ -1387,7 +1387,7 @@ public class HisRecipeService {
             Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDose()), HashMap::putAll);
             Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDoseStr()), HashMap::putAll);
             Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDays()), HashMap::putAll);
-            Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDaysB()), HashMap::putAll);
+            //Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDaysB()), HashMap::putAll);
             Map<String, String> usingRateMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRate()), HashMap::putAll);
             Map<String, String> usePathwaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathways()), HashMap::putAll);
             Map<String, String> usingRateTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRateText()), HashMap::putAll);
@@ -1409,10 +1409,6 @@ public class HisRecipeService {
                 if (useDays != null && !useDays.equals(recipeDetailTO.getUseDays())) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
-                String useDaysB = drugUseDaysBMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB())) {
-                    deleteSetRecipeCode.add(recipeCode);
-                }
                 String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate())) {
                     deleteSetRecipeCode.add(recipeCode);
@@ -1426,7 +1422,7 @@ public class HisRecipeService {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(usePathwaysText) && !usingRateText.equals(recipeDetailTO.getUsePathwaysText())) {
+                if (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText())) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
             }
