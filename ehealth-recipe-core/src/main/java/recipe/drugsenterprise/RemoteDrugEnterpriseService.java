@@ -707,20 +707,24 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     private ScanRequestBean getDrugInventoryRequestBean( Integer organId,DrugsEnterprise drugsEnterprise) {
         //TODO ScanRequestBean
         ScanRequestBean scanRequestBean = new ScanRequestBean();
-        ThirdEnterpriseCallService thirdEnterpriseCallService =ApplicationUtils.getRecipeService(
-                ThirdEnterpriseCallService.class, "takeDrugService");
-        Map drugInventoryRequestMap=thirdEnterpriseCallService.drugInventoryRequestMap.get();
-        LOGGER.info("getDrugInventoryRequestBean map: {}",JSONUtils.toString(drugInventoryRequestMap));
-        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
-        ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-        scanDrugListBean.setDrugCode(drugInventoryRequestMap.get("organDurgList_drugCode")+"");
-        scanDrugListBean.setTotal(drugInventoryRequestMap.get("total")+"");
-        scanDrugListBean.setUnit(drugInventoryRequestMap.get("unit")+"");
-        scanDrugListBeans.add(scanDrugListBean);
-        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
-        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
-        scanRequestBean.setOrganId(organId);
-        LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
+        try{
+            ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getRecipeService(
+                    ThirdEnterpriseCallService.class, "takeDrugService");
+            Map drugInventoryRequestMap = thirdEnterpriseCallService.drugInventoryRequestMap.get();
+            LOGGER.info("getDrugInventoryRequestBean map: {}",JSONUtils.toString(drugInventoryRequestMap));
+            List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
+            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+            scanDrugListBean.setDrugCode(drugInventoryRequestMap.get("organDurgList_drugCode")+"");
+            scanDrugListBean.setTotal(drugInventoryRequestMap.get("total")+"");
+            scanDrugListBean.setUnit(drugInventoryRequestMap.get("unit")+"");
+            scanDrugListBeans.add(scanDrugListBean);
+            scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+            scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
+            scanRequestBean.setOrganId(organId);
+            LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
+        }catch (Exception e){
+            LOGGER.info("getDrugInventoryRequestBean error: {}",e.getMessage(), e);
+        }
         return scanRequestBean;
     }
 
