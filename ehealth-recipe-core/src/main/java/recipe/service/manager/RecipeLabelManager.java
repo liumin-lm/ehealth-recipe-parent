@@ -5,12 +5,12 @@ import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.ErrorCode;
 import recipe.service.RecipeServiceSub;
@@ -95,11 +95,15 @@ public class RecipeLabelManager {
             if (StringUtils.isEmpty(a.getBoxLink())) {
                 return;
             }
+
             String boxLink = a.getBoxLink().trim();
             /**根据模版匹配 value*/
             Object value = recipeMap.get(boxLink);
-            if (null == value && CONFIG_STRING.contains(boxLink)) {
+            if (CONFIG_STRING.contains(boxLink)) {
                 value = configService.getConfiguration(organId, boxLink);
+                if (null == value) {
+                    return;
+                }
             }
 
             if (null == value) {
@@ -134,10 +138,13 @@ public class RecipeLabelManager {
     private void setRecipeMap(Map<String, Object> recipeMap) {
         String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
         String doctorSignImgToken = null == recipeMap.get("doctorSignImgToken") ? "" : recipeMap.get("doctorSignImgToken").toString();
-        recipeMap.put("doctorSignImg,doctorSignImgToken", doctorSignImg + ByteUtils.COMMA + doctorSignImgToken);
+        if (!StringUtils.isAnyEmpty(doctorSignImg, doctorSignImgToken)) {
+            recipeMap.put("doctorSignImg,doctorSignImgToken", doctorSignImg + ByteUtils.COMMA + doctorSignImgToken);
+        }
         String checkerSignImg = null == recipeMap.get("checkerSignImg") ? "" : recipeMap.get("checkerSignImg").toString();
         String checkerSignImgToken = null == recipeMap.get("checkerSignImgToken") ? "" : recipeMap.get("checkerSignImgToken").toString();
-        recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
-
+        if (!StringUtils.isAnyEmpty(checkerSignImg, checkerSignImgToken)) {
+            recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
+        }
     }
 }
