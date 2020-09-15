@@ -242,7 +242,7 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
             }
         } else {
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
                 if (saleDrugList != null) {
                     result.add(recipeDetailBean.getDrugName());
                 }
