@@ -232,15 +232,18 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             // 从端获取患者渠道id
             ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-            String appKey = account.getAppId();
-            String loginId = patientDTO.getLoginId();
-            eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
-            LOGGER.info("queryPatientChannelId req: appKey={},loginId={}",appKey,loginId);
-            ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
-            LOGGER.info("queryPatientChannelId res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
-            // thirdPartyEntity获取患者渠道id
-            String patientChannelId = thirdPartyEntity.getSource();
-            pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
+            LOGGER.info("querySimpleWxAccountBean account=", account);
+            if (null != account){
+                String appKey = account.getAppId();
+                String loginId = patientDTO.getLoginId();
+                eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+                LOGGER.info("queryPatientChannelId req: appKey={},loginId={}",appKey,loginId);
+                ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
+                LOGGER.info("queryPatientChannelId res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
+                // thirdPartyEntity获取患者渠道id
+                String patientChannelId = thirdPartyEntity.getSource();
+                pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
+            }
         } catch (Exception e) {
             LOGGER.error("获取患者渠道id异常",e);
         }

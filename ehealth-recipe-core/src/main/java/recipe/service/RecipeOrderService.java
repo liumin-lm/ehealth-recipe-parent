@@ -2089,13 +2089,16 @@ public class RecipeOrderService extends RecipeBaseService {
                 try {
                     ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
                     SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-                    String appKey = account.getAppId();
-                    String loginId = patient.getLoginId();
-                    eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
-                    LOGGER.info("queryPatientTid req: appKey={},loginId={}",appKey,loginId);
-                    ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
-                    LOGGER.info("queryPatientTid res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
-                    patientBaseInfo.setTid(thirdPartyEntity.getTid());
+                    LOGGER.info("querySimpleWxAccountBean account=", account);
+                    if (null != account){
+                        String appKey = account.getAppId();
+                        String loginId = patient.getLoginId();
+                        eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+                        LOGGER.info("queryPatientTid req: appKey={},loginId={}",appKey,loginId);
+                        ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
+                        LOGGER.info("queryPatientTid res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
+                        patientBaseInfo.setTid(thirdPartyEntity.getTid());
+                    }
                 } catch (Exception e) {
                     LOGGER.error("黄河医院获取药企用户tid异常",e);
                 }
