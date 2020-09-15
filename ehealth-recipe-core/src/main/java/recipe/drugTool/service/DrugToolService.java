@@ -133,13 +133,15 @@ public class DrugToolService implements IDrugToolService {
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
 
+    @Resource
+    RecipeBusiThreadPool recipeBusiThreadPool;
+
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
             return drugListDAO.findBySaleNameLike(str);
         }
     });
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor = AppContextHolder.getBean("threadPoolTaskExecutor", ThreadPoolTaskExecutor.class);
 
 
     @RpcService
@@ -1206,7 +1208,7 @@ public class DrugToolService implements IDrugToolService {
         List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
         for (int i = 0; i < partition.size(); i++) {
             int finalI = i;
-            threadPoolTaskExecutor.execute(new Runnable() {
+            recipeBusiThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
