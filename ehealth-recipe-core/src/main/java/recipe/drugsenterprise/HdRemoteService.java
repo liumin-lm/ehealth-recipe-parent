@@ -1546,7 +1546,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         Map<String, Object> drug = new HashMap<>();
         Map<String, String> drugData = new HashMap<>();
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             if (saleDrugList != null) {
                 drug.put("drugCode", saleDrugList.getOrganDrugCode());
                 drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");

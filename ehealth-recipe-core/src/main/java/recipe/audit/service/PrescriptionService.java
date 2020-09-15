@@ -11,9 +11,12 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.dao.JudicialOrganDAO;
@@ -28,6 +31,8 @@ import java.util.List;
  */
 @RpcBean("prescriptionService")
 public class PrescriptionService {
+    @Autowired
+    private IRecipeAuditService recipeAuditService;
 
     /**
      * logger
@@ -55,13 +60,11 @@ public class PrescriptionService {
      * @return 结果
      */
     @RpcService
-    public AutoAuditResult analysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) {
+    public AutoAuditResultBean analysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) {
         if (recipe == null) {
             throw new DAOException("处方不存在");
         }
-        Integer organId = recipe.getClinicOrgan();
-        IntellectJudicialService judicialService = getService(organId);
-        return judicialService.analysis(recipe, recipedetails);
+        return recipeAuditService.analysis(recipe, recipedetails);
     }
 
     /**

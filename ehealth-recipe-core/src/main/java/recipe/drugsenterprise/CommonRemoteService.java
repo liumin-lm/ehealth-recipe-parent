@@ -407,7 +407,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         List<String> result = new ArrayList<>();
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             if (saleDrugList != null) {
                 String inventory = getInvertoryResult(saleDrugList.getDrugId(), drugsEnterprise, recipeDetailBean.getUseTotalDose().toString());
                 if (StringUtils.isNotEmpty(inventory) && "有库存".equals(inventory)) {

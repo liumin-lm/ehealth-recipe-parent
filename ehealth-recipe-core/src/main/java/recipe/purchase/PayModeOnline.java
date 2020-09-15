@@ -226,12 +226,14 @@ public class PayModeOnline implements IPurchaseService {
             if (new Integer(2).equals(dbRecipe.getRecipeSource())) {
                 HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                 HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-                if (hisRecipe != null && new Integer(2).equals(hisRecipe.getMedicalType())) {
-                    depDetailBean.setPayModeText("货到付款");
-                    depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
-                } else {
-                    depDetailBean.setPayModeText("在线支付");
-                    depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+                if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
+                    if (new Integer(2).equals(hisRecipe.getMedicalType())) {
+                        depDetailBean.setPayModeText("货到付款");
+                        depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
+                    } else {
+                        depDetailBean.setPayModeText("在线支付");
+                        depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+                    }
                 }
             }
 

@@ -276,7 +276,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         try{
             String stockMethod = "getMedicineStock";
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, drugsEnterprise.getId());
             if (saleDrugList != null) {
                 Map<String, Object> params = new HashMap<>();
                 params.put("sku", saleDrugList.getOrganDrugCode());

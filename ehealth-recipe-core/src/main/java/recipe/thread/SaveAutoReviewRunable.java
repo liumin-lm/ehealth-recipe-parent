@@ -6,6 +6,10 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.AppContextHolder;
 import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
+import eh.recipeaudit.module.Intelligent.IssueBean;
+import eh.recipeaudit.module.Intelligent.PAWebMedicinesBean;
+import eh.recipeaudit.module.Intelligent.PAWebRecipeDangerBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,10 +53,10 @@ public class SaveAutoReviewRunable implements Runnable {
         IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 //        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
 //        AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
+        AutoAuditResultBean autoAuditResult = prescriptionService.analysis(recipe, details);
         List<eh.recipeaudit.model.AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
-        List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
-        List<PAWebRecipeDanger> recipeDangers = autoAuditResult.getRecipeDangers();
+        List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
+        List<PAWebRecipeDangerBean> recipeDangers = autoAuditResult.getRecipeDangers();
         if (CollectionUtils.isNotEmpty(recipeDangers)) {
             recipeDangers.forEach(item -> {
                 eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue = new eh.recipeaudit.model.AuditMedicineIssueDTO();
@@ -76,10 +80,10 @@ public class SaveAutoReviewRunable implements Runnable {
             iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
         } else if (CollectionUtils.isNotEmpty(paResultList)) {
             eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO;
-            List<Issue> issueList;
+            List<IssueBean> issueList;
             List<AuditMedicineIssueDTO> auditMedicineIssues;
             AuditMedicineIssueDTO auditIssueDTO;
-            for (PAWebMedicines paMedicine : paResultList) {
+            for (PAWebMedicinesBean paMedicine : paResultList) {
                 auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
                 auditMedicinesDTO.setRecipeId(recipeId);
                 auditMedicinesDTO.setCode(paMedicine.getCode());
@@ -87,7 +91,7 @@ public class SaveAutoReviewRunable implements Runnable {
                 issueList = paMedicine.getIssues();
                 if (CollectionUtils.isNotEmpty(issueList)) {
                     auditMedicineIssues = new ArrayList<>(issueList.size());
-                    for (Issue issue : issueList) {
+                    for (IssueBean issue : issueList) {
                         auditIssueDTO = new AuditMedicineIssueDTO();
                         auditIssueDTO.setDetail(issue.getDetail());
                         auditIssueDTO.setLvl(issue.getLvl());
