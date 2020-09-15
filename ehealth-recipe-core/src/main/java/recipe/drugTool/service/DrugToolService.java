@@ -35,9 +35,11 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.context.ContextUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -50,6 +52,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.bean.DoctorDrugUsageRequest;
 import recipe.bean.OrganToolBean;
 import recipe.constant.DrugMatchConstant;
@@ -66,10 +69,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -1191,31 +1191,64 @@ public class DrugToolService implements IDrugToolService {
      * @param depId   药企id
      * @param flag    是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
      */
-    @RpcService
-    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) {
+    @RpcService(timeout = 600)
+    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) throws InterruptedException {
         if (organId == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企关联机构ID参数为null！");
         }
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
-        SaleDrugList saleDrugList;
+        int save = 0;
+        int update = 0;
+        List<Integer> list1=Lists.newArrayList();
+        List<Integer> list2=Lists.newArrayList();
+        List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
+        final CountDownLatch end = new CountDownLatch(partition.size());
+        for (int i = 0; i < partition.size(); i++) {
+            int finalI = i;
+            RecipeBusiThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
+                        list1.add(stringIntegerMap.get("save"));
+                        list2.add(stringIntegerMap.get("update"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        end.countDown();
+                    }
+                }
+            });
+
+        }
+
+        end.await();
+
+        for (int i = 0; i < list1.size(); i++) {
+            save = list1.get(i)+save;
+        }
+        for (int i = 0; i < list2.size(); i++) {
+            update = list2.get(i)+update;
+        }
+        LOGGER.info("addOrganDrugDataToSaleDrugList 新增（save）= " + save + " 个药品 ：修改（update）= " + update +" 个药品!");
+        throw new DAOException(DAOException.VALUE_NEEDED, "新增"+ save +"个药品，更新"+ update +"个药品。");
+    }
+
+    @RpcService
+    public Map<String,Integer>  saveOrUpdateOrganDrugDataToSaleDrugList(List<OrganDrugList> drugs,Integer organId, Integer depId, Boolean flag) {
         Integer save=0;
         Integer update=0;
-        StringBuilder successMsg = new StringBuilder();
+        SaleDrugList saleDrugList;
         for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
             List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(depId, organDrugList.getOrganDrugCode());
             SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
                 SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
-                if(saleDrugList1.getPrice()!= null &&  organDrugList.getSalePrice() != null){
-                    if (!saleDrugList1.getPrice().equals(organDrugList.getSalePrice())){
                         saleDrugList1.setPrice(organDrugList.getSalePrice());
                         saleDrugList1.setLastModify(new Date());
                         saleDrugListDAO.update(saleDrugList1);
                         update++;
-                        successMsg.append("药品"+saleDrugList.getDrugName()+"("+saleDrugList.getDrugId()+")价格更改").append(";");
-                    }
-                }
             }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
@@ -1233,15 +1266,17 @@ public class DrugToolService implements IDrugToolService {
                 saleDrugList.setLastModify(new Date());
                 saleDrugListDAO.save(saleDrugList);
                 save++;
-                successMsg.append("新增药品"+saleDrugList.getDrugName()+"("+saleDrugList.getDrugId()+")").append(";");
             }else{
                 continue;
             }
 
         }
-        LOGGER.info("addOrganDrugDataToSaleDrugList 新增（save）= " + save + " 个药品 ：修改（update）= " +update+" 个药品,详细信息:"+successMsg+"!");
-        throw new DAOException(DAOException.VALUE_NEEDED, "新增"+save+"个药品，更新"+update+"个药品。");
+        Map<String,Integer> map=new HashMap<>();
+        map.put("save",save);
+        map.put("update",update);
+        return map;
     }
+
 
     /**
      * 上传未匹配数据到通用药品目录

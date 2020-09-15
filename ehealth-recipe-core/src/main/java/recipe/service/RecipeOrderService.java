@@ -2089,7 +2089,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 try {
                     ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
                     SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-                    LOGGER.info("querySimpleWxAccountBean account=", account);
+                    LOGGER.info("querySimpleWxAccountBean account={}", JSONObject.toJSONString(account));
                     if (null != account){
                         String appKey = account.getAppId();
                         String loginId = patient.getLoginId();
