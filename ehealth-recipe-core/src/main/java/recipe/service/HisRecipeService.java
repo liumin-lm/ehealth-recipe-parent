@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\3\10 0010 19:58
  */
-@RpcBean("hisRecipeService")
+@RpcBean(value = "hisRecipeService", mvc_authentication = false)
 public class HisRecipeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
 
@@ -1384,14 +1384,14 @@ public class HisRecipeService {
                 return;
             }
             Map<String, BigDecimal> drugTotalDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseTotalDose));
-            Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDose));
-            Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDoseStr));
-            Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDays));
-            Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDaysB));
-            Map<String, String> usingRateMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsingRate));
-            Map<String, String> usePathwaysMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsePathways));
-            Map<String, String> usingRateTextMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsingRateText));
-            Map<String, String> usePathwaysTextMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsePathwaysText));
+            Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDose()), HashMap::putAll);
+            Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDoseStr()), HashMap::putAll);
+            Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDays()), HashMap::putAll);
+            Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDaysB()), HashMap::putAll);
+            Map<String, String> usingRateMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRate()), HashMap::putAll);
+            Map<String, String> usePathwaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathways()), HashMap::putAll);
+            Map<String, String> usingRateTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRateText()), HashMap::putAll);
+            Map<String, String> usePathwaysTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathwaysText()), HashMap::putAll);
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
                 BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
@@ -1406,7 +1406,7 @@ public class HisRecipeService {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
-                if (useDays != null && useDays.equals(recipeDetailTO.getUseDays())) {
+                if (useDays != null && !useDays.equals(recipeDetailTO.getUseDays())) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDaysB = drugUseDaysBMap.get(recipeDetailTO.getDrugCode());

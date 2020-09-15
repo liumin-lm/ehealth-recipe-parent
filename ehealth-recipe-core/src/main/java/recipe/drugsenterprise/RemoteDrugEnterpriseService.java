@@ -68,7 +68,7 @@ import static ctd.util.AppContextHolder.getBean;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
-@RpcBean(value = "remoteDrugEnterpriseService", mvc_authentication = false)
+@RpcBean(value = "remoteDrugEnterpriseService")
 public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDrugEnterpriseService.class);
