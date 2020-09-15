@@ -1780,8 +1780,10 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
             checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
+            return this.getOrderDetailById(order.getOrderId());
+        } else {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
         }
-        return this.getOrderDetailById(order.getOrderId());
     }
 
     /**
