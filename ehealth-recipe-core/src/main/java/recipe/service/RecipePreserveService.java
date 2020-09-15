@@ -37,6 +37,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -280,7 +281,7 @@ public class RecipePreserveService {
      * @throws Exception
      */
     @RpcService
-    public AutoAuditResult testGetPAAnalysis(int recipeId) throws Exception {
+    public AutoAuditResultBean testGetPAAnalysis(int recipeId) throws Exception {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 

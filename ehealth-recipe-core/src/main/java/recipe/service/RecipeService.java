@@ -58,6 +58,9 @@ import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
+import eh.recipeaudit.module.Intelligent.IssueBean;
+import eh.recipeaudit.module.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.module.RecipeCheckBean;
 import eh.recipeaudit.module.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
@@ -2469,14 +2472,14 @@ public class RecipeService extends RecipeBaseService {
         if ((organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())) ||
                 recipe.getClinicOrgan() == 1002902) {//上海肺科
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
-            List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
+            AutoAuditResultBean autoAuditResult = prescriptionService.analysis(recipe, details);
+            List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
             if (CollectionUtils.isNotEmpty(paResultList)) {
-                List<Issue> issueList;
-                for (PAWebMedicines paMedicine : paResultList) {
+                List<IssueBean> issueList;
+                for (PAWebMedicinesBean paMedicine : paResultList) {
                     issueList = paMedicine.getIssues();
                     if (CollectionUtils.isNotEmpty(issueList)) {
-                        for (Issue issue : issueList) {
+                        for (IssueBean issue : issueList) {
                             if ("RL001".equals(issue.getLvlCode())) {
                                 throw new DAOException(609, issue.getDetail());
                             }
