@@ -1207,11 +1207,13 @@ public class DrugToolService implements IDrugToolService {
             SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
                 SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
-                saleDrugList1.setPrice(organDrugList.getSalePrice());
-                saleDrugList1.setLastModify(new Date());
-                saleDrugListDAO.update(saleDrugList1);
-                update++;
-                successMsg.append("药品"+saleDrugList.getDrugName()+"("+saleDrugList.getDrugId()+")价格更改").append(";");
+                if(!saleDrugList1.getRatePrice().equals(organDrugList.getSalePrice())){
+                    saleDrugList1.setPrice(organDrugList.getSalePrice());
+                    saleDrugList1.setLastModify(new Date());
+                    saleDrugListDAO.update(saleDrugList1);
+                    update++;
+                    successMsg.append("药品"+saleDrugList.getDrugName()+"("+saleDrugList.getDrugId()+")价格更改").append(";");
+                }
             }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
