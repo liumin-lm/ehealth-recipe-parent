@@ -1,5 +1,7 @@
 package recipe.ca.vo;
 
+import java.util.Map;
+
 public class CaSignResultVo {
 
     /**
@@ -33,6 +35,17 @@ public class CaSignResultVo {
 
     //手写签名
     private String signPicture;
+
+    //e签保返回
+    private Map<String, Object> esignResponseMap;
+
+    public Map<String, Object> getEsignResponseMap() {
+        return esignResponseMap;
+    }
+
+    public void setEsignResponseMap(Map<String, Object> esignResponseMap) {
+        this.esignResponseMap = esignResponseMap;
+    }
 
     public Integer getRecipeId() {
         return recipeId;
