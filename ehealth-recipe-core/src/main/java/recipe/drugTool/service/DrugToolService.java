@@ -1199,10 +1199,10 @@ public class DrugToolService implements IDrugToolService {
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
         int save = 0;
         int update = 0;
-        final CountDownLatch end = new CountDownLatch(drugs.size());
         List<Integer> list1=Lists.newArrayList();
         List<Integer> list2=Lists.newArrayList();
         List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
+        final CountDownLatch end = new CountDownLatch(partition.size());
         for (int i = 0; i < partition.size(); i++) {
             int finalI = i;
             RecipeBusiThreadPool.execute(new Runnable() {
