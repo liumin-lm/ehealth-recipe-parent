@@ -1191,7 +1191,7 @@ public class DrugToolService implements IDrugToolService {
      * @param depId   药企id
      * @param flag    是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
      */
-    @RpcService
+    @RpcService(timeout = 600)
     public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) throws InterruptedException {
         if (organId == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企关联机构ID参数为null！");
