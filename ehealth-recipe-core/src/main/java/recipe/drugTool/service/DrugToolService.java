@@ -1200,8 +1200,10 @@ public class DrugToolService implements IDrugToolService {
             throw new DAOException(DAOException.VALUE_NEEDED, "药企关联机构ID参数为null！");
         }
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
-        final Integer[] save = {0};
-        final Integer[] update = {0};
+        int save = 0;
+        int update = 0;
+        List<Integer> list1=Lists.newArrayList();
+        List<Integer> list2=Lists.newArrayList();
         List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
         for (int i = 0; i < partition.size(); i++) {
             int finalI = i;
@@ -1209,14 +1211,20 @@ public class DrugToolService implements IDrugToolService {
                 @Override
                 public void run() {
                     Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
-                    save[0] +=stringIntegerMap.get("save");
-                    update[0] +=stringIntegerMap.get("update");
+                    list1.add(stringIntegerMap.get("save"));
+                    list2.add(stringIntegerMap.get("update"));
                 }
             });
 
         }
-        LOGGER.info("addOrganDrugDataToSaleDrugList 新增（save）= " + save[0] + " 个药品 ：修改（update）= " + update[0] +" 个药品!");
-        throw new DAOException(DAOException.VALUE_NEEDED, "新增"+ save[0] +"个药品，更新"+ update[0] +"个药品。");
+        for (int i = 0; i < list1.size(); i++) {
+            save = list1.get(i)+save;
+        }
+        for (int i = 0; i < list2.size(); i++) {
+            update = list2.get(i)+update;
+        }
+        LOGGER.info("addOrganDrugDataToSaleDrugList 新增（save）= " + save + " 个药品 ：修改（update）= " + update +" 个药品!");
+        throw new DAOException(DAOException.VALUE_NEEDED, "新增"+ save +"个药品，更新"+ update +"个药品。");
     }
 
     @RpcService
