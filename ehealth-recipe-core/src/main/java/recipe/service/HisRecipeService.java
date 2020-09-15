@@ -1395,38 +1395,47 @@ public class HisRecipeService {
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
                 BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
+                    LOGGER.info("删除数据：{},{}.", useTotalDose, recipeDetailTO.getUseTotalDose());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose())) {
+                    LOGGER.info("删除数据：{},{}.", useDose, recipeDetailTO.getUseDose());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr())) {
+                    LOGGER.info("删除数据：{},{}.", useDoseStr, recipeDetailTO.getUseDoseStr());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
                 if (useDays != null && !useDays.equals(recipeDetailTO.getUseDays())) {
+                    LOGGER.info("删除数据：{},{}.", useDays, recipeDetailTO.getUseDays());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDaysB = drugUseDaysBMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB())) {
+                    LOGGER.info("删除数据：{},{}.", useDaysB, recipeDetailTO.getUseDaysB());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate())) {
+                    LOGGER.info("删除数据：{},{}.", usingRate, recipeDetailTO.getUsingRate());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText())) {
+                    LOGGER.info("删除数据：{},{}.", usingRateText, recipeDetailTO.getUsingRateText());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays())) {
+                    LOGGER.info("删除数据：{},{}.", useTotalDose, recipeDetailTO.getUseTotalDose());
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
                 if (StringUtils.isNotEmpty(usePathwaysText) && !usingRateText.equals(recipeDetailTO.getUsePathwaysText())) {
+                    LOGGER.info("删除数据：{},{}.", usePathwaysText, recipeDetailTO.getUsePathwaysText());
                     deleteSetRecipeCode.add(recipeCode);
                 }
             }
