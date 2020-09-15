@@ -69,10 +69,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -1194,8 +1191,8 @@ public class DrugToolService implements IDrugToolService {
      * @param depId   药企id
      * @param flag    是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
      */
-    @RpcService
-    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) {
+    @RpcService(timeout = 600)
+    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) throws InterruptedException {
         if (organId == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企关联机构ID参数为null！");
         }
@@ -1205,18 +1202,28 @@ public class DrugToolService implements IDrugToolService {
         List<Integer> list1=Lists.newArrayList();
         List<Integer> list2=Lists.newArrayList();
         List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
+        final CountDownLatch end = new CountDownLatch(partition.size());
         for (int i = 0; i < partition.size(); i++) {
             int finalI = i;
             RecipeBusiThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
-                    list1.add(stringIntegerMap.get("save"));
-                    list2.add(stringIntegerMap.get("update"));
+                    try {
+                        Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
+                        list1.add(stringIntegerMap.get("save"));
+                        list2.add(stringIntegerMap.get("update"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        end.countDown();
+                    }
                 }
             });
 
         }
+
+        end.await();
+
         for (int i = 0; i < list1.size(); i++) {
             save = list1.get(i)+save;
         }
@@ -1238,14 +1245,10 @@ public class DrugToolService implements IDrugToolService {
             SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
                 SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
-                if(saleDrugList1.getPrice()!= null &&  organDrugList.getSalePrice() != null){
-                    if (!saleDrugList1.getPrice().equals(organDrugList.getSalePrice())){
                         saleDrugList1.setPrice(organDrugList.getSalePrice());
                         saleDrugList1.setLastModify(new Date());
                         saleDrugListDAO.update(saleDrugList1);
                         update++;
-                    }
-                }
             }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
