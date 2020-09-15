@@ -1409,5 +1409,10 @@ public class Recipe implements Serializable {
     public void setDispensPeople(String dispensPeople) {
         this.dispensPeople = dispensPeople;
     }
+
+    public Recipe(Integer recipeId, String supplementaryMemo) {
+        this.recipeId = recipeId;
+        this.supplementaryMemo = supplementaryMemo;
+    }
 }
 

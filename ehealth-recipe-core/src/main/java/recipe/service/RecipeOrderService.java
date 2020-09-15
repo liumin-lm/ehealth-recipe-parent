@@ -2089,11 +2089,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 try {
                     ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
                     SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-                    LOGGER.info("querySimpleWxAccountBean account=", account);
+                    LOGGER.info("querySimpleWxAccountBean account={}", JSONObject.toJSONString(account));
                     if (null != account){
                         String appKey = account.getAppId();
                         String loginId = patient.getLoginId();
-                        eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+                        eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("account.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
                         LOGGER.info("queryPatientTid req: appKey={},loginId={}",appKey,loginId);
                         ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
                         LOGGER.info("queryPatientTid res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
