@@ -2022,16 +2022,17 @@ public class RecipeServiceSub {
         }
         //date 20200724 北京互联网按钮展示根据HIS进行判断
         if (new Integer(2).equals(recipe.getRecipeSource())) {
-            map.put("supportDownload", 0);
-            map.put("supportToHos", 0);
-            map.put("showSendToHos", 0);
-            map.put("showSendToEnterprises", 0);
-            map.put("supportTFDS", 0);
-            if (new Integer(1).equals(recipe.getGiveMode())) {
-                //表示配送到家,需要判断是药企配送还是医院配送
-                HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
-                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-                if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
+            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            //只有北京互联网医院DeliveryCode是不为空的
+            if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
+                map.put("supportDownload", 0);
+                map.put("supportToHos", 0);
+                map.put("showSendToHos", 0);
+                map.put("showSendToEnterprises", 0);
+                map.put("supportTFDS", 0);
+                if (new Integer(1).equals(recipe.getGiveMode())) {
+                    //表示配送到家,需要判断是药企配送还是医院配送
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
                     if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
@@ -2041,14 +2042,14 @@ public class RecipeServiceSub {
                         //表示为药企配送
                         map.put("showSendToEnterprises", 1);
                     }
-                }
-            } else if (new Integer(2).equals(recipe.getGiveMode())) {
-                //表示到院取药
-                map.put("supportToHos", 1);
+                } else if (new Integer(2).equals(recipe.getGiveMode())) {
+                    //表示到院取药
+                    map.put("supportToHos", 1);
 
-            } else if (new Integer(3).equals(recipe.getGiveMode())) {
-                //表示到店取药
-                map.put("supportTFDS", 1);
+                } else if (new Integer(3).equals(recipe.getGiveMode())) {
+                    //表示到店取药
+                    map.put("supportTFDS", 1);
+                }
             }
         }
         //临沭县人民医院医保支付按钮--点击跳转到东软h5页面
