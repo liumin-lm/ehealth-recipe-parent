@@ -18,9 +18,13 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.platform.visit.mode.ConsultExDTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -228,24 +232,15 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //设置患者信息
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.get(recipe.getMpiid());
-        try {
-            // 从端获取患者渠道id
-            ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-            SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-            LOGGER.info("querySimpleWxAccountBean account=", account);
-            if (null != account){
-                String appKey = account.getAppId();
-                String loginId = patientDTO.getLoginId();
-                eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
-                LOGGER.info("queryPatientChannelId req: appKey={},loginId={}",appKey,loginId);
-                ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
-                LOGGER.info("queryPatientChannelId res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
-                // thirdPartyEntity获取患者渠道id
-                String patientChannelId = thirdPartyEntity.getSource();
-                pushRecipeAndOrder.getRecipeBean().setPatientChannelId(patientChannelId);
+        // 从复诊获取患者渠道id
+        if (recipe.getClinicId() != null) {
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
+            RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+            if (revisitExDTO != null) {
+                LOGGER.info("queryPatientChannelId res={}",JSONObject.toJSONString(revisitExDTO));
+                pushRecipeAndOrder.getRecipeBean().setPatientChannelId(revisitExDTO.getProjectChannel());
             }
-        } catch (Exception e) {
-            LOGGER.error("获取患者渠道id异常",e);
         }
 
         pushRecipeAndOrder.setPatientDTO(patientDTO);
@@ -707,20 +702,24 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     private ScanRequestBean getDrugInventoryRequestBean( Integer organId,DrugsEnterprise drugsEnterprise) {
         //TODO ScanRequestBean
         ScanRequestBean scanRequestBean = new ScanRequestBean();
-        ThirdEnterpriseCallService thirdEnterpriseCallService =ApplicationUtils.getRecipeService(
-                ThirdEnterpriseCallService.class, "takeDrugService");
-        Map drugInventoryRequestMap=thirdEnterpriseCallService.drugInventoryRequestMap.get();
-        LOGGER.info("getDrugInventoryRequestBean map: {}",JSONUtils.toString(drugInventoryRequestMap));
-        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
-        ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-        scanDrugListBean.setDrugCode(drugInventoryRequestMap.get("organDurgList_drugCode")+"");
-        scanDrugListBean.setTotal(drugInventoryRequestMap.get("total")+"");
-        scanDrugListBean.setUnit(drugInventoryRequestMap.get("unit")+"");
-        scanDrugListBeans.add(scanDrugListBean);
-        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
-        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
-        scanRequestBean.setOrganId(organId);
-        LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
+        try{
+            ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getRecipeService(
+                    ThirdEnterpriseCallService.class, "takeDrugService");
+            Map drugInventoryRequestMap = thirdEnterpriseCallService.drugInventoryRequestMap.get();
+            LOGGER.info("getDrugInventoryRequestBean map: {}",JSONUtils.toString(drugInventoryRequestMap));
+            List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
+            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+            scanDrugListBean.setDrugCode(drugInventoryRequestMap.get("organDurgList_drugCode")+"");
+            scanDrugListBean.setTotal(drugInventoryRequestMap.get("total")+"");
+            scanDrugListBean.setUnit(drugInventoryRequestMap.get("unit")+"");
+            scanDrugListBeans.add(scanDrugListBean);
+            scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+            scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
+            scanRequestBean.setOrganId(organId);
+            LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
+        }catch (Exception e){
+            LOGGER.info("getDrugInventoryRequestBean error: {}",e.getMessage(), e);
+        }
         return scanRequestBean;
     }
 
