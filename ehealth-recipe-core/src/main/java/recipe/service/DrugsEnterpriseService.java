@@ -159,6 +159,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
         BeanUtils.map(drugsEnterprise, target);
         target.setLastModify(new Date());
+        if (drugsEnterprise.getOrganId()== null || drugsEnterprise.getOrganId().equals("")){
+            target.setOrganId(null);
+        }
         if (drugsEnterpriseBean.getExpressFeePayWay() == null){
             target.setExpressFeePayWay(null);
         }
