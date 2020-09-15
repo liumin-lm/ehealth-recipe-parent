@@ -1127,6 +1127,9 @@ public class RecipeListService extends RecipeBaseService{
      * @author liumin
      */
     public boolean isReturnRecipeDetail(Integer recipeId){
+        if (recipeId == null) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+        }
         boolean isReturnRecipeDetail=true;//默认返回详情
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
