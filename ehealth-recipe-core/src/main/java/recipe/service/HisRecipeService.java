@@ -1376,10 +1376,12 @@ public class HisRecipeService {
             }
             List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
             if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
+                LOGGER.info("删除数据1");
                 deleteSetRecipeCode.add(recipeCode);
                 return;
             }
             if (a.getDrugList().size() != hisDetailList.size()) {
+                LOGGER.info("删除数据2");
                 deleteSetRecipeCode.add(recipeCode);
                 return;
             }
