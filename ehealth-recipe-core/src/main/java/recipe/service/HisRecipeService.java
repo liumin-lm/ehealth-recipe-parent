@@ -305,7 +305,7 @@ public class HisRecipeService {
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
             hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
             hisRecipeVO.setIsCachePlatform(1);
-            setOtherInfo(hisRecipeVO, hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+            setOtherInfo(hisRecipeVO,hisRecipe.getMpiId(), hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
             result.add(hisRecipeVO);
 //            Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
 //            if (recipe == null) {
@@ -572,7 +572,7 @@ public class HisRecipeService {
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
                 //设置其它信息
                 hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
-                setOtherInfo(hisRecipeVO,queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+                setOtherInfo(hisRecipeVO,hisRecipe.getMpiId(),queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
 
                 if (null != queryHisRecipResTO.getDrugList()) {
                     List<HisRecipeDetailVO> hisRecipeDetailVOs=new ArrayList<>();
@@ -593,7 +593,7 @@ public class HisRecipeService {
                 //如果为已支付，不予返回
                 if(!new Integer("2").equals(hisRecipe1.getStatus())){
                     HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
-                    setOtherInfo(hisRecipeVO,queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+                    setOtherInfo(hisRecipeVO,hisRecipe1.getMpiId(),queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
                     hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
                     hisRecipeVOs.add(hisRecipeVO);
                 }
@@ -603,8 +603,8 @@ public class HisRecipeService {
         return hisRecipeVOs;
     }
 
-    private void setOtherInfo(HisRecipeVO hisRecipeVO, String recipeCode, Integer clinicOrgan) {
-        Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+    private void setOtherInfo(HisRecipeVO hisRecipeVO,String mpiId, String recipeCode, Integer clinicOrgan) {
+        Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId,recipeCode, clinicOrgan);
         if (recipe == null) {
             hisRecipeVO.setOrderStatusText("待支付");
             hisRecipeVO.setFromFlag(1);
