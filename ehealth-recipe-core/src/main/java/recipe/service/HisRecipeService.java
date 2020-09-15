@@ -317,6 +317,7 @@ public class HisRecipeService {
                         //表示该处方来源于HIS
                         if(StringUtils.isEmpty(recipe.getOrderCode())){
                             hisRecipeVO.setOrderStatusText("待支付");
+                            hisRecipeVO.setJumpPageType(0);
                         }else{
                             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                             if(recipeOrder!=null){
@@ -325,10 +326,10 @@ public class HisRecipeService {
                                 }else{
                                     hisRecipeVO.setOrderStatusText("已完成");
                                 }
+                                hisRecipeVO.setJumpPageType(1);
                             }
                         }
                         hisRecipeVO.setFromFlag(1);
-                        hisRecipeVO.setJumpPageType(0);
                         result.add(hisRecipeVO);
                     } else {
                         //表示该处方来源于平台
