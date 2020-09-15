@@ -326,10 +326,12 @@ public class HisRecipeService {
                                 }else{
                                     hisRecipeVO.setOrderStatusText("已完成");
                                 }
-                                hisRecipeVO.setJumpPageType(1);
+                                hisRecipeVO.setJumpPageType(1);//跳转到订单详情页
+                                hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+                                hisRecipeVO.setOrderCode(recipe.getOrderCode());
                             }
                         }
-                        hisRecipeVO.setFromFlag(1);
+                        hisRecipeVO.setFromFlag(recipe.getRecipeSourceType()==2?1:0);
                         result.add(hisRecipeVO);
                     } else {
                         //表示该处方来源于平台
