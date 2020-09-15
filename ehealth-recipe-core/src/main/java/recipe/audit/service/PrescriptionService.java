@@ -1,5 +1,6 @@
 package recipe.audit.service;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.JudicialOrgan;
 import com.ngari.recipe.entity.OrganJudicialRelation;
@@ -64,7 +65,8 @@ public class PrescriptionService {
         if (recipe == null) {
             throw new DAOException("处方不存在");
         }
-        return recipeAuditService.analysis(recipe, recipedetails);
+         AutoAuditResultBean resultBean=   recipeAuditService.analysis(recipe, recipedetails);
+        return  JSON.parseObject(JSON.toJSONString(resultBean),AutoAuditResultBean.class);
     }
 
     /**
