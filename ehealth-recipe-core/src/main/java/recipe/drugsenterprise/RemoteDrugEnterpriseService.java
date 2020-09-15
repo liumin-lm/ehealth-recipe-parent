@@ -235,8 +235,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         // 从复诊获取患者渠道id
         if (recipe.getClinicId() != null) {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
             RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
             if (revisitExDTO != null) {
+                LOGGER.info("queryPatientChannelId res={}",JSONObject.toJSONString(revisitExDTO));
                 pushRecipeAndOrder.getRecipeBean().setPatientChannelId(revisitExDTO.getProjectChannel());
             }
         }
