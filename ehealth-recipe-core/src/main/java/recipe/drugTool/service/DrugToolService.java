@@ -1243,12 +1243,14 @@ public class DrugToolService implements IDrugToolService {
             saleDrugList = new SaleDrugList();
             List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(depId, organDrugList.getOrganDrugCode());
             SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
-            if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0 && organDrugList.getStatus().equals(1)) {
-                SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
-                        saleDrugList1.setPrice(organDrugList.getSalePrice());
-                        saleDrugList1.setLastModify(new Date());
-                        saleDrugListDAO.update(saleDrugList1);
-                        update++;
+            if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
+                if (organDrugList.getStatus().equals(1)){
+                    SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
+                    saleDrugList1.setPrice(organDrugList.getSalePrice());
+                    saleDrugList1.setLastModify(new Date());
+                    saleDrugListDAO.update(saleDrugList1);
+                    update++;
+                }
             }else if (byDrugIdAndOrganId == null){
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
