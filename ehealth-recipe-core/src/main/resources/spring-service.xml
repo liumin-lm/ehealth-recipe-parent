@@ -35,4 +35,6 @@
     <reference id="recipeaudit.remoteAuditMedicinesService" interface="eh.recipeaudit.api.IAuditMedicinesService"/>
     <!--视频-->
     <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
+    <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
+    <reference id="revisit.revisitExService" interface="com.ngari.revisit.common.service.IRevisitExService"/>
 </s:beans>

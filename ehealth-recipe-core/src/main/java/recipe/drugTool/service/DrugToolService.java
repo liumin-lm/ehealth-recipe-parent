@@ -1244,30 +1244,34 @@ public class DrugToolService implements IDrugToolService {
             List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(depId, organDrugList.getOrganDrugCode());
             SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
-                SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
-                        saleDrugList1.setPrice(organDrugList.getSalePrice());
-                        saleDrugList1.setLastModify(new Date());
-                        saleDrugListDAO.update(saleDrugList1);
-                        update++;
-            }else if (byDrugIdAndOrganId == null){
-                saleDrugList.setDrugId(organDrugList.getDrugId());
-                saleDrugList.setDrugName(organDrugList.getDrugName());
-                saleDrugList.setDrugSpec(organDrugList.getDrugSpec());
-                saleDrugList.setOrganId(depId);
-                saleDrugList.setStatus(1);
-                saleDrugList.setPrice(organDrugList.getSalePrice());
-                if (flag) {
-                    saleDrugList.setOrganDrugCode(organDrugList.getOrganDrugCode());
-                } else {
-                    saleDrugList.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
+                if (organDrugList.getStatus().equals(1)){
+                    SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
+                    saleDrugList1.setPrice(organDrugList.getSalePrice());
+                    saleDrugList1.setLastModify(new Date());
+                    saleDrugListDAO.update(saleDrugList1);
+                    update++;
                 }
-                saleDrugList.setInventory(new BigDecimal(100));
-                saleDrugList.setCreateDt(new Date());
-                saleDrugList.setLastModify(new Date());
-                saleDrugListDAO.save(saleDrugList);
-                save++;
-            }else{
-                continue;
+            }else if (byDrugIdAndOrganId == null) {
+                if (organDrugList.getStatus().equals(1)) {
+                    saleDrugList.setDrugId(organDrugList.getDrugId());
+                    saleDrugList.setDrugName(organDrugList.getDrugName());
+                    saleDrugList.setDrugSpec(organDrugList.getDrugSpec());
+                    saleDrugList.setOrganId(depId);
+                    saleDrugList.setStatus(1);
+                    saleDrugList.setPrice(organDrugList.getSalePrice());
+                    if (flag) {
+                        saleDrugList.setOrganDrugCode(organDrugList.getOrganDrugCode());
+                    } else {
+                        saleDrugList.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
+                    }
+                    saleDrugList.setInventory(new BigDecimal(100));
+                    saleDrugList.setCreateDt(new Date());
+                    saleDrugList.setLastModify(new Date());
+                    saleDrugListDAO.save(saleDrugList);
+                    save++;
+                } else {
+                    continue;
+                }
             }
 
         }

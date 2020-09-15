@@ -295,42 +295,59 @@ public class HisRecipeService {
      * @return
      */
     private List<HisRecipeVO> findPendingHisRecipeVo(List<HisRecipe> hisRecipes) {
+        LOGGER.info("findPendingHisRecipeVo:{} ",JSONUtils.toString(hisRecipes));
         List<HisRecipeVO> result = new ArrayList<>();
         for (HisRecipe hisRecipe : hisRecipes) {
             HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
             List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
+            LOGGER.info("hisRecipeId:{} hisRecipeDetailVOS:{}",hisRecipe.getHisRecipeID(),hisRecipeDetailVOS);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
             hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
             hisRecipeVO.setIsCachePlatform(1);
-            Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
-            if (recipe == null) {
-                hisRecipeVO.setOrderStatusText("待支付");
-                hisRecipeVO.setFromFlag(1);
-                hisRecipeVO.setJumpPageType(0);
-                result.add(hisRecipeVO);
-            } else {
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
-                        //表示该处方来源于HIS
-                        hisRecipeVO.setOrderStatusText("待支付");
-                        hisRecipeVO.setFromFlag(1);
-                        hisRecipeVO.setJumpPageType(0);
-                        result.add(hisRecipeVO);
-                    } else {
-                        //表示该处方来源于平台
-                        hisRecipeVO.setOrderStatusText("待支付");
-                        hisRecipeVO.setFromFlag(0);
-                        hisRecipeVO.setJumpPageType(0);
-                        hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
-                        hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
-                        List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
-                        hisRecipeVO.setRecipeDetail(recipeDetailVOS);
-                        result.add(hisRecipeVO);
-                    }
-                }
-            }
+            setOtherInfo(hisRecipeVO, hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+            result.add(hisRecipeVO);
+//            Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
+//            if (recipe == null) {
+//                hisRecipeVO.setOrderStatusText("待支付");
+//                hisRecipeVO.setFromFlag(1);
+//                hisRecipeVO.setJumpPageType(0);
+//                result.add(hisRecipeVO);
+//            } else {
+//                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+//                    if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
+//                        //表示该处方来源于HIS
+//                        if(StringUtils.isEmpty(recipe.getOrderCode())){
+//                            hisRecipeVO.setOrderStatusText("待支付");
+//                            hisRecipeVO.setJumpPageType(0);
+//                        }else{
+//                            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+//                            if(recipeOrder!=null){
+//                                if(new Integer(0).equals(recipeOrder.getPayFlag())){
+//                                    hisRecipeVO.setOrderStatusText("待支付");
+//                                }else{
+//                                    hisRecipeVO.setOrderStatusText("已完成");
+//                                }
+//                                hisRecipeVO.setJumpPageType(1);//跳转到订单详情页
+//                                hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+//                                hisRecipeVO.setOrderCode(recipe.getOrderCode());
+//                            }
+//                        }
+//                        hisRecipeVO.setFromFlag(recipe.getRecipeSourceType()==2?1:0);
+//                        result.add(hisRecipeVO);
+//                    } else {
+//                        //表示该处方来源于平台
+//                        hisRecipeVO.setOrderStatusText("待支付");
+//                        hisRecipeVO.setFromFlag(0);
+//                        hisRecipeVO.setJumpPageType(0);
+//                        hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
+//                        hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+//                        List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+//                        hisRecipeVO.setRecipeDetail(recipeDetailVOS);
+//                        result.add(hisRecipeVO);
+//                    }
+//                }
+
         }
         return result;
     }
@@ -592,15 +609,27 @@ public class HisRecipeService {
             hisRecipeVO.setOrderStatusText("待支付");
             hisRecipeVO.setFromFlag(1);
             hisRecipeVO.setJumpPageType(0);
-        }
-        else {
+        } else {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                     //表示该处方来源于HIS
-                    hisRecipeVO.setOrderStatusText("待支付");
-                    hisRecipeVO.setFromFlag(1);
-                    hisRecipeVO.setJumpPageType(0);
+                    if(StringUtils.isEmpty(recipe.getOrderCode())){
+                        hisRecipeVO.setOrderStatusText("待支付");
+                        hisRecipeVO.setJumpPageType(0);
+                    }else{
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        if(recipeOrder!=null){
+                            if(new Integer(0).equals(recipeOrder.getPayFlag())){
+                                hisRecipeVO.setOrderStatusText("待支付");
+                            }else{
+                                hisRecipeVO.setOrderStatusText("已完成");
+                            }
+                            hisRecipeVO.setJumpPageType(1);//跳转到订单详情页
+                            hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+                            hisRecipeVO.setOrderCode(recipe.getOrderCode());
+                        }
+                    }
+                    hisRecipeVO.setFromFlag(recipe.getRecipeSourceType()==2?1:0);
                 } else {
                     //表示该处方来源于平台
                     hisRecipeVO.setOrderStatusText("待支付");
@@ -612,7 +641,6 @@ public class HisRecipeService {
                     hisRecipeVO.setRecipeDetail(recipeDetailVOS);
                 }
             }
-        }
     }
 
 

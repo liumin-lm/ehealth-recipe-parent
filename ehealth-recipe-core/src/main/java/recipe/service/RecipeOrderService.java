@@ -2093,7 +2093,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (null != account){
                         String appKey = account.getAppId();
                         String loginId = patient.getLoginId();
-                        eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("eh.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
+                        eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("account.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
                         LOGGER.info("queryPatientTid req: appKey={},loginId={}",appKey,loginId);
                         ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
                         LOGGER.info("queryPatientTid res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
