@@ -1315,7 +1315,7 @@ public class HisRecipeService {
      * @param hisRecipeTO
      */
     private void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO, PatientDTO patientDTO) {
-        LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}", JSONUtils.toString(hisRecipeTO));
+        LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}.", JSONUtils.toString(hisRecipeTO));
         if(CollectionUtils.isEmpty(hisRecipeTO)){
             return;
         }
@@ -1374,7 +1374,7 @@ public class HisRecipeService {
             if (null == hisRecipe) {
                 return;
             } else {
-                if (hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
+                if (!hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
                     deleteSetRecipeCode.add(recipeCode);
                     return;
                 }
