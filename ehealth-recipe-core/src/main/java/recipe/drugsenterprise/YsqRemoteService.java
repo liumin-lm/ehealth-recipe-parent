@@ -892,19 +892,21 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("IDENTIFICATION", patient.getCertificate());
             //recipeMap.put("USERID", recipe.getPatientID());
             recipeMap.put("TELPHONE", patient.getMobile());
-            recipeMap.put("RECEIVENAME", order.getReceiver());
-            recipeMap.put("RECEIVETEL", order.getRecMobile());
-            recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
+            if (null != order){
+                recipeMap.put("RECEIVENAME", order.getReceiver());
+                recipeMap.put("RECEIVETEL", order.getRecMobile());
+                recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
+                //放置药店编码和名称
+                if (StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+                    recipeMap.put("GYSCODE", order.getDrugStoreCode());
+                    recipeMap.put("GYSNAME", order.getDrugStoreName());
+                }
+            }
             recipeMap.put("ALLERGY", "");
             recipeMap.put("REMARK", StringUtils.defaultString(recipe.getMemo(), ""));
             recipeMap.put("DEPT", iDepartmentService.getNameById(recipe.getDepart()));
             recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
-            //放置药店编码和名称
-            if (StringUtils.isNotEmpty(order.getDrugStoreCode())) {
-                recipeMap.put("GYSCODE", order.getDrugStoreCode());
-                recipeMap.put("GYSNAME", order.getDrugStoreName());
-            }
             //处理过期时间
             String validateDays = "7";
             Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));

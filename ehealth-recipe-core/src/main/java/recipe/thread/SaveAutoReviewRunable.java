@@ -48,64 +48,69 @@ public class SaveAutoReviewRunable implements Runnable {
     @Override
     public void run() {
         Integer recipeId = this.recipe.getRecipeId();
-        LOGGER.info("SaveAutoReview start. recipeId={}", recipeId);
-        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+        try{
+            LOGGER.info("SaveAutoReview start. recipeId={}", recipeId);
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 //        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
 //        AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        AutoAuditResultBean autoAuditResult = prescriptionService.analysis(recipe, details);
-        List<eh.recipeaudit.model.AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
-        List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
-        List<PAWebRecipeDangerBean> recipeDangers = autoAuditResult.getRecipeDangers();
-        if (CollectionUtils.isNotEmpty(recipeDangers)) {
-            recipeDangers.forEach(item -> {
-                eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue = new eh.recipeaudit.model.AuditMedicineIssueDTO();
-                auditMedicineIssue.setRecipeId(recipeId);
-                auditMedicineIssue.setLvl(item.getDangerType());
-                auditMedicineIssue.setLvlCode(item.getDangerLevel());
-                auditMedicineIssue.setDetail(item.getDangerDesc());
-                auditMedicineIssue.setTitle(item.getDangerDrug());
-                auditMedicineIssue.setCreateTime(new Date());
-                auditMedicineIssue.setLastModify(new Date());
-                auditMedicineIssue.setDetailUrl(item.getDetailUrl());
-                auditMedicineIssue.setLogicalDeleted(0);
-                iAuditMedicinesService.saveAuditMedicineIssue(auditMedicineIssue);
-            });
-        }
-        if (CollectionUtils.isEmpty(paResultList)) {
-            eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
-            auditMedicinesDTO.setRecipeId(recipeId);
-            auditMedicinesDTO.setRemark(autoAuditResult.getMsg());
-            auditMedicinesList.add(auditMedicinesDTO);
-            iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
-        } else if (CollectionUtils.isNotEmpty(paResultList)) {
-            eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO;
-            List<IssueBean> issueList;
-            List<AuditMedicineIssueDTO> auditMedicineIssues;
-            AuditMedicineIssueDTO auditIssueDTO;
-            for (PAWebMedicinesBean paMedicine : paResultList) {
-                auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
-                auditMedicinesDTO.setRecipeId(recipeId);
-                auditMedicinesDTO.setCode(paMedicine.getCode());
-                auditMedicinesDTO.setName(paMedicine.getName());
-                issueList = paMedicine.getIssues();
-                if (CollectionUtils.isNotEmpty(issueList)) {
-                    auditMedicineIssues = new ArrayList<>(issueList.size());
-                    for (IssueBean issue : issueList) {
-                        auditIssueDTO = new AuditMedicineIssueDTO();
-                        auditIssueDTO.setDetail(issue.getDetail());
-                        auditIssueDTO.setLvl(issue.getLvl());
-                        auditIssueDTO.setLvlCode(issue.getLvlCode());
-                        auditIssueDTO.setTitle(issue.getTitle());
-                        auditMedicineIssues.add(auditIssueDTO);
-                    }
-                    auditMedicinesDTO.setAuditMedicineIssues(auditMedicineIssues);
-                }
-                auditMedicinesList.add(auditMedicinesDTO);
+            AutoAuditResultBean autoAuditResult = prescriptionService.analysis(recipe, details);
+            List<eh.recipeaudit.model.AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
+            List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
+            List<PAWebRecipeDangerBean> recipeDangers = autoAuditResult.getRecipeDangers();
+            if (CollectionUtils.isNotEmpty(recipeDangers)) {
+                recipeDangers.forEach(item -> {
+                    eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue = new eh.recipeaudit.model.AuditMedicineIssueDTO();
+                    auditMedicineIssue.setRecipeId(recipeId);
+                    auditMedicineIssue.setLvl(item.getDangerType());
+                    auditMedicineIssue.setLvlCode(item.getDangerLevel());
+                    auditMedicineIssue.setDetail(item.getDangerDesc());
+                    auditMedicineIssue.setTitle(item.getDangerDrug());
+                    auditMedicineIssue.setCreateTime(new Date());
+                    auditMedicineIssue.setLastModify(new Date());
+                    auditMedicineIssue.setDetailUrl(item.getDetailUrl());
+                    auditMedicineIssue.setLogicalDeleted(0);
+                    iAuditMedicinesService.saveAuditMedicineIssue(auditMedicineIssue);
+                });
             }
+            if (CollectionUtils.isEmpty(paResultList)) {
+                eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
+                auditMedicinesDTO.setRecipeId(recipeId);
+                auditMedicinesDTO.setRemark(autoAuditResult.getMsg());
+                auditMedicinesList.add(auditMedicinesDTO);
+                iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
+            } else if (CollectionUtils.isNotEmpty(paResultList)) {
+                eh.recipeaudit.model.AuditMedicinesDTO auditMedicinesDTO;
+                List<IssueBean> issueList;
+                List<AuditMedicineIssueDTO> auditMedicineIssues;
+                AuditMedicineIssueDTO auditIssueDTO;
+                for (PAWebMedicinesBean paMedicine : paResultList) {
+                    auditMedicinesDTO = new eh.recipeaudit.model.AuditMedicinesDTO();
+                    auditMedicinesDTO.setRecipeId(recipeId);
+                    auditMedicinesDTO.setCode(paMedicine.getCode());
+                    auditMedicinesDTO.setName(paMedicine.getName());
+                    issueList = paMedicine.getIssues();
+                    if (CollectionUtils.isNotEmpty(issueList)) {
+                        auditMedicineIssues = new ArrayList<>(issueList.size());
+                        for (IssueBean issue : issueList) {
+                            auditIssueDTO = new AuditMedicineIssueDTO();
+                            auditIssueDTO.setDetail(issue.getDetail());
+                            auditIssueDTO.setLvl(issue.getLvl());
+                            auditIssueDTO.setLvlCode(issue.getLvlCode());
+                            auditIssueDTO.setTitle(issue.getTitle());
+                            auditMedicineIssues.add(auditIssueDTO);
+                        }
+                        auditMedicinesDTO.setAuditMedicineIssues(auditMedicineIssues);
+                    }
+                    auditMedicinesList.add(auditMedicinesDTO);
+                }
 //            auditMedicinesDAO.save(recipeId, auditMedicinesList);
-            iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
+                iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
+            }
+        }catch (Exception e){
+            LOGGER.error("SaveAutoReview error,recipeId={}",recipeId,e);
         }
+
 
         LOGGER.info("SaveAutoReview finish. recipeId={}", recipeId);
     }
