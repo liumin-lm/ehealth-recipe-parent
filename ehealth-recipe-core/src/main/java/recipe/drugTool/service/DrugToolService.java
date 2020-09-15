@@ -133,9 +133,6 @@ public class DrugToolService implements IDrugToolService {
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
 
-    @Resource
-    RecipeBusiThreadPool recipeBusiThreadPool;
-
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
@@ -1208,7 +1205,7 @@ public class DrugToolService implements IDrugToolService {
         List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
         for (int i = 0; i < partition.size(); i++) {
             int finalI = i;
-            recipeBusiThreadPool.execute(new Runnable() {
+            RecipeBusiThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
@@ -1268,7 +1265,7 @@ public class DrugToolService implements IDrugToolService {
         map.put("update",update);
         return map;
     }
-    
+
 
     /**
      * 上传未匹配数据到通用药品目录
