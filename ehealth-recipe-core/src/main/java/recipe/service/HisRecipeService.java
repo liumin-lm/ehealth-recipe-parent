@@ -957,7 +957,9 @@ public class HisRecipeService {
     }
 
     private Recipe saveRecipeFromHisRecipe(HisRecipe hisRecipe) {
+        LOGGER.info("saveRecipeFromHisRecipe hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+        LOGGER.info("saveRecipeFromHisRecipe haveRecipe:{}.", JSONUtils.toString(haveRecipe));
         if (haveRecipe != null) {
             //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则替换用户信息
             if(new Integer(0).equals(haveRecipe.getPayFlag())
