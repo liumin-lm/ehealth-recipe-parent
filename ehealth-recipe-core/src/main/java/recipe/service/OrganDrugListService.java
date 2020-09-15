@@ -762,4 +762,10 @@ public class OrganDrugListService implements IOrganDrugListService {
         Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(originalDrugId);
         return targetDrugId;
     }
+
+    @Override
+    public OrganDrugListBean getByOrganIdAndOrganDrugCodeAndDrugId(Integer organId, String organDrugId, Integer drugId) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        return ObjectCopyUtils.convert(organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId,organDrugId,drugId), OrganDrugListBean.class);
+    }
 }

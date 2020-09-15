@@ -123,9 +123,9 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
 //                    if (Objects.nonNull(needInterceptLevel)) {
 //                        result.setHighestDrangeLevel((String) needInterceptLevel);
 //                    }
-                    Object normalFlowLevel = configService.getConfiguration(recipeBean.getClinicOrgan(),"normalFlowLevel");
-                    Object medicineReasonLevel = configService.getConfiguration(recipeBean.getClinicOrgan(),"medicineReasonLevel");
-                    Object updateRecipeLevel = configService.getConfiguration(recipeBean.getClinicOrgan(),"updateRecipeLevel");
+                    Object normalFlowLevel = configService.getConfiguration(recipeBean.getClinicOrgan(), "normalFlowLevel");
+                    Object medicineReasonLevel = configService.getConfiguration(recipeBean.getClinicOrgan(), "medicineReasonLevel");
+                    Object updateRecipeLevel = configService.getConfiguration(recipeBean.getClinicOrgan(), "updateRecipeLevel");
                     result.setNormalFlowLevel(String.valueOf(normalFlowLevel));
                     result.setMedicineReasonLevel(String.valueOf(medicineReasonLevel));
                     result.setUpdateRecipeLevel(String.valueOf(updateRecipeLevel));
