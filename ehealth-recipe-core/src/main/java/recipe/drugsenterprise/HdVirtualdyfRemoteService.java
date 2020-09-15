@@ -61,7 +61,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         List<String> result = new ArrayList<>();
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             if (saleDrugList != null) {
                 result.add(recipeDetailBean.getDrugName());
             }

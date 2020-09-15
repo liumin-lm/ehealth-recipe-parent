@@ -170,7 +170,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if (new Integer(1).equals(flag)) {
             //配送
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
                 if (saleDrugList != null) {
                     String drugInventory = getDrugInventory(saleDrugList.getDrugId(), drugsEnterprise, drugsDataBean.getOrganId());
                     if (!"暂不支持库存查询".equals(drugInventory)) {
