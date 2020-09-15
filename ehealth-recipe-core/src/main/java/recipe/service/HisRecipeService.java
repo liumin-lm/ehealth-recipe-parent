@@ -1353,11 +1353,50 @@ public class HisRecipeService {
                 return;
             }
             Map<String, BigDecimal> drugTotalDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseTotalDose));
+            Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDose));
+            Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDoseStr));
+            Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDays));
+            Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseDaysB));
+            Map<String, String> usingRateMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsingRate));
+            Map<String, String> usePathwaysMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsePathways));
+            Map<String, String> usingRateTextMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsingRateText));
+            Map<String, String> usePathwaysTextMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUsePathwaysText));
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
                 BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
                     deleteSetRecipeCode.add(recipeCode);
-                    break;
+                }
+                String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
+                if (useDays != null && useDays.equals(recipeDetailTO.getUseDays())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String useDaysB = drugUseDaysBMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays())) {
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+                String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
+                if (StringUtils.isNotEmpty(usePathwaysText) && !usingRateText.equals(recipeDetailTO.getUsePathwaysText())) {
+                    deleteSetRecipeCode.add(recipeCode);
                 }
             }
         });
