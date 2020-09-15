@@ -295,11 +295,13 @@ public class HisRecipeService {
      * @return
      */
     private List<HisRecipeVO> findPendingHisRecipeVo(List<HisRecipe> hisRecipes) {
+        LOGGER.info("findPendingHisRecipeVo:{} ",JSONUtils.toString(hisRecipes));
         List<HisRecipeVO> result = new ArrayList<>();
         for (HisRecipe hisRecipe : hisRecipes) {
             HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
             List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
+            LOGGER.info("hisRecipeId:{} hisRecipeDetailVOS:{}",hisRecipe.getHisRecipeID(),hisRecipeDetailVOS);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
             hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
             hisRecipeVO.setIsCachePlatform(1);
