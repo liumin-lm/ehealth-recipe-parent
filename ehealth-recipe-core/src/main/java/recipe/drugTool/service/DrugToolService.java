@@ -69,10 +69,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -1195,13 +1192,14 @@ public class DrugToolService implements IDrugToolService {
      * @param flag    是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
      */
     @RpcService
-    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) {
+    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) throws InterruptedException {
         if (organId == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企关联机构ID参数为null！");
         }
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
         int save = 0;
         int update = 0;
+        final CountDownLatch end = new CountDownLatch(drugs.size());
         List<Integer> list1=Lists.newArrayList();
         List<Integer> list2=Lists.newArrayList();
         List<List<OrganDrugList>> partition = Lists.partition(drugs, 200);
@@ -1210,13 +1208,22 @@ public class DrugToolService implements IDrugToolService {
             RecipeBusiThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
-                    list1.add(stringIntegerMap.get("save"));
-                    list2.add(stringIntegerMap.get("update"));
+                    try {
+                        Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
+                        list1.add(stringIntegerMap.get("save"));
+                        list2.add(stringIntegerMap.get("update"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        end.countDown();
+                    }
                 }
             });
 
         }
+
+        end.await();
+
         for (int i = 0; i < list1.size(); i++) {
             save = list1.get(i)+save;
         }
