@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
+import com.ngari.ca.api.vo.*;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
@@ -35,6 +36,7 @@ import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.CaSignResultBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
@@ -1573,18 +1575,32 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public void retryCaDoctorCallBackToRecipe(CaSignResultBean resultVo) {
-        CaSignResultVo caSignResultVo = ObjectCopyUtils.convert(resultVo, CaSignResultVo.class);
+    public void retryCaDoctorCallBackToRecipe(com.ngari.ca.api.vo.CaSignResultBean resultVo) {
+        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaDoctorCallBackToRecipe(caSignResultVo);
     }
 
     @RpcService
     @Override
-    public void retryCaPharmacistCallBackToRecipe(CaSignResultBean resultVo) {
-        CaSignResultVo caSignResultVo = ObjectCopyUtils.convert(resultVo, CaSignResultVo.class);
+    public void retryCaPharmacistCallBackToRecipe(com.ngari.ca.api.vo.CaSignResultBean resultVo) {
+        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
+    }
+
+
+    private CaSignResultVo makeCaSignResultVoFromCABean(com.ngari.ca.api.vo.CaSignResultBean resultVo) {
+        CaSignResultVo caSignResultVo = new CaSignResultVo();
+        caSignResultVo.setResultCode(resultVo.getResultStatus());
+        caSignResultVo.setSignPicture(resultVo.getSignPicture());
+        caSignResultVo.setCertificate(resultVo.getCertificate());
+        caSignResultVo.setSignCADate(resultVo.getSignDate());
+        caSignResultVo.setSignRecipeCode(resultVo.getSignCode());
+        caSignResultVo.setCode(resultVo.getMsgCode());
+        caSignResultVo.setMsg(resultVo.getMsg());
+        caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
+        return caSignResultVo;
     }
 
 }
