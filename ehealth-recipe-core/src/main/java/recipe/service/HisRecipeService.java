@@ -275,6 +275,7 @@ public class HisRecipeService {
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
             List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+            hisRecipeVO.setIsCachePlatform(1);
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
             if (recipe == null) {
                 //表示该处方单患者在his线下已完成
@@ -692,9 +693,7 @@ public class HisRecipeService {
                     Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
                     //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则先删除后新增
                     if (haveRecipe != null) {
-                        if(new Integer(0).equals(haveRecipe.getPayFlag())
-                                &&!StringUtils.isEmpty(patientDTO.getMpiId())
-                                &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
+                        if(new Integer(0).equals(haveRecipe.getPayFlag())){
                             hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
                             hisRecipe1=null;
                         }
