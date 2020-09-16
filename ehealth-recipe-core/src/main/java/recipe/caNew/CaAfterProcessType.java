@@ -30,10 +30,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.DrugDistributionService;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
+import recipe.service.*;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -52,6 +49,8 @@ import static ctd.persistence.DAOFactory.getDAO;
 public class CaAfterProcessType extends AbstractCaProcessType{
     private static final Logger LOGGER = LoggerFactory.getLogger(CaAfterProcessType.class);
 
+    private RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
+
     //我们将开方的流程拆开：
     //后置CA操作：1.保存处方（公共操作），推送处方到his=》2.获取his推送结果=》3.成功后触发CA结果 =》4.CA成功后将处方向下流
     @Override
@@ -69,18 +68,24 @@ public class CaAfterProcessType extends AbstractCaProcessType{
     @Override
     public RecipeResultBean hisCallBackCARecipeFunction(Integer recipeId) {
         LOGGER.info("After---当前CA执行his回调之后组装CA响应特应性行为，入参：recipeId：{}", recipeId);
+        RecipeResultBean recipeResultBean = RecipeResultBean.getFail();
         //后置CA:首先组装CA请求 =》请求CA =》封装一个异步请求CA结果
 
         //设置处方状态为：签名中
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
         LOGGER.info("当前处方{}设置成CA签名中", recipeId);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if(null == recipe){
+            LOGGER.warn("当前处方{}信息不存在，无法进行签名操作!", recipeId);
+            return recipeResultBean;
+        }
         //1.调用组装CA请求
-
+        recipeCAService.packageCAFromRecipe(recipeId, recipe.getDoctor(), true);
         //2.请求后台的CA
 
         //3.返回一个异步操作的CA,中断状态
-        RecipeResultBean recipeResultBean = new RecipeResultBean();
+
         recipeResultBean.setCode(RecipeResultBean.NO_ADDRESS);
         //将返回的CA结果给处方，设置处方流转
         return recipeResultBean;
