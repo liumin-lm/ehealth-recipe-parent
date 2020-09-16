@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
@@ -45,7 +46,6 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
-import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -660,8 +660,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     //从opbase配置项获取中医辨证论治费 recipeTCMPrice
                     Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
-                    if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1)
+                    if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1) {
                         tcmFee = (BigDecimal) findRecipeTCMPrice;//大于等于0
+                    }
                     //if(findRecipeTCMPrice==null)tcmFee=null;//区分用户是否在运营平台填写这项费用
                 }
                 LOGGER.info("处方recipeid:{},tcmFee是：{}", recipe.getRecipeId(), tcmFee);
@@ -1754,8 +1755,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 } else {
                     if (null != nowRecipe.getOrderCode() && null != order && RecipeStatusConstant.FINISH != nowRecipe.getStatus()) {
-                        if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == nowRecipe.getPayFlag()))
+                        if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == nowRecipe.getPayFlag())) {
                             isDownload = "1";
+                        }
                     }
                 }
             }
@@ -2096,13 +2098,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
                     LOGGER.info("querySimpleWxAccountBean account={}", JSONObject.toJSONString(account));
                     if (null != account){
-                        String appKey = account.getAppId();
-                        String loginId = patient.getLoginId();
-                        eh.account.api.ThirdPartyMappingService thirdService = AppContextHolder.getBean("account.thirdPartyMappingService", eh.account.api.ThirdPartyMappingService.class);
-                        LOGGER.info("queryPatientTid req: appKey={},loginId={}",appKey,loginId);
-                        ThirdPartyMappingEntity thirdPartyEntity = thirdService.getOpenidByAppkeyAndUserId(appKey,loginId);
-                        LOGGER.info("queryPatientTid res: thirdPartyEntity={}", JSONObject.toJSONString(thirdPartyEntity));
-                        patientBaseInfo.setTid(thirdPartyEntity.getTid());
+                        if (account instanceof SimpleThirdBean) {
+                            SimpleThirdBean stb = (SimpleThirdBean) account;
+                            patientBaseInfo.setTid(stb.getTid());
+                        }
                     }
                 } catch (Exception e) {
                     LOGGER.error("黄河医院获取药企用户tid异常",e);
