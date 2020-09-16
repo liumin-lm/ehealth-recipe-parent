@@ -1,9 +1,8 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -18,14 +17,12 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.platform.visit.mode.ConsultExDTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.mvc.upload.FileMetaRecord;
@@ -97,18 +94,14 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             //推送药企处方成功,判断是否为扁鹊平台
             if (RecipeServiceSub.isBQEnterprise(recipe.getClinicOrgan())) {
                 if ("bqEnterprise".equals(enterprise.getAccount())){
-                    recipe.setEnterpriseId(enterprise.getId());
-                    recipe.setPushFlag(1);
                     RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-                    recipeDAO.update(recipe);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("PushFlag", 1, "EnterpriseId", enterprise.getId()));
                 }
             } else {
                 String prescId = (String)responseTO.getExtend().get("prescId");
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 if (StringUtils.isNotEmpty(prescId)) {
-                    recipeExtend.setRxid(prescId);
-                    recipeExtendDAO.update(recipeExtend);
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
                 }
             }
             //上传处方pdf给第三方
