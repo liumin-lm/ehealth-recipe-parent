@@ -529,6 +529,9 @@ public class HisRecipeService {
             return hisRecipeVOs;
         }
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        if(CollectionUtils.isEmpty(queryHisRecipResTOList)){
+            return hisRecipeVOs;
+        }
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
