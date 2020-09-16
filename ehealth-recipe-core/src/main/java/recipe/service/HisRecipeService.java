@@ -986,6 +986,15 @@ public class HisRecipeService {
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
+        try {
+            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
+            if (consultExDTO != null){
+                recipeExtend.setCardNo(consultExDTO.getCardId());
+            }
+        }catch (Exception e){
+            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error",e);
+        }
         recipeExtendDAO.save(recipeExtend);
     }
 
