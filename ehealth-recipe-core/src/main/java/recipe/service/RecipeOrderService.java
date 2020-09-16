@@ -2133,11 +2133,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (response != null && "200".equals(response.getMsgCode())) {
                     thirdUrl = response.getData();
                 }else {
-                    throw new DAOException(609,"获取扁鹊处方流转平台链接异常");
+                    throw new DAOException(609, "获取第三方跳转链接异常");
                 }
             } catch (Exception e) {
                 LOGGER.error("getRecipeThirdUrl error ", e);
-                throw new DAOException(609,"获取扁鹊处方流转平台链接异常");
+                throw new DAOException(609, "获取第三方跳转链接异常");
             }
         }
         return thirdUrl;
