@@ -668,5 +668,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeRefundBean> findRefundListByRecipeId(Integer recipeId);
 
+    @RpcService
+    public void retryCaDoctorCallBackToRecipe(CaSignResultBean resultVo);
+
+    @RpcService
+    public void retryCaPharmacistCallBackToRecipe(CaSignResultBean resultVo);
 }
 

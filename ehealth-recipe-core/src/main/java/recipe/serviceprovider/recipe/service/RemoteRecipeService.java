@@ -1570,4 +1570,21 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<RecipeRefund> recipeRefunds = drugsEnterpriseDAO.findRefundListByRecipeId(recipeId);
         return  changBean(recipeRefunds, RecipeRefundBean.class);
     }
+
+    @RpcService
+    @Override
+    public void retryCaDoctorCallBackToRecipe(CaSignResultBean resultVo) {
+        CaSignResultVo caSignResultVo = ObjectCopyUtils.convert(resultVo, CaSignResultVo.class);
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.retryCaDoctorCallBackToRecipe(caSignResultVo);
+    }
+
+    @RpcService
+    @Override
+    public void retryCaPharmacistCallBackToRecipe(CaSignResultBean resultVo) {
+        CaSignResultVo caSignResultVo = ObjectCopyUtils.convert(resultVo, CaSignResultVo.class);
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
+    }
+
 }

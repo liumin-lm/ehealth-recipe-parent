@@ -1,6 +1,8 @@
 package recipe.caNew;
 
 import com.google.common.collect.ImmutableMap;
+import com.ngari.ca.api.service.ICaRemoteService;
+import com.ngari.ca.api.vo.CommonSignRequest;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.patient.service.BasicAPI;
@@ -13,6 +15,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,6 +52,8 @@ import static ctd.persistence.DAOFactory.getDAO;
 public class CaAfterProcessType extends AbstractCaProcessType{
     private static final Logger LOGGER = LoggerFactory.getLogger(CaAfterProcessType.class);
 
+    private ICaRemoteService caRemoteService = AppDomainContext.getBean("mi.caRemoteService", ICaRemoteService.class);
+
     private RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
 
     //我们将开方的流程拆开：
@@ -81,11 +86,11 @@ public class CaAfterProcessType extends AbstractCaProcessType{
             return recipeResultBean;
         }
         //1.调用组装CA请求
-        recipeCAService.packageCAFromRecipe(recipeId, recipe.getDoctor(), true);
+        CommonSignRequest commonSignRequest = recipeCAService.packageCAFromRecipe(recipeId, recipe.getDoctor(), true);
+        LOGGER.info("当前请求CA的组装数据：{}", JSONUtils.toString(commonSignRequest));
         //2.请求后台的CA
-
+        caRemoteService.commonCaSignAndSeal(commonSignRequest);
         //3.返回一个异步操作的CA,中断状态
-
         recipeResultBean.setCode(RecipeResultBean.NO_ADDRESS);
         //将返回的CA结果给处方，设置处方流转
         return recipeResultBean;

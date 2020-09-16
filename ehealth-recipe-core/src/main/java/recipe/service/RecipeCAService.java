@@ -162,9 +162,9 @@ public class RecipeCAService {
 
             //获取业务的组装数据
             //原先签名原文里有直接用处方字符串busString，还有使用监管平台组装的数据taskCode
+            /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
             caExt.put("taskCode", packageCAFromBus(recipeId));
-            //获取业务的字符串
-            caExt.put("busString", JSONUtils.toString(recipe));
+            caRequest.setBussData(JSONUtils.toString(recipe));
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空");
         }
@@ -184,11 +184,11 @@ public class RecipeCAService {
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
+        /** 当前没有设置CA签名中的业务端签名对象，原计划根据签名医生的类型设置请求【BusType】***/
         caAccountRequestTO.setBusType(true?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
 
         caAccountRequestTO.setSignOriginal(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
-        caAccountRequestTO.setSignOriginalType(RegulationRecipeIndicatorsReq.class);
         return caAccountRequestTO;
     }
 
