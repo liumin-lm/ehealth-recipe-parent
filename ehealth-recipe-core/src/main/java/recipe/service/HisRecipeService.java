@@ -486,6 +486,7 @@ public class HisRecipeService {
 //        }
         //过滤数据
         responseTO=filterData(responseTO);
+        LOGGER.info("queryHisRecipeInfo queryData:{}.", JSONUtils.toString(responseTO));
         return responseTO;
     }
 
@@ -917,8 +918,10 @@ public class HisRecipeService {
         if (hisRecipe == null) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
         }
+        LOGGER.info("getHisRecipeDetail hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         //待处理
         if(hisRecipe.getStatus() != 2){
+            LOGGER.info("getHisRecipeDetail 进入");
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
