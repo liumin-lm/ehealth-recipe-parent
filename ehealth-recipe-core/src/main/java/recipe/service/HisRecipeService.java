@@ -110,7 +110,7 @@ public class HisRecipeService {
         //待缴费非本人同步处方处理
         dealPatientInfo(noPayFeeRecipes,patientDTO);
         //异步获取已缴费处方
-        RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
+        //RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
         LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
         //数据合并
@@ -934,7 +934,15 @@ public class HisRecipeService {
         }
         LOGGER.info("getHisRecipeDetail hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         //待处理
-        //if(hisRecipe.getStatus() != 2){
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, Integer.parseInt(organId));
+        Integer payFlag = 0;
+        if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (new Integer(1).equals(recipeOrder.getPayFlag())) {
+                payFlag = 1;
+            }
+        }
+        if(hisRecipe.getStatus() != 2 || payFlag == 1){
             LOGGER.info("getHisRecipeDetail 进入");
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -955,7 +963,7 @@ public class HisRecipeService {
             }finally {
                 recipeCodeThreadLocal.remove();
             }
-        //}
+        }
         //存储到recipe相关表
         if(hisRecipeId==null){
             throw new DAOException(DAOException.VALUE_NEEDED, "hisRecipeId不能为空！");
