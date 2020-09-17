@@ -1444,15 +1444,15 @@ public class HisRecipeService {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
-                if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose())) {
+                if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr())) {
+                if ((StringUtils.isEmpty(useDoseStr) && StringUtils.isNotEmpty(recipeDetailTO.getUseDoseStr())) || (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
-                if (useDays != null && !useDays.equals(recipeDetailTO.getUseDays())) {
+                if ((useDays == null && recipeDetailTO.getDrugCode() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
@@ -1461,16 +1461,15 @@ public class HisRecipeService {
                 }
 
                 String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
-                LOGGER.info("sssssssssssssss usingRateText:{},ssss:{}", usingRateText, recipeDetailTO.getUsingRateText());
                 if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays())) {
+                if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText())) {
+                if ((StringUtils.isEmpty(usePathwaysText) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathwaysText())) || (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
             }
