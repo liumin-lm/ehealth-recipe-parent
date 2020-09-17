@@ -275,6 +275,7 @@ public class HisRecipeService {
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
             List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+            hisRecipeVO.setIsCachePlatform(1);
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
             if (recipe == null) {
                 //表示该处方单患者在his线下已完成
@@ -528,6 +529,9 @@ public class HisRecipeService {
             return hisRecipeVOs;
         }
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        if(CollectionUtils.isEmpty(queryHisRecipResTOList)){
+            return hisRecipeVOs;
+        }
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
@@ -679,6 +683,9 @@ public class HisRecipeService {
     public List<HisRecipe> saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
         List<HisRecipe> hisRecipes=new ArrayList<>();
+        if(CollectionUtils.isEmpty(queryHisRecipResTOList)){
+            return hisRecipes;
+        }
         LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
 //            HisRecipe hisRecipe2 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
@@ -692,9 +699,7 @@ public class HisRecipeService {
                     Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
                     //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则先删除后新增
                     if (haveRecipe != null) {
-                        if(new Integer(0).equals(haveRecipe.getPayFlag())
-                                &&!StringUtils.isEmpty(patientDTO.getMpiId())
-                                &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
+                        if(new Integer(0).equals(haveRecipe.getPayFlag())){
                             hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
                             hisRecipe1=null;
                         }
@@ -984,6 +989,15 @@ public class HisRecipeService {
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
+        try {
+            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
+            if (consultExDTO != null){
+                recipeExtend.setCardNo(consultExDTO.getCardId());
+            }
+        }catch (Exception e){
+            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error",e);
+        }
         recipeExtendDAO.save(recipeExtend);
     }
 

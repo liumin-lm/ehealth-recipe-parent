@@ -1,9 +1,8 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -18,14 +17,12 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.platform.visit.mode.ConsultExDTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.mvc.upload.FileMetaRecord;
@@ -88,31 +85,29 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     }
 
     public void pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        //传过来的处方不是最新的需要重新从数据库获取
+        Recipe recipeNew = recipeDAO.getByRecipeId(recipe.getRecipeId());
         //药企对应的service为空，则通过前置机进行推送
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
-        PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
+        PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         if (responseTO != null && responseTO.isSuccess()) {
             //推送药企处方成功,判断是否为扁鹊平台
-            if (RecipeServiceSub.isBQEnterprise(recipe.getClinicOrgan())) {
+            if (RecipeServiceSub.isBQEnterprise(recipeNew.getClinicOrgan())) {
                 if ("bqEnterprise".equals(enterprise.getAccount())){
-                    recipe.setEnterpriseId(enterprise.getId());
-                    recipe.setPushFlag(1);
-                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-                    recipeDAO.update(recipe);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("PushFlag", 1, "EnterpriseId", enterprise.getId()));
                 }
             } else {
                 String prescId = (String)responseTO.getExtend().get("prescId");
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 if (StringUtils.isNotEmpty(prescId)) {
-                    recipeExtend.setRxid(prescId);
-                    recipeExtendDAO.update(recipeExtend);
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", prescId));
                 }
             }
             //上传处方pdf给第三方
-            RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipe.getRecipeId()));
+            RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipeNew.getRecipeId()));
         }
     }
 
