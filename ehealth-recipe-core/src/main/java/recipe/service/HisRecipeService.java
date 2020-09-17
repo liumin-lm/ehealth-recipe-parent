@@ -1456,11 +1456,11 @@ public class HisRecipeService {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate())) {
+                if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText())) {
+                if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
