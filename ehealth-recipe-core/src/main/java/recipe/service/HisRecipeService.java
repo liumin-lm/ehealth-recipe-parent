@@ -631,6 +631,20 @@ public class HisRecipeService {
                     HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
                     setOtherInfo(hisRecipeVO,hisRecipe1.getMpiId(),queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
                     hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
+                    if (null != queryHisRecipResTO.getDrugList()) {
+                        List<HisRecipeDetailVO> hisRecipeDetailVOs=new ArrayList<>();
+                        for (RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
+                            HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetail.class);
+                            detail.setDrugName(recipeDetailTO.getDrugName());
+                            detail.setDrugSpec(recipeDetailTO.getDrugSpec());
+                            detail.setDrugUnit(recipeDetailTO.getDrugUnit());
+                            detail.setPack(recipeDetailTO.getPack());
+                            detail.setUseTotalDose(recipeDetailTO.getUseTotalDose());
+                            HisRecipeDetailVO hisRecipeDetailVO = ObjectCopyUtils.convert(detail, HisRecipeDetailVO.class);
+                            hisRecipeDetailVOs.add(hisRecipeDetailVO);
+                        }
+                        hisRecipeVO.setRecipeDetail(hisRecipeDetailVOs);
+                    }
                     hisRecipeVOs.add(hisRecipeVO);
                 }
             }
