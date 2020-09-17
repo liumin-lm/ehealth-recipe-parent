@@ -681,8 +681,12 @@ public class HisRecipeService {
 
     @RpcService
     public List<HisRecipe> saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
-        List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
         List<HisRecipe> hisRecipes=new ArrayList<>();
+        if (responseTO == null) {
+            return hisRecipes;
+        }
+        List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+
         if(CollectionUtils.isEmpty(queryHisRecipResTOList)){
             return hisRecipes;
         }
@@ -910,8 +914,11 @@ public class HisRecipeService {
         List<HisRecipe> hisRecipes=new ArrayList<>();
         Map<String,Object> map = initReturnMap();
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
+        if (hisRecipe == null) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+        }
         //待处理
-        if(hisRecipe != null && hisRecipe.getStatus() != 2){
+        if(hisRecipe.getStatus() != 2){
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
@@ -931,8 +938,6 @@ public class HisRecipeService {
             }finally {
                 recipeCodeThreadLocal.remove();
             }
-        } else {
-            
         }
         //存储到recipe相关表
         if(hisRecipeId==null){
