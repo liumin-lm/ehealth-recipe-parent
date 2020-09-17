@@ -934,7 +934,7 @@ public class HisRecipeService {
         }
         LOGGER.info("getHisRecipeDetail hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         //待处理
-        if(hisRecipe.getStatus() != 2){
+        //if(hisRecipe.getStatus() != 2){
             LOGGER.info("getHisRecipeDetail 进入");
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -955,7 +955,7 @@ public class HisRecipeService {
             }finally {
                 recipeCodeThreadLocal.remove();
             }
-        }
+        //}
         //存储到recipe相关表
         if(hisRecipeId==null){
             throw new DAOException(DAOException.VALUE_NEEDED, "hisRecipeId不能为空！");
