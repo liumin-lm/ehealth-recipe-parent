@@ -179,7 +179,7 @@ public class HisRecipeService {
                     if(!StringUtils.isEmpty(noPayFeeHisRecipeVOKey)){
                         if(noPayFeeHisRecipeVOKey.equals(hisRecipeVoKey)){
                             //处方在cdr_his_recipe存在，在his存在，则取cdr_his_recipe
-                            equalsHisRecipeVOs.add(hisRecipeVO);
+                            equalsHisRecipeVOs.add(noPayFeeHisRecipeVOHisRecipeVO);
                             isEquals=true;
                             continue;
                         }
@@ -909,8 +909,9 @@ public class HisRecipeService {
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
         List<HisRecipe> hisRecipes=new ArrayList<>();
         Map<String,Object> map = initReturnMap();
+        HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         //待处理
-        if(!new Integer(1).equals(isCachePlatform)){
+        if(hisRecipe != null && hisRecipe.getStatus() != 2){
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
@@ -930,6 +931,8 @@ public class HisRecipeService {
             }finally {
                 recipeCodeThreadLocal.remove();
             }
+        } else {
+            
         }
         //存储到recipe相关表
         if(hisRecipeId==null){
