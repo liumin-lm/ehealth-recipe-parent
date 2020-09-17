@@ -1444,7 +1444,7 @@ public class HisRecipeService {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
-                if (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose())) {
+                if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose())) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
                 String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
@@ -1459,7 +1459,9 @@ public class HisRecipeService {
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
+
                 String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
+                LOGGER.info("sssssssssssssss usingRateText:{},ssss:{}", usingRateText, recipeDetailTO.getUsingRateText());
                 if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
