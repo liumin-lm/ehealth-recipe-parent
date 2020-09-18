@@ -80,6 +80,7 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
     private RecipeExtendDAO recipeExtendDAO;
 
     @Override
+    //医院管理药企:更新请求的token，his管理药企，暂时没有请求的token，不需要更新
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("HisAdministrationRemoteService tokenUpdateImpl not implement.");
     }
