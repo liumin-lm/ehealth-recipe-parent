@@ -1254,11 +1254,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ,IFNULL(cre.fundAmount  ,0.00) ," +
                         "IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) - cast(IFNULL(cre.fundAmount  ,0.00) AS decimal(15,2)) ," +
                         "IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 )   ," +
-                        "IFNULL(ero.ActualPrice ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ),ero.outTradeNo, er.recipeCode");
+                        "IFNULL(ero.ActualPrice ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ),ero.outTradeNo,er.recipeCode,ero.EnterpriseId");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
-                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2" +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
-                        " WHERE ero.payeeCode is not null AND ero.paytime BETWEEN :startTime AND :endTime");
+                        " WHERE ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null AND ero.paytime BETWEEN :startTime AND :endTime");
                 if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     sql.append(" And er.recipeId =:recipeId");
                 }
@@ -1330,6 +1330,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setOrganRecivedDiffFee(ConversionUtils.convert(item[13], BigDecimal.class));
                         response.setTradeNo(ConversionUtils.convert(item[14], String.class));
                         response.setRecipeCode(ConversionUtils.convert(item[15], String.class));
+                        response.setEnterpriseId(ConversionUtils.convert(item[16], Integer.class));
                         resultList.add(response);
                     }
                 }
