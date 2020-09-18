@@ -46,6 +46,8 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.service.RecipeCAService;
+import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -136,6 +138,8 @@ public class SignInfoService implements ISignInfoService {
     @RpcService
     public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
         logger.info("getTaskCode2 info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
+        RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
+        RegulationRecipeIndicatorsReq request = recipeCAService.getCATaskRecipeReq(recipeBean, detailBeanList);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);

@@ -1,9 +1,11 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -11,6 +13,7 @@ import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
@@ -24,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeDAO;
 import sun.misc.BASE64Decoder;
 
 import java.io.*;
@@ -69,6 +73,7 @@ public class RecipeServiceEsignExt {
             List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
             recipe.setSignDate(DateTime.now().toDate());
             Map<String, Object> paramMap = recipeService.createRecipeParamMapForPDF(recipe.getRecipeType(), recipe, details, fileName);
+            //这里走生成通过的平台模板（易签保开始使用）
             pdf = esignService.createSignRecipePDF(paramMap);
             //中药
             if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
@@ -150,6 +155,7 @@ public class RecipeServiceEsignExt {
         caBean.setSealHeight(40);
         caBean.setSealWidth(40);
         caBean.setPage(1);
+        //产生本地的pdf图片
         caBean.setPdfBase64Str(pdf);
         caBean.setPdfName(fileName);
         caBean.setPdfMd5("");
@@ -382,7 +388,7 @@ public class RecipeServiceEsignExt {
      * @param userId
      * @return
      */
-    private static String uploadRecipeSignFile(byte[] data, String fileName, String userId) {
+    public static String uploadRecipeSignFile(byte[] data, String fileName, String userId) {
         if (null == data) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "byte[] 为空");
         }
@@ -422,5 +428,33 @@ public class RecipeServiceEsignExt {
             }
         }
         return null;
+    }
+
+    //判断
+    public static void updateInitRecipePDF(Boolean isDoctor, Recipe recipe, String pdfBase64Str) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Integer recipeId = recipe.getRecipeId();
+        String fileName = "recipe_" + recipeId + ".pdf";
+        BASE64Decoder d = new BASE64Decoder();
+        byte[] data = new byte[0];
+        try {
+            data = d.decodeBuffer(pdfBase64Str);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String fileId = null;
+        //String fileId = RecipeServiceEsignExt.uploadRecipeSignFile(data, fileName, null);
+        if (null == fileId) {
+            LOGGER.info("上传文件失败,fileName=" + fileName);
+        }
+        if(isDoctor){
+            if(StringUtils.isEmpty(recipe.getSignFile())){
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", fileId));
+            }
+        }else{
+            if(StringUtils.isEmpty(recipe.getChemistSignFile())){
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("chemistSignFile", fileId));
+            }
+        }
     }
 }

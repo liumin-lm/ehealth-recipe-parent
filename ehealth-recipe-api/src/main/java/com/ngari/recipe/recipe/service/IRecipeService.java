@@ -718,5 +718,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     String getRecipeParameterValue(String paramName);
 
+    @RpcService
+    public void retryCaDoctorCallBackToRecipe(com.ngari.ca.api.vo.CaSignResultBean resultVo);
+
+    @RpcService
+    public void retryCaPharmacistCallBackToRecipe(com.ngari.ca.api.vo.CaSignResultBean resultVo);
 }
 
