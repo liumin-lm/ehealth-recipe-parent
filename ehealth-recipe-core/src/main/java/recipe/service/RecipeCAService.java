@@ -25,6 +25,9 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -48,9 +51,12 @@ import recipe.dao.*;
 import recipe.service.common.RecipeSignService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -188,7 +194,7 @@ public class RecipeCAService {
         caAccountRequestTO.setBusType(true?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
 
-        caAccountRequestTO.setSignOriginal(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
+        //caAccountRequestTO.setSignOriginal(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
         return caAccountRequestTO;
     }
 
@@ -207,6 +213,16 @@ public class RecipeCAService {
                 registerId=recipeExtend.getRegisterID();
             }
 
+        }
+        //date  20200820
+        //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
+        request.setRecipeID(UUID.randomUUID().toString());
+
+        request.setStartDate(null != recipeBean.getSignDate() ? recipeBean.getSignDate() : new Date());
+        request.setEffectivePeriod(3);
+        RecipeExtendBean extend = recipeBean.getRecipeExtend();
+        if(null != extend){
+            request.setMainDieaseDescribe(extend.getMainDieaseDescribe());
         }
 
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
@@ -265,11 +281,11 @@ public class RecipeCAService {
             request.setMpiId(patientDTO.getMpiId());
             String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll("；", "|");
             request.setOriginalDiagnosis(organDiseaseName);
-            request.setPatientCardType(recipe.util.LocalStringUtil.toString(patientDTO.getCertificateType()));
-            request.setPatientCertID(recipe.util.LocalStringUtil.toString(patientDTO.getCertificate()));
+            request.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
+            request.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
             request.setPatientName(patientDTO.getPatientName());
             request.setNation(patientDTO.getNation());
-            request.setMobile(recipe.util.LocalStringUtil.toString(patientDTO.getMobile()));
+            request.setMobile(LocalStringUtil.toString(patientDTO.getMobile()));
             request.setSex(patientDTO.getPatientSex());
             request.setAge(DateConversion.calculateAge(patientDTO.getBirthday()));
             request.setBirthDay(patientDTO.getBirthday());
@@ -292,17 +308,41 @@ public class RecipeCAService {
                 reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
                 reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
                 reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
+                //处方保存之前少三个字段
+                reqDetail.setPackUnit(StringUtils.isEmpty(detail.getDrugUnit())?organDrugList.getUnit():detail.getDrugUnit());
+                //设置药品价格
+                BigDecimal price = organDrugList.getSalePrice();
+                //单价
+                reqDetail.setPrice(price);
+                //保留3位小数
+                BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                //总价
+                reqDetail.setTotalPrice(drugCost);
             }
 
             reqDetail.setDrmodel(detail.getDrugSpec());
             reqDetail.setPack(detail.getPack());
-            reqDetail.setPackUnit(detail.getDrugUnit());
             reqDetail.setDrname(detail.getDrugName());
-            //单价
-            reqDetail.setPrice(detail.getSalePrice());
-            //总价
-            reqDetail.setTotalPrice(detail.getDrugCost());
             reqDetail.setDrunit(detail.getUseDoseUnit());
+            //date 20200821
+            //添加CA同步字段
+            reqDetail.setUseDaysB(null != detail.getUseDays() ? detail.getUseDays().toString() : detail.getUseDaysB());
+            reqDetail.setDosageTotal(null!= detail.getUseTotalDose() ? detail.getUseTotalDose().toString() : null);
+            ctd.dictionary.Dictionary usingRateDic = null;
+            ctd.dictionary.Dictionary usePathwaysDic = null;
+            try {
+                usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+                usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            } catch (ControllerException e) {
+                LOGGER.error("search dic error.",e);
+            }
+            if(null != usePathwaysDic){
+                reqDetail.setAdmissionName(detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():usePathwaysDic.getText(detail.getUsePathways()));
+            }
+            if (null != usingRateDic) {
+                reqDetail.setFrequencyName(detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate()));
+            }
+            reqDetail.setDosage(detail.getUseDose() == null?detail.getUseDoseStr():String.valueOf(detail.getUseDose()));
             list.add(reqDetail);
         }
         request.setOrderList(list);
