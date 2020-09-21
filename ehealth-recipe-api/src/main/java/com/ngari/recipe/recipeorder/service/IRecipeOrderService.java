@@ -174,7 +174,5 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     @RpcService
     Boolean updatePharmNo(Integer recipeId, String pharmNo);
 
-    @RpcService
-    public int allAddressCanSendForOrderallAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) ;
 
 }

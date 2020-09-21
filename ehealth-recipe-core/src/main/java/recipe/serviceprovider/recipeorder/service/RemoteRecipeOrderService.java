@@ -320,10 +320,4 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         return recipeDetailDAO.updateRecipeDetailByRecipeId(recipeId, ImmutableMap.of("pharmNo", pharmNo));
     }
 
-    @Override
-    public int allAddressCanSendForOrderallAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) {
-        EnterpriseAddressService service = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-        return service.allAddressCanSendForOrder(depId,address1,address2,address3);
-    }
-
 }
