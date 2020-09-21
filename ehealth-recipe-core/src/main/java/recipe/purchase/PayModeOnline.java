@@ -387,10 +387,13 @@ public class PayModeOnline implements IPurchaseService {
             remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
         }
 
-        //设置配送费支付方式
+
         if (dep != null) {
+            //设置配送费支付方式
             order.setExpressFeePayWay(dep.getExpressFeePayWay());
             order.setSendType(dep.getSendType());
+            //设置是否显示期望配送时间,默认否 0:否,1:是
+            order.setIsShowExpectSendDate(dep.getIsShowExpectSendDate());
         }
 
         //设置中药代建费

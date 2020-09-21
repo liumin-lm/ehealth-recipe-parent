@@ -270,6 +270,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                 //设置配送费支付方式
                 order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
+                //设置期望配送时间块相关信息
+                order.setIsShowExpectSendDate(drugsEnterprise.getIsShowExpectSendDate());
+                order.setExpectSendDateIsContainsWeekend(drugsEnterprise.getExpectSendDateIsContainsWeekend());
+                order.setSendDateText(drugsEnterprise.getSendDateText());
             }
         }
         //货到付款设置配送费为线下支付
@@ -1581,7 +1585,6 @@ public class RecipeOrderService extends RecipeBaseService {
 
                     orderBean.setEnterpriseName(order.getHisEnterpriseName());
                 }
-
             }
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
