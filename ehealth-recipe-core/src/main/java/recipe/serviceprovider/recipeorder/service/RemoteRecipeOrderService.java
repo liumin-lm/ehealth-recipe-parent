@@ -26,10 +26,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeRefundDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeOrderService;
-import recipe.service.RecipeRefundService;
+import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
@@ -321,6 +318,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public Boolean updatePharmNo(Integer recipeId, String pharmNo) {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         return recipeDetailDAO.updateRecipeDetailByRecipeId(recipeId, ImmutableMap.of("pharmNo", pharmNo));
+    }
+
+    @Override
+    public int allAddressCanSendForOrderallAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) {
+        EnterpriseAddressService service = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+        return service.allAddressCanSendForOrder(depId,address1,address2,address3);
     }
 
 }
