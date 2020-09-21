@@ -496,10 +496,11 @@ public class PayModeOnline implements IPurchaseService {
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            //杭州市三除外
+            //杭州市三也要走杭州互联网医院流程固放开
+            /*//杭州市三除外
             if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
                 return new HisResponseTO().setSuccess();
-            }
+            }*/
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patient = patientService.get(recipe.getMpiid());
@@ -624,10 +625,11 @@ public class PayModeOnline implements IPurchaseService {
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            //杭州市三除外
+            //杭州市三也要走杭州互联网医院流程固放开
+            /*//杭州市三除外
             if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
                 return new HisResponseTO().setSuccess();
-            }
+            }*/
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patient = patientService.get(recipe.getMpiid());
