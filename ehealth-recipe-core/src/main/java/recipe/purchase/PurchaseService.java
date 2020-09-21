@@ -45,6 +45,8 @@ import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -382,11 +384,18 @@ public class PurchaseService {
                     recipedetail.setSettlementMode(settlementMode);
 
                     if (saleDrugList != null) {
-                        if (settlementMode == 0){
-                            recipedetail.setActualSalePrice(saleDrugList.getPrice());
-                        }else if (settlementMode == 1){
+                        if (settlementMode == 0) {
+                            //可能取的是药企配送目录里的价格，得重新设置药品总价
+                            BigDecimal price = saleDrugList.getPrice();
+                            recipedetail.setActualSalePrice(price);
+                            //线下转线上不处理药品总价
+                            if (!RecipeBussConstant.OFFLINE_TO_ONLINE.equals(recipe.getRecipeSourceType())) {
+                                recipedetail.setDrugCost(price.multiply(new BigDecimal(recipedetail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                            }
+                        } else if (settlementMode == 1) {
                             recipedetail.setActualSalePrice(recipedetail.getSalePrice());
                         }
+
 
                         if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
                             recipedetail.setSaleDrugCode(saleDrugList.getDrugId()+"");
