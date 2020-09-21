@@ -166,6 +166,12 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
             }
             DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
+                //说明已经经过预结算不再进行预结算
+                LOGGER.info("recipeMedicalPreSettle_no_again。处方ID={}", recipeId);
+                return result;
+            }
             //获取医保支付开关端配置
             ICommonService commonService = BaseAPI.getService(ICommonService.class);
             Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
@@ -210,7 +216,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
 
                 //默认是医保，医生选择了自费时，强制设置为自费
                 //当端配置医保支付打开的时候走到这里来的肯定是自费支付
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 if (recipeExtend != null && recipeExtend.getMedicalType() != null && "0".equals(recipeExtend.getMedicalType()) || medicalPayConfig) {
                     request.setIszfjs("1");
                 } else {
