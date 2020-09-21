@@ -14,7 +14,7 @@ import java.util.Map;
 
 //将默认的手动创建的药企抽象出来，通用不同种的药企流程（类似于：his管理的药企，这种流程上区别于标准流程的药企行为）
 //这种药企都是不需要【callSys】区分的，将流程抽离于主流程放置在药企中的
-public interface CommonExtendRemoteInterface {
+public interface CommonExtendEnterprisesInterface {
 
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId);
 

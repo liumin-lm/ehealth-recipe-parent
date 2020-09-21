@@ -2,8 +2,10 @@ package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
@@ -886,11 +888,19 @@ public class PayModeOnline implements IPurchaseService {
             return succFlag;
         }
 
-        //判断药企平台内药品权限，此处简单判断数量是否一致
-        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
-        if (null != count && count > 0) {
-            if (count == drugIds.size()) {
-                succFlag = true;
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+
+        //获取机构配置的支持购药方式
+        //date 20200921 修改【his管理的药企】不用校验配送药品
+        if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(dbRecipe.getClinicOrgan()))){
+            succFlag = true;
+        }else{
+            //判断药企平台内药品权限，此处简单判断数量是否一致
+            Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
+            if (null != count && count > 0) {
+                if (count == drugIds.size()) {
+                    succFlag = true;
+                }
             }
         }
 

@@ -26,9 +26,9 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.CommonExtendCompatible.CommonExtendRemoteInterface;
+import recipe.drugsenterprise.CommonExtendCompatible.CommonExtendEnterprisesInterface;
 import recipe.drugsenterprise.CommonExtendCompatible.CommonExtendRemoteTypeEnum;
-import recipe.drugsenterprise.CommonExtendCompatible.CommonSelfRemoteType;
+import recipe.drugsenterprise.CommonExtendCompatible.CommonSelfEnterprisesType;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
@@ -130,8 +130,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     @Override
     //走默认实现
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipe(dbRecipe);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipe(dbRecipe);
+        if(type instanceof CommonSelfEnterprisesType){
             return super.scanStock(dbRecipe, dep, drugIds);
         }else{
             return type.scanStock(dbRecipe, dep, drugIds);
@@ -140,8 +140,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public String appEnterprise(RecipeOrder order) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
+        if(type instanceof CommonSelfEnterprisesType){
             return super.appEnterprise(order);
         }else{
             return type.appEnterprise(order);
@@ -150,8 +150,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
+        if(type instanceof CommonSelfEnterprisesType){
             return super.orderToRecipeFee(order, recipeIds, payModeSupport, recipeFee, extInfo);
         }else{
             return type.orderToRecipeFee(order, recipeIds, payModeSupport, recipeFee, extInfo);
@@ -160,8 +160,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public void setOrderEnterpriseMsg(Map<String, String> extInfo, RecipeOrder order) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
+        if(type instanceof CommonSelfEnterprisesType){
             super.setOrderEnterpriseMsg(extInfo, order);
         }else{
             type.setOrderEnterpriseMsg(extInfo, order);
@@ -170,8 +170,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeBean(recipeBean);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeBean(recipeBean);
+        if(type instanceof CommonSelfEnterprisesType){
             super.checkRecipeGiveDeliveryMsg(recipeBean, map);
         }else{
             type.checkRecipeGiveDeliveryMsg(recipeBean, map);
@@ -180,8 +180,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeOrder(order);
+        if(type instanceof CommonSelfEnterprisesType){
             super.setEnterpriseMsgToOrder(order, depId, extInfo);
         }else{
             type.setEnterpriseMsgToOrder(order, depId, extInfo);
@@ -190,8 +190,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipe(dbRecipe);
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipe(dbRecipe);
+        if(type instanceof CommonSelfEnterprisesType){
             return super.specialMakeDepList(drugsEnterprise, dbRecipe);
         }else{
             return type.specialMakeDepList(drugsEnterprise, dbRecipe);
@@ -200,8 +200,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public void sendDeliveryMsgToHis(Integer recipeId) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId));
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId));
+        if(type instanceof CommonSelfEnterprisesType){
             super.sendDeliveryMsgToHis(recipeId);
         }else{
             type.sendDeliveryMsgToHis(recipeId);
@@ -210,8 +210,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
-        CommonExtendRemoteInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId));
-        if(type instanceof CommonSelfRemoteType){
+        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId));
+        if(type instanceof CommonSelfEnterprisesType){
             return super.sendMsgResultMap(recipeId, extInfo, payResult);
         }else{
             return type.sendMsgResultMap(recipeId, extInfo, payResult);

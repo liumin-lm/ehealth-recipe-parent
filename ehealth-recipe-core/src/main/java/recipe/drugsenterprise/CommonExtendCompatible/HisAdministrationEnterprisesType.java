@@ -34,9 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@RpcBean("hisAdministrationRemoteType")
-public class HisAdministrationRemoteType implements CommonExtendRemoteInterface{
-    private static final Logger LOGGER = LoggerFactory.getLogger(HisAdministrationRemoteType.class);
+@RpcBean("hisAdministrationEnterprisesType")
+public class HisAdministrationEnterprisesType implements CommonExtendEnterprisesInterface{
+    private static final Logger LOGGER = LoggerFactory.getLogger(HisAdministrationEnterprisesType.class);
 
     @Override
     //医院管理药企需要强实现(Y)
