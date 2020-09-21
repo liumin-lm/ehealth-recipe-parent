@@ -299,8 +299,16 @@ public class RecipeOrder implements Serializable {
     private Integer sendType;
 
     @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
-    private Integer payeeCode;
 
+    private Integer payeeCode;
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    private Integer isShowExpectSendDate;
+
+    @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
+    private Integer expectSendDateIsContainsWeekend;
+
+    @ItemProperty(alias = "配送时间说明文案")
+    private String sendDateText;
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -1046,4 +1054,27 @@ public class RecipeOrder implements Serializable {
         this.sendType = sendType;
     }
 
+     public Integer getIsShowExpectSendDate() {
+        return isShowExpectSendDate;
+    }
+
+    public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
+        this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+    @Transient
+    public Integer getExpectSendDateIsContainsWeekend() {
+        return expectSendDateIsContainsWeekend;
+    }
+
+    public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
+        this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
+    }
+    @Transient
+    public String getSendDateText() {
+        return sendDateText;
+    }
+
+    public void setSendDateText(String sendDateText) {
+        this.sendDateText = sendDateText;
+    }
 }

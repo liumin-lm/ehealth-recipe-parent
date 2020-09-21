@@ -35,15 +35,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@RpcBean("commonSelfRemoteType")
-public class CommonSelfRemoteType implements CommonExtendRemoteInterface{
+@RpcBean("commonSelfEnterprisesType")
+public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterface{
     private static final String searchMapRANGE = "range";
 
     private static final String searchMapLatitude = "latitude";
 
     private static final String searchMapLongitude = "longitude";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfRemoteType.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {

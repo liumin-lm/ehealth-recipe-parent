@@ -22,28 +22,28 @@ import java.util.List;
 public enum CommonExtendRemoteTypeEnum {
 
     //默认实现
-    COMMON_TYPE(new CommonSelfRemoteType(), 0, "默认药企"),
+    COMMON_TYPE(new CommonSelfEnterprisesType(), 0, "默认药企"),
 
-    HIS_ADMINISTRATION(new HisAdministrationRemoteType(), 1, "his管理的药企");
+    HIS_ADMINISTRATION(new HisAdministrationEnterprisesType(), 1, "his管理的药企");
 
-    private CommonExtendRemoteInterface remoteType;
+    private CommonExtendEnterprisesInterface remoteType;
 
     //药企对接模式
     private Integer remoteDockType;
 
     private String mean;
 
-    CommonExtendRemoteTypeEnum(CommonExtendRemoteInterface remoteType, Integer remoteDockType, String mean) {
+    CommonExtendRemoteTypeEnum(CommonExtendEnterprisesInterface remoteType, Integer remoteDockType, String mean) {
         this.remoteType = remoteType;
         this.remoteDockType = remoteDockType;
         this.mean = mean;
     }
 
-    public CommonExtendRemoteInterface getRemoteType() {
+    public CommonExtendEnterprisesInterface getRemoteType() {
         return remoteType;
     }
 
-    public void setRemoteType(CommonExtendRemoteInterface remoteType) {
+    public void setRemoteType(CommonExtendEnterprisesInterface remoteType) {
         this.remoteType = remoteType;
     }
 
@@ -70,7 +70,7 @@ public enum CommonExtendRemoteTypeEnum {
      * @author: JRK
      * @return recipe.constant.CommonExtendRemoteTypeEnum
      */
-    public static CommonExtendRemoteInterface getTypeFromOrganId(Integer organId) {
+    public static CommonExtendEnterprisesInterface getTypeFromOrganId(Integer organId) {
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
         //获取机构配置的支持购药方式
@@ -86,39 +86,39 @@ public enum CommonExtendRemoteTypeEnum {
 
 
 
-    public static CommonExtendRemoteInterface getTypeFromRecipeIds(List<Integer> recipeIds) {
+    public static CommonExtendEnterprisesInterface getTypeFromRecipeIds(List<Integer> recipeIds) {
         if (null != recipeIds && CollectionUtils.isNotEmpty(recipeIds)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             if(null != recipe){
-                return getTypeFromOrganId(recipe.getClinicId());
+                return getTypeFromOrganId(recipe.getClinicOrgan());
             }
         }
         return CommonExtendRemoteTypeEnum.COMMON_TYPE.getRemoteType();
     }
 
-    public static CommonExtendRemoteInterface getTypeFromRecipeOrder(RecipeOrder order) {
+    public static CommonExtendEnterprisesInterface getTypeFromRecipeOrder(RecipeOrder order) {
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         if (null != recipeIdList && CollectionUtils.isNotEmpty(recipeIdList)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIdList.get(0));
             if(null != recipe){
-                return getTypeFromOrganId(recipe.getClinicId());
+                return getTypeFromOrganId(recipe.getClinicOrgan());
             }
         }
         return CommonExtendRemoteTypeEnum.COMMON_TYPE.getRemoteType();
     }
 
-    public static CommonExtendRemoteInterface getTypeFromRecipeBean(RecipeBean recipeBean) {
+    public static CommonExtendEnterprisesInterface getTypeFromRecipeBean(RecipeBean recipeBean) {
         if (null != recipeBean) {
-            return getTypeFromOrganId(recipeBean.getClinicId());
+            return getTypeFromOrganId(recipeBean.getClinicOrgan());
         }
         return CommonExtendRemoteTypeEnum.COMMON_TYPE.getRemoteType();
     }
 
-    public static CommonExtendRemoteInterface getTypeFromRecipe(Recipe recipe) {
+    public static CommonExtendEnterprisesInterface getTypeFromRecipe(Recipe recipe) {
         if (null != recipe) {
-            return getTypeFromOrganId(recipe.getClinicId());
+            return getTypeFromOrganId(recipe.getClinicOrgan());
         }
         return CommonExtendRemoteTypeEnum.COMMON_TYPE.getRemoteType();
     }

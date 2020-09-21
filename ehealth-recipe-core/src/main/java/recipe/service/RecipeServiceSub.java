@@ -566,9 +566,14 @@ public class RecipeServiceSub {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
+        //date 20200921 修改【his管理的药企】不用校验配送药品
         try {
             //处方药品能否配送以及能否开具同一张处方上
-            canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
+            if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                return resultBean;
+            }else{
+                canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
+            }
         } catch (Exception e) {
             LOGGER.error("canOpenRecipeDrugs error", e);
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -3049,5 +3054,10 @@ public class RecipeServiceSub {
      */
     public static boolean isClinicOrgan(String organId) {
         return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
+    }
+
+    public static Integer getOrganEnterprisesDockType(Integer organId){
+        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
+        return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
     }
 }

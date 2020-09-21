@@ -390,7 +390,7 @@ public class PurchaseService {
                             recipedetail.setActualSalePrice(price);
                             //线下转线上不处理药品总价
                             if (!RecipeBussConstant.OFFLINE_TO_ONLINE.equals(recipe.getRecipeSourceType())) {
-                                recipedetail.setDrugCost(price.multiply(new BigDecimal(recipedetail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                                recipedetail.setDrugCost(price.multiply(new BigDecimal(recipedetail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                             }
                         } else if (settlementMode == 1) {
                             recipedetail.setActualSalePrice(recipedetail.getSalePrice());
