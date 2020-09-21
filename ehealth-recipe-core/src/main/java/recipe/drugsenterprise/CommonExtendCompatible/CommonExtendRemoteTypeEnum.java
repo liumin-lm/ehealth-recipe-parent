@@ -74,10 +74,10 @@ public enum CommonExtendRemoteTypeEnum {
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
         //获取机构配置配置的药企管理方式：his（1）还是平台（0）
-        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
-        Integer dockMode = null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
+//        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
+//        Integer dockMode = null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
         for(CommonExtendRemoteTypeEnum ep : CommonExtendRemoteTypeEnum.values()){
-            if(dockMode.equals(ep.getRemoteDockType())){
+            if(new Integer(0).equals(ep.getRemoteDockType())){
                 return ep.getRemoteType();
             }
         }
