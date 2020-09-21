@@ -1142,12 +1142,26 @@ public class HisRecipeService {
             }
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
-            recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
+            recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
+            //用量纯数字的存useDose,非数字的存useDoseStr
+            if(!StringUtils.isEmpty(hisRecipeDetail.getUseDose())){
+                try{
+                    recipedetail.setUseDose(Double.valueOf(hisRecipeDetail.getUseDose()));//高优先级
+                }catch (Exception e){
+                    recipedetail.setUseDoseStr(hisRecipeDetail.getUseDose() + hisRecipeDetail.getUseDoseUnit());
+                }
+            }
             //  线下特殊用法
             if (!StringUtils.isEmpty(hisRecipeDetail.getUseDoseStr())) {
-                recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr() + hisRecipeDetail.getUseDoseUnit());
+                try{
+                    if(recipedetail.getUseDose()==null){
+                        recipedetail.setUseDose(Double.valueOf(hisRecipeDetail.getUseDoseStr()));
+                    }
+                }catch (Exception e){
+                    recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr() + hisRecipeDetail.getUseDoseUnit());//高优先级
+                }
             }
-            recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
+
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
             }
