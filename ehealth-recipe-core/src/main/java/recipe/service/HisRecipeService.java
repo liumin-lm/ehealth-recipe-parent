@@ -1445,46 +1445,50 @@ public class HisRecipeService {
                 deleteSetRecipeCode.add(recipeCode);
                 return;
             }
-            Map<String, BigDecimal> drugTotalDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseTotalDose));
-            Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDose()), HashMap::putAll);
-            Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDoseStr()), HashMap::putAll);
-            Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDays()), HashMap::putAll);
-            //Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDaysB()), HashMap::putAll);
-            Map<String, String> usingRateMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRate()), HashMap::putAll);
-            Map<String, String> usePathwaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathways()), HashMap::putAll);
-            Map<String, String> usingRateTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRateText()), HashMap::putAll);
-            Map<String, String> usePathwaysTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathwaysText()), HashMap::putAll);
+            Map<String, HisRecipeDetail> recipeDetailMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, b -> b, (k1, k2) -> k1));
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
-                BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
+                HisRecipeDetail hisRecipeDetail = recipeDetailMap.get(recipeDetailTO.getDrugCode());
+                if (null == hisRecipeDetail) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    continue;
+                }
+                BigDecimal useTotalDose = hisRecipeDetail.getUseTotalDose();
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
+                String useDose = hisRecipeDetail.getUseDose();
                 if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
+                String useDoseStr = hisRecipeDetail.getUseDoseStr();
                 if ((StringUtils.isEmpty(useDoseStr) && StringUtils.isNotEmpty(recipeDetailTO.getUseDoseStr())) || (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
+                Integer useDays = hisRecipeDetail.getUseDays();
                 if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
+                String usingRate = hisRecipeDetail.getUsingRate();
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
 
-                String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
+                String usingRateText = hisRecipeDetail.getUsingRateText();
                 if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
+                String usePathways = hisRecipeDetail.getUsePathways();
                 if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
+                String usePathwaysText = hisRecipeDetail.getUsePathwaysText();
                 if ((StringUtils.isEmpty(usePathwaysText) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathwaysText())) || (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }
