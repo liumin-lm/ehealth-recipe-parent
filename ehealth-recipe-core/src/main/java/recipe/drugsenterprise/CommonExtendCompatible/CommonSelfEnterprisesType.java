@@ -18,6 +18,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@RpcBean("commonSelfEnterprisesType")
+@Service("commonSelfEnterprisesType")
 public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterface{
     private static final String searchMapRANGE = "range";
 

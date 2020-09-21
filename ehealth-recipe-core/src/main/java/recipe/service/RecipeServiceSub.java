@@ -566,12 +566,12 @@ public class RecipeServiceSub {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
-        //date 20200921 修改【his管理的药企】不用校验配送药品
         try {
-            //处方药品能否配送以及能否开具同一张处方上
+            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
             if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
                 return resultBean;
             }else{
+                //处方药品能否配送以及能否开具同一张处方上
                 canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
             }
         } catch (Exception e) {

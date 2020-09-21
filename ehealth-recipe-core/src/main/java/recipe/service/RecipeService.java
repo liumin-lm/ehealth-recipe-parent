@@ -3526,10 +3526,15 @@ public class RecipeService extends RecipeBaseService {
                 }
                 //药品匹配成功标识
                 boolean succFlag = false;
-                Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
-                if (null != count && count > 0) {
-                    if (count == drugIds.size()) {
-                        succFlag = true;
+                //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
+                if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(organId))){
+                    succFlag = true;
+                }else{
+                    Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
+                    if (null != count && count > 0) {
+                        if (count == drugIds.size()) {
+                            succFlag = true;
+                        }
                     }
                 }
 
