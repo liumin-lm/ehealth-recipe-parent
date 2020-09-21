@@ -1406,45 +1406,61 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    public List<EnterpriseRecipeDetailResponse> findEnterpriseRecipeDetailList(final RecipeReportFormsRequest request) {
+    public List<EnterpriseRecipeDetailResponse> findEnterpriseRecipeDetailList(RecipeReportFormsRequest request) {
         HibernateStatelessResultAction<List<EnterpriseRecipeDetailResponse>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseRecipeDetailResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
-                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo");
-                StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
-                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.send_type = 2 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,0) and c.PayTime between :startTime and :endTime");
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,c.EnterpriseId, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo,c.payeeCode ,r.GiveMode");
+                StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_recipe r where ( c.send_type = 2 or r.GiveMode = 3) and c.OrderCode = r.OrderCode and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime");
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     sql.append(" and c.OrganId =:organIdList");
                 }
-                if(null != request.getEnterpriseId()){
+                if (null != request.getEnterpriseId()) {
                     sql.append(" and c.EnterpriseId =:enterpriseId");
                 }
-//                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
+                if (null != request.getGiveMode()) {
+                    sql.append(" and r.GiveMode =:giveMode");
+                }
+                if (null != request.getPayeeCode()) {
+                    sql.append(" and c.payeeCode =:payeeCode");
+                }
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     query.setParameterList("organIdList", request.getOrganIdList());
                 }
-                query.setFirstResult(request.getStart());
-                query.setMaxResults(request.getLimit());
-                query.setParameter("startTime", request.getStartTime());
-                query.setParameter("endTime", request.getEndTime());
-                if(null != request.getEnterpriseId()){
+                if (null != request.getEnterpriseId()) {
                     query.setParameter("enterpriseId", request.getEnterpriseId());
                 }
+                if (null != request.getGiveMode()) {
+                    query.setParameter("giveMode", request.getGiveMode());
+                }
+                if (null != request.getPayeeCode()) {
+                    query.setParameter("payeeCode", request.getPayeeCode());
+                }
+                query.setParameter("startTime", request.getStartTime());
+                query.setParameter("endTime", request.getEndTime());
+                query.setFirstResult(request.getStart());
+                query.setMaxResults(request.getLimit());
 
                 //count
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     countQuery.setParameterList("organIdList", request.getOrganIdList());
+                }
+                if (null != request.getEnterpriseId()) {
+                    countQuery.setParameter("enterpriseId", request.getEnterpriseId());
+                }
+                if (null != request.getGiveMode()) {
+                    query.setParameter("giveMode", request.getGiveMode());
+                }
+                if (null != request.getPayeeCode()) {
+                    query.setParameter("payeeCode", request.getPayeeCode());
                 }
                 countQuery.setParameter("startTime", request.getStartTime());
                 countQuery.setParameter("endTime", request.getEndTime());
-                if(null != request.getEnterpriseId()){
-                    countQuery.setParameter("enterpriseId", request.getEnterpriseId());
-                }
-                Long count = ConversionUtils.convert(countQuery.uniqueResult(),Long.class);
+                Long count = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
 
                 List<Object[]> queryList = query.list();
                 List<EnterpriseRecipeDetailResponse> resultList = new ArrayList<>(request.getLimit());
@@ -1452,18 +1468,20 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     for (Object[] item : queryList) {
                         EnterpriseRecipeDetailResponse response = new EnterpriseRecipeDetailResponse();
                         response.setTotal(count);
-                        response.setOrganId(ConversionUtils.convert(item[0],Integer.class));
-                        response.setOrganName(ConversionUtils.convert(item[1],String.class));
-                        response.setEnterpriseName(ConversionUtils.convert(item[2],String.class));
-                        response.setRecipeId(ConversionUtils.convert(item[3],Integer.class));
-                        response.setMpiId(ConversionUtils.convert(item[4],String.class));
-                        response.setPayDate(ConversionUtils.convert(item[5],Date.class));
-                        response.setTotalFee(ConversionUtils.convert(item[6],BigDecimal.class));
-                        response.setDrugFee(ConversionUtils.convert(item[7],BigDecimal.class));
-                        response.setDeliveryFee(ConversionUtils.convert(item[8],BigDecimal.class));
-                        response.setNgariRecivedFee(ConversionUtils.convert(item[9],BigDecimal.class));
-                        response.setEnterpriseReceivableFee(ConversionUtils.convert(item[8],BigDecimal.class));
-                        response.setTradeNo(ConversionUtils.convert(item[10],String.class));
+                        response.setOrganId(ConversionUtils.convert(item[0], Integer.class));
+                        response.setOrganName(ConversionUtils.convert(item[1], String.class));
+                        response.setEnterpriseId(ConversionUtils.convert(item[2], Integer.class));
+                        response.setRecipeId(ConversionUtils.convert(item[3], Integer.class));
+                        response.setMpiId(ConversionUtils.convert(item[4], String.class));
+                        response.setPayDate(ConversionUtils.convert(item[5], Date.class));
+                        response.setTotalFee(ConversionUtils.convert(item[6], BigDecimal.class));
+                        response.setDrugFee(ConversionUtils.convert(item[7], BigDecimal.class));
+                        response.setDeliveryFee(ConversionUtils.convert(item[8], BigDecimal.class));
+                        response.setNgariRecivedFee(ConversionUtils.convert(item[9], BigDecimal.class));
+                        response.setEnterpriseReceivableFee(ConversionUtils.convert(item[8], BigDecimal.class));
+                        response.setTradeNo(ConversionUtils.convert(item[10], String.class));
+                        response.setPayeeCode(ConversionUtils.convert(item[11], Integer.class));
+                        response.setGiveMode(ConversionUtils.convert(item[12], Integer.class));
                         resultList.add(response);
                     }
                 }
