@@ -3057,7 +3057,7 @@ public class RecipeServiceSub {
     }
 
     public static Integer getOrganEnterprisesDockType(Integer organId){
-        //Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
-        return new Integer(0);
+        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
+        return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
     }
 }

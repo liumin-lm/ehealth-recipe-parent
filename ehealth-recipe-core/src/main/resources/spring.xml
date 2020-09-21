@@ -27,6 +27,7 @@
 	<import resource="spring-service-consult.xml"/>
 	<import resource="spring-service-messsage.xml"/>
 	<import resource="spring-service-his-center.xml"/>
+	<import resource="spring-service-miscellany.xml"/>
 	<import resource="spring-service-opbase.xml"/>
 	<import resource="spring-file.xml"/>
 
