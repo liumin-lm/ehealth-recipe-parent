@@ -36,4 +36,5 @@
     <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
     <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
     <reference id="revisit.revisitExService" interface="com.ngari.revisit.common.service.IRevisitExService"/>
+    <reference id="revisit.recipeOnLineRevisitService" interface="com.ngari.revisit.common.service.IRecipeOnLineRevisitService"/>
 </s:beans>

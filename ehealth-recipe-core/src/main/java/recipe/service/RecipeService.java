@@ -46,6 +46,8 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
@@ -1408,6 +1410,9 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), recipeSignResult.getMsg());
+                //CA同步回调的接口 发送环信消息
+                IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),new Integer(2).equals(recipe.getBussSource())==true?recipe.getClinicId():null);
                 return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
@@ -1604,6 +1609,9 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                //CA异步回调的接口 发送环信消息
+                IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),new Integer(2).equals(recipe.getBussSource())==true?recipe.getClinicId():null);
                 return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
