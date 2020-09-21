@@ -135,7 +135,6 @@ public class RecipeReportFormsService {
      */
     @RpcService
     public Map<String, Object> recipeAccountCheckDetailList(RecipeReportFormsRequest request) {
-        LOGGER.info("recipeAccountCheckDetailList request = {}", JSONUtils.toString(request));
         Map<String, Object> resultMap = new HashMap<>();
         Args.notNull(request.getStartTime(), "startTime");
         Args.notNull(request.getEndTime(), "endTime");
@@ -147,7 +146,7 @@ public class RecipeReportFormsService {
         request.setOrganIdList(organIdList);
         try {
             List<RecipeAccountCheckDetailResponse> responses = recipeOrderDAO.findRecipeAccountCheckDetailList(request);
-            LOGGER.info("recipeAccountCheckDetailList responses = {}", JSONUtils.toString(responses));
+            LOGGER.info("recipeAccountCheckDetailList request = {} responses={}", JSONUtils.toString(request), JSONUtils.toString(responses));
             if (CollectionUtils.isEmpty(responses)) {
                 resultMap.put("total", 0);
                 resultMap.put("data", responses);
@@ -242,6 +241,7 @@ public class RecipeReportFormsService {
         request.setOrganIdList(organIdList);
         try {
             List<EnterpriseRecipeDetailResponse> responses = recipeOrderDAO.findEnterpriseRecipeDetailList(request);
+            LOGGER.info("enterpriseRecipeDetailList request = {} responses={}", JSONUtils.toString(request), JSONUtils.toString(responses));
             if (CollectionUtils.isEmpty(responses)) {
                 resultMap.put("total", 0);
                 resultMap.put("data", responses);
@@ -267,7 +267,7 @@ public class RecipeReportFormsService {
             responses.forEach(a -> {
                 PatientDTO patientDTO = patientMap.get(a.getMpiId());
                 if (null != patientDTO) {
-                    a.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
+                    a.setPatientName(patientDTO.getPatientName());
                 } else {
                     LOGGER.warn("recipeAccountCheckDetailList mpiId is null :{}", a.getMpiId());
                 }
