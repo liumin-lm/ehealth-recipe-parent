@@ -170,4 +170,10 @@ public class RecipeBussConstant {
      */
     public static Integer BUSS_SOURCE_WLZX = 3;
 
+    /**
+     * 处方来源类型-线下转线上
+     */
+    public static Integer OFFLINE_TO_ONLINE = 2;
+
+
 }

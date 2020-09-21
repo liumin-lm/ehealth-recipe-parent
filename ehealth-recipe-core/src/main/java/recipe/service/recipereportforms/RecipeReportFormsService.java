@@ -135,7 +135,6 @@ public class RecipeReportFormsService {
      */
     @RpcService
     public Map<String, Object> recipeAccountCheckDetailList(RecipeReportFormsRequest request) {
-        LOGGER.info("recipeAccountCheckDetailList request = {}", JSONUtils.toString(request));
         Map<String, Object> resultMap = new HashMap<>();
         Args.notNull(request.getStartTime(), "startTime");
         Args.notNull(request.getEndTime(), "endTime");
@@ -147,7 +146,7 @@ public class RecipeReportFormsService {
         request.setOrganIdList(organIdList);
         try {
             List<RecipeAccountCheckDetailResponse> responses = recipeOrderDAO.findRecipeAccountCheckDetailList(request);
-            LOGGER.info("recipeAccountCheckDetailList responses = {}", JSONUtils.toString(responses));
+            LOGGER.info("recipeAccountCheckDetailList request = {} responses={}", JSONUtils.toString(request), JSONUtils.toString(responses));
             if (CollectionUtils.isEmpty(responses)) {
                 resultMap.put("total", 0);
                 resultMap.put("data", responses);
@@ -167,7 +166,7 @@ public class RecipeReportFormsService {
             }
             Map<Integer, DrugsEnterprise> drugsEnterpriseMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(enterpriseIds)) {
-                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIds(new LinkedList<>(enterpriseIds));
+                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIdIn(new LinkedList<>(enterpriseIds));
                 drugsEnterpriseMap.putAll(drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1)));
             }
             responses.forEach(a -> {
@@ -242,16 +241,46 @@ public class RecipeReportFormsService {
         request.setOrganIdList(organIdList);
         try {
             List<EnterpriseRecipeDetailResponse> responses = recipeOrderDAO.findEnterpriseRecipeDetailList(request);
-            if (CollectionUtils.isNotEmpty(responses)) {
-                responses.forEach(item -> {
-                    PatientDTO patient = patientService.getPatientByMpiId(item.getMpiId());
-                    item.setPatientName(patient.getPatientName());
-                });
-                resultMap.put("total", responses.get(0).getTotal());
-            } else {
+            LOGGER.info("enterpriseRecipeDetailList request = {} responses={}", JSONUtils.toString(request), JSONUtils.toString(responses));
+            if (CollectionUtils.isEmpty(responses)) {
                 resultMap.put("total", 0);
+                resultMap.put("data", responses);
+                return resultMap;
             }
+            Set<String> mpiIds = new HashSet<>();
+            Set<Integer> enterpriseIds = new HashSet<>();
+            responses.forEach(a -> {
+                mpiIds.add(a.getMpiId());
+                enterpriseIds.add(a.getEnterpriseId());
+            });
+
+            Map<String, PatientDTO> patientMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(mpiIds)) {
+                List<PatientDTO> patientList = patientService.findByMpiIdIn(new LinkedList<>(mpiIds));
+                patientMap.putAll(patientList.stream().collect(Collectors.toMap(PatientDTO::getMpiId, a -> a, (k1, k2) -> k1)));
+            }
+            Map<Integer, DrugsEnterprise> drugsEnterpriseMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(enterpriseIds)) {
+                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIdIn(new LinkedList<>(enterpriseIds));
+                drugsEnterpriseMap.putAll(drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1)));
+            }
+            responses.forEach(a -> {
+                PatientDTO patientDTO = patientMap.get(a.getMpiId());
+                if (null != patientDTO) {
+                    a.setPatientName(patientDTO.getPatientName());
+                } else {
+                    LOGGER.warn("recipeAccountCheckDetailList mpiId is null :{}", a.getMpiId());
+                }
+
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(a.getEnterpriseId());
+                if (null != drugsEnterprise) {
+                    a.setEnterpriseName(drugsEnterprise.getName());
+                } else {
+                    LOGGER.warn("recipeAccountCheckDetailList enterpriseId is null {}", a.getEnterpriseId());
+                }
+            });
             resultMap.put("data", responses);
+            resultMap.put("total", responses.get(0).getTotal());
         } catch (Exception e) {
             LOGGER.error("enterpriseRecipeDetailList error,request = {}", JSONUtils.toString(request), e);
             resultMap.put("data", Collections.emptyList());
