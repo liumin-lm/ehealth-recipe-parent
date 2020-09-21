@@ -167,7 +167,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
             DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
+            if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
                 //说明已经经过预结算不再进行预结算
                 LOGGER.info("recipeMedicalPreSettle_no_again。处方ID={}", recipeId);
                 return result;
