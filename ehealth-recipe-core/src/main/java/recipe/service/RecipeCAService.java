@@ -66,6 +66,10 @@ public class RecipeCAService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCAService.class);
 
+    private static final Integer CA_OLD_TYPE = new Integer(0);
+
+    private static final Integer CA_NEW_TYPE = new Integer(1);
+
     @Autowired
     private RedisClient redisClient;
 
@@ -402,13 +406,13 @@ public class RecipeCAService {
                     rMap.put("bussSource", bussSource);
                 }
             }
-            String CANewOldWay = "old";
+            Integer CANewOldWay = CA_OLD_TYPE;
             Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
             if(null != caProcessType){
-                CANewOldWay = caProcessType.toString();
+                CANewOldWay = Integer.parseInt(caProcessType.toString());
             }
             //触发CA前置操作
-            if("new".equals(CANewOldWay)){
+            if(CA_NEW_TYPE.equals(CANewOldWay)){
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }else{
                 //老版默认走后置的逻辑，直接将处方推his
@@ -546,12 +550,12 @@ public class RecipeCAService {
         /**************/
         //触发CA操作
         //兼容新老版本,根据配置项判断CA的新老流程走向
-        String CANewOldWay = "old";
+        Integer CANewOldWay = CA_OLD_TYPE;
         Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
         if(null != caProcessType){
-            CANewOldWay = caProcessType.toString();
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
         }
-        if("new".equals(CANewOldWay)){
+        if(CA_NEW_TYPE.equals(CANewOldWay)){
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
             //老版默认走后置的逻辑，直接将处方向下流

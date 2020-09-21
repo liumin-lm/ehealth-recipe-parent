@@ -150,6 +150,10 @@ public class RecipeService extends RecipeBaseService {
 
     private static final String EXTEND_VALUE_FLAG = "1";
 
+    private static final Integer CA_OLD_TYPE = new Integer(0);
+
+    private static final Integer CA_NEW_TYPE = new Integer(1);
+
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
@@ -1382,13 +1386,13 @@ public class RecipeService extends RecipeBaseService {
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
-            String CANewOldWay = "old";
+            Integer CANewOldWay = CA_OLD_TYPE;
             Object caProcessType = configService.getConfiguration(recipe.getClinicOrgan(), "CAProcessType");
             if(null != caProcessType){
-                CANewOldWay = caProcessType.toString();
+                CANewOldWay = Integer.parseInt(caProcessType.toString());
             }
             RecipeResultBean recipeSignResult;
-            if("old".equals(CANewOldWay)){
+            if(CA_OLD_TYPE.equals(CANewOldWay)){
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
                 recipeSignResult = generateRecipePdfAndSign(recipe.getRecipeId());
             }else{
@@ -1419,7 +1423,7 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
                 //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //date 20200526
-                if("old".equals(CANewOldWay)){
+                if(CA_OLD_TYPE.equals(CANewOldWay)){
                     memo = "当前签名处方签名成功";
                 }else{
                     memo = "当前签名处方签名成功---CA前置，his返回默认CA成功";
@@ -1645,12 +1649,12 @@ public class RecipeService extends RecipeBaseService {
         //兼容新老版本,根据配置项判断CA的新老流程走向
         RecipeBean recipeBean = getByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
-        String CANewOldWay = "old";
+        Integer CANewOldWay = CA_OLD_TYPE;
         Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
         if(null != caProcessType){
-            CANewOldWay = caProcessType.toString();
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
         }
-        if("new".equals(CANewOldWay)){
+        if(CA_NEW_TYPE.equals(CANewOldWay)){
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
             //老版默认走后置的逻辑，直接将处方向下流
@@ -1944,13 +1948,13 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("bussSource", bussSource);
                 }
             }
-            String CANewOldWay = "old";
+            Integer CANewOldWay = CA_OLD_TYPE;
             Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
             if(null != caProcessType){
-                CANewOldWay = caProcessType.toString();
+                CANewOldWay = Integer.parseInt(caProcessType.toString());
             }
             //触发CA前置操作
-            if("new".equals(CANewOldWay)){
+            if(CA_NEW_TYPE.equals(CANewOldWay)){
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }else{
                 //老版默认走后置的逻辑，直接将处方推his
