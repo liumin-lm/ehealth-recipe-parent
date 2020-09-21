@@ -53,7 +53,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @return
      */
     @DAOMethod
-    public abstract List<DrugsEnterprise> findByIn(List<Integer> ids);
+    public abstract List<DrugsEnterprise> findByIdIn(List<Integer> ids);
 
     /**
      * 根据organId查找

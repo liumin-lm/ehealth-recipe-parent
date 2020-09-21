@@ -167,7 +167,7 @@ public class RecipeReportFormsService {
             }
             Map<Integer, DrugsEnterprise> drugsEnterpriseMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(enterpriseIds)) {
-                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIn(new LinkedList<>(enterpriseIds));
+                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIdIn(new LinkedList<>(enterpriseIds));
                 drugsEnterpriseMap.putAll(drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1)));
             }
             responses.forEach(a -> {
@@ -261,7 +261,7 @@ public class RecipeReportFormsService {
             }
             Map<Integer, DrugsEnterprise> drugsEnterpriseMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(enterpriseIds)) {
-                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIn(new LinkedList<>(enterpriseIds));
+                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIdIn(new LinkedList<>(enterpriseIds));
                 drugsEnterpriseMap.putAll(drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1)));
             }
             responses.forEach(a -> {
