@@ -934,6 +934,43 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     }
 
     /**
+     * 通过药企实例获取具体实现
+     *
+     * @param drugsEnterprise
+     * @return
+     */
+    public AccessDrugEnterpriseService getServiceByDepAndOrganId(DrugsEnterprise drugsEnterprise, Integer organId) {
+        AccessDrugEnterpriseService drugEnterpriseService = null;
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
+            return ApplicationUtils.getService(RemoteDrugEnterpriseService.class, "remoteDrugEnterpriseService");
+        }
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+
+        //获取机构配置的支持购药方式
+        Object payModeDeploy = configService.getConfiguration(organId, "EnterprisesDockTyoe");
+        if(drugsEnterprise != null && (null != payModeDeploy && new Integer(1).equals(Integer.parseInt(payModeDeploy.toString())))){
+            return ApplicationUtils.getService(HisAdministrationRemoteService.class, "hisAdministrationRemoteService");
+        }
+        if (null != drugsEnterprise) {
+            //先获取指定实现标识，没有指定则根据帐号名称来获取
+            String callSys = StringUtils.isEmpty(drugsEnterprise.getCallSys()) ? drugsEnterprise.getAccount() : drugsEnterprise.getCallSys();
+            String beanName = COMMON_SERVICE;
+            if (StringUtils.isNotEmpty(callSys)) {
+                beanName = callSys + "RemoteService";
+            }
+            try {
+                LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]", drugsEnterprise.getName(), beanName);
+                drugEnterpriseService = getBean(beanName, AccessDrugEnterpriseService.class);
+            } catch (Exception e) {
+                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}", drugsEnterprise.getName(), beanName,e);
+                drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
+            }
+        }
+
+        return drugEnterpriseService;
+    }
+
+    /**
      * 获取药企帐号
      *
      * @param depId

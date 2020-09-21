@@ -25,4 +25,7 @@ public interface IEnterpriseAddressService extends IBaseService<EnterpriseAddres
 
     @RpcService
     void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList);
+
+    @RpcService
+    public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) ;
 }

@@ -80,22 +80,27 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
     private RecipeExtendDAO recipeExtendDAO;
 
     @Override
+    //医院管理药企:更新请求的token，his管理药企，暂时没有请求的token，不需要更新
+    //医院管理药企不需要强实现
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("HisAdministrationRemoteService tokenUpdateImpl not implement.");
     }
 
     @Override
+    //医院管理药企不需要强实现
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
     }
 
     @Override
+    //医院管理药企不需要强实现
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         return null;
     }
 
     @Override
     //逻辑上来说push推送，his管理的药企，由his进行推送，平台不需要手动的推送
+    //医院管理药企需要强实现
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("pushRecipeInfo-【his管理的药企】-更新取药信息至处方流转平台开始，处方ID：{}.", JSONUtils.toString(recipeIds));
 

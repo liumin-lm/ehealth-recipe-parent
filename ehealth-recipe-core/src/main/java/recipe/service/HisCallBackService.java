@@ -15,6 +15,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -273,6 +275,13 @@ public class HisCallBackService {
         RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.HIS_FAIL, "HIS审核返回：写入his失败[" + errCode + ":|" + errMsg + "]");
         //发送消息
         RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.HIS_FAIL);
+        //HIS确认失败 发送环信消息
+        Recipe recipe=recipeDAO.get(recipeId);
+        if(recipe==null){
+            return ;
+        }
+        IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+        recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),new Integer(2).equals(recipe.getBussSource())==true?recipe.getClinicId():null);
     }
 
     /**

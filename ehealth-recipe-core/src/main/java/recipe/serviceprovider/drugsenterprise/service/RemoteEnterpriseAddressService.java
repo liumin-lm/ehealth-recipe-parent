@@ -7,7 +7,9 @@ import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.ValidateUtil;
+import recipe.ApplicationUtils;
 import recipe.dao.EnterpriseAddressDAO;
+import recipe.service.EnterpriseAddressService;
 import recipe.serviceprovider.BaseService;
 
 import java.util.List;
@@ -50,6 +52,13 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
             }
         }
     }
+
+    @Override
+    public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) {
+        EnterpriseAddressService service = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+        return service.allAddressCanSendForOrder(depId,address1,address2,address3);
+    }
+
 
     @RpcService
     @Override
