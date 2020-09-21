@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-public class EnterpriseRecipeDetailResponse implements Serializable{
+public class EnterpriseRecipeDetailResponse implements Serializable {
     private static final long serialVersionUID = -1050580939377832253L;
 
     private Long total; //总计
@@ -37,4 +37,18 @@ public class EnterpriseRecipeDetailResponse implements Serializable{
     private String tradeNo; //商户订单号
 
     private String mpiId;
+
+    /**
+     * 药企序号
+     */
+    private Integer enterpriseId;
+    /**
+     * 支付用户类型:0平台，1机构，2药企
+     */
+    private Integer payeeCode;
+
+    /**
+     * 1配送到家 2医院取药 3药店取药
+     */
+    private Integer giveMode;
 }

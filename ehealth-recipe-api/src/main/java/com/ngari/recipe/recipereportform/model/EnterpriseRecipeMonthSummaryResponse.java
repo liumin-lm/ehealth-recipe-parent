@@ -29,4 +29,9 @@ public class EnterpriseRecipeMonthSummaryResponse implements Serializable{
     private BigDecimal ngariRecivedFee; //平台分润
 
     private BigDecimal organRecivedDiffFee; //医院实收应付差额
+
+    /**
+     * 药企序号
+     */
+    private Integer enterpriseId;
 }

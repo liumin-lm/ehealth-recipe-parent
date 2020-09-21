@@ -49,11 +49,11 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     /**
      * 批量获取药企名称
      *
-     * @param id
+     * @param ids
      * @return
      */
     @DAOMethod
-    public abstract List<DrugsEnterprise> findByIds(List<Integer> id);
+    public abstract List<DrugsEnterprise> findByIn(List<Integer> ids);
 
     /**
      * 根据organId查找
