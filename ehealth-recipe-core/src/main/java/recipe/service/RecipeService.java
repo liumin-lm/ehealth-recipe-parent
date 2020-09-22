@@ -98,6 +98,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
@@ -164,6 +165,8 @@ public class RecipeService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private RecipeServiceSub recipeServiceSub;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     /**
      * 药师审核不通过
@@ -2774,13 +2777,14 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
-        //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
-        /*checkUserHasPermission(recipeId);*/
-
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
-
+        try {
+            emrRecipeManager.getMedicalInfo((RecipeBean) result.get("recipe"), (RecipeExtend) result.get("recipeExtend"));
+        } catch (Exception e) {
+            LOGGER.error("emrRecipeManager getMedicalInfo is error ", e);
+        }
         return result;
     }
 
