@@ -2392,7 +2392,7 @@ public class RecipeService extends RecipeBaseService {
 
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");
-        emrRecipeManager.saveMedicalInfo(recipe, recipeBean.getRecipeExtend());
+        emrRecipeManager.updateMedicalInfo(recipe, recipeBean.getRecipeExtend());
         return dbRecipeId;
     }
 
