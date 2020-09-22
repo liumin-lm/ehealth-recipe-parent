@@ -1633,10 +1633,16 @@ public class RecipeHisService extends RecipeBaseService {
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
         patientBaseInfo.setCardID(cardId);
         patientBaseInfo.setCardType(cardType);
-        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
-        if (StringUtils.isNotEmpty(cityCardNumber)) {
+
+        //杭州市互联网医院监管中心 管理单元eh3301
+        OrganDTO organDTOCard = organService.getByManageUnit("eh3301");
+        if (organDTOCard != null) {
+            String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organDTOCard.getOrganId());
             patientBaseInfo.setCityCardNumber(cityCardNumber);
+        } else {
+            LOGGER.info("queryHisInsureRecipeListFromHis 未获取到杭州市互联网医院监管中心机构");
         }
+
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
