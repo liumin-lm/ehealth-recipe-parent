@@ -10,6 +10,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
@@ -25,6 +27,7 @@ import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yuyun
@@ -102,6 +105,8 @@ public class RecipeToHisCallbackService {
                 BigDecimal total = new BigDecimal(amount);
                 result.setTotalMoney(total);
             }
+            String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeNo;
+            result.setRecipeCostNumber(recipeCostNumber);
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
             result.setRecipeCode(recipeNo);
             result.setPatientID(patientId);

@@ -232,6 +232,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "监管人手机号")
     private String guardianMobile;
 
+    @ItemProperty(alias = "his处方付费序号合集")
+    private String recipeCostNumber;
+
+    @Column(name = "recipeCostNumber")
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
+
     @Column(name = "superviseRecipecode")
     public String getSuperviseRecipecode() {
         return superviseRecipecode;

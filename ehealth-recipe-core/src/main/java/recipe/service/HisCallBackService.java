@@ -25,6 +25,7 @@ import eh.base.constant.ErrorCode;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -77,6 +78,12 @@ public class HisCallBackService {
             LOGGER.error("checkPassSuccess 处方对象不存在");
             return;
         }
+        // 更新处方拓展信息：his处方付费序号合集
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        Map<String, Object> extendMap = new HashedMap();
+        extendMap.put("recipeCostNumber",result.getRecipeCostNumber());
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(result.getRecipeId()), extendMap);
+        LOGGER.info("checkPassSuccess.updateRecipeCostNumber,recipeId={},recipeCostNumber={}",result.getRecipeId(),result.getRecipeCostNumber());
         //todo---写死上海六院---在患者选完取药方式之后推送处方 第二次调用无需任何处理
         if (recipe.getClinicOrgan() == 1000899 && new Integer(1).equals(recipe.getChooseFlag())) {
             //日志记录
