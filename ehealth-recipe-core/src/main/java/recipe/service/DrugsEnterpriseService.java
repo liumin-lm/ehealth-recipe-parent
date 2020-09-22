@@ -448,11 +448,16 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                 }
             }
             //如果药企不存在在任何一家可配送药企则不显示按钮
-            for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, drugsEnterprise.getId());
-                if (saleDrugList != null) {
-                    return true;
+            //date 20200921 修改【his管理的药企】默认有配送药品
+            if(new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(organId))){
+                for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
+                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, drugsEnterprise.getId());
+                    if (saleDrugList != null) {
+                        return true;
+                    }
                 }
+            }else{
+                return true;
             }
             return false;
         }catch (Exception e){
@@ -482,12 +487,17 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         List<DrugsEnterprise> enterprises = new ArrayList<>();
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        for (DrugsEnterprise enterprise : drugsEnterprises) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, enterprise.getId());
-            if (saleDrugList != null) {
-                enterprises.add(enterprise);
+        if(new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(organId))){
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            for (DrugsEnterprise enterprise : drugsEnterprises) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, enterprise.getId());
+                if (saleDrugList != null) {
+                    enterprises.add(enterprise);
+                }
             }
+        }else{
+            //date 20200921 修改【his管理的药企】不需要校验配送药品，直接添加
+            enterprises.addAll(drugsEnterprises);
         }
         List<List<String>> inventoryList = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : enterprises) {

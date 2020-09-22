@@ -1531,6 +1531,11 @@ public class RecipeService extends RecipeBaseService {
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
 
         Map<String, Object> esignResponseMap = resultVo.getEsignResponseMap();
+        Integer CANewOldWay = CA_OLD_TYPE;
+        Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
+        if(null != caProcessType){
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
+        }
         try {
             String fileId = null;
             result.setMsg(resultVo.getMsg());
@@ -1552,16 +1557,20 @@ public class RecipeService extends RecipeBaseService {
                     //保存签名值、时间戳、电子签章文件
                     RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                     resultVo.setFileId(fileId);
-                    signRecipeInfoSave(recipeId, true, resultVo, organId);
-                    try {
-                        SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-                        jsonObject.put("details", JSONObject.toJSONString(details));
-                        signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-                        signRecipeInfoService.update(signDoctorRecipeInfo);
-                    } catch (Exception e) {
-                        LOGGER.error("signBefText save error：" + e.getMessage(), e);
+                    //date 20200922
+                    //老流程保存sign，新流程已经移动至CA保存
+                    if(CA_OLD_TYPE.equals(CANewOldWay)){
+                        signRecipeInfoSave(recipeId, true, resultVo, organId);
+                        try {
+                            SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+                            jsonObject.put("details", JSONObject.toJSONString(details));
+                            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+                            signRecipeInfoService.update(signDoctorRecipeInfo);
+                        } catch (Exception e) {
+                            LOGGER.error("signBefText save error：" + e.getMessage(), e);
+                        }
                     }
                 } else {
                     ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
@@ -1649,11 +1658,6 @@ public class RecipeService extends RecipeBaseService {
         //兼容新老版本,根据配置项判断CA的新老流程走向
         RecipeBean recipeBean = getByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
-        Integer CANewOldWay = CA_OLD_TYPE;
-        Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
-        if(null != caProcessType){
-            CANewOldWay = Integer.parseInt(caProcessType.toString());
-        }
         if(CA_NEW_TYPE.equals(CANewOldWay)){
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
@@ -1686,6 +1690,11 @@ public class RecipeService extends RecipeBaseService {
         RecipeResultBean checkResult = RecipeResultBean.getFail();
 
         Map<String, Object> esignResponseMap = resultVo.getEsignResponseMap();
+        Integer CANewOldWay = CA_OLD_TYPE;
+        Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
+        if(null != caProcessType){
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
+        }
         try {
             String fileId = null;
             DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
@@ -1707,7 +1716,11 @@ public class RecipeService extends RecipeBaseService {
                     checkResult.setCode(RecipeResultBean.SUCCESS);
                     RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                     resultVo.setFileId(fileId);
-                    signRecipeInfoSave(recipeId, false, resultVo, organId);
+                    //date 20200922
+                    //老流程保存sign，新流程已经移动至CA保存
+                    if(CA_OLD_TYPE.equals(CANewOldWay)){
+                        signRecipeInfoSave(recipeId, false, resultVo, organId);
+                    }
                 } else {
                     ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
                     SmsInfoBean smsInfo = new SmsInfoBean();
