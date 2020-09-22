@@ -1688,6 +1688,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         caSignResultVo.setCode(resultVo.getMsgCode());
         caSignResultVo.setMsg(resultVo.getMsg());
         caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
+        caSignResultVo.setRecipeId(resultVo.getBussId());
+        caSignResultVo.setBussType(resultVo.getBusstype());
         return caSignResultVo;
     }
 

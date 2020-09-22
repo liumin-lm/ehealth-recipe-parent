@@ -39,6 +39,17 @@ public class CaSignResultVo {
     //e签保返回
     private Map<String, Object> esignResponseMap;
 
+    //当前ca关联的处方业务类型
+    private Integer bussType;
+
+    public Integer getBussType() {
+        return bussType;
+    }
+
+    public void setBussType(Integer bussType) {
+        this.bussType = bussType;
+    }
+
     public Map<String, Object> getEsignResponseMap() {
         return esignResponseMap;
     }
