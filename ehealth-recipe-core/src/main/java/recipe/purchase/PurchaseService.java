@@ -252,10 +252,6 @@ public class PurchaseService {
         LOG.info("order param: recipeId={},extInfo={}", recipeId, JSONUtils.toString(extInfo));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
 
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise dep = drugsEnterpriseDAO.get(MapValueUtil.getInteger(extInfo, "depId"));
-        //订单类型-1省医保
-        Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe dbRecipe = recipeDAO.get(recipeId);
         if (null == dbRecipe) {
@@ -269,7 +265,7 @@ public class PurchaseService {
             result.setMsg("缺少购药方式");
             return result;
         }
-        //预结算
+        /*//预结算
         //非省直医保才走自费结算
         //省医保不走自费结算
         if (!(orderType != null && (orderType == 1 || orderType == 3))) {
@@ -290,7 +286,7 @@ public class PurchaseService {
                 }
             }
 
-        }
+        }*/
 
         //处方单状态不是待处理 or 处方单已被处理
         boolean dealFlag = checkRecipeIsDeal(dbRecipe, result, extInfo);

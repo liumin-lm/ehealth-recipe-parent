@@ -361,6 +361,11 @@ public class PayModeOnline implements IPurchaseService {
         String payway = MapValueUtil.getString(extInfo, "payway");
         //订单类型-1省医保
         Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
+        if (StringUtils.isNotEmpty(insuredArea)) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
+        }
 
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
@@ -407,7 +412,6 @@ public class PayModeOnline implements IPurchaseService {
                 if(decoctionWay.getDecoctionPrice() != null){
                     order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 }
-                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
 
             } else {
