@@ -1157,9 +1157,6 @@ public class HisRecipeService {
                 }
             }
 
-            if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
-                recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
-            }
             if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugSpec())) {
                 recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
             } else {
