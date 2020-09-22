@@ -187,6 +187,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeBean != null && recipeExtend != null) {
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+            recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
         return recipeBean;
     }
