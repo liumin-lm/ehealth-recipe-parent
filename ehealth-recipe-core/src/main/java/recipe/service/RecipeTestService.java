@@ -7,12 +7,9 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
@@ -35,6 +32,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
@@ -300,7 +298,7 @@ public class RecipeTestService {
     public void saveDoc(Integer organId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
+        EmrRecipeManager emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeManager.class);
         List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
         for (Recipe recipe : recipes) {
             try{
@@ -314,7 +312,7 @@ public class RecipeTestService {
                 recipeExtendBean.setPhysicalCheck(recipeExtend.getPhysicalCheck());
                 recipeExtendBean.setSymptomName(recipeExtend.getSymptomName());
                 recipeExtendBean.setHandleMethod(recipeExtend.getHandleMethod());
-                emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
+                emrRecipeService.saveMedicalInfo(recipe, recipeExtendBean);
                 recipeExtend.setDocIndexId(recipeExtendBean.getDocIndexId());
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             }catch(Exception e){

@@ -76,9 +76,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.bean.AutoAuditResult;
-import recipe.audit.bean.Issue;
-import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
@@ -131,17 +128,11 @@ public class RecipeService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
-    private static final String UNSIGN = "unsign";
-
-    private static final String UNCHECK = "uncheck";
-
     private static final String EXTEND_VALUE_FLAG = "1";
 
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
-
-    private OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
 
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
@@ -171,6 +162,8 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private RecipeServiceSub recipeServiceSub;
 
     /**
      * 药师审核不通过
@@ -389,7 +382,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        Integer recipeId = RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
             HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
@@ -413,7 +406,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public Integer saveRecipeDataForHos(RecipeBean recipe, List<RecipeDetailBean> details) {
-        return RecipeServiceSub.saveRecipeDataImpl(recipe, details, 0);
+        return recipeServiceSub.saveRecipeDataImpl(recipe, details, 0);
     }
 
     /**
@@ -3240,11 +3233,20 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * 处方签获取
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
     @RpcService
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        //checkUserHasPermission(recipeId);
-
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(recipeId, organId);
+        Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
         return result;
     }
 

@@ -6,12 +6,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -57,6 +55,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -72,6 +72,7 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -85,13 +86,12 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//import com.ngari.recipe.audit.model.AuditMedicinesDTO;
-
 /**
  * 供recipeService调用
  *
  * @author liuya
  */
+@Service
 public class RecipeServiceSub {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
@@ -100,16 +100,14 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-
-    private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-
-    private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
@@ -131,7 +129,9 @@ public class RecipeServiceSub {
      * @param flag(recipe的fromflag) 0：HIS处方  1：平台处方
      * @return
      */
-    public static Integer saveRecipeDataImpl(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, Integer flag) {
+    public Integer saveRecipeDataImpl(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, Integer flag) {
+        LOGGER.info("RecipeServiceSub saveRecipeDataImpl recipeBean:{},detailBeanList:{},flag:{}"
+                , JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), flag);
         if (null != recipeBean && recipeBean.getRecipeId() != null && recipeBean.getRecipeId() > 0) {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             return recipeService.updateRecipeAndDetail(recipeBean, detailBeanList);
@@ -149,8 +149,7 @@ public class RecipeServiceSub {
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
         //电子病历，将电子病历保存到cdr模块
-        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
-        emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
+        emrRecipeManager.saveMedicalInfo(recipe, recipeBean.getRecipeExtend());
         //武昌需求，加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient, recipeBean, recipeId);
 

@@ -3,6 +3,8 @@ package recipe.util;
 public class ByteUtils {
 	public static String COMMA = ",";
 	public static String DOT = "\\.";
+	public static String SEMI_COLON_EN = ";";
+	public static String SEMI_COLON_CH = "；";
 
 	/**
 	 * 私有构造函数，不允许本类生成实例
