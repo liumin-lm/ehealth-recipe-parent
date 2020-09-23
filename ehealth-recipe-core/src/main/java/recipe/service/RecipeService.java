@@ -1415,8 +1415,10 @@ public class RecipeService extends RecipeBaseService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), recipeSignResult.getMsg());
                 //CA同步回调的接口 发送环信消息
-                IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),new Integer(2).equals(recipe.getBussSource())==true?recipe.getClinicId():null);
+                if(new Integer(2).equals(recipe.getBussSource())){
+                    IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                    recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),recipe.getClinicId());
+                }
                 return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
@@ -1623,8 +1625,10 @@ public class RecipeService extends RecipeBaseService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
                 //CA异步回调的接口 发送环信消息
-                IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),new Integer(2).equals(recipe.getBussSource())==true?recipe.getClinicId():null);
+                if(new Integer(2).equals(recipe.getBussSource())){
+                    IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                    recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),recipe.getClinicId());
+                }
                 return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑

@@ -282,13 +282,16 @@ public class HisCallBackService {
         RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.HIS_FAIL, "HIS审核返回：写入his失败[" + errCode + ":|" + errMsg + "]");
         //发送消息
         RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.HIS_FAIL);
-        //HIS确认失败 发送环信消息
+        //复诊开方HIS确认失败 发送环信消息
         Recipe recipe=recipeDAO.get(recipeId);
         if(recipe==null){
             return ;
         }
-        IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-        recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),new Integer(2).equals(recipe.getBussSource())==true?recipe.getClinicId():null);
+        if(new Integer(2).equals(recipe.getBussSource())){
+            LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}",recipeId);
+            IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+            recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),recipe.getClinicId());
+        }
     }
 
     /**
