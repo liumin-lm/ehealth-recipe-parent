@@ -7,6 +7,8 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.account.UserRoleToken;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -278,6 +280,14 @@ public class RecipeReportFormsService {
                 } else {
                     LOGGER.warn("recipeAccountCheckDetailList enterpriseId is null {}", a.getEnterpriseId());
                 }
+
+                try {
+                    a.setGiveModeText(DictionaryController.instance().get("eh.cdr.dictionary.GiveMode").getText(a.getGiveMode()));
+                    a.setPayeeCodeText(DictionaryController.instance().get("eh.cdr.dictionary.PayeeCode").getText(a.getPayeeCode()));
+                } catch (ControllerException e) {
+                    e.printStackTrace();
+                }
+
             });
             resultMap.put("data", responses);
             resultMap.put("total", responses.get(0).getTotal());

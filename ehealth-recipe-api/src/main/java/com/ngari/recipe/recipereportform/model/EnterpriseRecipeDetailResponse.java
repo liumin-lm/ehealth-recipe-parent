@@ -1,6 +1,5 @@
 package com.ngari.recipe.recipereportform.model;
 
-import ctd.schema.annotation.Dictionary;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -46,13 +45,11 @@ public class EnterpriseRecipeDetailResponse implements Serializable {
     /**
      * 支付用户类型:0平台，1机构，2药企
      */
-    @Dictionary(id = "eh.cdr.dictionary.PayeeCode")
     private Integer payeeCode;
     private String payeeCodeText;
     /**
      * 1配送到家 2医院取药 3药店取药
      */
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
     private String giveModeText;
 }
