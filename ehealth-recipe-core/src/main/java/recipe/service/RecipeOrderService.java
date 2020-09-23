@@ -813,34 +813,64 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } else {
                 order.setActualPrice(totalFee.doubleValue());
-                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
-                if (recipeExtend != null) {
-                    //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
-                    if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
-                        order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
-                        order.setTotalFee(new BigDecimal(recipeExtend.getPayAmount()));
-                    } else if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
-                        //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
-                        BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
-                        order.setActualPrice(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp).doubleValue());
-                        order.setTotalFee(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp));
-                    }
-                    //预结算总金额
-                    if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
-                        order.setPreSettletotalAmount(new Double(recipeExtend.getPreSettletotalAmount()));
-                    }
-                    //医保金额
-                    if (StringUtils.isNotEmpty(recipeExtend.getFundAmount())) {
-                        order.setFundAmount(new Double(recipeExtend.getFundAmount()));
-                    }
-                    //自费金额
-                    if (StringUtils.isNotEmpty(recipeExtend.getCashAmount())) {
-                        order.setCashAmount(new Double(recipeExtend.getCashAmount()));
-                    }
-                }
+                //预结算在提交订单后处理固此处不需要了
+//                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+//                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
+//                if (recipeExtend != null) {
+//                    //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
+//                    if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
+//                        order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
+//                        order.setTotalFee(new BigDecimal(recipeExtend.getPayAmount()));
+//                    } else if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
+//                        //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
+//                        BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
+//                        order.setActualPrice(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp).doubleValue());
+//                        order.setTotalFee(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp));
+//                    }
+//                    //预结算总金额
+//                    if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
+//                        order.setPreSettletotalAmount(new Double(recipeExtend.getPreSettletotalAmount()));
+//                    }
+//                    //医保金额
+//                    if (StringUtils.isNotEmpty(recipeExtend.getFundAmount())) {
+//                        order.setFundAmount(new Double(recipeExtend.getFundAmount()));
+//                    }
+//                    //自费金额
+//                    if (StringUtils.isNotEmpty(recipeExtend.getCashAmount())) {
+//                        order.setCashAmount(new Double(recipeExtend.getCashAmount()));
+//                    }
+//                }
             }
         }
+    }
+
+    public void dealWithOrderInfo(Map<String, String> map, RecipeOrder order) {
+        Map<String, Object> orderInfo = Maps.newHashMap();
+        if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
+            orderInfo.put("preSettleTotalAmount", map.get("preSettleTotalAmount"));
+        }
+        if (StringUtils.isNotEmpty(map.get("fundAmount"))) {
+            orderInfo.put("fundAmount", map.get("fundAmount"));
+        }
+        if (StringUtils.isNotEmpty(map.get("cashAmount"))) {
+            orderInfo.put("cashAmount", map.get("cashAmount"));
+        }
+        if (StringUtils.isNotEmpty(map.get("payAmount"))) {
+            orderInfo.put("payAmount", map.get("payAmount"));
+        }
+
+        if (StringUtils.isNotEmpty(map.get("payAmount"))) {
+            //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
+            orderInfo.put("ActualPrice", new BigDecimal(map.get("payAmount")).doubleValue());
+            orderInfo.put("TotalFee", new BigDecimal(map.get("payAmount")).doubleValue());
+        } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
+            //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
+            BigDecimal priceTemp = new BigDecimal(order.getActualPrice()).subtract(order.getRecipeFee());
+            orderInfo.put("ActualPrice", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
+            orderInfo.put("TotalFee", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
+        }
+        recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), map);
+
     }
 
     private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {

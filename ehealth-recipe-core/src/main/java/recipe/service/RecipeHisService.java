@@ -606,6 +606,7 @@ public class RecipeHisService extends RecipeBaseService {
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             result.put("msg", "查不到该处方");
@@ -711,6 +712,12 @@ public class RecipeHisService extends RecipeBaseService {
                             map.put("insuredArea", request.getInsuredArea());
                         }
                         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
+                        //此时订单已经生成还需要更新订单信息
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        if (recipeOrder != null) {
+                            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                            recipeOrderService.dealWithOrderInfo(map, recipeOrder);
+                        }
                     } else {
                         //此时ext一般已经存在，若不存在有问题
                         LOGGER.error("provincialMedicalPreSettle-fail. recipeId={} recipeExtend is null", recipeId);
@@ -745,6 +752,9 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.error("provincialMedicalPreSettle recipeId={} error", recipeId, e);
         }
         return result;
+    }
+
+    private void dealWithOrderInfo(Map<String, String> map) {
     }
 
 
@@ -795,6 +805,7 @@ public class RecipeHisService extends RecipeBaseService {
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             result.put("msg", "查不到该处方");
@@ -841,6 +852,12 @@ public class RecipeHisService extends RecipeBaseService {
                             map.put("hisSettlementNo", hisSettlementNo);
                             map.put("payAmount", payAmount);
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
+                            //订单信息更新
+                            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                            if (recipeOrder != null) {
+                                RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                                recipeOrderService.dealWithOrderInfo(map, recipeOrder);
+                            }
                         } else {
                             ext = new RecipeExtend();
                             ext.setRecipeId(recipe.getRecipeId());
