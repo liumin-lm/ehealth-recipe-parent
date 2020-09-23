@@ -847,16 +847,16 @@ public class RecipeOrderService extends RecipeBaseService {
     public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order) {
         Map<String, Object> orderInfo = Maps.newHashMap();
         if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
-            orderInfo.put("preSettleTotalAmount", map.get("preSettleTotalAmount"));
+            orderInfo.put("preSettleTotalAmount", new Double(map.get("preSettleTotalAmount")));
         }
         if (StringUtils.isNotEmpty(map.get("fundAmount"))) {
-            orderInfo.put("fundAmount", map.get("fundAmount"));
+            orderInfo.put("fundAmount", new Double(map.get("fundAmount")));
         }
         if (StringUtils.isNotEmpty(map.get("cashAmount"))) {
-            orderInfo.put("cashAmount", map.get("cashAmount"));
+            orderInfo.put("cashAmount", new Double(map.get("cashAmount")));
         }
         if (StringUtils.isNotEmpty(map.get("payAmount"))) {
-            orderInfo.put("payAmount", map.get("payAmount"));
+            orderInfo.put("payAmount", new Double(map.get("payAmount")));
         }
 
         if (StringUtils.isNotEmpty(map.get("payAmount"))) {
