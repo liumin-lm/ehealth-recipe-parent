@@ -1,4 +1,4 @@
-package recipe.drugsenterprise.CommonExtendCompatible;
+package recipe.drugsenterprise.commonExtendCompatible;
 
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;

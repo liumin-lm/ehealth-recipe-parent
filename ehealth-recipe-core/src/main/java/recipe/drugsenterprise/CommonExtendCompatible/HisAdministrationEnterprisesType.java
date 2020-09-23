@@ -1,4 +1,4 @@
-package recipe.drugsenterprise.CommonExtendCompatible;
+package recipe.drugsenterprise.commonExtendCompatible;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
@@ -13,7 +13,6 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

@@ -1,6 +1,5 @@
-package recipe.drugsenterprise.CommonExtendCompatible;
+package recipe.drugsenterprise.commonExtendCompatible;
 
-import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
