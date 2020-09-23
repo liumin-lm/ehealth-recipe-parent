@@ -844,7 +844,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
-    public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order) {
+    public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order, Recipe recipe) {
         Map<String, Object> orderInfo = Maps.newHashMap();
         if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             orderInfo.put("preSettleTotalAmount", new Double(map.get("preSettleTotalAmount")));
@@ -865,7 +865,18 @@ public class RecipeOrderService extends RecipeBaseService {
             orderInfo.put("TotalFee", new BigDecimal(map.get("payAmount")).doubleValue());
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
-            BigDecimal priceTemp = new BigDecimal(order.getActualPrice()).subtract(order.getRecipeFee());
+            //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, recipe.getPayMode()));
+            if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+                if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
+                    totalFee = order.getTotalFee().subtract(order.getExpressFee());
+                } else {
+                    totalFee = order.getTotalFee();
+                }
+            } else {
+                totalFee = order.getTotalFee();
+            }
+            BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
             orderInfo.put("ActualPrice", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
             orderInfo.put("TotalFee", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
         }

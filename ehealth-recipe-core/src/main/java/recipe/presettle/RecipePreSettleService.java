@@ -93,7 +93,7 @@ public class RecipePreSettleService {
             param.put("insuredArea", insuredArea);
             param.put("orderType", String.valueOf(orderType));
             LOGGER.info("unifyRecipePreSettle recipe={},param={},medicalPayConfig={}", recipe.getRecipeId(), JSONUtils.toString(param), medicalPayConfig);
-            if (medicalPayConfig) {
+            if (medicalPayConfig && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
                 return recipeHisService.provincialMedicalPreSettle(recipe.getRecipeId(), param);
             }
         }

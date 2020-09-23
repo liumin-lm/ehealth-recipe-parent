@@ -716,7 +716,7 @@ public class RecipeHisService extends RecipeBaseService {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         if (recipeOrder != null) {
                             RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                            if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder)) {
+                            if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder, recipe)) {
                                 result.put("msg", "预结算更新订单信息失败");
                                 return result;
                             }
@@ -857,7 +857,7 @@ public class RecipeHisService extends RecipeBaseService {
                             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                             if (recipeOrder != null) {
                                 RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                                if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder)) {
+                                if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder, recipe)) {
                                     result.put("msg", "预结算更新订单信息失败");
                                     return result;
                                 }
