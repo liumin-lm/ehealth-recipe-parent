@@ -71,9 +71,19 @@ public class RecipePreSettleService {
             result.put("msg", "查不到该处方扩展信息");
             return result;
         }
+        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+            LOGGER.info("unifyRecipePreSettle no support. recipeId={}", recipeId);
+            result.put("code", "200");
+            return result;
+        }
         Integer depId = recipeOrder.getEnterpriseId();
         Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
-        DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
+        DrugsEnterprise dep = null;
+        //到院取药有可能为空
+        if (depId != null) {
+            dep = drugsEnterpriseDAO.getById(depId);
+        }
+
         if (orderType == 0 && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //平台自费预结算--仅少数机构用到
             //目前省中走自费预结算
@@ -93,7 +103,7 @@ public class RecipePreSettleService {
             param.put("insuredArea", insuredArea);
             param.put("orderType", String.valueOf(orderType));
             LOGGER.info("unifyRecipePreSettle recipe={},param={},medicalPayConfig={}", recipe.getRecipeId(), JSONUtils.toString(param), medicalPayConfig);
-            if (medicalPayConfig && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+            if (medicalPayConfig) {
                 return recipeHisService.provincialMedicalPreSettle(recipe.getRecipeId(), param);
             }
         }
