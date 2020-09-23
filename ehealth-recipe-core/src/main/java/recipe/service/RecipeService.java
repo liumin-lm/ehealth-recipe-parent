@@ -1223,6 +1223,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //重试二次医生审核通过签名
+    @Deprecated
     public void retryDoctorSecondCheckPass(Recipe recipe) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
@@ -1267,6 +1268,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //重试二次医生审核不通过签名
+    @Deprecated
     public void retryDoctorSecondCheckNoPass(Recipe dbRecipe) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //date 2020/1/2
@@ -1296,6 +1298,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //医生端二次审核签名重试
+    @Deprecated
     @RpcService
     public void retryDoctorSecondSignCheck(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
