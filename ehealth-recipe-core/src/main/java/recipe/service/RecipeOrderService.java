@@ -869,7 +869,7 @@ public class RecipeOrderService extends RecipeBaseService {
             orderInfo.put("ActualPrice", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
             orderInfo.put("TotalFee", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
         }
-        return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), map);
+        return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderInfo);
     }
 
     private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {
