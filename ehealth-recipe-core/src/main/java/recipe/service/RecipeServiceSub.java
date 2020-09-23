@@ -148,8 +148,7 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
-        //电子病历，将电子病历保存到cdr模块
-        emrRecipeManager.saveMedicalInfo(recipe, recipeBean.getRecipeExtend());
+
         //武昌需求，加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient, recipeBean, recipeId);
 
@@ -159,7 +158,7 @@ public class RecipeServiceSub {
         return recipeId;
     }
 
-    private static void doWithRecipeExtend(PatientDTO patient, RecipeBean recipeBean, Integer recipeId) {
+    private void doWithRecipeExtend(PatientDTO patient, RecipeBean recipeBean, Integer recipeId) {
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
         if (null != recipeExt && null != recipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
@@ -193,6 +192,8 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
             }
+            //电子病历，将电子病历保存到cdr模块
+            emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }

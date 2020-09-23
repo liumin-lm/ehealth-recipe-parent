@@ -2,10 +2,8 @@ package recipe.service.manager;
 
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
@@ -41,69 +39,20 @@ public class EmrRecipeManager {
     @Resource
     private DepartmentService departmentService;
 
-
     /**
      * 保存电子病历 主要用于兼容老数据结构
      *
+     * @param recipe
      * @param recipeExt
      */
-    public void saveMedicalInfo(Recipe recipe, RecipeExtendBean recipeExt) {
+    public void saveMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager saveMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
-        if (null != recipeExt.getDocIndexId()) {
-            return;
-        }
-        try {
-            //保存电子病历
-            MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
-            //设置病历索引信息
-            DocIndexBean docIndexBean = new DocIndexBean();
-            docIndexBean.setClinicId(recipe.getClinicId());
-            docIndexBean.setMpiid(recipe.getMpiid());
-            docIndexBean.setDocClass(11);
-            docIndexBean.setDocType("0");
-            docIndexBean.setDocTitle("电子处方病历");
-            docIndexBean.setDocSummary("电子处方病历");
-            docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
-            docIndexBean.setCreateDepart(recipe.getDepart());
-            DepartmentDTO department = departmentService.get(recipe.getDepart());
-            if (department != null) {
-                docIndexBean.setDepartName(department.getName());
-            }
-            docIndexBean.setCreateDoctor(recipe.getDoctor());
-            docIndexBean.setDoctorName(recipe.getDoctorName());
-            docIndexBean.setCreateDate(new Date());
-            docIndexBean.setGetDate(new Date());
-            docIndexBean.setDoctypeName("电子处方病历");
-            docIndexBean.setDocStatus(4);
-            docIndexBean.setDocFlag(0);
-            docIndexBean.setOrganNameByUser(recipe.getOrganName());
-            docIndexBean.setClinicPersonName(recipe.getPatientName());
-            docIndexBean.setLastModify(new Date());
-            medicalInfoBean.setDocIndexBean(docIndexBean);
-            //设置病历索引扩展信息
-            List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
-            DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
-            //业务类型 1 处方 2 复诊 3 检查 4 检验
-            docIndexExtBean.setBussType(1);
-            docIndexExtBean.setBussId(recipe.getRecipeId());
-            docIndexExtBeanList.add(docIndexExtBean);
-            medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
-            //设置病历详情
-            MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
-            setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
-            medicalInfoBean.setMedicalDetailBean(medicalDetailBean);
-            logger.info("EmrRecipeManager saveMedicalInfo  medicalDetailBean:{}", JSONUtils.toString(medicalInfoBean));
-            Integer docId = docIndexService.saveMedicalInfo(medicalInfoBean);
-            recipeExt.setDocIndexId(docId);
-        } catch (Exception e) {
-            logger.error("EmrRecipeManager saveMedicalInfo 电子病历保存失败", e);
-        }
-        logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
-    }
-
-    public void updateMedicalInfo(Recipe recipe, RecipeExtendBean recipeExt) {
-        logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         if (null == recipeExt.getDocIndexId()) {
+            try {
+                addMedicalInfo(recipe, recipeExt);
+            } catch (Exception e) {
+                logger.error("EmrRecipeManager saveMedicalInfo 电子病历保存失败", e);
+            }
             return;
         }
         try {
@@ -113,12 +62,12 @@ public class EmrRecipeManager {
             MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
             medicalDetailBean.setDocIndexId(recipeExtend.getDocIndexId());
             setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
-            logger.info("EmrRecipeManager updateMedicalInfo medicalDetailBean :{}", JSONUtils.toString(medicalDetailBean));
+            logger.info("EmrRecipeManager saveMedicalInfo medicalDetailBean :{}", JSONUtils.toString(medicalDetailBean));
             docIndexService.updateMedicalDetail(medicalDetailBean);
         } catch (Exception e) {
-            logger.error("updateMedicalInfo 电子病历更新失败", e);
+            logger.error("EmrRecipeManager saveMedicalInfo 电子病历更新失败", e);
         }
-        logger.info("EmrRecipeManager updateMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
+        logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
     }
 
 
@@ -197,13 +146,64 @@ public class EmrRecipeManager {
 
 
     /**
+     * 新增电子病历 主要用于兼容老数据结构
+     *
+     * @param recipeExt
+     */
+    private void addMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
+        //保存电子病历
+        MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
+        //设置病历索引信息
+        DocIndexBean docIndexBean = new DocIndexBean();
+        docIndexBean.setClinicId(recipe.getClinicId());
+        docIndexBean.setMpiid(recipe.getMpiid());
+        docIndexBean.setDocClass(11);
+        docIndexBean.setDocType("0");
+        docIndexBean.setDocTitle("电子处方病历");
+        docIndexBean.setDocSummary("电子处方病历");
+        docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
+        docIndexBean.setCreateDepart(recipe.getDepart());
+        DepartmentDTO department = departmentService.get(recipe.getDepart());
+        if (department != null) {
+            docIndexBean.setDepartName(department.getName());
+        }
+        docIndexBean.setCreateDoctor(recipe.getDoctor());
+        docIndexBean.setDoctorName(recipe.getDoctorName());
+        docIndexBean.setCreateDate(new Date());
+        docIndexBean.setGetDate(new Date());
+        docIndexBean.setDoctypeName("电子处方病历");
+        docIndexBean.setDocStatus(4);
+        docIndexBean.setDocFlag(0);
+        docIndexBean.setOrganNameByUser(recipe.getOrganName());
+        docIndexBean.setClinicPersonName(recipe.getPatientName());
+        docIndexBean.setLastModify(new Date());
+        medicalInfoBean.setDocIndexBean(docIndexBean);
+        //设置病历索引扩展信息
+        List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
+        DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
+        //业务类型 1 处方 2 复诊 3 检查 4 检验
+        docIndexExtBean.setBussType(1);
+        docIndexExtBean.setBussId(recipe.getRecipeId());
+        docIndexExtBeanList.add(docIndexExtBean);
+        medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
+        //设置病历详情
+        MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
+        setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
+        medicalInfoBean.setMedicalDetailBean(medicalDetailBean);
+        logger.info("EmrRecipeManager saveMedicalInfo  medicalDetailBean:{}", JSONUtils.toString(medicalInfoBean));
+        Integer docId = docIndexService.saveMedicalInfo(medicalInfoBean);
+        recipeExt.setDocIndexId(docId);
+        logger.info("EmrRecipeManager saveMedicalInfo end docId={}", docId);
+    }
+
+    /**
      * 组织电子病历明细数据 用于调用保存接口 主要为了兼容老版本
      *
      * @param recipe
      * @param recipeExt
      * @param medicalDetailBean
      */
-    private void setMedicalDetailBean(Recipe recipe, RecipeExtendBean recipeExt, MedicalDetailBean medicalDetailBean) {
+    private void setMedicalDetailBean(RecipeBean recipe, RecipeExtend recipeExt, MedicalDetailBean medicalDetailBean) {
         List<EmrDetailDTO> detail = new ArrayList<>();
         //设置主诉
         detail.add(new EmrDetailDTO(RecipeEmrComment.COMPLAIN, "主诉", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getMainDieaseDescribe()), true));

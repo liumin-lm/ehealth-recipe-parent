@@ -2377,22 +2377,22 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             //慢病开关
-            if (recipeExtend.getRecipeChooseChronicDisease()==null){
+            if (recipeExtend.getRecipeChooseChronicDisease() == null) {
                 try {
                     IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer recipeChooseChronicDisease = (Integer)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
+                    Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
                     recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
-                }catch (Exception e){
-                    LOGGER.error("doWithRecipeExtend 获取开关异常",e);
+                } catch (Exception e) {
+                    LOGGER.error("doWithRecipeExtend 获取开关异常", e);
                 }
             }
+
+            emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
-
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");
-        emrRecipeManager.updateMedicalInfo(recipe, recipeBean.getRecipeExtend());
         return dbRecipeId;
     }
 
