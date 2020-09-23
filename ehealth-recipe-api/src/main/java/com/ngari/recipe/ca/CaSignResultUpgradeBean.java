@@ -44,6 +44,9 @@ public class CaSignResultUpgradeBean implements java.io.Serializable {
     //当前ca关联的处方业务类型
     private Integer busstype;
 
+    // CA类型
+    private String caType;
+
     public String getPdfBase64() {
         return pdfBase64;
     }
@@ -138,5 +141,13 @@ public class CaSignResultUpgradeBean implements java.io.Serializable {
 
     public void setBusstype(Integer busstype) {
         this.busstype = busstype;
+    }
+
+    public String getCaType() {
+        return caType;
+    }
+
+    public void setCaType(String caType) {
+        this.caType = caType;
     }
 }

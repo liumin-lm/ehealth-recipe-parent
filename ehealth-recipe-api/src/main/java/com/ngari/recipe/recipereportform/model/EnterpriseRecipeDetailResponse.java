@@ -46,9 +46,10 @@ public class EnterpriseRecipeDetailResponse implements Serializable {
      * 支付用户类型:0平台，1机构，2药企
      */
     private Integer payeeCode;
-
+    private String payeeCodeText;
     /**
      * 1配送到家 2医院取药 3药店取药
      */
     private Integer giveMode;
+    private String giveModeText;
 }
