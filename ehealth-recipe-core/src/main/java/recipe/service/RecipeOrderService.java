@@ -844,7 +844,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
-    public void dealWithOrderInfo(Map<String, String> map, RecipeOrder order) {
+    public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order) {
         Map<String, Object> orderInfo = Maps.newHashMap();
         if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             orderInfo.put("preSettleTotalAmount", map.get("preSettleTotalAmount"));
@@ -869,8 +869,7 @@ public class RecipeOrderService extends RecipeBaseService {
             orderInfo.put("ActualPrice", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
             orderInfo.put("TotalFee", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
         }
-        recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), map);
-
+        return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), map);
     }
 
     private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {

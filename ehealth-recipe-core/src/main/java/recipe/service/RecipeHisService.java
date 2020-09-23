@@ -716,7 +716,10 @@ public class RecipeHisService extends RecipeBaseService {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         if (recipeOrder != null) {
                             RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                            recipeOrderService.dealWithOrderInfo(map, recipeOrder);
+                            if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder)) {
+                                result.put("msg", "预结算更新订单信息失败");
+                                return result;
+                            }
                         }
                     } else {
                         //此时ext一般已经存在，若不存在有问题
@@ -854,7 +857,10 @@ public class RecipeHisService extends RecipeBaseService {
                             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                             if (recipeOrder != null) {
                                 RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                                recipeOrderService.dealWithOrderInfo(map, recipeOrder);
+                                if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder)) {
+                                    result.put("msg", "预结算更新订单信息失败");
+                                    return result;
+                                }
                             }
                         } else {
                             ext = new RecipeExtend();
