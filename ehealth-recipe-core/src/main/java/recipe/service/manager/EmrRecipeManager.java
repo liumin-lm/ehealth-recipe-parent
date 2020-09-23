@@ -50,12 +50,29 @@ public class EmrRecipeManager {
      */
     public void saveMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager saveMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
+        if (null != recipeExt.getDocIndexId()) {
+            return;
+        }
+        try {
+            addMedicalInfo(recipe, recipeExt);
+            logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
+        } catch (Exception e) {
+            logger.error("EmrRecipeManager saveMedicalInfo 电子病历保存失败", e);
+        }
+    }
+
+
+    public void updateMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
+        logger.info("EmrRecipeManager saveMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         if (null == recipeExt.getDocIndexId()) {
             try {
                 addMedicalInfo(recipe, recipeExt);
             } catch (Exception e) {
                 logger.error("EmrRecipeManager saveMedicalInfo 电子病历保存失败", e);
             }
+            return;
+        }
+        if (null != recipe.getEmrStatus() && !recipe.getEmrStatus()) {
             return;
         }
         try {

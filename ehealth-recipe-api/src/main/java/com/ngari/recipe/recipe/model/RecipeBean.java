@@ -365,6 +365,10 @@ public class RecipeBean implements Serializable {
 
     private Integer queryStatus;
     private String serialNumber;
+    /**
+     * 电子病例是否更新 true 不更新
+     */
+    private Boolean emrStatus;
 
     public Integer getQueryStatus() {
         return queryStatus;
@@ -1333,5 +1337,13 @@ public class RecipeBean implements Serializable {
 
     public void setDocIndexId(Integer docIndexId) {
         this.docIndexId = docIndexId;
+    }
+
+    public Boolean getEmrStatus() {
+        return emrStatus;
+    }
+
+    public void setEmrStatus(Boolean emrStatus) {
+        this.emrStatus = emrStatus;
     }
 }

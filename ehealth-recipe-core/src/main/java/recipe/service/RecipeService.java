@@ -2387,7 +2387,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
 
-            emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
+            emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
