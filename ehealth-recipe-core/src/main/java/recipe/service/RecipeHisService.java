@@ -736,7 +736,7 @@ public class RecipeHisService extends RecipeBaseService {
                 }
                 result.put("code", "200");
                 //日志记录
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "医保预结算成功");
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "处方预结算成功");
             } else {
                 String msg;
                 if (hisResult != null) {
@@ -746,15 +746,13 @@ public class RecipeHisService extends RecipeBaseService {
                 }
                 result.put("msg", msg);
                 //日志记录
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "医保预结算失败-原因:" + msg);
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "处方预结算失败-原因:" + msg);
             }
         } catch (Exception e) {
             LOGGER.error("provincialMedicalPreSettle recipeId={} error", recipeId, e);
+            throw new DAOException(609, "处方预结算异常");
         }
         return result;
-    }
-
-    private void dealWithOrderInfo(Map<String, String> map) {
     }
 
 
