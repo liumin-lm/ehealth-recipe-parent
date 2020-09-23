@@ -2782,7 +2782,7 @@ public class RecipeService extends RecipeBaseService {
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
         try {
-            emrRecipeManager.getMedicalInfo((RecipeBean) result.get("recipe"), (RecipeExtend) result.get("recipeExtend"));
+            EmrRecipeManager.getMedicalInfo((RecipeBean) result.get("recipe"), (RecipeExtend) result.get("recipeExtend"));
         } catch (Exception e) {
             LOGGER.error("emrRecipeManager getMedicalInfo is error ", e);
         }

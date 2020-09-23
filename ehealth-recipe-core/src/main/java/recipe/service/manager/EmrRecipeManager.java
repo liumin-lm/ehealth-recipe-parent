@@ -2,9 +2,11 @@ package recipe.service.manager;
 
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.DocIndexBean;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import recipe.ApplicationUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.comment.RecipeEmrComment;
@@ -32,7 +35,7 @@ import java.util.*;
  */
 @Service
 public class EmrRecipeManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(EmrRecipeManager.class);
 
     @Resource
     private IDocIndexService docIndexService;
@@ -70,6 +73,19 @@ public class EmrRecipeManager {
         logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
     }
 
+    /**
+     * 查询电子病例，主要用于兼容老数据结构
+     *
+     * @param recipeBean
+     * @param recipeExtend
+     */
+    public static void getMedicalInfo(RecipeBean recipeBean, RecipeExtend recipeExtend) {
+        Recipe recipe = new Recipe();
+        BeanUtils.copy(recipeBean, recipe);
+        getMedicalInfo(recipe, recipeExtend);
+        recipeBean.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        recipeBean.setOrganDiseaseId(recipe.getOrganDiseaseId());
+    }
 
     /**
      * 查询电子病例，主要用于兼容老数据结构
@@ -77,11 +93,12 @@ public class EmrRecipeManager {
      * @param recipe
      * @param recipeExtend
      */
-    public void getMedicalInfo(RecipeBean recipe, RecipeExtend recipeExtend) {
+    public static void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
         if (null == recipeExtend || null == recipeExtend.getDocIndexId()) {
             logger.info("EmrRecipeManager getMedicalInfo recipeExtend={}", JSONUtils.toString(recipeExtend));
             return;
         }
+        IDocIndexService docIndexService = ApplicationUtils.getBasicService(IDocIndexService.class);
         Map<String, Object> medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
         logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSONUtils.toString(medicalInfoMap));
         if (CollectionUtils.isEmpty(medicalInfoMap)) {
@@ -242,7 +259,7 @@ public class EmrRecipeManager {
      * @param recipe
      * @param recipeExtend
      */
-    private void getMultiSearch(EmrDetailDTO detail, RecipeBean recipe, RecipeExtend recipeExtend) {
+    private static void getMultiSearch(EmrDetailDTO detail, Recipe recipe, RecipeExtend recipeExtend) {
         /**诊断 ，中医症候特殊处理*/
         if (!RecipeEmrComment.MULTI_SEARCH.equals(detail.getType())) {
             logger.warn("EmrRecipeManager getMultiSearch detail={}", JSONUtils.toString(detail));
