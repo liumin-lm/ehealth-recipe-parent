@@ -869,12 +869,8 @@ public class RecipeOrderService extends RecipeBaseService {
             BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, recipe.getPayMode()));
             if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
-                    totalFee = order.getTotalFee().subtract(order.getExpressFee());
-                } else {
-                    totalFee = order.getTotalFee();
+                    totalFee = totalFee.subtract(order.getExpressFee());
                 }
-            } else {
-                totalFee = order.getTotalFee();
             }
             BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
             orderInfo.put("ActualPrice", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
