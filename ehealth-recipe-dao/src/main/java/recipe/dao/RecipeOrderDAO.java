@@ -1453,10 +1453,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     countQuery.setParameter("enterpriseId", request.getEnterpriseId());
                 }
                 if (null != request.getGiveMode()) {
-                    query.setParameter("giveMode", request.getGiveMode());
+                    countQuery.setParameter("giveMode", request.getGiveMode());
                 }
                 if (null != request.getPayeeCode()) {
-                    query.setParameter("payeeCode", request.getPayeeCode());
+                    countQuery.setParameter("payeeCode", request.getPayeeCode());
                 }
                 countQuery.setParameter("startTime", request.getStartTime());
                 countQuery.setParameter("endTime", request.getEndTime());
