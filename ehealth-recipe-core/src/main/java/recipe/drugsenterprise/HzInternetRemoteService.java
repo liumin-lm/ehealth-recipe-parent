@@ -109,6 +109,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
+    @Deprecated
     public DrugEnterpriseResult recipeMedicalPreSettleO(Integer recipeId) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -153,6 +154,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
+    @Deprecated
     public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId, Integer depId) {
 
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -284,11 +286,11 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}", recipeId, JSONUtils.toString(extInfo));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
-        result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
+        /*result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
         if (DrugEnterpriseResult.FAIL.equals(result.getCode())) {
             LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}", recipeId, JSONUtils.toString(result));
             return result;
-        }
+        }*/
 
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);

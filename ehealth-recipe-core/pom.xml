@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>2.9.1.1.master-SNAPSHOT</version>
+        <version>2.9.2.0.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -85,6 +85,10 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-shadow-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-miscellany-api</artifactId>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>

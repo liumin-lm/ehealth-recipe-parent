@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
+import com.ngari.ca.api.vo.*;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
@@ -22,6 +23,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
+import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -34,6 +36,7 @@ import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.CaSignResultBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
@@ -185,6 +188,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeBean != null && recipeExtend != null) {
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+            recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
         return recipeBean;
     }
@@ -1368,7 +1372,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
-        List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
+        List<Recipe> recipes = null;
+        if (CollectionUtils.isNotEmpty(organIds)) {
+            recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
+        } else {
+            recipes =recipeDAO.findByRecipeIds(recipeIds);
+        }
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
@@ -1649,7 +1658,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer> recipeIds) {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
-        return ObjectCopyUtils.convert(recipedetails,RecipeDetailBean.class);
+        return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
     }
 
     @Override
@@ -1657,4 +1666,37 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         return recipeParameterDao.getByName(paramName);
     }
+
+    @RpcService
+    @Override
+    public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.retryCaDoctorCallBackToRecipe(caSignResultVo);
+    }
+
+    @RpcService
+    @Override
+    public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
+    }
+
+
+    private CaSignResultVo makeCaSignResultVoFromCABean(CaSignResultUpgradeBean resultVo) {
+        CaSignResultVo caSignResultVo = new CaSignResultVo();
+        caSignResultVo.setResultCode(resultVo.getResultStatus());
+        caSignResultVo.setSignPicture(resultVo.getSignPicture());
+        caSignResultVo.setCertificate(resultVo.getCertificate());
+        caSignResultVo.setSignCADate(resultVo.getSignDate());
+        caSignResultVo.setSignRecipeCode(resultVo.getSignCode());
+        caSignResultVo.setCode(resultVo.getMsgCode());
+        caSignResultVo.setMsg(resultVo.getMsg());
+        caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
+        caSignResultVo.setRecipeId(resultVo.getBussId());
+        caSignResultVo.setBussType(resultVo.getBusstype());
+        return caSignResultVo;
+    }
+
 }

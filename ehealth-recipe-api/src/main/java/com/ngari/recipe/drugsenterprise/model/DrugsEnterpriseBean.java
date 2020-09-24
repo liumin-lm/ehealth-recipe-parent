@@ -124,6 +124,16 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "药企对接方式 0 平台 1 前置机")
     private Integer operationType;
 
+    private Integer payeeCode;
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    private Integer isShowExpectSendDate;
+
+    @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
+    private Integer expectSendDateIsContainsWeekend;
+
+    @ItemProperty(alias = "配送时间说明文案")
+    private String sendDateText;
+
 
     public DrugsEnterpriseBean() {
     }
@@ -394,5 +404,29 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    public Integer getIsShowExpectSendDate() {
+        return isShowExpectSendDate;
+    }
+
+    public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
+        this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+
+    public Integer getExpectSendDateIsContainsWeekend() {
+        return expectSendDateIsContainsWeekend;
+    }
+
+    public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
+        this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
+    }
+
+    public String getSendDateText() {
+        return sendDateText;
+    }
+
+    public void setSendDateText(String sendDateText) {
+        this.sendDateText = sendDateText;
     }
 }

@@ -933,6 +933,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         return drugEnterpriseService;
     }
 
+
     /**
      * 获取药企帐号
      *

@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import java.util.Map;
+
 public class CaSignResultBean {
     /**
      * 签章后的pdfbase64文件
@@ -26,6 +28,39 @@ public class CaSignResultBean {
     //添加字段ca结果（-1: 当前ca操作未结束；0：当前ca已结束，结果失败; 1：当前ca已结束，结果成功）
     //date 20200617
     private Integer resultCode;
+
+    //证书
+    private String certificate;
+
+    //手写签名
+    private String signPicture;
+
+    //e签保返回
+    private Map<String, Object> esignResponseMap;
+
+    public String getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(String certificate) {
+        this.certificate = certificate;
+    }
+
+    public String getSignPicture() {
+        return signPicture;
+    }
+
+    public void setSignPicture(String signPicture) {
+        this.signPicture = signPicture;
+    }
+
+    public Map<String, Object> getEsignResponseMap() {
+        return esignResponseMap;
+    }
+
+    public void setEsignResponseMap(Map<String, Object> esignResponseMap) {
+        this.esignResponseMap = esignResponseMap;
+    }
 
     public Integer getRecipeId() {
         return recipeId;

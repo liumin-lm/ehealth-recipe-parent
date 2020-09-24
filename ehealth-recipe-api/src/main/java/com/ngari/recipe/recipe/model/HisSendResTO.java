@@ -38,6 +38,19 @@ public class HisSendResTO implements java.io.Serializable {
      */
     private List<OrderRepTO> data;
 
+    /**
+     * 处方收费序号合集（多个用逗号拼接）
+     */
+    private String recipeCostNumber;
+
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
+
     public String getRecipeId() {
         return recipeId;
     }

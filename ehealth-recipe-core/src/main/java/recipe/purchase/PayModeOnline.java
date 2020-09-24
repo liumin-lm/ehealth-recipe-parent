@@ -2,8 +2,10 @@ package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
@@ -359,6 +361,11 @@ public class PayModeOnline implements IPurchaseService {
         String payway = MapValueUtil.getString(extInfo, "payway");
         //订单类型-1省医保
         Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
+        if (StringUtils.isNotEmpty(insuredArea)) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
+        }
 
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
@@ -387,10 +394,13 @@ public class PayModeOnline implements IPurchaseService {
             remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
         }
 
-        //设置配送费支付方式
+
         if (dep != null) {
+            //设置配送费支付方式
             order.setExpressFeePayWay(dep.getExpressFeePayWay());
             order.setSendType(dep.getSendType());
+            //设置是否显示期望配送时间,默认否 0:否,1:是
+            order.setIsShowExpectSendDate(dep.getIsShowExpectSendDate());
         }
 
         //设置中药代建费
@@ -402,7 +412,6 @@ public class PayModeOnline implements IPurchaseService {
                 if(decoctionWay.getDecoctionPrice() != null){
                     order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 }
-                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
 
             } else {
@@ -885,11 +894,19 @@ public class PayModeOnline implements IPurchaseService {
             return succFlag;
         }
 
-        //判断药企平台内药品权限，此处简单判断数量是否一致
-        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
-        if (null != count && count > 0) {
-            if (count == drugIds.size()) {
-                succFlag = true;
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+
+        //获取机构配置的支持购药方式
+        //date 20200921 修改【his管理的药企】不用校验配送药品
+        if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(dbRecipe.getClinicOrgan()))){
+            succFlag = true;
+        }else{
+            //判断药企平台内药品权限，此处简单判断数量是否一致
+            Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
+            if (null != count && count > 0) {
+                if (count == drugIds.size()) {
+                    succFlag = true;
+                }
             }
         }
 
@@ -962,7 +979,7 @@ public class PayModeOnline implements IPurchaseService {
                     for (DepDetailBean depDetailBean : depDetailList) {
                         if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
                             depDetailList.remove(depDetailBean);
-                            break;
+                            continue;
                         }
                     }
                     //特殊处理,对华润药企特殊处理,包含华润药企,需要将华润药企替换成药店
@@ -977,12 +994,15 @@ public class PayModeOnline implements IPurchaseService {
                             for (DepDetailBean depDetailBean : hrList) {
                                 depDetailBean.setDepId(drugsEnterprise.getId());
                                 depDetailBean.setBelongDepName(depDetailBean.getDepName());
-                                if (RecipeBussConstant.PAYMODE_ONLINE.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
-                                    depDetailBean.setPayModeText("在线支付");
-                                    depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
-                                } else {
-                                    depDetailBean.setPayModeText("货到付款");
-                                    depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
+                                //非his管理药企的根据药企信息进行重新覆盖
+                                if(!(depDetailBean.getHisDep() != null && depDetailBean.getHisDep())){
+                                    if (RecipeBussConstant.PAYMODE_ONLINE.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
+                                        depDetailBean.setPayModeText("在线支付");
+                                        depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+                                    } else {
+                                        depDetailBean.setPayModeText("货到付款");
+                                        depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
+                                    }
                                 }
                                 //如果是价格自定义的药企，则需要设置单独价格
                                 //date 20200402

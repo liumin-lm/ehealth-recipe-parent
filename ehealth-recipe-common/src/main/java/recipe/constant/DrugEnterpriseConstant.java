@@ -131,4 +131,9 @@ public class DrugEnterpriseConstant {
      * 华宇
      */
     public static final String COMPANY_HY = "hy";
+
+    /**
+     * his管理的药企
+     */
+    public static final String COMPANY_HIS = "hisAdiminstration";
 }
