@@ -443,9 +443,10 @@ public class RecipeServiceEsignExt {
             e.printStackTrace();
         }
         String fileId = null;
-        //String fileId = RecipeServiceEsignExt.uploadRecipeSignFile(data, fileName, null);
+        fileId = RecipeServiceEsignExt.uploadRecipeSignFile(data, fileName, null);
         if (null == fileId) {
             LOGGER.info("上传文件失败,fileName=" + fileName);
+            return;
         }
         if(isDoctor){
             if(StringUtils.isEmpty(recipe.getSignFile())){
