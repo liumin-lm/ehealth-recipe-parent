@@ -979,7 +979,7 @@ public class PayModeOnline implements IPurchaseService {
                     for (DepDetailBean depDetailBean : depDetailList) {
                         if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
                             depDetailList.remove(depDetailBean);
-                            break;
+                            continue;
                         }
                     }
                     //特殊处理,对华润药企特殊处理,包含华润药企,需要将华润药企替换成药店
