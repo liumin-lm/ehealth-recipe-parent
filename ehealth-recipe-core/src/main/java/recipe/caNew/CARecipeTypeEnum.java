@@ -2,19 +2,19 @@ package recipe.caNew;
 
 public enum CARecipeTypeEnum {
 
-    Before_CAType("before", new CaBeforeProcessType()),
-    After_CAType("after",new CaAfterProcessType());
+    Before_CAType(0, new CaBeforeProcessType()),
+    After_CAType(1,new CaAfterProcessType());
 
-    private String exceptionName;
+    private Integer exceptionName;
 
     private AbstractCaProcessType caProcess;
 
-    CARecipeTypeEnum(String exceptionName, AbstractCaProcessType caProcess) {
+    CARecipeTypeEnum(Integer exceptionName, AbstractCaProcessType caProcess) {
         this.exceptionName = exceptionName;
         this.caProcess = caProcess;
     }
 
-    public static AbstractCaProcessType getCaProcessType(String exceptionName){
+    public static AbstractCaProcessType getCaProcessType(Integer exceptionName){
         for(CARecipeTypeEnum c:CARecipeTypeEnum.values()){
             if(c.getExceptionName().equals(exceptionName)){
                 return c.getCaProcess();
@@ -23,11 +23,11 @@ public enum CARecipeTypeEnum {
         return null;
     }
 
-    public String getExceptionName() {
+    public Integer getExceptionName() {
         return exceptionName;
     }
 
-    public void setExceptionName(String exceptionName) {
+    public void setExceptionName(Integer exceptionName) {
         this.exceptionName = exceptionName;
     }
 

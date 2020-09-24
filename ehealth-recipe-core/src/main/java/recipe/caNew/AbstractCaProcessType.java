@@ -56,6 +56,10 @@ public abstract class AbstractCaProcessType {
     private static final Integer CA_OLD_TYPE = new Integer(0);
 
     private static final Integer CA_NEW_TYPE = new Integer(1);
+
+    private static final Integer CA_BEFORE = new Integer(0);
+
+    private static final Integer CA_AFTER = new Integer(1);
     //我们将开方的流程拆开：
     //1.保存处方（公共操作）=》2.CA签名前操作=》3.CA签名后操作
     //因为拿到CA结果的时机不同，流程3中：前置是在推his前拿到的，所以在拿到结果后需要将处方做推his的相关操作;
@@ -67,9 +71,9 @@ public abstract class AbstractCaProcessType {
         //添加按钮配置项key
         Object caFromHisCallBackOrder = configService.getConfiguration(organId, "CAFromHisCallBackOrder");
         //先给个默认值
-        String CAType = "before";
+        Integer CAType = CA_BEFORE;
         if(null != caFromHisCallBackOrder){
-            CAType = caFromHisCallBackOrder.toString();
+            CAType = Integer.parseInt(caFromHisCallBackOrder.toString());
         }
         return CARecipeTypeEnum.getCaProcessType(CAType);
 
