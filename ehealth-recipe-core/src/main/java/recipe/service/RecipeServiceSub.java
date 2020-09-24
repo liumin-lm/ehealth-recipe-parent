@@ -49,7 +49,8 @@ import ctd.util.JSONUtils;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.model.AuditMedicinesDTO;
+import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.module.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -1686,12 +1687,12 @@ public class RecipeServiceSub {
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                 map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
 //                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-                List<eh.recipeaudit.model.AuditMedicineIssueDTO> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+                List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                    List<eh.recipeaudit.model.AuditMedicineIssueDTO> resultMedicineIssues = new ArrayList<>();
+                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
                     auditMedicineIssues.forEach(item -> {
                         if (null == item.getMedicineId()) {
                             resultMedicineIssues.add(item);
@@ -2100,7 +2101,7 @@ public class RecipeServiceSub {
         map.put("showButton", showButton);
     }
 
-    private static List<AuditMedicinesDTO> handleAnalysisByType(List<AuditMedicinesDTO> auditMedicines, String type) {
+    private static List<AuditMedicinesBean> handleAnalysisByType(List<AuditMedicinesBean> auditMedicines, String type) {
         if (CollectionUtils.isNotEmpty(auditMedicines)) {
             auditMedicines.forEach(auditMedicinesDTO -> {
                 List<AuditMedicineIssueDTO> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
@@ -2288,14 +2289,14 @@ public class RecipeServiceSub {
         return isDownload;
     }
 
-    public static List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
+    public static List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
 //        AuditMedicineIssueDAO issueDao = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
 //        AuditMedicinesDAO medicinesDao = DAOFactory.getDAO(AuditMedicinesDAO.class);
-        List<AuditMedicinesDTO> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
-        List<AuditMedicinesDTO> list = Lists.newArrayList();
+        List<AuditMedicinesBean> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
+        List<AuditMedicinesBean> list = Lists.newArrayList();
         if (medicines != null && medicines.size() > 0) {
-            list = ObjectCopyUtils.convert(medicines, AuditMedicinesDTO.class);
-            List<eh.recipeaudit.model.AuditMedicineIssueDTO> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+            list = ObjectCopyUtils.convert(medicines, AuditMedicinesBean.class);
+            List<AuditMedicineIssueBean> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
            /* Map<Integer,AuditMedicineIssue> maps = Maps.uniqueIndex(issues.iterator(),  new Function<AuditMedicineIssue, Integer>() {
                 @Override
                 public Integer apply(AuditMedicineIssue entity) {
@@ -2303,10 +2304,10 @@ public class RecipeServiceSub {
                 }
             });*/
             if (issues != null && issues.size() > 0) {
-                List<eh.recipeaudit.model.AuditMedicineIssueDTO> issueList;
-                for (AuditMedicinesDTO auditMedicinesDTO : list) {
+                List<AuditMedicineIssueBean> issueList;
+                for (AuditMedicinesBean auditMedicinesDTO : list) {
                     issueList = Lists.newArrayList();
-                    for (eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue : issues) {
+                    for (AuditMedicineIssueBean auditMedicineIssue : issues) {
                         if (null != auditMedicineIssue.getMedicineId() && auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
                             issueList.add(auditMedicineIssue);
                         }

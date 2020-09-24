@@ -19,18 +19,12 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.ca.api.vo.CommonSignRequest;
 import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
-import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
-import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -66,6 +60,7 @@ import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
 import eh.recipeaudit.module.Intelligent.IssueBean;
 import eh.recipeaudit.module.Intelligent.PAWebMedicinesBean;
@@ -85,9 +80,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.bean.AutoAuditResult;
-import recipe.audit.bean.Issue;
-import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
@@ -116,11 +108,9 @@ import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
-import sun.misc.BASE64Decoder;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -2875,7 +2865,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<eh.recipeaudit.model.AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
+    public List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 

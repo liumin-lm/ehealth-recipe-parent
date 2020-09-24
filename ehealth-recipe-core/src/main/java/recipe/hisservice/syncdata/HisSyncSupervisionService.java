@@ -26,8 +26,8 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
-import eh.recipeaudit.model.AuditMedicineIssueDTO;
-import eh.recipeaudit.model.AuditMedicinesDTO;
+import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -156,8 +156,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientDTO patientDTO;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
-        List<AuditMedicinesDTO> medicineList;
-        AuditMedicinesDTO medicine;
+        List<AuditMedicinesBean> medicineList;
+        AuditMedicinesBean medicine;
         RecipeExtend recipeExtend;
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
@@ -937,9 +937,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      */
     private String setRationalDrug(Integer recipeId) {
 //        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        List<AuditMedicineIssueDTO> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+        List<AuditMedicineIssueBean> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
         StringBuilder sb = new StringBuilder();
-        for (AuditMedicineIssueDTO issue : issueList) {
+        for (AuditMedicineIssueBean issue : issueList) {
             sb.append(issue.getDetail());
         }
 
