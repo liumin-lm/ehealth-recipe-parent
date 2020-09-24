@@ -89,7 +89,11 @@ public class CaAfterProcessType extends AbstractCaProcessType{
         CommonSignRequest commonSignRequest = recipeCAService.packageCAFromRecipe(recipeId, recipe.getDoctor(), true);
         LOGGER.info("当前请求CA的组装数据：{}", JSONUtils.toString(commonSignRequest));
         //2.请求后台的CA
-        caRemoteService.commonCaSignAndSeal(commonSignRequest);
+        try {
+            caRemoteService.commonCaSignAndSeal(commonSignRequest);
+        }catch (Exception e){
+            LOGGER.warn("请求CA异常{}！", e);
+        }
         //3.返回一个异步操作的CA,中断状态
         recipeResultBean.setCode(RecipeResultBean.NO_ADDRESS);
         //将返回的CA结果给处方，设置处方流转
