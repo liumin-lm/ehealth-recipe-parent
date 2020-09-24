@@ -179,7 +179,7 @@ public class RecipeCAService {
             caExt.put("taskCode", packageCAFromBus(recipeId));
             caRequest.setBussData(JSONUtils.toString(recipe));
         } catch (Exception e) {
-            LOGGER.warn("当前处方CA数据组装失败返回空");
+            LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }
         return caRequest;
     }
