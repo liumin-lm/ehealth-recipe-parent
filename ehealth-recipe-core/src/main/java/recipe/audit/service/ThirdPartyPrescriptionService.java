@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 /**
  * 第三方合理用药
  */
@@ -91,6 +93,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
                 recipeExtendBean = new RecipeExtendBean();
                 BeanUtils.copyProperties(recipeExtend, recipeExtendBean);
+                getMedicalInfo(recipeBean, recipeExtend);
             }
             ThirdPartyRationalUseDrugReqTO reqTO;
             ConsultExDTO consultExDTO = null;

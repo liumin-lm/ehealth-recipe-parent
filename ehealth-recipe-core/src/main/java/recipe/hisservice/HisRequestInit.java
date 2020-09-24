@@ -50,6 +50,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * company: ngarihealth
@@ -76,7 +77,7 @@ public class HisRequestInit {
 
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+            getMedicalInfo(recipe, recipeExtend);
             requestTO.setIcdCode(recipe.getOrganDiseaseId());
             requestTO.setIcdName(recipe.getOrganDiseaseName());
             // 简要病史
@@ -292,7 +293,7 @@ public class HisRequestInit {
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+        getMedicalInfo(recipe, recipeExtend);
         requestTO.setIcdCode(recipe.getOrganDiseaseId());
         requestTO.setIcdName(recipe.getOrganDiseaseName());
         // 简要病史
@@ -975,6 +976,7 @@ public class HisRequestInit {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
+                getMedicalInfo(recipe, recipeExtend);
                 //主诉
                 requestTO.setMainDiseaseDescribe(StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe()) ? recipeExtend.getMainDieaseDescribe() : "无");
                 //现病史
@@ -987,7 +989,7 @@ public class HisRequestInit {
                 LOGGER.warn("recipeExtend is null . recipeId={}", recipe.getRecipeId());
             }
             //获取诊断数据
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+            getMedicalInfo(recipe, recipeExtend);
             List<String> icdLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseId());
             List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
             List<DocIndexInfoTO> data = Lists.newArrayList();

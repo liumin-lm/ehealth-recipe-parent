@@ -1,14 +1,13 @@
 package recipe.audit.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
-import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
@@ -31,6 +30,7 @@ import recipe.constant.CacheConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
@@ -43,6 +43,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 描述：卫宁智能审方
@@ -68,6 +70,8 @@ public class WinningPrescriptionService implements IntellectJudicialService {
 
     @Autowired
     private OrganService organService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 早期使用接口，不能删除
@@ -103,6 +107,8 @@ public class WinningPrescriptionService implements IntellectJudicialService {
 
         if (StringUtils.isEmpty(isAutoReview) || "true".equalsIgnoreCase(isAutoReview)) {
             try {
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                getMedicalInfo(recipe, recipeExtend);
                 result = analysisImpl(recipe, recipedetails);
             } catch (Exception e) {
                 LOGGER.warn("analysis error. recipe={}, detail={}",

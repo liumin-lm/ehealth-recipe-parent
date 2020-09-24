@@ -11,7 +11,6 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.sign.ISignRecipeInfoService;
-import ctd.account.UserRoleToken;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
@@ -31,13 +30,14 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 @RpcBean
 public class SignRecipeInfoService implements ISignRecipeInfoService {
@@ -194,7 +194,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-
+            getMedicalInfo(recipeBean, recipeExtend);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO p = patientService.getPatientByMpiId(recipeBean.getMpiid());
 

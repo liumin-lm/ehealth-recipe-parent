@@ -85,6 +85,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * company: ngarihealth
@@ -184,6 +186,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeBean != null && recipeExtend != null) {
+            getMedicalInfo(recipeBean, recipeExtend);
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
         }
         return recipeBean;
