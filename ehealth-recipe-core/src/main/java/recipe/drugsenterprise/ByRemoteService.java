@@ -10,7 +10,6 @@ import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -441,6 +440,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto=new YfzAddHospitalPrescriptionDto();
         if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe nowRecipe = recipeList.get(0);
+            getMedicalInfo(nowRecipe);
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(nowRecipe.getRecipeId());
             //订单信息
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());

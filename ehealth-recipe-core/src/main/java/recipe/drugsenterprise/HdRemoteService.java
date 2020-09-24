@@ -318,6 +318,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         if (CollectionUtils.isNotEmpty(recipeList)) {
             try {
                 Recipe nowRecipe = recipeList.get(0);
+                getMedicalInfo(nowRecipe);
                 assemblePushRecipeMessage(result, sendHdRecipe, nowRecipe, enterprise);
                 if (DrugEnterpriseResult.FAIL == result.getCode())
                     return;

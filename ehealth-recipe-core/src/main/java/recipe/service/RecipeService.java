@@ -167,7 +167,8 @@ public class RecipeService extends RecipeBaseService {
     private RecipeServiceSub recipeServiceSub;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
-
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     /**
      * 药师审核不通过
      */
@@ -1656,8 +1657,8 @@ public class RecipeService extends RecipeBaseService {
         Integer recipeId = resultVo.getRecipeId();
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-        String recipeMode = recipe.getRecipeMode();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
 
         Integer organId = recipe.getClinicOrgan();
         RecipeResultBean checkResult = new RecipeResultBean();

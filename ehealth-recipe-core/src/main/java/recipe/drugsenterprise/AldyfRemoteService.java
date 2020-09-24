@@ -13,7 +13,6 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.taobao.api.FileItem;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionAddRequest;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionGetRequest;
@@ -261,6 +260,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionAddRequest.setPrescriptionParam(prescriptionParam);
 
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+                getMedicalInfo(dbRecipe, recipeExtend);
                 //DiagnosticParam 患者主诉
                 AlibabaAlihealthRxPrescriptionAddRequest.DiagnosticParam diagnosticParam = new AlibabaAlihealthRxPrescriptionAddRequest.DiagnosticParam();
                 diagnosticParam.setComplaints(dbRecipe.getMemo());               //诊断

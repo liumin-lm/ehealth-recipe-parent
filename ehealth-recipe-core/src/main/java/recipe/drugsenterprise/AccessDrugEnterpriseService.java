@@ -4,13 +4,9 @@ import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -19,18 +15,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.purchase.PayModeOnline;
 import recipe.purchase.PurchaseService;
 import recipe.service.RecipeOrderService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
@@ -50,6 +45,9 @@ import java.util.Map;
 public abstract class AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AccessDrugEnterpriseService.class);
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 单个线程处理药企药品数量
@@ -432,4 +430,28 @@ public abstract class AccessDrugEnterpriseService {
                 recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         return payResult;
     }
+
+    /**
+     * 药企公用获取新电子病历结构
+     *
+     * @param recipe
+     * @param recipeExtend
+     */
+    protected void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+    }
+
+    /**
+     * 药企公用获取新电子病历结构
+     *
+     * @param recipe
+     */
+    protected void getMedicalInfo(Recipe recipe) {
+        if (null == recipe || null == recipe.getRecipeId()) {
+            return;
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+    }
+
 }

@@ -19,7 +19,6 @@ import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -28,7 +27,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +37,12 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.thread.CardDataUploadRunable;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.QueryHisRecipeCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 
@@ -286,6 +282,7 @@ public class HisRecipeService {
                 result.add(hisRecipeVO);
             } else {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(recipe.getStatus()));
                     if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
@@ -661,6 +658,7 @@ public class HisRecipeService {
             hisRecipeVO.setJumpPageType(0);
         } else {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                     //表示该处方来源于HIS
                     if(StringUtils.isEmpty(recipe.getOrderCode())){

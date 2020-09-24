@@ -331,6 +331,7 @@ public class RecipeServiceSub {
      * @param recipedetails 处方ID
      */
     public static boolean setDetailsInfo(Recipe recipe, List<Recipedetail> recipedetails) {
+        getMedicalInfo(recipe);
         boolean success = false;
         int organId = recipe.getClinicOrgan();
         //药品总金额
@@ -760,6 +761,7 @@ public class RecipeServiceSub {
         try {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, extend);
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -855,6 +857,7 @@ public class RecipeServiceSub {
         try {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, extend);
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -1489,6 +1492,7 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertRecipeForRAP(Recipe recipe) {
+        getMedicalInfo(recipe);
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1505,13 +1509,22 @@ public class RecipeServiceSub {
         return r;
     }
 
+    private static void getMedicalInfo(Recipe recipe) {
+        if (null == recipe || null == recipe.getRecipeId()) {
+            return;
+        }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+    }
+
     public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
         RecipeBean r = new RecipeBean();
         r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
-        r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType())?null:Integer.parseInt(recipe.getRecipeType()));
+        r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         StringBuilder stringBuilder = new StringBuilder();
@@ -2529,7 +2542,7 @@ public class RecipeServiceSub {
      */
     public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-
+        getMedicalInfo(recipe);
         RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {

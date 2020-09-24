@@ -86,6 +86,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     }
 
     private void pushRecipeInfoForSy(DrugsEnterprise enterprise, DrugEnterpriseResult result, Recipe recipe, Integer flag) {
+        getMedicalInfo(recipe);
         LOGGER.info("pushRecipeInfoForSy recipeId:{}, flag:{}.", recipe.getRecipeId(), flag);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);

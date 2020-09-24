@@ -35,12 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.constant.*;
+import recipe.constant.CacheConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.RedisClient;
 
 import java.util.HashMap;
@@ -637,6 +639,8 @@ public class PrescribeService {
         Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(searchQO.getRecipeCode(),
                 Integer.parseInt(searchQO.getClinicOrgan()));
         if (null != dbRecipe) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
             HospitalRecipeDTO hospitalRecipeDTO = PrescribeProcess.convertHospitalRecipe(dbRecipe);
             if (null != hospitalRecipeDTO) {
                 response.setCode(RecipeCommonResTO.SUCCESS);

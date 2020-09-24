@@ -15,7 +15,6 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.beanutils.BeanUtils;
@@ -49,7 +48,10 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -164,7 +166,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
 
             Recipe dbRecipe = recipeList.get(0);
-
+            getMedicalInfo(dbRecipe);
             String organCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
             if (StringUtils.isNotEmpty(organCode)) {
                 zfbRecipe.setOrganId(organCode);

@@ -47,17 +47,16 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.serviceprovider.BaseService;
 import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.Future;
 
 /**
  * 第三方药企调用接口,历史原因存在一些平台的接口
@@ -1676,17 +1675,19 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         List<RecipeAndOrderDetailBean> result = new ArrayList<>();
         for (RecipeOrder recipeOrder : recipeOrders) {
             RecipeAndOrderDetailBean orderDetailBean = new RecipeAndOrderDetailBean();
-
             String orderCode = recipeOrder.getOrderCode();
             List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
-            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && new Integer(1).equals(recipe.getPayMode()) ) {
+
+            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && new Integer(1).equals(recipe.getPayMode())) {
                 //表示不是医保患者并且没有优惠券并且还不是药店取药的,那他一定要支付钱
                 if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
                     continue;
                 }
             }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             //设置医院信息
             OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes organ:{} .", JSONUtils.toString(organ));
@@ -1776,7 +1777,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             //设置中医辨证论治费
             orderDetailBean.setTcmFee(convertParame(recipeOrder.getTcmFee()));
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+
             if (recipe.getRecipeType() == 3 && recipeOrder.getDecoctionFee() != null && recipeOrder.getDecoctionFee().compareTo(BigDecimal.ZERO) == 1 ) {
                 orderDetailBean.setDecoctionFlag("1");
             } else {

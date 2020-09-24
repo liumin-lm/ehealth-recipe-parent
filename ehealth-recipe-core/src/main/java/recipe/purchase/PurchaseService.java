@@ -42,6 +42,7 @@ import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -68,6 +69,8 @@ public class PurchaseService {
     @Autowired
     private RedisClient redisClient;
 
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -188,17 +191,19 @@ public class PurchaseService {
         if (null == dbRecipe) {
             result.setCode(RecipeResultBean.CHECKFAIL);
             result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-            LOG.info("checkOrderInfo recipeId:{} 处方不存在",recipeId);
+            LOG.info("checkOrderInfo recipeId:{} 处方不存在", recipeId);
             return result;
         }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
         //判断是订单是否已支付
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
             RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-            if(new Integer(1).equals(order.getPayFlag())){
+            if (new Integer(1).equals(order.getPayFlag())) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                LOG.info("checkOrderInfo recipeId:{} 您的订单已支付",recipeId);
+                LOG.info("checkOrderInfo recipeId:{} 您的订单已支付", recipeId);
             }
         }
         //判断诊断和药品信息是否已更改

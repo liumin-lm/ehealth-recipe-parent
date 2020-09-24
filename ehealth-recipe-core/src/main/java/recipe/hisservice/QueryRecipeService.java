@@ -42,13 +42,14 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeServiceSub;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -196,6 +197,10 @@ public class QueryRecipeService implements IQueryRecipeService {
     private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe, PatientBean patient, HealthCardBean card) {
         QueryRecipeInfoDTO recipeDTO = null;
         try {
+            Integer recipeId = recipe.getRecipeId();
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            getMedicalInfo(recipe, recipeExtend);
             recipeDTO = new QueryRecipeInfoDTO();
             //拼接处方信息
             //处方号
@@ -261,11 +266,9 @@ public class QueryRecipeService implements IQueryRecipeService {
             //自付比例
             /*recipeDTO.setPayScale("");*/
             //主诉等等四个字段
-            Integer recipeId = recipe.getRecipeId();
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
             if (recipeExtend != null) {
-                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+                getMedicalInfo(recipe, recipeExtend);
                 if (StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe())) {
                     //主诉
                     recipeDTO.setBRZS(recipeExtend.getMainDieaseDescribe());

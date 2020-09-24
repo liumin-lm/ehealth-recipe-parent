@@ -71,6 +71,7 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.PayModeOnline;
 import recipe.purchase.PurchaseEnum;
 import recipe.purchase.PurchaseService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
@@ -95,7 +96,8 @@ public class RecipeHisService extends RecipeBaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeHisService.class);
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RedisClient redisClient;
     @Autowired
@@ -152,6 +154,7 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
+
     @RpcService
     public void sendRecipe(Integer recipeId, Integer sendOrganId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -169,6 +172,8 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.error("开处方获取医保卡异常", e);
         }
         //创建请求体
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
         RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
         //是否是武昌机构，替换请求体
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);

@@ -63,12 +63,12 @@ public class EmrRecipeManager {
 
 
     public void updateMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
-        logger.info("EmrRecipeManager saveMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
+        logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         if (null == recipeExt.getDocIndexId()) {
             try {
                 addMedicalInfo(recipe, recipeExt);
             } catch (Exception e) {
-                logger.error("EmrRecipeManager saveMedicalInfo 电子病历保存失败", e);
+                logger.error("EmrRecipeManager updateMedicalInfo 电子病历保存失败", e);
             }
             return;
         }
@@ -82,12 +82,12 @@ public class EmrRecipeManager {
             MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
             medicalDetailBean.setDocIndexId(recipeExtend.getDocIndexId());
             setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
-            logger.info("EmrRecipeManager saveMedicalInfo medicalDetailBean :{}", JSONUtils.toString(medicalDetailBean));
+            logger.info("EmrRecipeManager updateMedicalInfo medicalDetailBean :{}", JSONUtils.toString(medicalDetailBean));
             docIndexService.updateMedicalDetail(medicalDetailBean);
         } catch (Exception e) {
-            logger.error("EmrRecipeManager saveMedicalInfo 电子病历更新失败", e);
+            logger.error("EmrRecipeManager updateMedicalInfo 电子病历更新失败", e);
         }
-        logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
+        logger.info("EmrRecipeManager updateMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
     }
 
     /**

@@ -167,6 +167,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         ConsultExDTO consultExDTO;
         SignDoctorRecipeInfo caInfo;
         for (Recipe recipe : recipeList) {
+            recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RegulationRecipeIndicatorsReq();
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
@@ -358,8 +360,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setHistroyMedical(questionnaire.getDisease());
                 }
             }
-            recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
             req.setOriginalDiagnosis(organDiseaseName);
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));

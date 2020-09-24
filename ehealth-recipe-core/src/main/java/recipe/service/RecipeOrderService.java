@@ -74,6 +74,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
@@ -1467,6 +1468,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 PatientRecipeDTO prb;
                 List<Recipedetail> recipedetails;
                 for (Recipe recipe : recipeList) {
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                     prb = new PatientRecipeDTO();
                     prb.setRecipeId(recipe.getRecipeId());
                     prb.setOrganDiseaseName(recipe.getOrganDiseaseName());
@@ -1500,7 +1503,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     //返回是否隐方
                     prb.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
                     //返回处方拓展信息
-                    RecipeExtend recipeExtend =recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
                     prb.setRecipeExtend(recipeExtendBean);
                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && OrderStatusConstant.READY_PAY.equals(order.getStatus())) {
