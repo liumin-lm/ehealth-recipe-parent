@@ -56,6 +56,19 @@ public class RecipeCheckPassResult {
      */
     private String medicalTypeText;
 
+    /**
+     * his处方付费序号合集
+     */
+    private String recipeCostNumber;
+
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
+
     public Integer getRecipeId() {
         return recipeId;
     }

@@ -52,6 +52,10 @@ import static ctd.persistence.DAOFactory.getDAO;
 public abstract class AbstractCaProcessType {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaProcessType.class);
+
+    private static final Integer CA_OLD_TYPE = new Integer(0);
+
+    private static final Integer CA_NEW_TYPE = new Integer(1);
     //我们将开方的流程拆开：
     //1.保存处方（公共操作）=》2.CA签名前操作=》3.CA签名后操作
     //因为拿到CA结果的时机不同，流程3中：前置是在推his前拿到的，所以在拿到结果后需要将处方做推his的相关操作;
@@ -129,14 +133,14 @@ public abstract class AbstractCaProcessType {
         Integer status = RecipeStatusConstant.CHECK_PASS;
 
         String memo = "";
-        String CANewOldWay = "old";
+        Integer CANewOldWay = CA_OLD_TYPE;
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         Object caProcessType = configService.getConfiguration(recipe.getClinicOrgan(), "CAProcessType");
         if(null != caProcessType){
-            CANewOldWay = caProcessType.toString();
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
         }
         //兼容新老版本，日志
-        if("old".equals(CANewOldWay)){
+        if(CA_OLD_TYPE.equals(CANewOldWay)){
             memo = "HIS审核返回：写入his成功，审核通过";
         }else{
             memo = "HIS审核返回：写入his成功，审核通过---CA后置操作完成回调";
@@ -145,7 +149,7 @@ public abstract class AbstractCaProcessType {
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
             //兼容新老版本，日志
-            if("old".equals(CANewOldWay)){
+            if(CA_OLD_TYPE.equals(CANewOldWay)){
                 memo = "HIS审核返回：写入his成功(其他平台处方)";
             }else{
                 memo = "HIS审核返回：写入his成功(其他平台处方)---CA后置操作完成回调";

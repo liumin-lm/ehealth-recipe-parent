@@ -615,6 +615,11 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.SIGN_ING_CODE_PHA:
                 msg = "待审核";
                 break;
+            //date 20200922
+            //【CA药师未签名】状态依旧是待审核标识
+            case RecipeStatusConstant.SIGN_NO_CODE_PHA:
+                msg = "待审核";
+                break;
             default:
                 msg = "未知状态";
         }
@@ -964,11 +969,13 @@ public class RecipeListService extends RecipeBaseService{
             specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
             //date 20200511
             //添加处方单中新加的药师签名中签名失败的，患者认为是待审核
+            //date 20200922 【CA药师未签名】患者认为是待审核
             specialStatusList.addAll(new ArrayList<Integer>(){
                 private static final long serialVersionUID = -1964815829160506615L;
 
                 {add(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-                    add(RecipeStatusConstant.SIGN_ING_CODE_PHA);}
+                    add(RecipeStatusConstant.SIGN_ING_CODE_PHA);
+                    add(RecipeStatusConstant.SIGN_NO_CODE_PHA);}
             });
         }
         try{
@@ -1253,7 +1260,7 @@ public class RecipeListService extends RecipeBaseService{
 
             //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
-                    (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
+                    (RecipeStatusConstant.SIGN_NO_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             payModeShowButtonBean.setOptional(isOptional);
 
             //初始化互联网按钮信息（特殊化）

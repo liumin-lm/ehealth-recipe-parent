@@ -39,6 +39,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
 
     /**
      * 根据id获取
+     *
      * @param id
      * @return
      */
@@ -46,7 +47,17 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract DrugsEnterprise getById(int id);
 
     /**
+     * 批量获取药企名称
+     *
+     * @param ids
+     * @return
+     */
+    @DAOMethod
+    public abstract List<DrugsEnterprise> findByIdIn(List<Integer> ids);
+
+    /**
      * 根据organId查找
+     *
      * @param organId
      * @return
      */

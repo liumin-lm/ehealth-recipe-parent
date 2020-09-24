@@ -45,6 +45,8 @@ import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -250,10 +252,6 @@ public class PurchaseService {
         LOG.info("order param: recipeId={},extInfo={}", recipeId, JSONUtils.toString(extInfo));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
 
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise dep = drugsEnterpriseDAO.get(MapValueUtil.getInteger(extInfo, "depId"));
-        //订单类型-1省医保
-        Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe dbRecipe = recipeDAO.get(recipeId);
         if (null == dbRecipe) {
@@ -267,7 +265,7 @@ public class PurchaseService {
             result.setMsg("缺少购药方式");
             return result;
         }
-        //预结算
+        /*//预结算
         //非省直医保才走自费结算
         //省医保不走自费结算
         if (!(orderType != null && (orderType == 1 || orderType == 3))) {
@@ -288,7 +286,7 @@ public class PurchaseService {
                 }
             }
 
-        }
+        }*/
 
         //处方单状态不是待处理 or 处方单已被处理
         boolean dealFlag = checkRecipeIsDeal(dbRecipe, result, extInfo);
@@ -382,11 +380,18 @@ public class PurchaseService {
                     recipedetail.setSettlementMode(settlementMode);
 
                     if (saleDrugList != null) {
-                        if (settlementMode == 0){
-                            recipedetail.setActualSalePrice(saleDrugList.getPrice());
-                        }else if (settlementMode == 1){
+                        if (settlementMode == 0) {
+                            //可能取的是药企配送目录里的价格，得重新设置药品总价
+                            BigDecimal price = saleDrugList.getPrice();
+                            recipedetail.setActualSalePrice(price);
+                            //线下转线上不处理药品总价
+                            if (!RecipeBussConstant.OFFLINE_TO_ONLINE.equals(recipe.getRecipeSourceType())) {
+                                recipedetail.setDrugCost(price.multiply(new BigDecimal(recipedetail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                            }
+                        } else if (settlementMode == 1) {
                             recipedetail.setActualSalePrice(recipedetail.getSalePrice());
                         }
+
 
                         if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
                             recipedetail.setSaleDrugCode(saleDrugList.getDrugId()+"");

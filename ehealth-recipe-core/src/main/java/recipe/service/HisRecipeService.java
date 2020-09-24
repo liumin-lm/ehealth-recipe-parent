@@ -19,7 +19,6 @@ import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -28,7 +27,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +37,11 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.thread.CardDataUploadRunable;
 import recipe.thread.QueryHisRecipeCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 
@@ -1142,15 +1137,26 @@ public class HisRecipeService {
             }
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
-            recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
+            recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
+            //用量纯数字的存useDose,非数字的存useDoseStr
+            if(!StringUtils.isEmpty(hisRecipeDetail.getUseDose())){
+                try{
+                    recipedetail.setUseDose(Double.valueOf(hisRecipeDetail.getUseDose()));//高优先级
+                }catch (Exception e){
+                    recipedetail.setUseDoseStr(hisRecipeDetail.getUseDose() + hisRecipeDetail.getUseDoseUnit());
+                }
+            }
             //  线下特殊用法
             if (!StringUtils.isEmpty(hisRecipeDetail.getUseDoseStr())) {
-                recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr() + hisRecipeDetail.getUseDoseUnit());
+                try{
+                    if(recipedetail.getUseDose()==null){
+                        recipedetail.setUseDose(Double.valueOf(hisRecipeDetail.getUseDoseStr()));
+                    }
+                }catch (Exception e){
+                    recipedetail.setUseDoseStr(hisRecipeDetail.getUseDoseStr() + hisRecipeDetail.getUseDoseUnit());//高优先级
+                }
             }
-            recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
-            if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
-                recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
-            }
+
             if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugSpec())) {
                 recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
             } else {
@@ -1206,10 +1212,9 @@ public class HisRecipeService {
             recipedetail.setUseDaysB(hisRecipeDetail.getUseDaysB());
             recipedetail.setStatus(1);
 
-            if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null) {
-                recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(hisRecipeDetail.getPrice()));
-            } else {
-                recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(organDrugLists.get(0).getSalePrice()));
+            //单药品总价使用线下传过来的，传过来多少就是多少我们不计算
+            if (hisRecipeDetail.getTotalPrice() != null) {
+                recipedetail.setDrugCost(hisRecipeDetail.getTotalPrice());
             }
             recipeDetailDAO.save(recipedetail);
         }
@@ -1437,46 +1442,50 @@ public class HisRecipeService {
                 deleteSetRecipeCode.add(recipeCode);
                 return;
             }
-            Map<String, BigDecimal> drugTotalDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseTotalDose));
-            Map<String, String> drugUseDoseMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDose()), HashMap::putAll);
-            Map<String, String> drugUseDoseStrMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDoseStr()), HashMap::putAll);
-            Map<String, Integer> drugUseDaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDays()), HashMap::putAll);
-            //Map<String, String> drugUseDaysBMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUseDaysB()), HashMap::putAll);
-            Map<String, String> usingRateMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRate()), HashMap::putAll);
-            Map<String, String> usePathwaysMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathways()), HashMap::putAll);
-            Map<String, String> usingRateTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsingRateText()), HashMap::putAll);
-            Map<String, String> usePathwaysTextMap = hisDetailList.stream().collect(HashMap::new,(m, v)->m.put(v.getDrugCode(), v.getUsePathwaysText()), HashMap::putAll);
+            Map<String, HisRecipeDetail> recipeDetailMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, b -> b, (k1, k2) -> k1));
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
-                BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
+                HisRecipeDetail hisRecipeDetail = recipeDetailMap.get(recipeDetailTO.getDrugCode());
+                if (null == hisRecipeDetail) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    continue;
+                }
+                BigDecimal useTotalDose = hisRecipeDetail.getUseTotalDose();
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String useDose = drugUseDoseMap.get(recipeDetailTO.getDrugCode());
+                String useDose = hisRecipeDetail.getUseDose();
                 if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String useDoseStr = drugUseDoseStrMap.get(recipeDetailTO.getDrugCode());
+                String useDoseStr = hisRecipeDetail.getUseDoseStr();
                 if ((StringUtils.isEmpty(useDoseStr) && StringUtils.isNotEmpty(recipeDetailTO.getUseDoseStr())) || (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                Integer useDays = drugUseDaysMap.get(recipeDetailTO.getDrugCode());
+                Integer useDays = hisRecipeDetail.getUseDays();
                 if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String usingRate = usingRateMap.get(recipeDetailTO.getDrugCode());
+                String usingRate = hisRecipeDetail.getUsingRate();
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
 
-                String usingRateText = usingRateTextMap.get(recipeDetailTO.getDrugCode());
+                String usingRateText = hisRecipeDetail.getUsingRateText();
                 if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String usePathways = usePathwaysMap.get(recipeDetailTO.getDrugCode());
+                String usePathways = hisRecipeDetail.getUsePathways();
                 if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    continue;
                 }
-                String usePathwaysText = usePathwaysTextMap.get(recipeDetailTO.getDrugCode());
+                String usePathwaysText = hisRecipeDetail.getUsePathwaysText();
                 if ((StringUtils.isEmpty(usePathwaysText) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathwaysText())) || (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                 }

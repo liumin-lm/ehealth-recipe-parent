@@ -567,8 +567,13 @@ public class RecipeServiceSub {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
         try {
-            //处方药品能否配送以及能否开具同一张处方上
-            canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
+            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
+            if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                return resultBean;
+            }else{
+                //处方药品能否配送以及能否开具同一张处方上
+                canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
+            }
         } catch (Exception e) {
             LOGGER.error("canOpenRecipeDrugs error", e);
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -1385,6 +1390,9 @@ public class RecipeServiceSub {
                 case RecipeStatusConstant.SIGN_ING_CODE_PHA:
                     tips = "审方签名中";
                     break;
+                case RecipeStatusConstant.SIGN_NO_CODE_PHA:
+                    tips = "待审核";
+                    break;
                 default:
                     tips = "未知状态" + status;
             }
@@ -1646,7 +1654,8 @@ public class RecipeServiceSub {
                 if (!Integer.valueOf(1).equals(recipe.getPayFlag()) && recipe.getStatus() != RecipeStatusConstant.UNSIGN && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL && recipe.getStatus() != RecipeStatusConstant.NO_DRUG && recipe.getStatus() != RecipeStatusConstant.NO_PAY && recipe.getStatus() != RecipeStatusConstant.NO_OPERATOR && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL && recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
                         //date 2020/05/14
                         //将签名失败和审核失败的
-                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA && !Integer.valueOf(1).equals(recipe.getChooseFlag())) {
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA && !Integer.valueOf(1).equals(recipe.getChooseFlag())
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_NO_CODE_PHA) {
                     cancelFlag = true;
                 }
             }
@@ -3049,5 +3058,10 @@ public class RecipeServiceSub {
      */
     public static boolean isClinicOrgan(String organId) {
         return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
+    }
+
+    public static Integer getOrganEnterprisesDockType(Integer organId){
+        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
+        return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
     }
 }

@@ -46,6 +46,7 @@ import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
+import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.common.RecipeSignService;
@@ -65,6 +66,10 @@ import static ctd.persistence.DAOFactory.getDAO;
 public class RecipeCAService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCAService.class);
+
+    private static final Integer CA_OLD_TYPE = new Integer(0);
+
+    private static final Integer CA_NEW_TYPE = new Integer(1);
 
     @Autowired
     private RedisClient redisClient;
@@ -95,8 +100,10 @@ public class RecipeCAService {
             List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
             //1.判断是药师还是医生组装ca请求数据
             //原来方法是通过isDoctor来判断是否是医生的，现在统一请求组装，设置CA类型（药师/医生）
+            caRequest.setOrganId(recipe.getClinicOrgan());
+            caRequest.setDoctorId(doctorId);
             caRequest.setBussId(recipeId);
-            caRequest.setBusstype(isDoctor? 1 : 2);
+            caRequest.setBusstype(isDoctor? CARecipeTypeConstant.CA_RECIPE_DOC : CARecipeTypeConstant.CA_RECIPE_PHA);
             //2.首先组装易签保用的签名签章数据
             //esignService.signForRecipe(false, checker, dataMap);原先调用的e签宝的接口，调用移动到了CA实现，但是CA还没有拆分
             esignMap.put("isDoctor", isDoctor);
@@ -191,7 +198,7 @@ public class RecipeCAService {
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         /** 当前没有设置CA签名中的业务端签名对象，原计划根据签名医生的类型设置请求【BusType】***/
-        caAccountRequestTO.setBusType(true?4:5);
+        caAccountRequestTO.setBusType(null == recipeBean.getChecker() ? 4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
 
         //caAccountRequestTO.setSignOriginal(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
@@ -402,13 +409,13 @@ public class RecipeCAService {
                     rMap.put("bussSource", bussSource);
                 }
             }
-            String CANewOldWay = "old";
+            Integer CANewOldWay = CA_OLD_TYPE;
             Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
             if(null != caProcessType){
-                CANewOldWay = caProcessType.toString();
+                CANewOldWay = Integer.parseInt(caProcessType.toString());
             }
             //触发CA前置操作
-            if("new".equals(CANewOldWay)){
+            if(CA_NEW_TYPE.equals(CANewOldWay)){
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }else{
                 //老版默认走后置的逻辑，直接将处方推his
@@ -546,12 +553,12 @@ public class RecipeCAService {
         /**************/
         //触发CA操作
         //兼容新老版本,根据配置项判断CA的新老流程走向
-        String CANewOldWay = "old";
+        Integer CANewOldWay = CA_OLD_TYPE;
         Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
         if(null != caProcessType){
-            CANewOldWay = caProcessType.toString();
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
         }
-        if("new".equals(CANewOldWay)){
+        if(CA_NEW_TYPE.equals(CANewOldWay)){
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
             //老版默认走后置的逻辑，直接将处方向下流

@@ -2971,7 +2971,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26) and signDate between '" + startDt + "' and '" + endDt + "' ");
                 sql.append("UNION ALL ");
-                sql.append("select * from cdr_recipe where status in (31, 27) and reviewType = 1  and signDate between '" + startDt + "' and '" + endDt + "' ");
+                //date 20200922 添加药师CA未签名过期
+                sql.append("select * from cdr_recipe where status in (31, 27 , 32) and reviewType = 1  and signDate between '" + startDt + "' and '" + endDt + "' ");
                 Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
                 setResult(q.list());
             }

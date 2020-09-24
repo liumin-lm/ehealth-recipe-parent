@@ -180,7 +180,7 @@ public class RecipeStatusConstant {
     public static final int SIGN_ING_CODE_PHA = 31;
 
     /**
-     * 签名中-药师
+     * 未签名-药师
      */
     public static final int SIGN_NO_CODE_PHA = 32;
 

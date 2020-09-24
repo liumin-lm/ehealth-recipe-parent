@@ -134,6 +134,15 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企对接方式 0 平台 1 前置机")
     private Integer operationType;
 
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    private Integer isShowExpectSendDate;
+
+    @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
+    private Integer expectSendDateIsContainsWeekend;
+
+    @ItemProperty(alias = "配送时间说明文案")
+    private String sendDateText;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -465,5 +474,29 @@ public class DrugsEnterprise implements java.io.Serializable {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    public Integer getIsShowExpectSendDate() {
+        return isShowExpectSendDate;
+    }
+
+    public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
+        this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+
+    public Integer getExpectSendDateIsContainsWeekend() {
+        return expectSendDateIsContainsWeekend;
+    }
+
+    public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
+        this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
+    }
+
+    public String getSendDateText() {
+        return sendDateText;
+    }
+
+    public void setSendDateText(String sendDateText) {
+        this.sendDateText = sendDateText;
     }
 }

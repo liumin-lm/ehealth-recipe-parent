@@ -23,6 +23,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
+import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -187,6 +188,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeBean != null && recipeExtend != null) {
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+            recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
         return recipeBean;
     }
@@ -1667,7 +1669,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public void retryCaDoctorCallBackToRecipe(com.ngari.ca.api.vo.CaSignResultBean resultVo) {
+    public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaDoctorCallBackToRecipe(caSignResultVo);
@@ -1675,14 +1677,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public void retryCaPharmacistCallBackToRecipe(com.ngari.ca.api.vo.CaSignResultBean resultVo) {
+    public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
     }
 
 
-    private CaSignResultVo makeCaSignResultVoFromCABean(com.ngari.ca.api.vo.CaSignResultBean resultVo) {
+    private CaSignResultVo makeCaSignResultVoFromCABean(CaSignResultUpgradeBean resultVo) {
         CaSignResultVo caSignResultVo = new CaSignResultVo();
         caSignResultVo.setResultCode(resultVo.getResultStatus());
         caSignResultVo.setSignPicture(resultVo.getSignPicture());
@@ -1692,6 +1694,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         caSignResultVo.setCode(resultVo.getMsgCode());
         caSignResultVo.setMsg(resultVo.getMsg());
         caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
+        caSignResultVo.setRecipeId(resultVo.getBussId());
+        caSignResultVo.setBussType(resultVo.getBusstype());
         return caSignResultVo;
     }
 
