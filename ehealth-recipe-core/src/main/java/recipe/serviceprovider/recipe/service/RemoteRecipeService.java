@@ -1670,6 +1670,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        LOGGER.info("当前医生ca异步接口返回：{}", JSONUtils.toString(resultVo));
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaDoctorCallBackToRecipe(caSignResultVo);
@@ -1678,6 +1679,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        LOGGER.info("当前药师ca异步接口返回：{}", JSONUtils.toString(resultVo));
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
