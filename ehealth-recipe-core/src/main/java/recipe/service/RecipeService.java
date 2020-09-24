@@ -2155,18 +2155,20 @@ public class RecipeService extends RecipeBaseService {
                 boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
                 int errFlag = 0;
                 if (checkEnterprise3) {
-                    //验证能否药品配送以及能否开具到一张处方单上
-                    RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
-                    if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
-                        errFlag = 1;
-                        rMap.put("msg", recipeResult3.getError());
-                    }else {
-                        //药企库存实时查询判断药企库存
-                        RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
-                        RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
-                        if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                    //his管理的药企不要验证库存和配送药品，有his【预校验】校验库存
+                    if(new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                        RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
+                        if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
                             errFlag = 1;
-                            rMap.put("msg", recipeResultBean.getError());
+                            rMap.put("msg", recipeResult3.getError());
+                        }else {
+                            //药企库存实时查询判断药企库存
+                            RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+                            RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                            if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                                errFlag = 1;
+                                rMap.put("msg", recipeResultBean.getError());
+                            }
                         }
                     }
                 } else {
