@@ -2,6 +2,7 @@ package recipe.audit.service;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.JudicialOrgan;
 import com.ngari.recipe.entity.OrganJudicialRelation;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -14,6 +15,8 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import eh.recipeaudit.model.recipe.RecipeDTO;
+import eh.recipeaudit.model.recipe.RecipeDetailDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +67,10 @@ public class PrescriptionService {
         if (recipe == null) {
             throw new DAOException("处方不存在");
         }
-         AutoAuditResultBean resultBean=   recipeAuditService.analysis(recipe, recipedetails);
-        return  JSON.parseObject(JSON.toJSONString(resultBean),AutoAuditResultBean.class);
+        RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
+        List<RecipeDetailDTO>recipeDetailDTOS = ObjectCopyUtils.convert(recipedetails, RecipeDetailDTO.class);
+        AutoAuditResultBean resultBean = recipeAuditService.analysis(recipeDTO, recipeDetailDTOS);
+        return JSON.parseObject(JSON.toJSONString(resultBean), AutoAuditResultBean.class);
     }
 
     /**
