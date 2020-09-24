@@ -80,8 +80,8 @@ public class SaveAutoReviewRunable implements Runnable {
             } else if (CollectionUtils.isNotEmpty(paResultList)) {
                 AuditMedicinesBean auditMedicinesDTO;
                 List<IssueBean> issueList;
-                List<AuditMedicineIssueDTO> auditMedicineIssues;
-                AuditMedicineIssueDTO auditIssueDTO;
+                List<AuditMedicineIssueBean> auditMedicineIssues;
+                AuditMedicineIssueBean auditIssueDTO;
                 for (PAWebMedicinesBean paMedicine : paResultList) {
                     auditMedicinesDTO = new AuditMedicinesBean();
                     auditMedicinesDTO.setRecipeId(recipeId);
@@ -91,7 +91,7 @@ public class SaveAutoReviewRunable implements Runnable {
                     if (CollectionUtils.isNotEmpty(issueList)) {
                         auditMedicineIssues = new ArrayList<>(issueList.size());
                         for (IssueBean issue : issueList) {
-                            auditIssueDTO = new AuditMedicineIssueDTO();
+                            auditIssueDTO = new AuditMedicineIssueBean();
                             auditIssueDTO.setDetail(issue.getDetail());
                             auditIssueDTO.setLvl(issue.getLvl());
                             auditIssueDTO.setLvlCode(issue.getLvlCode());
