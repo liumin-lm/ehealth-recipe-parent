@@ -1316,6 +1316,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         return getList(list, DrugsEnterpriseBean.class);
     }
 
+    @RpcService
+    public DrugsEnterprise findByEnterpriseId(Integer id) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
+        return drugsEnterprise;
+    }
+
     /**
      * 用于钥世圈上传药品信息
      * @param auditDrugListBean  药品信息

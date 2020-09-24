@@ -62,12 +62,6 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-recipeaudit-api</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>ehealth-recipe-api</artifactId>
-                    <groupId>ngari</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>

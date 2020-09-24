@@ -2104,8 +2104,8 @@ public class RecipeServiceSub {
     private static List<AuditMedicinesBean> handleAnalysisByType(List<AuditMedicinesBean> auditMedicines, String type) {
         if (CollectionUtils.isNotEmpty(auditMedicines)) {
             auditMedicines.forEach(auditMedicinesDTO -> {
-                List<AuditMedicineIssueDTO> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
-                List<AuditMedicineIssueDTO> resultAuditMedicineIssues = new ArrayList<>();
+                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
+                List<AuditMedicineIssueBean> resultAuditMedicineIssues = new ArrayList<>();
                 auditMedicineIssues.forEach(auditMedicineIssueDTO -> {
                     if (type.equals("medicines")) {
                         if (null == auditMedicineIssueDTO.getDetailUrl()) {
@@ -2312,7 +2312,7 @@ public class RecipeServiceSub {
                             issueList.add(auditMedicineIssue);
                         }
                     }
-                    auditMedicinesDTO.setAuditMedicineIssues(ObjectCopyUtils.convert(issueList, AuditMedicineIssueDTO.class));
+                    auditMedicinesDTO.setAuditMedicineIssues(ObjectCopyUtils.convert(issueList, AuditMedicineIssueBean.class));
                 }
             }
         }
