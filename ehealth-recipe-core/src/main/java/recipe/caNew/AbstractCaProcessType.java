@@ -75,7 +75,13 @@ public abstract class AbstractCaProcessType {
         if(null != caFromHisCallBackOrder){
             CAType = Integer.parseInt(caFromHisCallBackOrder.toString());
         }
-        return CARecipeTypeEnum.getCaProcessType(CAType);
+        AbstractCaProcessType beanFactory = CARecipeTypeEnum.getCaProcessType(CAType);
+        if(null != beanFactory){
+            return beanFactory;
+        }else{
+            LOGGER.warn("当前CA实现为空，默认实现后置！");
+            return new CaAfterProcessType();
+        }
 
     }
 
