@@ -13,13 +13,12 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
+import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.audit.bean.AutoAuditResult;
 import recipe.dao.JudicialOrganDAO;
 import recipe.dao.OrganJudicialRelationDAO;
 
