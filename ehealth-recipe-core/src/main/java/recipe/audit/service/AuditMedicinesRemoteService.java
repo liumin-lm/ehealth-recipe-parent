@@ -6,6 +6,7 @@ import com.ngari.recipe.audit.service.IAuditMedicinesService;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.service.RecipeService;
@@ -23,7 +24,7 @@ public class AuditMedicinesRemoteService implements IAuditMedicinesService {
     @RpcService
     public List<AuditMedicinesDTO> getAuditmedicinesResult(int recipeId) {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        List<eh.recipeaudit.model.AuditMedicinesDTO> auditMedicines = recipeService.getAuditMedicineIssuesByRecipeId(recipeId);
+        List<AuditMedicinesBean> auditMedicines = recipeService.getAuditMedicineIssuesByRecipeId(recipeId);
         return ObjectCopyUtils.convert(auditMedicines, AuditMedicinesDTO.class);
     }
 

@@ -24,7 +24,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1225,7 +1225,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //4是未签名
                 else if (flag == 4) {
-                    hql.append("from Recipe where status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA);
+                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA);
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
