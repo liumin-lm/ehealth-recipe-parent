@@ -1223,6 +1223,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("from Recipe where clinicOrgan in (:organ) and ");
                     hql.append(getSqlIn(recipeIds,500,"recipeId")+" ");
                 }
+                //4是未签名
+                else if (flag == 4) {
+                    hql.append("from Recipe where status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA);
+                }
+
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
                     hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<3   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
