@@ -271,9 +271,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 //设置配送费支付方式
                 order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
                 //设置期望配送时间块相关信息
-                order.setIsShowExpectSendDate(drugsEnterprise.getIsShowExpectSendDate());
-                order.setExpectSendDateIsContainsWeekend(drugsEnterprise.getExpectSendDateIsContainsWeekend());
-                order.setSendDateText(drugsEnterprise.getSendDateText());
+//                order.setIsShowExpectSendDate(drugsEnterprise.getIsShowExpectSendDate());
+//                order.setExpectSendDateIsContainsWeekend(drugsEnterprise.getExpectSendDateIsContainsWeekend());
+//                order.setSendDateText(drugsEnterprise.getSendDateText());
             }
         }
         //货到付款设置配送费为线下支付

@@ -14,6 +14,8 @@ import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.model.recipe.RecipeDTO;
+import eh.recipeaudit.model.recipe.RecipeDetailDTO;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
 import org.slf4j.Logger;
@@ -172,10 +174,11 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
 
-            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
             recipeBean.setRegisterId(recipeExtend.getRegisterID());
-            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
+            List<RecipeDetailDTO> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailDTO.class);
             IRecipeAuditService recipeAuditService=    RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
+
             recipeAuditService.winningRecipeAudit(recipeBean, recipeDetailBeans);
         }catch (Exception e){
             LOGGER.error("winningRecipeAudit-error",e);

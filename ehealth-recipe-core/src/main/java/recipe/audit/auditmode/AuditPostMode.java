@@ -9,6 +9,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -136,7 +137,7 @@ public class AuditPostMode extends AbstractAuidtMode {
         if (new Integer(2).equals(checkMode)) {
             //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
             IRecipeAuditService recipeAuditService=RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
-            RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
+            RecipeDTO recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeDTO.class);
             recipeAuditService.sendCheckRecipeInfo(recipeBean);
         } else if (new Integer(3).equals(checkMode)) {
             winningRecipeAudit(dbRecipe);

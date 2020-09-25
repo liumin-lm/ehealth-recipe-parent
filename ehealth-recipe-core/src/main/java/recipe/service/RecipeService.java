@@ -19,18 +19,12 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.ca.api.vo.CommonSignRequest;
 import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
-import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
-import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -66,11 +60,12 @@ import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
-import eh.recipeaudit.module.Intelligent.IssueBean;
-import eh.recipeaudit.module.Intelligent.PAWebMedicinesBean;
-import eh.recipeaudit.module.RecipeCheckBean;
-import eh.recipeaudit.module.RecipeCheckDetailBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
+import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import eh.recipeaudit.model.Intelligent.IssueBean;
+import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
+import eh.recipeaudit.model.RecipeCheckBean;
+import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
@@ -85,9 +80,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.bean.AutoAuditResult;
-import recipe.audit.bean.Issue;
-import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
@@ -116,11 +108,9 @@ import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
-import sun.misc.BASE64Decoder;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -2155,18 +2145,20 @@ public class RecipeService extends RecipeBaseService {
                 boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
                 int errFlag = 0;
                 if (checkEnterprise3) {
-                    //验证能否药品配送以及能否开具到一张处方单上
-                    RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
-                    if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
-                        errFlag = 1;
-                        rMap.put("msg", recipeResult3.getError());
-                    }else {
-                        //药企库存实时查询判断药企库存
-                        RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
-                        RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
-                        if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                    //his管理的药企不要验证库存和配送药品，有his【预校验】校验库存
+                    if(new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                        RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
+                        if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
                             errFlag = 1;
-                            rMap.put("msg", recipeResultBean.getError());
+                            rMap.put("msg", recipeResult3.getError());
+                        }else {
+                            //药企库存实时查询判断药企库存
+                            RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+                            RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                            if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                                errFlag = 1;
+                                rMap.put("msg", recipeResultBean.getError());
+                            }
                         }
                     }
                 } else {
@@ -2875,7 +2867,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<eh.recipeaudit.model.AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
+    public List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 

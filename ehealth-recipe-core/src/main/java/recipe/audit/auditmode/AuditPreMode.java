@@ -8,6 +8,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         if (new Integer(2).equals(checkMode)) {
             //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
             IRecipeAuditService recipeAuditService=    RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
-            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
             recipeAuditService.sendCheckRecipeInfo(recipeBean);
         } else if (new Integer(3).equals(checkMode)) {
                 winningRecipeAudit(recipe);
@@ -78,8 +79,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             Integer checkMode = recipe.getCheckMode();
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            //卫宁审方不推送药师消息
-            if (!new Integer(3).equals(checkMode)) {
+
                 //平台审方途径下才发消息
                 if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode)) {
                     if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
@@ -87,8 +87,6 @@ public class AuditPreMode extends AbstractAuidtMode {
                         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
                         ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
                     }
-
-                }
             }
             //保存至电子病历
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);

@@ -24,7 +24,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +105,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param recipeIds
      * @return
      */
-    @DAOMethod(sql = "from Recipe where recipeId in :recipeIds")
+    @DAOMethod(sql = "from Recipe where recipeId in :recipeIds",limit = 0)
     public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
@@ -1223,6 +1223,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("from Recipe where clinicOrgan in (:organ) and ");
                     hql.append(getSqlIn(recipeIds,500,"recipeId")+" ");
                 }
+                //4是未签名
+                else if (flag == 4) {
+                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA);
+                }
+
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
                     hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<3   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");

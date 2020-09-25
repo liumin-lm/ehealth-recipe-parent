@@ -1373,7 +1373,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
-        List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
+        List<Recipe> recipes = null;
+        if (CollectionUtils.isNotEmpty(organIds)) {
+            recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
+        } else {
+            recipes =recipeDAO.findByRecipeIds(recipeIds);
+        }
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
@@ -1654,7 +1659,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer> recipeIds) {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
-        return ObjectCopyUtils.convert(recipedetails,RecipeDetailBean.class);
+        return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
     }
 
     @Override
@@ -1666,6 +1671,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        LOGGER.info("当前医生ca异步接口返回：{}", JSONUtils.toString(resultVo));
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaDoctorCallBackToRecipe(caSignResultVo);
@@ -1674,6 +1680,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        LOGGER.info("当前药师ca异步接口返回：{}", JSONUtils.toString(resultVo));
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
