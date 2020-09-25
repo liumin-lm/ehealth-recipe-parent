@@ -197,12 +197,15 @@ public class DrugDistributionService {
             //判断处方能否购买
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            List<Integer> drugIdList = detailDAO.findDrugIdByRecipeId(request.getRecipeId());
-            Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIdList);
-            if (count.intValue() != drugIdList.size()) {
-                LOGGER.warn("purchase aldyf saleDrugList药品存货不足，无法购药. drugIdList={}", JSONUtils.toString(drugIdList));
-                response.setMsg("药品存货不足，无法购药");
-                return response;
+            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
+            if(new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                List<Integer> drugIdList = detailDAO.findDrugIdByRecipeId(request.getRecipeId());
+                Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIdList);
+                if (count.intValue() != drugIdList.size()) {
+                    LOGGER.warn("purchase aldyf saleDrugList药品存货不足，无法购药. drugIdList={}", JSONUtils.toString(drugIdList));
+                    response.setMsg("药品存货不足，无法购药");
+                    return response;
+                }
             }
 
             recipe.setGiveMode(request.getType());

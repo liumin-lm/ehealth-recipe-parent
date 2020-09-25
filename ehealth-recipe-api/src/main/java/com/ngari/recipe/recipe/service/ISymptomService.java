@@ -56,6 +56,6 @@ public interface ISymptomService {
      * @return
      */
     @RpcService
-    Map<String, Object> readSymptomExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId);
+    Map<String, Object> readSymptomExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId,String manageUnit);
 
 }

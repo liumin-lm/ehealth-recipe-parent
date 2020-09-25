@@ -49,8 +49,9 @@ import ctd.util.JSONUtils;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.model.AuditMedicinesDTO;
-import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
+import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -567,8 +568,13 @@ public class RecipeServiceSub {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
         try {
-            //处方药品能否配送以及能否开具同一张处方上
-            canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
+            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
+            if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                return resultBean;
+            }else{
+                //处方药品能否配送以及能否开具同一张处方上
+                canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
+            }
         } catch (Exception e) {
             LOGGER.error("canOpenRecipeDrugs error", e);
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -1385,6 +1391,9 @@ public class RecipeServiceSub {
                 case RecipeStatusConstant.SIGN_ING_CODE_PHA:
                     tips = "审方签名中";
                     break;
+                case RecipeStatusConstant.SIGN_NO_CODE_PHA:
+                    tips = "待审核";
+                    break;
                 default:
                     tips = "未知状态" + status;
             }
@@ -1646,7 +1655,8 @@ public class RecipeServiceSub {
                 if (!Integer.valueOf(1).equals(recipe.getPayFlag()) && recipe.getStatus() != RecipeStatusConstant.UNSIGN && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL && recipe.getStatus() != RecipeStatusConstant.NO_DRUG && recipe.getStatus() != RecipeStatusConstant.NO_PAY && recipe.getStatus() != RecipeStatusConstant.NO_OPERATOR && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL && recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
                         //date 2020/05/14
                         //将签名失败和审核失败的
-                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA && !Integer.valueOf(1).equals(recipe.getChooseFlag())) {
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA && !Integer.valueOf(1).equals(recipe.getChooseFlag())
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_NO_CODE_PHA) {
                     cancelFlag = true;
                 }
             }
@@ -1677,12 +1687,12 @@ public class RecipeServiceSub {
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                 map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
 //                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-                List<eh.recipeaudit.model.AuditMedicineIssueDTO> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+                List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                    List<eh.recipeaudit.model.AuditMedicineIssueDTO> resultMedicineIssues = new ArrayList<>();
+                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
                     auditMedicineIssues.forEach(item -> {
                         if (null == item.getMedicineId()) {
                             resultMedicineIssues.add(item);
@@ -2091,11 +2101,11 @@ public class RecipeServiceSub {
         map.put("showButton", showButton);
     }
 
-    private static List<AuditMedicinesDTO> handleAnalysisByType(List<AuditMedicinesDTO> auditMedicines, String type) {
+    private static List<AuditMedicinesBean> handleAnalysisByType(List<AuditMedicinesBean> auditMedicines, String type) {
         if (CollectionUtils.isNotEmpty(auditMedicines)) {
             auditMedicines.forEach(auditMedicinesDTO -> {
-                List<AuditMedicineIssueDTO> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
-                List<AuditMedicineIssueDTO> resultAuditMedicineIssues = new ArrayList<>();
+                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
+                List<AuditMedicineIssueBean> resultAuditMedicineIssues = new ArrayList<>();
                 auditMedicineIssues.forEach(auditMedicineIssueDTO -> {
                     if (type.equals("medicines")) {
                         if (null == auditMedicineIssueDTO.getDetailUrl()) {
@@ -2279,14 +2289,14 @@ public class RecipeServiceSub {
         return isDownload;
     }
 
-    public static List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
+    public static List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
 //        AuditMedicineIssueDAO issueDao = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
 //        AuditMedicinesDAO medicinesDao = DAOFactory.getDAO(AuditMedicinesDAO.class);
-        List<AuditMedicinesDTO> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
-        List<AuditMedicinesDTO> list = Lists.newArrayList();
+        List<AuditMedicinesBean> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
+        List<AuditMedicinesBean> list = Lists.newArrayList();
         if (medicines != null && medicines.size() > 0) {
-            list = ObjectCopyUtils.convert(medicines, AuditMedicinesDTO.class);
-            List<eh.recipeaudit.model.AuditMedicineIssueDTO> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+            list = ObjectCopyUtils.convert(medicines, AuditMedicinesBean.class);
+            List<AuditMedicineIssueBean> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
            /* Map<Integer,AuditMedicineIssue> maps = Maps.uniqueIndex(issues.iterator(),  new Function<AuditMedicineIssue, Integer>() {
                 @Override
                 public Integer apply(AuditMedicineIssue entity) {
@@ -2294,15 +2304,15 @@ public class RecipeServiceSub {
                 }
             });*/
             if (issues != null && issues.size() > 0) {
-                List<eh.recipeaudit.model.AuditMedicineIssueDTO> issueList;
-                for (AuditMedicinesDTO auditMedicinesDTO : list) {
+                List<AuditMedicineIssueBean> issueList;
+                for (AuditMedicinesBean auditMedicinesDTO : list) {
                     issueList = Lists.newArrayList();
-                    for (eh.recipeaudit.model.AuditMedicineIssueDTO auditMedicineIssue : issues) {
+                    for (AuditMedicineIssueBean auditMedicineIssue : issues) {
                         if (null != auditMedicineIssue.getMedicineId() && auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
                             issueList.add(auditMedicineIssue);
                         }
                     }
-                    auditMedicinesDTO.setAuditMedicineIssues(ObjectCopyUtils.convert(issueList, AuditMedicineIssueDTO.class));
+                    auditMedicinesDTO.setAuditMedicineIssues(ObjectCopyUtils.convert(issueList, AuditMedicineIssueBean.class));
                 }
             }
         }
@@ -3049,5 +3059,10 @@ public class RecipeServiceSub {
      */
     public static boolean isClinicOrgan(String organId) {
         return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
+    }
+
+    public static Integer getOrganEnterprisesDockType(Integer organId){
+        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
+        return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
     }
 }

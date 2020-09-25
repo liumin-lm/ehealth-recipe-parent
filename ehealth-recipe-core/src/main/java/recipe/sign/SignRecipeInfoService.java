@@ -7,11 +7,11 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.sign.ISignRecipeInfoService;
-import ctd.account.UserRoleToken;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
@@ -31,7 +31,6 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -378,4 +377,31 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         return null;
     }
 
+    @Override
+    public void saveCaSignResult(CaSignResultUpgradeBean caSignResult) {
+        logger.info("SignRecipeInfoService.saveCaSignResult caSignResultBean=[{}]",JSONUtils.toString(caSignResult));
+        if (caSignResult != null){
+            SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+            // 业务id
+            signDoctorRecipeInfo.setRecipeId(caSignResult.getBussId());
+            // 业务类型
+            signDoctorRecipeInfo.setServerType(caSignResult.getBusstype());
+            // 电子签名
+            signDoctorRecipeInfo.setSignCodeDoc(caSignResult.getSignCode());
+            // 电子签章
+            // 时间戳
+            signDoctorRecipeInfo.setSignCaDateDoc(caSignResult.getSignDate());
+            // ca类型
+            // 签名原文
+            //signDoctorRecipeInfo.setSignBefText();
+            // 手签图片
+            signDoctorRecipeInfo.setSignPictureDoc(caSignResult.getSignPicture());
+            // 创建时间
+            signDoctorRecipeInfo.setCreateDate(new Date());
+            // 修改时间
+            signDoctorRecipeInfo.setLastmodify(new Date());
+
+           signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+        }
+    }
 }

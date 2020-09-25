@@ -5,6 +5,7 @@ import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.IBaseService;
+import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -718,5 +719,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     String getRecipeParameterValue(String paramName);
 
+    @RpcService
+    public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean resultVo);
+
+    @RpcService
+    public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo);
 }
 

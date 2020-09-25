@@ -25,8 +25,8 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
-import eh.recipeaudit.model.AuditMedicineIssueDTO;
-import eh.recipeaudit.model.AuditMedicinesDTO;
+import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -249,8 +249,8 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         DepartmentDTO departmentDTO;
         DoctorDTO doctorDTO;
         PatientDTO patientDTO;
-        List<AuditMedicinesDTO> medicineList;
-        AuditMedicinesDTO medicine;
+        List<AuditMedicinesBean> medicineList;
+        AuditMedicinesBean medicine;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
         for (Recipe recipe : recipeList) {
@@ -472,9 +472,9 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
      */
     private String setRationalDrug(Integer recipeId) {
 //        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        List<AuditMedicineIssueDTO> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+        List<AuditMedicineIssueBean> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
         StringBuilder sb = new StringBuilder();
-        for (AuditMedicineIssueDTO issue : issueList) {
+        for (AuditMedicineIssueBean issue : issueList) {
             sb.append(issue.getDetail());
         }
 

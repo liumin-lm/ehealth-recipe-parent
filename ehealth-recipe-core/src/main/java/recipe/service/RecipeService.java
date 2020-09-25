@@ -40,6 +40,8 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
@@ -58,16 +60,18 @@ import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.module.Intelligent.AutoAuditResultBean;
-import eh.recipeaudit.module.Intelligent.IssueBean;
-import eh.recipeaudit.module.Intelligent.PAWebMedicinesBean;
-import eh.recipeaudit.module.RecipeCheckBean;
-import eh.recipeaudit.module.RecipeCheckDetailBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
+import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import eh.recipeaudit.model.Intelligent.IssueBean;
+import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
+import eh.recipeaudit.model.RecipeCheckBean;
+import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.joda.time.DateTime;
@@ -76,9 +80,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.bean.AutoAuditResult;
-import recipe.audit.bean.Issue;
-import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
@@ -88,6 +89,8 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CaAfterProcessType;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
@@ -136,6 +139,10 @@ public class RecipeService extends RecipeBaseService {
     private static final String UNCHECK = "uncheck";
 
     private static final String EXTEND_VALUE_FLAG = "1";
+
+    private static final Integer CA_OLD_TYPE = new Integer(0);
+
+    private static final Integer CA_NEW_TYPE = new Integer(1);
 
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
@@ -751,6 +758,7 @@ public class RecipeService extends RecipeBaseService {
                 } catch (Exception e) {
                     LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e=============", recipeId, recipe.getDoctor(), e);
                     bl = false;
+                    checkResult.setCode(RecipeResultBean.FAIL);
                 }
                 //标准化CA进行签名、签章==========================end=====
             } else {
@@ -1205,6 +1213,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //重试二次医生审核通过签名
+    @Deprecated
     public void retryDoctorSecondCheckPass(Recipe recipe) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
@@ -1249,6 +1258,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //重试二次医生审核不通过签名
+    @Deprecated
     public void retryDoctorSecondCheckNoPass(Recipe dbRecipe) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //date 2020/1/2
@@ -1278,6 +1288,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //医生端二次审核签名重试
+    @Deprecated
     @RpcService
     public void retryDoctorSecondSignCheck(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1339,7 +1350,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.warn("当前处方{}不存在!", recipeId);
             return;
         }
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
 
         String recipeMode = recipe.getRecipeMode();
         //重试签名，首先设置处方的状态为签名中，根据签名的结果
@@ -1368,7 +1378,20 @@ public class RecipeService extends RecipeBaseService {
 
         try {
             //写入his成功后，生成pdf并签名
-            RecipeResultBean recipeSignResult = generateRecipePdfAndSign(recipe.getRecipeId());
+            //date 20200827 修改his返回请求CA
+            Integer CANewOldWay = CA_OLD_TYPE;
+            Object caProcessType = configService.getConfiguration(recipe.getClinicOrgan(), "CAProcessType");
+            if(null != caProcessType){
+                CANewOldWay = Integer.parseInt(caProcessType.toString());
+            }
+            RecipeResultBean recipeSignResult;
+            if(CA_OLD_TYPE.equals(CANewOldWay)){
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
+                recipeSignResult = generateRecipePdfAndSign(recipe.getRecipeId());
+            }else{
+                //触发CA前置操作
+                recipeSignResult = AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipe.getRecipeId());
+            }
             //date 20200617
             //添加逻辑：ca返回异步无结果
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
@@ -1384,13 +1407,22 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), recipeSignResult.getMsg());
+                //CA同步回调的接口 发送环信消息
+                if(new Integer(2).equals(recipe.getBussSource())){
+                    IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                    recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),recipe.getClinicId());
+                }
                 return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
                 //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //date 20200526
-                memo = "当前签名处方签名成功";
+                if(CA_OLD_TYPE.equals(CANewOldWay)){
+                    memo = "当前签名处方签名成功";
+                }else{
+                    memo = "当前签名处方签名成功---CA前置，his返回默认CA成功";
+                }
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
@@ -1488,40 +1520,64 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         String recipeMode = recipe.getRecipeMode();
-        RecipeResultBean result = new RecipeResultBean();
+        RecipeResultBean result = RecipeResultBean.getFail();
 
         Integer organId = recipe.getClinicOrgan();
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
 
+        Map<String, Object> esignResponseMap = resultVo.getEsignResponseMap();
+        Integer CANewOldWay = CA_OLD_TYPE;
+        Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
+        if(null != caProcessType){
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
+        }
         try {
             String fileId = null;
             result.setMsg(resultVo.getMsg());
-            if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
-                result.setCode(RecipeResultBean.SUCCESS);
-                //保存签名值、时间戳、电子签章文件（date20200908将修改成CA独用的方法）
-                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
-                resultVo.setFileId(fileId);
-                signRecipeInfoSave(recipeId, true, resultVo, organId);
-                try {
-                    SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-                    jsonObject.put("details", JSONObject.toJSONString(details));
-                    signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-                    signRecipeInfoService.update(signDoctorRecipeInfo);
-                } catch (Exception e) {
-                    LOGGER.error("signBefText save error：" + e.getMessage(), e);
+            //添加兼容医生CA易签保的回调逻辑
+            if(MapUtils.isNotEmpty(esignResponseMap)){
+                String imgFileId = MapValueUtil.getString(esignResponseMap, "imgFileId");
+                Map<String, Object> attrMapimg = Maps.newHashMap();
+                attrMapimg.put("signImg", imgFileId);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
+                LOGGER.info("generateRecipeImg 签名图片成功. fileId={}, recipeId={}", imgFileId, recipe.getRecipeId());
+                //易签保返回0表示成功
+                Integer code = MapValueUtil.getInteger(esignResponseMap, "code");
+                if(new Integer(0).equals(code)){
+                    result.setCode(RecipeResultBean.SUCCESS);
                 }
-            } else {
-                ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                SmsInfoBean smsInfo = new SmsInfoBean();
-                smsInfo.setBusId(0);
-                smsInfo.setOrganId(0);
-                smsInfo.setBusType("DocSignNotify");
-                smsInfo.setSmsType("DocSignNotify");
-                smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                result.setCode(RecipeResultBean.FAIL);
+            }else{
+                if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
+                    result.setCode(RecipeResultBean.SUCCESS);
+                    //保存签名值、时间戳、电子签章文件
+                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                    resultVo.setFileId(fileId);
+                    //date 20200922
+                    //老流程保存sign，新流程已经移动至CA保存
+                    if(CA_OLD_TYPE.equals(CANewOldWay)){
+                        signRecipeInfoSave(recipeId, true, resultVo, organId);
+                        try {
+                            SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+                            jsonObject.put("details", JSONObject.toJSONString(details));
+                            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+                            signRecipeInfoService.update(signDoctorRecipeInfo);
+                        } catch (Exception e) {
+                            LOGGER.error("signBefText save error：" + e.getMessage(), e);
+                        }
+                    }
+                } else {
+                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+                    SmsInfoBean smsInfo = new SmsInfoBean();
+                    smsInfo.setBusId(0);
+                    smsInfo.setOrganId(0);
+                    smsInfo.setBusType("DocSignNotify");
+                    smsInfo.setSmsType("DocSignNotify");
+                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                    result.setCode(RecipeResultBean.FAIL);
+                }
             }
         } catch (Exception e) {
             LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
@@ -1561,85 +1617,49 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                //CA异步回调的接口 发送环信消息
+                if(new Integer(2).equals(recipe.getBussSource())){
+                    IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                    recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),recipe.getClinicId());
+                }
                 return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+                //添加兼容医生CA易签保的回调逻辑
+                if(MapUtils.isNotEmpty(esignResponseMap)){
+                    String recipeFileId = MapValueUtil.getString(esignResponseMap, "fileId");
+                    Map<String, Object> attrMap = Maps.newHashMap();
+                    attrMap.put("signFile", recipeFileId);
+                    attrMap.put("signDate", recipe.getSignDate());
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
+                    memo = "签名上传文件成功, fileId=" + recipeFileId;
+                    LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
+                    //个性化医院处方笺生成条形码
+                    Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_BARCODEFORRECIPE_ORGAN_LIST);
+                    if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(String.valueOf(recipe.getClinicOrgan()))) {
+                        RecipeBusiThreadPool.execute(() -> generateBarCodeForRecipePdfAndSwap(recipeId, recipeFileId, recipe.getRecipeCode()));
+                    }
+                }
             }
-            //TODO 根据审方模式改变状态
-            //设置处方签名成功后的处方的状态
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
 
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
 
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-            //配送处方标记 1:只能配送 更改处方取药方式
-            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-                try {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
-                    if (RecipeResultBean.FAIL.equals(result1.getCode())) {
-                        LOGGER.warn("retryDoctorSignCheck recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
-                        //不能影响流程去掉异常
-                        /*throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());*/
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn("retryDoctorSignCheck recipeId=[{}]更改取药方式异常", recipe.getRecipeId(), e);
-                }
-            }
-        }
-        //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            Integer consultId = null;
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                consultId = consultIds.get(0);
-            }*/
-            Integer consultId = recipe.getClinicId();
-            if (null != consultId) {
-                try {
-                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
-                } catch (Exception e) {
-                    LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
-                }
-
-            }
-        }
-        //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
-
-        //将原先互联网回调修改处方的推送的逻辑移到这里
-        //判断是否是阿里药企，是阿里大药房就推送处方给药企
-        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-        if (CollectionUtils.isEmpty(drugsEnterprises)) {
-            return;
-        }
-        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-        if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-            //判断用户是否已鉴权
-            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
-                DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                String loginId = patientService.getLoginIdByMpiId(recipe.getRequestMpiId());
-                if (drugDistributionService.authorization(loginId)) {
-                    //推送阿里处方推片和信息
-                    if (null == drugsEnterprise) {
-                        LOGGER.warn("updateRecipeStatus aldyf 药企不存在");
-                    }
-                    RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                    DrugEnterpriseResult deptResult =
-                            remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
-                    LOGGER.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
-                }
-            }
+//
+        //设置处方的状态，如果失败不走下面逻辑
+        /**************/
+        //触发CA操作
+        //兼容新老版本,根据配置项判断CA的新老流程走向
+        RecipeBean recipeBean = getByRecipeId(recipeId);
+        List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
+        if(CA_NEW_TYPE.equals(CANewOldWay)){
+            AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
+        }else{
+            //老版默认走后置的逻辑，直接将处方向下流
+            new CaAfterProcessType().signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }
     }
 
@@ -1664,8 +1684,14 @@ public class RecipeService extends RecipeBaseService {
         String recipeMode = recipe.getRecipeMode();
 
         Integer organId = recipe.getClinicOrgan();
-        RecipeResultBean checkResult = new RecipeResultBean();
+        RecipeResultBean checkResult = RecipeResultBean.getFail();
 
+        Map<String, Object> esignResponseMap = resultVo.getEsignResponseMap();
+        Integer CANewOldWay = CA_OLD_TYPE;
+        Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
+        if(null != caProcessType){
+            CANewOldWay = Integer.parseInt(caProcessType.toString());
+        }
         try {
             String fileId = null;
             DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
@@ -1673,22 +1699,36 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.warn("当前处方{}审核药师为空，请检查处方相关信息", recipeId);
                 return;
             }
-            if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
-                //保存签名值、时间戳、电子签章文件（date20200908将修改成CA独用的方法）
-                checkResult.setCode(RecipeResultBean.SUCCESS);
-                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
-                resultVo.setFileId(fileId);
-                signRecipeInfoSave(recipeId, false, resultVo, organId);
-            } else {
-                ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                SmsInfoBean smsInfo = new SmsInfoBean();
-                smsInfo.setBusId(0);
-                smsInfo.setOrganId(0);
-                smsInfo.setBusType("PhaSignNotify");
-                smsInfo.setSmsType("PhaSignNotify");
-                smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
-                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                checkResult.setCode(RecipeResultBean.FAIL);
+            if(MapUtils.isNotEmpty(esignResponseMap)){
+                LOGGER.info("reviewRecipe  esignService backMap:{} ,e=============", JSONUtils.toString(esignResponseMap));
+                //易签保返回0表示成功
+                Integer code = MapValueUtil.getInteger(esignResponseMap, "code");
+                if(new Integer(0).equals(code)){
+                    checkResult.setCode(RecipeResultBean.SUCCESS);
+                }
+            }else{
+
+                if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
+                    //保存签名值、时间戳、电子签章文件
+                    checkResult.setCode(RecipeResultBean.SUCCESS);
+                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                    resultVo.setFileId(fileId);
+                    //date 20200922
+                    //老流程保存sign，新流程已经移动至CA保存
+                    if(CA_OLD_TYPE.equals(CANewOldWay)){
+                        signRecipeInfoSave(recipeId, false, resultVo, organId);
+                    }
+                } else {
+                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+                    SmsInfoBean smsInfo = new SmsInfoBean();
+                    smsInfo.setBusId(0);
+                    smsInfo.setOrganId(0);
+                    smsInfo.setBusType("PhaSignNotify");
+                    smsInfo.setSmsType("PhaSignNotify");
+                    smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
+                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                    checkResult.setCode(RecipeResultBean.FAIL);
+                }
             }
 
         } catch (Exception e) {
@@ -1711,6 +1751,11 @@ public class RecipeService extends RecipeBaseService {
             //说明处方签名成功，记录日志，走签名成功逻辑
             LOGGER.info("当前审核处方{}签名成功！", recipeId);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前审核处方签名成功");
+            if(MapUtils.isNotEmpty(esignResponseMap)){
+                String recipeFileId = MapValueUtil.getString(esignResponseMap, "fileId");
+                boolean updateCheckPdf = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
+                LOGGER.info("当前处方更新药师签名pdf结果：{}", updateCheckPdf);
+            }
         }
         //组装审核的结果重新判断审核通过审核不通过
         //根据当前处方最新的审核结果判断审核，获取审核的结果
@@ -1773,7 +1818,7 @@ public class RecipeService extends RecipeBaseService {
 
 
     //暂时只有西药能生成处方图片
-    private void generateRecipeImageAndUpload(Integer recipeId, Map<String, Object> paramMap) {
+    public void generateRecipeImageAndUpload(Integer recipeId, Map<String, Object> paramMap) {
         String fileName = "img_recipe_" + recipeId + ".jpg";
         try {
             /*//先生成本地图片文件----这里通过esign去生成
@@ -1879,29 +1924,51 @@ public class RecipeService extends RecipeBaseService {
                     return rMap;
                 }
             }
-            //第四步签名（发送his前更新处方状态---医院确认中）
-            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
-            //HIS消息发送--异步处理
-            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
-
-            //获取处方签名结果
-            Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
-            if (result) {
-                //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
-                if (!recipeBean.canMedicalPay()) {
-                    //发送卡片
-                    Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-                    List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-                    RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+            //先预留
+//            //第四步签名（发送his前更新处方状态---医院确认中）
+//            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+//            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
+//            //HIS消息发送--异步处理
+//            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+//
+//            //获取处方签名结果
+//            Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
+//            if (result) {
+//                //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
+//                if (!recipeBean.canMedicalPay()) {
+//                    //发送卡片
+//                    Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+//                    List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+//                    RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+//                }
+//                //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
+//                doHisReturnSuccessForOrgan(recipeBean, rMap);
+//            }
+//            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+//            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
+//                //更新审方信息
+//                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+//            }
+            //跳转所需要的复诊信息
+            Integer consultId = recipeBean.getClinicId();
+            Integer bussSource = recipeBean.getBussSource();
+            if (consultId != null) {
+                if (null != rMap && null == rMap.get("consultId")) {
+                    rMap.put("consultId", consultId);
+                    rMap.put("bussSource", bussSource);
                 }
-                //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
-                doHisReturnSuccessForOrgan(recipeBean, rMap);
             }
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
-                //更新审方信息
-                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            Integer CANewOldWay = CA_OLD_TYPE;
+            Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
+            if(null != caProcessType){
+                CANewOldWay = Integer.parseInt(caProcessType.toString());
+            }
+            //触发CA前置操作
+            if(CA_NEW_TYPE.equals(CANewOldWay)){
+                AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
+            }else{
+                //老版默认走后置的逻辑，直接将处方推his
+                new CaAfterProcessType().signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
@@ -2078,18 +2145,20 @@ public class RecipeService extends RecipeBaseService {
                 boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
                 int errFlag = 0;
                 if (checkEnterprise3) {
-                    //验证能否药品配送以及能否开具到一张处方单上
-                    RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
-                    if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
-                        errFlag = 1;
-                        rMap.put("msg", recipeResult3.getError());
-                    }else {
-                        //药企库存实时查询判断药企库存
-                        RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
-                        RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
-                        if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                    //his管理的药企不要验证库存和配送药品，有his【预校验】校验库存
+                    if(new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+                        RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
+                        if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
                             errFlag = 1;
-                            rMap.put("msg", recipeResultBean.getError());
+                            rMap.put("msg", recipeResult3.getError());
+                        }else {
+                            //药企库存实时查询判断药企库存
+                            RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+                            RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                            if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                                errFlag = 1;
+                                rMap.put("msg", recipeResultBean.getError());
+                            }
                         }
                     }
                 } else {
@@ -2466,7 +2535,7 @@ public class RecipeService extends RecipeBaseService {
         return rMap;
     }
 
-    private void doforShangHaiFeiKe(RecipeBean recipe, List<RecipeDetailBean> details) {
+    public void doforShangHaiFeiKe(RecipeBean recipe, List<RecipeDetailBean> details) {
         ////上海医院个性化处理--智能审方重要警示弹窗处理--为了测评-可配置
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_AUDIT_TIP_LIST);
         if ((organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())) ||
@@ -2490,7 +2559,7 @@ public class RecipeService extends RecipeBaseService {
         }
     }
 
-    private void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {
+    public void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_HISRECIPE_LIST);
         if (organIdList != null && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
             RecipeBusiThreadPool.submit(new Callable() {
@@ -2798,7 +2867,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<eh.recipeaudit.model.AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {
+    public List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 
@@ -3473,10 +3542,15 @@ public class RecipeService extends RecipeBaseService {
                 }
                 //药品匹配成功标识
                 boolean succFlag = false;
-                Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
-                if (null != count && count > 0) {
-                    if (count == drugIds.size()) {
-                        succFlag = true;
+                //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
+                if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(organId))){
+                    succFlag = true;
+                }else{
+                    Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
+                    if (null != count && count > 0) {
+                        if (count == drugIds.size()) {
+                            succFlag = true;
+                        }
                     }
                 }
 
@@ -4767,6 +4841,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findCommonSymptomByDoctorAndOrganId(doctor, organId, 0, 10);
     }
+
 
 
 }

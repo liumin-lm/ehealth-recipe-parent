@@ -109,6 +109,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
+    @Deprecated
     public DrugEnterpriseResult recipeMedicalPreSettleO(Integer recipeId) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -153,6 +154,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
+    @Deprecated
     public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId, Integer depId) {
 
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -166,6 +168,12 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
             }
             DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
+                //说明已经经过预结算不再进行预结算
+                LOGGER.info("recipeMedicalPreSettle_no_again。处方ID={}", recipeId);
+                return result;
+            }
             //获取医保支付开关端配置
             ICommonService commonService = BaseAPI.getService(ICommonService.class);
             Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
@@ -210,7 +218,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
 
                 //默认是医保，医生选择了自费时，强制设置为自费
                 //当端配置医保支付打开的时候走到这里来的肯定是自费支付
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 if (recipeExtend != null && recipeExtend.getMedicalType() != null && "0".equals(recipeExtend.getMedicalType()) || medicalPayConfig) {
                     request.setIszfjs("1");
                 } else {
@@ -279,11 +286,11 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}", recipeId, JSONUtils.toString(extInfo));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
-        result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
+        /*result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
         if (DrugEnterpriseResult.FAIL.equals(result.getCode())) {
             LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}", recipeId, JSONUtils.toString(result));
             return result;
-        }
+        }*/
 
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);

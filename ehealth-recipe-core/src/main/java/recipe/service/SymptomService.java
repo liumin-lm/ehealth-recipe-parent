@@ -174,7 +174,7 @@ public class SymptomService implements ISymptomService {
      * @return
      */
     @Override
-    public Map<String, Object> readSymptomExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId) {
+    public Map<String, Object> readSymptomExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId,String manageUnit) {
         logger.info(operator + "开始 readSymptomExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         StringBuilder errMsgAll = new StringBuilder();
         Map<String, Object> result = Maps.newHashMap();
@@ -303,7 +303,6 @@ public class SymptomService implements ISymptomService {
 
             ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
             //导入症候记录
-            UserRoleToken urt = UserRoleToken.getCurrent();
             importExcelInfoDTO.setFileName(originalFilename);
             importExcelInfoDTO.setExcelType(15);
             importExcelInfoDTO.setUploaderName(operator);
@@ -315,7 +314,7 @@ public class SymptomService implements ISymptomService {
             importExcelInfoDTO.setExecuteDate(new Date());
             importExcelInfoDTO.setErrMsg(errMsgAll.toString());
             importExcelInfoDTO.setOssId(ossId);
-            importExcelInfoDTO.setManageUnit(urt.getManageUnit());
+            importExcelInfoDTO.setManageUnit(manageUnit);
             importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);

@@ -28,7 +28,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.module.RecipeCheckBean;
+import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
