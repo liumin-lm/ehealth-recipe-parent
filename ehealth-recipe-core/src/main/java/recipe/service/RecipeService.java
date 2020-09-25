@@ -1550,7 +1550,7 @@ public class RecipeService extends RecipeBaseService {
                 if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                     result.setCode(RecipeResultBean.SUCCESS);
                     //保存签名值、时间戳、电子签章文件
-                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                    RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                     resultVo.setFileId(fileId);
                     //date 20200922
                     //老流程保存sign，新流程已经移动至CA保存
@@ -1711,7 +1711,7 @@ public class RecipeService extends RecipeBaseService {
                 if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                     //保存签名值、时间戳、电子签章文件
                     checkResult.setCode(RecipeResultBean.SUCCESS);
-                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                    RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                     resultVo.setFileId(fileId);
                     //date 20200922
                     //老流程保存sign，新流程已经移动至CA保存
