@@ -802,6 +802,7 @@ public class HisRecipeService {
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
                 try {
                     hisRecipe = hisRecipeDAO.save(hisRecipe);
+                    LOGGER.info("saveHisRecipeInfo hisRecipe:{} 当前时间：{}",hisRecipe, System.currentTimeMillis());
                     hisRecipes.add(hisRecipe);
                 } catch (Exception e) {
                     LOGGER.error("hisRecipeDAO.save error ", e);
