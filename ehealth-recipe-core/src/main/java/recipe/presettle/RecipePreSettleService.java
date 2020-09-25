@@ -93,19 +93,20 @@ public class RecipePreSettleService {
         } else {
             //获取医保支付开关端配置----浙江省互联网没有预结算--浙江省不会打开医保端配置
             //杭州是互联网会打开医保端配置
-            ICommonService commonService = BaseAPI.getService(ICommonService.class);
-            Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
-            //杭州市医保预结算和自费预结算一样
-            //平台省医保预结算
-            String insuredArea = extend.getInsuredArea();
-            Map<String, String> param = Maps.newHashMap();
-            param.put("depId", String.valueOf(depId));
-            param.put("insuredArea", insuredArea);
-            param.put("orderType", String.valueOf(orderType));
-            LOGGER.info("unifyRecipePreSettle recipe={},param={},medicalPayConfig={}", recipe.getRecipeId(), JSONUtils.toString(param), medicalPayConfig);
-            if (medicalPayConfig) {
+            //杭州市互联网自费预结算不调预结算接口
+            if (orderType == 1) {
+                ICommonService commonService = BaseAPI.getService(ICommonService.class);
+                Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
+                //杭州市医保预结算和自费预结算一样
+                //平台省医保预结算
+                String insuredArea = extend.getInsuredArea();
+                Map<String, String> param = Maps.newHashMap();
+                param.put("depId", String.valueOf(depId));
+                param.put("insuredArea", insuredArea);
+                LOGGER.info("unifyRecipePreSettle recipe={},param={},medicalPayConfig={}", recipe.getRecipeId(), JSONUtils.toString(param), medicalPayConfig);
                 return recipeHisService.provincialMedicalPreSettle(recipe.getRecipeId(), param);
             }
+
         }
         result.put("code", "200");
         return result;

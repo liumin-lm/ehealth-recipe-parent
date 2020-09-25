@@ -643,9 +643,8 @@ public class RecipeHisService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(ext.getRegisterID())) {
                     request.setRegisterID(ext.getRegisterID());
                 }
-                //默认是医保，医生选择了自费时，强制设置为自费 或者 患者自己选择了自费
-                Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
-                if (ext.getMedicalType() != null && "0".equals(ext.getMedicalType()) || orderType == 0) {
+                //默认是医保，医生选择了自费时，强制设置为自费
+                if (ext.getMedicalType() != null && "0".equals(ext.getMedicalType())) {
                     request.setIszfjs("1");
                 } else {
                     request.setIszfjs("0");
