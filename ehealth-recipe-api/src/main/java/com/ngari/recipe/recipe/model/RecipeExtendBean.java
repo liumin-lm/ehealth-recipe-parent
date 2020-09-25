@@ -168,6 +168,18 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "his返回的处方总金额")
     private String deliveryRecipeFee;
 
+    @ItemProperty(alias = "his处方付费序号合集")
+    private String recipeCostNumber;
+
+
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
+
     public String getDeliveryRecipeFee() {
         return deliveryRecipeFee;
     }
