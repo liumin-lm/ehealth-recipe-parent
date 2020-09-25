@@ -190,6 +190,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
+        LOGGER.info("remoteRecipeService.getByRecipeId={}",JSONObject.toJSONString(recipeBean));
         return recipeBean;
     }
 
