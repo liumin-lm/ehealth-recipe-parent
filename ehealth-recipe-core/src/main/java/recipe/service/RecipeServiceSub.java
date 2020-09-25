@@ -149,7 +149,7 @@ public class RecipeServiceSub {
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
 
-        //武昌需求，加入处方扩展信息---扩展信息处理
+        //加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient, recipeBean, recipeId);
 
         //加入历史患者

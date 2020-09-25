@@ -84,9 +84,6 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方金额")
     private BigDecimal totalMoney;
 
-    @ItemProperty(alias = "电子病例id")
-    private Integer docIndexId;
-
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
 
@@ -1329,14 +1326,6 @@ public class RecipeBean implements Serializable {
 
     public void setAllergies(List<AllergieBean> allergies) {
         this.allergies = allergies;
-    }
-
-    public Integer getDocIndexId() {
-        return docIndexId;
-    }
-
-    public void setDocIndexId(Integer docIndexId) {
-        this.docIndexId = docIndexId;
     }
 
     public Boolean getEmrStatus() {

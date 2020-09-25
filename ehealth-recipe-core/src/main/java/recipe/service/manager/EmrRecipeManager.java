@@ -1,11 +1,13 @@
 package recipe.service.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import recipe.ApplicationUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.comment.RecipeEmrComment;
@@ -115,9 +116,10 @@ public class EmrRecipeManager {
             logger.info("EmrRecipeManager getMedicalInfo recipeExtend={}", JSONUtils.toString(recipeExtend));
             return;
         }
-        IDocIndexService docIndexService = ApplicationUtils.getBasicService(IDocIndexService.class);
+        IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
         Map<String, Object> medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-        logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSONUtils.toString(medicalInfoMap));
+        logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
+
         if (CollectionUtils.isEmpty(medicalInfoMap)) {
             return;
         }
@@ -125,11 +127,12 @@ public class EmrRecipeManager {
         if (ObjectUtils.isEmpty(medicalDetail)) {
             return;
         }
-        MedicalDetailBean medicalDetailBean = JSONUtils.parse(JSONUtils.toString(medicalDetail), MedicalDetailBean.class);
+        MedicalDetailBean medicalDetailBean = JSON.parseObject(JSON.toJSONString(medicalDetail), MedicalDetailBean.class);
+
         if (!recipeExtend.getDocIndexId().equals(medicalDetailBean.getDocIndexId())) {
             return;
         }
-        List<EmrDetailDTO> detail = JSONUtils.parse(medicalDetailBean.getDetail(), ArrayList.class);
+        List<EmrDetailDTO> detail = JSON.parseArray(medicalDetailBean.getDetail(), EmrDetailDTO.class);
         if (CollectionUtils.isEmpty(detail)) {
             return;
         }
@@ -217,7 +220,7 @@ public class EmrRecipeManager {
         DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
         //业务类型 1 处方 2 复诊 3 检查 4 检验
         docIndexExtBean.setBussType(1);
-        docIndexExtBean.setBussId(recipe.getRecipeId());
+        docIndexExtBean.setBussId(recipeExt.getRecipeId());
         docIndexExtBeanList.add(docIndexExtBean);
         medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
         //设置病历详情
@@ -282,7 +285,7 @@ public class EmrRecipeManager {
             logger.warn("EmrRecipeManager getMultiSearch detail={}", JSONUtils.toString(detail));
             return;
         }
-        List<EmrDetailValueDTO> values = JSONUtils.parse(detail.getValue(), ArrayList.class);
+        List<EmrDetailValueDTO> values = JSON.parseArray(detail.getValue(), EmrDetailValueDTO.class);
         StringBuilder names = new StringBuilder();
         StringBuilder ids = new StringBuilder();
         if (RecipeEmrComment.DIAGNOSIS.equals(detail.getKey())) {

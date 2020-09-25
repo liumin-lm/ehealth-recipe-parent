@@ -86,9 +86,6 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方金额")
     private BigDecimal totalMoney;
 
-    @ItemProperty(alias = "电子病例id")
-    private Integer docIndexId;
-
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
 
@@ -1416,15 +1413,6 @@ public class Recipe implements Serializable {
     public Recipe(Integer recipeId, String supplementaryMemo) {
         this.recipeId = recipeId;
         this.supplementaryMemo = supplementaryMemo;
-    }
-
-    @Column(name = "doc_index_id")
-    public Integer getDocIndexId() {
-        return docIndexId;
-    }
-
-    public void setDocIndexId(Integer docIndexId) {
-        this.docIndexId = docIndexId;
     }
 }
 
