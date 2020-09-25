@@ -105,7 +105,7 @@ public class HisRecipeService {
         //待缴费非本人同步处方处理
         dealPatientInfo(noPayFeeRecipes,patientDTO);
         //异步获取已缴费处方
-        RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
+//        RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
         LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
         //数据合并
@@ -802,6 +802,7 @@ public class HisRecipeService {
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
                 try {
                     hisRecipe = hisRecipeDAO.save(hisRecipe);
+                    LOGGER.info("saveHisRecipeInfo hisRecipe:{} 当前时间：{}",hisRecipe, System.currentTimeMillis());
                     hisRecipes.add(hisRecipe);
                 } catch (Exception e) {
                     LOGGER.error("hisRecipeDAO.save error ", e);

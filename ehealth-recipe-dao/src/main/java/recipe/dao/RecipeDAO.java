@@ -105,7 +105,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param recipeIds
      * @return
      */
-    @DAOMethod(sql = "from Recipe where recipeId in :recipeIds")
+    @DAOMethod(sql = "from Recipe where recipeId in :recipeIds",limit = 0)
     public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
