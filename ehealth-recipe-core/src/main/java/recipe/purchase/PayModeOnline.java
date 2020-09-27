@@ -490,7 +490,7 @@ public class PayModeOnline implements IPurchaseService {
         purchaseService.updateRecipeDetail(recipeId);
         //date 20200318
         //确认订单后同步配送信息接口
-        remoteService.sendDeliveryMsgToHis(dbRecipe.getRecipeId());
+        updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(),extInfo);
         return result;
     }
 
