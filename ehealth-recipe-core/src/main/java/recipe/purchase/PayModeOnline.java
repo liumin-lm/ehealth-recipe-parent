@@ -361,7 +361,7 @@ public class PayModeOnline implements IPurchaseService {
         Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
 
         //杭州市互联网bug临时处理下
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode())){
+        if (RecipeBussConstant.SYB_ZJS.equals(orderType) && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode())){
             orderType = RecipeBussConstant.SYB_HZS;
         }
 
