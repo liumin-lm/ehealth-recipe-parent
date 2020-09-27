@@ -1179,13 +1179,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "sum( IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) ," +
                         "IFNULL( sum(ero.ActualPrice), 0.00 ) - IFNULL( sum(ero.auditFee), 0.00 ) - IFNULL( sum( ero.expressFee ), 0.00 ) -sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) )");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
-                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
-                        " WHERE ero.payeeCode is not null");
+                        " WHERE  ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null");
                 StringBuilder queryCount = new StringBuilder(" FROM cdr_recipe er" +
-                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
-                        " WHERE ero.payeeCode is not null");
+                        " WHERE  ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null");
 
                 if (CollectionUtils.isNotEmpty(organIdList)) {
                     sql.append(" And er.clinicOrgan IN :organIdList");
@@ -1345,20 +1345,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<EnterpriseRecipeMonthSummaryResponse>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseRecipeMonthSummaryResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
-                StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
-                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.send_type = 2 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,0) " +
-                        " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month");
-                if(null != request.getEnterpriseId()){
+                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,c.EnterpriseId, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
+                StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_recipe r" +
+                        " where ( c.send_type = 2 OR r.GiveMode = 3 ) and  c.OrderCode = r.OrderCode  and c.payflag = 1 and c.Effective =1  and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month");
+                if (null != request.getEnterpriseId()) {
                     sql.append(" and c.EnterpriseId =:enterpriseId");
                 }
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     sql.append(" and c.OrganId =:organIdList");
                 }
                 sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     query.setParameterList("organIdList", request.getOrganIdList());
                 }
                 query.setFirstResult(request.getStart());
@@ -1387,15 +1386,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     for (Object[] item : queryList) {
                         EnterpriseRecipeMonthSummaryResponse response = new EnterpriseRecipeMonthSummaryResponse();
                         response.setTotal(total);
-                        response.setOrganId(ConversionUtils.convert(item[0],Integer.class));
-                        response.setOrganName(ConversionUtils.convert(item[1],String.class));
-                        response.setEnterpriseName(ConversionUtils.convert(item[2],String.class));
-                        response.setTotalOrderNum(ConversionUtils.convert(item[3],Integer.class));
-                        response.setTotalFee(ConversionUtils.convert(item[4],BigDecimal.class));
-                        response.setDrugFee(ConversionUtils.convert(item[5],BigDecimal.class));
-                        response.setDeliveryFee(ConversionUtils.convert(item[6],BigDecimal.class));
-                        response.setNgariRecivedFee(ConversionUtils.convert(item[7],BigDecimal.class));
-                        response.setOrganRecivedDiffFee(ConversionUtils.convert(item[6],BigDecimal.class));
+                        response.setOrganId(ConversionUtils.convert(item[0], Integer.class));
+                        response.setOrganName(ConversionUtils.convert(item[1], String.class));
+                        response.setEnterpriseId(ConversionUtils.convert(item[2], Integer.class));
+                        response.setTotalOrderNum(ConversionUtils.convert(item[3], Integer.class));
+                        response.setTotalFee(ConversionUtils.convert(item[4], BigDecimal.class));
+                        response.setDrugFee(ConversionUtils.convert(item[5], BigDecimal.class));
+                        response.setDeliveryFee(ConversionUtils.convert(item[6], BigDecimal.class));
+                        response.setNgariRecivedFee(ConversionUtils.convert(item[7], BigDecimal.class));
+                        response.setOrganRecivedDiffFee(ConversionUtils.convert(item[6], BigDecimal.class));
                         resultList.add(response);
                     }
                 }

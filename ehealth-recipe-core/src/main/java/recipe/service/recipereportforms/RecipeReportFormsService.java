@@ -212,11 +212,26 @@ public class RecipeReportFormsService {
         try {
             request.setOrganIdList(organIdList);
             List<EnterpriseRecipeMonthSummaryResponse> responses = recipeOrderDAO.findEnterpriseRecipeMonthSummaryList(request);
-            if (CollectionUtils.isNotEmpty(responses)) {
-                resultMap.put("total", responses.get(0).getTotal());
-            } else {
+            LOGGER.info("enterpriseRecipeMonthSummaryList request = {} responses={}", JSONUtils.toString(request), JSONUtils.toString(responses));
+            if (CollectionUtils.isEmpty(responses)) {
                 resultMap.put("total", 0);
+                resultMap.put("data", responses);
+                return resultMap;
             }
+            List<Integer> enterpriseIds = responses.stream().map(EnterpriseRecipeMonthSummaryResponse::getEnterpriseId).distinct().collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(enterpriseIds)) {
+                List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIdIn(enterpriseIds);
+                Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
+                responses.forEach(a -> {
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(a.getEnterpriseId());
+                    if (null != drugsEnterprise) {
+                        a.setEnterpriseName(drugsEnterprise.getName());
+                    } else {
+                        LOGGER.warn("recipeAccountCheckDetailList enterpriseId is null {}", a.getEnterpriseId());
+                    }
+                });
+            }
+            resultMap.put("total", responses.get(0).getTotal());
             resultMap.put("data", responses);
         } catch (Exception e) {
             LOGGER.error("enterpriseRecipeMonthSummaryList error,request = {}", JSONUtils.toString(request), e);
