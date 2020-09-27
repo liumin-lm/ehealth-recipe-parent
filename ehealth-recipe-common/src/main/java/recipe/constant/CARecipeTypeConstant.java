@@ -14,6 +14,6 @@ public class CARecipeTypeConstant {
     /**
      * CA-药师
      */
-    public static final Integer CA_RECIPE_PHA = 2;
+    public static final Integer CA_RECIPE_PHA = 3;
 
 }
