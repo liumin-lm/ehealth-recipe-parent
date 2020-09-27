@@ -1897,6 +1897,16 @@ public class RecipeService extends RecipeBaseService {
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
+        //测试测超时情况
+        if (recipeBean.getRecipeExtend() != null) {
+            if ("超时".equals(recipeBean.getRecipeExtend().getHandleMethod())) {
+                try {
+                    Thread.sleep(20000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         try {
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
