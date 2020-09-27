@@ -728,6 +728,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (StringUtils.isNotEmpty(operAddressId)) {
                 address = addressService.get(Integer.parseInt(operAddressId));
             } else {
+                LOGGER.info("getDefaultAddressByMpiid mpiid:{}",operMpiId);
                 //获取默认收货地址
                 address=addressService.getDefaultAddressByMpiid(operMpiId);
                 //address = addressService.getLastAddressByMpiId(operMpiId);
