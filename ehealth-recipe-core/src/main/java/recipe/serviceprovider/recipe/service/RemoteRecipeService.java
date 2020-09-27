@@ -1686,6 +1686,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
     }
 
+    @Override
+    public List<RecipeBean> findRecipeListByStatusAndSignDate(int status, String startTime, String endTime) {
+        List<Recipe> recipeBeans = recipeDAO.findRecipeListForStatus(status, startTime, endTime);
+        return ObjectCopyUtils.convert(recipeBeans, RecipeBean.class);
+    }
+
 
     private CaSignResultVo makeCaSignResultVoFromCABean(CaSignResultUpgradeBean resultVo) {
         CaSignResultVo caSignResultVo = new CaSignResultVo();
