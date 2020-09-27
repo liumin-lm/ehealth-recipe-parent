@@ -180,7 +180,33 @@ public class ThirdRecipeService {
     @RpcService
     public Integer createOrder(ThirdSaveOrderRequest request) {
         LOGGER.info("ThirdRecipeService.createOrder request:{}.", JSONUtils.toString(request));
-
+        checkOrderParams(request);
+        setUrtToContext(request.getAppkey(), request.getTid());
+        //获取用户的MPIID
+        String mpiId = getMpiIdFromThirdPartyMapping(request.getAppkey(), request.getTid());
+        //查询处方是否存在
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
+        if (recipe != null) {
+            RecipeOrder order = new RecipeOrder();
+            order.setMpiId(mpiId);
+            order.setOrganId(recipe.getClinicOrgan());
+            order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+            order.setAddressID(Integer.parseInt(request.getRecipeOrder().getAddressId()));
+            order.setWxPayWay(request.getRecipeOrder().getPayway());
+            if (StringUtils.isNotEmpty(request.getRecipeOrder().getDepId())) {
+                order.setEnterpriseId(Integer.parseInt(request.getRecipeOrder().getDepId()));
+            }
+            if (request.getRecipeOrder().getExpressFee() != null) {
+                order.setExpressFee(new BigDecimal(request.getRecipeOrder().getExpressFee()));
+            }
+            if (StringUtils.isNotEmpty(request.getRecipeOrder().getGysCode())) {
+                order.setDrugStoreCode(request.getRecipeOrder().getGysCode());
+            }
+            return recipeOrderDAO.save(order).getOrderId();
+        }
         return 0;
     }
 
