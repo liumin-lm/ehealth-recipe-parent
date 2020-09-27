@@ -37,8 +37,6 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.thread.QueryHisRecipeCallable;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -1188,11 +1186,8 @@ public class HisRecipeService {
             }
             if (hisRecipeDetail.getPrice() != null) {
                 recipedetail.setSalePrice(hisRecipeDetail.getPrice());
-            } else {
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
-                }
             }
+
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
                 recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
