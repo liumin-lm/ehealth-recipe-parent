@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
@@ -42,6 +43,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -52,6 +54,13 @@ import java.util.*;
 public class RecipeTestService {
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+    @Resource
+    private OrganService organService;
+    @Autowired
+    private RecipeDAO recipeDAO;
+
     /**
      * logger
      */
@@ -296,32 +305,40 @@ public class RecipeTestService {
 
     /**
      * 处理处方电子病历的历史数据
-     * @param organId  机构ID
+     *
+     * @param organId 机构ID
      */
     @RpcService
-    public void saveDoc(Integer organId){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+    public void saveDoc(Integer organId) {
+        LOGGER.info("RecipeTestService saveDoc start organId= {}", organId);
         List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
+        if (CollectionUtils.isEmpty(recipes)) {
+            LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
+            return;
+        }
         for (Recipe recipe : recipes) {
             try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
-                emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
+                emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             } catch (Exception e) {
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
             }
         }
+        LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
     }
 
-
-    @Resource
-    private OrganService organService;
-
+    /**
+     * 处理处方电子病历的历史数据 仅用于同步老数据 执行一次
+     */
+    @RpcService
     public void saveDocList() {
-        List<OrganDTO> OrganDTOList = organService.findOrgans();
+        LOGGER.info("RecipeTestService saveDocList start ");
+        List<OrganDTO> organList = organService.findOrgans();
+        List<Integer> organIds = organList.stream().map(OrganDTO::getOrganId).distinct().collect(Collectors.toList());
+        organIds.forEach(this::saveDoc);
+        LOGGER.info("RecipeTestService saveDocList end");
     }
-
 }
