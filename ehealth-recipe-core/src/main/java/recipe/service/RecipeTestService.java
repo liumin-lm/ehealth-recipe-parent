@@ -29,6 +29,7 @@ import eh.msg.constant.MqConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
@@ -37,6 +38,7 @@ import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -48,7 +50,8 @@ import java.util.*;
  */
 @RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
-
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
     /**
      * logger
      */
@@ -299,19 +302,26 @@ public class RecipeTestService {
     public void saveDoc(Integer organId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        EmrRecipeManager emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeManager.class);
         List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
         for (Recipe recipe : recipes) {
             try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
-                emrRecipeService.saveMedicalInfo(recipeBean, recipeExtend);
+                emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             } catch (Exception e) {
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
             }
         }
+    }
+
+
+    @Resource
+    private OrganService organService;
+
+    public void saveDocList() {
+        List<OrganDTO> OrganDTOList = organService.findOrgans();
     }
 
 }
