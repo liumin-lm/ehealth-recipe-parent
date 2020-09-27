@@ -170,4 +170,14 @@ public class RecipeBussConstant {
      */
     public static Integer BUSS_SOURCE_WLZX = 3;
 
+    /**
+     * 处方订单类型-省医保
+     */
+    public static Integer SYB_ZJS = 1;
+
+    /**
+     * 处方订单类型-杭州市医保
+     */
+    public static Integer SYB_HZS = 2;
+
 }

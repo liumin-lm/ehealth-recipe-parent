@@ -360,6 +360,11 @@ public class PayModeOnline implements IPurchaseService {
         //订单类型-1省医保
         Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
 
+        //杭州市互联网bug临时处理下
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode())){
+            orderType = RecipeBussConstant.SYB_HZS;
+        }
+
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("支付信息不全");
