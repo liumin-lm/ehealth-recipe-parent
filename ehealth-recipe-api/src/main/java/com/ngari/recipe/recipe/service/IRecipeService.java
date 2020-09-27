@@ -724,5 +724,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo);
+
+    /**
+     * 根据处方签名
+     * @param status
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @RpcService
+    List<RecipeBean> findRecipeListByStatusAndSignDate(int status,String startTime,String endTime);
 }
 
