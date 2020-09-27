@@ -732,15 +732,17 @@ public class RecipeOrderService extends RecipeBaseService {
                 //获取默认收货地址
                 address=addressService.getDefaultAddressByMpiid(operMpiId);
                 //address = addressService.getLastAddressByMpiId(operMpiId);
-                //判断街道是否完善
-                if (StringUtils.isEmpty(address.getStreetAddress())){
-                    address=null;
-                }else{
-                    //判断默认收货地址是否在可配送范围内,若没在配送范围内，则不返回收货地址
-                    EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-                    int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
-                    if (0 != flag) {
+                if(address!=null){
+                    //判断街道是否完善
+                    if (StringUtils.isEmpty(address.getStreetAddress())){
                         address=null;
+                    }else{
+                        //判断默认收货地址是否在可配送范围内,若没在配送范围内，则不返回收货地址
+                        EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+                        int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
+                        if (0 != flag) {
+                            address=null;
+                        }
                     }
                 }
             }
