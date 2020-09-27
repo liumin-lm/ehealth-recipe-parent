@@ -976,9 +976,16 @@ public class PayModeOnline implements IPurchaseService {
                 boolean specialMake = remoteService.specialMakeDepList(drugsEnterprise, dbRecipe);
                 if (new Integer(1).equals(drugsEnterprise.getShowStoreFlag()) || specialMake) {
                     //将药店配送的药企移除
-                    for (DepDetailBean depDetailBean : depDetailList) {
-                        if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
-                            depDetailList.remove(depDetailBean);
+//                    for (DepDetailBean depDetailBean : depDetailList) {
+//                        if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
+//                            depDetailList.remove(depDetailBean);
+//                            continue;
+//                        }
+//                    }
+                    for(Iterator<DepDetailBean> it=depDetailList.iterator();it.hasNext();){
+                        DepDetailBean  nowDepDetailBean = it.next();
+                        if (drugsEnterprise.getId().equals(nowDepDetailBean.getDepId())) {
+                            it.remove();
                             continue;
                         }
                     }
