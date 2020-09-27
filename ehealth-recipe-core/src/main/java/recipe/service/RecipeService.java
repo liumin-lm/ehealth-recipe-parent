@@ -1901,7 +1901,7 @@ public class RecipeService extends RecipeBaseService {
         if (recipeBean.getRecipeExtend() != null) {
             if ("超时".equals(recipeBean.getRecipeExtend().getHandleMethod())) {
                 try {
-                    Thread.sleep(20000);
+                    Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
