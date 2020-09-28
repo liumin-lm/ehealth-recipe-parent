@@ -213,7 +213,7 @@ public class EmrRecipeManager {
         }
         docIndexBean.setCreateDoctor(recipe.getDoctor());
         docIndexBean.setDoctorName(recipe.getDoctorName());
-        docIndexBean.setCreateDate(new Date());
+        docIndexBean.setCreateDate(recipe.getCreateDate());
         docIndexBean.setGetDate(new Date());
         docIndexBean.setDoctypeName("电子处方病历");
         docIndexBean.setDocStatus(4);
