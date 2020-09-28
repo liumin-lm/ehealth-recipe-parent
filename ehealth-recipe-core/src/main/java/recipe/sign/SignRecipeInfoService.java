@@ -406,4 +406,9 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
         }
     }
+
+    @RpcService
+    public SignDoctorRecipeInfo getSignInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType) {
+        return signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndServerType(recipeId, serverType);
+    }
 }
