@@ -319,6 +319,10 @@ public class RecipeTestService {
         for (Recipe recipe : recipes) {
             try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if (null == recipeExtend) {
+                    recipeExtend = new RecipeExtend();
+                    recipeExtend.setRecipeId(recipe.getRecipeId());
+                }
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
                 emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);

@@ -188,6 +188,9 @@ public class EmrRecipeManager {
      * @param recipeExt
      */
     private void addMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
+        if (null == recipeExt) {
+            return;
+        }
         //保存电子病历
         MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
         //设置病历索引信息
@@ -200,9 +203,13 @@ public class EmrRecipeManager {
         docIndexBean.setDocSummary("电子处方病历");
         docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
         docIndexBean.setCreateDepart(recipe.getDepart());
-        DepartmentDTO department = departmentService.get(recipe.getDepart());
-        if (department != null) {
-            docIndexBean.setDepartName(department.getName());
+        try {
+            DepartmentDTO department = departmentService.get(recipe.getDepart());
+            if (department != null) {
+                docIndexBean.setDepartName(department.getName());
+            }
+        } catch (Exception e) {
+            logger.error("EmrRecipeManager departmentService error", e);
         }
         docIndexBean.setCreateDoctor(recipe.getDoctor());
         docIndexBean.setDoctorName(recipe.getDoctorName());
@@ -227,10 +234,10 @@ public class EmrRecipeManager {
         MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
         setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
         medicalInfoBean.setMedicalDetailBean(medicalDetailBean);
-        logger.info("EmrRecipeManager saveMedicalInfo  medicalDetailBean:{}", JSONUtils.toString(medicalInfoBean));
+        logger.info("EmrRecipeManager addMedicalInfo  medicalDetailBean:{}", JSONUtils.toString(medicalInfoBean));
         Integer docId = docIndexService.saveMedicalInfo(medicalInfoBean);
         recipeExt.setDocIndexId(docId);
-        logger.info("EmrRecipeManager saveMedicalInfo end docId={}", docId);
+        logger.info("EmrRecipeManager addMedicalInfo end docId={}", docId);
     }
 
     /**
@@ -258,14 +265,14 @@ public class EmrRecipeManager {
         detail.add(new EmrDetailDTO(RecipeEmrComment.MEMO, "注意事项", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipe.getMemo()), false));
         //设置诊断
         if (!StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
-            String[] diseaseNames = recipe.getOrganDiseaseName().split(ByteUtils.SEMI_COLON_CH);
-            String[] diseaseIds = recipe.getOrganDiseaseId().split(ByteUtils.SEMI_COLON_CH);
+            String[] diseaseNames = ByteUtils.split(recipe.getOrganDiseaseName(), ByteUtils.SEMI_COLON_CH);
+            String[] diseaseIds = ByteUtils.split(recipe.getOrganDiseaseId(), ByteUtils.SEMI_COLON_CH);
             detail.add(new EmrDetailDTO(RecipeEmrComment.DIAGNOSIS, "诊断", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(diseaseNames, diseaseIds), true));
         }
         //设置中医证候
         if (!StringUtils.isEmpty(recipeExt.getSymptomName())) {
-            String[] symptomNames = recipeExt.getSymptomName().split(ByteUtils.SEMI_COLON_EN);
-            String[] symptomIds = recipeExt.getSymptomId().split(ByteUtils.SEMI_COLON_EN);
+            String[] symptomNames = ByteUtils.split(recipeExt.getSymptomName(), ByteUtils.SEMI_COLON_EN);
+            String[] symptomIds = ByteUtils.split(recipeExt.getSymptomId(), ByteUtils.SEMI_COLON_EN);
             detail.add(new EmrDetailDTO(RecipeEmrComment.TCM_SYNDROME, "中医证候", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(symptomNames, symptomIds), false));
         }
 
@@ -326,7 +333,7 @@ public class EmrRecipeManager {
 
         List<EmrDetailValueDTO> diagnosisValues = new LinkedList<>();
         if (null == names || null == ids || 0 == names.length || 0 == ids.length) {
-            return "";
+            return null == names ? "" : Arrays.toString(names);
         }
 
         for (int i = 0; i < names.length; i++) {

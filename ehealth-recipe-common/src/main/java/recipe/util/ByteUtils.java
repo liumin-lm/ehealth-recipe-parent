@@ -73,4 +73,12 @@ public class ByteUtils {
 			return str.substring(0, str.length() - 1);
 		}
 	}
+
+	public static String[] split(String str, String regex) {
+		if (StringUtils.isEmpty(str)) {
+			return new String[0];
+		} else {
+			return str.split(regex);
+		}
+	}
 }
