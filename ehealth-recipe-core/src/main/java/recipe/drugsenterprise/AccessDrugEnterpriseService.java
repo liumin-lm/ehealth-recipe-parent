@@ -10,7 +10,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -28,8 +27,6 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.SaleDrugListDAO;
-import recipe.purchase.PayModeOnline;
-import recipe.purchase.PurchaseService;
 import recipe.service.RecipeOrderService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
@@ -414,17 +411,6 @@ public abstract class AccessDrugEnterpriseService {
         LOGGER.info("当前公用药企逻辑-判断个性化药企展示：drugsEnterprise：{}, dbRecipe:{}",
                 JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return DrugEnterpriseConstant.COMPANY_HZ.equals(drugsEnterprise.getCallSys()) && dbRecipe.getRecipeCode().contains("ngari");
-    }
-
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-        LOGGER.info("当前公用药企逻辑-确认订单后推送配送信息：recipeId：{}",
-                recipeId);
-        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
-        RecipeBusiThreadPool.submit(()->{
-            service.updateGoodsReceivingInfo(recipeId);
-            return null;
-        });
     }
 
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {

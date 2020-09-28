@@ -1,20 +1,14 @@
 package recipe.drugsenterprise.compatible;
 
-import com.alibaba.fastjson.JSON;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.DeliveryList;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -297,12 +291,6 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         LOGGER.info("新-杭州互联网虚拟药企个性化展示药企列表 specialMakeDepList drugsEnterprise:{}，dbRecipe:{} "
                 , JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return true;
-    }
-
-    @Override
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-        LOGGER.info("新-杭州互联网虚拟药企确认订单后同步配送信息 sendDeliveryMsgToHis recipeId:{}", recipeId);
-        return;
     }
 
     @Override

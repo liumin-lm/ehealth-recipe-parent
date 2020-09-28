@@ -1,36 +1,30 @@
 package recipe.drugsenterprise.compatible;
 
-import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.dao.*;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.RecipeToHisService;
-import recipe.purchase.PayModeOnline;
-import recipe.purchase.PurchaseService;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,17 +42,6 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
         LOGGER.info("旧-杭州互联网虚拟药企展示配送列表是否需要个性化，入参：drugsEnterprise：{}，dbRecipe：{}",
                 JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return false;
-    }
-
-    @Override
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-        LOGGER.info("旧-杭州互联网虚拟药企确认订单后同步配送信息，入参：{}", recipeId);
-        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
-        RecipeBusiThreadPool.submit(()->{
-            service.updateGoodsReceivingInfo(recipeId);
-            return null;
-        });
     }
 
     @Override
@@ -192,14 +175,6 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
         AccessDrugEnterpriseService remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         remoteService.setOrderEnterpriseMsg(extInfo, order);
     }
-
-//    @Override
-//    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
-//
-//        LOGGER.info("旧-checkRecipeGiveDeliveryMsg recipeBean:{}, map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
-//        AccessDrugEnterpriseService remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-//        remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
-//    }
 
     @Override
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
