@@ -178,7 +178,7 @@ public class RecipeBussConstant {
     /**
      * 处方订单类型-自费
      */
-    public static Integer ORDERTYPE_ZF = 1;
+    public static Integer ORDERTYPE_ZF = 0;
 
     /**
      * 处方订单类型-省医保
