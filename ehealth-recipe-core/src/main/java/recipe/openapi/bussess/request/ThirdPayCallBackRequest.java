@@ -11,9 +11,12 @@ import java.util.Date;
  * @date 2020\9\22 0022 10:01
  */
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class ThirdPayCallBackRequest extends ThirdBaseRequest implements Serializable{
+public class ThirdPayCallBackRequest implements Serializable{
     private static final long serialVersionUID = -6370059716143115899L;
+
+    private String appkey;
+
+    private String tid;
 
     private Integer recipeId;
 

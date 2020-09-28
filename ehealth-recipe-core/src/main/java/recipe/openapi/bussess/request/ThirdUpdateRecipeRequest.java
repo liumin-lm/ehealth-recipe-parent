@@ -10,9 +10,12 @@ import java.io.Serializable;
  * @date 2020\9\22 0022 11:23
  */
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class ThirdUpdateRecipeRequest extends ThirdBaseRequest implements Serializable {
+public class ThirdUpdateRecipeRequest implements Serializable {
     private static final long serialVersionUID = -6311561970728381949L;
+
+    private String appkey;
+
+    private String tid;
 
     private Integer recipeId;
 

@@ -11,9 +11,12 @@ import java.util.Map;
  * @date 2020\9\21 0021 10:42
  */
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class ThirdGetDepListRequest extends ThirdBaseRequest implements Serializable{
+public class ThirdGetDepListRequest implements Serializable{
     private static final long serialVersionUID = -1926238824070605318L;
+
+    private String appkey;
+
+    private String tid;
 
     private Integer recipeId;
 
