@@ -1980,13 +1980,20 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     public void updateHisRecieStatus(List<Recipe> recipes) {
         try{
-            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode());
-            if (hisRecipe != null) {
-                hisRecipeDAO.updateHisRecieStatus(recipes.get(0).getClinicOrgan(), recipes.get(0).getRecipeCode(), 2);
+            if(!CollectionUtils.isEmpty(recipes)){
+                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                for(Recipe recipe: recipes){
+                    if(recipe==null){
+                        continue;
+                    }
+                    HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                    if (hisRecipe != null) {
+                        hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), 2);
+                    }
+                }
             }
         }catch (Exception e){
-            LOGGER.info("updateHisRecieStatus 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", recipes.get(0).getRecipeId(), e.getMessage(),e);
+            LOGGER.info("updateHisRecieStatus 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.",JSONUtils.toString(recipes),e);
         }
     }
 
