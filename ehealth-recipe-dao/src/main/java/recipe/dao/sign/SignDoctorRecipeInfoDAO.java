@@ -6,6 +6,8 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 @RpcSupportDAO
 public abstract class SignDoctorRecipeInfoDAO extends HibernateSupportDelegateDAO<SignDoctorRecipeInfo> {
 
@@ -26,4 +28,7 @@ public abstract class SignDoctorRecipeInfoDAO extends HibernateSupportDelegateDA
 
     @DAOMethod(sql = " from SignDoctorRecipeInfo where recipeId=:recipeId and type=:type and serverType = 1")
     public abstract SignDoctorRecipeInfo getRecipeInfoByRecipeIdAndType(@DAOParam("recipeId")Integer recipeId, @DAOParam("type")String type);
+
+    @DAOMethod(sql = " from SignDoctorRecipeInfo where recipeId=:recipeId and serverType =:serverType order by id desc")
+    public abstract List<SignDoctorRecipeInfo> findRecipeInfoByRecipeIdAndServerType(@DAOParam("recipeId")Integer recipeId, @DAOParam("serverType")Integer serverType);
 }
