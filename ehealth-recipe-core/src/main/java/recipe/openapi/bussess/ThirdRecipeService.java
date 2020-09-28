@@ -101,7 +101,7 @@ public class ThirdRecipeService {
     public Map<String, Object> getPatientRecipeById(ThirdRecipeDetailRequest request){
         LOGGER.info("ThirdRecipeService.getPatientRecipeById request:{}.", JSONUtils.toString(request));
         Assert.hasLength(request.getTid(), "getPatientRecipeById 用户tid为空!");
-        Assert.isNull(request.getRecipeId(), "getPatientRecipeById 处方单ID为空!");
+        Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(request.getRecipeId(), false);
         PatientDTO patient = (PatientDTO) result.get("patient");
@@ -250,9 +250,9 @@ public class ThirdRecipeService {
     @RpcService
     public Integer updateRecipeStatus(ThirdUpdateRecipeRequest request) {
         LOGGER.info("ThirdRecipeService.updateRecipeStatus request:{}.", JSONUtils.toString(request));
-        Assert.isNull(request.getTid(), "用户tid为空!");
-        Assert.isNull(request.getRecipeId(), "处方单ID为空!");
-        Assert.isNull(request.getStatus(), "处方状态为空!");
+        Assert.notNull(request.getTid(), "用户tid为空!");
+        Assert.notNull(request.getRecipeId(), "处方单ID为空!");
+        Assert.notNull(request.getStatus(), "处方状态为空!");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
         if (recipe != null) {
@@ -265,8 +265,8 @@ public class ThirdRecipeService {
     }
 
     private void checkOrderParams(ThirdSaveOrderRequest request){
-        Assert.isNull(request.getTid(), "用户tid为空!");
-        Assert.isNull(request.getRecipeId(), "处方单ID为空!");
+        Assert.notNull(request.getTid(), "用户tid为空!");
+        Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         Assert.hasLength(request.getRecipeOrder().getAddressId(), "收货地址为空!");
         Assert.hasLength(request.getRecipeOrder().getPayway(), "支付类型为空!");
         Assert.hasLength(request.getRecipeOrder().getDecoctionFlag(), "代煎方式为空!");
@@ -278,13 +278,13 @@ public class ThirdRecipeService {
      * @param request 入参数据
      */
     private void checkPayCallBackParams(ThirdPayCallBackRequest request){
-        Assert.isNull(request.getTid(), "用户tid为空!");
-        Assert.isNull(request.getRecipeId(), "处方单ID为空!");
-        Assert.isNull(request.getOrderId(), "定单号为空!");
+        Assert.notNull(request.getTid(), "用户tid为空!");
+        Assert.notNull(request.getRecipeId(), "处方单ID为空!");
+        Assert.notNull(request.getOrderId(), "定单号为空!");
         Assert.hasLength(request.getPayFlag(), "支付状态为空!");
         Assert.hasLength(request.getOutTradeNo(), "平台流水号为空!");
         Assert.hasLength(request.getTradeNo(), "支付流水号为空!");
-        Assert.isNull(request.getTotalAmount(), "支付总金额为空!");
+        Assert.notNull(request.getTotalAmount(), "支付总金额为空!");
         Assert.hasLength(request.getPayway(), "支付类型代码为空!");
     }
 
@@ -293,7 +293,7 @@ public class ThirdRecipeService {
      * @param request 入参数据
      */
     private void checkThirdAddressParams(ThirdSetAddressRequest request) {
-        Assert.isNull(request.getTid(), "用户tid为空!");
+        Assert.notNull(request.getTid(), "用户tid为空!");
         Assert.hasLength(request.getReceiver(), "收货人为空!");
         Assert.hasLength(request.getRecMobile(), "收货人手机号为空!");
         Assert.hasLength(request.getAddress1(), "地址（省）为空!");
