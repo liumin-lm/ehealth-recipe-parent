@@ -1822,17 +1822,21 @@ public class RecipeServiceSub {
         String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
         if ("shenzhenCA".equals(thirdCASign)) {
             SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
-            SignDoctorRecipeInfo info = signRecipeInfoService.get(recipe.getRecipeId());
-            if (null != info) {
+            SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
+            SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
+            //date 20200928 获取医生药师图片方式修改，暂时不修改和CA的耦合
+            if (null != docInfo) {
                 //医生图片
-                if (StringUtils.isNotEmpty(info.getSignPictureDoc())) {
-                    map.put("doctorSignImg", info.getSignPictureDoc());
-                    map.put("doctorSignImgToken", FileAuth.instance().createToken(info.getSignPictureDoc(), 3600L));
+                if (StringUtils.isNotEmpty(docInfo.getSignPictureDoc())) {
+                    map.put("doctorSignImg", docInfo.getSignPictureDoc());
+                    map.put("doctorSignImgToken", FileAuth.instance().createToken(docInfo.getSignPictureDoc(), 3600L));
                 }
-                //药师图片
-                if (StringUtils.isNotEmpty(info.getSignPicturePha()) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-                    map.put("checkerSignImg", info.getSignPicturePha());
-                    map.put("checkerSignImgToken", FileAuth.instance().createToken(info.getSignPicturePha(), 3600L));
+            }
+            //药师图片
+            if(null != phaInfo){
+                if (StringUtils.isNotEmpty(phaInfo.getSignPictureDoc()) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                    map.put("checkerSignImg", phaInfo.getSignPictureDoc());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(phaInfo.getSignPictureDoc(), 3600L));
                 }
             }
         } else {

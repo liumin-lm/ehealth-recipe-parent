@@ -392,10 +392,12 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             // 时间戳
             signDoctorRecipeInfo.setSignCaDateDoc(caSignResult.getSignDate());
             // ca类型
+            signDoctorRecipeInfo.setType(caSignResult.getCaType());
             // 签名原文
-            //signDoctorRecipeInfo.setSignBefText();
+            signDoctorRecipeInfo.setSignBefText(caSignResult.getSignText());
             // 手签图片
-            signDoctorRecipeInfo.setSignPictureDoc(caSignResult.getSignPicture());
+            String pictureId = uploadPicture(caSignResult.getSignPicture());
+            signDoctorRecipeInfo.setSignPictureDoc(pictureId);
             // 创建时间
             signDoctorRecipeInfo.setCreateDate(new Date());
             // 修改时间
@@ -403,5 +405,10 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
         }
+    }
+
+    @RpcService
+    public SignDoctorRecipeInfo getSignInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType) {
+        return signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndServerType(recipeId, serverType);
     }
 }
