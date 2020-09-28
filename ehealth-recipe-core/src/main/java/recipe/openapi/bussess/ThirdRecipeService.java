@@ -12,6 +12,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.account.UserRoleToken;
 import ctd.account.thirdparty.ThirdPartyMappingController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -61,8 +62,7 @@ public class ThirdRecipeService {
         List<RecipeAndRecipeDetailsBean> recipeAndRecipeDetailsBeans = new ArrayList<>();
         Assert.hasLength(request.getTid(), "findRecipesForPatientAndTabStatus 用户tid为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
-        //获取用户的MPIID
-        String mpiId = getMpiIdFromThirdPartyMapping(request.getAppkey(), request.getTid());
+        String mpiId = getOwnMpiId();
         RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = recipeListService.findRecipesForPatientAndTabStatus(request.getTabStatus(), mpiId, request.getIndex(), request.getLimit());
 
@@ -133,7 +133,7 @@ public class ThirdRecipeService {
         LOGGER.info("ThirdRecipeService.findByMpiIdOrderSelf request:{}.", JSONUtils.toString(request));
         Assert.hasLength(request.getTid(), "findByMpiIdOrderSelf 用户tid为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
-        String mpiId = getMpiIdFromThirdPartyMapping(request.getAppkey(), request.getTid());
+        String mpiId = getOwnMpiId();
         AddressService addressService = BasicAPI.getService(AddressService.class);
         if (StringUtils.isNotEmpty(mpiId)) {
             return addressService.findByMpiIdOrderSelf(mpiId);
@@ -151,7 +151,7 @@ public class ThirdRecipeService {
         LOGGER.info("ThirdRecipeService.addAddress request:{}.", JSONUtils.toString(request));
         checkThirdAddressParams(request);
         setUrtToContext(request.getAppkey(), request.getTid());
-        String mpiId = getMpiIdFromThirdPartyMapping(request.getAppkey(), request.getTid());
+        String mpiId = getOwnMpiId();
         if (StringUtils.isNotEmpty(mpiId)) {
             AddressDTO addressDTO = new AddressDTO();
             addressDTO.setMpiId(mpiId);
@@ -182,8 +182,7 @@ public class ThirdRecipeService {
         LOGGER.info("ThirdRecipeService.createOrder request:{}.", JSONUtils.toString(request));
         checkOrderParams(request);
         setUrtToContext(request.getAppkey(), request.getTid());
-        //获取用户的MPIID
-        String mpiId = getMpiIdFromThirdPartyMapping(request.getAppkey(), request.getTid());
+        String mpiId = getOwnMpiId();
         //查询处方是否存在
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -313,19 +312,12 @@ public class ThirdRecipeService {
     }
 
     /**
-     * 获取登录的用户信息
-     * @param thirdParty 第三方标识
-     * @param tid 第三方唯一标识
-     * @return 平台userId
+     * 获取当前登录用户的MPIID
+     * @return 当前用户的MPIID
      */
-    private String getMpiIdFromThirdPartyMapping(String thirdParty, String tid){
-        Integer urt = ThirdPartyMappingController.instance().getByThirdpartyAndTid(thirdParty, tid).getUrt();
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        List<PatientDTO> patientDTOList = patientService.findPatientByUrt(urt);
-        LOGGER.info("ThirdRecipeService.getMpiIdFromThirdPartyMapping patientDTOList:{}.", JSONUtils.toString(patientDTOList));
-        if (!CollectionUtils.isEmpty(patientDTOList)) {
-            return patientDTOList.get(0).getMpiId();
-        }
-        return "";
+    private String getOwnMpiId(){
+        UserRoleToken userRoleToken = UserRoleToken.getCurrent();
+        LOGGER.info("ThirdRecipeService.getOwnMpiId userRoleToken:{}.", JSONUtils.toString(userRoleToken));
+        return userRoleToken.getOwnMpiId();
     }
 }
