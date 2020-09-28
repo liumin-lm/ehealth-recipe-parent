@@ -20,6 +20,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RpcBean
@@ -409,6 +411,11 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @RpcService
     public SignDoctorRecipeInfo getSignInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType) {
-        return signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndServerType(recipeId, serverType);
+        List<SignDoctorRecipeInfo> resultList = signDoctorRecipeInfoDAO.findRecipeInfoByRecipeIdAndServerType(recipeId, serverType);
+        if(CollectionUtils.isNotEmpty(resultList)){
+            return resultList.get(0);
+        }else{
+            return null;
+        }
     }
 }

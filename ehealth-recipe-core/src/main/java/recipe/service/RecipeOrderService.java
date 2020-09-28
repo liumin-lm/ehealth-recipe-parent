@@ -44,6 +44,9 @@ import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
@@ -2156,20 +2159,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setMobile(patient.getMobile());
                 patientBaseInfo.setPatientID(recipe.getPatientID());
                 patientBaseInfo.setMpi(recipe.getRequestMpiId());
-                // 黄河医院获取药企患者id
-                try {
-                    ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-                    SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-                    LOGGER.info("querySimpleWxAccountBean account={}", JSONObject.toJSONString(account));
-                    if (null != account){
-                        if (account instanceof SimpleThirdBean) {
-                            SimpleThirdBean stb = (SimpleThirdBean) account;
-                            patientBaseInfo.setTid(stb.getTid());
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("黄河医院获取药企用户tid异常",e);
-                }
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
             if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
@@ -2188,6 +2177,22 @@ public class RecipeOrderService extends RecipeBaseService {
             req.setUser(userInfo);
             req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
             HisResponseTO<String> response;
+            // 从复诊获取患者渠道id
+            String patientChannelId="";
+            try {
+                if (recipe.getClinicId() != null) {
+                    IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                    LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
+                    RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                    if (revisitExDTO != null) {
+                        LOGGER.info("queryPatientChannelId res={}",JSONObject.toJSONString(revisitExDTO));
+                        patientChannelId = revisitExDTO.getProjectChannel();
+                        req.setPatientChannelId(patientChannelId);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("queryPatientChannelId error:",e);
+            }
             try {
                 //获取民科机构登记号
                 req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
