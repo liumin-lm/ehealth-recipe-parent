@@ -367,6 +367,11 @@ public class PayModeOnline implements IPurchaseService {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
         }
 
+        //杭州市互联网bug临时处理下
+        if (RecipeBussConstant.SYB_ZJS.equals(orderType) && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode())){
+            orderType = RecipeBussConstant.SYB_HZS;
+        }
+
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("支付信息不全");
@@ -494,7 +499,7 @@ public class PayModeOnline implements IPurchaseService {
         purchaseService.updateRecipeDetail(recipeId);
         //date 20200318
         //确认订单后同步配送信息接口
-        remoteService.sendDeliveryMsgToHis(dbRecipe.getRecipeId());
+        updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(),extInfo);
         return result;
     }
 
