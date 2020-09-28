@@ -47,6 +47,9 @@ public class CaSignResultUpgradeBean implements java.io.Serializable {
     // CA类型
     private String caType;
 
+    // 签名原文
+    private String signText;
+
     public String getPdfBase64() {
         return pdfBase64;
     }
@@ -149,5 +152,13 @@ public class CaSignResultUpgradeBean implements java.io.Serializable {
 
     public void setCaType(String caType) {
         this.caType = caType;
+    }
+
+    public String getSignText() {
+        return signText;
+    }
+
+    public void setSignText(String signText) {
+        this.signText = signText;
     }
 }
