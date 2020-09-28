@@ -175,15 +175,19 @@ public class RecipeBussConstant {
      */
     public static Integer OFFLINE_TO_ONLINE = 2;
 
+    /**
+     * 处方订单类型-自费
+     */
+    public static Integer ORDERTYPE_ZF = 1;
 
     /**
      * 处方订单类型-省医保
      */
-    public static Integer SYB_ZJS = 1;
+    public static Integer ORDERTYPE_ZJS = 1;
 
     /**
      * 处方订单类型-杭州市医保
      */
-    public static Integer SYB_HZS = 2;
+    public static Integer ORDERTYPE_HZS = 2;
 
 }

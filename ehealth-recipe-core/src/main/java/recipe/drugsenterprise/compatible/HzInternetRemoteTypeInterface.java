@@ -3,7 +3,6 @@ package recipe.drugsenterprise.compatible;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 
@@ -27,13 +26,9 @@ public interface HzInternetRemoteTypeInterface {
 
     public void setOrderEnterpriseMsg(Map<String, String> extInfo, RecipeOrder order);
 
-    //public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map);
-
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo);
 
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe);
-
-    public void sendDeliveryMsgToHis(Integer recipeId);
 
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult);
 

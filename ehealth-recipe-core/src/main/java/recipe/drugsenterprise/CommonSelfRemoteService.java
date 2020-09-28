@@ -2,7 +2,10 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Pharmacy;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
@@ -14,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.*;
+import recipe.dao.PharmacyDAO;
 import recipe.drugsenterprise.commonExtendCompatible.CommonExtendEnterprisesInterface;
 import recipe.drugsenterprise.commonExtendCompatible.CommonExtendRemoteTypeEnum;
 import recipe.drugsenterprise.commonExtendCompatible.CommonSelfEnterprisesType;
@@ -180,16 +183,6 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
             return super.specialMakeDepList(drugsEnterprise, dbRecipe);
         }else{
             return type.specialMakeDepList(drugsEnterprise, dbRecipe);
-        }
-    }
-
-    @Override
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId));
-        if(type instanceof CommonSelfEnterprisesType){
-            super.sendDeliveryMsgToHis(recipeId);
-        }else{
-            type.sendDeliveryMsgToHis(recipeId);
         }
     }
 
