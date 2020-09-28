@@ -37,8 +37,6 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.thread.QueryHisRecipeCallable;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -1118,6 +1116,7 @@ public class HisRecipeService {
         recipe.setRequestMpiId(hisRecipe.getMpiId());
         recipe.setRecipeSource(hisRecipe.getRecipeSource());
         recipe.setGiveMode(hisRecipe.getGiveMode());
+        recipe.setLastModify(new Date());
         return recipeDAO.saveRecipe(recipe);
 
     }

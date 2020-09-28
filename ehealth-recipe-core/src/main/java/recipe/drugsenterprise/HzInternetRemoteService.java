@@ -279,9 +279,15 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    //date 20200318
-    //确认订单前校验处方信息
+    /**
+     * 原杭州互联网提交订单 前端会在orderforRecipe之前调用---0928版本去掉这部分逻辑--已废弃
+     *
+     * @param recipeId
+     * @param extInfo
+     * @return
+     */
     @RpcService
+    @Deprecated
     public DrugEnterpriseResult checkMakeOrder(Integer recipeId, Map<String, String> extInfo) {
         LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}", recipeId, JSONUtils.toString(extInfo));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -508,11 +514,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
         return getRealization(dbRecipe).specialMakeDepList(drugsEnterprise, dbRecipe);
-    }
-
-    @Override
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-        getRealization(Lists.newArrayList(recipeId)).sendDeliveryMsgToHis(recipeId);
     }
 
     @Override
