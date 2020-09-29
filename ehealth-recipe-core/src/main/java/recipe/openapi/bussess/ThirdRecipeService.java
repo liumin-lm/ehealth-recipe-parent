@@ -5,7 +5,6 @@ import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -22,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -239,7 +237,13 @@ public class ThirdRecipeService {
             order.setSendTime(new Date());
             order.setLastModifyTime(new Date());
 
-            return recipeOrderDAO.save(order).getOrderId();
+            RecipeOrder recipeOrder = recipeOrderDAO.save(order);
+            if (recipeOrder != null) {
+                Map<String, String> map = new HashMap<>();
+                map.put("orderCode", recipeOrder.getOrderCode());
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
+                return recipeOrder.getOrderId();
+            }
         }
         return 0;
     }
