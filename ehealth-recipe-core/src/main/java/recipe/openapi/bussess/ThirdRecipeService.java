@@ -239,8 +239,9 @@ public class ThirdRecipeService {
 
             RecipeOrder recipeOrder = recipeOrderDAO.save(order);
             if (recipeOrder != null) {
-                Map<String, String> map = new HashMap<>();
+                Map<String, Object> map = new HashMap<>();
                 map.put("orderCode", recipeOrder.getOrderCode());
+                map.put("enterpriseId", recipeOrder.getEnterpriseId());
                 recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
                 return recipeOrder.getOrderId();
             }
