@@ -14,6 +14,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.account.UserRoleToken;
 import ctd.account.thirdparty.ThirdPartyMappingController;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -348,12 +349,24 @@ public class ThirdRecipeService {
     }
 
     private void checkOrderParams(ThirdSaveOrderRequest request){
-        Assert.notNull(request.getTid(), "用户tid为空!");
-        Assert.notNull(request.getRecipeId(), "处方单ID为空!");
-        Assert.hasLength(request.getRecipeOrder().getAddressId(), "收货地址为空!");
-        Assert.hasLength(request.getRecipeOrder().getPayway(), "支付类型为空!");
-        Assert.hasLength(request.getRecipeOrder().getDecoctionFlag(), "代煎方式为空!");
-        Assert.hasLength(request.getRecipeOrder().getDepId(), "药企ID为空!");
+        if (StringUtils.isEmpty(request.getTid())) {
+            throw new DAOException(609, "用户为空");
+        }
+        if (request.getRecipeId() == null) {
+            throw new DAOException(609, "处方单ID为空");
+        }
+        if (StringUtils.isEmpty(request.getRecipeOrder().getAddressId())) {
+            throw new DAOException(609, "收货地址为空");
+        }
+        if (StringUtils.isEmpty(request.getRecipeOrder().getPayway())) {
+            throw new DAOException(609, "支付类型为空");
+        }
+        if (StringUtils.isEmpty(request.getRecipeOrder().getDecoctionFlag())) {
+            throw new DAOException(609, "代煎方式为空");
+        }
+        if (StringUtils.isEmpty(request.getRecipeOrder().getDepId())) {
+            throw new DAOException(609, "药企ID为空");
+        }
     }
 
     /**
@@ -361,14 +374,30 @@ public class ThirdRecipeService {
      * @param request 入参数据
      */
     private void checkPayCallBackParams(ThirdPayCallBackRequest request){
-        Assert.notNull(request.getTid(), "用户tid为空!");
-        Assert.notNull(request.getRecipeId(), "处方单ID为空!");
-        Assert.notNull(request.getOrderId(), "定单号为空!");
-        Assert.hasLength(request.getPayFlag(), "支付状态为空!");
-        Assert.hasLength(request.getOutTradeNo(), "平台流水号为空!");
-        Assert.hasLength(request.getTradeNo(), "支付流水号为空!");
-        Assert.notNull(request.getTotalAmount(), "支付总金额为空!");
-        Assert.hasLength(request.getPayway(), "支付类型代码为空!");
+        if (StringUtils.isEmpty(request.getTid())) {
+            throw new DAOException(609, "用户为空");
+        }
+        if (request.getRecipeId() == null) {
+            throw new DAOException(609, "处方单ID为空");
+        }
+        if (request.getOrderId() == null) {
+            throw new DAOException(609, "定单号为空");
+        }
+        if (StringUtils.isEmpty(request.getPayFlag())) {
+            throw new DAOException(609, "支付状态为空");
+        }
+        if (StringUtils.isEmpty(request.getOutTradeNo())) {
+            throw new DAOException(609, "平台流水号为空");
+        }
+        if (StringUtils.isEmpty(request.getTradeNo())) {
+            throw new DAOException(609, "支付流水号为空");
+        }
+        if (request.getTotalAmount() == null) {
+            throw new DAOException(609, "支付总金额为空");
+        }
+        if (StringUtils.isEmpty(request.getPayway())) {
+            throw new DAOException(609, "支付类型代码为空");
+        }
     }
 
     /**
@@ -376,14 +405,30 @@ public class ThirdRecipeService {
      * @param request 入参数据
      */
     private void checkThirdAddressParams(ThirdSetAddressRequest request) {
-        Assert.notNull(request.getTid(), "用户tid为空!");
-        Assert.hasLength(request.getReceiver(), "收货人为空!");
-        Assert.hasLength(request.getRecMobile(), "收货人手机号为空!");
-        Assert.hasLength(request.getAddress1(), "地址（省）为空!");
-        Assert.hasLength(request.getAddress2(), "地址（市）为空!");
-        Assert.hasLength(request.getAddress3(), "地址（区县）为空!");
-        Assert.hasLength(request.getStreetAddress(), "地址（街道）为空!");
-        Assert.hasLength(request.getAddress4(), "详细地址为空!");
+        if (StringUtils.isEmpty(request.getTid())) {
+            throw new DAOException(609, "用户为空");
+        }
+        if (StringUtils.isEmpty(request.getReceiver())) {
+            throw new DAOException(609, "收货人为空");
+        }
+        if (StringUtils.isEmpty(request.getRecMobile())) {
+            throw new DAOException(609, "收货人手机号为空");
+        }
+        if (StringUtils.isEmpty(request.getAddress1())) {
+            throw new DAOException(609, "地址（省）为空");
+        }
+        if (StringUtils.isEmpty(request.getAddress2())) {
+            throw new DAOException(609, "地址（市）为空");
+        }
+        if (StringUtils.isEmpty(request.getAddress3())) {
+            throw new DAOException(609, "地址（区县）为空");
+        }
+        if (StringUtils.isEmpty(request.getStreetAddress())) {
+            throw new DAOException(609, "地址（街道）为空");
+        }
+        if (StringUtils.isEmpty(request.getAddress4())) {
+            throw new DAOException(609, "详细地址为空");
+        }
     }
 
     /**
