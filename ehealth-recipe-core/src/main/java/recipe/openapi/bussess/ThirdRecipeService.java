@@ -187,7 +187,7 @@ public class ThirdRecipeService {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
-        if (recipe != null) {
+        if (recipe != null && StringUtils.isEmpty(recipe.getOrderCode())) {
             RecipeOrder order = new RecipeOrder();
             order.setMpiId(mpiId);
             order.setOrganId(recipe.getClinicOrgan());
@@ -228,7 +228,7 @@ public class ThirdRecipeService {
             }
             order.setEffective(1);
             order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
-            order.setPayFlag(1);
+            order.setPayFlag(0);
             //设置订单各个费用
             setOrderFee(order, recipe ,request);
             order.setWxPayWay(request.getRecipeOrder().getPayway());
@@ -311,7 +311,7 @@ public class ThirdRecipeService {
         attr.put("outTradeNo", request.getOutTradeNo());
         attr.put("tradeNo", request.getTradeNo());
         attr.put("payway", request.getPayway());
-        attr.put("actualPrice", new BigDecimal(request.getTotalAmount()));
+        attr.put("actualPrice", request.getTotalAmount());
         if (request.getFundAmount() != null) {
             attr.put("orderType", 1);  //医保支付
             attr.put("fundAmount", new BigDecimal(request.getFundAmount()));
