@@ -663,6 +663,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         Map<String, Object> recipeMap;
         for (Integer recipeId : recipeIds) {
             recipe = recipeDAO.getByRecipeId(recipeId);
+            getMedicalInfo(recipe);
             if (null == recipe) {
                 LOGGER.error("getYsqRecipeInfo ID为" + recipeId + "的处方不存在");
                 continue;

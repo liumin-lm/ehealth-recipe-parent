@@ -28,7 +28,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.sign.ISignInfoService;
 import ctd.controller.exception.ControllerException;
-import ctd.dictionary.*;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -48,15 +48,13 @@ import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeCAService;
 import recipe.service.RecipeService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Dictionary;
 
 @RpcBean
 public class SignInfoService implements ISignInfoService {
@@ -74,10 +72,12 @@ public class SignInfoService implements ISignInfoService {
 
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     @RpcService
     @Override
-    public void setSerCodeAndEndDateByDoctorId(Integer doctorId, String type, String serCode, Date caEndTime){
+    public void setSerCodeAndEndDateByDoctorId(Integer doctorId, String type, String serCode, Date caEndTime) {
         SignDoctorCaInfo signDoctorCaInfo = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, type);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);

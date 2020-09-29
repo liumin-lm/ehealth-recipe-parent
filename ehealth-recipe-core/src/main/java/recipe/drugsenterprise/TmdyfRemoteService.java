@@ -14,7 +14,6 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthPrescriptionStatusSyncRequest;
 import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatusSyncResponse;
 import com.taobao.api.ApiException;
@@ -308,6 +307,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         //DiagnosticParam 患者主诉
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
         if(null != recipeExtend){
+            getMedicalInfo(dbRecipe, recipeExtend);
             requestParam.setMainTell(recipeExtend.getMainDieaseDescribe());   //患者主诉
             requestParam.setProblemNow(recipeExtend.getHistoryOfPresentIllness());   //现病史
             requestParam.setBodyCheck(recipeExtend.getPhysicalCheck());   //一般检查
@@ -516,9 +516,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             }
             requestParam.setDrugs(drugParams);
         }
-    }
-    public static void main(String[] args){
-
     }
 
     private void getDiseaseInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam) {

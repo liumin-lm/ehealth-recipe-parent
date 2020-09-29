@@ -2990,6 +2990,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select count(*) from Recipe")
     public abstract Long getCountByAll();
 
+    @DAOMethod(limit = 0)
+    public abstract List<Recipe> findByClinicOrgan(Integer clinicOrgan);
+
     public List<Recipe> findRecipeForDoc(final Integer organId) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
