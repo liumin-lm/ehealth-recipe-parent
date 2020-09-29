@@ -5,6 +5,7 @@ import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -102,6 +103,11 @@ public class ThirdRecipeService {
         Assert.hasLength(request.getTid(), "getPatientRecipeById 用户tid为空!");
         Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
+        if (recipe != null) {
+            checkUserHasPermission(recipe.getRecipeId());
+        }
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(request.getRecipeId(), false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
@@ -303,8 +309,14 @@ public class ThirdRecipeService {
     public Integer recipePayCallBack(ThirdPayCallBackRequest request){
         LOGGER.info("ThirdRecipeService.recipePayCallBack request:{}.", JSONUtils.toString(request));
         checkPayCallBackParams(request);
+        setUrtToContext(request.getAppkey(), request.getTid());
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
+        if (recipe != null) {
+            checkUserHasPermission(recipe.getRecipeId());
+        }
         RecipeOrder order = recipeOrderDAO.get(request.getOrderId());
         HashMap<String, Object> attr = new HashMap<>();
         attr.put("payFlag", Integer.parseInt(request.getPayFlag()));
@@ -337,12 +349,14 @@ public class ThirdRecipeService {
         Assert.notNull(request.getTid(), "用户tid为空!");
         Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         Assert.notNull(request.getStatus(), "处方状态为空!");
+        setUrtToContext(request.getAppkey(), request.getTid());
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
         if (recipe != null) {
-            recipe.setStatus(recipe.getStatus());
-            recipe.setLastModify(new Date());
-            recipeDAO.update(recipe);
+            checkUserHasPermission(recipe.getRecipeId());
+            Map<String, Object> map = new HashMap<>();
+            map.put("status", request.getStatus());
+            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
             return 1;
         }
         return 0;
@@ -448,5 +462,21 @@ public class ThirdRecipeService {
         UserRoleToken userRoleToken = UserRoleToken.getCurrent();
         LOGGER.info("ThirdRecipeService.getOwnMpiId userRoleToken:{}.", JSONUtils.toString(userRoleToken));
         return userRoleToken.getOwnMpiId();
+    }
+
+    private void checkUserHasPermission(Integer recipeId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (recipe != null){
+            if ((urt.isPatient() && patientService.isPatientBelongUser(recipe.getMpiid()))||(urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor()))) {
+                return;
+            }else{
+                LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
+                throw new DAOException("当前登录用户没有权限");
+            }
+        }
     }
 }
