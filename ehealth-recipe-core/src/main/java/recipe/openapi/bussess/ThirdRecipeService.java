@@ -237,7 +237,7 @@ public class ThirdRecipeService {
             order.setPushFlag(1);
             order.setSendTime(new Date());
             order.setLastModifyTime(new Date());
-
+            order.setOrderType(0);
             RecipeOrder recipeOrder = recipeOrderDAO.save(order);
             if (recipeOrder != null) {
                 Map<String, Object> map = new HashMap<>();
