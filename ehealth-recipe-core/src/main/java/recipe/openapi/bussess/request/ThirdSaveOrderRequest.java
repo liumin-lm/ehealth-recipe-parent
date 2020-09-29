@@ -21,5 +21,7 @@ public class ThirdSaveOrderRequest implements Serializable{
 
     private String recipeCode;
 
+    private Integer giveMode;
+
     private ThirdRecipeOrderRequest recipeOrder;
 }

@@ -193,20 +193,99 @@ public class ThirdRecipeService {
             order.setMpiId(mpiId);
             order.setOrganId(recipe.getClinicOrgan());
             order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-            order.setAddressID(Integer.parseInt(request.getRecipeOrder().getAddressId()));
+            if (new Integer(1).equals(request.getGiveMode())) {
+                //设置配送到家的待配送状态
+                order.setStatus(3);
+            } else if (new Integer(2).equals(request.getGiveMode())) {
+                //设置到院取药的状态
+                order.setStatus(2);
+            } else if (new Integer(3).equals(request.getGiveMode())) {
+                //设置到店取药的待取药状态
+                order.setStatus(12);
+            } else {
+                //默认待配送
+                order.setStatus(3);
+            }
+            //设置配送信息
+            if (StringUtils.isNotEmpty(request.getRecipeOrder().getAddressId())) {
+                order.setAddressID(Integer.parseInt(request.getRecipeOrder().getAddressId()));
+                AddressService addressService = BasicAPI.getService(AddressService.class);
+                AddressDTO addressDTO = addressService.getByAddressId(Integer.parseInt(request.getRecipeOrder().getAddressId()));
+                if (addressDTO != null) {
+                    order.setAddress1(addressDTO.getAddress1());
+                    order.setAddress2(addressDTO.getAddress2());
+                    order.setAddress3(addressDTO.getAddress3());
+                    order.setAddress4(addressDTO.getAddress4());
+                    order.setReceiver(addressDTO.getReceiver());
+                    order.setRecMobile(addressDTO.getRecMobile());
+                }
+            }
             order.setWxPayWay(request.getRecipeOrder().getPayway());
             if (StringUtils.isNotEmpty(request.getRecipeOrder().getDepId())) {
                 order.setEnterpriseId(Integer.parseInt(request.getRecipeOrder().getDepId()));
             }
-            if (request.getRecipeOrder().getExpressFee() != null) {
-                order.setExpressFee(new BigDecimal(request.getRecipeOrder().getExpressFee()));
-            }
             if (StringUtils.isNotEmpty(request.getRecipeOrder().getGysCode())) {
                 order.setDrugStoreCode(request.getRecipeOrder().getGysCode());
             }
+            order.setEffective(1);
+            order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
+            order.setPayFlag(1);
+            //设置订单各个费用
+            setOrderFee(order, recipe ,request);
+            order.setWxPayWay(request.getRecipeOrder().getPayway());
+            order.setCreateTime(new Date());
+            order.setPayTime(new Date());
+            order.setPushFlag(1);
+            order.setSendTime(new Date());
+            order.setLastModifyTime(new Date());
+
             return recipeOrderDAO.save(order).getOrderId();
         }
         return 0;
+    }
+
+    private void setOrderFee(RecipeOrder order, Recipe recipe, ThirdSaveOrderRequest request) {
+        //设置挂号费
+        if (request.getRecipeOrder().getRegisterFee() != null && request.getRecipeOrder().getRegisterFee() > 0.0) {
+            order.setRegisterFee(new BigDecimal(request.getRecipeOrder().getRegisterFee()));
+        } else {
+            order.setRegisterFee(BigDecimal.ZERO);
+        }
+        //设置快递费
+        if (request.getRecipeOrder().getExpressFee() != null && request.getRecipeOrder().getExpressFee() > 0.0) {
+            order.setExpressFee(new BigDecimal(request.getRecipeOrder().getExpressFee()));
+        } else {
+            order.setExpressFee(BigDecimal.ZERO);
+        }
+        //设置代煎费
+        if (request.getRecipeOrder().getDecoctionFee() != null && request.getRecipeOrder().getDecoctionFee() > 0.0) {
+            order.setDecoctionFee(new BigDecimal(request.getRecipeOrder().getDecoctionFee()));
+        } else {
+            order.setDecoctionFee(BigDecimal.ZERO);
+        }
+        //设置审方费
+        if (request.getRecipeOrder().getAuditFee() != null && request.getRecipeOrder().getAuditFee() > 0.0) {
+            order.setAuditFee(new BigDecimal(request.getRecipeOrder().getAuditFee()));
+        } else {
+            order.setAuditFee(BigDecimal.ZERO);
+        }
+        //设置处方费
+        if (request.getRecipeOrder().getRecipeFee() != null && request.getRecipeOrder().getRecipeFee() > 0.0) {
+            order.setRecipeFee(new BigDecimal(request.getRecipeOrder().getRecipeFee()));
+        } else {
+            if (recipe.getTotalMoney() != null) {
+                order.setRecipeFee(recipe.getTotalMoney());
+            } else {
+                order.setRecipeFee(BigDecimal.ZERO);
+            }
+        }
+        //设置优惠费用
+        order.setCouponId(0);
+        order.setCouponFee(BigDecimal.ZERO);
+        //设置总费用
+        order.setTotalFee(order.getRegisterFee().add(order.getExpressFee()).add(order.getDecoctionFee()).add(order.getAuditFee().add(order.getRecipeFee())));
+        //设置实际支付
+        order.setActualPrice(order.getTotalFee().doubleValue());
     }
 
     /**

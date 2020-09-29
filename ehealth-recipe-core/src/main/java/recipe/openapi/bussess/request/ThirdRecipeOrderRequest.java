@@ -36,4 +36,14 @@ public class ThirdRecipeOrderRequest implements Serializable{
 
     private String pharmacyCode;
 
+    private Double registerFee;
+
+    private Double decoctionFee;
+
+    private Double auditFee;
+
+    private Double recipeFee;
+
+    private Double totalFee;
+
 }
