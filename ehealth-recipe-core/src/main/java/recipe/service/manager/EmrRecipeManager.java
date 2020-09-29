@@ -117,7 +117,13 @@ public class EmrRecipeManager {
             return;
         }
         IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
-        Map<String, Object> medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+        Map<String, Object> medicalInfoMap;
+        try {
+            medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+        } catch (Exception e) {
+            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId error = {}", e.getMessage());
+            return;
+        }
         logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
 
         if (CollectionUtils.isEmpty(medicalInfoMap)) {
