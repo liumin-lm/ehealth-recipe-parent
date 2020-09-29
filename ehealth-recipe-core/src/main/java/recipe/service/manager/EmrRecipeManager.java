@@ -63,6 +63,12 @@ public class EmrRecipeManager {
     }
 
 
+    /**
+     * 更新电子病例 用于相同处方多次暂存或者修改时 兼容新老版本
+     *
+     * @param recipe
+     * @param recipeExt
+     */
     public void updateMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         if (null == recipeExt.getDocIndexId()) {
@@ -222,7 +228,7 @@ public class EmrRecipeManager {
         docIndexBean.setCreateDate(recipe.getCreateDate());
         docIndexBean.setGetDate(new Date());
         docIndexBean.setDoctypeName("电子处方病历");
-        docIndexBean.setDocStatus(4);
+        docIndexBean.setDocStatus(2);
         docIndexBean.setDocFlag(0);
         docIndexBean.setOrganNameByUser(recipe.getOrganName());
         docIndexBean.setClinicPersonName(recipe.getPatientName());
