@@ -73,7 +73,7 @@ public class EmrRecipeManager {
             }
             return;
         }
-        if (null != recipe.getEmrStatus() && !recipe.getEmrStatus()) {
+        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
             return;
         }
         try {
