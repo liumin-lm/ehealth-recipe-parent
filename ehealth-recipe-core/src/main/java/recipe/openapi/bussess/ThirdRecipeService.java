@@ -307,10 +307,10 @@ public class ThirdRecipeService {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.get(request.getOrderId());
         HashMap<String, Object> attr = new HashMap<>();
-        attr.put("payFlag", request.getPayFlag());
+        attr.put("payFlag", Integer.parseInt(request.getPayFlag()));
         attr.put("outTradeNo", request.getOutTradeNo());
         attr.put("tradeNo", request.getTradeNo());
-        attr.put("payway", request.getPayway());
+        attr.put("wxPayWay", request.getPayway());
         attr.put("actualPrice", request.getTotalAmount());
         if (request.getFundAmount() != null) {
             attr.put("orderType", 1);  //医保支付
