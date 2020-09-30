@@ -325,7 +325,7 @@ public class RecipeTestService {
                 }
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
-                emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
+                emrRecipeManager.saveDocList(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             } catch (Exception e) {
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);

@@ -60,13 +60,28 @@ public class EmrRecipeManager {
             return;
         }
         try {
-            addMedicalInfo(recipe, recipeExt);
+            addMedicalInfo(recipe, recipeExt, DOC_STATUS_HOLD);
             logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
         } catch (Exception e) {
             logger.error("EmrRecipeManager saveMedicalInfo 电子病历保存失败", e);
         }
     }
 
+    /**
+     * 批量处理老数据接口 只用发布时处理一次
+     *
+     * @param recipe
+     * @param recipeExt
+     */
+    public void saveDocList(RecipeBean recipe, RecipeExtend recipeExt) {
+        logger.info("EmrRecipeManager saveDocList recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
+        try {
+            addMedicalInfo(recipe, recipeExt, DOC_STATUS_USE);
+        } catch (Exception e) {
+            logger.error("EmrRecipeManager saveDocList 电子病历保存失败", e);
+        }
+        logger.info("EmrRecipeManager updateMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
+    }
 
     /**
      * 更新电子病例 用于相同处方多次暂存或者修改时 兼容新老版本
@@ -78,7 +93,7 @@ public class EmrRecipeManager {
         logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         if (null == recipeExt.getDocIndexId()) {
             try {
-                addMedicalInfo(recipe, recipeExt);
+                addMedicalInfo(recipe, recipeExt, DOC_STATUS_HOLD);
             } catch (Exception e) {
                 logger.error("EmrRecipeManager updateMedicalInfo 电子病历保存失败", e);
             }
@@ -219,7 +234,7 @@ public class EmrRecipeManager {
      *
      * @param recipeExt
      */
-    private void addMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
+    private void addMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt, Integer docStatus) {
         if (null == recipeExt) {
             return;
         }
@@ -248,7 +263,7 @@ public class EmrRecipeManager {
         docIndexBean.setCreateDate(recipe.getCreateDate());
         docIndexBean.setGetDate(new Date());
         docIndexBean.setDoctypeName("电子处方病历");
-        docIndexBean.setDocStatus(DOC_STATUS_HOLD);
+        docIndexBean.setDocStatus(docStatus);
         docIndexBean.setDocFlag(0);
         docIndexBean.setOrganNameByUser(recipe.getOrganName());
         docIndexBean.setClinicPersonName(recipe.getPatientName());
