@@ -37,6 +37,11 @@ import java.util.*;
 @Service
 public class EmrRecipeManager {
     private static final Logger logger = LoggerFactory.getLogger(EmrRecipeManager.class);
+    /**
+     * 病历状态 2 暂存 4 已使用
+     */
+    private static Integer DOC_STATUS_HOLD = 2;
+    private static Integer DOC_STATUS_USE = 4;
 
     @Resource
     private IDocIndexService docIndexService;
@@ -95,6 +100,21 @@ public class EmrRecipeManager {
             logger.error("EmrRecipeManager updateMedicalInfo 电子病历更新失败", e);
         }
         logger.info("EmrRecipeManager updateMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
+    }
+
+    /**
+     * 更新电子病例为已经使用状态
+     *
+     * @param docId 电子病例id
+     */
+    public void updateDocStatus(Integer docId) {
+        logger.info("EmrRecipeManager updateDocStatus docId={}", docId);
+        if (null == docId) {
+            return;
+        }
+
+        Boolean result = docIndexService.updateStatusByDocIndexId(docId, DOC_STATUS_USE);
+        logger.info("EmrRecipeManager updateDocStatus docId={} boo={}", docId, result);
     }
 
     /**
@@ -228,7 +248,7 @@ public class EmrRecipeManager {
         docIndexBean.setCreateDate(recipe.getCreateDate());
         docIndexBean.setGetDate(new Date());
         docIndexBean.setDoctypeName("电子处方病历");
-        docIndexBean.setDocStatus(2);
+        docIndexBean.setDocStatus(DOC_STATUS_HOLD);
         docIndexBean.setDocFlag(0);
         docIndexBean.setOrganNameByUser(recipe.getOrganName());
         docIndexBean.setClinicPersonName(recipe.getPatientName());
