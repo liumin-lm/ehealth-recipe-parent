@@ -9,6 +9,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.openapi.bussess.bean.RecipeAndRecipeDetailsBean;
 import recipe.openapi.bussess.bean.ThirdRecipeDetailBean;
@@ -354,12 +356,62 @@ public class ThirdRecipeService {
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
         if (recipe != null) {
             checkUserHasPermission(recipe.getRecipeId());
-            Map<String, Object> map = new HashMap<>();
-            map.put("status", request.getStatus());
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
+            recipe.setStatus(request.getStatus());
+            recipeDAO.update(recipe);
             return 1;
         }
         return 0;
+    }
+
+    @RpcService
+    public void insertTestData(String mpiId, String name) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        Recipe recipe = new Recipe();
+        recipe.setMpiid(mpiId);
+        recipe.setPatientName(name);
+        recipe.setPatientID("3831291");
+        recipe.setPatientStatus(1);
+        recipe.setClinicOrgan(1);
+        recipe.setOrganName("浙大附属邵逸夫医院");
+        recipe.setRecipeType(1);
+        recipe.setRecipeMode("ngarihealth");
+        recipe.setDepart(3024);
+        recipe.setDoctor(1182);
+        recipe.setDoctorName("张肖f5");
+        recipe.setCreateDate(new Date());
+        recipe.setCopyNum(1);
+        recipe.setTotalMoney(new BigDecimal(125.19));
+        recipe.setOrganDiseaseName("阿尔茨海默病");
+        recipe.setOrganDiseaseId("G30.900");
+        recipe.setMemo("无");
+        recipe.setPayFlag(0);
+        recipe.setActualPrice(new BigDecimal(125.19));
+        recipe.setGiveFlag(0);
+        recipe.setValueDays(3);
+        recipe.setGiveMode(2);
+        recipe.setSignFile("5f3cee982cd918114a494446");
+        recipe.setStatus(2);
+        recipe.setLastModify(new Date());
+        recipe.setSignDate(new Date());
+        recipe.setChooseFlag(2);
+        recipe.setRemindFlag(0);
+        recipe.setPushFlag(0);
+        recipe.setMedicalPayFlag(0);
+        recipe.setRequestMpiId(mpiId);
+        recipe.setReviewType(1);
+        recipe.setCheckMode(1);
+        recipe.setRecipeSourceType(1);
+        recipe.setRecipePayType(0);
+        Recipe result = recipeDAO.saveRecipe(recipe);
+        result.setRecipeMode(result.getRecipeId() + "ngari999");
+        recipeDAO.update(result);
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setRecipeId(result.getRecipeId());
+        recipeExtend.setMainDieaseDescribe("11");
+        recipeExtend.setCurrentMedical("确诊创伤后股骨头坏死；既往使用阿奇霉素片(新维宏)、头孢地尼胶囊(全泽复)；无服药不良反应；无过敏史；未怀孕；2020.06确诊");
+        recipeExtend.setRegisterID("3831292");
+        recipeExtendDAO.save(recipeExtend);
     }
 
     private void checkOrderParams(ThirdSaveOrderRequest request){
