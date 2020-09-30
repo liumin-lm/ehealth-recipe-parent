@@ -403,8 +403,9 @@ public class ThirdRecipeService {
         recipe.setCheckMode(1);
         recipe.setRecipeSourceType(1);
         recipe.setRecipePayType(0);
+        recipe.setTakeMedicine(0);
         Recipe result = recipeDAO.saveRecipe(recipe);
-        result.setRecipeMode(result.getRecipeId() + "ngari999");
+        result.setRecipeCode(result.getRecipeId() + "ngari999");
         recipeDAO.update(result);
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend.setRecipeId(result.getRecipeId());
