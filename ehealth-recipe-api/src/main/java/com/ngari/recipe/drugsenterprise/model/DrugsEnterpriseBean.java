@@ -134,6 +134,12 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
 
+    @ItemProperty(alias = "院内补充库存 0:非补充，1：补充库存")
+    private Integer hosInteriorSupport;
+
+    @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+    private Integer settlementMode;
+
 
     public DrugsEnterpriseBean() {
     }
