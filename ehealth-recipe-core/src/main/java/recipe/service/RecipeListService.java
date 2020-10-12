@@ -647,7 +647,7 @@ public class RecipeListService extends RecipeBaseService{
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-            return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
+            return recipeService.getAllHosRecipeList(consultId, organId, mpiId, 180);
         });
         //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();

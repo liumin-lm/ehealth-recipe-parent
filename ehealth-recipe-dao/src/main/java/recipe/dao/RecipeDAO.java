@@ -2607,10 +2607,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where mpiid=:mpiid and doctor=:doctor and status IN (:statusList)" +
-                        " order by createDate desc";
+                String hql = "from Recipe where mpiid=:mpiid  " ;
+                if(doctorId!=null){
+                    hql+=" and doctor=:doctor";
+                }
+                hql+=" and status IN (:statusList) order by createDate desc ";
                 Query query = ss.createQuery(hql);
-                query.setParameter("doctor", doctorId);
+                if(doctorId!=null){
+                    query.setParameter("doctor", doctorId);
+                }
                 query.setParameter("mpiid", mpiId);
                 query.setParameterList("statusList", statusList);
                 if (null != start && null != limit) {
