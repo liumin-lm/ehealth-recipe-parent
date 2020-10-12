@@ -25,6 +25,9 @@ public class SignDoctorCaInfo {
      */
     private String cert_voucher;
 
+    /**证书序列号*/
+    private String certSerial;
+
     /**ca类型*/
     private String caType;
 
@@ -130,5 +133,13 @@ public class SignDoctorCaInfo {
 
     public void setIdcard(String idcard) {
         this.idcard = idcard;
+    }
+
+    public String getCertSerial() {
+        return certSerial;
+    }
+
+    public void setCertSerial(String certSerial) {
+        this.certSerial = certSerial;
     }
 }
