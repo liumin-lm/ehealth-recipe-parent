@@ -152,6 +152,7 @@ public class RecipePreserveService {
         LOGGER.info("getAllHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         //获取机构下的子机构[根据医联体查找机构内码列表，入参需要自带"%"]
         UserRoleToken urt = UserRoleToken.getCurrent();
+        LOGGER.info("getAllHosRecipeList organId:{} urt:{}",organId,JSONUtils.toString(urt));
         String manageUnit = urt.getManageUnit();
         OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
         List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit(manageUnit + "%");

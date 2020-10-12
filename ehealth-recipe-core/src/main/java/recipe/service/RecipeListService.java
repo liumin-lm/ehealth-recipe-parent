@@ -688,7 +688,7 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      */
     private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
-        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(upderLineRecipesByHis),JSONUtils.toString(upderLineRecipesByHis));
+        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(onLineAndUnderLineRecipesByRecipe),JSONUtils.toString(upderLineRecipesByHis));
         List<Map<String, Object>> res=new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes=(List<HisRecipeBean>)upderLineRecipesByHis.get("hisRecipe");
