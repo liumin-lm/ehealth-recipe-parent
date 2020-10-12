@@ -1761,6 +1761,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getEnterpriseId()) {
             hql.append(" and r.enterpriseId=").append(recipesQueryVO.getEnterpriseId());
         }
+        //date 20201012 bug 修改导出处方业务数据的时候没有添加配送方式筛选
+        if (null != recipesQueryVO.getSendType()) {
+            hql.append(" and o.send_type=").append(recipesQueryVO.getSendType());
+        }
         //checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
         if (null != recipesQueryVO.getCheckStatus()) {
             switch (recipesQueryVO.getCheckStatus()) {

@@ -400,7 +400,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Deprecated
     public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
                                                     final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
+                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
@@ -419,6 +419,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipesQueryVO.setOrderType(orderType);
         recipesQueryVO.setStatus(status);
         recipesQueryVO.setPatientName(patientName);
+        recipesQueryVO.setSendType(sendType);
         List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
         return result;
     }

@@ -64,7 +64,7 @@ public class RecipeRefundService extends RecipeBaseService{
      * @param applyReason 申请原因
      * @return 申请序号
      */
-    @RpcService
+    @RpcService(timeout = 60)
     public void applyForRecipeRefund(Integer recipeId, String applyReason) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -86,6 +86,7 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setApplyReason(applyReason);
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
+        //date 20201012 加长了接口过期时间，接口20s会超时
         HisResponseTO<String> hisResult = service.applicationForRefundVisit(request);
         if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
             LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
@@ -400,7 +401,7 @@ public class RecipeRefundService extends RecipeBaseService{
     }
 
     //用户提交退费申请给医生
-    @RpcService
+    @RpcService(timeout = 60)
     public Map<String, Object> startRefundRecipeToDoctor(Integer recipeId, String patientRefundReason){
         Map<String, Object> result = Maps.newHashMap();
 
