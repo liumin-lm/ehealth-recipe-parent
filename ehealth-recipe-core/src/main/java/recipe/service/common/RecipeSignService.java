@@ -48,6 +48,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * @author： 0184/yu_yun
@@ -71,6 +72,8 @@ public class RecipeSignService {
 
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 武昌模式签名方法
@@ -579,15 +582,17 @@ public class RecipeSignService {
     @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         //判断机构是否需要his处方检查 ---运营平台机构配置
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+        getMedicalInfo(recipeBean, recipeExtend);
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean hisRecipeCheckFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
+            Boolean hisRecipeCheckFlag = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
             Boolean allowContinueMakeFlag;
             boolean checkResult;
-            if(hisRecipeCheckFlag){
+            if (hisRecipeCheckFlag) {
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
-                if(checkResult){
+                if (checkResult) {
                     rMap.put("canContinueFlag", 0);
                 }else{
                     allowContinueMakeFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe");

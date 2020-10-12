@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.MedicationGuide;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.Dictionary;
@@ -27,14 +28,18 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.MedicationGuideDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.medicationguide.bean.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * created by shiyuping on 2019/10/28
@@ -43,10 +48,14 @@ import java.util.Map;
 public class WinningMedicationGuideService implements IMedicationGuideService {
     private static final Logger LOGGER = LoggerFactory.getLogger(WinningMedicationGuideService.class);
     private OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     @Override
     @RpcService
-    public Map<String,Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
+    public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+        getMedicalInfo(recipeBean, recipeExtend);
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
         //获取请求url

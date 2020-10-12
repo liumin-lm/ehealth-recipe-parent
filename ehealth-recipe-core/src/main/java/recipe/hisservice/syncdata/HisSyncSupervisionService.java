@@ -44,6 +44,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -62,6 +63,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
     /**
      * logger
      */
@@ -162,10 +165,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
         ConsultExDTO consultExDTO;
-        RedisClient redisClient = RedisClient.instance();
-        String caSignature = null;
         SignDoctorRecipeInfo caInfo;
         for (Recipe recipe : recipeList) {
+            recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RegulationRecipeIndicatorsReq();
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
@@ -228,15 +231,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //设置医生工号
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             req.setDoctorProTitle(doctorDTO.getProTitle());
-            //设置医生电子签名
-           /* if (doctorDTO.getESignId() != null) {
-                try {
-                    caSignature = redisClient.get(doctorDTO.getESignId() + "_signature");
-                } catch (Exception e) {
-                    LOGGER.error("get caSignature error. doctorId={}", doctorDTO.getDoctorId(), e);
-                }
-                req.setDoctorSign(StringUtils.isNotEmpty(caSignature) ? caSignature : "");
-            }*/
             //江苏ca用到
             caInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipe.getRecipeId());
             if (caInfo != null){
@@ -265,17 +259,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if(employment!=null){
                     req.setAuditDoctorNo(employment.getJobNumber());
                 }
-                
             }
-            /*//设置药师电子签名
-            if (doctorDTO.getESignId() != null) {
-                try {
-                    caSignature = redisClient.get(doctorDTO.getESignId() + "_signature");
-                } catch (Exception e) {
-                    LOGGER.error("get caSignature error. doctorId={}", doctorDTO.getDoctorId(), e);
-                }
-                req.setAuditDoctorSign(StringUtils.isNotEmpty(caSignature) ? caSignature : "");
-            }*/
 
             //患者处理
             patientDTO = patientService.get(recipe.getMpiid());
@@ -284,8 +268,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 continue;
             }
             req.setMpiId(patientDTO.getMpiId());
-            organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
-            req.setOriginalDiagnosis(organDiseaseName);
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
             if (new Integer(2).equals(patientDTO.getPatientUserType())) {
                 //无证身份证儿童包含特殊字符
@@ -336,9 +318,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             } else {
                 req.setRationalDrug(setRationalDrug(recipe.getRecipeId()));
             }
-
-            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
-            req.setIcdName(organDiseaseName);
             //诊断备注
             req.setMemo(recipe.getMemo());
             req.setRecipeType(recipe.getRecipeType().toString());
@@ -353,12 +332,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
 
-            //主诉
-           /* consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                consultId = consultIds.get(0);
-            }*/
             if (recipe.getClinicId() != null) {
                 req.setBussID(recipe.getClinicId().toString());
                 //处方来源 1-问诊 4复诊
@@ -387,8 +360,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setHistroyMedical(questionnaire.getDisease());
                 }
             }
+            organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
+            req.setOriginalDiagnosis(organDiseaseName);
+            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
+            req.setIcdName(organDiseaseName);
             //门诊号处理
-            recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 req.setPatientNumber(recipeExtend.getRegisterID());
                 req.setCardNo(recipeExtend.getCardNo());

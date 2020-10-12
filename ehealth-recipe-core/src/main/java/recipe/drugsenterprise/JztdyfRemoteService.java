@@ -10,10 +10,11 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -33,14 +34,23 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.*;
-import recipe.drugsenterprise.bean.*;
+import recipe.dao.DrugListDAO;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.drugsenterprise.bean.JztDrugDTO;
+import recipe.drugsenterprise.bean.JztRecipeDTO;
+import recipe.drugsenterprise.bean.JztTokenRequest;
+import recipe.drugsenterprise.bean.JztTokenResponse;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * 九州通药企
@@ -144,6 +154,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         OrganService organService = BasicAPI.getService(OrganService.class);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe dbRecipe = recipeList.get(0);
+            getMedicalInfo(dbRecipe);
             if (dbRecipe.getClinicOrgan() == null) {
                 LOGGER.warn("机构编码不存在,处方ID:{}.", dbRecipe.getRecipeId());
                 return getDrugEnterpriseResult(result, "机构编码不存在");

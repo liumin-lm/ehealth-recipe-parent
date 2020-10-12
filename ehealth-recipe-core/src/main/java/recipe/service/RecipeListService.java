@@ -33,6 +33,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
@@ -41,6 +42,7 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -72,6 +74,8 @@ public class RecipeListService extends RecipeBaseService{
     public static final Integer RECIPE_PAGE = 0;
 
     public static final Integer ORDER_PAGE = 1;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
@@ -821,25 +825,6 @@ public class RecipeListService extends RecipeBaseService{
     }
 
     /**
-     * 获取医生开过处方的历史患者列表
-     *
-     * @param doctorId
-     * @param start
-     * @return
-     */
-//    @RpcService
-//    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
-//        checkUserHasPermissionByDoctorId(doctorId);
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
-//        if (mpiList.size() == 0) {
-//            return new ArrayList<>();
-//        }
-//        PatientService patientService = ApplicationUtils.getBasicService(pa.class);
-//        return patientService.getPatients(mpiList, doctorId);
-//    }
-
-    /**
      * 获取患者的所有处方单-web福建省立
      *
      * @param mpiId
@@ -868,17 +853,19 @@ public class RecipeListService extends RecipeBaseService{
             Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
             Dictionary departDic = DictionaryController.instance().get("eh.base.dictionary.Depart");
             String organText = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(organId);
-            for (Recipe recipe : list){
+            for (Recipe recipe : list) {
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 map = Maps.newHashMap();
-                map.put("recipeId",recipe.getRecipeId());
-                map.put("patientName",recipe.getPatientName());
-                map.put("doctorDepart",organText+departDic.getText(recipe.getDepart()));
-                map.put("diseaseName",recipe.getOrganDiseaseName());
-                map.put("signTime",DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
-                map.put("doctorName",recipe.getDoctorName());
+                map.put("recipeId", recipe.getRecipeId());
+                map.put("patientName", recipe.getPatientName());
+                map.put("doctorDepart", organText + departDic.getText(recipe.getDepart()));
+                map.put("diseaseName", recipe.getOrganDiseaseName());
+                map.put("signTime", DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
+                map.put("doctorName", recipe.getDoctorName());
                 recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
 
-                Map<String,String> drugInfo;
+                Map<String, String> drugInfo;
                 List<Map<String,String>> drugInfoList = Lists.newArrayList();
                 String useDose;
                 String usingRateText;

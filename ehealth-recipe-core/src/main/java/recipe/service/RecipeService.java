@@ -104,6 +104,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
@@ -134,10 +135,6 @@ public class RecipeService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
-    private static final String UNSIGN = "unsign";
-
-    private static final String UNCHECK = "uncheck";
-
     private static final String EXTEND_VALUE_FLAG = "1";
 
     private static final Integer CA_OLD_TYPE = new Integer(0);
@@ -147,8 +144,6 @@ public class RecipeService extends RecipeBaseService {
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
-
-    private OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
 
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
@@ -178,7 +173,12 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-
+    @Autowired
+    private RecipeServiceSub recipeServiceSub;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     /**
      * 药师审核不通过
      */
@@ -396,7 +396,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        Integer recipeId = RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
             HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
@@ -420,7 +420,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public Integer saveRecipeDataForHos(RecipeBean recipe, List<RecipeDetailBean> details) {
-        return RecipeServiceSub.saveRecipeDataImpl(recipe, details, 0);
+        return recipeServiceSub.saveRecipeDataImpl(recipe, details, 0);
     }
 
     /**
@@ -1680,8 +1680,8 @@ public class RecipeService extends RecipeBaseService {
         Integer recipeId = resultVo.getRecipeId();
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-        String recipeMode = recipe.getRecipeMode();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
 
         Integer organId = recipe.getClinicOrgan();
         RecipeResultBean checkResult = RecipeResultBean.getFail();
@@ -2450,19 +2450,20 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             //慢病开关
-            if (recipeExtend.getRecipeChooseChronicDisease()==null){
+            if (recipeExtend.getRecipeChooseChronicDisease() == null) {
                 try {
                     IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer recipeChooseChronicDisease = (Integer)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
+                    Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
                     recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
-                }catch (Exception e){
-                    LOGGER.error("doWithRecipeExtend 获取开关异常",e);
+                } catch (Exception e) {
+                    LOGGER.error("doWithRecipeExtend 获取开关异常", e);
                 }
             }
+
+            emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
-
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");
         return dbRecipeId;
@@ -2850,13 +2851,14 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
-        //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
-        /*checkUserHasPermission(recipeId);*/
-
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
-
+        try {
+            EmrRecipeManager.getMedicalInfo((RecipeBean) result.get("recipe"), (RecipeExtend) result.get("recipeExtend"));
+        } catch (Exception e) {
+            LOGGER.error("emrRecipeManager getMedicalInfo is error ", e);
+        }
         return result;
     }
 
@@ -3309,11 +3311,20 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * 处方签获取
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
     @RpcService
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        //checkUserHasPermission(recipeId);
-
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(recipeId, organId);
+        Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
         return result;
     }
 

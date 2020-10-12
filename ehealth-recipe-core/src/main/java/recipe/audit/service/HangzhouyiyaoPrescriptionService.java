@@ -3,7 +3,6 @@ package recipe.audit.service;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.his.base.service.IDepartmentService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -13,40 +12,35 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.service.ProTitleService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.dictionary.DictionaryController;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import recipe.audit.bean.AuditDiagnose;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.PAWebRecipeDanger;
-import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeHisService;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 杭州逸曜合理用药
@@ -69,9 +63,6 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
     private CompareDrugDAO compareDrugDAO;
 
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-
-    @Autowired
     private IConfigurationCenterUtilsService configService;
 
     @Autowired
@@ -79,6 +70,8 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
 
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     @Override
     @RpcService
@@ -89,6 +82,8 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             result.setMsg("参数错误");
             return result;
         }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        getMedicalInfo(recipe, recipeExtend);
         PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
         DoctorBean doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
         ProTitleDTO proTitle = proTitleService.getById(Integer.valueOf(doctor.getProTitle()));

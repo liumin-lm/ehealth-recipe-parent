@@ -306,6 +306,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe nowRecipe = recipeList.get(0);
+            getMedicalInfo(nowRecipe);
             assemblePushRecipeMessage(result, sendYtRecipe, nowRecipe, enterprise);
             if (DrugEnterpriseResult.FAIL == result.getCode())
                 return result;

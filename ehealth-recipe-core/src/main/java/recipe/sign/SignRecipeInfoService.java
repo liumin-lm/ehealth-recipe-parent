@@ -40,6 +40,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 @RpcBean
 public class SignRecipeInfoService implements ISignRecipeInfoService {
 
@@ -195,7 +197,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-
+            getMedicalInfo(recipeBean, recipeExtend);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO p = patientService.getPatientByMpiId(recipeBean.getMpiid());
 
