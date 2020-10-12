@@ -660,7 +660,9 @@ public class RecipeListService extends RecipeBaseService{
 
         Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         try {
-            upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            if(hisTask!=null){
+                upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            }
             LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", upderLineRecipesByHis);
         } catch (Exception e) {
             e.printStackTrace();
@@ -745,7 +747,7 @@ public class RecipeListService extends RecipeBaseService{
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
-        checkUserHasPermissionByDoctorId(doctorId);
+        //checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
