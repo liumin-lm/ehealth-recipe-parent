@@ -21,6 +21,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
@@ -30,6 +31,7 @@ import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -37,7 +39,9 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import lombok.val;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -64,6 +68,7 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
@@ -142,6 +147,60 @@ public class RecipePreserveService {
     public DoctorBean getDoctorTest(Integer doctorId) {
         IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
+    }
+    public Map<String, Object> getAllHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
+        LOGGER.info("getAllHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
+        //获取机构下的子机构[根据医联体查找机构内码列表，入参需要自带"%"]
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        LOGGER.info("getAllHosRecipeList organId:{} urt:{}",organId,JSONUtils.toString(urt));
+        String manageUnit = urt.getManageUnit();
+        OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+        List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit(manageUnit + "%");
+        LOGGER.info("getAllHosRecipeList organId:{} manageUnit:{} organIdsByManageUnit:{} ",organId,manageUnit,JSONUtils.toString(organIdsByManageUnit));
+
+        List<FutureTask<Map<String, Object> >> futureTasks = new ArrayList<FutureTask<Map<String, Object> >>();
+        for(int i=0;i<organIdsByManageUnit.size();i++){
+            Integer organIdChild=organIdsByManageUnit.get(i);
+            futureTasks.add(new FutureTask<>(new Callable<Map<String, Object> >() {
+                @Override
+                public Map<String, Object>  call() {
+                    // 线程执行程序
+                    return getHosRecipeList(consultId, organIdChild, mpiId, 180);
+                }
+            }));
+        }
+        // 加入 线程池
+        for (FutureTask<Map<String, Object>> futureTask : futureTasks) {
+            GlobalEventExecFactory.instance().getExecutor().submit(futureTask);
+        }
+
+        List<HisRecipeBean> hisRecipes=new ArrayList<>();
+        PatientVO patientVO=new PatientVO();
+        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
+        // 获取线程返回结果
+        for (int i = 0; i < futureTasks.size(); i++) {
+            try {
+                Map<String, Object> map = new ConcurrentHashMap<>();
+                try {
+                    if(i==0){
+                        patientVO=(PatientVO) map.get("patient");
+                    }
+                    map = futureTasks.get(i).get(5000, TimeUnit.MILLISECONDS);
+                    hisRecipes.addAll((List<HisRecipeBean>)map.get("hisRecipe"));
+                    LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.error("findHistoryRecipeList hisTask exception:{}", e.getMessage(), e);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        upderLineRecipesByHis.put("hisRecipe",hisRecipes);
+        upderLineRecipesByHis.put("patient",patientVO);
+        LOGGER.info("findHistoryRecipeList response:{}",JSONUtils.toString(upderLineRecipesByHis));
+        return upderLineRecipesByHis;
     }
 
     @RpcService

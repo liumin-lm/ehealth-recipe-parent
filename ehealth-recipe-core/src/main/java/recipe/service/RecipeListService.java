@@ -647,7 +647,7 @@ public class RecipeListService extends RecipeBaseService{
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-            return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
+            return recipeService.getAllHosRecipeList(consultId, organId, mpiId, 180);
         });
         //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();
@@ -660,7 +660,9 @@ public class RecipeListService extends RecipeBaseService{
 
         Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         try {
-            upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            if(hisTask!=null){
+                upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            }
             LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", upderLineRecipesByHis);
         } catch (Exception e) {
             e.printStackTrace();
@@ -686,7 +688,7 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      */
     private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
-        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(upderLineRecipesByHis),JSONUtils.toString(upderLineRecipesByHis));
+        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(onLineAndUnderLineRecipesByRecipe),JSONUtils.toString(upderLineRecipesByHis));
         List<Map<String, Object>> res=new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes=(List<HisRecipeBean>)upderLineRecipesByHis.get("hisRecipe");
@@ -745,7 +747,7 @@ public class RecipeListService extends RecipeBaseService{
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
-        checkUserHasPermissionByDoctorId(doctorId);
+        //checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);

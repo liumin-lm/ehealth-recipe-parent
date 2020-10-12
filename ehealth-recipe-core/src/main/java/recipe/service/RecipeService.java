@@ -179,6 +179,10 @@ public class RecipeService extends RecipeBaseService {
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+
     /**
      * 药师审核不通过
      */
@@ -4848,11 +4852,22 @@ public class RecipeService extends RecipeBaseService {
 
 
     @RpcService
-    public List<Symptom> findCommonSymptomByDoctorAndOrganId(int doctor, int organId){
+    public List<Symptom> findCommonSymptomByDoctorAndOrganId(int doctor, int organId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findCommonSymptomByDoctorAndOrganId(doctor, organId, 0, 10);
     }
 
-
+    /**
+     * 根据 第三方id 与 状态 获取最新处方id
+     *
+     * @param clinicId 第三方关联id （目前只有复诊）
+     * @param status   处方状态
+     * @return
+     */
+    @RpcService
+    public Integer getRecipeIdByClinicId(Integer clinicId, Integer status) {
+        LOGGER.info("RecipeService.getRecipeByClinicId clinicId={}", clinicId);
+        return Optional.ofNullable(recipeDAO.getByClinicIdAndStatus(clinicId, status)).map(Recipe::getRecipeId).orElse(null);
+    }
 
 }

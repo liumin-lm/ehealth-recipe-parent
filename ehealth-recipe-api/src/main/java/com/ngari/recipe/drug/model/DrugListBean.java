@@ -158,6 +158,11 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
     private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
+    @ItemProperty(alias = "标志（浙江），1-是，0-否")
+    private Integer isRegulation;
+
+
+
     public DrugListBean() {
     }
 
@@ -524,5 +529,13 @@ public class DrugListBean implements Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    public Integer getIsRegulation() {
+        return isRegulation;
+    }
+
+    public void setIsRegulation(Integer isRegulation) {
+        this.isRegulation = isRegulation;
     }
 }
