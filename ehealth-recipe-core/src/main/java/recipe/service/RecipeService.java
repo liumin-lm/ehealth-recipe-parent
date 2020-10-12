@@ -4860,14 +4860,14 @@ public class RecipeService extends RecipeBaseService {
     /**
      * 根据 第三方id 与 状态 获取最新处方id
      *
-     * @param ClinicId 第三方关联id （目前只有复诊）
+     * @param clinicId 第三方关联id （目前只有复诊）
      * @param status   处方状态
      * @return
      */
     @RpcService
-    public Integer getRecipeIdByClinicId(Integer ClinicId, Integer status) {
-        LOGGER.info("RecipeService.getRecipeByClinicId ClinicId={}", ClinicId);
-        return Optional.ofNullable(recipeDAO.getByClinicIdAndStatus(ClinicId, status)).map(Recipe::getRecipeId).orElse(null);
+    public Integer getRecipeIdByClinicId(Integer clinicId, Integer status) {
+        LOGGER.info("RecipeService.getRecipeByClinicId clinicId={}", clinicId);
+        return Optional.ofNullable(recipeDAO.getByClinicIdAndStatus(clinicId, status)).map(Recipe::getRecipeId).orElse(null);
     }
 
 }
