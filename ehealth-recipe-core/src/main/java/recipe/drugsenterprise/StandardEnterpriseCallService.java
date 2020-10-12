@@ -15,7 +15,10 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -32,15 +35,12 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
-import recipe.hisservice.HisMqRequestInit;
-import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
@@ -264,6 +264,7 @@ public class StandardEnterpriseCallService {
                 case RecipeStatusConstant.USING:
                 case RecipeStatusConstant.FINISH:
                     recipeAttrMap.put("chooseFlag", 1);
+                    recipeAttrMap.put("payFlag", PayConstant.PAY_FLAG_PAY_SUCCESS);
                     Boolean rsTao2 = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
                         status, recipeAttrMap);
                     if (!rsTao2){
