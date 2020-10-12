@@ -435,4 +435,28 @@ public class DrugsEnterpriseBean implements Serializable {
     public void setSendDateText(String sendDateText) {
         this.sendDateText = sendDateText;
     }
+
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
+    }
+
+    public Integer getHosInteriorSupport() {
+        return hosInteriorSupport;
+    }
+
+    public void setHosInteriorSupport(Integer hosInteriorSupport) {
+        this.hosInteriorSupport = hosInteriorSupport;
+    }
+
+    public Integer getSettlementMode() {
+        return settlementMode;
+    }
+
+    public void setSettlementMode(Integer settlementMode) {
+        this.settlementMode = settlementMode;
+    }
 }
