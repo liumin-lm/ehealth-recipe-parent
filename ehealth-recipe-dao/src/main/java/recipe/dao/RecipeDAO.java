@@ -239,6 +239,33 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract void updateOrderCodeToNullByOrderCode(@DAOParam("orderCode") String orderCode);
 
     /**
+     * 根据 第三方id 与 状态 获取最新处方id
+     *
+     * @param clinicId 第三方关联id （目前只有复诊）
+     * @param status   处方状态
+     * @return
+     */
+    public Recipe getByClinicIdAndStatus(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") Integer status) {
+        if (null == clinicId || null == status) {
+            return null;
+        }
+        HibernateStatelessResultAction<Recipe> action = new AbstractHibernateStatelessResultAction<Recipe>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                Query q = ss.createQuery("from Recipe where Status=:status and ClinicID=:clinicId order by RecipeID desc");
+                q.setParameter("clinicId", clinicId);
+                q.setParameter("status", status);
+                q.setMaxResults(1);
+                setResult((Recipe) q.uniqueResult());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    ;
+
+    /**
      * 根据订单编号更新订单编号为空
      *
      * @param orderCode
@@ -891,14 +918,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return StringUtils.defaultIfEmpty(builder.toString(), field + " in ('')");
     }
 
-    public static void main(String[] args) {
-        List<Integer> ss = new LinkedList<>();
-        for (int i = 0; i < 311; i++) {
-            ss.add(i);
-        }
-
-        System.out.println(getSqlIn(ss,100,"numId"));
-    }
 
     /**
      * chuwei
