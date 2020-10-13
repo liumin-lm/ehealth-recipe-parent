@@ -22,6 +22,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -1986,58 +1988,87 @@ public class RecipeOrderService extends RecipeBaseService {
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
             // 平台物流对接--物流下单逻辑
-            // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
-            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)){
-                // 业务类型
-                Integer businessType = DrugEnterpriseConstant.BUSINESS_TYPE;
-                // 业务编码
-                String businessNo = recipes.get(0).getRecipeId()+"";
-                // 快递编码
-                String logisticsCode = enterprise.getLogisticsCompany()+"";
-                // 收件人名称
-                String addresseeName = order.getReceiver();
-                // 收件人手机号
-                String addresseePhone = order.getRecMobile();
-                // 收件省份
-                String addresseeProvince = getAddressDic(order.getAddress1());
-                // 收件城市
-                String addresseeCity = getAddressDic(order.getAddress2());
-                // 收件镇/区
-                String addresseeDistrict = getAddressDic(order.getAddress3());
-                // 收件详细地址
-                String addresseeAddress = order.getAddress4();
-                // 寄托物名称
-                String depositumName = DrugEnterpriseConstant.DEPOSITUM_NAME;
-                // TODO 基础服务物流下单返回物流单号
-                LOGGER.info("基础服务物流下单入参={}","");
-
-                String trackingNumber="";
-
-                LOGGER.info("基础服务物流下单结果={}","");
-                if (StringUtils.isNotBlank(trackingNumber)){
-                    // 下单成功更新物流单号、物流公司
-                    Map<String, Object> orderAttrMap = new HashedMap();
-                    orderAttrMap.put("LogisticsCompany",enterprise.getLogisticsCompany());
-                    orderAttrMap.put("TrackingNumber",trackingNumber);
-                    recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
-                    // 修改状态为待配送
-                    Map<String, Object> paramMap = new HashedMap();
-                    paramMap.put("recipeId",recipes.get(0).getRecipeId());
-                    ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-                    callService.readyToSend(paramMap);
-                }else {
-                    // 下单失败发起退款，退款原因=物流下单失败
-                    LOGGER.info("基础服务物流下单失败，发起退款流程 recipeId={}",recipes.get(0).getRecipeId());
-                    RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-                    recipeService.wxPayRefundForRecipe(6, recipes.get(0).getRecipeId(), null);
-                }
+            try {
+                LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
+                createLogisticsOrder(orderCode, order, recipes.get(0));
+            } catch (Exception e) {
+                LOGGER.error("基础服务物流下单.error=", e);
             }
+
 
         }
         //健康卡数据上传
         RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(),"030102"));
         return result;
+    }
+
+    private void createLogisticsOrder(String orderCode, RecipeOrder order, Recipe recipe) {
+        // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)){
+            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("eh.logisticsOrderService", ILogisticsOrderService.class);
+            CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, recipe, enterprise);
+            LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
+            logisticsOrderService.addLogisticsOrder(logisticsOrder);
+            String trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
+            LOGGER.info("基础服务物流下单结果={}", trackingNumber);
+            if (StringUtils.isNotBlank(trackingNumber)){
+                // 下单成功更新物流单号、物流公司
+                Map<String, Object> orderAttrMap = new HashedMap();
+                orderAttrMap.put("LogisticsCompany",enterprise.getLogisticsCompany());
+                orderAttrMap.put("TrackingNumber",trackingNumber);
+                recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
+                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},recipeId={}",trackingNumber,enterprise.getLogisticsCompany(),recipe.getRecipeId());
+                // 修改状态为待配送
+                Map<String, Object> paramMap = new HashedMap();
+                paramMap.put("recipeId",recipe.getRecipeId());
+                ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
+                callService.readyToSend(paramMap);
+                LOGGER.info("基础服务物流下单成功,修改状态为待配送修改参数={}", paramMap);
+            }else {
+                // 下单失败发起退款，退款原因=物流下单失败
+                LOGGER.info("基础服务物流下单失败，发起退款流程 recipeId={}",recipe.getRecipeId());
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), null);
+            }
+        }
+    }
+
+    private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
+        CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
+        // 业务类型
+        logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
+        // 业务编码
+        logisticsOrder.setBusinessNo(recipe.getRecipeId()+"");
+        // 快递编码
+        logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany()+"");
+        // 寄件人姓名
+        logisticsOrder.setConsignorName(enterprise.getConsignorName());
+        // 寄件人手机号
+        logisticsOrder.setConsignorPhone(enterprise.getConsignorMobile());
+        // 寄件人省份
+        logisticsOrder.setConsignorProvince(getAddressDic(enterprise.getConsignorProvince()));
+        // 寄件人城市
+        logisticsOrder.setConsignorCity(getAddressDic(enterprise.getConsignorCity()));
+        // 寄件人区域
+        logisticsOrder.setConsignorDistrict(getAddressDic(enterprise.getConsignorDistrict()));
+        // 寄件人详细地址
+        logisticsOrder.setConsignorAddress(enterprise.getConsignorAddress());
+        // 收件人名称
+        logisticsOrder.setAddresseeName(order.getReceiver());
+        // 收件人手机号
+        logisticsOrder.setAddresseePhone(order.getRecMobile());
+        // 收件省份
+        logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
+        // 收件城市
+        logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
+        // 收件镇/区
+        logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+        // 收件详细地址
+        logisticsOrder.setAddresseeAddress(order.getAddress4());
+        // 寄托物名称
+        logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+        return logisticsOrder;
     }
 
     /**
