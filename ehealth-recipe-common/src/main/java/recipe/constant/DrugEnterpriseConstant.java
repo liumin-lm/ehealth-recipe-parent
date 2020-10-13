@@ -136,4 +136,24 @@ public class DrugEnterpriseConstant {
      * his管理的药企
      */
     public static final String COMPANY_HIS = "hisAdiminstration";
+
+    /**
+     * 药企对接物流方式-药企对接
+     */
+    public static final Integer LOGISTICS_ENT=2;
+
+    /**
+     * 药企对接物流方式-平台对接
+     */
+    public static final Integer LOGISTICS_PLATFORM=1;
+
+    /**
+     * 基础服务物流下单业务类型 处方=1
+     */
+    public static final Integer BUSINESS_TYPE = 1;
+
+    /**
+     * 基础服务物流下单寄托物名称=药品
+     */
+    public static final String DEPOSITUM_NAME = "药品";
 }
