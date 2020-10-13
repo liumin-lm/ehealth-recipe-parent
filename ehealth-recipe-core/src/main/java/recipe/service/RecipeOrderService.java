@@ -1638,6 +1638,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setEnterpriseName(drugsEnterprise.getName());
                     orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
                     orderBean.setTel(drugsEnterprise.getTel());
+                    // 药企物流对接方式
+                    orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
@@ -2009,7 +2011,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 String depositumName = DrugEnterpriseConstant.DEPOSITUM_NAME;
                 // TODO 基础服务物流下单返回物流单号
                 LOGGER.info("基础服务物流下单入参={}","");
+
                 String trackingNumber="";
+
                 LOGGER.info("基础服务物流下单结果={}","");
                 if (StringUtils.isNotBlank(trackingNumber)){
                     // 下单成功更新物流单号、物流公司
