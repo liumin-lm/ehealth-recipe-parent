@@ -12,8 +12,8 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.service.RecipeCAService;
@@ -30,8 +30,6 @@ public class CaAfterProcessType extends AbstractCaProcessType {
 
     private ICaRemoteService caRemoteService = AppDomainContext.getBean("mi.caRemoteService", ICaRemoteService.class);
 
-    @Autowired
-    private RecipeCAService recipeCAService;
 
     //我们将开方的流程拆开：
     //后置CA操作：1.保存处方（公共操作），推送处方到his=》2.获取his推送结果=》3.成功后触发CA结果 =》4.CA成功后将处方向下流
@@ -71,6 +69,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
             return recipeResultBean;
         }
         //1.调用组装CA请求
+        RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
         CommonSignRequest commonSignRequest = recipeCAService.packageCAFromRecipe(recipeId, recipe.getDoctor(), true);
         LOGGER.info("当前请求CA的组装数据：{}", JSONUtils.toString(commonSignRequest));
         //2.请求后台的CA
