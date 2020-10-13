@@ -269,9 +269,8 @@
             <version>${ngari.account.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>ngari</groupId>
             <artifactId>ehealth-infra-api</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
 
