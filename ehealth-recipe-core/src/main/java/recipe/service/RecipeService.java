@@ -3360,6 +3360,9 @@ public class RecipeService extends RecipeBaseService {
                 errorInfo += log;
                 status = RecipeStatusConstant.REVOKE;
                 break;
+            case 6:
+                errorInfo += "物流下单失败";
+                break;
             default:
                 errorInfo += "未知,flag=" + flag;
 
