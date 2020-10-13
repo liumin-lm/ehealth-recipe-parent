@@ -271,6 +271,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ehealth-infra-api</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
 
 
