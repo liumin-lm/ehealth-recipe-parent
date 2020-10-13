@@ -41,6 +41,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import lombok.val;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -184,22 +185,17 @@ public class RecipePreserveService {
         Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         // 获取线程返回结果
         for (int i = 0; i < futureTasks.size(); i++) {
+            Map<String, Object> map = new ConcurrentHashMap<>();
             try {
-                Map<String, Object> map = new ConcurrentHashMap<>();
-                try {
-                    if(i==0){
-                        patientVO=(PatientVO) map.get("patient");
-                    }
-                    map = futureTasks.get(i).get(5000, TimeUnit.MILLISECONDS);
-                    hisRecipes.addAll((List<HisRecipeBean>)map.get("hisRecipe"));
-                    LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.error("findHistoryRecipeList hisTask exception:{}", e.getMessage(), e);
+                map = futureTasks.get(i).get(5000, TimeUnit.MILLISECONDS);
+                if(i==0){
+                    patientVO=(PatientVO) map.get("patient");
                 }
-
+                hisRecipes.addAll((List<HisRecipeBean>)map.get("hisRecipe"));
+                LOGGER.info("getAllHosRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
             } catch (Exception e) {
                 e.printStackTrace();
+                LOGGER.error("getAllHosRecipeList futureTasks exception:{}", e.getMessage(), e);
             }
         }
         upderLineRecipesByHis.put("hisRecipe",hisRecipes);
