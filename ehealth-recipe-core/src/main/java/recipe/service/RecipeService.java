@@ -182,7 +182,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RecipeDAO recipeDAO;
 
-    @Autowired
+    @Resource
     private CaAfterProcessType caAfterProcessType;
 
     /**
