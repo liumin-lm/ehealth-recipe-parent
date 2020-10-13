@@ -181,9 +181,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RecipeDAO recipeDAO;
-
-    @Autowired
-    private CaAfterProcessType caAfterProcessType;
+//
+//    @Resource
+//    private CaAfterProcessType caAfterProcessType;
 
     /**
      * 药师审核不通过
@@ -1360,7 +1360,7 @@ public class RecipeService extends RecipeBaseService {
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
             //老版默认走后置的逻辑，直接将处方向下流
-            caAfterProcessType.signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
+            new CaAfterProcessType().signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }
     }
 
@@ -1644,7 +1644,7 @@ public class RecipeService extends RecipeBaseService {
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }else{
                 //老版默认走后置的逻辑，直接将处方推his
-                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
+                new CaAfterProcessType().signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
