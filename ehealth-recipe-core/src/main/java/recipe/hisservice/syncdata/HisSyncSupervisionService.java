@@ -4,9 +4,7 @@ import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.model.QuestionnaireBean;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
@@ -17,6 +15,12 @@ import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.model.RevisitQuestionnaireBean;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -121,7 +125,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      */
     public void splicingBackRecipeData(List<Recipe> recipeList,List<RegulationRecipeIndicatorsReq> request) {
 
-//        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
@@ -129,7 +132,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        IConsultExService iConsultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+        IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -164,7 +168,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeExtend recipeExtend;
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
-        ConsultExDTO consultExDTO;
+        RevisitExDTO consultExDTO;
         SignDoctorRecipeInfo caInfo;
         for (Recipe recipe : recipeList) {
             recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -338,27 +342,45 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
                     if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                         req.setBussSource("4");
+                        RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+                        RevisitQuestionnaireBean questionnaire = iRevisitService.getConsultQuestionnaireByConsultId(recipe.getClinicId());
+                        if (revisitBean != null) {
+                            req.setMainDieaseDescribe(revisitBean.getLeaveMess());
+                            //咨询开始时间
+                            req.setConsultStartDate(revisitBean.getStartDate());
+                        }
+                        if (questionnaire != null) {
+                            //过敏史标记 有无过敏史 0:无 1:有
+                            req.setAllergyFlag(questionnaire.getAlleric().toString());
+                            //过敏史详情
+                            req.setAllergyInfo(questionnaire.getAllericMemo());
+                            //现病史
+                            req.setCurrentMedical(questionnaire.getDisease());
+                            //既往史
+                            req.setHistroyMedical(questionnaire.getDisease());
+                        }
                     } else {
                         req.setBussSource("1");
+                        ConsultBean consultBean = iConsultService.getById(recipe.getClinicId());
+                        QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(recipe.getClinicId());
+                        if (consultBean != null) {
+                            req.setMainDieaseDescribe(consultBean.getLeaveMess());
+                            //咨询开始时间
+                            req.setConsultStartDate(consultBean.getStartDate());
+                        }
+                        if (questionnaire != null) {
+                            //过敏史标记 有无过敏史 0:无 1:有
+                            req.setAllergyFlag(questionnaire.getAlleric().toString());
+                            //过敏史详情
+                            req.setAllergyInfo(questionnaire.getAllericMemo());
+                            //现病史
+                            req.setCurrentMedical(questionnaire.getDisease());
+                            //既往史
+                            req.setHistroyMedical(questionnaire.getDisease());
+                        }
                     }
                 }
-                ConsultBean consultBean = iConsultService.getById(recipe.getClinicId());
-                QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(recipe.getClinicId());
-                if (consultBean != null) {
-                    req.setMainDieaseDescribe(consultBean.getLeaveMess());
-                    //咨询开始时间
-                    req.setConsultStartDate(consultBean.getStartDate());
-                }
-                if (questionnaire != null) {
-                    //过敏史标记 有无过敏史 0:无 1:有
-                    req.setAllergyFlag(questionnaire.getAlleric().toString());
-                    //过敏史详情
-                    req.setAllergyInfo(questionnaire.getAllericMemo());
-                    //现病史
-                    req.setCurrentMedical(questionnaire.getDisease());
-                    //既往史
-                    req.setHistroyMedical(questionnaire.getDisease());
-                }
+
             }
             organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
             req.setOriginalDiagnosis(organDiseaseName);
@@ -406,7 +428,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if(req.getCardNo()==null){
                 //取复诊单里的卡号卡信息
                 if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
-                    consultExDTO = iConsultExService.getByConsultId(recipe.getClinicId());
+                    consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                     if(null != consultExDTO){
                         req.setCardNo(consultExDTO.getCardId());
                         req.setCardType(consultExDTO.getCardType());

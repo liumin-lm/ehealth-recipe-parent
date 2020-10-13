@@ -1,47 +1,16 @@
 package recipe.caNew;
 
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.process.service.IRecipeOnLineConsultService;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.PatientService;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
-import eh.wxpay.constant.PayConstant;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import recipe.ApplicationUtils;
-import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.service.PrescriptionService;
-import recipe.bean.DrugEnterpriseResult;
-import recipe.ca.vo.CaSignResultVo;
-import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.DrugDistributionService;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
-import recipe.thread.PushRecipeToHisCallable;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
 
-import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
 

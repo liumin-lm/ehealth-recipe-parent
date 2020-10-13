@@ -2,8 +2,6 @@ package recipe.caNew;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -13,6 +11,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -25,7 +25,6 @@ import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -40,7 +39,6 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.SaveAutoReviewRunable;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +198,7 @@ public abstract class AbstractCaProcessType {
             Integer consultId = recipe.getClinicId();
             if (null != consultId) {
                 try {
-                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                    IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
                 } catch (Exception e) {
                     LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);

@@ -17,7 +17,6 @@ import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
@@ -35,6 +34,9 @@ import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -1087,8 +1089,8 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setClinicOrgan(recipeBean.getClinicOrgan());
         hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         if (recipeBean.getClinicId() != null) {
-            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO exDTO = exService.getByConsultId(recipeBean.getClinicId());
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO exDTO = exService.getByConsultId(recipeBean.getClinicId());
             if (null != exDTO) {
                 hisCheckRecipeReqTO.setClinicID(exDTO.getRegisterNo());
             } else {

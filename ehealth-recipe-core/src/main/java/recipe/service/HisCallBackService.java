@@ -16,6 +16,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -191,21 +193,36 @@ public class HisCallBackService {
 
         //更新复诊挂号序号如果有
         if (null != recipe.getClinicId()) {
-            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+
             //更新咨询扩展表recipeid字段
-            if (!(new Integer(3).equals(recipe.getBussSource()))){
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+                if (null != revisitExDTO) {
+                    if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
+                        result.setRegisterID(revisitExDTO.getRegisterNo());
+                    }
+                    if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
+                        map.put("cardNo", revisitExDTO.getCardId());
+                        map.put("cardType", revisitExDTO.getCardType());
+                    }
+                }
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
                 exService.updateRecipeIdByConsultId(recipe.getClinicId(),recipe.getRecipeId());
-            }
-            if (null != consultExDTO) {
-                if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())){
-                    result.setRegisterID(consultExDTO.getRegisterNo());
+                if (null != consultExDTO) {
+                    if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
+                        result.setRegisterID(consultExDTO.getRegisterNo());
+                    }
+                    if (StringUtils.isNotEmpty(consultExDTO.getCardId()) && StringUtils.isNotEmpty(consultExDTO.getCardType())) {
+                        map.put("cardNo", consultExDTO.getCardId());
+                        map.put("cardType", consultExDTO.getCardType());
+                    }
                 }
-                if (StringUtils.isNotEmpty(consultExDTO.getCardId())&&StringUtils.isNotEmpty(consultExDTO.getCardType())){
-                    map.put("cardNo", consultExDTO.getCardId());
-                    map.put("cardType", consultExDTO.getCardType());
-                }
             }
+
         }
         if (recipeExtend != null) {
             if (StringUtils.isNotEmpty(result.getRegisterID())) {
