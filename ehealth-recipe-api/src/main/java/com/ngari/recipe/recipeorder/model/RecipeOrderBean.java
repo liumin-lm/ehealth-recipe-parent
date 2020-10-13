@@ -286,7 +286,7 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
 
-    @ItemProperty(alias = "物流类型 1-平台 2-药企")
+    @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
     private Integer logisticsType;
 
     public Integer getLogisticsType() {
