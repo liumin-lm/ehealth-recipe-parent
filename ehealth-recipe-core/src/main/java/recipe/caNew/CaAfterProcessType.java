@@ -12,8 +12,8 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.ApplicationUtils;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.service.RecipeCAService;
@@ -25,12 +25,13 @@ import static ctd.persistence.DAOFactory.getDAO;
 //JRK
 //后置处方签名实现
 @Service
-public class CaAfterProcessType extends AbstractCaProcessType{
+public class CaAfterProcessType extends AbstractCaProcessType {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaAfterProcessType.class);
 
     private ICaRemoteService caRemoteService = AppDomainContext.getBean("mi.caRemoteService", ICaRemoteService.class);
 
-    private RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
+    @Autowired
+    private RecipeCAService recipeCAService;
 
     //我们将开方的流程拆开：
     //后置CA操作：1.保存处方（公共操作），推送处方到his=》2.获取his推送结果=》3.成功后触发CA结果 =》4.CA成功后将处方向下流
