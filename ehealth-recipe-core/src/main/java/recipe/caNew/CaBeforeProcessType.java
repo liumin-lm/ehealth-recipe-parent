@@ -1,5 +1,6 @@
 package recipe.caNew;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -28,14 +29,17 @@ public class CaBeforeProcessType extends AbstractCaProcessType{
         LOGGER.info("Before---signCABeforeRecipeFunction 当前CA执行签名之前特应性行为，入参：recipeBean：{}，detailBeanList：{} ",  JSONUtils.toString(recipeBean),  JSONUtils.toString(detailBeanList));
         //前置签名，CA前操作，将处方设置成【医生签名中】
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Integer signRecipeStatus = RecipeStatusConstant.SIGN_ING_CODE_DOC;
-        recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), signRecipeStatus, null);
+        recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.SIGN_ING_CODE_DOC, null);
     }
 
     @Override
-    public void signCAAfterRecipeCallBackFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
-        LOGGER.info("Before---signCAAfterRecipeCallBackFunction 当前CA执行签名之后回调特应性行为，入参：recipeBean：{}，detailBeanList：{} ",  JSONUtils.toString(recipeBean),  JSONUtils.toString(detailBeanList));
-        recipeHisResultBeforeCAFunction(recipeBean,detailBeanList);
+    public void signCAAfterRecipeCallBackFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        LOGGER.info("Before---signCAAfterRecipeCallBackFunction 当前CA执行签名之后回调特应性行为，入参：recipeBean：{}，detailBeanList：{} ", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        try {
+            recipeHisResultBeforeCAFunction(recipeBean, detailBeanList);
+        } catch (Exception e) {
+            LOGGER.error("CaBeforeProcessType signCAAfterRecipeCallBackFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
+        }
     }
 
     @Override
