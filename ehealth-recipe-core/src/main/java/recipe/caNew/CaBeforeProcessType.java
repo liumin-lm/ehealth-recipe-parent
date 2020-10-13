@@ -17,7 +17,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 
 //JRK
 //前置处方签名实现
-@Service("caBeforeProcessType")
+@Service
 public class CaBeforeProcessType extends AbstractCaProcessType{
     private static final Logger LOGGER = LoggerFactory.getLogger(CaBeforeProcessType.class);
 
