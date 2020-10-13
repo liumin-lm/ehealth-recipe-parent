@@ -69,8 +69,7 @@ public class RecipeCAService {
 
     @Autowired
     private RedisClient redisClient;
-    @Autowired
-    private CaAfterProcessType caAfterProcessType;
+
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
@@ -416,7 +415,7 @@ public class RecipeCAService {
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }else{
                 //老版默认走后置的逻辑，直接将处方推his
-                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
+                new CaAfterProcessType().signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
 
         } catch (Exception e) {
@@ -559,7 +558,7 @@ public class RecipeCAService {
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
             //老版默认走后置的逻辑，直接将处方向下流
-            caAfterProcessType.signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
+            new CaAfterProcessType().signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }
     }
 
