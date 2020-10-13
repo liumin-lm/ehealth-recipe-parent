@@ -1,5 +1,6 @@
 package recipe.caNew;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.ca.api.service.ICaRemoteService;
 import com.ngari.ca.api.vo.CommonSignRequest;
@@ -39,7 +40,7 @@ public class CaAfterProcessType extends AbstractCaProcessType{
         try {
             recipeHisResultBeforeCAFunction(recipeBean, detailBeanList);
         } catch (Exception e) {
-            LOGGER.error("CaAfterProcessType signCABeforeRecipeFunction ", e);
+            LOGGER.error("CaAfterProcessType signCABeforeRecipeFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
         }
     }
 
@@ -49,7 +50,7 @@ public class CaAfterProcessType extends AbstractCaProcessType{
         try {
             recipeHisResultAfterCAFunction(recipeBean.getRecipeId());
         } catch (Exception e) {
-            LOGGER.error("CaAfterProcessType signCAAfterRecipeCallBackFunction ", e);
+            LOGGER.error("CaAfterProcessType signCAAfterRecipeCallBackFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
         }
     }
 
