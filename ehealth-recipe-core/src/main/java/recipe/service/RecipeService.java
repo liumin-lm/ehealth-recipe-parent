@@ -77,6 +77,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
@@ -182,7 +183,8 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RecipeDAO recipeDAO;
 
-    @Autowired
+    @Autowired()
+    @Qualifier("caAfterProcessType")
     private CaAfterProcessType caAfterProcessType;
 
     /**
