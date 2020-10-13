@@ -54,6 +54,7 @@ import recipe.util.MapValueUtil;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -649,18 +650,22 @@ public class RecipeListService extends RecipeBaseService{
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
         LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
         ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-        Map<String, String> currentWxProperties = currentUserInfoService.getCurrentWxProperties();
-        LOGGER.info("findHistoryRecipeList currentWxProperties:{}",JSONUtils.toString(currentWxProperties));
-        ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
-                "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-        SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-        LOGGER.info("findHistoryRecipeList account:{}",JSONUtils.toString(account));
-
-        //从his获取线下处方
+        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
+        Future<Map<String, Object>> hisTask = null;
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-        Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-            return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
-        });
+        if(!("patient".equals(UserRoleToken.getCurrent().getRoleId()))){
+            //医生端逻辑照旧
+            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+                return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
+            });
+        }else{
+            //患者端如果公众号是区域公众号则需查询该区域公众号下所有机构线下处方
+            List<Integer> organIds=currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("findHistoryRecipeList organIds:{}",JSONUtils.toString(organIds));
+            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+                return recipeService.getAllHosRecipeList(consultId, organIds, mpiId, 180);
+            });
+        }
         //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();
         try{
@@ -670,7 +675,6 @@ public class RecipeListService extends RecipeBaseService{
             LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e);
         }
 
-        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         try {
             if(hisTask!=null){
                 upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);

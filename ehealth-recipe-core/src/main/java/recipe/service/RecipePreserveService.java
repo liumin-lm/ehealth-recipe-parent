@@ -148,24 +148,27 @@ public class RecipePreserveService {
         IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
     }
-    public Map<String, Object> getAllHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
-        LOGGER.info("getAllHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
-        //获取机构下的子机构[根据医联体查找机构内码列表，入参需要自带"%"]
-        UserRoleToken urt = UserRoleToken.getCurrent();
-        LOGGER.info("getAllHosRecipeList organId:{} urt:{}",organId,JSONUtils.toString(urt));
-        String manageUnit = urt.getManageUnit();
-        OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
-        List<Integer> organIdsByManageUnit = bean.findOrganIdsByManageUnit(manageUnit + "%");
-        LOGGER.info("getAllHosRecipeList organId:{} manageUnit:{} organIdsByManageUnit:{} ",organId,manageUnit,JSONUtils.toString(organIdsByManageUnit));
 
+    /**
+     * 多线程查询多机构线下处方
+     * @param consultId
+     * @param organIds
+     * @param mpiId
+     * @param daysAgo
+     * @Author liumin
+     * @return
+     */
+    public Map<String, Object> getAllHosRecipeList(Integer consultId, List<Integer> organIds, String mpiId, Integer daysAgo) {
+        LOGGER.info("getAllHosRecipeList consultId={}, organIds={},mpiId={}", consultId, JSONUtils.toString(organIds), mpiId);
+        OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
         List<FutureTask<Map<String, Object> >> futureTasks = new ArrayList<FutureTask<Map<String, Object> >>();
-        for(int i=0;i<organIdsByManageUnit.size();i++){
-            Integer organIdChild=organIdsByManageUnit.get(i);
+        for(int i=0;i<organIds.size();i++){
+            Integer organIdChild=organIds.get(i);
             futureTasks.add(new FutureTask<>(new Callable<Map<String, Object> >() {
                 @Override
                 public Map<String, Object>  call() {
                     // 线程执行程序
-                    return getHosRecipeList(consultId, organIdChild, mpiId, 180);
+                    return getHosRecipeList(consultId, organIdChild, mpiId, daysAgo);
                 }
             }));
         }
