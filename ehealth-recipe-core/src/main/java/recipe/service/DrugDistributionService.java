@@ -7,8 +7,6 @@ import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -23,6 +21,9 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.taobao.api.response.AlibabaAlihealthRxPrescriptionGetResponse;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
@@ -359,9 +360,9 @@ public class DrugDistributionService {
         if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
             Integer consultId = recipe.getClinicId();
             Integer medicalFlag = 0;
-            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
             if (consultId != null) {
-                ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+                RevisitExDTO consultExDTO = consultExService.getByConsultId(consultId);
                 if (consultExDTO != null) {
                     medicalFlag = consultExDTO.getMedicalFlag();
                 }

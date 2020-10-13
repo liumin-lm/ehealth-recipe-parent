@@ -2792,6 +2792,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where checkMode =:checkMode and status = 8 and reviewType in (1,2)")
     public abstract List<Recipe> findReadyCheckRecipeByCheckMode(@DAOParam("checkMode") Integer checkMode);
 
+    @DAOMethod(sql = "from Recipe where clinicOrgan in:organIds and checkMode =:checkMode and status = 8 and reviewType in (1,2)")
+    public abstract List<Recipe> findReadyCheckRecipeByOrganIdsCheckMode(@DAOParam("organIds") List<Integer> organIds,@DAOParam("checkMode") Integer checkMode);
+
     public List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId) {
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override

@@ -5,16 +5,16 @@ import com.ngari.base.BaseAPI;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.visit.mode.*;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.recipe.common.RecipeCommonReqTO;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.his.service.IRecipeToHisService;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -108,22 +107,22 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setRegType(2);
         Integer consultId = MapValueUtil.getInteger(map, "consultId");
         if(null != consultId){
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            ConsultBean consultBean = iConsultService.get(consultId);
-            if(null == consultBean){
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(consultId);
+            if (null == revisitBean) {
                 LOGGER.error("visitRegist当前咨询id对应的咨询不存在{}", consultId);
             }else{
-                if(null != consultBean.getPreSettletotalAmount()){
-                    hisRequest.setTotalAmount(new BigDecimal(consultBean.getPreSettletotalAmount()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                if (null != revisitBean.getPreSettletotalAmount()) {
+                    hisRequest.setTotalAmount(new BigDecimal(revisitBean.getPreSettletotalAmount()).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }
-                if(null != consultBean.getFundAmount()){
-                    hisRequest.setFundAmount(new BigDecimal(consultBean.getFundAmount()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                if (null != revisitBean.getFundAmount()) {
+                    hisRequest.setFundAmount(new BigDecimal(revisitBean.getFundAmount()).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }
-                if(null != consultBean.getCashAmount()){
-                    hisRequest.setCashAmount(new BigDecimal(consultBean.getCashAmount()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                if (null != revisitBean.getCashAmount()) {
+                    hisRequest.setCashAmount(new BigDecimal(revisitBean.getCashAmount()).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }
-                IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
-                ConsultExDTO exDTO = consultExService.getByConsultId(consultId);
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO exDTO = iRevisitExService.getByConsultId(consultId);
                 if(null != exDTO){
                     hisRequest.setMedicalPayFlag(null == exDTO.getMedicalFlag() ? 0 : exDTO.getMedicalFlag());
                 }else{
@@ -185,8 +184,8 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 VisitRegistResponseTO resDate = hisResponse.getData();
                 //更新复诊挂号序号
                 if (StringUtils.isNotEmpty(resDate.getRegisterId())){
-                    IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                    ConsultExDTO consultExDTO = exService.getByConsultId(hosrelationBean.getBusId());
+                    IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                    RevisitExDTO consultExDTO = exService.getByConsultId(hosrelationBean.getBusId());
                     if (consultExDTO!=null && StringUtils.isEmpty(consultExDTO.getRegisterNo())) {
                         exService.updateConsultExInfoByConsultId(hosrelationBean.getBusId(), ImmutableMap.of("registerNo", resDate.getRegisterId()));
                     }

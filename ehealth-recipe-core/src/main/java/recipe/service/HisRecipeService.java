@@ -2,9 +2,6 @@ package recipe.service;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -18,6 +15,9 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -40,8 +40,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.manager.EmrRecipeManager;
-import recipe.thread.QueryHisRecipeCallable;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -1023,8 +1021,8 @@ public class HisRecipeService {
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         try {
-            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
             if (consultExDTO != null) {
                 recipeExtend.setCardNo(consultExDTO.getCardId());
             }
@@ -1058,8 +1056,8 @@ public class HisRecipeService {
         recipe.setBussSource(0);
         //通过挂号序号关联复诊
         try {
-            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
             if (consultExDTO != null){
                 recipe.setBussSource(2);
                 recipe.setClinicId(consultExDTO.getConsultId());

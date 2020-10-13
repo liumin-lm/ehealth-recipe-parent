@@ -9,8 +9,6 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -23,6 +21,9 @@ import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -861,9 +862,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             }
 
             //添加患者医保类型
-            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
             if (recipe.getClinicId() != null) {
-                ConsultExDTO consultExDTO = consultExService.getByConsultId(recipe.getClinicId());
+                RevisitExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
                 if (StringUtils.isNotEmpty(consultExDTO.getInsureTypeCode())) {
                     if ("0".equals(consultExDTO.getInsureTypeCode())) {
                         //表示自费

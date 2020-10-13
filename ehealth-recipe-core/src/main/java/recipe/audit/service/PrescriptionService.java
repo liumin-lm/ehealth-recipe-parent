@@ -99,6 +99,7 @@ public class PrescriptionService {
         if (intellectJudicialFlag == 2 || intellectJudicialFlag == 3) {
             intellectJudicialFlag = 1;
         }
+        LOGGER.info("PrescriptionService getIntellectJudicialFlag  organId = {} , intellectJudicialFlag={}", organId, intellectJudicialFlag);
         return intellectJudicialFlag;
     }
 
