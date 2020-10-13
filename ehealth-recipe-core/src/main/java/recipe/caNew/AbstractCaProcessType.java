@@ -1,5 +1,6 @@
 package recipe.caNew;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.service.BasicAPI;
@@ -92,40 +93,38 @@ public abstract class AbstractCaProcessType {
     //his新增回调处方，调用generateRecipePdfAndSign方法触发CA
     public abstract RecipeResultBean hisCallBackCARecipeFunction(Integer recipeId);
 
-    public void recipeHisResultBeforeCAFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
-        Map<String, Object> rMap = new HashMap<String, Object>();
+    public void recipeHisResultBeforeCAFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction start recipeBean={}", JSON.toJSONString(recipeBean));
+
+        Map<String, Object> rMap = new HashMap<>();
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeBean.getRecipeId());
 
         //先将处方状态设置成【医院确认中】
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Integer signRecipeStatus = RecipeStatusConstant.CHECKING_HOS;
-        recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), signRecipeStatus, null);
+        recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
 
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
         RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
 
-        //获取处方签名结果
-        Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
-
-        if (result) {
-            //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
-            if (!recipeBean.canMedicalPay()) {
-                //发送卡片
-                Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-                List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-                RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
-            }
-            //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
-            recipeService.doHisReturnSuccessForOrgan(recipeBean, rMap);
+        //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
+        if (!recipeBean.canMedicalPay()) {
+            //发送卡片
+            Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+            List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+            RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
         }
+        //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
+        recipeService.doHisReturnSuccessForOrgan(recipeBean, rMap);
+
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
         }
+        LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
     }
     
 
@@ -187,14 +186,6 @@ public abstract class AbstractCaProcessType {
         }
         //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            Integer consultId = null;
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                consultId = consultIds.get(0);
-            }*/
             Integer consultId = recipe.getClinicId();
             if (null != consultId) {
                 try {

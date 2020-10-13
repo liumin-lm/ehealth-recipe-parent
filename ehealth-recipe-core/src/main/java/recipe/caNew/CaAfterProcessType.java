@@ -1,5 +1,6 @@
 package recipe.caNew;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.ca.api.service.ICaRemoteService;
 import com.ngari.ca.api.vo.CommonSignRequest;
@@ -34,15 +35,23 @@ public class CaAfterProcessType extends AbstractCaProcessType{
     //我们将开方的流程拆开：
     //后置CA操作：1.保存处方（公共操作），推送处方到his=》2.获取his推送结果=》3.成功后触发CA结果 =》4.CA成功后将处方向下流
     @Override
-    public void signCABeforeRecipeFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
-        LOGGER.info("After---signCABeforeRecipeFunction 当前CA执行签名之前特应性行为，入参：recipeBean：{}，detailBeanList：{} ",  JSONUtils.toString(recipeBean),  JSONUtils.toString(detailBeanList));
-        recipeHisResultBeforeCAFunction(recipeBean, detailBeanList);
+    public void signCABeforeRecipeFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        LOGGER.info("After---signCABeforeRecipeFunction 当前CA执行签名之前特应性行为，入参：recipeBean：{}，detailBeanList：{} ", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        try {
+            recipeHisResultBeforeCAFunction(recipeBean, detailBeanList);
+        } catch (Exception e) {
+            LOGGER.error("CaAfterProcessType signCABeforeRecipeFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
+        }
     }
 
     @Override
-    public void signCAAfterRecipeCallBackFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
-        LOGGER.info("After---signCAAfterRecipeCallBackFunction 当前CA执行签名之后回调特应性行为，入参：recipeBean：{}，detailBeanList：{} ",  JSONUtils.toString(recipeBean),  JSONUtils.toString(detailBeanList));
-        recipeHisResultAfterCAFunction(recipeBean.getRecipeId());
+    public void signCAAfterRecipeCallBackFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        LOGGER.info("After---signCAAfterRecipeCallBackFunction 当前CA执行签名之后回调特应性行为，入参：recipeBean：{}，detailBeanList：{} ", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        try {
+            recipeHisResultAfterCAFunction(recipeBean.getRecipeId());
+        } catch (Exception e) {
+            LOGGER.error("CaAfterProcessType signCAAfterRecipeCallBackFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
+        }
     }
 
     @Override
