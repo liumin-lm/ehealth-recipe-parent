@@ -1090,9 +1090,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             String streetAddress = DictionaryController.instance().get("eh.base.dictionary.AddrArea")
                     .getText(order.getStreetAddress());
             StringBuffer streetAddressBuffer=new StringBuffer()
-                    .append(address1).append(address2)
-                    .append(address3).append(streetAddress)
-                    .append(order.getAddress4());
+                    .append(null==address1?"":address1).append(null==address2?"":address2)
+                    .append(null==address3?"":address3).append(null==streetAddress?"":streetAddress)
+                    .append(null==order.getAddress4()?"":order.getAddress4());
             LogisticsInfo.setAddressInfo(streetAddressBuffer.toString());
 
         } catch (ControllerException e) {
