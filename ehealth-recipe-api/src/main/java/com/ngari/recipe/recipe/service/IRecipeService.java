@@ -679,6 +679,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeBean>  findReadyCheckRecipeByCheckMode(Integer checkMode);
 
+    /**
+     * 根据审方环境模型查询待审核处方数据
+     * @param organIds
+     * @param checkMode
+     * @return
+     */
+    @RpcService
+    List<RecipeBean>  findReadyCheckRecipeByOrganIdsCheckMode(List<Integer> organIds,Integer checkMode);
+
     @RpcService
     void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo);
 

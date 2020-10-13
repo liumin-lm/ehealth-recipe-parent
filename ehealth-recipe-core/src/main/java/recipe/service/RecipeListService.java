@@ -5,6 +5,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -17,12 +19,15 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -643,11 +648,18 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
         LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
+        ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+        Map<String, String> currentWxProperties = currentUserInfoService.getCurrentWxProperties();
+        LOGGER.info("findHistoryRecipeList currentWxProperties:{}",JSONUtils.toString(currentWxProperties));
+        ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
+                "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+        SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
+        LOGGER.info("findHistoryRecipeList account:{}",JSONUtils.toString(account));
 
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-            return recipeService.getAllHosRecipeList(consultId, organId, mpiId, 180);
+            return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
         });
         //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();

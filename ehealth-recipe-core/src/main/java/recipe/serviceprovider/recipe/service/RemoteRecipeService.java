@@ -1645,6 +1645,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeBeans;
     }
 
+    @Override
+    public List<RecipeBean> findReadyCheckRecipeByOrganIdsCheckMode(List<Integer> organIds, Integer checkMode) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByOrganIdsCheckMode(organIds,checkMode);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
+        return recipeBeans;
+    }
+
     @RpcService
     @Override
     public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer> recipeTypes, Integer type) {
