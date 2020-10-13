@@ -36,4 +36,6 @@
     <!--视频-->
     <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
     <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
+    <!--物流基础服务-->
+    <reference id="eh.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
 </s:beans>
