@@ -39,7 +39,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -70,8 +69,7 @@ public class RecipeCAService {
 
     @Autowired
     private RedisClient redisClient;
-    @Autowired()
-    @Qualifier("caAfterProcessType")
+    @Autowired
     private CaAfterProcessType caAfterProcessType;
     @Autowired
     private IConfigurationCenterUtilsService configService;
