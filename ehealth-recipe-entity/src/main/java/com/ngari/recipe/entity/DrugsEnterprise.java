@@ -143,6 +143,13 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
 
+    @ItemProperty(alias = "物流公司")
+    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "物流类型 1-平台 2-药企")
+    private Integer logisticsType;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -498,5 +505,23 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setSendDateText(String sendDateText) {
         this.sendDateText = sendDateText;
+    }
+
+    @Column(name = "logisticsCompany")
+    public Integer getLogisticsCompany() {
+        return logisticsCompany;
+    }
+
+    public void setLogisticsCompany(Integer logisticsCompany) {
+        this.logisticsCompany = logisticsCompany;
+    }
+
+    @Column(name = "logisticsType")
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
     }
 }

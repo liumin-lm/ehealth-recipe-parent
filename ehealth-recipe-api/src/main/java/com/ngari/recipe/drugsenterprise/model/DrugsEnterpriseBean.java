@@ -106,7 +106,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "配送主体类型 1医院配送 2 药企配送  ")
     private Integer sendType;
 
-    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
     private Integer expressFeePayWay;
 
     @ItemProperty(alias = "管理单元")

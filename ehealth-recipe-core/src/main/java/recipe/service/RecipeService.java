@@ -19,9 +19,7 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
@@ -41,6 +39,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
@@ -1165,7 +1164,7 @@ public class RecipeService extends RecipeBaseService {
             Integer consultId = recipe.getClinicId();
             if (null != consultId) {
                 try {
-                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                    IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
                 } catch (Exception e) {
                     LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:", consultId, e);
@@ -2053,8 +2052,9 @@ public class RecipeService extends RecipeBaseService {
         //根据申请人mpiid，requestMode 获取当前咨询单consultId
         //如果没有进行中的复诊就取进行中的咨询否则没有
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
         //获取在线复诊
-        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
         Integer consultId = null;
         if (CollectionUtils.isNotEmpty(consultIds)) {
             consultId = consultIds.get(0);

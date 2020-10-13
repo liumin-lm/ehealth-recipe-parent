@@ -5,9 +5,6 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.ca.api.vo.CommonSignRequest;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
@@ -26,6 +23,9 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -232,8 +232,8 @@ public class RecipeCAService {
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
             //在线复诊
             if( new Integer(2).equals(recipeBean.getBussSource()) ){
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(recipeBean.getClinicId());
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(recipeBean.getClinicId());
                 if (null != consultExDTO) {
                     registerId=consultExDTO.getRegisterNo();
                 }

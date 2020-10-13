@@ -1761,6 +1761,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getEnterpriseId()) {
             hql.append(" and r.enterpriseId=").append(recipesQueryVO.getEnterpriseId());
         }
+        //date 20201012 bug 修改导出处方业务数据的时候没有添加配送方式筛选
+        if (null != recipesQueryVO.getSendType()) {
+            hql.append(" and o.send_type=").append(recipesQueryVO.getSendType());
+        }
         //checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
         if (null != recipesQueryVO.getCheckStatus()) {
             switch (recipesQueryVO.getCheckStatus()) {
@@ -2787,6 +2791,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "from Recipe where checkMode =:checkMode and status = 8 and reviewType in (1,2)")
     public abstract List<Recipe> findReadyCheckRecipeByCheckMode(@DAOParam("checkMode") Integer checkMode);
+
+    @DAOMethod(sql = "from Recipe where clinicOrgan in:organIds and checkMode =:checkMode and status = 8 and reviewType in (1,2)")
+    public abstract List<Recipe> findReadyCheckRecipeByOrganIdsCheckMode(@DAOParam("organIds") List<Integer> organIds,@DAOParam("checkMode") Integer checkMode);
 
     public List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId) {
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {

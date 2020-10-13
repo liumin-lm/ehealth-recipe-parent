@@ -1,5 +1,6 @@
 package recipe.hisservice;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -8,10 +9,6 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -22,6 +19,10 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -329,10 +330,24 @@ public class HisRequestInit {
                 LOGGER.error("initRecipeSendRequestTO recipeid:{} error :{}",recipe.getRecipeId(),e );
             }
         }
+        // 从复诊获取患者渠道id
+        try {
+            if (recipe.getClinicId() != null) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
+                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (revisitExDTO != null) {
+                    LOGGER.info("queryPatientChannelId res={}", JSONObject.toJSONString(revisitExDTO));
+                    requestTO.setPatientChannelId(revisitExDTO.getProjectChannel());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("queryPatientChannelId error:",e);
+        }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null) {
-            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+            IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
             if (consultExDTO != null) {
                 requestTO.setRegisteredId(consultExDTO.getRegisterNo());
                 requestTO.setCardType(consultExDTO.getCardType());
@@ -424,15 +439,15 @@ public class HisRequestInit {
         requestTO.setCopyNum(recipe.getCopyNum());
         //福建省立医院特殊处理
         if ("1001393".equals(recipe.getClinicOrgan().toString())) {
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             Integer consultId = null;
             if (CollectionUtils.isNotEmpty(consultIds)) {
                 consultId = consultIds.get(0);
             }
             if (null != consultId) {
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
                 if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
                     requestTO.setCardNo(consultExDTO.getCardId());
                     requestTO.setCardType(consultExDTO.getCardType());

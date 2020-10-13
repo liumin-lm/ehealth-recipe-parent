@@ -6,11 +6,6 @@ import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -31,6 +26,11 @@ import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -41,7 +41,6 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
-import lombok.val;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -68,7 +67,10 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
@@ -220,18 +222,18 @@ public class RecipePreserveService {
         }
         String cardId = null;
         String cardType = null;
-        IConsultService service = ConsultAPI.getService(IConsultService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
         if (consultId == null) {
-            List<ConsultBean> consultBeans = service.findConsultByMpiId(Arrays.asList(mpiId));
-            if (CollectionUtils.isNotEmpty(consultBeans)) {
-                consultId = consultBeans.get(0).getConsultId();
+            List<RevisitBean> revisitBeans = iRevisitService.findConsultByMpiId(Arrays.asList(mpiId));
+            if (CollectionUtils.isNotEmpty(revisitBeans)) {
+                consultId = revisitBeans.get(0).getConsultId();
             }
         }
         if (consultId != null) {
-            ConsultBean consultBean = service.getById(consultId);
-            if (null != consultBean) {
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+            RevisitBean revisitBean = iRevisitService.getById(consultId);
+            if (null != revisitBean) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
                 if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
                     cardId = consultExDTO.getCardId();
                     cardType = consultExDTO.getCardType();
