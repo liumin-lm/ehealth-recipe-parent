@@ -345,6 +345,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     Recipe recipe = recipeList.get(0);
                     RecipeBaseTrackingStatusEnum statusEnum = RecipeBaseTrackingStatusEnum.getByBaseCode(trannckingReqTO.getTrackingStatus());
                     if (null != statusEnum){
+                        if (statusEnum.getRecipeCode().equals(recipe.getStatus())){
+                            return true;
+                        }
                         Map<String, Object> paramMap = new HashedMap();
                         paramMap.put("recipeId",recipe.getRecipeId());
                         paramMap.put("sendDate",trannckingReqTO.getSendDate());
