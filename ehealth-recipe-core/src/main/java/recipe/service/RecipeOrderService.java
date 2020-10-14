@@ -2036,6 +2036,10 @@ public class RecipeOrderService extends RecipeBaseService {
 
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
+        // 机构id
+        logisticsOrder.setOrganId(recipe.getClinicOrgan());
+        // 平台用户id
+        logisticsOrder.setUserId(recipe.getMpiid());
         // 业务类型
         logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
         // 业务编码
