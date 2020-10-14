@@ -884,7 +884,6 @@ public class HisRequestInit {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipeDetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
         if (CollectionUtils.isNotEmpty(recipeCheckDetailList)) {
-
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
             List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
@@ -899,7 +898,6 @@ public class HisRequestInit {
                 }
                 drugCodeMap.put(detail.getRecipeDetailId(), detail.getDrugCode());
             }
-
             RecipeAuditDetailReqTO auditDetail;
             List<Integer> detailIdList;
             List<Integer> reasonIdList;
@@ -933,7 +931,6 @@ public class HisRequestInit {
                 LOGGER.warn("recipeAudit create recipeSendInfo error. recipeId={}", recipe.getRecipeId(), e);
             }
         }
-
         return request;
     }
 
