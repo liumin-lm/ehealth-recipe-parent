@@ -330,6 +330,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     public Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO) {
         LOGGER.info("updateRecipeTrannckingInfo.req={}", JSONObject.toJSONString(trannckingReqTO));
+        if (StringUtils.isBlank(trannckingReqTO.getLogisticsCompany()) || StringUtils.isBlank(trannckingReqTO.getTrackingNumber()) || null == trannckingReqTO.getTrackingStatus()){
+            throw new DAOException(DAOException.VALUE_NEEDED,"物流公司、编号、状态值不能为空");
+        }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()),trannckingReqTO.getTrackingNumber());
         LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}",orderCode);
