@@ -182,5 +182,6 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * @param trannckingReqTO
      * @return
      */
+    @RpcService
     Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO);
 }

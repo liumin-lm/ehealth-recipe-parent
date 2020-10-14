@@ -327,6 +327,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
+    @RpcService
     public Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO) {
         LOGGER.info("updateRecipeTrannckingInfo.req={}", JSONObject.toJSONString(trannckingReqTO));
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -367,6 +368,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                         if (sendCallResult != null && 200 == sendCallResult.getCode()){
                             return true;
                         }
+                    }else {
+                        LOGGER.info("updateRecipeTrannckingInfo.statusEnum is null not update");
+                        return true;
                     }
                 }
             }
