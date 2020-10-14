@@ -29,6 +29,17 @@ public class RecipeTrannckingReqTO implements Serializable{
     @Verify(isNotNull = false, desc = "配送人")
     private String sender;
 
+    @Verify(isNotNull = false, desc = "配送完成日期")
+    private Date finishDate;
+
+    public Date getFinishDate() {
+        return finishDate;
+    }
+
+    public void setFinishDate(Date finishDate) {
+        this.finishDate = finishDate;
+    }
+
     public String getTrackingNumber() {
         return trackingNumber;
     }
