@@ -182,7 +182,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RecipeDAO recipeDAO;
 
-    @Autowired
+    @Resource
     private CaAfterProcessType caAfterProcessType;
 
     /**
@@ -3361,7 +3361,7 @@ public class RecipeService extends RecipeBaseService {
                 status = RecipeStatusConstant.REVOKE;
                 break;
             case 6:
-                errorInfo += "物流下单失败";
+                errorInfo += log;
                 break;
             default:
                 errorInfo += "未知,flag=" + flag;
@@ -3373,7 +3373,7 @@ public class RecipeService extends RecipeBaseService {
         //相应订单处理
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
-        if (1 == flag) {
+        if (1 == flag || 6 == flag) {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
         } else if (PUSH_FAIL == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);

@@ -41,6 +41,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import lombok.val;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -184,32 +185,38 @@ public class RecipePreserveService {
         Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         // 获取线程返回结果
         for (int i = 0; i < futureTasks.size(); i++) {
+            Map<String, Object> map = new ConcurrentHashMap<>();
             try {
-                Map<String, Object> map = new ConcurrentHashMap<>();
-                try {
-                    if(i==0){
-                        patientVO=(PatientVO) map.get("patient");
-                    }
-                    map = futureTasks.get(i).get(5000, TimeUnit.MILLISECONDS);
-                    hisRecipes.addAll((List<HisRecipeBean>)map.get("hisRecipe"));
-                    LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.error("findHistoryRecipeList hisTask exception:{}", e.getMessage(), e);
+                map = futureTasks.get(i).get(4000, TimeUnit.MILLISECONDS);
+                LOGGER.info("getAllHosRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
+                if(i==0){
+                    patientVO=(PatientVO) map.get("patient");
                 }
-
+                List<HisRecipeBean> hisRecipeBeans=(List<HisRecipeBean>)map.get("hisRecipe");
+                if(CollectionUtils.isNotEmpty(hisRecipeBeans)){
+                    hisRecipes.addAll(hisRecipeBeans);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                LOGGER.error("getAllHosRecipeList futureTasks exception:{}", e.getMessage(), e);
             }
         }
         upderLineRecipesByHis.put("hisRecipe",hisRecipes);
         upderLineRecipesByHis.put("patient",patientVO);
-        LOGGER.info("findHistoryRecipeList response:{}",JSONUtils.toString(upderLineRecipesByHis));
+        LOGGER.info("getAllHosRecipeList response:{}",JSONUtils.toString(upderLineRecipesByHis));
         return upderLineRecipesByHis;
     }
 
     @RpcService
     public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
+        //测试 设置超时
+//        if(organId==1){
+//            try{
+//                Thread.sleep(10000);
+//            }catch (Exception e){
+//
+//            }
+//        }
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);

@@ -382,34 +382,37 @@ public class RecipeHisService extends RecipeBaseService {
             DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
             LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
             //线上支付完成需要发送消息（结算）（省医保则是医保结算）
-            if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
-                //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
-                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    // 111 为卫宁支付---卫宁付不走前置机的his结算
-                    if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                        PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
-                        PayNotifyResTO response = service.payNotify(payNotifyReq);
-                        if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
-                            //结算成功
-                            Recipedetail detail = new Recipedetail();
-                            detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-                            detail.setPharmNo(response.getData().getWindows());
-                            HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
-                        } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
-                            //前置机返回结算失败，或者医保结算前置机返回null
-                            result.setCode(RecipeResultBean.FAIL);
-                            if (response != null && response.getMsg() != null) {
-                                result.setError(response.getMsg());
+            if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == payFlag) {
+                //调用前置机结算支持两种方式---配送到家和药店取药
+                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                    //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        // 111 为卫宁支付---卫宁付不走前置机的his结算
+                        if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
+                            PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
+                            PayNotifyResTO response = service.payNotify(payNotifyReq);
+                            if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
+                                //结算成功
+                                Recipedetail detail = new Recipedetail();
+                                detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+                                detail.setPharmNo(response.getData().getWindows());
+                                HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                            } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
+                                //前置机返回结算失败，或者医保结算前置机返回null
+                                result.setCode(RecipeResultBean.FAIL);
+                                if (response != null && response.getMsg() != null) {
+                                    result.setError(response.getMsg());
+                                } else {
+                                    result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                                }
+                                HisCallBackService.havePayFail(recipe.getRecipeId());
+                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
                             } else {
-                                result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                                //非医保结算前置机返回null可能未对接接口
+                                LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                             }
-                            HisCallBackService.havePayFail(recipe.getRecipeId());
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
-                        } else {
-                            //非医保结算前置机返回null可能未对接接口
-                            LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                         }
                     }
                 }
@@ -1003,7 +1006,9 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
-            service.recipeAudit(request);
+            LOGGER.info("recipeAudit req={}", JSONUtils.toString(request));
+            HisResponseTO response = service.recipeAudit(request);
+            LOGGER.info("recipeAudit res={}", JSONUtils.toString(response));
             return result;
         } else {
             result.setCode(RecipeResultBean.FAIL);

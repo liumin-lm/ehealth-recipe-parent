@@ -193,7 +193,7 @@ public class ShanghaiCAImpl implements CAInterface {
             }
             requestTO.setOrganId(organId);
             CaCertificateResponseTO responseTO = iCommonCAServcie.caCertificateBusiness(requestTO);
-            if (responseTO != null && requestTO.getCode() == 200) {
+            if (responseTO != null && responseTO.getCode() == 200) {
                 SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
                 signDoctorCaInfo.setDoctorId(doctorId);
                 signDoctorCaInfo.setCaType("shanghaiCa");
