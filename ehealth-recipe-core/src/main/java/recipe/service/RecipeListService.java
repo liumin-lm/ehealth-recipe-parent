@@ -661,7 +661,7 @@ public class RecipeListService extends RecipeBaseService{
         }else{
             //患者端如果公众号是区域公众号则需查询该区域公众号下所有机构线下处方
             List<Integer> organIds=currentUserInfoService.getCurrentOrganIds();
-            LOGGER.info("findHistoryRecipeList organIds:{}",JSONUtils.toString(organIds));
+            LOGGER.info("findHistoryRecipeList organId:{},mpiId:{}, organIds:{}",organId,mpiId,JSONUtils.toString(organIds));
             hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
                 return recipeService.getAllHosRecipeList(consultId, organIds, mpiId, 180);
             });
@@ -676,9 +676,7 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         try {
-            if(hisTask!=null){
-                upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
-            }
+            upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
             LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", upderLineRecipesByHis);
         } catch (Exception e) {
             e.printStackTrace();
