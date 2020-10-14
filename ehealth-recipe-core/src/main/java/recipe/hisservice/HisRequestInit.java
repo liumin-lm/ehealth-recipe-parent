@@ -579,6 +579,7 @@ public class HisRequestInit {
                 requestTO.setCertID(patient.getCertificate());
                 requestTO.setPatientName(patient.getPatientName());
             }
+            requestTO.setPatId(recipe.getPatientID());
 
             if (null != card) {
                 requestTO.setCardType(card.getCardType());
@@ -880,11 +881,10 @@ public class HisRequestInit {
         List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();
         request.setRecipeAuditDetailReqTO(detailList);
         List<RecipeCheckDetail> recipeCheckDetailList = resutlBean.getCheckDetailList();
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipeDetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
         if (CollectionUtils.isNotEmpty(recipeCheckDetailList)) {
-            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-
-            List<Recipedetail> recipeDetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
             List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
             Map<Integer, DrugList> drugInfo = Maps.newHashMap();
@@ -898,7 +898,6 @@ public class HisRequestInit {
                 }
                 drugCodeMap.put(detail.getRecipeDetailId(), detail.getDrugCode());
             }
-
             RecipeAuditDetailReqTO auditDetail;
             List<Integer> detailIdList;
             List<Integer> reasonIdList;
@@ -922,6 +921,8 @@ public class HisRequestInit {
             } catch (Exception e) {
                 LOGGER.warn("recipeAudit create his data error. recipeId={}", recipe.getRecipeId(), e);
             }
+        } else {
+            //审核成功后
             //创建处方新增请求体
             try {
                 RecipeSendRequestTO recipeInfo = HisRequestInit.initRecipeSendRequestTO(recipe, recipeDetailList, patientBean, null);
@@ -929,9 +930,7 @@ public class HisRequestInit {
             } catch (Exception e) {
                 LOGGER.warn("recipeAudit create recipeSendInfo error. recipeId={}", recipe.getRecipeId(), e);
             }
-
         }
-
         return request;
     }
 

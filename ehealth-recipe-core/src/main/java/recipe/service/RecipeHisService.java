@@ -1003,7 +1003,9 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
-            service.recipeAudit(request);
+            LOGGER.info("recipeAudit req={}", JSONUtils.toString(request));
+            HisResponseTO response = service.recipeAudit(request);
+            LOGGER.info("recipeAudit res={}", JSONUtils.toString(response));
             return result;
         } else {
             result.setCode(RecipeResultBean.FAIL);
