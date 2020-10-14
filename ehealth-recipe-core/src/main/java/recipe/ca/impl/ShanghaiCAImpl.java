@@ -2,7 +2,9 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -183,6 +185,7 @@ public class ShanghaiCAImpl implements CAInterface {
      */
     @RpcService
     public String getAndSaveCertificate(Integer doctorId, Integer organId) {
+        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
         SignDoctorCaInfo result = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, "shanghaiCa");
         if (result == null) {
             CaCertificateRequestTO requestTO = new CaCertificateRequestTO();
@@ -195,13 +198,17 @@ public class ShanghaiCAImpl implements CAInterface {
             CaCertificateResponseTO responseTO = iCommonCAServcie.caCertificateBusiness(requestTO);
             if (responseTO != null && responseTO.getCode() == 200) {
                 SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
+                DoctorExtendDTO doctorExtendDTO = new DoctorExtendDTO();
                 signDoctorCaInfo.setDoctorId(doctorId);
+                doctorExtendDTO.setDoctorId(doctorId);
                 signDoctorCaInfo.setCaType("shanghaiCa");
                 signDoctorCaInfo.setCert_voucher(responseTO.getCretBody());
                 signDoctorCaInfo.setCertSerial(responseTO.getCretSerial());
+                doctorExtendDTO.setSerialNumCA(responseTO.getCretSerial());
                 signDoctorCaInfo.setCreateDate(new Date());
                 signDoctorCaInfo.setLastmodify(new Date());
                 signDoctorCaInfoDAO.save(signDoctorCaInfo);
+                doctorExtendService.updateCertificateByDocId(doctorExtendDTO);
                 return responseTO.getCretSerial();
             }
             return null;

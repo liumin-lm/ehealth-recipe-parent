@@ -59,6 +59,9 @@ public class EmrRecipeManager {
         if (null != recipeExt.getDocIndexId()) {
             return;
         }
+        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
+            return;
+        }
         try {
             addMedicalInfo(recipe, recipeExt, DOC_STATUS_HOLD);
             logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
