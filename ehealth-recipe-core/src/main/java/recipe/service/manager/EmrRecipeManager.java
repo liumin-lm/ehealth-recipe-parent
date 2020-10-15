@@ -353,6 +353,9 @@ public class EmrRecipeManager {
             return;
         }
         List<EmrDetailValueDTO> values = JSON.parseArray(detail.getValue(), EmrDetailValueDTO.class);
+        if (CollectionUtils.isEmpty(values)) {
+            return;
+        }
         StringBuilder names = new StringBuilder();
         StringBuilder ids = new StringBuilder();
         if (RecipeEmrComment.DIAGNOSIS.equals(detail.getKey())) {
