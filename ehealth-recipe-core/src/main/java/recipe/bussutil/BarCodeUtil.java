@@ -88,12 +88,12 @@ public class BarCodeUtil {
         String msg = "9631457";
         String path = "barcode1.png";
         File file1 = generateFile(msg, path);
-        File file = new File("D:/pdf/chufang8.pdf");
+        File file = new File("D:/pdf/chufang10.pdf");
         OutputStream output = new FileOutputStream(file);
         //获取图片url
         URL url = file1.toURI().toURL();
         //添加图片
-        PdfReader reader = new PdfReader(new FileInputStream(new File("D:/pdf/chufangtcm.pdf")));
+        PdfReader reader = new PdfReader(new FileInputStream(new File("D:/pdf/chufangwmold.pdf")));
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将图片贴入pdf
@@ -119,9 +119,28 @@ public class BarCodeUtil {
         image.setAbsolutePosition(105, 75);
         page.addImage(image);
 
+
         //药师签名
         image.scaleAbsolute(30, 30);
         image.setAbsolutePosition(350, 100);
+        page.addImage(image);
+
+//        //医生签名2
+//        image.scaleAbsolute(50, 20);
+//        image.setAbsolutePosition(95, 100);
+//        page.addImage(image);
+//        //药师签名2
+//        image.scaleAbsolute(50, 20);
+//        image.setAbsolutePosition(280, 100);
+//        page.addImage(image);
+
+        //医生签名3
+        image.scaleAbsolute(50, 20);
+        image.setAbsolutePosition(290, 80);
+        page.addImage(image);
+        //药师签名3
+        image.scaleAbsolute(50, 20);
+        image.setAbsolutePosition(470, 80);
         page.addImage(image);
 
         //将文字贴入pdf

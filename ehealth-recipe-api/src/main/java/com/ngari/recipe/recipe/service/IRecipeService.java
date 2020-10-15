@@ -743,5 +743,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<RecipeBean> findRecipeListByStatusAndSignDate(int status,String startTime,String endTime);
+
+    @RpcService
+    public void pharmacyToRecipePDF(Integer recipeId);
 }
 

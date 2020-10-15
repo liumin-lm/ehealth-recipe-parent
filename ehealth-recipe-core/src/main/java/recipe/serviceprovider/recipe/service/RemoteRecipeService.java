@@ -1720,4 +1720,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return caSignResultVo;
     }
 
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId) {
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.pharmacyToRecipePDF(recipeId);
+    }
 }
