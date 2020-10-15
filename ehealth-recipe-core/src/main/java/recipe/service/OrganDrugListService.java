@@ -768,4 +768,11 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         return ObjectCopyUtils.convert(organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId,organDrugId,drugId), OrganDrugListBean.class);
     }
+
+    @Override
+    public List<OrganDrugListBean> findByDrugIdsAndOrganIds(List<Integer> drugIds, List<Integer> organIds) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByDrugIdsAndOrganIds(drugIds, organIds);
+        return ObjectCopyUtils.convert(organDrugList, OrganDrugListBean.class);
+    }
 }
