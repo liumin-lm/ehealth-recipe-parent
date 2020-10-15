@@ -2014,9 +2014,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
                 trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
             } catch (Exception e) {
-                LOGGER.info("基础服务物流下单异常，发起退款流程 recipeId={}",recipe.getRecipeId());
+                LOGGER.error("基础服务物流下单异常，发起退款流程 recipeId={}，异常=",recipe.getRecipeId(),e);
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
+                return;
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)){
