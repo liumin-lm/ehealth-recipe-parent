@@ -54,6 +54,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 responseRs.setCretBody(responseTO.getData().getCretBody());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
+                responseRs.setCretSerial(responseTO.getData().getCretSerial());
             }
             responseRs.setCode(Integer.valueOf(responseTO.getMsgCode()));
             responseRs.setMsg(responseTO.getMsg());

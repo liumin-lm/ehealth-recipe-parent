@@ -75,6 +75,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.bean.ThirdResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -2006,11 +2007,17 @@ public class RecipeOrderService extends RecipeBaseService {
         // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)){
-            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("eh.logisticsOrderService", ILogisticsOrderService.class);
-            CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, recipe, enterprise);
-            LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
-            logisticsOrderService.addLogisticsOrder(logisticsOrder);
-            String trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
+            String trackingNumber = null;
+            try {
+                ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+                CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, recipe, enterprise);
+                LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
+                trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
+            } catch (Exception e) {
+                LOGGER.info("基础服务物流下单异常，发起退款流程 recipeId={}",recipe.getRecipeId());
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
+            }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)){
                 // 下单成功更新物流单号、物流公司
@@ -2023,19 +2030,23 @@ public class RecipeOrderService extends RecipeBaseService {
                 Map<String, Object> paramMap = new HashedMap();
                 paramMap.put("recipeId",recipe.getRecipeId());
                 ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-                callService.readyToSend(paramMap);
-                LOGGER.info("基础服务物流下单成功,修改状态为待配送修改参数={}", paramMap);
+                ThirdResultBean resultBean = callService.readyToSend(paramMap);
+                LOGGER.info("基础服务物流下单成功,修改状态为待配送修改参数={},修改结果={}", paramMap,JSONObject.toJSONString(resultBean));
             }else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 recipeId={}",recipe.getRecipeId());
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), null);
+                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
             }
         }
     }
 
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
+        // 机构id
+        logisticsOrder.setOrganId(recipe.getClinicOrgan());
+        // 平台用户id
+        logisticsOrder.setUserId(recipe.getMpiid());
         // 业务类型
         logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
         // 业务编码

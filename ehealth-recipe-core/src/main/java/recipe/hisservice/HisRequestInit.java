@@ -580,6 +580,7 @@ public class HisRequestInit {
                 requestTO.setPatientName(patient.getPatientName());
             }
             requestTO.setPatId(recipe.getPatientID());
+            requestTO.setPayMode(recipe.getPayMode());
 
             if (null != card) {
                 requestTO.setCardType(card.getCardType());

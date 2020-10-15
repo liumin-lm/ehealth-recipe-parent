@@ -17,9 +17,11 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.third.IFileDownloadService;
+import sun.misc.BASE64Decoder;
 
 import java.io.*;
 import java.net.URL;
+import java.util.Date;
 
 /**
  * created by shiyuping on 2019/10/18
@@ -210,6 +212,26 @@ public class CreateRecipePdfUtil {
         input.close();
     }
 
+    //带坐标和比例的的图片放置
+    private static void addBarCodeImgForRecipePdfByCoordinates(InputStream input, OutputStream output, URL url,
+                                                               float newWidth, float newHeight, float xPoint, float yPoint) throws Exception{
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
+        //将图片贴入pdf
+        Image image = Image.getInstance(url);
+        //显示的大小为原尺寸的20%
+        image.scaleAbsolute(newWidth, newHeight);
+        //设置图片在页面中的坐标
+        //image.setAbsolutePosition(285, 781);
+        //date 20200909 修改位置居左
+        image.setAbsolutePosition(xPoint, yPoint);
+        page.addImage(image);
+        stamper.close();
+        reader.close();
+        input.close();
+    }
+
     /**
      * 在pdf加盖印章
      *
@@ -294,4 +316,124 @@ public class CreateRecipePdfUtil {
         stamper.close();
         reader.close();
     }
+
+    /**
+     * 在处方pdf上手动挂上医生药师图片
+     * @param pdfBase64String pdf
+     * @param doctorSignImageId 医生的图片id
+     */
+    public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
+                                                         String pdfBase64String, String doctorSignImageId) throws Exception{
+        float xPoint = 0f;
+        float yPoint = 0f;
+        if(isDoctor){
+            if(isTcm){
+                //医生-中药
+                xPoint = 95f;
+                yPoint = 100f;
+            }else{
+                //医生-西药
+                xPoint = 290f;
+                yPoint = 80f;
+            }
+        }else{
+            if(isTcm){
+                //药师-中药
+                xPoint = 280f;
+                yPoint = 100f;
+            }else{
+                //药师-西药
+                xPoint = 470f;
+                yPoint = 80f;
+            }
+        }
+
+        String fileId = null;
+        OutputStream output = null;
+        InputStream input = null;
+        try {
+            //首先将产生的base64位的处方pdf生成读出流
+            BASE64Decoder d = new BASE64Decoder();
+            byte[] data = new byte[0];
+            try {
+                data = d.decodeBuffer(pdfBase64String);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            input = new ByteArrayInputStream(data);
+
+            IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+            IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+            byte[] doctorSignImageByte = fileDownloadService.downloadAsByte(doctorSignImageId);
+            File docSignImage = new File(doctorId + new Date().toString() + ".png");
+            getFileByBytes(doctorSignImageByte, docSignImage);
+            fileId = null;
+            if (doctorSignImageByte != null){
+                File file = new File(recipeId + new Date().toString() + ".pdf");
+                output = new FileOutputStream(file);
+                //获取图片url
+                URL url = docSignImage.toURI().toURL();
+                //添加图片
+                addBarCodeImgForRecipePdfByCoordinates(input,output,url, 50f, 20f, xPoint, yPoint);
+                //上传pdf文件
+                byte[] bytes = File2byte(file);
+                fileId = fileUploadService.uploadFileWithoutUrt(bytes, file.getName());
+                //删除本地文件
+                file.delete();
+            }
+            docSignImage.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return fileId;
+
+    }
+
+
+    public static void getFileByBytes(byte[] bytes, File file) {
+        BufferedOutputStream bos = null;
+
+        FileOutputStream fos = null;
+        try {
+            //输出流
+            fos = new FileOutputStream(file);
+            //缓冲流
+            bos = new BufferedOutputStream(fos);
+            //将字节数组写出
+            bos.write(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (bos != null) {
+                try {
+                    bos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 }
