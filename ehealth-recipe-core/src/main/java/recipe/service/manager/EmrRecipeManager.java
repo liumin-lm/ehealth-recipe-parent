@@ -363,10 +363,10 @@ public class EmrRecipeManager {
                 names.append(b.getName()).append(ByteUtils.SEMI_COLON_CH);
                 ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_CH);
             });
-            if (StringUtils.isEmpty(recipe.getOrganDiseaseName()) && !StringUtils.isEmpty(names)) {
+            if (StringUtils.isEmpty(recipe.getOrganDiseaseName()) && !ByteUtils.isEmpty(names)) {
                 recipe.setOrganDiseaseName(ByteUtils.subString(names));
             }
-            if (StringUtils.isEmpty(recipe.getOrganDiseaseId()) && !StringUtils.isEmpty(ids)) {
+            if (StringUtils.isEmpty(recipe.getOrganDiseaseId()) && !ByteUtils.isEmpty(ids)) {
                 recipe.setOrganDiseaseId(ByteUtils.subString(ids));
             }
         } else if (RecipeEmrComment.TCM_SYNDROME.equals(detail.getKey())) {
@@ -374,10 +374,10 @@ public class EmrRecipeManager {
                 names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
                 ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
             });
-            if (StringUtils.isEmpty(recipeExtend.getSymptomName()) && !StringUtils.isEmpty(names)) {
+            if (StringUtils.isEmpty(recipeExtend.getSymptomName()) && !ByteUtils.isEmpty(names)) {
                 recipeExtend.setSymptomName(ByteUtils.subString(names));
             }
-            if (StringUtils.isEmpty(recipeExtend.getSymptomId()) && !StringUtils.isEmpty(ids)) {
+            if (StringUtils.isEmpty(recipeExtend.getSymptomId()) && !ByteUtils.isEmpty(ids)) {
                 recipeExtend.setSymptomId(ByteUtils.subString(ids));
             }
         } else {
