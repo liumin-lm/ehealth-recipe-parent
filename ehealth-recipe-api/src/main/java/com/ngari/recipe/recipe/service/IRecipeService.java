@@ -312,7 +312,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService(timeout = 600000)
     @Deprecated
     List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                             final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
+                                             final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType);
 
     /**
      * 处方导出Excel
@@ -743,5 +743,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<RecipeBean> findRecipeListByStatusAndSignDate(int status,String startTime,String endTime);
+
+    @RpcService
+    public void pharmacyToRecipePDF(Integer recipeId);
 }
 

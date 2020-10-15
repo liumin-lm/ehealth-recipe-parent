@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.ErrorCode;
-import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
@@ -29,7 +28,7 @@ public class RecipeLabelManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
-     * 机构配置展示特殊字段
+     * 运营平台机构配置，处方签配置， 特殊字段替换展示
      */
     private final static List<String> CONFIG_STRING = Arrays.asList("recipeDetailRemark");
 
@@ -43,25 +42,21 @@ public class RecipeLabelManager {
      * 获取处方签 配置 给前端展示。
      * 1获取处方信息，2获取运营平台配置，3替换运营平台配置字段值，4返回对象给前端展示
      *
-     * @param recipeId 处方id
-     * @param organId  机构id
+     * @param recipeMap 处方
+     * @param organId   机构id
      * @return
      */
-    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(Integer recipeId, Integer organId) {
-        logger.info("RecipeLabelManager queryRecipeLabelById recipeId={},organId={}", recipeId, organId);
-        if (null == recipeId || null == organId) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "parameter is null!");
-        }
-        Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
-        if (CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null!");
+    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(Integer organId, Map<String, Object> recipeMap) {
+        logger.info("RecipeLabelManager queryRecipeLabelById ,organId={}", organId);
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id为空");
         }
         //处理特殊字段拼接
         setRecipeMap(recipeMap);
 
         Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
         if (CollectionUtils.isEmpty(labelMap)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "labelMap is null!");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
         }
         Map<String, List<RecipeLabelVO>> resultMap = new HashMap<>();
         labelMap.forEach((k, v) -> {
@@ -136,6 +131,9 @@ public class RecipeLabelManager {
      * @param recipeMap
      */
     private void setRecipeMap(Map<String, Object> recipeMap) {
+        if (CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeMap is null!");
+        }
         String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
         String doctorSignImgToken = null == recipeMap.get("doctorSignImgToken") ? "" : recipeMap.get("doctorSignImgToken").toString();
         if (!StringUtils.isAnyEmpty(doctorSignImg, doctorSignImgToken)) {

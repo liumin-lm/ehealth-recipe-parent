@@ -171,6 +171,72 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
 
+    //date 20201013 字段补录,同步recipeExtend字段
+    @ItemProperty(alias = "医保备案号")
+    private String putOnRecordID;
+
+    @ItemProperty(alias = "天猫返回处方编号")
+    private String  rxNo;
+
+    @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
+    private String giveModeFormHis;
+
+    @ItemProperty(alias = "皮肤反应测验")
+    private String skinTest;
+
+    @ItemProperty(alias = "处方预结算返回应付金额")
+    private String payAmount;
+
+    @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
+    private Integer fromFlag;
+
+    public String getPutOnRecordID() {
+        return putOnRecordID;
+    }
+
+    public void setPutOnRecordID(String putOnRecordID) {
+        this.putOnRecordID = putOnRecordID;
+    }
+
+    public String getRxNo() {
+        return rxNo;
+    }
+
+    public void setRxNo(String rxNo) {
+        this.rxNo = rxNo;
+    }
+
+    public String getGiveModeFormHis() {
+        return giveModeFormHis;
+    }
+
+    public void setGiveModeFormHis(String giveModeFormHis) {
+        this.giveModeFormHis = giveModeFormHis;
+    }
+
+    public String getSkinTest() {
+        return skinTest;
+    }
+
+    public void setSkinTest(String skinTest) {
+        this.skinTest = skinTest;
+    }
+
+    public String getPayAmount() {
+        return payAmount;
+    }
+
+    public void setPayAmount(String payAmount) {
+        this.payAmount = payAmount;
+    }
+
+    public Integer getFromFlag() {
+        return fromFlag;
+    }
+
+    public void setFromFlag(Integer fromFlag) {
+        this.fromFlag = fromFlag;
+    }
 
     public String getRecipeCostNumber() {
         return recipeCostNumber;

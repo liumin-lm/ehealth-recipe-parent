@@ -40,7 +40,11 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.*;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeOrderDAO;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -64,6 +68,8 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
 
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 处方核销接口
@@ -254,14 +260,16 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
         for (Recipe recipe : recipeList) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RecipeIndicatorsReq();
-            if (recipe.getClinicId() != null){
+            if (recipe.getClinicId() != null) {
                 req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
                 //处方来源 1-问诊 4复诊
-                if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())){
-                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())){
+                if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                         req.setBussSource("4");
-                    }else {
+                    } else {
                         req.setBussSource("1");
                     }
                 }

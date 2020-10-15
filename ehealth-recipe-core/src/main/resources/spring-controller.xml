@@ -126,10 +126,4 @@
             <list><ref bean="eh.paramLoader"/></list>
         </property>
     </bean>
-
-    <ssdev:reference interface="ctd.account.thirdparty.loader.ThirdPartyMappingLoader" id="eh.thirdPartyMappingRemoteLoader"/>
-
-    <bean class="ctd.account.thirdparty.ThirdPartyMappingController">
-        <property name="loader" ref="eh.thirdPartyMappingRemoteLoader"/>
-    </bean>
 </beans>

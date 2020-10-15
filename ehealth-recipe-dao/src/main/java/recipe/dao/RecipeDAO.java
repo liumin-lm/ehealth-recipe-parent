@@ -239,6 +239,33 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract void updateOrderCodeToNullByOrderCode(@DAOParam("orderCode") String orderCode);
 
     /**
+     * 根据 第三方id 与 状态 获取最新处方id
+     *
+     * @param clinicId 第三方关联id （目前只有复诊）
+     * @param status   处方状态
+     * @return
+     */
+    public Recipe getByClinicIdAndStatus(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") Integer status) {
+        if (null == clinicId || null == status) {
+            return null;
+        }
+        HibernateStatelessResultAction<Recipe> action = new AbstractHibernateStatelessResultAction<Recipe>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                Query q = ss.createQuery("from Recipe where Status=:status and ClinicID=:clinicId order by RecipeID desc");
+                q.setParameter("clinicId", clinicId);
+                q.setParameter("status", status);
+                q.setMaxResults(1);
+                setResult((Recipe) q.uniqueResult());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    ;
+
+    /**
      * 根据订单编号更新订单编号为空
      *
      * @param orderCode
@@ -891,14 +918,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return StringUtils.defaultIfEmpty(builder.toString(), field + " in ('')");
     }
 
-    public static void main(String[] args) {
-        List<Integer> ss = new LinkedList<>();
-        for (int i = 0; i < 311; i++) {
-            ss.add(i);
-        }
-
-        System.out.println(getSqlIn(ss,100,"numId"));
-    }
 
     /**
      * chuwei
@@ -1741,6 +1760,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (null != recipesQueryVO.getEnterpriseId()) {
             hql.append(" and r.enterpriseId=").append(recipesQueryVO.getEnterpriseId());
+        }
+        //date 20201012 bug 修改导出处方业务数据的时候没有添加配送方式筛选
+        if (null != recipesQueryVO.getSendType()) {
+            hql.append(" and o.send_type=").append(recipesQueryVO.getSendType());
         }
         //checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
         if (null != recipesQueryVO.getCheckStatus()) {
@@ -2607,10 +2630,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where mpiid=:mpiid and doctor=:doctor and status IN (:statusList)" +
-                        " order by createDate desc";
+                String hql = "from Recipe where mpiid=:mpiid  " ;
+                if(doctorId!=null){
+                    hql+=" and doctor=:doctor";
+                }
+                hql+=" and status IN (:statusList) order by createDate desc ";
                 Query query = ss.createQuery(hql);
-                query.setParameter("doctor", doctorId);
+                if(doctorId!=null){
+                    query.setParameter("doctor", doctorId);
+                }
                 query.setParameter("mpiid", mpiId);
                 query.setParameterList("statusList", statusList);
                 if (null != start && null != limit) {
@@ -2992,6 +3020,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "select count(*) from Recipe")
     public abstract Long getCountByAll();
+
+    @DAOMethod(limit = 0)
+    public abstract List<Recipe> findByClinicOrgan(Integer clinicOrgan);
 
     public List<Recipe> findRecipeForDoc(final Integer organId) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {

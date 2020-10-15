@@ -9,7 +9,6 @@ import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -102,6 +101,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         HrPushRecipeInfo hrPushRecipeInfo = new HrPushRecipeInfo();
         if (!ObjectUtils.isEmpty(recipeList)) {
             Recipe recipe = recipeList.get(0);
+            getMedicalInfo(recipe);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);

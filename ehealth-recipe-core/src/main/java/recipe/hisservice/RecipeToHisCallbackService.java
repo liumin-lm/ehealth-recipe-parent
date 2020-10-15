@@ -2,6 +2,7 @@ package recipe.hisservice;
 
 import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
@@ -10,7 +11,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +23,11 @@ import recipe.service.DrugsEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author yuyun
@@ -41,9 +41,12 @@ public class RecipeToHisCallbackService {
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
-
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     /**
      * 上海六院的模式是在患者选择完购药方式后推送处方，所以这里有调用两次
      * 一次是跳过前置机后调用保证流程正常下去，二次是真正推送处方给his之后，如果成功则不需要处理，失败需要标记
@@ -123,29 +126,35 @@ public class RecipeToHisCallbackService {
             if (StringUtils.isNotEmpty(sendFlag) && "1".equals(sendFlag)) {
                 LOGGER.info("岳阳模式，不对接HIS直接推送到药企");
                 //岳阳模式，不对接HIS直接推送到药企
-                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
+                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(), recipe.getClinicOrgan());
                 memo = "岳阳处方,直接推送钥世圈";
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
                 return;
             }
-            if (!isDrugStock){
+            if (!isDrugStock) {
                 //没库存操作----推送九州通
-                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
+                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(), recipe.getClinicOrgan());
                 //发送患者没库存消息
-                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_NOINVENTORY,recipe);
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_NOINVENTORY, recipe);
                 memo = "药品没库存,推送九州通";
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
-            }else if (isWuChang){
+            } else if (isWuChang) {
                 //有库存操作----发送患者消息
-                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_INVENTORY,recipe);
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_INVENTORY, recipe);
                 memo = "药品有库存,发生患者取药消息";
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
             }
         } else {
             LOGGER.error("recipeSend recive success. recipeId={}, data is empty. ");
+        }
+        try {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(response.getRecipeId()));
+            emrRecipeManager.updateDocStatus(recipeExtend.getDocIndexId());
+        } catch (Exception e) {
+            LOGGER.error("修改电子病例使用状态失败 ", e);
         }
     }
 
