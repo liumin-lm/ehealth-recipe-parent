@@ -1324,6 +1324,12 @@ public class RecipeService extends RecipeBaseService {
                         if(null == resultVo.getPdfBase64()){
                             LOGGER.warn("当前处方{}使用CApdf返回CA图片为空！", recipeId);
                         }
+                    }else{
+                        //需要调整逻辑：
+                        //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
+                        if(CA_NEW_TYPE.equals(CANewOldWay)){
+                            doctorToRecipePDF(recipeId, recipe);
+                        }
                     }
                     //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
                     RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
@@ -1496,6 +1502,12 @@ public class RecipeService extends RecipeBaseService {
                     if(!usePlatform) {
                         if(null == resultVo.getPdfBase64()){
                             LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
+                        }
+                    }else{
+                        //需要调整逻辑：
+                        //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
+                        if(CA_NEW_TYPE.equals(CANewOldWay)){
+                            pharmacyToRecipePDF(recipeId);
                         }
                     }
                     //保存签名值、时间戳、电子签章文件
