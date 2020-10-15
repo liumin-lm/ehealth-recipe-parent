@@ -54,6 +54,8 @@ import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1663,7 +1665,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes);
+        Date date=  DateUtils.addYears(new Date(),-1);
+        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes,date);
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
     }
 
@@ -1720,4 +1723,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return caSignResultVo;
     }
 
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId) {
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.pharmacyToRecipePDF(recipeId);
+    }
 }

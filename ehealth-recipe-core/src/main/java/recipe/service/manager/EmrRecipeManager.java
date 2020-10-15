@@ -187,6 +187,10 @@ public class EmrRecipeManager {
             return;
         }
         for (EmrDetailDTO detailDTO : detail) {
+            if (null == detailDTO) {
+                logger.warn("EmrRecipeManager getMedicalInfo detailDTO is null");
+                continue;
+            }
             String value = detailDTO.getValue();
             if (StringUtils.isEmpty(value)) {
                 continue;
@@ -207,6 +211,10 @@ public class EmrRecipeManager {
             }
             if (RecipeEmrComment.PAST_MEDICAL_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getHistroyMedical())) {
                 recipeExtend.setHistroyMedical(value);
+                continue;
+            }
+            if (RecipeEmrComment.MEDICAL_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getHistoryOfPresentIllness())) {
+                recipeExtend.setHistoryOfPresentIllness(value);
                 continue;
             }
             if (RecipeEmrComment.ALLERGY_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getAllergyMedical())) {
@@ -301,6 +309,8 @@ public class EmrRecipeManager {
         List<EmrDetailDTO> detail = new ArrayList<>();
         //设置主诉
         detail.add(new EmrDetailDTO(RecipeEmrComment.COMPLAIN, "主诉", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getMainDieaseDescribe()), true));
+        //病史
+        detail.add(new EmrDetailDTO(RecipeEmrComment.MEDICAL_HISTORY, "病史", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getHistoryOfPresentIllness()), true));
         //设置现病史
         detail.add(new EmrDetailDTO(RecipeEmrComment.CURRENT_MEDICAL_HISTORY, "现病史", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getCurrentMedical()), false));
         //设置既往史
