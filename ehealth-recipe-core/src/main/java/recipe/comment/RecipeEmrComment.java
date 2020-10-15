@@ -48,6 +48,10 @@ public class RecipeEmrComment {
      */
     public static final String PAST_MEDICAL_HISTORY = "pastMedicalHistory";
     /**
+     * 病史
+     */
+    public static final String MEDICAL_HISTORY = "medicalHistory";
+    /**
      * 过敏史
      */
     public static final String ALLERGY_HISTORY = "allergyHistory";
