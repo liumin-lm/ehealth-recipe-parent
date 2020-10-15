@@ -2,9 +2,6 @@ package recipe.service;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -17,9 +14,14 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -37,6 +39,7 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.service.manager.EmrRecipeManager;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -65,9 +68,9 @@ public class HisRecipeService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
-    @Autowired
-    private RecipeListService recipeListService;
 
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
 
     /**
@@ -279,6 +282,7 @@ public class HisRecipeService {
                 result.add(hisRecipeVO);
             } else {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(recipe.getStatus()));
                     if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
@@ -654,6 +658,7 @@ public class HisRecipeService {
             hisRecipeVO.setJumpPageType(0);
         } else {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                     //表示该处方来源于HIS
                     if(StringUtils.isEmpty(recipe.getOrderCode())){
@@ -920,8 +925,6 @@ public class HisRecipeService {
         //是否缓存标志是必传字段
         //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
-        List<HisRecipe> hisRecipes=new ArrayList<>();
-        Map<String,Object> map = initReturnMap();
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         if (hisRecipe == null) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
@@ -946,9 +949,9 @@ public class HisRecipeService {
                 }
                 recipeCodeThreadLocal.set(recipeCode);
                 //线下处方处理(存储到cdr_his相关表)
-                hisRecipes=queryHisRecipeInfo(new Integer(organId), patientDTO, 180, 1);
+                List<HisRecipe> hisRecipes = queryHisRecipeInfo(new Integer(organId), patientDTO, 180, 1);
                 if(CollectionUtils.isEmpty(hisRecipes)){
-                    return map;
+                    return initReturnMap();
                 }else{
                     hisRecipeId=hisRecipes.get(0).getHisRecipeID();
                 }
@@ -991,7 +994,7 @@ public class HisRecipeService {
         }
         Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
         if (recipe != null) {
-            saveRecipeExt(recipe.getRecipeId(),hisRecipe);
+            saveRecipeExt(recipe, hisRecipe);
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
         }
@@ -1007,7 +1010,8 @@ public class HisRecipeService {
         return map;
     }
 
-    private void saveRecipeExt(Integer recipeId, HisRecipe hisRecipe) {
+    private void saveRecipeExt(Recipe recipe, HisRecipe hisRecipe) {
+        Integer recipeId = recipe.getRecipeId();
         RecipeExtend haveRecipeExt = recipeExtendDAO.getByRecipeId(recipeId);
         if (haveRecipeExt != null) {
             return;
@@ -1017,14 +1021,17 @@ public class HisRecipeService {
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         try {
-            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
-            if (consultExDTO != null){
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
+            if (consultExDTO != null) {
                 recipeExtend.setCardNo(consultExDTO.getCardId());
             }
-        }catch (Exception e){
-            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error",e);
+        } catch (Exception e) {
+            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
         }
+        RecipeBean recipeBean = new RecipeBean();
+        BeanUtils.copy(recipe, recipeBean);
+        emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
     }
 
@@ -1049,8 +1056,8 @@ public class HisRecipeService {
         recipe.setBussSource(0);
         //通过挂号序号关联复诊
         try {
-            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
             if (consultExDTO != null){
                 recipe.setBussSource(2);
                 recipe.setClinicId(consultExDTO.getConsultId());
@@ -1535,25 +1542,23 @@ public class HisRecipeService {
         Map<String, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         hisRecipeTO.forEach(a -> {
+            HisRecipe hisRecipe = hisRecipeMap.get(a.getRecipeCode());
+            if (null == hisRecipe) {
+                return;
+            }
             String disease = null != a.getDisease() ? a.getDisease() : "";
             String diseaseName = null != a.getDiseaseName() ? a.getDiseaseName() : "";
-            Recipe recipe = recipeMap.get(a.getRecipeCode());
-            if (null != recipe) {
-                if (!disease.equals(recipe.getOrganDiseaseId()) || !diseaseName.equals(recipe.getOrganDiseaseName())) {
-                    recipe.setOrganDiseaseId(disease);
-                    recipe.setOrganDiseaseName(diseaseName);
-                    recipeDAO.update(recipe);
-                    LOGGER.info("updateHisRecipe recipe = {}", JSONUtils.toString(recipe));
-                }
-            }
-            HisRecipe hisRecipe = hisRecipeMap.get(a.getRecipeCode());
-            if (null != hisRecipe) {
-                if (!disease.equals(hisRecipe.getDisease()) || !diseaseName.equals(hisRecipe.getDiseaseName())) {
-                    hisRecipe.setDisease(disease);
-                    hisRecipe.setDiseaseName(diseaseName);
-                    hisRecipeDAO.update(hisRecipe);
-                    LOGGER.info("updateHisRecipe hisRecipe = {}", JSONUtils.toString(hisRecipe));
-                }
+            if (!disease.equals(hisRecipe.getDisease()) || !diseaseName.equals(hisRecipe.getDiseaseName())) {
+                hisRecipe.setDisease(disease);
+                hisRecipe.setDiseaseName(diseaseName);
+                hisRecipeDAO.update(hisRecipe);
+                LOGGER.info("updateHisRecipe hisRecipe = {}", JSONUtils.toString(hisRecipe));
+                Recipe recipe = recipeMap.get(a.getRecipeCode());
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                RecipeBean recipeBean = new RecipeBean();
+                BeanUtils.copy(recipe, recipeBean);
+                emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
+                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             }
         });
         return hisRecipeMap;

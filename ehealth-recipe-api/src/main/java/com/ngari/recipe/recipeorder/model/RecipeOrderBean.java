@@ -83,7 +83,7 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "需支付费用")
     private BigDecimal needFee;
 
-    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
     private Integer expressFeePayWay;
 
     @ItemProperty(alias = "交易流水号")
@@ -285,6 +285,17 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
+
+    @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
 
     public Integer getIsShowExpectSendDate() {
         return isShowExpectSendDate;

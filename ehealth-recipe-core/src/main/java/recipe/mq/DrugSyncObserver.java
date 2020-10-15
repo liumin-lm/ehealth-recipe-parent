@@ -1,6 +1,7 @@
 package recipe.mq;
 
 import com.google.common.base.Function;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.RecipeAPI;
@@ -28,7 +29,7 @@ import shadow.message.ShadowMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 /**
  * @author： 0184/yu_yun
@@ -216,6 +217,16 @@ public class DrugSyncObserver implements Observer<ShadowMessage> {
                         detailVo.setStatus(0);
                     } else {
                         detailVo.setStatus(organDrug.getStatus());
+                    }
+                    //设置药房id列表
+                    if (org.apache.commons.lang3.StringUtils.isNotEmpty(organDrug.getPharmacy())) {
+                        try {
+                            List<String> splitToList = Splitter.on(",").splitToList(organDrug.getPharmacy());
+                            List<Integer> pharmacyIds = splitToList.stream().map(Integer::valueOf).collect(Collectors.toList());
+                            detailVo.setPharmacyIds(pharmacyIds);
+                        } catch (Exception e) {
+                            LOG.error("pharmacyId transform exception! updateList={}", JSONUtils.toString(organDrug), e);
+                        }
                     }
                 }
                 updateList.add(detailVo);

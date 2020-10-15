@@ -431,6 +431,7 @@ public class RecipeServiceEsignExt {
     }
 
     //判断
+    //根据获取当前的签名文件id，更新到recipe表中
     public static void updateInitRecipePDF(Boolean isDoctor, Recipe recipe, String pdfBase64Str) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Integer recipeId = recipe.getRecipeId();

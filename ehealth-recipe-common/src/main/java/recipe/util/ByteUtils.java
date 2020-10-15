@@ -1,8 +1,12 @@
 package recipe.util;
 
+import org.springframework.util.StringUtils;
+
 public class ByteUtils {
 	public static String COMMA = ",";
 	public static String DOT = "\\.";
+	public static String SEMI_COLON_EN = ";";
+	public static String SEMI_COLON_CH = "；";
 
 	/**
 	 * 私有构造函数，不允许本类生成实例
@@ -40,5 +44,41 @@ public class ByteUtils {
 		int d1 = n / 16;
 		int d2 = n % 16;
 		return hexDigits[d1] + hexDigits[d2];
+	}
+
+	/**
+	 * 判断字符串并返回
+	 *
+	 * @param parame
+	 * @return
+	 */
+	public static String isEmpty(String parame) {
+		if (StringUtils.isEmpty(parame)) {
+			return "";
+		} else {
+			return parame;
+		}
+	}
+
+	/**
+	 * 截取 StringBuilder 拼接的最后一个字符 如 "，"
+	 *
+	 * @param str
+	 * @return
+	 */
+	public static String subString(StringBuilder str) {
+		if (StringUtils.isEmpty(str)) {
+			return "";
+		} else {
+			return str.substring(0, str.length() - 1);
+		}
+	}
+
+	public static String[] split(String str, String regex) {
+		if (StringUtils.isEmpty(str)) {
+			return new String[0];
+		} else {
+			return str.split(regex);
+		}
 	}
 }

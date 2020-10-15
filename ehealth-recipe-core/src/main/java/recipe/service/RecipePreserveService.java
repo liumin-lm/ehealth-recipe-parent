@@ -6,11 +6,6 @@ import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -21,6 +16,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
@@ -30,6 +26,12 @@ import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -37,7 +39,9 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
+import lombok.val;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -64,6 +68,10 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
@@ -144,8 +152,71 @@ public class RecipePreserveService {
         return doctorService.getBeanByDoctorId(doctorId);
     }
 
+    /**
+     * 多线程查询多机构线下处方
+     * @param consultId
+     * @param organIds
+     * @param mpiId
+     * @param daysAgo
+     * @Author liumin
+     * @return
+     */
+    public Map<String, Object> getAllHosRecipeList(Integer consultId, List<Integer> organIds, String mpiId, Integer daysAgo) {
+        LOGGER.info("getAllHosRecipeList consultId={}, organIds={},mpiId={}", consultId, JSONUtils.toString(organIds), mpiId);
+        OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
+        List<FutureTask<Map<String, Object> >> futureTasks = new ArrayList<FutureTask<Map<String, Object> >>();
+        for(int i=0;i<organIds.size();i++){
+            Integer organIdChild=organIds.get(i);
+            futureTasks.add(new FutureTask<>(new Callable<Map<String, Object> >() {
+                @Override
+                public Map<String, Object>  call() {
+                    // 线程执行程序
+                    return getHosRecipeList(consultId, organIdChild, mpiId, daysAgo);
+                }
+            }));
+        }
+        // 加入 线程池
+        for (FutureTask<Map<String, Object>> futureTask : futureTasks) {
+            GlobalEventExecFactory.instance().getExecutor().submit(futureTask);
+        }
+
+        List<HisRecipeBean> hisRecipes=new ArrayList<>();
+        PatientVO patientVO=new PatientVO();
+        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
+        // 获取线程返回结果
+        for (int i = 0; i < futureTasks.size(); i++) {
+            Map<String, Object> map = new ConcurrentHashMap<>();
+            try {
+                map = futureTasks.get(i).get(4000, TimeUnit.MILLISECONDS);
+                LOGGER.info("getAllHosRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
+                if(i==0){
+                    patientVO=(PatientVO) map.get("patient");
+                }
+                List<HisRecipeBean> hisRecipeBeans=(List<HisRecipeBean>)map.get("hisRecipe");
+                if(CollectionUtils.isNotEmpty(hisRecipeBeans)){
+                    hisRecipes.addAll(hisRecipeBeans);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.error("getAllHosRecipeList futureTasks exception:{}", e.getMessage(), e);
+            }
+        }
+        upderLineRecipesByHis.put("hisRecipe",hisRecipes);
+        upderLineRecipesByHis.put("patient",patientVO);
+        LOGGER.info("getAllHosRecipeList response:{}",JSONUtils.toString(upderLineRecipesByHis));
+        return upderLineRecipesByHis;
+    }
+
     @RpcService
     public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
+        //测试 设置超时
+//        if(organId==1){
+//            try{
+//                Thread.sleep(10000);
+//            }catch (Exception e){
+//
+//            }
+//        }
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
@@ -161,18 +232,18 @@ public class RecipePreserveService {
         }
         String cardId = null;
         String cardType = null;
-        IConsultService service = ConsultAPI.getService(IConsultService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
         if (consultId == null) {
-            List<ConsultBean> consultBeans = service.findConsultByMpiId(Arrays.asList(mpiId));
-            if (CollectionUtils.isNotEmpty(consultBeans)) {
-                consultId = consultBeans.get(0).getConsultId();
+            List<RevisitBean> revisitBeans = iRevisitService.findConsultByMpiId(Arrays.asList(mpiId));
+            if (CollectionUtils.isNotEmpty(revisitBeans)) {
+                consultId = revisitBeans.get(0).getConsultId();
             }
         }
         if (consultId != null) {
-            ConsultBean consultBean = service.getById(consultId);
-            if (null != consultBean) {
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+            RevisitBean revisitBean = iRevisitService.getById(consultId);
+            if (null != revisitBean) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
                 if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
                     cardId = consultExDTO.getCardId();
                     cardType = consultExDTO.getCardType();
