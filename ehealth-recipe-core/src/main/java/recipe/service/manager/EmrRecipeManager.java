@@ -209,6 +209,10 @@ public class EmrRecipeManager {
                 recipeExtend.setHistroyMedical(value);
                 continue;
             }
+            if (RecipeEmrComment.MEDICAL_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getHistoryOfPresentIllness())) {
+                recipeExtend.setHistoryOfPresentIllness(value);
+                continue;
+            }
             if (RecipeEmrComment.ALLERGY_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getAllergyMedical())) {
                 recipeExtend.setAllergyMedical(value);
                 continue;
