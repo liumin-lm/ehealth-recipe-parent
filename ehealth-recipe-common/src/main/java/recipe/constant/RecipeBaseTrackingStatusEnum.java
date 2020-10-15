@@ -8,9 +8,9 @@ package recipe.constant;
 public enum RecipeBaseTrackingStatusEnum {
     //基础服务-处方  物流状态对应枚举
 
-    READY_STATUS(0, 5, "待配送"),
+    READY_STATUS(0, 3, "待配送"),
     SEND_STATUS(1, 4, "配送中"),
-    FINISH_STATUS(2, 6, "配送完成");
+    FINISH_STATUS(2, 5, "配送完成");
 
     /**
      * 基础服务物流状态码

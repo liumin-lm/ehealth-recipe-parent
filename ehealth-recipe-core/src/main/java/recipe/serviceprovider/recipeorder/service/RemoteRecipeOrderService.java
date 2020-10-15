@@ -345,7 +345,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     Recipe recipe = recipeList.get(0);
                     RecipeBaseTrackingStatusEnum statusEnum = RecipeBaseTrackingStatusEnum.getByBaseCode(trannckingReqTO.getTrackingStatus());
                     if (null != statusEnum){
-                        if (statusEnum.getRecipeCode().equals(recipe.getStatus())){
+                        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                        if (statusEnum.getRecipeCode().equals(order.getStatus())){
                             return true;
                         }
                         Map<String, Object> paramMap = new HashedMap();
@@ -358,7 +360,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
                         ThirdResultBean sendCallResult = null;
                         switch (statusEnum.getRecipeCode()){
-                            case 5:
+                            case 3:
                                 // 待配送
                                 sendCallResult = callService.readyToSend(paramMap);
                                 break;
@@ -366,7 +368,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                                // 配送中
                                sendCallResult = callService.toSend(paramMap);
                                break;
-                           case 6:
+                           case 5:
                                // 配送完成
                                paramMap.put("recipeCode",recipe.getRecipeCode());
                                paramMap.put("sendDate",trannckingReqTO.getFinishDate());
