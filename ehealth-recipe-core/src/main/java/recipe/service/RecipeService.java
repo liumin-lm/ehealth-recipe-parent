@@ -890,6 +890,53 @@ public class RecipeService extends RecipeBaseService {
             memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
             LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
         }
+        //再触发医生签名的时候将pdf先生成，回调的时候再将CA的返回更新
+        //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
+        try {
+            //date 202001013 修改非易签保流程下的pdf
+            Integer organId = recipe.getClinicOrgan();
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            String fileId ;
+            boolean usePlatform = true;
+            Object recipeUsePlatformCAPDF = configService.getConfiguration(organId, "recipeUsePlatformCAPDF");
+            if(null != recipeUsePlatformCAPDF){
+                usePlatform = Boolean.parseBoolean(recipeUsePlatformCAPDF.toString());
+            }
+            //保存签名值、时间戳、电子签章文件
+            //使用平台CA模式，手动生成pdf
+            //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
+            String pdfBase64Str;
+            String signImageId;
+            if(usePlatform){
+                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, true);
+                if(null == requestSealTO){
+                    LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
+                }else{
+                    //先将产生的pdf
+                    String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
+                    signImageId = doctorDTO.getSignImage();
+                    if ("shenzhenCA".equals(thirdCASign)) {
+                        SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
+                        SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
+                        if(null != docInfo){
+                            signImageId = docInfo.getSignPictureDoc();
+                        }
+                    }
+                    pdfBase64Str = requestSealTO.getPdfBase64Str();
+                    //将生成的处方pdf生成id
+                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getDoctor(),
+                            true, pdfBase64Str, signImageId);
+
+                    //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
+                    RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, null, null, true, fileId);
+                }
+
+            }
+        } catch (Exception e) {
+            LOGGER.warn("当前处方{}是使用平台医生部分pdf的,生成失败！", recipe.getRecipeId());
+            //日志记录
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
+        }
 
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
@@ -1206,6 +1253,11 @@ public class RecipeService extends RecipeBaseService {
 
     //date 20200610
     //上海胸科ca通过回调的方式回写医生ca结果给平台触发业务流程
+    //date 20201013 统一修改返回
+    //pdf的生成统一逻辑在回调函数里：
+    //首先易签保CA的pdf按原流程生成，非易签保的统一按照取pdf的配置来设置处方pdf
+    //当取平台pdf时候，使用易签保的pdf，签名按照本地的签名来（深圳CA特别处理，用CA的签名图片）；
+    //当取CApdf时候，直接回去CA请求返回的ca数据保存
     @RpcService
     public void retryCaDoctorCallBackToRecipe(CaSignResultVo resultVo) {
         //ca完成签名签章后，将和返回的结果给平台
@@ -1251,7 +1303,20 @@ public class RecipeService extends RecipeBaseService {
             }else{
                 if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                     result.setCode(RecipeResultBean.SUCCESS);
+
+                    //date 202001013 修改非易签保流程下的pdf
+                    boolean usePlatform = true;
+                    Object recipeUsePlatformCAPDF = configService.getConfiguration(organId, "recipeUsePlatformCAPDF");
+                    if(null != recipeUsePlatformCAPDF){
+                        usePlatform = Boolean.parseBoolean(recipeUsePlatformCAPDF.toString());
+                    }
                     //保存签名值、时间戳、电子签章文件
+                    if(!usePlatform){
+                        if(null == resultVo.getPdfBase64()){
+                            LOGGER.warn("当前处方{}使用CApdf返回CA图片为空！", recipeId);
+                        }
+                    }
+                    //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
                     RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                     resultVo.setFileId(fileId);
                     //date 20200922
@@ -1410,6 +1475,43 @@ public class RecipeService extends RecipeBaseService {
             }else{
 
                 if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
+
+                    //date 202001013 修改非易签保流程下的pdf
+                    boolean usePlatform = true;
+                    Object recipeUsePlatformCAPDF = configService.getConfiguration(organId, "recipeUsePlatformCAPDF");
+                    if(null != recipeUsePlatformCAPDF){
+                        usePlatform = Boolean.parseBoolean(recipeUsePlatformCAPDF.toString());
+                    }
+                    //使用平台CA模式，手动生成pdf
+                    //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
+                    String pdfBase64Str;
+                    String signImageId;
+                    if(usePlatform) {
+                        CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
+                        if (null == requestSealTO) {
+                            LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
+                        } else {
+                            //先将产生的pdf
+                            String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
+                            signImageId = doctorDTOn.getSignImage();
+                            //深圳CA特殊化处理，获取药师CA签名图片id
+                            if ("shenzhenCA".equals(thirdCASign)) {
+                                SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
+                                SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
+                                if (null != phaInfo) {
+                                    signImageId = phaInfo.getSignPictureDoc();
+                                }
+                            }
+                            pdfBase64Str = requestSealTO.getPdfBase64Str();
+                            //将生成的处方pdf生成id
+                            fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getChecker(),
+                                    false, pdfBase64Str, signImageId);
+                        }
+                    }else{
+                        if(null == resultVo.getPdfBase64()){
+                            LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
+                        }
+                    }
                     //保存签名值、时间戳、电子签章文件
                     checkResult.setCode(RecipeResultBean.SUCCESS);
                     RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);

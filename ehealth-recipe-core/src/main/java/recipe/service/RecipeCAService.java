@@ -148,6 +148,7 @@ public class RecipeCAService {
             //这里的覆盖是将操作者的签名图片添加到pdf上，这要判断CA用的是本地的签名图片和CA图片
             //判断有没有签名图片，没有则填充初始化的pdf
             //组装生成pdf的参数
+            /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
 
             //获取签章图片
