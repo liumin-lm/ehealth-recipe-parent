@@ -15,6 +15,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -156,6 +157,13 @@ public class ShanghaiCAImpl implements CAInterface {
             }else {
                 signResultVo.setResultCode(1);
             }
+            // 启动异步线程对证书号进行获取保存（上海六院）
+            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    getAndSaveCertificate(recipe.getDoctor(), recipe.getClinicOrgan());
+                }
+            });
         } catch (Exception e){
             signResultVo.setResultCode(0);
             LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
@@ -184,7 +192,7 @@ public class ShanghaiCAImpl implements CAInterface {
      * @return
      */
     @RpcService
-    public String getAndSaveCertificate(Integer doctorId, Integer organId) {
+    public void getAndSaveCertificate(Integer doctorId, Integer organId) {
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
         SignDoctorCaInfo result = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, "shanghaiCa");
         if (result == null) {
@@ -209,10 +217,7 @@ public class ShanghaiCAImpl implements CAInterface {
                 signDoctorCaInfo.setLastmodify(new Date());
                 signDoctorCaInfoDAO.save(signDoctorCaInfo);
                 doctorExtendService.updateCertificateByDocId(doctorExtendDTO);
-                return responseTO.getCretSerial();
             }
-            return null;
         }
-        return result.getCertSerial();
     }
 }

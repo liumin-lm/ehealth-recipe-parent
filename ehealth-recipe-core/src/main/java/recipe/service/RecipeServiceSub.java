@@ -2567,6 +2567,7 @@ public class RecipeServiceSub {
      */
     public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
         getMedicalInfo(recipe);
         RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
@@ -2574,7 +2575,13 @@ public class RecipeServiceSub {
             sendRecipeMsgTag(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
         } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
-            List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            List<String> requestMpiIds;
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                requestMpiIds = iRevisitService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            } else {
+                requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            }
+
             if (CollectionUtils.isNotEmpty(requestMpiIds)) {
                 for (String requestMpiId : requestMpiIds) {
                     sendRecipeMsgTag(requestMpiId, recipe, recipeTagMsg, rMap, send);

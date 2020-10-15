@@ -17,10 +17,6 @@ import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -35,8 +31,10 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -105,7 +103,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private PatientService patientService;
     @Autowired
-    private IConsultExService consultExService;
+    private IRevisitExService consultExService;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
@@ -113,7 +111,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private IRecipeHisService recipeHisService;
     @Autowired
-    private IConsultService consultService;
+    private IRevisitService consultService;
 
     @Autowired
     private IUsingRateService usingRateService;
@@ -1561,7 +1559,7 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该患者");
         }
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
         if (null != consultExDTO) {
             patientBaseInfo.setPatientID(consultExDTO.getCardId());
             patientBaseInfo.setCardID(consultExDTO.getCardId());
@@ -1597,7 +1595,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param mpiId     患者id
      * @return
      */
-    public ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
+    public RevisitExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id 为空");
         }
@@ -1607,7 +1605,7 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该机构");
         }
         if (consultId == null) {
-            List<ConsultBean> consultBeans = consultService.findConsultByMpiId(Collections.singletonList(mpiId));
+            List<RevisitBean> consultBeans = consultService.findConsultByMpiId(Collections.singletonList(mpiId));
             if (CollectionUtils.isNotEmpty(consultBeans)) {
                 consultId = consultBeans.get(0).getConsultId();
             }
@@ -1615,7 +1613,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (consultId == null) {
             return null;
         }
-        ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+        RevisitExDTO consultExDTO = consultExService.getByConsultId(consultId);
         return consultExDTO;
     }
 
@@ -1649,7 +1647,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         String cardId = null;
         String cardType = null;
-        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
         if (null != consultExDTO) {
             cardId = consultExDTO.getCardId();
             cardType = consultExDTO.getCardType();
@@ -1762,7 +1760,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         String cardId = null;
         String cardType = null;
-        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
         if (null != consultExDTO) {
             cardId = consultExDTO.getCardId();
             cardType = consultExDTO.getCardType();
