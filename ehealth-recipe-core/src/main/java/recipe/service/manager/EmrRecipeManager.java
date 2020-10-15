@@ -187,6 +187,10 @@ public class EmrRecipeManager {
             return;
         }
         for (EmrDetailDTO detailDTO : detail) {
+            if (null == detailDTO) {
+                logger.warn("EmrRecipeManager getMedicalInfo detailDTO is null");
+                continue;
+            }
             String value = detailDTO.getValue();
             if (StringUtils.isEmpty(value)) {
                 continue;
