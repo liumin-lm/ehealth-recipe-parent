@@ -2,7 +2,9 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -13,6 +15,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -154,6 +157,13 @@ public class ShanghaiCAImpl implements CAInterface {
             }else {
                 signResultVo.setResultCode(1);
             }
+            // 启动异步线程对证书号进行获取保存（上海六院）
+            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    getAndSaveCertificate(recipe.getDoctor(), recipe.getClinicOrgan());
+                }
+            });
         } catch (Exception e){
             signResultVo.setResultCode(0);
             LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
@@ -182,7 +192,8 @@ public class ShanghaiCAImpl implements CAInterface {
      * @return
      */
     @RpcService
-    public String getAndSaveCertificate(Integer doctorId, Integer organId) {
+    public void getAndSaveCertificate(Integer doctorId, Integer organId) {
+        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
         SignDoctorCaInfo result = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, "shanghaiCa");
         if (result == null) {
             CaCertificateRequestTO requestTO = new CaCertificateRequestTO();
@@ -195,17 +206,18 @@ public class ShanghaiCAImpl implements CAInterface {
             CaCertificateResponseTO responseTO = iCommonCAServcie.caCertificateBusiness(requestTO);
             if (responseTO != null && responseTO.getCode() == 200) {
                 SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
+                DoctorExtendDTO doctorExtendDTO = new DoctorExtendDTO();
                 signDoctorCaInfo.setDoctorId(doctorId);
+                doctorExtendDTO.setDoctorId(doctorId);
                 signDoctorCaInfo.setCaType("shanghaiCa");
                 signDoctorCaInfo.setCert_voucher(responseTO.getCretBody());
                 signDoctorCaInfo.setCertSerial(responseTO.getCretSerial());
+                doctorExtendDTO.setSerialNumCA(responseTO.getCretSerial());
                 signDoctorCaInfo.setCreateDate(new Date());
                 signDoctorCaInfo.setLastmodify(new Date());
                 signDoctorCaInfoDAO.save(signDoctorCaInfo);
-                return responseTO.getCretSerial();
+                doctorExtendService.updateCertificateByDocId(doctorExtendDTO);
             }
-            return null;
         }
-        return result.getCertSerial();
     }
 }

@@ -338,13 +338,18 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}",orderCode);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         try {
-            if(orderCode != null){
+            if(StringUtils.isNotBlank(orderCode)){
                 List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(orderCode);
                 LOGGER.info("updateRecipeTrannckingInfo.queryRcipe={}",JSONObject.toJSONString(recipeList));
                 if(recipeList.size() > 0){
                     Recipe recipe = recipeList.get(0);
                     RecipeBaseTrackingStatusEnum statusEnum = RecipeBaseTrackingStatusEnum.getByBaseCode(trannckingReqTO.getTrackingStatus());
                     if (null != statusEnum){
+                        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                        if (statusEnum.getRecipeCode().equals(order.getStatus())){
+                            return true;
+                        }
                         Map<String, Object> paramMap = new HashedMap();
                         paramMap.put("recipeId",recipe.getRecipeId());
                         paramMap.put("sendDate",trannckingReqTO.getSendDate());
@@ -355,6 +360,10 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
                         ThirdResultBean sendCallResult = null;
                         switch (statusEnum.getRecipeCode()){
+                            case 3:
+                                // 待配送
+                                sendCallResult = callService.readyToSend(paramMap);
+                                break;
                            case 4:
                                // 配送中
                                sendCallResult = callService.toSend(paramMap);
@@ -362,6 +371,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                            case 5:
                                // 配送完成
                                paramMap.put("recipeCode",recipe.getRecipeCode());
+                               paramMap.put("sendDate",trannckingReqTO.getFinishDate());
                                sendCallResult = callService.finishRecipe(paramMap);
                                break;
                            default:
@@ -376,6 +386,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                         return true;
                     }
                 }
+            }else {
+                throw new DAOException(DAOException.VALUE_NEEDED,"查询不到处方订单");
             }
         } catch (Exception e) {
             LOGGER.error("updateRecipeTrannckingInfo.error:",e);
