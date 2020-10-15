@@ -5,8 +5,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -28,7 +26,6 @@ import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -574,6 +571,8 @@ public class HisRequestInit {
                 requestTO.setCertID(patient.getCertificate());
                 requestTO.setPatientName(patient.getPatientName());
             }
+            requestTO.setPatId(recipe.getPatientID());
+            requestTO.setPayMode(recipe.getPayMode());
 
             if (null != card) {
                 requestTO.setCardType(card.getCardType());
