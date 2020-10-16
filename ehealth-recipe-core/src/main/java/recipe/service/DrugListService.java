@@ -142,6 +142,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         if(null != drugListBean.getDispensatory()) {
             DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
             DispensatoryDTO dispensatoryDTO = drugListBean.getDispensatory();
+            dispensatoryDTO.setName(d.getDrugName()+"("+d.getSaleName()+")");
             dispensatoryDTO.setDrugId(d.getDrugId());
             dispensatoryDTO.setDrugName(d.getDrugName());
             dispensatoryDTO.setSaleName(d.getSaleName());
