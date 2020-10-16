@@ -21,6 +21,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -88,13 +89,29 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         DrugsEnterprise drugsEnterprise = getBean(drugsEnterpriseBean, DrugsEnterprise.class);
 
         //默认值设定
-        drugsEnterprise.setCallSys("commonSelf");
-        drugsEnterprise.setHosInteriorSupport(0);
+        if(drugsEnterprise.getHosInteriorSupport()==null){
+            drugsEnterprise.setHosInteriorSupport(0);
+        }
+        if(drugsEnterprise.getCheckInventoryFlag()==null){
+            drugsEnterprise.setCheckInventoryFlag(1);
+        }
+        if(drugsEnterprise.getShowStoreFlag()==null){
+            drugsEnterprise.setShowStoreFlag(1);
+        }
+        if(drugsEnterprise.getDownSignImgType()==null){
+            drugsEnterprise.setDownSignImgType(1);
+        }
+        if(drugsEnterprise.getSettlementMode()==null){
+            drugsEnterprise.setSettlementMode(1);
+        }
+        if(drugsEnterprise.getOperationType()==null){
+            drugsEnterprise.setOperationType(1);
+        }
+        if(StringUtils.isEmpty(drugsEnterprise.getCallSys())){
+            drugsEnterprise.setCallSys("commonSelf");
+        }
         drugsEnterprise.setOrderType(1);
-        drugsEnterprise.setCheckInventoryFlag(1);
-        drugsEnterprise.setSettlementMode(0);
         drugsEnterprise.setStorePayFlag(0);
-        drugsEnterprise.setShowStoreFlag(0);
         drugsEnterprise.setSendType(drugsEnterpriseBean.getSendType());
 
         //存储药企信息

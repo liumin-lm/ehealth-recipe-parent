@@ -391,12 +391,17 @@ public class RecipeHisService extends RecipeBaseService {
                         if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
                             PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
                             PayNotifyResTO response = service.payNotify(payNotifyReq);
-                            if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
+                            if (null != response && response.getMsgCode() == 0) {
                                 //结算成功
-                                Recipedetail detail = new Recipedetail();
-                                detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-                                detail.setPharmNo(response.getData().getWindows());
-                                HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                                if (response.getData() != null) {
+                                    Recipedetail detail = new Recipedetail();
+                                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+                                    detail.setPharmNo(response.getData().getWindows());
+                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                                } else {
+                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), null);
+                                }
+
                             } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
                                 //前置机返回结算失败，或者医保结算前置机返回null
                                 result.setCode(RecipeResultBean.FAIL);
