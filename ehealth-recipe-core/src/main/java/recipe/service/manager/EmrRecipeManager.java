@@ -339,7 +339,6 @@ public class EmrRecipeManager {
             String[] symptomIds = ByteUtils.split(recipeExt.getSymptomId(), ByteUtils.SEMI_COLON_EN);
             detail.add(new EmrDetailDTO(RecipeEmrComment.TCM_SYNDROME, "中医证候", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(symptomNames, symptomIds), false));
         }
-
         medicalDetailBean.setDetail(JSONUtils.toString(detail));
     }
 
@@ -364,8 +363,8 @@ public class EmrRecipeManager {
         StringBuilder ids = new StringBuilder();
         if (RecipeEmrComment.DIAGNOSIS.equals(detail.getKey())) {
             values.forEach(b -> {
-                names.append(b.getName()).append(ByteUtils.SEMI_COLON_CH);
-                ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_CH);
+                appendDecollator(names, b.getName(), ByteUtils.SEMI_COLON_CH);
+                appendDecollator(ids, b.getCode(), ByteUtils.SEMI_COLON_CH);
             });
             if (StringUtils.isEmpty(recipe.getOrganDiseaseName()) && !ByteUtils.isEmpty(names)) {
                 recipe.setOrganDiseaseName(ByteUtils.subString(names));
@@ -375,8 +374,8 @@ public class EmrRecipeManager {
             }
         } else if (RecipeEmrComment.TCM_SYNDROME.equals(detail.getKey())) {
             values.forEach(b -> {
-                names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
-                ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
+                appendDecollator(names, b.getName(), ByteUtils.SEMI_COLON_EN);
+                appendDecollator(ids, b.getCode(), ByteUtils.SEMI_COLON_EN);
             });
             if (StringUtils.isEmpty(recipeExtend.getSymptomName()) && !ByteUtils.isEmpty(names)) {
                 recipeExtend.setSymptomName(ByteUtils.subString(names));
@@ -397,17 +396,23 @@ public class EmrRecipeManager {
      * @return
      */
     private String getEmrDetailValueDTO(String[] names, String[] ids) {
-
         List<EmrDetailValueDTO> diagnosisValues = new LinkedList<>();
-        if (null == names || null == ids || 0 == names.length || 0 == ids.length) {
-            return null == names ? "" : Arrays.toString(names);
+        if (null == names) {
+            return null;
         }
-
         for (int i = 0; i < names.length; i++) {
             try {
                 EmrDetailValueDTO diagnosisValue = new EmrDetailValueDTO();
-                diagnosisValue.setName(names[i]);
-                diagnosisValue.setCode(ids[i]);
+                if (!StringUtils.isEmpty(names[i])) {
+                    diagnosisValue.setName(names[i]);
+                }
+                try {
+                    if (null != ids) {
+                        diagnosisValue.setCode(ids[i]);
+                    }
+                } catch (Exception e1) {
+                    logger.warn("EmrRecipeManager getEmrDetailValueDTO ids={},mas={}", ids, e1.getMessage());
+                }
                 diagnosisValues.add(diagnosisValue);
             } catch (Exception e) {
                 logger.error("EmrRecipeManager getEmrDetailValueDTO names={},ids={}", JSONUtils.toString(names), JSONUtils.toString(ids), e);
@@ -416,4 +421,10 @@ public class EmrRecipeManager {
         return JSONUtils.toString(diagnosisValues);
     }
 
+    private static void appendDecollator(StringBuilder stringBuilder, String value, String decollator) {
+        if (StringUtils.isEmpty(value)) {
+            return;
+        }
+        stringBuilder.append(value).append(decollator);
+    }
 }

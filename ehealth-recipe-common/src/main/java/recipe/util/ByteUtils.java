@@ -83,7 +83,7 @@ public class ByteUtils {
 	 */
 	public static String[] split(String str, String regex) {
 		if (StringUtils.isEmpty(str)) {
-			return new String[0];
+			return null;
 		} else {
 			return str.split(regex);
 		}
