@@ -233,8 +233,12 @@ public class EmrRecipeManager {
                 recipe.setMemo(value);
                 continue;
             }
-            /**诊断 ，中医症候特殊处理*/
-            getMultiSearch(detailDTO, recipe, recipeExtend);
+            try {
+                /**诊断 ，中医症候特殊处理*/
+                getMultiSearch(detailDTO, recipe, recipeExtend);
+            } catch (Exception e) {
+                logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
+            }
             logger.info("EmrRecipeManager getMedicalInfo recipe={}，recipeExtend={}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExtend));
         }
     }
