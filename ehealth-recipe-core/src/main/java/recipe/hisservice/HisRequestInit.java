@@ -1,19 +1,14 @@
 package recipe.hisservice;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -24,7 +19,10 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
-import ctd.account.thirdparty.entity.ThirdPartyMappingEntity;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -35,6 +33,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
@@ -45,12 +44,14 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * company: ngarihealth
@@ -61,6 +62,8 @@ import static ctd.persistence.DAOFactory.getDAO;
 public class HisRequestInit {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     public static RecipeSendRequestTO initRecipeSendRequestTOForWuChang(Recipe recipe, List<Recipedetail> details, PatientBean patient, HealthCardBean card) {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
@@ -72,8 +75,14 @@ public class HisRequestInit {
             requestTO.setDatein(recipe.getSignDate());
             requestTO.setStartDate(recipe.getSignDate());
             requestTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe.getPayFlag()) : null);
+
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            getMedicalInfo(recipe, recipeExtend);
             requestTO.setIcdCode(recipe.getOrganDiseaseId());
             requestTO.setIcdName(recipe.getOrganDiseaseName());
+            // 简要病史
+            requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
             requestTO.setDeptID("");
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
             //new 字段
@@ -151,8 +160,7 @@ public class HisRequestInit {
                 requestTO.setCertID(idCard);
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setMobile(patient.getMobile());
-                // 简要病史
-                requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
+
             }
             /*if (null != card) {
                 requestTO.setCardType(card.getCardType());//2-医保卡
@@ -281,13 +289,16 @@ public class HisRequestInit {
         requestTO.setDatein(recipe.getSignDate());
         requestTO.setStartDate(recipe.getSignDate());
         requestTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe.getPayFlag()) : null);
-        requestTO.setIcdCode(recipe.getOrganDiseaseId());
-        requestTO.setIcdName(recipe.getOrganDiseaseName());
         requestTO.setDeptID("");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        getMedicalInfo(recipe, recipeExtend);
+        requestTO.setIcdCode(recipe.getOrganDiseaseId());
+        requestTO.setIcdName(recipe.getOrganDiseaseName());
+        // 简要病史
+        requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         if (recipeExtend != null) {
             //主诉
             requestTO.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
@@ -297,32 +308,46 @@ public class HisRequestInit {
             requestTO.setHandleMethod(recipeExtend.getHandleMethod());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
-            try{
+            try {
                 //制法Code 煎法Code 中医证候Code
-                DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
-                DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
-                SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
-                if(StringUtils.isNotBlank(recipeExtend.getDecoctionId())){
-                    DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
+                SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+                if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
                 }
-                if(StringUtils.isNotBlank(recipeExtend.getMakeMethodId())){
-                    DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+                if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
+                    DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
 
                 }
-                if(StringUtils.isNotBlank(recipeExtend.getSymptomId())){
-                    Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
+                    Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
                     requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
                 }
             }catch(Exception e){
                 LOGGER.error("initRecipeSendRequestTO recipeid:{} error :{}",recipe.getRecipeId(),e );
             }
         }
+        // 从复诊获取患者渠道id
+        try {
+            if (recipe.getClinicId() != null) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
+                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (revisitExDTO != null) {
+                    LOGGER.info("queryPatientChannelId res={}", JSONObject.toJSONString(revisitExDTO));
+                    requestTO.setPatientChannelId(revisitExDTO.getProjectChannel());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("queryPatientChannelId error:",e);
+        }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null) {
-            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+            IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
             if (consultExDTO != null) {
                 requestTO.setRegisteredId(consultExDTO.getRegisterNo());
                 requestTO.setCardType(consultExDTO.getCardType());
@@ -365,8 +390,6 @@ public class HisRequestInit {
             requestTO.setCertID(idCard);
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setMobile(patient.getMobile());
-            // 简要病史
-            requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         }
         if (null != card && StringUtils.isEmpty(requestTO.getCardNo())) {
             requestTO.setCardType(card.getCardType());
@@ -416,15 +439,15 @@ public class HisRequestInit {
         requestTO.setCopyNum(recipe.getCopyNum());
         //福建省立医院特殊处理
         if ("1001393".equals(recipe.getClinicOrgan().toString())) {
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             Integer consultId = null;
             if (CollectionUtils.isNotEmpty(consultIds)) {
                 consultId = consultIds.get(0);
             }
             if (null != consultId) {
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
                 if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
                     requestTO.setCardNo(consultExDTO.getCardId());
                     requestTO.setCardType(consultExDTO.getCardType());
@@ -556,6 +579,8 @@ public class HisRequestInit {
                 requestTO.setCertID(patient.getCertificate());
                 requestTO.setPatientName(patient.getPatientName());
             }
+            requestTO.setPatId(recipe.getPatientID());
+            requestTO.setPayMode(recipe.getPayMode());
 
             if (null != card) {
                 requestTO.setCardType(card.getCardType());
@@ -857,11 +882,10 @@ public class HisRequestInit {
         List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();
         request.setRecipeAuditDetailReqTO(detailList);
         List<RecipeCheckDetail> recipeCheckDetailList = resutlBean.getCheckDetailList();
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipeDetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
         if (CollectionUtils.isNotEmpty(recipeCheckDetailList)) {
-            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-
-            List<Recipedetail> recipeDetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
             List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
             Map<Integer, DrugList> drugInfo = Maps.newHashMap();
@@ -875,7 +899,6 @@ public class HisRequestInit {
                 }
                 drugCodeMap.put(detail.getRecipeDetailId(), detail.getDrugCode());
             }
-
             RecipeAuditDetailReqTO auditDetail;
             List<Integer> detailIdList;
             List<Integer> reasonIdList;
@@ -899,6 +922,8 @@ public class HisRequestInit {
             } catch (Exception e) {
                 LOGGER.warn("recipeAudit create his data error. recipeId={}", recipe.getRecipeId(), e);
             }
+        } else {
+            //审核成功后
             //创建处方新增请求体
             try {
                 RecipeSendRequestTO recipeInfo = HisRequestInit.initRecipeSendRequestTO(recipe, recipeDetailList, patientBean, null);
@@ -906,9 +931,7 @@ public class HisRequestInit {
             } catch (Exception e) {
                 LOGGER.warn("recipeAudit create recipeSendInfo error. recipeId={}", recipe.getRecipeId(), e);
             }
-
         }
-
         return request;
     }
 
@@ -968,6 +991,7 @@ public class HisRequestInit {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
+                getMedicalInfo(recipe, recipeExtend);
                 //主诉
                 requestTO.setMainDiseaseDescribe(StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe()) ? recipeExtend.getMainDieaseDescribe() : "无");
                 //现病史
@@ -979,8 +1003,8 @@ public class HisRequestInit {
             } else {
                 LOGGER.warn("recipeExtend is null . recipeId={}", recipe.getRecipeId());
             }
-
             //获取诊断数据
+            getMedicalInfo(recipe, recipeExtend);
             List<String> icdLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseId());
             List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
             List<DocIndexInfoTO> data = Lists.newArrayList();

@@ -143,6 +143,85 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
 
+    @ItemProperty(alias = "物流公司")
+    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "物流类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    @ItemProperty(alias = "寄件人名称")
+    private String consignorName;
+
+    @ItemProperty(alias = "寄件人手机号")
+    private String consignorMobile;
+
+    @ItemProperty(alias = "寄件人省份编码")
+    private String consignorProvince;
+
+    @ItemProperty(alias = "寄件人城市编码")
+    private String consignorCity;
+
+    @ItemProperty(alias = "寄件人区域编码")
+    private String consignorDistrict;
+
+    @ItemProperty(alias = "寄件人详细地址")
+    private String consignorAddress;
+
+    @Column(name = "consignorName")
+    public String getConsignorName() {
+        return consignorName;
+    }
+
+    public void setConsignorName(String consignorName) {
+        this.consignorName = consignorName;
+    }
+
+    @Column(name = "consignorMobile")
+    public String getConsignorMobile() {
+        return consignorMobile;
+    }
+
+    public void setConsignorMobile(String consignorMobile) {
+        this.consignorMobile = consignorMobile;
+    }
+
+    @Column(name = "consignorProvince")
+    public String getConsignorProvince() {
+        return consignorProvince;
+    }
+
+    public void setConsignorProvince(String consignorProvince) {
+        this.consignorProvince = consignorProvince;
+    }
+
+    @Column(name = "consignorCity")
+    public String getConsignorCity() {
+        return consignorCity;
+    }
+
+    public void setConsignorCity(String consignorCity) {
+        this.consignorCity = consignorCity;
+    }
+
+    @Column(name = "consignorDistrict")
+    public String getConsignorDistrict() {
+        return consignorDistrict;
+    }
+
+    public void setConsignorDistrict(String consignorDistrict) {
+        this.consignorDistrict = consignorDistrict;
+    }
+
+    @Column(name = "consignorAddress")
+    public String getConsignorAddress() {
+        return consignorAddress;
+    }
+
+    public void setConsignorAddress(String consignorAddress) {
+        this.consignorAddress = consignorAddress;
+    }
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -498,5 +577,23 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setSendDateText(String sendDateText) {
         this.sendDateText = sendDateText;
+    }
+
+    @Column(name = "logisticsCompany")
+    public Integer getLogisticsCompany() {
+        return logisticsCompany;
+    }
+
+    public void setLogisticsCompany(Integer logisticsCompany) {
+        this.logisticsCompany = logisticsCompany;
+    }
+
+    @Column(name = "logisticsType")
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
     }
 }

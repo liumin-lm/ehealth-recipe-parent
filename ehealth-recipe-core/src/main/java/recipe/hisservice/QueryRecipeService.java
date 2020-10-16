@@ -3,10 +3,7 @@ package recipe.hisservice;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.cdr.service.IDiseaseService;
-import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -42,17 +39,17 @@ import org.springframework.beans.BeanWrapperImpl;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.constant.RegexEnum;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
-import recipe.util.RegexUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -63,6 +60,12 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryRecipeService.class);
 
+    /**
+     * 用于sendRecipeToHIS 推送处方mq后 查询接口
+     *
+     * @param queryRecipeReqDTO
+     * @return
+     */
     @Override
     @RpcService
     public QueryRecipeResultDTO queryRecipeInfo(QueryRecipeReqDTO queryRecipeReqDTO) {
@@ -100,27 +103,18 @@ public class QueryRecipeService implements IQueryRecipeService {
         HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
         //拼接返回数据
         QueryRecipeInfoDTO infoDTO = splicingBackData(details, recipe, patientBean, cardBean);
-        //date 20200222杭州市互联网(添加诊断)
-//        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
-//        DiseaseInfo diseaseInfo;
-//        if(StringUtils.isNotEmpty(recipe.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipe.getOrganDiseaseName())){
-//            String [] diseaseIds = recipe.getOrganDiseaseId().split("；");
-//            String [] diseaseNames = recipe.getOrganDiseaseName().split("；");
-//            for (int i = 0; i < diseaseIds.length; i++){
-//                diseaseInfo = new DiseaseInfo();
-//                diseaseInfo.setDiseaseCode(diseaseIds[i]);
-//                diseaseInfo.setDiseaseName(diseaseNames[i]);
-//                diseaseInfos.add(diseaseInfo);
-//            }
-//            infoDTO.setDiseaseInfo(diseaseInfos);
-//
-//        }
         resultDTO.setMsgCode(0);
         resultDTO.setData(infoDTO);
         LOGGER.info("queryRecipeInfo res={}", JSONUtils.toString(resultDTO));
         return resultDTO;
     }
 
+    /**
+     * 用于sendRecipeToHIS 推送处方mq后 查询接口
+     *
+     * @param req
+     * @return
+     */
     @Override
     @RpcService
     public QueryRecipeResultDTO queryPlatRecipeByRecipeId(QueryPlatRecipeInfoByDateDTO req) {
@@ -203,6 +197,10 @@ public class QueryRecipeService implements IQueryRecipeService {
     private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe, PatientBean patient, HealthCardBean card) {
         QueryRecipeInfoDTO recipeDTO = null;
         try {
+            Integer recipeId = recipe.getRecipeId();
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            getMedicalInfo(recipe, recipeExtend);
             recipeDTO = new QueryRecipeInfoDTO();
             //拼接处方信息
             //处方号
@@ -217,10 +215,6 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setDatein(recipe.getSignDate());
             //是否支付
             recipeDTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe.getPayFlag()) : null);
-            //icd诊断码
-            recipeDTO.setIcdCode(getCode(recipe.getOrganDiseaseId()));
-            //icd诊断名称
-            recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
             //返回部门code
             DepartmentService service = BasicAPI.getService(DepartmentService.class);
             DepartmentDTO departmentDTO = service.getById(recipe.getDepart());
@@ -234,8 +228,6 @@ public class QueryRecipeService implements IQueryRecipeService {
             }
             //处方类型
             recipeDTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
-            //获取医院诊断内码
-            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
             //复诊id
             recipeDTO.setClinicID((null != recipe.getClinicId()) ? Integer.toString(recipe.getClinicId()) : null);
             //转换平台医生id为工号返回his
@@ -274,10 +266,9 @@ public class QueryRecipeService implements IQueryRecipeService {
             //自付比例
             /*recipeDTO.setPayScale("");*/
             //主诉等等四个字段
-            Integer recipeId = recipe.getRecipeId();
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
             if (recipeExtend != null) {
+                getMedicalInfo(recipe, recipeExtend);
                 if (StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe())) {
                     //主诉
                     recipeDTO.setBRZS(recipeExtend.getMainDieaseDescribe());
@@ -296,6 +287,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
             }
+            //获取医院诊断内码
+            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
+            //icd诊断码
+            recipeDTO.setIcdCode(getCode(recipe.getOrganDiseaseId()));
+            //icd诊断名称
+            recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
 
             if (null != patient) {
                 // 患者信息
@@ -339,50 +336,18 @@ public class QueryRecipeService implements IQueryRecipeService {
                     case 3:
                         recipeDTO.setDeliveryType("2");
                         break;
+                    default:
+                        LOGGER.warn("queryRecipe splicingBackData GiveMode = {}", recipe.getGiveMode());
                 }
             }
 
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
-            //date 20200308
-            //添加 配送信息导出 仅杭州市互联网医院使用
-            //splicingBackDataForDeliveryInfos(recipe,recipeDTO);
         } catch (Exception e) {
             LOGGER.error("queryRecipe splicingBackData error", e);
         }
 
         return recipeDTO;
     }
-//    //date 20200308
-//    //添加配送信息
-//    private void splicingBackDataForDeliveryInfos(Recipe recipe, QueryRecipeInfoDTO recipeDTO) {
-//        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-//        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//        RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-//        if(null != nowRecipeExtend && StringUtils.isNotEmpty(nowRecipeExtend.getDeliveryRecipeFee())){
-//            List<DeliveryInfo> deliveryInfos = new ArrayList<>();
-//            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
-//            if(null != order){
-//                DeliveryInfo deliveryInfo = new DeliveryInfo();
-//                deliveryInfo.setDeliveryCode(nowRecipeExtend.getDeliveryCode());
-//                deliveryInfo.setDeliveryName(nowRecipeExtend.getDeliveryName());
-//                deliveryInfo.setConsignee(order.getReceiver());
-//                deliveryInfo.setConsigneeTel(order.getRecTel());
-//                if(null != order && (null != order.getAddress1() && null != order.getAddress2() && null != order.getAddress3())){
-//                    CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-//                    deliveryInfo.setReceiveAddress(commonRemoteService.getCompleteAddress(order));
-//                    deliveryInfo.setAddress(commonRemoteService.getCompleteAddress(order));
-//                }else{
-//                    LOGGER.info("当前订单的配送地址信息不全！");
-//                }
-//                deliveryInfo.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())? DateConversion.getCurrentDate(order.getExpectSendDate(), "yyyy-MM-dd HH:mm") : null);
-//                deliveryInfo.setPlanTime(order.getExpectSendTime());
-//                deliveryInfos.add(deliveryInfo);
-//            }
-//        }else{
-//            LOGGER.info("当前处方{}不是杭州市互联网处方，无需组装配送信息", recipe.getRecipeId());
-//        }
-//
-//    }
 
     private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);

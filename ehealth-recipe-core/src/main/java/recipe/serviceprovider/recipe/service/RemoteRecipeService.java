@@ -54,6 +54,8 @@ import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +89,8 @@ import recipe.util.MapValueUtil;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -187,6 +191,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeBean != null && recipeExtend != null) {
+            getMedicalInfo(recipeBean, recipeExtend);
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
@@ -397,7 +402,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Deprecated
     public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
                                                     final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
+                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
@@ -416,6 +421,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipesQueryVO.setOrderType(orderType);
         recipesQueryVO.setStatus(status);
         recipesQueryVO.setPatientName(patientName);
+        recipesQueryVO.setSendType(sendType);
         List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
         return result;
     }
@@ -1641,6 +1647,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeBeans;
     }
 
+    @Override
+    public List<RecipeBean> findReadyCheckRecipeByOrganIdsCheckMode(List<Integer> organIds, Integer checkMode) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByOrganIdsCheckMode(organIds,checkMode);
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
+        return recipeBeans;
+    }
+
     @RpcService
     @Override
     public List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer> recipeTypes, Integer type) {
@@ -1651,7 +1665,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes);
+        Date date=  DateUtils.addYears(new Date(),-1);
+        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes,date);
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
     }
 
@@ -1708,4 +1723,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return caSignResultVo;
     }
 
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId) {
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.pharmacyToRecipePDF(recipeId);
+    }
 }

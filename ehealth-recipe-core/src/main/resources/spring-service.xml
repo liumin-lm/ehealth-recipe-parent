@@ -9,7 +9,7 @@
     <component-scan base-package="recipe.dao, recipe.service.**, recipe.unloginservice, recipe.drugsenterprise,
         recipe.hisservice.**, recipe.serviceprovider.*,recipe.audit.*,recipe.prescription,recipe.mq,recipe.drugTool,
         recipe.purchase,recipe.medicationguide,recipe.logistics,recipe.ca,recipe.recipecheck,recipe.regulation,recipe.sign,
-        recipe.comment,recipe.presettle"/>
+        recipe.comment,recipe.presettle,recipe.caNew"/>
 
     <!--微信服务-->
     <reference interface="recipe.third.IWXServiceInterface" id="wx.wxService"/>
@@ -36,6 +36,6 @@
     <!--视频-->
     <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
     <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
-    <reference id="revisit.revisitExService" interface="com.ngari.revisit.common.service.IRevisitExService"/>
-    <reference id="revisit.recipeOnLineRevisitService" interface="com.ngari.revisit.process.service.IRecipeOnLineRevisitService"/>
+    <!--物流基础服务-->
+    <reference id="infra.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
 </s:beans>

@@ -7,16 +7,13 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.account.session.ClientSession;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
@@ -24,6 +21,7 @@ import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -31,16 +29,21 @@ import eh.msg.constant.MqConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -49,6 +52,14 @@ import java.util.*;
  */
 @RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+    @Resource
+    private OrganService organService;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * logger
@@ -294,33 +305,44 @@ public class RecipeTestService {
 
     /**
      * 处理处方电子病历的历史数据
-     * @param organId  机构ID
+     *
+     * @param organId 机构ID
      */
     @RpcService
-    public void saveDoc(Integer organId){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
+    public void saveDoc(Integer organId) {
+        LOGGER.info("RecipeTestService saveDoc start organId= {}", organId);
         List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
+        if (CollectionUtils.isEmpty(recipes)) {
+            LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
+            return;
+        }
         for (Recipe recipe : recipes) {
-            try{
+            try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
-                //recipeExtendBean.setRecipeId(recipeExtend.getRecipeId());
-                recipeExtendBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
-                recipeExtendBean.setCurrentMedical(recipeExtend.getCurrentMedical());
-                recipeExtendBean.setHistroyMedical(recipeExtend.getHistroyMedical());
-                recipeExtendBean.setAllergyMedical(recipeExtend.getAllergyMedical());
-                recipeExtendBean.setPhysicalCheck(recipeExtend.getPhysicalCheck());
-                recipeExtendBean.setSymptomName(recipeExtend.getSymptomName());
-                recipeExtendBean.setHandleMethod(recipeExtend.getHandleMethod());
-                emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeExtendBean);
-                recipeExtend.setDocIndexId(recipeExtendBean.getDocIndexId());
+                if (null == recipeExtend) {
+                    recipeExtend = new RecipeExtend();
+                    recipeExtend.setRecipeId(recipe.getRecipeId());
+                }
+                RecipeBean recipeBean = new RecipeBean();
+                BeanUtils.copy(recipe, recipeBean);
+                emrRecipeManager.saveDocList(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-            }catch(Exception e){
+            } catch (Exception e) {
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
             }
         }
+        LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
     }
 
+    /**
+     * 处理处方电子病历的历史数据 仅用于同步老数据 执行一次
+     */
+    @RpcService
+    public void saveDocList() {
+        LOGGER.info("RecipeTestService saveDocList start ");
+        List<OrganDTO> organList = organService.findOrgans();
+        List<Integer> organIds = organList.stream().map(OrganDTO::getOrganId).distinct().collect(Collectors.toList());
+        organIds.forEach(this::saveDoc);
+        LOGGER.info("RecipeTestService saveDocList end");
+    }
 }

@@ -624,6 +624,14 @@ public class PayModeOnline implements IPurchaseService {
 //            }else{
 //                LOG.info("当前处方{}没有关联的扩展信息", recipeId);
 //            }
+            //date 2020-10-15 17:38 修改添加挂号序号
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if(null != nowRecipeExtend){
+                updateTakeDrugWayReqTO.setRegisterId(nowRecipeExtend.getRegisterID());
+            }else{
+                LOG.info("当前处方{}没有关联的扩展信息", recipeId);
+            }
             //date 20200312
             //将配送信息同步过来
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);

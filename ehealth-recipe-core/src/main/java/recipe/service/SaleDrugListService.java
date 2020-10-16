@@ -24,6 +24,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -164,6 +165,19 @@ public class SaleDrugListService implements ISaleDrugListService {
             remoteDrugService.updateDrugList(drugListBean);
 
         }
+    }
+
+    /**
+     * 一键禁用
+     * @param organId 药企
+     */
+    @RpcService
+    public void updateInvalidByOrganId(Integer organId) {
+        if (ObjectUtils.isEmpty(organId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        SaleDrugListDAO dao = DAOFactory.getDAO(SaleDrugListDAO.class);
+        dao.updateInvalidByOrganId(organId);
     }
 
     /**

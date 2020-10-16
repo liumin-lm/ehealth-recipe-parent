@@ -6,12 +6,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -31,12 +29,14 @@ import com.ngari.message.api.service.INetworkclinicMsgService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -58,6 +58,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -73,6 +75,7 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -86,13 +89,12 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//import com.ngari.recipe.audit.model.AuditMedicinesDTO;
-
 /**
  * 供recipeService调用
  *
  * @author liuya
  */
+@Service
 public class RecipeServiceSub {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
@@ -101,16 +103,14 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-
-    private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-
-    private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
@@ -132,7 +132,9 @@ public class RecipeServiceSub {
      * @param flag(recipe的fromflag) 0：HIS处方  1：平台处方
      * @return
      */
-    public static Integer saveRecipeDataImpl(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, Integer flag) {
+    public Integer saveRecipeDataImpl(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, Integer flag) {
+        LOGGER.info("RecipeServiceSub saveRecipeDataImpl recipeBean:{},detailBeanList:{},flag:{}"
+                , JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), flag);
         if (null != recipeBean && recipeBean.getRecipeId() != null && recipeBean.getRecipeId() > 0) {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             return recipeService.updateRecipeAndDetail(recipeBean, detailBeanList);
@@ -149,10 +151,8 @@ public class RecipeServiceSub {
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
-        //电子病历，将电子病历保存到cdr模块
-        EmrRecipeService emrRecipeService = ApplicationUtils.getRecipeService(EmrRecipeService.class);
-        emrRecipeService.doWithSavaOrUpdateEmr(recipe, recipeBean.getRecipeExtend());
-        //武昌需求，加入处方扩展信息---扩展信息处理
+
+        //加入处方扩展信息---扩展信息处理
         doWithRecipeExtend(patient, recipeBean, recipeId);
 
         //加入历史患者
@@ -161,7 +161,7 @@ public class RecipeServiceSub {
         return recipeId;
     }
 
-    private static void doWithRecipeExtend(PatientDTO patient, RecipeBean recipeBean, Integer recipeId) {
+    private void doWithRecipeExtend(PatientDTO patient, RecipeBean recipeBean, Integer recipeId) {
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
         if (null != recipeExt && null != recipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
@@ -195,6 +195,8 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
             }
+            //电子病历，将电子病历保存到cdr模块
+            emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
@@ -223,10 +225,18 @@ public class RecipeServiceSub {
 
         // 根据咨询单特殊来源标识设置处方单特殊来源标识
         if (null != recipe.getClinicId()) {
-            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-            ConsultBean consultBean = consultService.getById(recipe.getClinicId());
-            if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
-                recipe.setRecipeSource(consultBean.getConsultSource());
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());
+                if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                    recipe.setRecipeSource(consultBean.getConsultSource());
+                }
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+                ConsultBean consultBean = consultService.getById(recipe.getClinicId());
+                if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                    recipe.setRecipeSource(consultBean.getConsultSource());
+                }
             }
         }
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -332,6 +342,7 @@ public class RecipeServiceSub {
      * @param recipedetails 处方ID
      */
     public static boolean setDetailsInfo(Recipe recipe, List<Recipedetail> recipedetails) {
+        getMedicalInfo(recipe);
         boolean success = false;
         int organId = recipe.getClinicOrgan();
         //药品总金额
@@ -766,6 +777,7 @@ public class RecipeServiceSub {
         try {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, extend);
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -861,6 +873,7 @@ public class RecipeServiceSub {
         try {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, extend);
             PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
@@ -1498,6 +1511,7 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertRecipeForRAP(Recipe recipe) {
+        getMedicalInfo(recipe);
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1514,13 +1528,22 @@ public class RecipeServiceSub {
         return r;
     }
 
+    private static void getMedicalInfo(Recipe recipe) {
+        if (null == recipe || null == recipe.getRecipeId()) {
+            return;
+        }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+    }
+
     public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
         RecipeBean r = new RecipeBean();
         r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
 //        r.setRecipeId(recipe.ge);
         r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
-        r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType())?null:Integer.parseInt(recipe.getRecipeType()));
+        r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         StringBuilder stringBuilder = new StringBuilder();
@@ -2285,8 +2308,9 @@ public class RecipeServiceSub {
             //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
             //当下载处方购药时，已完成处方不展示下载处方签
             if (null != recipe.getOrderCode() && null != order && !(isDownLoad && RecipeStatusConstant.FINISH == recipe.getStatus())) {
-                if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag()))
+                if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag())) {
                     isDownload = true;
+                }
 
             }
         }
@@ -2543,14 +2567,21 @@ public class RecipeServiceSub {
      */
     public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+        getMedicalInfo(recipe);
         RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {
             sendRecipeMsgTag(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
         } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
-            List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            List<String> requestMpiIds;
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                requestMpiIds = iRevisitService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            } else {
+                requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            }
+
             if (CollectionUtils.isNotEmpty(requestMpiIds)) {
                 for (String requestMpiId : requestMpiIds) {
                     sendRecipeMsgTag(requestMpiId, recipe, recipeTagMsg, rMap, send);

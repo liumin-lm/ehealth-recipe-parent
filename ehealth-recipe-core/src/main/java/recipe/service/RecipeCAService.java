@@ -5,9 +5,6 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.ca.api.vo.CommonSignRequest;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
@@ -26,6 +23,9 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -40,9 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
-import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
@@ -50,12 +48,10 @@ import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.common.RecipeSignService;
-import recipe.sign.SignRecipeInfoService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -73,7 +69,8 @@ public class RecipeCAService {
 
     @Autowired
     private RedisClient redisClient;
-
+    @Autowired
+    private CaAfterProcessType caAfterProcessType;
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
@@ -82,7 +79,7 @@ public class RecipeCAService {
     private RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
     @RpcService
-    public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor){
+    public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
         CommonSignRequest caRequest = new CommonSignRequest();
         Map<String, Object> caExt = new HashMap<>();
         Map<String, Object> esignMap = new HashMap<>();
@@ -151,6 +148,7 @@ public class RecipeCAService {
             //这里的覆盖是将操作者的签名图片添加到pdf上，这要判断CA用的是本地的签名图片和CA图片
             //判断有没有签名图片，没有则填充初始化的pdf
             //组装生成pdf的参数
+            /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
 
             //获取签章图片
@@ -235,8 +233,8 @@ public class RecipeCAService {
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
             //在线复诊
             if( new Integer(2).equals(recipeBean.getBussSource()) ){
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(recipeBean.getClinicId());
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(recipeBean.getClinicId());
                 if (null != consultExDTO) {
                     registerId=consultExDTO.getRegisterNo();
                 }
@@ -419,7 +417,7 @@ public class RecipeCAService {
                 AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }else{
                 //老版默认走后置的逻辑，直接将处方推his
-                new CaAfterProcessType().signCABeforeRecipeFunction(recipeBean, detailBeanList);
+                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
 
         } catch (Exception e) {
@@ -562,7 +560,7 @@ public class RecipeCAService {
             AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }else{
             //老版默认走后置的逻辑，直接将处方向下流
-            new CaAfterProcessType().signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
+            caAfterProcessType.signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
         }
     }
 

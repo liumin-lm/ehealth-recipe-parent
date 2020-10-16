@@ -106,7 +106,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "配送主体类型 1医院配送 2 药企配送  ")
     private Integer sendType;
 
-    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
     private Integer expressFeePayWay;
 
     @ItemProperty(alias = "管理单元")
@@ -133,6 +133,12 @@ public class DrugsEnterpriseBean implements Serializable {
 
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
+
+    @ItemProperty(alias = "院内补充库存 0:非补充，1：补充库存")
+    private Integer hosInteriorSupport;
+
+    @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+    private Integer settlementMode;
 
 
     public DrugsEnterpriseBean() {
@@ -428,5 +434,29 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setSendDateText(String sendDateText) {
         this.sendDateText = sendDateText;
+    }
+
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
+    }
+
+    public Integer getHosInteriorSupport() {
+        return hosInteriorSupport;
+    }
+
+    public void setHosInteriorSupport(Integer hosInteriorSupport) {
+        this.hosInteriorSupport = hosInteriorSupport;
+    }
+
+    public Integer getSettlementMode() {
+        return settlementMode;
+    }
+
+    public void setSettlementMode(Integer settlementMode) {
+        this.settlementMode = settlementMode;
     }
 }

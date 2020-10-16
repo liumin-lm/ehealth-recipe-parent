@@ -136,6 +136,10 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品编码")
     private String drugCode;
 
+    @ItemProperty(alias = "标志（浙江），1-是，0-否")
+    private Integer isRegulation;
+
+
     public DrugList() {
     }
 
@@ -520,5 +524,14 @@ public class DrugList implements java.io.Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    @Column(name = "isRegulation")
+    public Integer getIsRegulation() {
+        return isRegulation;
+    }
+
+    public void setIsRegulation(Integer isRegulation) {
+        this.isRegulation = isRegulation;
     }
 }

@@ -2,10 +2,6 @@ package recipe.hisservice;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.EleInvoiceReqTo;
 import com.ngari.his.recipe.mode.RecipeInvoiceTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -21,6 +17,11 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -185,25 +186,25 @@ public class EleInvoiceService {
 
 
         //复诊
-        IConsultService iConsultService = AppDomainContext.getBean("consult.consultService", IConsultService.class);
-        ConsultBean consultBean = iConsultService.getById(eleInvoiceDTO.getId());
-        if (null == consultBean) {
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+        RevisitBean revisitBean = iRevisitService.getById(eleInvoiceDTO.getId());
+        if (null == revisitBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "consultBean is null");
         }
 
         //复诊ex
-        IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
-        ConsultExDTO consultExDTO = iConsultExService.getByConsultId(eleInvoiceDTO.getId());
+        IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+        RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(eleInvoiceDTO.getId());
         if (null == consultExDTO) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "consultExDTO is null");
         }
         //机构
-        OrganDTO organDTO = organService.getByOrganId(consultBean.getConsultOrgan());
+        OrganDTO organDTO = organService.getByOrganId(revisitBean.getConsultOrgan());
         if (null == organDTO) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "organDTO is null");
         }
         //门诊
-        DepartmentDTO departmentDTO = departmentService.getByDeptId(consultBean.getConsultDepart());
+        DepartmentDTO departmentDTO = departmentService.getByDeptId(revisitBean.getConsultDepart());
         if (null == departmentDTO) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "departmentDTO is null");
         }
@@ -220,24 +221,23 @@ public class EleInvoiceService {
         }
 
         try {
-            eleInvoiceReqTo.setRequestId(consultBean.getConsultId());
-            eleInvoiceReqTo.setCreateDate(consultBean.getPaymentDate());
-            eleInvoiceReqTo.setDeptId(consultBean.getConsultDepart());
-            eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(consultBean.getConsultDepart()));
+            eleInvoiceReqTo.setRequestId(revisitBean.getConsultId());
+            eleInvoiceReqTo.setCreateDate(revisitBean.getPaymentDate());
+            eleInvoiceReqTo.setDeptId(revisitBean.getConsultDepart());
+            eleInvoiceReqTo.setDeptName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(revisitBean.getConsultDepart()));
             InvoiceDTO invoiceDTO = new InvoiceDTO();
             if (consultExDTO.getInvoiceNumber()!=null){
                 invoiceDTO.setInvoiceNumber(consultExDTO.getInvoiceNumber());
             }
-            invoiceDTO.setPayId(consultBean.getConsultId());
-            invoiceDTO.setPayAmount(consultBean.getConsultPrice());
-            invoiceDTO.setPayWay(consultBean.getPayWay());
-            invoiceDTO.setPayTime(consultBean.getPaymentDate());
-            invoiceDTO.setFundAmount(consultBean.getFundAmount());
+            invoiceDTO.setPayId(revisitBean.getConsultId());
+            invoiceDTO.setPayAmount(revisitBean.getConsultPrice());
+            invoiceDTO.setPayWay(revisitBean.getPayWay());
+            invoiceDTO.setPayTime(revisitBean.getPaymentDate());
+            invoiceDTO.setFundAmount(revisitBean.getFundAmount());
             invoiceDTO.setMedicalSettleCode(consultExDTO.getInsureTypeCode());
 
             List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
-            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(MedicalChargesEnum.CONSULT.getCode(), MedicalChargesEnum.CONSULT.getName(),
-                    consultBean.getConsultId().toString(), "复诊咨询费", BigDecimal.valueOf(consultBean.getConsultCost()), "元", 1D);
+            InvoiceItemDTO invoiceItemDTO = getInvoiceItemDTO(MedicalChargesEnum.CONSULT.getCode(), MedicalChargesEnum.CONSULT.getName(), revisitBean.getConsultId().toString(), "复诊咨询费", BigDecimal.valueOf(revisitBean.getConsultCost()), "元", 1D);
             invoiceItem.add(invoiceItemDTO);
             invoiceDTO.setInvoiceItem(invoiceItem);
             eleInvoiceReqTo.setInvoiceDTO(invoiceDTO);
@@ -374,8 +374,8 @@ public class EleInvoiceService {
             }
             //复诊
             if (null !=result.getInvoiceType() && "0".equals(result.getInvoiceType()) && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()){
-                IConsultExService iConsultExService = AppDomainContext.getBean("consult.consultExService", IConsultExService.class);
-                iConsultExService.updateInvoiceNumberByConsultId(result.getInvoiceNumber(),result.getRequestId());
+                IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+                consultExService.updateInvoiceNumberByConsultId(result.getInvoiceNumber(), result.getRequestId());
             }
 
             List<String> list = Arrays.asList(result.getInvoiceUrl().split(","));

@@ -5,6 +5,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -17,12 +19,15 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -33,6 +38,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
@@ -41,12 +47,14 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -72,6 +80,8 @@ public class RecipeListService extends RecipeBaseService{
     public static final Integer RECIPE_PAGE = 0;
 
     public static final Integer ORDER_PAGE = 1;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
@@ -639,12 +649,23 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
         LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
-
-        //从his获取线下处方
+        ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
+        Future<Map<String, Object>> hisTask = null;
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-        Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-            return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
-        });
+        if(!("patient".equals(UserRoleToken.getCurrent().getRoleId()))){
+            //医生端逻辑照旧
+            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+                return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
+            });
+        }else{
+            //患者端如果公众号是区域公众号则需查询该区域公众号下所有机构线下处方
+            List<Integer> organIds=currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("findHistoryRecipeList organId:{},mpiId:{}, organIds:{}",organId,mpiId,JSONUtils.toString(organIds));
+            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+                return recipeService.getAllHosRecipeList(consultId, organIds, mpiId, 180);
+            });
+        }
         //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();
         try{
@@ -654,7 +675,6 @@ public class RecipeListService extends RecipeBaseService{
             LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e);
         }
 
-        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         try {
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
             LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", upderLineRecipesByHis);
@@ -682,7 +702,7 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      */
     private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
-        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(upderLineRecipesByHis),JSONUtils.toString(upderLineRecipesByHis));
+        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(onLineAndUnderLineRecipesByRecipe),JSONUtils.toString(upderLineRecipesByHis));
         List<Map<String, Object>> res=new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes=(List<HisRecipeBean>)upderLineRecipesByHis.get("hisRecipe");
@@ -741,7 +761,7 @@ public class RecipeListService extends RecipeBaseService{
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
-        checkUserHasPermissionByDoctorId(doctorId);
+        //checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
@@ -821,25 +841,6 @@ public class RecipeListService extends RecipeBaseService{
     }
 
     /**
-     * 获取医生开过处方的历史患者列表
-     *
-     * @param doctorId
-     * @param start
-     * @return
-     */
-//    @RpcService
-//    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
-//        checkUserHasPermissionByDoctorId(doctorId);
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
-//        if (mpiList.size() == 0) {
-//            return new ArrayList<>();
-//        }
-//        PatientService patientService = ApplicationUtils.getBasicService(pa.class);
-//        return patientService.getPatients(mpiList, doctorId);
-//    }
-
-    /**
      * 获取患者的所有处方单-web福建省立
      *
      * @param mpiId
@@ -868,17 +869,19 @@ public class RecipeListService extends RecipeBaseService{
             Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
             Dictionary departDic = DictionaryController.instance().get("eh.base.dictionary.Depart");
             String organText = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(organId);
-            for (Recipe recipe : list){
+            for (Recipe recipe : list) {
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 map = Maps.newHashMap();
-                map.put("recipeId",recipe.getRecipeId());
-                map.put("patientName",recipe.getPatientName());
-                map.put("doctorDepart",organText+departDic.getText(recipe.getDepart()));
-                map.put("diseaseName",recipe.getOrganDiseaseName());
-                map.put("signTime",DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
-                map.put("doctorName",recipe.getDoctorName());
+                map.put("recipeId", recipe.getRecipeId());
+                map.put("patientName", recipe.getPatientName());
+                map.put("doctorDepart", organText + departDic.getText(recipe.getDepart()));
+                map.put("diseaseName", recipe.getOrganDiseaseName());
+                map.put("signTime", DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
+                map.put("doctorName", recipe.getDoctorName());
                 recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
 
-                Map<String,String> drugInfo;
+                Map<String, String> drugInfo;
                 List<Map<String,String>> drugInfoList = Lists.newArrayList();
                 String useDose;
                 String usingRateText;
