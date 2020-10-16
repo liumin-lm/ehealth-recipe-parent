@@ -6,7 +6,6 @@ import com.ngari.patient.service.DepartmentService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -24,7 +23,6 @@ import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.comment.RecipeEmrComment;
-import recipe.dao.RecipeExtendDAO;
 import recipe.util.ByteUtils;
 
 import javax.annotation.Resource;
@@ -107,10 +105,8 @@ public class EmrRecipeManager {
         }
         try {
             //更新电子病历
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeExt.getRecipeId());
             MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
-            medicalDetailBean.setDocIndexId(recipeExtend.getDocIndexId());
+            medicalDetailBean.setDocIndexId(recipeExt.getDocIndexId());
             setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
             logger.info("EmrRecipeManager updateMedicalInfo medicalDetailBean :{}", JSONUtils.toString(medicalDetailBean));
             docIndexService.updateMedicalDetail(medicalDetailBean);
