@@ -13,6 +13,7 @@ import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.revisit.RevisitAPI;
@@ -576,6 +577,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //开方医生信息
             req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(),recipe.getClinicOrgan(),recipe.getDepart()));
 
+            //就诊人信息
+            req.setPetient(pakRegulationBusPatientReq(recipe.getMpiid()));
+
             request.add(req);
         }
 
@@ -1063,6 +1067,29 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
 
         return regulationBusDocReq;
+    }
+
+    /**
+     * 患者信息
+     **/
+    private PatientTO pakRegulationBusPatientReq(String mpiId) {
+        PatientTO patient=null;
+        if(StringUtils.isEmpty(mpiId)){
+            return patient;
+        }
+
+
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDto = patientService.getPatientDTOByMpiId(mpiId);
+        if (patientDto != null) {
+            patient=new PatientTO();
+            patient.setPatientName(patientDto.getPatientName());
+            patient.setPatientSex(patientDto.getPatientSex());
+            patient.setBirthday(patientDto.getBirthday());
+            patient.setMobile(patientDto.getMobile());
+        }
+
+        return patient;
     }
 
     /**
