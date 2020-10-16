@@ -815,7 +815,9 @@ public class RecipeListService extends RecipeBaseService{
                     }
                     stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
                 }
-                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                if(stringBuilder.lastIndexOf("、")!=-1){
+                    stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                }
                 recipe.setRecipeDrugName(stringBuilder.toString());
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
@@ -833,10 +835,12 @@ public class RecipeListService extends RecipeBaseService{
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
                 map.put("patient", patient);
+                LOGGER.info("instanceRecipesAndPatient map:{}",JSONUtils.toString(map));
                 list.add(map);
             }
 
         }
+        LOGGER.info("instanceRecipesAndPatient response recipes:{} ,patient:{} ,list:{}",JSONUtils.toString(recipes),JSONUtils.toString(patient),JSONUtils.toString(list));
         return list;
     }
 

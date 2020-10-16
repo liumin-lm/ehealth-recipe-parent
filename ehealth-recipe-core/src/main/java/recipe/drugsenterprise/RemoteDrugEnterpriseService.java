@@ -462,8 +462,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(organId, drugsEnterprise);
+            List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = new ArrayList<>();
+            com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean = new com.ngari.recipe.recipe.model.RecipeDetailBean();
+            recipeDetailBean.setDrugId(drugId);
+            recipeDetailBeans.add(recipeDetailBean);
+            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(organId, drugsEnterprise, recipeDetailBeans);
             LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
             HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
@@ -481,21 +484,6 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
 
     }
-    @RpcService
-    public List test(){
-        DrugsDataBean drugsDataBean = new DrugsDataBean();
-        drugsDataBean.setOrganId(1003066);
-        com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean = new com.ngari.recipe.recipe.model.RecipeDetailBean();
-        recipeDetailBean.setDrugId(26);
-        recipeDetailBean.setDrugName("拜新同");
-        recipeDetailBean.setUseTotalDose(12.0);
-        recipeDetailBean.setOrganDrugCode("212222");
-        List<com.ngari.recipe.recipe.model.RecipeDetailBean> list = new ArrayList<>();
-        list.add(recipeDetailBean);
-        drugsDataBean.setRecipeDetailBeans(list);
-        return getDrugsEnterpriseInventory(drugsDataBean);
-    }
-
 
     /**
      * 医生端展示药品库存情况
@@ -548,12 +536,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
-                        ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise);
+                        ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, drugsDataBean.getRecipeDetailBeans());
                         LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
                         HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
                         LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
                         if (responseTO != null && responseTO.isSuccess()) {
-
+                            result.add(responseTO.getData());
                         }
                     } else {//通过平台调用
                         if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
@@ -696,27 +684,30 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      * @param drugsEnterprise
      * @return
      */
-    private ScanRequestBean getDrugInventoryRequestBean( Integer organId,DrugsEnterprise drugsEnterprise) {
-        //TODO ScanRequestBean
+    private ScanRequestBean getDrugInventoryRequestBean( Integer organId,DrugsEnterprise drugsEnterprise, List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans) {
         ScanRequestBean scanRequestBean = new ScanRequestBean();
         try{
-            ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getRecipeService(
-                    ThirdEnterpriseCallService.class, "takeDrugService");
-            Map drugInventoryRequestMap = thirdEnterpriseCallService.drugInventoryRequestMap.get();
-            LOGGER.info("getDrugInventoryRequestBean map: {}",JSONUtils.toString(drugInventoryRequestMap));
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
-            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-            scanDrugListBean.setDrugCode(drugInventoryRequestMap.get("organDurgList_drugCode")+"");
-            scanDrugListBean.setTotal(drugInventoryRequestMap.get("total")+"");
-            scanDrugListBean.setUnit(drugInventoryRequestMap.get("unit")+"");
-            scanDrugListBeans.add(scanDrugListBean);
+            for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), organId);
+                if (saleDrugList != null && CollectionUtils.isNotEmpty(organDrugLists)) {
+                    ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+                    scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                    scanDrugListBean.setTotal("5");
+                    scanDrugListBean.setUnit(organDrugLists.get(0).getUnit());
+                    scanDrugListBeans.add(scanDrugListBean);
+                }
+            }
             scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
             scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
-            scanRequestBean.setOrganId(organId);
             LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
         }catch (Exception e){
             LOGGER.info("getDrugInventoryRequestBean error: {}",e.getMessage(), e);
         }
+        scanRequestBean.setOrganId(organId);
         return scanRequestBean;
     }
 
