@@ -1,15 +1,11 @@
 package recipe.service;
 
-import com.alibaba.druid.sql.visitor.functions.If;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -36,7 +32,6 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
-import com.ngari.recipe.drugsenterprise.service.IEnterpriseAddressService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
@@ -56,6 +51,7 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -63,7 +59,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.cdr.constant.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -80,9 +75,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
-import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
@@ -99,8 +91,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方订单管理
@@ -294,8 +284,8 @@ public class RecipeOrderService extends RecipeBaseService {
 //                order.setSendDateText(drugsEnterprise.getSendDateText());
             }
         }
-        //货到付款设置配送费为线下支付
-        if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
+        //货到付款设置配送费为线下支付  并且不是上传运费收费标准方式的时候（这种方式直接显示图片不算运费）
+        if (RecipeBussConstant.PAYMODE_COD.equals(payMode) && !new Integer(4).equals(order.getExpressFeePayWay())) {
             //设置配送费支付方式
             order.setExpressFeePayWay(2);
         }
