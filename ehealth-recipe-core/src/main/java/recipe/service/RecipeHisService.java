@@ -25,11 +25,12 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HisSendResTO;
+import com.ngari.platform.recipe.mode.RecipeBean;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
-import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
-import com.ngari.recipe.recipe.model.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -60,7 +61,6 @@ import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
@@ -391,12 +391,17 @@ public class RecipeHisService extends RecipeBaseService {
                         if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
                             PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
                             PayNotifyResTO response = service.payNotify(payNotifyReq);
-                            if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
+                            if (null != response && response.getMsgCode() == 0) {
                                 //结算成功
-                                Recipedetail detail = new Recipedetail();
-                                detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-                                detail.setPharmNo(response.getData().getWindows());
-                                HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                                if (response.getData() != null) {
+                                    Recipedetail detail = new Recipedetail();
+                                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+                                    detail.setPharmNo(response.getData().getWindows());
+                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                                } else {
+                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), null);
+                                }
+
                             } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
                                 //前置机返回结算失败，或者医保结算前置机返回null
                                 result.setCode(RecipeResultBean.FAIL);
