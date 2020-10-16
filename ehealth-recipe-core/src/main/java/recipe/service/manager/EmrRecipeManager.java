@@ -59,6 +59,9 @@ public class EmrRecipeManager {
         if (null != recipeExt.getDocIndexId()) {
             return;
         }
+        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
+            return;
+        }
         try {
             addMedicalInfo(recipe, recipeExt, DOC_STATUS_HOLD);
             logger.info("EmrRecipeManager saveMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
@@ -162,7 +165,7 @@ public class EmrRecipeManager {
         try {
             medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
         } catch (Exception e) {
-            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId error = {}", e.getMessage());
+            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", recipeExtend.getDocIndexId(), e.getMessage(), e);
             return;
         }
         logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
@@ -184,6 +187,10 @@ public class EmrRecipeManager {
             return;
         }
         for (EmrDetailDTO detailDTO : detail) {
+            if (null == detailDTO) {
+                logger.warn("EmrRecipeManager getMedicalInfo detailDTO is null");
+                continue;
+            }
             String value = detailDTO.getValue();
             if (StringUtils.isEmpty(value)) {
                 continue;
@@ -206,6 +213,10 @@ public class EmrRecipeManager {
                 recipeExtend.setHistroyMedical(value);
                 continue;
             }
+            if (RecipeEmrComment.MEDICAL_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getHistoryOfPresentIllness())) {
+                recipeExtend.setHistoryOfPresentIllness(value);
+                continue;
+            }
             if (RecipeEmrComment.ALLERGY_HISTORY.equals(key) && StringUtils.isEmpty(recipeExtend.getAllergyMedical())) {
                 recipeExtend.setAllergyMedical(value);
                 continue;
@@ -222,8 +233,12 @@ public class EmrRecipeManager {
                 recipe.setMemo(value);
                 continue;
             }
-            /**诊断 ，中医症候特殊处理*/
-            getMultiSearch(detailDTO, recipe, recipeExtend);
+            try {
+                /**诊断 ，中医症候特殊处理*/
+                getMultiSearch(detailDTO, recipe, recipeExtend);
+            } catch (Exception e) {
+                logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
+            }
             logger.info("EmrRecipeManager getMedicalInfo recipe={}，recipeExtend={}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExtend));
         }
     }
@@ -298,6 +313,8 @@ public class EmrRecipeManager {
         List<EmrDetailDTO> detail = new ArrayList<>();
         //设置主诉
         detail.add(new EmrDetailDTO(RecipeEmrComment.COMPLAIN, "主诉", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getMainDieaseDescribe()), true));
+        //病史
+        detail.add(new EmrDetailDTO(RecipeEmrComment.MEDICAL_HISTORY, "病史", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getHistoryOfPresentIllness()), true));
         //设置现病史
         detail.add(new EmrDetailDTO(RecipeEmrComment.CURRENT_MEDICAL_HISTORY, "现病史", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getCurrentMedical()), false));
         //设置既往史
@@ -340,6 +357,9 @@ public class EmrRecipeManager {
             return;
         }
         List<EmrDetailValueDTO> values = JSON.parseArray(detail.getValue(), EmrDetailValueDTO.class);
+        if (CollectionUtils.isEmpty(values)) {
+            return;
+        }
         StringBuilder names = new StringBuilder();
         StringBuilder ids = new StringBuilder();
         if (RecipeEmrComment.DIAGNOSIS.equals(detail.getKey())) {
@@ -347,10 +367,10 @@ public class EmrRecipeManager {
                 names.append(b.getName()).append(ByteUtils.SEMI_COLON_CH);
                 ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_CH);
             });
-            if (StringUtils.isEmpty(recipe.getOrganDiseaseName()) && !StringUtils.isEmpty(names)) {
+            if (StringUtils.isEmpty(recipe.getOrganDiseaseName()) && !ByteUtils.isEmpty(names)) {
                 recipe.setOrganDiseaseName(ByteUtils.subString(names));
             }
-            if (StringUtils.isEmpty(recipe.getOrganDiseaseId()) && !StringUtils.isEmpty(ids)) {
+            if (StringUtils.isEmpty(recipe.getOrganDiseaseId()) && !ByteUtils.isEmpty(ids)) {
                 recipe.setOrganDiseaseId(ByteUtils.subString(ids));
             }
         } else if (RecipeEmrComment.TCM_SYNDROME.equals(detail.getKey())) {
@@ -358,10 +378,10 @@ public class EmrRecipeManager {
                 names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
                 ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
             });
-            if (StringUtils.isEmpty(recipeExtend.getSymptomName()) && !StringUtils.isEmpty(names)) {
+            if (StringUtils.isEmpty(recipeExtend.getSymptomName()) && !ByteUtils.isEmpty(names)) {
                 recipeExtend.setSymptomName(ByteUtils.subString(names));
             }
-            if (StringUtils.isEmpty(recipeExtend.getSymptomId()) && !StringUtils.isEmpty(ids)) {
+            if (StringUtils.isEmpty(recipeExtend.getSymptomId()) && !ByteUtils.isEmpty(ids)) {
                 recipeExtend.setSymptomId(ByteUtils.subString(ids));
             }
         } else {

@@ -25,7 +25,7 @@ public class BeijingYwxCAImpl{
     private ICommonCAServcie iCommonCAServcie = AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
     private static ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
     private Logger logger = LoggerFactory.getLogger(BeijingYwxCAImpl.class);
-    private String AccessToken_KEY = "BeijingCa_AccessToken";
+    private String AccessToken_KEY = "BjYCAToken";
 
 
     /**
@@ -35,16 +35,17 @@ public class BeijingYwxCAImpl{
      */
     @RpcService
     public String CaTokenBussiness(Integer organId) {
-        if (null == redisClient.get(AccessToken_KEY)) {
+        String redisKey = AccessToken_KEY +"_"+ Integer.toString(organId);
+        if (null == redisClient.get(redisKey)) {
             CaTokenRequestTo requestTO = new CaTokenRequestTo();
             requestTO.setOrganId(organId);
             CaTokenResponseTo responseTO = iCommonCAServcie.newCaTokenBussiness(requestTO);
             if (StringUtils.isNotEmpty(responseTO.getToken()) && StringUtils.isNotEmpty(responseTO.getExpireTime())) {
                 Long timeOut = Long.parseLong(responseTO.getExpireTime());
-                redisClient.setEX(AccessToken_KEY, timeOut, responseTO.getToken());
+                redisClient.setEX(redisKey, timeOut, responseTO.getToken());
             }
         }
-        return redisClient.get(AccessToken_KEY);
+        return redisClient.get(redisKey);
     }
 
     @RpcService

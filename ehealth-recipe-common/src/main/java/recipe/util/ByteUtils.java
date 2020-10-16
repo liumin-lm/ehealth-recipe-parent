@@ -74,11 +74,32 @@ public class ByteUtils {
 		}
 	}
 
+	/**
+	 * 截取 str 数据按照regex截取获取数组
+	 *
+	 * @param str   字符串
+	 * @param regex 截取标示
+	 * @return
+	 */
 	public static String[] split(String str, String regex) {
 		if (StringUtils.isEmpty(str)) {
 			return new String[0];
 		} else {
 			return str.split(regex);
+		}
+	}
+
+	/**
+	 * 判断 StringBuilder 为null
+	 *
+	 * @param str
+	 * @return
+	 */
+	public static Boolean isEmpty(StringBuilder str) {
+		if (0 > str.length() || StringUtils.isEmpty(str.toString())) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 }

@@ -18,6 +18,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -35,6 +37,7 @@ import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeHisService;
@@ -68,6 +71,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     @Autowired
     private IConsultExService consultExService;
     @Autowired
+    private IRevisitExService revisitExService;
+    @Autowired
     private EmploymentService employmentService;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
@@ -97,6 +102,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             }
             ThirdPartyRationalUseDrugReqTO reqTO;
             ConsultExDTO consultExDTO = null;
+            RevisitExDTO revisitExDTO = null;
             reqTO = new ThirdPartyRationalUseDrugReqTO();
             reqTO.setOrganId(recipeBean.getClinicOrgan());
             reqTO.setDeptCode(Objects.nonNull(departmentDTO) ? departmentDTO.getCode() : StringUtils.EMPTY);
@@ -104,9 +110,13 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             reqTO.setDoctCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart()));
             reqTO.setDoctName(doctorBean.getName());
             if (Objects.nonNull(recipeBean.getClinicId())) {
-                consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
+                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
+                    revisitExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
+                    consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
+                }
             }
-            reqTO.setThirdPartyBaseData(packThirdPartyBaseData(patientDTO, consultExDTO));
+            reqTO.setThirdPartyBaseData(packThirdPartyBaseData(patientDTO, consultExDTO, revisitExDTO));
             reqTO.setThirdPartyPatientData(packThirdPartyPatientData(patientDTO));
             reqTO.setThirdPartyPrescriptionsData(packThirdPartyPrescriptionData(recipeBean, recipeExtendBean, departmentDTO, doctorBean, recipeDetailBeanList));
             reqTO.setThirdPartyDiagnosisDataList(packThirdPartyDiagnosisData(recipeBean.getOrganDiseaseName(), recipeBean.getOrganDiseaseId()));
@@ -153,12 +163,15 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
      *
      * @param patientDTO
      * @param consultExDTO
+     * @param revisitExDTO
      * @return
      */
-    private ThirdPartyBaseData packThirdPartyBaseData(PatientDTO patientDTO, ConsultExDTO consultExDTO) {
+    private ThirdPartyBaseData packThirdPartyBaseData(PatientDTO patientDTO, ConsultExDTO consultExDTO, RevisitExDTO revisitExDTO) {
         ThirdPartyBaseData thirdPartyBaseData = new ThirdPartyBaseData();
         if (Objects.nonNull(consultExDTO)) {
             thirdPartyBaseData.setAdmNo(StringUtils.defaultIfBlank(consultExDTO.getRegisterNo(), StringUtils.EMPTY));
+        } else if (Objects.nonNull(revisitExDTO)) {
+            thirdPartyBaseData.setAdmNo(StringUtils.defaultIfBlank(revisitExDTO.getRegisterNo(), StringUtils.EMPTY));
         }
         thirdPartyBaseData.setName(patientDTO.getPatientName());
         return thirdPartyBaseData;

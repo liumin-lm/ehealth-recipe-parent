@@ -2,15 +2,20 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
+import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -19,8 +24,10 @@ import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.service.RecipeService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,6 +41,7 @@ public class ShanghaiCAImpl implements CAInterface {
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
     private RecipeService recipeService = AppContextHolder.getBean("recipeService", RecipeService.class);
+    private SignDoctorCaInfoDAO signDoctorCaInfoDAO = DAOFactory.getDAO(SignDoctorCaInfoDAO.class);
 
     /**
      * CA用户注册、申请证书接口
@@ -149,6 +157,13 @@ public class ShanghaiCAImpl implements CAInterface {
             }else {
                 signResultVo.setResultCode(1);
             }
+            // 启动异步线程对证书号进行获取保存（上海六院）
+            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    getAndSaveCertificate(recipe.getDoctor(), recipe.getClinicOrgan());
+                }
+            });
         } catch (Exception e){
             signResultVo.setResultCode(0);
             LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
@@ -167,6 +182,42 @@ public class ShanghaiCAImpl implements CAInterface {
             recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
         }else {
             recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+        }
+    }
+
+    /**
+     *  保存证书序列号 供监管平台调用
+     * @param doctorId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public void getAndSaveCertificate(Integer doctorId, Integer organId) {
+        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+        SignDoctorCaInfo result = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, "shanghaiCa");
+        if (result == null) {
+            CaCertificateRequestTO requestTO = new CaCertificateRequestTO();
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(doctorId, organId);
+            if (!CollectionUtils.isEmpty(jobNumbers)) {
+                requestTO.setUserAccount(jobNumbers.get(0));
+            }
+            requestTO.setOrganId(organId);
+            CaCertificateResponseTO responseTO = iCommonCAServcie.caCertificateBusiness(requestTO);
+            if (responseTO != null && responseTO.getCode() == 200) {
+                SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
+                DoctorExtendDTO doctorExtendDTO = new DoctorExtendDTO();
+                signDoctorCaInfo.setDoctorId(doctorId);
+                doctorExtendDTO.setDoctorId(doctorId);
+                signDoctorCaInfo.setCaType("shanghaiCa");
+                signDoctorCaInfo.setCert_voucher(responseTO.getCretBody());
+                signDoctorCaInfo.setCertSerial(responseTO.getCretSerial());
+                doctorExtendDTO.setSerialNumCA(responseTO.getCretSerial());
+                signDoctorCaInfo.setCreateDate(new Date());
+                signDoctorCaInfo.setLastmodify(new Date());
+                signDoctorCaInfoDAO.save(signDoctorCaInfo);
+                doctorExtendService.updateCertificateByDocId(doctorExtendDTO);
+            }
         }
     }
 }

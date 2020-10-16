@@ -11,9 +11,11 @@
 
     <reference interface="com.ngari.consult.common.service.IConsultService" id="consult.consultService"/>
     <reference interface="com.ngari.consult.common.service.IConsultExService" id="consult.consultExService"/>
-    <reference interface="com.ngari.consult.common.service.IConsultInfoService" id="consult.consultInfoService"/>
-    <reference interface="com.ngari.consult.process.service.ICommonConsultService" id="consult.commonConsultService"/>
-    <reference interface="com.ngari.consult.process.service.IRecipeOnLineConsultService" id="consult.recipeOnLineConsultService"/>
+    <!-- 复诊项目-->
+    <reference id="revisit.revisitExService" interface="com.ngari.revisit.common.service.IRevisitExService"/>
+    <reference id="revisit.recipeOnLineRevisitService"
+               interface="com.ngari.revisit.process.service.IRecipeOnLineRevisitService"/>
+    <reference id="revisit.revisitService" interface="com.ngari.revisit.common.service.IRevisitService"/>
 
 
 </s:beans>

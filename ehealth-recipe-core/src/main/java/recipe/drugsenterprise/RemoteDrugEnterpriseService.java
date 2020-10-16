@@ -95,11 +95,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         if (responseTO != null && responseTO.isSuccess()) {
             //推送药企处方成功,判断是否为扁鹊平台
-            if (RecipeServiceSub.isBQEnterprise(recipeNew.getClinicOrgan())) {
-                if ("bqEnterprise".equals(enterprise.getAccount())){
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("PushFlag", 1, "EnterpriseId", enterprise.getId()));
-                }
-            } else {
+            if ("bqEnterprise".equals(enterprise.getAccount())){
+                recipeDAO.updateRecipeInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("PushFlag", 1, "EnterpriseId", enterprise.getId()));
+            }else {
                 String prescId = (String)responseTO.getExtend().get("prescId");
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 if (StringUtils.isNotEmpty(prescId)) {

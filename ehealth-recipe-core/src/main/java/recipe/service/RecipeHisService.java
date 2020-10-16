@@ -17,11 +17,6 @@ import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -35,6 +30,11 @@ import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -103,7 +103,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private PatientService patientService;
     @Autowired
-    private IConsultExService consultExService;
+    private IRevisitExService consultExService;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
@@ -111,7 +111,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private IRecipeHisService recipeHisService;
     @Autowired
-    private IConsultService consultService;
+    private IRevisitService consultService;
 
     @Autowired
     private IUsingRateService usingRateService;
@@ -380,34 +380,42 @@ public class RecipeHisService extends RecipeBaseService {
             DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
             LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
             //线上支付完成需要发送消息（结算）（省医保则是医保结算）
-            if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
-                //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
-                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    // 111 为卫宁支付---卫宁付不走前置机的his结算
-                    if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                        PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
-                        PayNotifyResTO response = service.payNotify(payNotifyReq);
-                        if (null != response && response.getMsgCode() == 0 && response.getData() != null) {
-                            //结算成功
-                            Recipedetail detail = new Recipedetail();
-                            detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-                            detail.setPharmNo(response.getData().getWindows());
-                            HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
-                        } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
-                            //前置机返回结算失败，或者医保结算前置机返回null
-                            result.setCode(RecipeResultBean.FAIL);
-                            if (response != null && response.getMsg() != null) {
-                                result.setError(response.getMsg());
+            if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == payFlag) {
+                //调用前置机结算支持两种方式---配送到家和药店取药
+                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                    //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        // 111 为卫宁支付---卫宁付不走前置机的his结算
+                        if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
+                            PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
+                            PayNotifyResTO response = service.payNotify(payNotifyReq);
+                            if (null != response && response.getMsgCode() == 0) {
+                                //结算成功
+                                if (response.getData() != null) {
+                                    Recipedetail detail = new Recipedetail();
+                                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+                                    detail.setPharmNo(response.getData().getWindows());
+                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                                } else {
+                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), null);
+                                }
+
+                            } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
+                                //前置机返回结算失败，或者医保结算前置机返回null
+                                result.setCode(RecipeResultBean.FAIL);
+                                if (response != null && response.getMsg() != null) {
+                                    result.setError(response.getMsg());
+                                } else {
+                                    result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                                }
+                                HisCallBackService.havePayFail(recipe.getRecipeId());
+                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
                             } else {
-                                result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                                //非医保结算前置机返回null可能未对接接口
+                                LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                             }
-                            HisCallBackService.havePayFail(recipe.getRecipeId());
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
-                        } else {
-                            //非医保结算前置机返回null可能未对接接口
-                            LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                         }
                     }
                 }
@@ -1001,7 +1009,9 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
-            service.recipeAudit(request);
+            LOGGER.info("recipeAudit req={}", JSONUtils.toString(request));
+            HisResponseTO response = service.recipeAudit(request);
+            LOGGER.info("recipeAudit res={}", JSONUtils.toString(response));
             return result;
         } else {
             result.setCode(RecipeResultBean.FAIL);
@@ -1087,8 +1097,8 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setClinicOrgan(recipeBean.getClinicOrgan());
         hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         if (recipeBean.getClinicId() != null) {
-            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO exDTO = exService.getByConsultId(recipeBean.getClinicId());
+            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO exDTO = exService.getByConsultId(recipeBean.getClinicId());
             if (null != exDTO) {
                 hisCheckRecipeReqTO.setClinicID(exDTO.getRegisterNo());
             } else {
@@ -1554,7 +1564,7 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该患者");
         }
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
         if (null != consultExDTO) {
             patientBaseInfo.setPatientID(consultExDTO.getCardId());
             patientBaseInfo.setCardID(consultExDTO.getCardId());
@@ -1590,7 +1600,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param mpiId     患者id
      * @return
      */
-    public ConsultExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
+    public RevisitExDTO getConsultBean(Integer consultId, Integer organId, String mpiId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id 为空");
         }
@@ -1600,7 +1610,7 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该机构");
         }
         if (consultId == null) {
-            List<ConsultBean> consultBeans = consultService.findConsultByMpiId(Collections.singletonList(mpiId));
+            List<RevisitBean> consultBeans = consultService.findConsultByMpiId(Collections.singletonList(mpiId));
             if (CollectionUtils.isNotEmpty(consultBeans)) {
                 consultId = consultBeans.get(0).getConsultId();
             }
@@ -1608,7 +1618,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (consultId == null) {
             return null;
         }
-        ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+        RevisitExDTO consultExDTO = consultExService.getByConsultId(consultId);
         return consultExDTO;
     }
 
@@ -1642,7 +1652,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         String cardId = null;
         String cardType = null;
-        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
         if (null != consultExDTO) {
             cardId = consultExDTO.getCardId();
             cardType = consultExDTO.getCardType();
@@ -1755,7 +1765,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         String cardId = null;
         String cardType = null;
-        ConsultExDTO consultExDTO = getConsultBean(null, organId, mpiId);
+        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
         if (null != consultExDTO) {
             cardId = consultExDTO.getCardId();
             cardType = consultExDTO.getCardType();

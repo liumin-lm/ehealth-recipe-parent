@@ -29,12 +29,14 @@ import com.ngari.message.api.service.INetworkclinicMsgService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -223,10 +225,18 @@ public class RecipeServiceSub {
 
         // 根据咨询单特殊来源标识设置处方单特殊来源标识
         if (null != recipe.getClinicId()) {
-            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-            ConsultBean consultBean = consultService.getById(recipe.getClinicId());
-            if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
-                recipe.setRecipeSource(consultBean.getConsultSource());
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());
+                if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                    recipe.setRecipeSource(consultBean.getConsultSource());
+                }
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+                ConsultBean consultBean = consultService.getById(recipe.getClinicId());
+                if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                    recipe.setRecipeSource(consultBean.getConsultSource());
+                }
             }
         }
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -2298,8 +2308,9 @@ public class RecipeServiceSub {
             //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
             //当下载处方购药时，已完成处方不展示下载处方签
             if (null != recipe.getOrderCode() && null != order && !(isDownLoad && RecipeStatusConstant.FINISH == recipe.getStatus())) {
-                if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag()))
+                if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag())) {
                     isDownload = true;
+                }
 
             }
         }
@@ -2556,6 +2567,7 @@ public class RecipeServiceSub {
      */
     public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
         getMedicalInfo(recipe);
         RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
@@ -2563,7 +2575,13 @@ public class RecipeServiceSub {
             sendRecipeMsgTag(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
         } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
-            List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            List<String> requestMpiIds;
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                requestMpiIds = iRevisitService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            } else {
+                requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            }
+
             if (CollectionUtils.isNotEmpty(requestMpiIds)) {
                 for (String requestMpiId : requestMpiIds) {
                     sendRecipeMsgTag(requestMpiId, recipe, recipeTagMsg, rMap, send);
