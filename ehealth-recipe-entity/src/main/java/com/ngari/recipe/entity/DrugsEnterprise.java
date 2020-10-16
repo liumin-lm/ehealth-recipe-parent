@@ -168,6 +168,18 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "寄件人详细地址")
     private String consignorAddress;
 
+    @ItemProperty(alias = "寄件人街道编码")
+    private String consignorStreet;
+
+    @Column(name = "consignorStreet")
+    public String getConsignorStreet() {
+        return consignorStreet;
+    }
+
+    public void setConsignorStreet(String consignorStreet) {
+        this.consignorStreet = consignorStreet;
+    }
+
     @Column(name = "consignorName")
     public String getConsignorName() {
         return consignorName;

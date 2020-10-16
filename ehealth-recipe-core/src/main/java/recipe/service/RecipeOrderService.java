@@ -2064,6 +2064,8 @@ public class RecipeOrderService extends RecipeBaseService {
         logisticsOrder.setConsignorCity(getAddressDic(enterprise.getConsignorCity()));
         // 寄件人区域
         logisticsOrder.setConsignorDistrict(getAddressDic(enterprise.getConsignorDistrict()));
+        // 寄件人街道
+        logisticsOrder.setConsignorStreet(getAddressDic(enterprise.getConsignorStreet()));
         // 寄件人详细地址
         logisticsOrder.setConsignorAddress(enterprise.getConsignorAddress());
         // 收件人名称
@@ -2076,6 +2078,8 @@ public class RecipeOrderService extends RecipeBaseService {
         logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
         // 收件镇/区
         logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+        // 收件人街道
+        logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
         // 收件详细地址
         logisticsOrder.setAddresseeAddress(order.getAddress4());
         // 寄托物名称
