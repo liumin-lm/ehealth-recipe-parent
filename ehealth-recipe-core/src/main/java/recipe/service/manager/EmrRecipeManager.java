@@ -165,7 +165,7 @@ public class EmrRecipeManager {
         try {
             medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
         } catch (Exception e) {
-            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId error = {}", e.getMessage());
+            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", recipeExtend.getDocIndexId(), e.getMessage(), e);
             return;
         }
         logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
