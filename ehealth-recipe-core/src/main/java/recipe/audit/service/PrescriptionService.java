@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.JudicialOrgan;
 import com.ngari.recipe.entity.OrganJudicialRelation;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -17,6 +18,7 @@ import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
 import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.model.recipe.RecipeDetailDTO;
+import eh.recipeaudit.model.recipe.RecipeExtendDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,9 @@ public class PrescriptionService {
             throw new DAOException("处方不存在");
         }
         RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
+        RecipeExtendBean recipeExtend = recipe.getRecipeExtend();
+        RecipeExtendDTO recipeExtendDTO = ObjectCopyUtils.convert(recipeExtend, RecipeExtendDTO.class);
+        recipeDTO.setRecipeExtend(recipeExtendDTO);
         List<RecipeDetailDTO>recipeDetailDTOS = ObjectCopyUtils.convert(recipedetails, RecipeDetailDTO.class);
         AutoAuditResultBean resultBean = recipeAuditService.analysis(recipeDTO, recipeDetailDTOS);
         return JSON.parseObject(JSON.toJSONString(resultBean), AutoAuditResultBean.class);
