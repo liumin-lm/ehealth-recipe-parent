@@ -540,7 +540,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
                         HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
                         LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
-                        if (responseTO != null && responseTO.isSuccess()) {
+                        if (responseTO != null && responseTO.isSuccess() && responseTO.getData() != null) {
                             result.add(responseTO.getData());
                         }
                     } else {//通过平台调用
