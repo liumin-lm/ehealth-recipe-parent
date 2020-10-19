@@ -92,15 +92,15 @@ public class EmrRecipeManager {
      */
     public void updateMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
+        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
+            return;
+        }
         if (null == recipeExt.getDocIndexId()) {
             try {
                 addMedicalInfo(recipe, recipeExt, DOC_STATUS_HOLD);
             } catch (Exception e) {
                 logger.error("EmrRecipeManager updateMedicalInfo 电子病历保存失败", e);
             }
-            return;
-        }
-        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
             return;
         }
         try {
@@ -152,7 +152,7 @@ public class EmrRecipeManager {
      * @param recipeExtend
      */
     public static void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
-        if (null == recipeExtend || null == recipeExtend.getDocIndexId()) {
+        if (null == recipeExtend || null == recipeExtend.getDocIndexId() || 0 == recipeExtend.getDocIndexId()) {
             logger.info("EmrRecipeManager getMedicalInfo recipeExtend={}", JSONUtils.toString(recipeExtend));
             return;
         }
@@ -417,6 +417,13 @@ public class EmrRecipeManager {
         return JSONUtils.toString(diagnosisValues);
     }
 
+    /**
+     * 根据值 和拼接符 拼接字符串
+     *
+     * @param stringBuilder 保存对象
+     * @param value         值
+     * @param decollator    拼接符
+     */
     private static void appendDecollator(StringBuilder stringBuilder, String value, String decollator) {
         if (StringUtils.isEmpty(value)) {
             return;
