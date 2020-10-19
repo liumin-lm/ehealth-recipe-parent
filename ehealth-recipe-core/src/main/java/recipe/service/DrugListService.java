@@ -106,7 +106,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     @RpcService
     public DrugListBean addDrugList(DrugListBean drugListBean) {
         DrugList d = ObjectCopyUtils.convert(drugListBean, DrugList.class);
-        logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(d));
+        logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(drugListBean));
         if (null == d) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugList is null");
         }
