@@ -113,7 +113,7 @@
 		<!-- 线程池最大活跃的线程数 -->
 		<property name="maxPoolSize" value="100" />
 		<!-- 队列的最大容量 -->
-		<property name="queueCapacity" value="300" />
+		<property name="queueCapacity" value="100" />
         <!-- 是否允许空闲核心线程超时 一旦超时便销毁线程 -->
         <property name="allowCoreThreadTimeOut" value="true" />
         <!-- 线程池中空闲线程等待工作的超时时间300s -->
