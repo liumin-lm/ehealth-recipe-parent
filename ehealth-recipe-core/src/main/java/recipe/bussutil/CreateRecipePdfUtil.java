@@ -383,6 +383,7 @@ public class CreateRecipePdfUtil {
             }
             docSignImage.delete();
         } catch (Exception e) {
+            logger.warn("当前处方{}pdf添加用户图片异常{}", e);
             e.printStackTrace();
         } finally {
             if (output != null) {

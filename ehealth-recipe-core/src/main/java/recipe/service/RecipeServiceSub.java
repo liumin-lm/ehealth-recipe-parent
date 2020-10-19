@@ -1823,7 +1823,7 @@ public class RecipeServiceSub {
             }
         }
         map.put("childRecipeFlag", childRecipeFlag);
-        map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
+
 
         //慢病列表配置
         try {
@@ -1912,10 +1912,10 @@ public class RecipeServiceSub {
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }
-
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             map.put("recipeExtend", recipeExtend);
         }
-
+        map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);

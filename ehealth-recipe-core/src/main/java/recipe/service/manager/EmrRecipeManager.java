@@ -6,7 +6,6 @@ import com.ngari.patient.service.DepartmentService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -24,7 +23,6 @@ import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.comment.RecipeEmrComment;
-import recipe.dao.RecipeExtendDAO;
 import recipe.util.ByteUtils;
 
 import javax.annotation.Resource;
@@ -94,6 +92,9 @@ public class EmrRecipeManager {
      */
     public void updateMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
+        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
+            return;
+        }
         if (null == recipeExt.getDocIndexId()) {
             try {
                 addMedicalInfo(recipe, recipeExt, DOC_STATUS_HOLD);
@@ -102,15 +103,10 @@ public class EmrRecipeManager {
             }
             return;
         }
-        if (null != recipe.getEmrStatus() && recipe.getEmrStatus()) {
-            return;
-        }
         try {
             //更新电子病历
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeExt.getRecipeId());
             MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
-            medicalDetailBean.setDocIndexId(recipeExtend.getDocIndexId());
+            medicalDetailBean.setDocIndexId(recipeExt.getDocIndexId());
             setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
             logger.info("EmrRecipeManager updateMedicalInfo medicalDetailBean :{}", JSONUtils.toString(medicalDetailBean));
             docIndexService.updateMedicalDetail(medicalDetailBean);
@@ -156,7 +152,7 @@ public class EmrRecipeManager {
      * @param recipeExtend
      */
     public static void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
-        if (null == recipeExtend || null == recipeExtend.getDocIndexId()) {
+        if (null == recipeExtend || null == recipeExtend.getDocIndexId() || 0 == recipeExtend.getDocIndexId()) {
             logger.info("EmrRecipeManager getMedicalInfo recipeExtend={}", JSONUtils.toString(recipeExtend));
             return;
         }
@@ -421,6 +417,13 @@ public class EmrRecipeManager {
         return JSONUtils.toString(diagnosisValues);
     }
 
+    /**
+     * 根据值 和拼接符 拼接字符串
+     *
+     * @param stringBuilder 保存对象
+     * @param value         值
+     * @param decollator    拼接符
+     */
     private static void appendDecollator(StringBuilder stringBuilder, String value, String decollator) {
         if (StringUtils.isEmpty(value)) {
             return;
