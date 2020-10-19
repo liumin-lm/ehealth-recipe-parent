@@ -162,6 +162,7 @@ public class EmrRecipeManager {
             medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
         } catch (Exception e) {
             logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", recipeExtend.getDocIndexId(), e.getMessage(), e);
+            //todo 删除的病例 在处方ext中没删除DocIndexId ，由于发布临近，下个版本需要潘铁辉 提供一个mq消息告知 删除依赖关系。
             return;
         }
         logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
