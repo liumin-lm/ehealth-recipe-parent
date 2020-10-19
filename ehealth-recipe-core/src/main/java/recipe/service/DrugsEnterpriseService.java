@@ -1,9 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
-import com.ngari.base.Advice.IAdviceService;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.patient.service.OrganService;
@@ -29,7 +27,6 @@ import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
-import recipe.util.DictionaryUtil;
 
 import java.util.*;
 
@@ -181,6 +178,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         }
         if (drugsEnterpriseBean.getExpressFeePayWay() == null){
             target.setExpressFeePayWay(null);
+        }
+        if (drugsEnterpriseBean.getTransFeeDetail() == null) {
+            target.setTransFeeDetail(null);
         }
         target = drugsEnterpriseDAO.update(target);
 

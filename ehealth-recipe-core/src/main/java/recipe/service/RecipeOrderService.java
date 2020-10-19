@@ -1980,8 +1980,10 @@ public class RecipeOrderService extends RecipeBaseService {
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
             // 平台物流对接--物流下单逻辑
             try {
-                LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
-                createLogisticsOrder(orderCode, order, recipes.get(0));
+                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes)){
+                    LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
+                    createLogisticsOrder(orderCode, order, recipes.get(0));
+                }
             } catch (Exception e) {
                 LOGGER.error("基础服务物流下单.error=", e);
             }
@@ -2011,6 +2013,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)){
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "基础服务物流下单成功");
                 // 下单成功更新物流单号、物流公司
                 Map<String, Object> orderAttrMap = new HashedMap();
                 orderAttrMap.put("LogisticsCompany",enterprise.getLogisticsCompany());
