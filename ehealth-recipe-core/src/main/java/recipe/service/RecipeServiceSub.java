@@ -1562,6 +1562,12 @@ public class RecipeServiceSub {
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setDetailData(recipe.getDetailData());
+        //科室
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepartDTO = appointDepartService.getByOrganIDAndAppointDepartCode(recipe.getClinicOrgan(), recipe.getDepartCode());
+        if (appointDepartDTO != null) {
+            r.setDepart(appointDepartDTO.getDepartId());
+        }
         return r;
     }
 

@@ -161,7 +161,7 @@ public class ShanghaiCAImpl implements CAInterface {
             GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    getAndSaveCertificate(recipe.getDoctor(), recipe.getClinicOrgan());
+                    getAndSaveCertificate(recipe.getDoctor(), recipe.getClinicOrgan(),userAccount);
                 }
             });
         } catch (Exception e){
@@ -186,13 +186,13 @@ public class ShanghaiCAImpl implements CAInterface {
     }
 
     /**
-     *  保存证书序列号 供监管平台调用
+     *  保存证书序列号 供监管平台调用（上海六院取得是userAccount的值(身份证)作为CA用户认证  其他的为工号作为认证）
      * @param doctorId
      * @param organId
      * @return
      */
     @RpcService
-    public void getAndSaveCertificate(Integer doctorId, Integer organId) {
+    public void getAndSaveCertificate(Integer doctorId, Integer organId,String userAccount) {
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
         SignDoctorCaInfo result = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, "shanghaiCa");
         if (result == null) {
@@ -200,8 +200,9 @@ public class ShanghaiCAImpl implements CAInterface {
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(doctorId, organId);
             if (!CollectionUtils.isEmpty(jobNumbers)) {
-                requestTO.setUserAccount(jobNumbers.get(0));
+                requestTO.setJobNubmer(jobNumbers.get(0));
             }
+            requestTO.setUserAccount(userAccount);
             requestTO.setOrganId(organId);
             CaCertificateResponseTO responseTO = iCommonCAServcie.caCertificateBusiness(requestTO);
             if (responseTO != null && responseTO.getCode() == 200) {
