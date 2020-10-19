@@ -2011,6 +2011,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)){
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "基础服务物流下单成功");
                 // 下单成功更新物流单号、物流公司
                 Map<String, Object> orderAttrMap = new HashedMap();
                 orderAttrMap.put("LogisticsCompany",enterprise.getLogisticsCompany());

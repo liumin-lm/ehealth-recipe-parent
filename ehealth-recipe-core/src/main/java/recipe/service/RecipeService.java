@@ -1320,10 +1320,12 @@ public class RecipeService extends RecipeBaseService {
                         usePlatform = Boolean.parseBoolean(recipeUsePlatformCAPDF.toString());
                     }
                     //保存签名值、时间戳、电子签章文件
+                    String pdfString = null;
                     if(!usePlatform){
                         if(null == resultVo.getPdfBase64()){
                             LOGGER.warn("当前处方{}使用CApdf返回CA图片为空！", recipeId);
                         }
+                        pdfString = resultVo.getPdfBase64();
                     }else{
                         //需要调整逻辑：
                         //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
@@ -1332,7 +1334,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                     }
                     //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
-                    RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                    RecipeServiceEsignExt.saveSignRecipePDFCA(pdfString, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                     resultVo.setFileId(fileId);
                     //date 20200922
                     //老流程保存sign，新流程已经移动至CA保存
@@ -1499,10 +1501,13 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //使用平台CA模式，手动生成pdf
                     //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
+                    String pdfString = null;
                     if(!usePlatform) {
                         if(null == resultVo.getPdfBase64()){
                             LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
                         }
+                        //只有当使用CApdf的时候才去赋值
+                        pdfString = resultVo.getPdfBase64();
                     }else{
                         //需要调整逻辑：
                         //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
@@ -1512,7 +1517,7 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存签名值、时间戳、电子签章文件
                     checkResult.setCode(RecipeResultBean.SUCCESS);
-                    RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                    RecipeServiceEsignExt.saveSignRecipePDFCA(pdfString, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                     resultVo.setFileId(fileId);
                     //date 20200922
                     //老流程保存sign，新流程已经移动至CA保存
