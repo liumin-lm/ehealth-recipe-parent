@@ -341,9 +341,9 @@ public class RecipeUtil {
         }
 
         //判断诊断备注是否为空，若为空则显示“无”
-        if (StringUtils.isEmpty(recipe.getMemo())) {
-            recipe.setMemo("无");
-        }
+//        if (StringUtils.isEmpty(recipe.getMemo())) {
+//            recipe.setMemo("无");
+//        }
 
         if (null == recipe.getPayFlag()) {
             recipe.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);
