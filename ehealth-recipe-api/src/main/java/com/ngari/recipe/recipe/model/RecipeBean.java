@@ -459,9 +459,9 @@ public class RecipeBean implements Serializable {
         }
 
         //判断诊断备注是否为空，若为空则显示“无”
-        if (StringUtils.isEmpty(this.getMemo())) {
-            this.setMemo("无");
-        }
+//        if (StringUtils.isEmpty(this.getMemo())) {
+//            this.setMemo("无");
+//        }
 
         if (null == this.getPayFlag()) {
             this.setPayFlag(0);
