@@ -5,7 +5,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -27,7 +26,6 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -54,7 +52,6 @@ import recipe.util.MapValueUtil;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -1054,6 +1051,10 @@ public class RecipeListService extends RecipeBaseService{
 
                     for (Recipedetail recipedetail : recipedetailList) {
                         Recipe recipe = recipeDAO.getByRecipeId(recipedetail.getRecipeId());
+                        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+                        record.setOrganDiseaseName(recipe.getOrganDiseaseName());
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
                         if (CollectionUtils.isNotEmpty(organDrugLists)) {
                             recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
