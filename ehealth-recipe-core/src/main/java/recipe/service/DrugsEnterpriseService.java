@@ -105,7 +105,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             drugsEnterprise.setOperationType(1);
         }
         if(StringUtils.isEmpty(drugsEnterprise.getCallSys())){
-            drugsEnterprise.setCallSys("");
+            drugsEnterprise.setCallSys("commonSelf");
         }
         drugsEnterprise.setOrderType(1);
         drugsEnterprise.setStorePayFlag(0);
