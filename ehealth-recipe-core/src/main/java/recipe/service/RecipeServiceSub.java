@@ -1542,7 +1542,9 @@ public class RecipeServiceSub {
         r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
 //        r.setRecipeId(recipe.ge);
-        r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
+        if (StringUtils.isNotEmpty(recipe.getSignDate())){
+            r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
+        }
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
@@ -1556,7 +1558,9 @@ public class RecipeServiceSub {
         }
         r.setRecipeDrugName(stringBuilder.toString());
 
-        r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
+        if (StringUtils.isNotEmpty(recipe.getSignDate())){
+            r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
+        }
 //        r.setShowTip(recipe.getShowTip());
         r.setRecipeSourceType(2);
         r.setRecipeCode(recipe.getRecipeCode());
