@@ -81,6 +81,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
         //3.返回一个异步操作的CA,中断状态
         recipeResultBean.setCode(RecipeResultBean.NO_ADDRESS);
         //将返回的CA结果给处方，设置处方流转
+        LOGGER.info("After---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
 
