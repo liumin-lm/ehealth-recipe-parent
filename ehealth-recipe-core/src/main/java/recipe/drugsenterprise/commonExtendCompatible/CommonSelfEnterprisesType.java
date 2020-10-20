@@ -238,7 +238,8 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsDataBean.getOrganId());
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+                if (CollectionUtils.isNotEmpty(organDrugLists) && saleDrugList != null) {
                     OrganDrugList organDrugList = organDrugLists.get(0);
                     List<Recipedetail> recipedetails = new ArrayList<>();
                     Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
