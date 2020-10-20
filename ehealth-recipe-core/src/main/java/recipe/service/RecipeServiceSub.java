@@ -1813,10 +1813,7 @@ public class RecipeServiceSub {
             //患者处方单详情页按钮显示
             patientRecipeInfoBottonShow(map, recipe, order);
         }
-
-        if (StringUtils.isEmpty(recipe.getMemo())) {
-            recipe.setMemo("无");
-        }
+        
 
         //设置失效时间
         if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
