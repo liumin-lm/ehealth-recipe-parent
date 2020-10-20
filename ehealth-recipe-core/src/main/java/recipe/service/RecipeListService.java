@@ -58,6 +58,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
 import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
@@ -1075,6 +1076,12 @@ public class RecipeListService extends RecipeBaseService{
                                             .getText(order.getLogisticsCompany());
                                     record.setLogisticsCompany(logComStr);
                                     record.setTrackingNumber(order.getTrackingNumber());
+                                    DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+                                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                                    if (drugsEnterprise != null) {
+                                        // 药企物流对接方式
+                                        record.setLogisticsType(drugsEnterprise.getLogisticsType());
+                                    }
                                 } catch (ControllerException e) {
                                     LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", order.getLogisticsCompany(),e);
                                 }

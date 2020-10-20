@@ -121,6 +121,17 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private String thirdUrl;
 
+    @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
+
     public boolean getIsHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
     }
