@@ -1,6 +1,8 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.doctor.model.DoctorBean;
+import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.recipe.entity.Recipe;
@@ -16,6 +18,7 @@ import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.api.vo.MedicalInfoBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -45,6 +48,8 @@ public class EmrRecipeManager {
     private IDocIndexService docIndexService;
     @Resource
     private DepartmentService departmentService;
+    @Autowired
+    private IDoctorService doctorService;
 
     /**
      * 保存电子病历 主要用于兼容老数据结构
@@ -250,8 +255,6 @@ public class EmrRecipeManager {
         if (null == recipeExt) {
             return;
         }
-        //保存电子病历
-        MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
         //设置病历索引信息
         DocIndexBean docIndexBean = new DocIndexBean();
         docIndexBean.setClinicId(recipe.getClinicId());
@@ -263,15 +266,14 @@ public class EmrRecipeManager {
         docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
         docIndexBean.setCreateDepart(recipe.getDepart());
         try {
-            DepartmentDTO department = departmentService.get(recipe.getDepart());
-            if (department != null) {
-                docIndexBean.setDepartName(department.getName());
-            }
+            String departName = Optional.ofNullable(departmentService.get(recipe.getDepart())).map(DepartmentDTO::getName).orElse(null);
+            docIndexBean.setDepartName(departName);
+            String doctorName = Optional.ofNullable(doctorService.getBeanByDoctorId(recipe.getDoctor())).map(DoctorBean::getName).orElse(null);
+            docIndexBean.setDoctorName(doctorName);
+            docIndexBean.setCreateDoctor(recipe.getDoctor());
         } catch (Exception e) {
-            logger.error("EmrRecipeManager departmentService error", e);
+            logger.error("EmrRecipeManager Optional error", e);
         }
-        docIndexBean.setCreateDoctor(recipe.getDoctor());
-        docIndexBean.setDoctorName(recipe.getDoctorName());
         docIndexBean.setCreateDate(recipe.getCreateDate());
         docIndexBean.setGetDate(new Date());
         docIndexBean.setDoctypeName("电子处方病历");
@@ -280,6 +282,9 @@ public class EmrRecipeManager {
         docIndexBean.setOrganNameByUser(recipe.getOrganName());
         docIndexBean.setClinicPersonName(recipe.getPatientName());
         docIndexBean.setLastModify(new Date());
+
+        //保存电子病历
+        MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
         medicalInfoBean.setDocIndexBean(docIndexBean);
         //设置病历索引扩展信息
         List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
