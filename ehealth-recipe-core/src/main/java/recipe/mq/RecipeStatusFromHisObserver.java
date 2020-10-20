@@ -1,7 +1,9 @@
 package recipe.mq;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -11,12 +13,15 @@ import eh.msg.constant.MqConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeService;
 import recipe.service.hospitalrecipe.PrescribeService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.LocalStringUtil;
 
 import java.util.Map;
@@ -28,7 +33,10 @@ import java.util.Map;
  * @version： 1.0
  */
 public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeInfoReq> {
-
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     /**
      * logger
      */
@@ -36,7 +44,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
 
     @Override
     public void onMessage(NoticeNgariRecipeInfoReq notice) {
-        LOGGER.info("topic={}, tag={}, notice={}", OnsConfig.hisCdrinfo, MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM
+        LOGGER.info("RecipeStatusFromHisObserver onMessage topic={}, tag={}, notice={}", OnsConfig.hisCdrinfo, MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM
                 , JSONUtils.toString(notice));
         if (null == notice) {
             return;
@@ -130,6 +138,13 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             HosRecipeResult result = prescribeService.updateRecipeStatus(hospitalStatusUpdateDTO, otherInfo);
             LOGGER.info("tag={}, result={}", MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM, JSONUtils.toString(result));
         }
+        try {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
+            emrRecipeManager.updateDocStatus(recipeExtend.getDocIndexId());
+        } catch (Exception e) {
+            LOGGER.error("修改电子病例使用状态失败 ", e);
+        }
+        LOGGER.info("RecipeStatusFromHisObserver onMessage otherInfo={}", JSON.toJSONString(otherInfo));
     }
 
     private String getCardTypeName(String cardTypeName) {
