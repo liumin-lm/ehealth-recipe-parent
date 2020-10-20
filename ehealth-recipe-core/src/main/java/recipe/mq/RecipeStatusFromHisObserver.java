@@ -8,12 +8,13 @@ import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.net.broadcast.Observer;
+import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.msg.constant.MqConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -33,10 +34,6 @@ import java.util.Map;
  * @version： 1.0
  */
 public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeInfoReq> {
-    @Autowired
-    private EmrRecipeManager emrRecipeManager;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
     /**
      * logger
      */
@@ -91,13 +88,11 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
 
             case HisBussConstant.FROMHIS_RECIPE_STATUS_REFUND:
                 //date 20200221 更新处方推送日志
-                RecipeLogService service = ApplicationUtils.getRecipeService(RecipeLogService.class);
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 if(StringUtils.isNotEmpty(notice.getPlatRecipeID())){
-
                     RecipeBean recipe = recipeService.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
                     if(null != recipe){
-                        service.saveRecipeLog(Integer.parseInt(notice.getPlatRecipeID()), recipe.getStatus(), recipe.getStatus(), "his进行线下退费");
+                        RecipeLogService.saveRecipeLog(Integer.parseInt(notice.getPlatRecipeID()), recipe.getStatus(), recipe.getStatus(), "his进行线下退费");
                     }else{
                         LOGGER.error("线下退费当前处方id{}没有对应处方信息", notice.getPlatRecipeID());
                     }
@@ -139,7 +134,13 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             LOGGER.info("tag={}, result={}", MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM, JSONUtils.toString(result));
         }
         try {
+            if (StringUtils.isEmpty(notice.getPlatRecipeID())) {
+                LOGGER.info("RecipeStatusFromHisObserver notice={}", JSON.toJSONString(notice));
+                return;
+            }
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
+            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
             emrRecipeManager.updateDocStatus(recipeExtend.getDocIndexId());
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
