@@ -226,7 +226,7 @@ public class EmrRecipeManager {
                 recipeExtend.setHandleMethod(value);
                 continue;
             }
-            if (RecipeEmrComment.MEMO.equals(key) && StringUtils.isEmpty(recipe.getMemo())) {
+            if (RecipeEmrComment.REMARK.equals(key) && StringUtils.isEmpty(recipe.getMemo())) {
                 recipe.setMemo(value);
                 continue;
             }
@@ -322,8 +322,8 @@ public class EmrRecipeManager {
         detail.add(new EmrDetailDTO(RecipeEmrComment.PHYSICAL_EXAMINATION, "体格检查", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getPhysicalCheck()), false));
         //设置处理方法
         detail.add(new EmrDetailDTO(RecipeEmrComment.PROCESSING_METHOD, "处理方法", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getHandleMethod()), false));
-        //设置注意事项
-        detail.add(new EmrDetailDTO(RecipeEmrComment.MEMO, "注意事项", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipe.getMemo()), false));
+        //设置备注
+        detail.add(new EmrDetailDTO(RecipeEmrComment.REMARK, "备注", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipe.getMemo()), false));
         //设置诊断
         if (!StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
             String[] diseaseNames = ByteUtils.split(recipe.getOrganDiseaseName(), ByteUtils.SEMI_COLON_CH);

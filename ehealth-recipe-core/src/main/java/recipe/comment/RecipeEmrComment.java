@@ -69,5 +69,9 @@ public class RecipeEmrComment {
      * 注意事项
      */
     public static final String MEMO = "memo";
+    /**
+     * 备注
+     */
+    public static final String REMARK = "remark";
 
 }
