@@ -739,8 +739,8 @@ public class RecipeListService extends RecipeBaseService{
         Collections.sort(res, new Comparator<Map<String, Object>>() {
             @Override
             public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                Date date1 = ((RecipeBean)o1.get("recipe")).getCreateDate() ;
-                Date date2 = ((RecipeBean)o2.get("recipe")).getCreateDate() ;
+                Date date1 = ((RecipeBean)o1.get("recipe")).getCreateDate()==null?new Date():((RecipeBean)o1.get("recipe")).getCreateDate();
+                Date date2 = ((RecipeBean)o2.get("recipe")).getCreateDate()==null?new Date():((RecipeBean)o2.get("recipe")).getCreateDate() ;
                 return date2.compareTo(date1);
             }
         });
