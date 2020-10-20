@@ -1584,10 +1584,14 @@ public class RecipeServiceSub {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
         Map<String, Object> map = Maps.newHashMap();
         if (recipe == null) {
             return map;
         }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
 
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
@@ -1908,13 +1912,13 @@ public class RecipeServiceSub {
         map.put("showChecker", showChecker);
 
         //医生端/患者端获取处方扩展信息
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        //RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        // RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeExtend != null) {
-            if(recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null){
+            if (recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null) {
                 DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
-                if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
+                if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }
