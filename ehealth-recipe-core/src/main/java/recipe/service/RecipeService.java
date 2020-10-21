@@ -889,6 +889,7 @@ public class RecipeService extends RecipeBaseService {
 //                }
             } catch (Exception e) {
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
+                result.setCode(RecipeResultBean.FAIL);
             }
             //标准化CA进行签名、签章==========================end=====
         } else {
