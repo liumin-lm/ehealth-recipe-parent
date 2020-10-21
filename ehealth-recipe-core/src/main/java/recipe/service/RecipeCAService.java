@@ -29,6 +29,7 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -48,6 +49,7 @@ import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.common.RecipeSignService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -55,8 +57,6 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 @RpcBean("recipeCAService")
 public class RecipeCAService {
@@ -227,6 +227,8 @@ public class RecipeCAService {
         request.setEffectivePeriod(3);
         RecipeExtendBean extend = recipeBean.getRecipeExtend();
         if(null != extend){
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(extend, RecipeExtend.class);
+            EmrRecipeManager.getMedicalInfo(recipeBean, recipeExtend);
             request.setMainDieaseDescribe(extend.getMainDieaseDescribe());
         }
 
@@ -275,7 +277,9 @@ public class RecipeCAService {
         }else {
             LOGGER.warn("getTaskCode2 RecipeBean checker is null");
         }
-        request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
+        if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId())) {
+            request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
+        }
         request.setIcdName(recipeBean.getOrganDiseaseName());
 
         // 患者信息
