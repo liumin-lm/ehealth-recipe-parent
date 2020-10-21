@@ -6,6 +6,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -2262,6 +2265,20 @@ public class RecipeOrderService extends RecipeBaseService {
                 patientBaseInfo.setMobile(patient.getMobile());
                 patientBaseInfo.setPatientID(recipe.getPatientID());
                 patientBaseInfo.setMpi(recipe.getRequestMpiId());
+                // 黄河医院获取药企患者id
+                try {
+                    ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+                    SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
+                    LOGGER.info("querySimpleWxAccountBean account={}", JSONObject.toJSONString(account));
+                    if (null != account) {
+                        if (account instanceof SimpleThirdBean) {
+                            SimpleThirdBean stb = (SimpleThirdBean) account;
+                            patientBaseInfo.setTid(stb.getTid());
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("黄河医院获取药企用户tid异常", e);
+                }
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
             if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
