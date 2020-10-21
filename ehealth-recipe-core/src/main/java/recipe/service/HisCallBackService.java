@@ -81,7 +81,7 @@ public class HisCallBackService {
             return;
         }
         if(null != recipe.getStatus() && com.ngari.recipe.recipe.constant.RecipeStatusConstant.CHECK_PASS == recipe.getStatus()){
-            LOGGER.error("当前处方{}状态{}不能进行平台新增操作", result.getRecipeId(), recipe.getStatus());
+            LOGGER.error("当前处方{}状态{}不能进行平台[checkPassSuccess]操作", result.getRecipeId(), recipe.getStatus());
             return;
         }
         // 更新处方拓展信息：his处方付费序号合集
