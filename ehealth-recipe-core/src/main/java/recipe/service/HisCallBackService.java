@@ -80,6 +80,10 @@ public class HisCallBackService {
             LOGGER.error("checkPassSuccess 处方对象不存在");
             return;
         }
+        if(null != recipe.getStatus() && com.ngari.recipe.recipe.constant.RecipeStatusConstant.CHECK_PASS == recipe.getStatus()){
+            LOGGER.error("当前处方{}状态{}不能进行平台新增操作", result.getRecipeId(), recipe.getStatus());
+            return;
+        }
         // 更新处方拓展信息：his处方付费序号合集
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Map<String, Object> extendMap = new HashedMap();
