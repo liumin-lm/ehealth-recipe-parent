@@ -30,22 +30,18 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ngari-mvc</artifactId>
-                <version>${ngari.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ngari-mixins</artifactId>
-                <version>${ngari.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ngari-broadcast-support</artifactId>
-                <version>${ngari.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-voucher-api</artifactId>
-                <version>${ngari.voucher.version}</version>
                 <exclusions>
                     <exclusion>
                         <artifactId>ngari-rpc</artifactId>
@@ -60,7 +56,6 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-es-api</artifactId>
-                <version>${ngari.es.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -76,7 +71,6 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-miscellany-api</artifactId>
-                <version>${ngari.miscellany.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
@@ -86,7 +80,6 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-basic-api</artifactId>
-                <version>${ngari.basic.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -97,27 +90,22 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-jgpt-api</artifactId>
-                <version>${ngari.jgpt.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-follow-up-api</artifactId>
-                <version>${ngari.followup.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-cdr-api</artifactId>
-                <version>${ngari.cdr.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-recipeaudit-api</artifactId>
-                <version>${ngari.recipeaudit.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-consult-api</artifactId>
-                <version>${ngari.consult.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -140,7 +128,6 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-networkclinic-api</artifactId>
-                <version>${ngari.networkclinic.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -159,7 +146,6 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-his-api</artifactId>
-                <version>${ngari.hisapi.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -186,7 +172,6 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-base-api</artifactId>
-                <version>${ngari.baseapi.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -205,7 +190,6 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-opbase-api</artifactId>
-                <version>${ngari.opbase.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ngari</groupId>
@@ -228,7 +212,6 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>ehealth-utils</artifactId>
-                <version>${ngari.utils.version}</version>
                 <exclusions>
                     <exclusion>
                         <artifactId>ngari-utils</artifactId>
@@ -239,17 +222,14 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-video-api</artifactId>
-                <version>${ngari.video.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-infra-api</artifactId>
-                <version>${ngari.infra.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-message-api</artifactId>
-                <version>${ngari.message.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
@@ -336,7 +316,6 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-test</artifactId>
-                <version>${spring.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -381,7 +360,6 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-bill-api</artifactId>
-                <version>${ngari.bill.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
