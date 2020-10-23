@@ -16,9 +16,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>ssdev</groupId>
-            <artifactId>ssdev-mixins</artifactId>
-            <version>${ssdev.version}</version>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-mixins</artifactId>
+            <version>${ngari.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

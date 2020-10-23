@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	   xmlns:ssdev="http://www.ngarihealth.com/schema/ssdev"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+	   xmlns:ngari="http://www.ngarihealth.com/schema/ngari"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
 	<bean id="localFileRepository" class="ctd.mvc.upload.support.LocalFileRepository">
 		<constructor-arg name="repositoryPath" value="${file.repositoryPath}"/>
@@ -11,7 +11,7 @@
 		<constructor-arg name="accessKey" value="${fileauth.accesskey}"/>
 		<constructor-arg name="secret" value="${fileauth.secret}"/>
 	</bean>
-	<ssdev:reference id="fileserver.fileRegistry" interface="ctd.mvc.upload.FileRegistry"/>
+	<ngari:reference id="fileserver.fileRegistry" interface="ctd.mvc.upload.FileRegistry"/>
 	<bean id="fileService" class="ctd.mvc.upload.FileService">
 		<property name="registry" ref="fileserver.fileRegistry" />
 		<property name="repository" ref="localFileRepository" />

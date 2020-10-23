@@ -17,8 +17,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>ssdev</groupId>
-            <artifactId>ssdev-mixins</artifactId>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-mixins</artifactId>
         </dependency>
     </dependencies>
 </project>

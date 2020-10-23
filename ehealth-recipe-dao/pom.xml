@@ -20,8 +20,8 @@
             <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>ssdev</groupId>
-                    <artifactId>ssdev-mixins</artifactId>
+                    <groupId>ngari</groupId>
+                    <artifactId>ngari-mixins</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -36,8 +36,8 @@
             <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>ssdev</groupId>
-                    <artifactId>ssdev-mixins</artifactId>
+                    <groupId>ngari</groupId>
+                    <artifactId>ngari-mixins</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
