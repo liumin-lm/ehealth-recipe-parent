@@ -392,6 +392,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO) {
+        LOGGER.info("保存处方订单电子票据入参={}",JSONObject.toJSONString(orderBillReqTO));
         RecipeOrderBillDAO orderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
         RecipeOrderBill bill = new RecipeOrderBill();
         bill.setRecipeOrderCode(orderBillReqTO.getRecipeOrderCode());
@@ -400,6 +401,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         bill.setBillBathCode(orderBillReqTO.getBillBathCode());
         bill.setBillNumber(orderBillReqTO.getBillNumber());
         bill.setCreateTime(new Date());
+        LOGGER.info("保存处方订单电子票据信息={}",JSONObject.toJSONString(bill));
         orderBillDAO.save(bill);
         return true;
     }
