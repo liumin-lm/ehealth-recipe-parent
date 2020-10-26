@@ -134,7 +134,7 @@ public enum RecipeMsgEnum {
     /**
      * 第三方审核通过
      */
-    HIS_OR_PHARMACEUTICAL_REFUND_SUCCESS(136, "HisOrPharmaceuticalRefundFail"),
+    HIS_OR_PHARMACEUTICAL_REFUND_SUCCESS(136, "HisOrPharmaceuticalRefundSuccess"),
 
     /**
      * 默认消息
