@@ -1,5 +1,6 @@
 package recipe.hisservice;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -588,6 +589,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         billDTO.setBillPictureUrl(orderBill.getBillPictureUrl());
         billDTO.setBillQrCode(orderBill.getBillQrCode());
         billDTO.setRecipeOrderCode(orderBill.getRecipeOrderCode());
+        LOGGER.info("查询订单电子票据,结果={}", JSONObject.toJSONString(billDTO));
         return billDTO;
     }
 
