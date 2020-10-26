@@ -255,16 +255,19 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public FindRefundRecordResponseTO findRefundRecordfromHis(Integer recipeId, String applyNo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if(recipe == null){
             LOGGER.error("findRefundRecordfromHis-未获取到处方单信息. recipeId={}", recipeId.toString());
             throw new DAOException("未获取到处方单信息！");
         }
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
         FindRefundRecordReqTO request = new FindRefundRecordReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setBusNo(applyNo);
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
+        request.setRefundType(getRefundType(recipeOrder));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<FindRefundRecordResponseTO> hisResult = service.findRefundRecord(request);

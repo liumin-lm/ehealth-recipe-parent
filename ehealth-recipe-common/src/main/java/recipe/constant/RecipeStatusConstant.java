@@ -283,6 +283,14 @@ public class RecipeStatusConstant {
      * 不存在的状态，用于微信发送,医生审核不通过
      */
     public static final int RECIPE_REFUND_AUDIT_FAIL = 133;
+    /**
+     * His或者药企审核不通过
+     */
+    public static final int RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL = 135;
+    /**
+     * His或者药企审核通过
+     */
+    public static final int RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS = 136;
 
 
 }
