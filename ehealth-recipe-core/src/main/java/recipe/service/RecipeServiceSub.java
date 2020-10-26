@@ -851,7 +851,7 @@ public class RecipeServiceSub {
                 Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
                 LOGGER.info("createParamMap recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
                 if((boolean)canShowDrugCost){
-                    paramMap.put("drugCost"+ i,d.getDrugCost());
+                    paramMap.put("drugCost"+ i,d.getDrugCost()+"");
                 }
                 i++;
             }
@@ -965,7 +965,7 @@ public class RecipeServiceSub {
                 Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
                 LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
                 if((boolean)canShowDrugCost){
-                    paramMap.put("drugCost"+ i,d.getDrugCost());
+                    paramMap.put("drugCost"+ i,d.getDrugCost()+"");
                 }
                 i++;
             }
