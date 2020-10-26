@@ -5,6 +5,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -115,6 +117,7 @@ public class CreateRecipePdfUtil {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             Integer sendType = null;//配送主体类型 1医院配送 2 药企配送
             Integer giveMode = null;
+            Integer settlementMode = null;
             List<Recipedetail> recipeDetails = null;
             if (recipe != null && StringUtil.isNotBlank(recipe.getOrderCode())) {
                 IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -127,8 +130,17 @@ public class CreateRecipePdfUtil {
                     if (recipeOrder != null && null != recipeOrder.getSendType()) {
                         sendType = recipeOrder.getSendType();
                     }
+                    Integer enterpriseId = recipeOrder.getEnterpriseId();
+                    if(null != enterpriseId){
+                        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(enterpriseId);
+                        if(null != enterprise){
+                            settlementMode = enterprise.getSettlementMode();
+                        }
+                    }
+                    //【recipeDetail表的salePrice和actualSalePrice比较】，订单表的处方总费用和处方表的处方总费用比较？？，不相同则替换
                     //药企配送或药店取药
-                    if ((new Integer("1").equals(giveMode) && new Integer("2").equals(sendType)) //药企配送
+                    if ((new Integer("1").equals(giveMode) && new Integer("0").equals(settlementMode)) //药企配送
                             || new Integer("3").equals(giveMode)) { //药店取药
                         //更新单个药品金额总额
                         if (CollectionUtils.isNotEmpty(recipeDetails)) {
@@ -177,6 +189,7 @@ public class CreateRecipePdfUtil {
                                     }
                                 }
                                 page.endText();
+                                addTotalFee(page, type, bf, total);
                             } else {
                                 //西药
                                 for(int i=1;i<=recipeDetails.size();i++){
@@ -196,6 +209,7 @@ public class CreateRecipePdfUtil {
                                     page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
                                 }
                                 page.endText();
+                                addTotalFee(page, type, bf, total);
                             }
 
                         }
@@ -209,21 +223,7 @@ public class CreateRecipePdfUtil {
         }catch (Exception e){
             logger.info("addTextForRecipePdf :{}",e);
         }finally {
-            page.beginText();
-            page.setColorFill(BaseColor.BLACK);
-            if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
-                //设中药文字在页面中的坐标 date20200910
-                page.setFontAndSize(bf, 10);
-                page.setTextMatrix(410, 135);
-                page.showText("药品金额 ：" + total);
 
-            } else {
-                //设置西药文字在页面中的坐标
-                page.setFontAndSize(bf, 8);
-                page.setTextMatrix(400, 30);
-                page.showText("药品金额 ：" + total);
-            }
-            page.endText();
         }
 
         //没有给预研修改原有pdf上某个位置数据的时间，暂时先重新生成好了
@@ -232,6 +232,35 @@ public class CreateRecipePdfUtil {
         reader.close();
         input.close();
         output.close();
+    }
+
+    public static void addTotalFee(PdfContentByte page, Integer type, BaseFont bf, String total){
+        //添加覆盖
+        page.saveState();
+        page.setColorFill(BaseColor.WHITE);
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+            //设中药文字在页面中的坐标 date20200910
+            page.rectangle(410, 135, 60, 10);
+        } else {
+            //设置西药文字在页面中的坐标
+            page.rectangle(420, 30, 60, 10);
+        }
+        page.fill();
+        page.restoreState();
+
+        //添加文本块
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 10);
+        page.showText("药品金额 ：" + total);
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+            //设中药文字在页面中的坐标 date20200910
+            page.setTextMatrix(410, 135);
+        } else {
+            //设置西药文字在页面中的坐标
+            page.setTextMatrix(420, 30);
+        }
+        page.endText();
     }
 
     public static void main(String[] args) throws IOException, DocumentException {
