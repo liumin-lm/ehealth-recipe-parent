@@ -20,6 +20,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -111,6 +112,7 @@ public class CreateRecipePdfUtil {
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.get(recipeId);
+            logger.info("addTextForRecipePdf recipeId:{} ,recipe:{} ",recipeId, JSONUtils.toString(recipe));
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             Integer sendType = null;//配送主体类型 1医院配送 2 药企配送
@@ -119,14 +121,18 @@ public class CreateRecipePdfUtil {
             if (recipe != null && StringUtil.isNotBlank(recipe.getOrderCode())) {
                 IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+                logger.info("addTextForRecipePdf recipeId:{} ,canShowDrugCost:{} ",recipeId, canShowDrugCost);
                 //配置单个药品金额总额在pdf显示
                 if ((boolean) canShowDrugCost) {
                     giveMode = recipe.getGiveMode();
                     recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                    logger.info("addTextForRecipePdf recipeId:{} ,recipeDetails:{} ",recipeId, JSONUtils.toString(recipeDetails));
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                    logger.info("addTextForRecipePdf recipeId:{} ,recipeOrder:{} ",recipeId, JSONUtils.toString(recipeOrder));
                     if (recipeOrder != null && null != recipeOrder.getSendType()) {
                         sendType = recipeOrder.getSendType();
                     }
+                    //【recipeDetail表的salePrice和actualSalePrice比较】，订单表的处方总费用和处方表的处方总费用比较？？，不相同则替换
                     //药企配送或药店取药
                     if ((new Integer("1").equals(giveMode) && new Integer("2").equals(sendType)) //药企配送
                             || new Integer("3").equals(giveMode)) { //药店取药
@@ -135,7 +141,7 @@ public class CreateRecipePdfUtil {
                             //中药
                             if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
                                 //int i = 0;
-                                String[] drugInfoArgs = new String[recipeDetails.size()];
+                                //String[] drugInfoArgs = new String[recipeDetails.size()];
 //                                for (Recipedetail recipeDetail : recipeDetails) {
 //                                    //recipeDetail.getDrugName();
 //                                    recipeDetail.getActualSalePrice();
@@ -147,9 +153,9 @@ public class CreateRecipePdfUtil {
 //                                }
 
                                 int drugOneLine = 0;
-                                int drugGroup = 4;
+                                int drugGroup = 4;//中药分4列
                                 int startDrugLineNum = 1;
-
+                                //给原来位置添加白色遮罩层
                                 for (int i = 1; i <= recipeDetails.size(); i++) {
                                     drugOneLine++;
                                     page.saveState();
@@ -157,7 +163,6 @@ public class CreateRecipePdfUtil {
                                     page.rectangle(138 + (i - 1) % drugGroup * 138, 518 - 20 * (startDrugLineNum - 1), 30, 20);
                                     page.fill();
                                     page.restoreState();
-
                                     if (0 == i % drugGroup) {
                                         startDrugLineNum++;
                                         drugOneLine = 0;
@@ -167,6 +172,7 @@ public class CreateRecipePdfUtil {
                                 page.setColorFill(BaseColor.BLACK);
                                 page.setFontAndSize(bf, 10);
                                 startDrugLineNum = 1;
+                                //在遮罩层上覆盖值
                                 for (int i = 1; i <= recipeDetails.size(); i++) {
                                     drugOneLine++;
                                     page.setTextMatrix(138 + (i - 1) % drugGroup * 138, 522 - 20 * (startDrugLineNum - 1));
@@ -179,6 +185,7 @@ public class CreateRecipePdfUtil {
                                 page.endText();
                             } else {
                                 //西药
+                                //给原来位置添加白色遮罩层
                                 for(int i=1;i<=recipeDetails.size();i++){
                                     page.saveState();
                                     page.setColorFill(BaseColor.WHITE);
@@ -190,7 +197,7 @@ public class CreateRecipePdfUtil {
                                 page.beginText();
                                 page.setColorFill(BaseColor.BLACK);
                                 page.setFontAndSize(bf, 8);
-                                page.setTextMatrix(400, 30);//TODO liu 中药位置待测试
+                                //在遮罩层上覆盖值
                                 for(int i=1;i<=recipeDetails.size();i++){
                                     page.setTextMatrix(420, 210 + 50 * (i - 1)+10);//TODO liu 中药位置待测试
                                     page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
@@ -235,30 +242,31 @@ public class CreateRecipePdfUtil {
     }
 
     public static void main(String[] args) throws IOException, DocumentException {
-        PdfReader reader = null;
-            reader = new PdfReader((new FileInputStream(new File("/Volumes/d/data/response.pdf"))));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        File file = new File("/Volumes/d/data/1.pdf");
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        PdfStamper stamper = new PdfStamper(reader, fileOutputStream);
-
-        PdfContentByte page = stamper.getOverContent(1);
-        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
-        page.beginText();
-        page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 10);
-        page.setTextMatrix(410, 135);//TODO liu 中药位置待测试
-        page.showText("药品金额2222 ：" + 123);
-
-        page.endText();
-
-
-//        if (baos.toByteArray().length > 0) {
-//            fileOutputStream.write(baos.toByteArray(), 0, baos.toByteArray().length);
-//            fileOutputStream.flush();
-//        }
-        fileOutputStream.close();
+        generateTotalRecipePdf("5f8d4e007826c6183c600623", "2", 1, 223417);
+//        PdfReader reader = null;
+//            reader = new PdfReader((new FileInputStream(new File("/Volumes/d/data/response.pdf"))));
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//
+//        File file = new File("/Volumes/d/data/1.pdf");
+//        FileOutputStream fileOutputStream = new FileOutputStream(file);
+//        PdfStamper stamper = new PdfStamper(reader, fileOutputStream);
+//
+//        PdfContentByte page = stamper.getOverContent(1);
+//        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+//        page.beginText();
+//        page.setColorFill(BaseColor.BLACK);
+//        page.setFontAndSize(bf, 10);
+//        page.setTextMatrix(410, 135);//TODO liu 中药位置待测试
+//        page.showText("药品金额2222 ：" + 123);
+//
+//        page.endText();
+//
+//
+////        if (baos.toByteArray().length > 0) {
+////            fileOutputStream.write(baos.toByteArray(), 0, baos.toByteArray().length);
+////            fileOutputStream.flush();
+////        }
+//        fileOutputStream.close();
         //page.moveText();
     }
 
