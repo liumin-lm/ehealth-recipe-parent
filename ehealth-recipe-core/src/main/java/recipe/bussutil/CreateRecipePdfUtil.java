@@ -251,10 +251,10 @@ public class CreateRecipePdfUtil {
         page.setColorFill(BaseColor.WHITE);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设中药文字在页面中的坐标 date20200910
-            page.rectangle(410, 135, 60, 10);
+            page.rectangle(410, 100, 100, 20);
         } else {
             //设置西药文字在页面中的坐标
-            page.rectangle(420, 30, 60, 10);
+            page.rectangle(420, 30, 100, 20);
         }
         page.fill();
         page.restoreState();
@@ -266,7 +266,7 @@ public class CreateRecipePdfUtil {
         page.showText("药品金额 ：" + total);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设中药文字在页面中的坐标 date20200910
-            page.setTextMatrix(410, 135);
+            page.setTextMatrix(410, 100);
         } else {
             //设置西药文字在页面中的坐标
             page.setTextMatrix(420, 30);
