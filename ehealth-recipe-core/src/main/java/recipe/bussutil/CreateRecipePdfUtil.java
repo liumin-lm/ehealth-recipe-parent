@@ -5,7 +5,6 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -113,7 +111,6 @@ public class CreateRecipePdfUtil {
 
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             Recipe recipe = recipeDAO.get(recipeId);
             logger.info("addTextForRecipePdf recipeId:{} ,recipe:{} ",recipeId, JSONUtils.toString(recipe));
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -135,16 +132,10 @@ public class CreateRecipePdfUtil {
 //                    if (recipeOrder != null && null != recipeOrder.getSendType()) {
 //                        sendType = recipeOrder.getSendType();
 //                    }
-                    int settlementMode = 0;
-                    if (recipe.getEnterpriseId() != null) {
-                        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-                        //结算方式 0:药店价格 1:医院价格
-                        if(drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1){
-                            settlementMode = 1;
-                        }
-                    //【recipeDetail表的salePrice和actualSalePrice比较】，订单表的处方总费用和处方表的处方总费用比较？？，不相同则替换
-                    //药企配送或药店取药
-                    if ((new Integer("1").equals(giveMode) && new Integer("0").equals(settlementMode)) //药企配送
+                    //订单表的recipeFee和处方表的recipeFee比较
+//                    if ((new Integer("1").equals(giveMode) && new Integer("2").equals(sendType)) //药企配送
+//                            || new Integer("3").equals(giveMode)) { //药店取药
+                    if ((new Integer("1").equals(giveMode) && new Integer("2").equals(sendType)) //药企配送
                             || new Integer("3").equals(giveMode)) { //药店取药
                         //更新单个药品金额总额
                         if (CollectionUtils.isNotEmpty(recipeDetails)) {
