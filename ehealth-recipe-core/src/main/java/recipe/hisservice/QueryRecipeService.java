@@ -402,7 +402,6 @@ public class QueryRecipeService implements IQueryRecipeService {
     private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
-        // TODO 药品总数量、药品总价格
         Double drugTotalNumber = new Double(0);
         BigDecimal drugTotalAmount= new BigDecimal(0);
         //拼接处方明细
