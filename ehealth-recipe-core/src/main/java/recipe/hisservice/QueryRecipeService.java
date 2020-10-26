@@ -403,6 +403,8 @@ public class QueryRecipeService implements IQueryRecipeService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         // TODO 药品总数量、药品总价格
+        Double drugTotalNumber = new Double(0);
+        BigDecimal drugTotalAmount= new BigDecimal(0);
         //拼接处方明细
         if (null != details && !details.isEmpty()) {
             List<OrderItemDTO> orderList = new ArrayList<>();
@@ -450,6 +452,15 @@ public class QueryRecipeService implements IQueryRecipeService {
                     orderItem.setDrugManfCode(organDrugList.getProducerCode());
                     //药品单价
                     orderItem.setPrice(String.valueOf(organDrugList.getSalePrice()));
+                    // 订单药品总价
+                    try {
+                        BigDecimal num = null != detail.getUseTotalDose() ? new BigDecimal(detail.getUseTotalDose()) : new BigDecimal(0);
+                        BigDecimal price = null != organDrugList.getSalePrice() ? organDrugList.getSalePrice() : new BigDecimal(0);
+                        BigDecimal totalPrice = num.multiply(price);
+                        drugTotalAmount = drugTotalAmount.add(totalPrice);
+                    } catch (Exception e) {
+                        LOGGER.error("计算处方订单药品总价异常=",e);
+                    }
                     //医保对应代码
                     orderItem.setMedicalDrcode(organDrugList.getMedicalDrugCode());
                     //剂型代码 --
@@ -470,6 +481,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                  */
                 // 开药数量
                 orderItem.setTotalDose((null != detail.getUseTotalDose()) ? Double.toString(detail.getUseTotalDose()) : null);
+                // 药品总数量
+                Double drugNumber = null != detail.getUseTotalDose() ? detail.getUseTotalDose() : 0;
+                drugTotalNumber += drugNumber;
                 //备注
                 orderItem.setRemark(detail.getMemo());
                 //药品包装
@@ -495,6 +509,8 @@ public class QueryRecipeService implements IQueryRecipeService {
         } else {
             recipeDTO.setOrderList(null);
         }
+        recipeDTO.setDrugTotalNumber(drugTotalNumber);
+        recipeDTO.setDrugTotalAmount(drugTotalAmount);
     }
 
     /**
