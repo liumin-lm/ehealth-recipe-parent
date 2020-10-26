@@ -40,6 +40,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 
 import java.math.BigDecimal;
@@ -499,6 +500,9 @@ public class HisCallBackService {
                             RecipeMsgService.batchSendMsg(recipeId, msgStatus);
                             //更新pdf
                             CommonOrder.finishGetDrugUpdatePdf(recipeId);
+                            //监管平台核销上传
+                            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                            syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
                         }
                     }
                 }
