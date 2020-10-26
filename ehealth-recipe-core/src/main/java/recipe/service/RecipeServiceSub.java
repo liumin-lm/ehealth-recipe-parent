@@ -848,8 +848,10 @@ public class RecipeServiceSub {
                     //备注
                     paramMap.put("dMemo" + i, "备注:" + d.getMemo());
                 }
-
-
+                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+                if((boolean)canShowDrugCost){
+                    paramMap.put("drugCost",d.getDrugCost());
+                }
                 i++;
             }
             paramMap.put("drugNum", i);
@@ -958,6 +960,10 @@ public class RecipeServiceSub {
                 }
 
                 paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
+                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+                if((boolean)canShowDrugCost){
+                    paramMap.put("drugCost",d.getDrugCost());
+                }
                 i++;
             }
             paramMap.put("drugNum", i);
