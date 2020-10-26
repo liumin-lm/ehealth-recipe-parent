@@ -19,5 +19,5 @@ public abstract class RecipeOrderBillDAO extends HibernateSupportDelegateDAO<Rec
     }
 
     @DAOMethod(sql = "from RecipeOrderBill where recipe_order_code =:recipeOrderCode")
-    public abstract RecipeOrderBill getDoctorUsage(@DAOParam("recipeOrderCode") String recipeOrderCode);
+    public abstract RecipeOrderBill getRecipeOrderBillByOrderCode(@DAOParam("recipeOrderCode") String recipeOrderCode);
 }
