@@ -17,6 +17,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-entity</artifactId>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>ngari</groupId>
@@ -27,10 +28,12 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-common</artifactId>
+            <version>2.11.0.2.dev-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
+            <version>2.11.0.2.dev-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ngari</groupId>
@@ -51,6 +54,10 @@
                     <groupId>ngari</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-utils</artifactId>
         </dependency>
     </dependencies>
 </project>

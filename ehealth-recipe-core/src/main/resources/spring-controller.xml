@@ -11,7 +11,7 @@
         <ngari:filter id="urt"/>
     </ngari:connector>
 
-    <!--<ngari:mvcServer port="8899"/>-->
+    <ngari:mvcServer port="8899"/>
 
     <!-- pub/sub -->
     <ngari:publisher id="publisher"/>
