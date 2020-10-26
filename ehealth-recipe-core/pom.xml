@@ -20,10 +20,12 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-prescription</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-common</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>${project.parent.groupId}</groupId>-->
