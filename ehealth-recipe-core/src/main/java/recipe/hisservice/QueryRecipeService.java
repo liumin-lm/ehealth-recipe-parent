@@ -401,6 +401,7 @@ public class QueryRecipeService implements IQueryRecipeService {
     private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+        // TODO 药品总数量、药品总价格
         //拼接处方明细
         if (null != details && !details.isEmpty()) {
             List<OrderItemDTO> orderList = new ArrayList<>();
@@ -565,6 +566,29 @@ public class QueryRecipeService implements IQueryRecipeService {
         Boolean result = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("superviseRecipecode", superviseRecipecode));
         LOGGER.info("更新电子处方监管平台流水号结果：{}", result);
         return result;
+    }
+
+    @Override
+    public RecipeOrderBillDTO getRecipeOrderBill(Integer recipeId) {
+        RecipeOrderBillDTO billDTO = new RecipeOrderBillDTO();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe){
+            LOGGER.error("查询订单电子票据，根据处方号查询处方信息为空，recipeId={}",recipeId);
+            return billDTO;
+        }
+        RecipeOrderBillDAO orderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
+        RecipeOrderBill orderBill = orderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+        if (null == orderBill){
+            LOGGER.error("查询订单电子票据，根据订单号查询票据信息为空，orderCode={}",recipe.getOrderCode());
+            return billDTO;
+        }
+        billDTO.setBillBathCode(orderBill.getBillBathCode());
+        billDTO.setBillNumber(orderBill.getBillNumber());
+        billDTO.setBillPictureUrl(orderBill.getBillPictureUrl());
+        billDTO.setBillQrCode(orderBill.getBillQrCode());
+        billDTO.setRecipeOrderCode(orderBill.getRecipeOrderCode());
+        return billDTO;
     }
 
     private RecipeResultBean dealWithforOnlyOrganDrug(OrganDrugChangeBean organDrugChange) {
