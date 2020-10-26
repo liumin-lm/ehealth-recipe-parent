@@ -87,7 +87,7 @@ public enum CommonExtendRemoteTypeEnum {
 
     public static CommonExtendEnterprisesInterface getTypeFromOrganIdAndEnterprises(Integer organId, DrugsEnterprise drugsEnterprise) {
         if(null != organId){
-            getTypeFromOrganId(organId);
+            return getTypeFromOrganId(organId);
         }else{
             //这里判断当是杭州市药企的时候，为了处理这种没有机构id，导致无法判断是那种药企特性流程
             if(null != drugsEnterprise && "hzInternet".equals(drugsEnterprise.getAccount())){
