@@ -204,25 +204,25 @@ public class CreateRecipePdfUtil {
                                 logger.info("addTextForRecipePdf recipeId:{} 替换数据 ",recipeId);
                                 //西药
                                 //给原来位置添加白色遮罩层
-                                for(int i=1;i<=recipeDetails.size();i++){
-                                    page.saveState();
-                                    page.setColorFill(BaseColor.WHITE);
-                                    page.rectangle(420, 210 + 50 * (i - 1)+10, 100, 16);
-                                    page.fill();
-                                    page.restoreState();
-                                }
+//                                for(int i=1;i<=recipeDetails.size();i++){
+//                                    page.saveState();
+//                                    page.setColorFill(BaseColor.WHITE);
+//                                    page.rectangle(420, 210 + 50 * (i - 1)+10, 100, 16);
+//                                    page.fill();
+//                                    page.restoreState();
+//                                }
 
-                                page.beginText();
-                                page.setColorFill(BaseColor.BLACK);
-                                page.setFontAndSize(bf, 8);
+//                                page.beginText();
+//                                page.setColorFill(BaseColor.BLACK);
+//                                page.setFontAndSize(bf, 8);
                                 //在遮罩层上覆盖值
-                                for(int i=1;i<=recipeDetails.size();i++){
-                                    page.setTextMatrix(420, 210 + 50 * (i - 1)+10);
-                                    String showText=recipeDetails.get(i-1).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i-1).getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元";
-                                    logger.info("addTextForRecipePdf recipeId:{} showText:{} ",recipeId,showText);
-                                    page.showText(showText);
-                                }
-                                page.endText();
+//                                for(int i=1;i<=recipeDetails.size();i++){
+//                                    page.setTextMatrix(420, 210 + 50 * (i - 1)+10);
+//                                    String showText=recipeDetails.get(i-1).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i-1).getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元";
+//                                    logger.info("addTextForRecipePdf recipeId:{} showText:{} ",recipeId,showText);
+//                                    page.showText(showText);
+//                                }
+//                                page.endText();
                                 addTotalFee(page, type, bf, total);
                             }
 
@@ -252,7 +252,7 @@ public class CreateRecipePdfUtil {
         logger.info("addTotalFee total:{}",total);
         //添加覆盖
         page.saveState();
-        page.setColorFill(BaseColor.YELLOW);
+        page.setColorFill(BaseColor.WHITE);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设中药文字在页面中的坐标 date20200910
             page.rectangle(410, 100, 100, 20);
