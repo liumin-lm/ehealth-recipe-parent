@@ -49,7 +49,6 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-revisit-api</artifactId>
-            <version>${ngari.revisit.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -76,7 +75,6 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-his-api</artifactId>
-            <version>${ngari.hisapi.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -232,11 +230,9 @@
             <artifactId>ehealth-bill-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>ehealth</groupId>
+            <groupId>ngari</groupId>
             <artifactId>oss-support</artifactId>
-            <version>1.3.6-filechange-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-spring</artifactId>
@@ -266,7 +262,6 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-account-api</artifactId>
-            <version>${ngari.account.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>

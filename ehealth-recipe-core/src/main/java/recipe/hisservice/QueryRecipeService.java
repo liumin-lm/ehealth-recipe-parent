@@ -20,6 +20,9 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -210,7 +213,14 @@ public class QueryRecipeService implements IQueryRecipeService {
             //处方id
             recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
             //挂号序号
-            recipeDTO.setRegisterId(String.valueOf(recipe.getClinicId()));
+            //recipeDTO.setRegisterId(String.valueOf(recipe.getClinicId()));
+            if (recipe.getClinicId() != null) {
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                if (consultExDTO != null) {
+                    recipeDTO.setRegisterId(consultExDTO.getRegisterNo());
+                }
+            }
             //签名日期
             recipeDTO.setDatein(recipe.getSignDate());
             //是否支付
@@ -310,6 +320,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setPatientSex(patient.getPatientSex());
                 // 简要病史
                 recipeDTO.setDiseasesHistory(recipe.getOrganDiseaseName());
+                // 患者年龄
+                recipeDTO.setPatinetAge(getAge(patient.getBirthday()));
             }
             //设置卡
             if (null != card) {
@@ -348,6 +360,43 @@ public class QueryRecipeService implements IQueryRecipeService {
 
         return recipeDTO;
     }
+
+    private  int getAge(Date birthDay){
+        int age = 0;
+        if (null == birthDay){
+            return age;
+        }
+        try {
+            Calendar cal = Calendar.getInstance();
+            if (cal.before(birthDay)) {
+                return age;
+            }
+            int yearNow = cal.get(Calendar.YEAR);
+            int monthNow = cal.get(Calendar.MONTH);
+            int dayOfMonthNow = cal.get(Calendar.DAY_OF_MONTH);
+            cal.setTime(birthDay);
+
+            int yearBirth = cal.get(Calendar.YEAR);
+            int monthBirth = cal.get(Calendar.MONTH);
+            int dayOfMonthBirth = cal.get(Calendar.DAY_OF_MONTH);
+
+            age = yearNow - yearBirth;
+
+            if (monthNow <= monthBirth) {
+                if (monthNow == monthBirth) {
+                    if (dayOfMonthNow < dayOfMonthBirth){
+                        age--;
+                    }
+                }else{
+                    age--;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("根据出生日期或者年龄异常,birthday={}",birthDay,e);
+        }
+        return age;
+    }
+
 
     private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -549,8 +598,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         if(StringUtils.isEmpty(organDrugChange.getDrugId()) || StringUtils.isEmpty(organDrugChange.getPack()) ||
                 StringUtils.isEmpty(organDrugChange.getUseDose()) || StringUtils.isEmpty(organDrugChange.getSalePrice()) ||
                 StringUtils.isEmpty(organDrugChange.getBaseDrug()) || StringUtils.isEmpty(organDrugChange.getOperationCode()) ||
-                StringUtils.isEmpty(organDrugChange.getMedicalDrugType()) ||  StringUtils.isEmpty(organDrugChange.getDrugType()) ||
-                StringUtils.isEmpty(organDrugChange.getUseDoseUnit())){
+                StringUtils.isEmpty(organDrugChange.getMedicalDrugType()) ||  StringUtils.isEmpty(organDrugChange.getDrugType()) ){
             result.setMsg("当前请求参数不全，有必填字段为空");
             return result;
         }

@@ -30,17 +30,17 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ngari-mvc</artifactId>
-                <version>${ngari.version}</version>
+                <version>${ngari.framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ngari-mixins</artifactId>
-                <version>${ngari.version}</version>
+                <version>${ngari.framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ngari-broadcast-support</artifactId>
-                <version>${ngari.version}</version>
+                <version>${ngari.framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
@@ -429,13 +429,13 @@
     </build>
 
     <!--<distributionManagement>-->
-        <!--<repository>-->
-            <!--<id>releases</id>-->
-            <!--<url>http://maven.ngarihealth.com:8081/nexus/content/repositories/releases</url>-->
-        <!--</repository>-->
-        <!--<snapshotRepository>-->
-            <!--<id>snapshots</id>-->
-            <!--<url>http://maven.ngarihealth.com:8081/nexus/content/repositories/snapshots</url>-->
-        <!--</snapshotRepository>-->
+    <!--<repository>-->
+    <!--<id>releases</id>-->
+    <!--<url>http://maven.ngarihealth.com:8081/nexus/content/repositories/releases</url>-->
+    <!--</repository>-->
+    <!--<snapshotRepository>-->
+    <!--<id>snapshots</id>-->
+    <!--<url>http://maven.ngarihealth.com:8081/nexus/content/repositories/snapshots</url>-->
+    <!--</snapshotRepository>-->
     <!--</distributionManagement>-->
 </project>
