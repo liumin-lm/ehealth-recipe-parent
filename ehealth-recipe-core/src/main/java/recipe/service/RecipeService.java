@@ -46,6 +46,7 @@ import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -119,8 +120,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -1943,8 +1942,6 @@ public class RecipeService extends RecipeBaseService {
                             }
                         }
                     }
-                } else {
-                    errFlag = 1;
                 }
                 if (RecipeResultBean.FAIL.equals(scanResult3.getCode()) && errFlag == 1) {
                     //医院药企都无库存
