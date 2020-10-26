@@ -274,7 +274,7 @@ public class CreateRecipePdfUtil {
             //设置西药文字在页面中的坐标
             page.setTextMatrix(420, 60);
         }
-        page.showText("药品金额 ：" + total);
+        page.showText("药品金额 ：" + total+"元");
         page.endText();
     }
 
