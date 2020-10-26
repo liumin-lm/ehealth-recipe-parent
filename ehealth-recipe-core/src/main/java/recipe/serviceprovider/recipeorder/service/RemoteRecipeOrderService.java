@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.*;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
@@ -395,7 +392,16 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO) {
-        return null;
+        RecipeOrderBillDAO orderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
+        RecipeOrderBill bill = new RecipeOrderBill();
+        bill.setRecipeOrderCode(orderBillReqTO.getRecipeOrderCode());
+        bill.setBillPictureUrl(orderBillReqTO.getBillPictureUrl());
+        bill.setBillQrCode(orderBillReqTO.getBillQrCode());
+        bill.setBillBathCode(orderBillReqTO.getBillBathCode());
+        bill.setBillNumber(orderBillReqTO.getBillNumber());
+        bill.setCreateTime(new Date());
+        orderBillDAO.save(bill);
+        return true;
     }
 
 }
