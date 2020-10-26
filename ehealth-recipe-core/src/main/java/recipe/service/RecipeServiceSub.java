@@ -962,11 +962,11 @@ public class RecipeServiceSub {
                 }
 
                 paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
-                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
-                LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
-                if((boolean)canShowDrugCost){
-                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
-                }
+//                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+//                LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
+//                if((boolean)canShowDrugCost){
+//                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
+//                }
                 i++;
             }
             paramMap.put("drugNum", i);

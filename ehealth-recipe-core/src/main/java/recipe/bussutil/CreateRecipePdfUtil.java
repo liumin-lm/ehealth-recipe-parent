@@ -5,6 +5,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -111,6 +113,7 @@ public class CreateRecipePdfUtil {
 
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             Recipe recipe = recipeDAO.get(recipeId);
             logger.info("addTextForRecipePdf recipeId:{} ,recipe:{} ",recipeId, JSONUtils.toString(recipe));
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -129,60 +132,55 @@ public class CreateRecipePdfUtil {
                     logger.info("addTextForRecipePdf recipeId:{} ,recipeDetails:{} ",recipeId, JSONUtils.toString(recipeDetails));
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     logger.info("addTextForRecipePdf recipeId:{} ,recipeOrder:{} ",recipeId, JSONUtils.toString(recipeOrder));
-                    if (recipeOrder != null && null != recipeOrder.getSendType()) {
-                        sendType = recipeOrder.getSendType();
-                    }
+//                    if (recipeOrder != null && null != recipeOrder.getSendType()) {
+//                        sendType = recipeOrder.getSendType();
+//                    }
+                    int settlementMode = 0;
+                    if (recipe.getEnterpriseId() != null) {
+                        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                        //结算方式 0:药店价格 1:医院价格
+                        if(drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1){
+                            settlementMode = 1;
+                        }
                     //【recipeDetail表的salePrice和actualSalePrice比较】，订单表的处方总费用和处方表的处方总费用比较？？，不相同则替换
                     //药企配送或药店取药
-                    if ((new Integer("1").equals(giveMode) && new Integer("2").equals(sendType)) //药企配送
+                    if ((new Integer("1").equals(giveMode) && new Integer("0").equals(settlementMode)) //药企配送
                             || new Integer("3").equals(giveMode)) { //药店取药
                         //更新单个药品金额总额
                         if (CollectionUtils.isNotEmpty(recipeDetails)) {
                             //中药
                             if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
-                                //int i = 0;
-                                //String[] drugInfoArgs = new String[recipeDetails.size()];
-//                                for (Recipedetail recipeDetail : recipeDetails) {
-//                                    //recipeDetail.getDrugName();
-//                                    recipeDetail.getActualSalePrice();
-////                                    String dName = (i + 1) + "、" + recipeDetail.getDrugName();
-////                                    //规格+药品单位
-////                                    String dSpec = recipeDetail.getDrugSpec() + "/" + recipeDetail.getDrugUnit();
-////                                    drugInfoArgs[i] = dName + dSpec;
-//                                    //i++;
+//                                int drugOneLine = 0;
+//                                int drugGroup = 4;//中药分4列
+//                                int startDrugLineNum = 1;
+//                                //给原来位置添加白色遮罩层
+//                                for (int i = 1; i <= recipeDetails.size(); i++) {
+//                                    drugOneLine++;
+//                                    page.saveState();
+//                                    page.setColorFill(BaseColor.WHITE);
+//                                    page.rectangle(138 + (i - 1) % drugGroup * 138, 518 - 20 * (startDrugLineNum - 1), 30, 20);
+//                                    page.fill();
+//                                    page.restoreState();
+//                                    if (0 == i % drugGroup) {
+//                                        startDrugLineNum++;
+//                                        drugOneLine = 0;
+//                                    }
 //                                }
-
-                                int drugOneLine = 0;
-                                int drugGroup = 4;//中药分4列
-                                int startDrugLineNum = 1;
-                                //给原来位置添加白色遮罩层
-                                for (int i = 1; i <= recipeDetails.size(); i++) {
-                                    drugOneLine++;
-                                    page.saveState();
-                                    page.setColorFill(BaseColor.WHITE);
-                                    page.rectangle(138 + (i - 1) % drugGroup * 138, 518 - 20 * (startDrugLineNum - 1), 30, 20);
-                                    page.fill();
-                                    page.restoreState();
-                                    if (0 == i % drugGroup) {
-                                        startDrugLineNum++;
-                                        drugOneLine = 0;
-                                    }
-                                }
-                                page.beginText();
-                                page.setColorFill(BaseColor.BLACK);
-                                page.setFontAndSize(bf, 10);
-                                startDrugLineNum = 1;
-                                //在遮罩层上覆盖值
-                                for (int i = 1; i <= recipeDetails.size(); i++) {
-                                    drugOneLine++;
-                                    page.setTextMatrix(138 + (i - 1) % drugGroup * 138, 522 - 20 * (startDrugLineNum - 1));
-                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
-                                    if (0 == i % drugGroup) {
-                                        startDrugLineNum++;
-                                        drugOneLine = 0;
-                                    }
-                                }
-                                page.endText();
+//                                page.beginText();
+//                                page.setColorFill(BaseColor.BLACK);
+//                                page.setFontAndSize(bf, 10);
+//                                startDrugLineNum = 1;
+//                                //在遮罩层上覆盖值
+//                                for (int i = 1; i <= recipeDetails.size(); i++) {
+//                                    drugOneLine++;
+//                                    page.setTextMatrix(138 + (i - 1) % drugGroup * 138, 522 - 20 * (startDrugLineNum - 1));
+//                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
+//                                    if (0 == i % drugGroup) {
+//                                        startDrugLineNum++;
+//                                        drugOneLine = 0;
+//                                    }
+//                                }
+//                                page.endText();
                             } else {
                                 //西药
                                 //给原来位置添加白色遮罩层
