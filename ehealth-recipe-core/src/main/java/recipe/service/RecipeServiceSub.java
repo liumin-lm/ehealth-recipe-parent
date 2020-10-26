@@ -855,6 +855,7 @@ public class RecipeServiceSub {
                 }
                 i++;
             }
+            paramMap.put("recipeFee", recipe.getTotalMoney()+"" );
             paramMap.put("drugNum", i);
             LOGGER.info("createParamMap recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
         } catch (Exception e) {
@@ -969,6 +970,7 @@ public class RecipeServiceSub {
 //                }
                 i++;
             }
+            paramMap.put("recipeFee", recipe.getTotalMoney()+"" );
             paramMap.put("drugNum", i);
             LOGGER.info("createParamMapForChineseMedicine recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
         } catch (Exception e) {
