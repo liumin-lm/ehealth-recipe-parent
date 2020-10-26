@@ -1,11 +1,11 @@
 package recipe.atop;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.entity.ConfigStatusCheck;
+import com.ngari.recipe.service.IConfigStatusService;
+import com.ngari.recipe.vo.ConfigStatusCheckVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.service.ConfigStatusService;
 
 import java.util.List;
 
@@ -14,16 +14,42 @@ import java.util.List;
  *
  * @author fuzi
  */
-@RpcBean("ConfigStatusAtop")
+@RpcBean("configStatusAtop")
 public class ConfigStatusAtop extends BaseAtop {
     @Autowired
-    private ConfigStatusService configStatusService;
+    private IConfigStatusService configStatusService;
 
+    /**
+     * 根据位置查询状态数据
+     *
+     * @param location
+     * @return
+     */
     @RpcService
-    public List<ConfigStatusCheck> getConfigStatus(int location) {
+    public List<ConfigStatusCheckVO> getConfigStatus(Integer location) {
         logger.info("ConfigStatusService getConfigStatus location = {}", location);
         try {
-            List<ConfigStatusCheck> configStatusCheckList = configStatusService.getConfigStatus(location);
+            List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.getConfigStatus(location);
+            logger.info("ConfigStatusService getConfigStatus configStatusCheckList = {}", JSON.toJSONString(configStatusCheckList));
+            return configStatusCheckList;
+        } catch (Exception e) {
+            logger.error("ConfigStatusService getConfigStatus error", e);
+        }
+        return null;
+    }
+
+    /**
+     * 根据位置与源状态查询数据
+     *
+     * @param location
+     * @param source
+     * @return
+     */
+    @RpcService
+    public List<ConfigStatusCheckVO> getConfigStatusBySource(Integer location, Integer source) {
+        logger.info("ConfigStatusService getConfigStatus location = {}", location);
+        try {
+            List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.findByLocationAndSource(location, source);
             logger.info("ConfigStatusService getConfigStatus configStatusCheckList = {}", JSON.toJSONString(configStatusCheckList));
             return configStatusCheckList;
         } catch (Exception e) {

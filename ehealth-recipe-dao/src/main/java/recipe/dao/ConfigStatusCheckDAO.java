@@ -17,7 +17,7 @@ import java.util.List;
  * @author fuzi
  */
 @RpcSupportDAO
-public abstract class ConfigStatusCheckDAO extends HibernateSupportDelegateDAO<ConfigStatusCheck> implements ExtendDao {
+public abstract class ConfigStatusCheckDAO extends HibernateSupportDelegateDAO<ConfigStatusCheck> implements ExtendDao<ConfigStatusCheck> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -27,21 +27,27 @@ public abstract class ConfigStatusCheckDAO extends HibernateSupportDelegateDAO<C
         this.setKeyField("id");
     }
 
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(ConfigStatusCheck configStatusCheck) {
+        return updateNonNullFieldByPrimaryKey(configStatusCheck, "id");
+    }
+
     /**
      * 根据位置获取状态数据
      *
-     * @param location
+     * @param location 位置
      * @return
      */
     @DAOMethod
-    public abstract List<ConfigStatusCheck> findByLocation(int location);
+    public abstract List<ConfigStatusCheck> findByLocation(Integer location);
 
     /**
      * 根据位置 与 源状态 获取状态数据
      *
-     * @param location
+     * @param location 位置
+     * @param source   源
      * @return
      */
     @DAOMethod
-    public abstract List<ConfigStatusCheck> findByLocationAndSource(int location);
+    public abstract List<ConfigStatusCheck> findByLocationAndSource(Integer location, Integer source);
 }

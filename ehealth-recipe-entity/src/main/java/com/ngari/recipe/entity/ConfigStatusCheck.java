@@ -17,6 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Access(AccessType.PROPERTY)
 public class ConfigStatusCheck implements Serializable {
 
+    private static final long serialVersionUID = 3157281576674463160L;
     @ItemProperty(alias = "主键")
     private Integer id;
     @ItemProperty(alias = "位置：1处方状态，2订单状态（院取药订），3订单状态（配送到家）...")
