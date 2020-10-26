@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.visit.mode.ApplicationForRefundVisitReqTO;
 import com.ngari.his.visit.mode.CheckForRefundVisitReqTO;
@@ -11,16 +12,13 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -32,11 +30,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
-import recipe.dao.RecipeRefundDAO;
-import recipe.dao.RecipeExtendDAO;
+import recipe.dao.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -88,24 +84,49 @@ public class RecipeRefundService extends RecipeBaseService{
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         //date 20201012 加长了接口过期时间，接口20s会超时
         HisResponseTO<String> hisResult = service.applicationForRefundVisit(request);
-        if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
-            LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
-            //退费申请记录保存
-            RecipeRefund recipeRefund = new RecipeRefund();
-            recipeRefund.setTradeNo(recipeOrder.getTradeNo());
-            recipeRefund.setPrice(recipeOrder.getActualPrice());
-            recipeRefund.setNode(-1);
-            recipeRefund.setApplyNo(hisResult.getData());
-            recipeRefund.setReason(applyReason);
-            recipeReFundSave(recipe, recipeRefund);
-            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
-        } else {
-            LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
-            String msg = "";
-            if(hisResult != null && hisResult.getMsg() != null){
-                msg = hisResult.getMsg();
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
+        if (doctorReviewRefund) {
+            //说明需要医生进行审核，则需要推送给医生，此处兼容上海六院，其他医院前置机需要实现此接口并返回成功但不需要真实对接第三方
+            if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
+                LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                //退费申请记录保存
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+                recipeRefund.setPrice(recipeOrder.getActualPrice());
+                recipeRefund.setNode(-1);
+                recipeRefund.setApplyNo(hisResult.getData());
+                recipeRefund.setReason(applyReason);
+                recipeReFundSave(recipe, recipeRefund);
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
+            } else {
+                LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                String msg = "";
+                if(hisResult != null && hisResult.getMsg() != null){
+                    msg = hisResult.getMsg();
+                }
+                throw new DAOException("处方退费申请失败！" + msg);
             }
-            throw new DAOException("处方退费申请失败！" + msg);
+        } else {
+            //不需要医生审核，则直接推送给第三方
+            CheckForRefundVisitReqTO visitRequest = new CheckForRefundVisitReqTO();
+            visitRequest.setOrganId(recipe.getClinicOrgan());
+            visitRequest.setBusNo(recipeOrder.getTradeNo());
+            visitRequest.setPatientId(recipe.getPatientID());
+            visitRequest.setPatientName(recipe.getPatientName());
+            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            if (null != doctorDTO) {
+                visitRequest.setChecker(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorDTO.getDoctorId(), recipe.getClinicOrgan(), recipe.getDepart()));
+                visitRequest.setCheckerName(doctorDTO.getName());
+            }
+            visitRequest.setCheckNode("0");
+            visitRequest.setCheckReason(applyReason);
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHH:mm:ss");
+            visitRequest.setCheckTime(formatter.format(new Date()));
+
+            HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
         }
     }
 
@@ -428,5 +449,35 @@ public class RecipeRefundService extends RecipeBaseService{
         result.put("result", true);
         result.put("code", 200);
         return result;
+    }
+
+    /**
+     * 获取退款方式
+     * @param recipeOrder 订单信息
+     * @return 退款方式
+     */
+    private Integer getRefundType(RecipeOrder recipeOrder){
+        if (recipeOrder == null) {
+            throw new DAOException("订单为空");
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeCode(recipeOrder.getOrderCode());
+        if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
+            //当处方的购药方式为配送到家和药店取药时
+            DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            if (DrugEnterpriseConstant.COMPANY_COMMON_SELF.equals(drugsEnterprise.getCallSys())) {
+                //表示为医院自建药企，退费流程应该走院内的退费流程
+                return 3;
+            } else {
+                //表示为第三方真实药企，审核需要走药企的流程
+                return 2;
+            }
+        } else if (new Integer(2).equals(recipe.getGiveMode())) {
+            //表示为到院取药
+            return 3;
+        } else {
+            return 1;
+        }
     }
 }
