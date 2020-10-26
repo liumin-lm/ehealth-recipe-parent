@@ -604,6 +604,9 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         //his-api转换成recipe-bean
         com.ngari.recipe.common.OrganDrugChangeBean organDrugChangeBean = transFormOrganDrugChangeBean(organDrugChange);
+        if (StringUtils.isEmpty(organDrugChange.getUseDoseUnit())){
+            organDrugChangeBean.setUseDoseUnit("");
+        }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = DAOFactory.getDAO(SaleDrugList.class);
