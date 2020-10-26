@@ -3,10 +3,7 @@ package recipe.serviceprovider.recipeorder.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.recipe.common.RecipeBussResTO;
-import com.ngari.recipe.common.RecipeListReqTO;
-import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.common.RecipeTrannckingReqTO;
+import com.ngari.recipe.common.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -394,6 +391,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         }
 
         return false;
+    }
+
+    @Override
+    public Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO) {
+        return null;
     }
 
 }

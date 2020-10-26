@@ -1,5 +1,7 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.alijk.bqhospital.alijk.dto.BaseResult;
 import com.alijk.bqhospital.alijk.service.AlihealthHospitalService;
@@ -30,7 +32,16 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +59,7 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
 
+import javax.annotation.Resource;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,6 +89,12 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     @Autowired
     private TaobaoConf taobaoConf;
+
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
+
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -336,7 +354,51 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        // 校验参数组装
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        List<Map<String, Object>> paramList = new ArrayList<>();
+        for (Recipedetail recipedetail : recipeDetails) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+            if(saleDrugList != null && StringUtils.isNotBlank(saleDrugList.getOrganDrugCode())) {
+                Map<String, Object> paramMap = new HashedMap();
+                paramMap.put("drugCode",saleDrugList.getOrganDrugCode());
+                paramMap.put("total",recipedetail.getUseTotalDose() + "");
+                paramMap.put("unit",recipedetail.getDrugUnit());
+                paramList.add(paramMap);
+            } else {
+                LOGGER.error("AldyfRemoteService.scanStock 配送药品目录OrganDrugCode为空，drugId:{},enterpriseId:{}", recipedetail.getDrugId(),drugsEnterprise.getId());
+                result.setMsg("配送药品目录OrganDrugCode为空");
+                result.setCode(DrugEnterpriseResult.FAIL);
+                return result;
+            }
+        }
+        // 校验请求
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        try {
+            String requestUrl = "";
+            HttpPost httpPost = new HttpPost(requestUrl);
+            httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramList), ContentType.APPLICATION_JSON));
+            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramList));
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            LOGGER.info("AldyfRemoteService.scanStock res={}",JSONObject.toJSONString(httpResponse));
+            HttpEntity entity = httpResponse.getEntity();
+            String response = EntityUtils.toString(entity);
+            JSONObject responseObject = JSON.parseObject(response);
+            String code = responseObject.getString("code");
+        } catch (Exception e) {
+            LOGGER.error("AldyfRemoteService.scanStock 库存校验异常", e);
+            result.setMsg("库存校验异常");
+            result.setCode(DrugEnterpriseResult.FAIL);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                LOGGER.warn("资源关闭失败：", e);
+            }
+        }
+        return result;
     }
 
     @Override
