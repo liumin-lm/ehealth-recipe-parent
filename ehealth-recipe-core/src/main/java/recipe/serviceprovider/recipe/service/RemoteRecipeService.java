@@ -16,6 +16,7 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
@@ -24,9 +25,7 @@ import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
-import com.ngari.recipe.common.RecipeBussReqTO;
-import com.ngari.recipe.common.RecipeListReqTO;
-import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.common.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
@@ -99,7 +98,7 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean("remoteRecipeService")
+@RpcBean(value = "remoteRecipeService",mvc_authentication = false)
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -108,6 +107,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
 //    @Autowired
 //    private CommonCAFactory commonCAFactory;
+
+    @Autowired
+    private RecipeRefundDAO recipeRefundDAO;
+    @Autowired
+    private DoctorService doctorService;
 
     @RpcService
     @Override
@@ -286,7 +290,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
         IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
         //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
-        return recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
+        Map<String, Object> recipeDetial = recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
+        //根据recipeId查询退款信息
+        RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
+        RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+        recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+        return recipeDetial;
     }
 
     @RpcService

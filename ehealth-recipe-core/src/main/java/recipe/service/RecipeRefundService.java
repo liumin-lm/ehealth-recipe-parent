@@ -245,6 +245,8 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
 
+        //TODO 设置 His还是药企
+
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<FindRefundRecordResponseTO> hisResult = service.findRefundRecord(request);
         if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
