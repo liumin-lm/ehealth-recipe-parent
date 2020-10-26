@@ -218,7 +218,7 @@ public class CreateRecipePdfUtil {
                                 //在遮罩层上覆盖值
                                 for(int i=1;i<=recipeDetails.size();i++){
                                     page.setTextMatrix(420, 210 + 50 * (i - 1)+10);
-                                    String showText=recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元";
+                                    String showText=recipeDetails.get(i-1).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i-1).getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元";
                                     logger.info("addTextForRecipePdf recipeId:{} showText:{} ",recipeId,showText);
                                     page.showText(showText);
                                 }
