@@ -549,8 +549,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         if(StringUtils.isEmpty(organDrugChange.getDrugId()) || StringUtils.isEmpty(organDrugChange.getPack()) ||
                 StringUtils.isEmpty(organDrugChange.getUseDose()) || StringUtils.isEmpty(organDrugChange.getSalePrice()) ||
                 StringUtils.isEmpty(organDrugChange.getBaseDrug()) || StringUtils.isEmpty(organDrugChange.getOperationCode()) ||
-                StringUtils.isEmpty(organDrugChange.getMedicalDrugType()) ||  StringUtils.isEmpty(organDrugChange.getDrugType()) ||
-                StringUtils.isEmpty(organDrugChange.getUseDoseUnit())){
+                StringUtils.isEmpty(organDrugChange.getMedicalDrugType()) ||  StringUtils.isEmpty(organDrugChange.getDrugType()) ){
             result.setMsg("当前请求参数不全，有必填字段为空");
             return result;
         }
