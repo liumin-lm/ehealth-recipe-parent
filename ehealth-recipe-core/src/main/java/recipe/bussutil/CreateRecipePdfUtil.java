@@ -168,39 +168,40 @@ public class CreateRecipePdfUtil {
 //                                    }
 //                                }
 
-                                int drugOneLine = 0;
-                                int drugGroup = 4;
-                                int startDrugLineNum = 1;
-
-                                for (int i = 1; i <= recipeDetails.size(); i++) {
-                                    drugOneLine++;
-                                    page.saveState();
-                                    page.setColorFill(BaseColor.WHITE);
-                                    page.rectangle(138 + (i - 1) % drugGroup * 138, 518 - 20 * (startDrugLineNum - 1), 30, 20);
-                                    page.fill();
-                                    page.restoreState();
-
-                                    if (0 == i % drugGroup) {
-                                        startDrugLineNum++;
-                                        drugOneLine = 0;
-                                    }
-                                }
-                                page.beginText();
-                                page.setColorFill(BaseColor.BLACK);
-                                page.setFontAndSize(bf, 10);
-                                startDrugLineNum = 1;
-                                for (int i = 1; i <= recipeDetails.size(); i++) {
-                                    drugOneLine++;
-                                    page.setTextMatrix(138 + (i - 1) % drugGroup * 138, 522 - 20 * (startDrugLineNum - 1));
-                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
-                                    if (0 == i % drugGroup) {
-                                        startDrugLineNum++;
-                                        drugOneLine = 0;
-                                    }
-                                }
-                                page.endText();
+//                                int drugOneLine = 0;
+//                                int drugGroup = 4;
+//                                int startDrugLineNum = 1;
+//
+//                                for (int i = 1; i <= recipeDetails.size(); i++) {
+//                                    drugOneLine++;
+//                                    page.saveState();
+//                                    page.setColorFill(BaseColor.WHITE);
+//                                    page.rectangle(138 + (i - 1) % drugGroup * 138, 518 - 20 * (startDrugLineNum - 1), 30, 20);
+//                                    page.fill();
+//                                    page.restoreState();
+//
+//                                    if (0 == i % drugGroup) {
+//                                        startDrugLineNum++;
+//                                        drugOneLine = 0;
+//                                    }
+//                                }
+//                                page.beginText();
+//                                page.setColorFill(BaseColor.BLACK);
+//                                page.setFontAndSize(bf, 10);
+//                                startDrugLineNum = 1;
+//                                for (int i = 1; i <= recipeDetails.size(); i++) {
+//                                    drugOneLine++;
+//                                    page.setTextMatrix(138 + (i - 1) % drugGroup * 138, 522 - 20 * (startDrugLineNum - 1));
+//                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
+//                                    if (0 == i % drugGroup) {
+//                                        startDrugLineNum++;
+//                                        drugOneLine = 0;
+//                                    }
+//                                }
+//                                page.endText();
                                 addTotalFee(page, type, bf, total);
                             } else {
+                                logger.info("addTextForRecipePdf recipeId:{} 替换数据 ",recipeId);
                                 //西药
                                 //给原来位置添加白色遮罩层
                                 for(int i=1;i<=recipeDetails.size();i++){
@@ -216,8 +217,10 @@ public class CreateRecipePdfUtil {
                                 page.setFontAndSize(bf, 8);
                                 //在遮罩层上覆盖值
                                 for(int i=1;i<=recipeDetails.size();i++){
-                                    page.setTextMatrix(420, 210 + 50 * (i - 1)+10);//TODO liu 中药位置待测试
-                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
+                                    page.setTextMatrix(420, 210 + 50 * (i - 1)+10);
+                                    String showText=recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元";
+                                    logger.info("addTextForRecipePdf recipeId:{} showText:{} ",recipeId,showText);
+                                    page.showText(showText);
                                 }
                                 page.endText();
                                 addTotalFee(page, type, bf, total);
@@ -246,15 +249,16 @@ public class CreateRecipePdfUtil {
     }
 
     public static void addTotalFee(PdfContentByte page, Integer type, BaseFont bf, String total){
+        logger.info("addTotalFee total:{}",total);
         //添加覆盖
         page.saveState();
-        page.setColorFill(BaseColor.WHITE);
+        page.setColorFill(BaseColor.YELLOW);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设中药文字在页面中的坐标 date20200910
             page.rectangle(410, 100, 100, 20);
         } else {
             //设置西药文字在页面中的坐标
-            page.rectangle(420, 30, 100, 20);
+            page.rectangle(420, 60, 100, 20);
         }
         page.fill();
         page.restoreState();
@@ -263,14 +267,14 @@ public class CreateRecipePdfUtil {
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        page.showText("药品金额 ：" + total);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             //设中药文字在页面中的坐标 date20200910
             page.setTextMatrix(410, 100);
         } else {
             //设置西药文字在页面中的坐标
-            page.setTextMatrix(420, 30);
+            page.setTextMatrix(420, 60);
         }
+        page.showText("药品金额 ：" + total);
         page.endText();
     }
 
