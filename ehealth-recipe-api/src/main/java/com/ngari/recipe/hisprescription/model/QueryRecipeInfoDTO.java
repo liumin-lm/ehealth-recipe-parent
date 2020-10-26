@@ -116,7 +116,7 @@ public class QueryRecipeInfoDTO implements Serializable {
     private Integer patinetAge;
 
     @ItemProperty(alias = "药品总数量")
-    private Integer drugTotalNumber;
+    private Double drugTotalNumber;
 
     @ItemProperty(alias = "药品总金额")
     private BigDecimal drugTotalAmount;
@@ -125,11 +125,11 @@ public class QueryRecipeInfoDTO implements Serializable {
         return patinetAge;
     }
 
-    public Integer getDrugTotalNumber() {
+    public Double getDrugTotalNumber() {
         return drugTotalNumber;
     }
 
-    public void setDrugTotalNumber(Integer drugTotalNumber) {
+    public void setDrugTotalNumber(Double drugTotalNumber) {
         this.drugTotalNumber = drugTotalNumber;
     }
 
