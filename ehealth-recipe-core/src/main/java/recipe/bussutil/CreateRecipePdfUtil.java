@@ -3,25 +3,38 @@ package recipe.bussutil;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.*;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
+import ctd.persistence.DAOFactory;
 import lombok.Cleanup;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import java.awt.*;
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 
 /**
  * created by shiyuping on 2019/10/18
@@ -52,7 +65,7 @@ public class CreateRecipePdfUtil {
         return fileId;
     }
 
-    public static String generateTotalRecipePdf(String pdfId, String total, Integer type) throws IOException, DocumentException {
+    public static String generateTotalRecipePdf(String pdfId, String total, Integer type, Integer recipeId) throws IOException, DocumentException {
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
@@ -62,7 +75,7 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //添加价格
-            addTextForRecipePdf(input, output, total, type);
+            addTextForRecipePdf(input, output, total, type,recipeId);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -82,42 +95,171 @@ public class CreateRecipePdfUtil {
      * @throws IOException
      * @throws DocumentException
      */
-    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total, Integer type) throws IOException, DocumentException {
+    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total, Integer type, Integer recipeId ) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将文字贴入pdf
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
-        page.beginText();
-        page.setColorFill(BaseColor.BLACK);
+        //page.beginText();
+        //page.setColorFill(BaseColor.BLACK);
 
-        if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
-            //设置中药文字在页面中的坐标
-//            page.setTextMatrix(20, 177);
-//            page.showText("药");
-//            page.setLeading(8);
-//            page.newlineShowText("品");
-//            page.newlineShowText("价");
-//            page.newlineShowText("格");
-//            page.newlineShowText(" . .");
-//            page.newlineShowText(total);
-            //设中药文字在页面中的坐标 date20200910
-            //设中药文字在页面中的坐标 date20200910
-            page.setFontAndSize(bf, 10);
-            page.setTextMatrix(410, 135);
-            page.showText("药品价格 ：" + total);
-        } else {
-            //设置西药文字在页面中的坐标
-            page.setFontAndSize(bf, 8);
-            page.setTextMatrix(30, 30);
-            page.showText("药品价格 ：" + total);
+//        Case(配送方式)
+//        配送到家(药店配送)：读取pdf单个药品合计金额跟recipeDetail表drugCost比较，不等则替换，或不比较直接替换。
+//        药店取药：读取pdf单个药品合计金额跟SgList.aleDruprice*药品数量比较，不等则替换，或不比较直接替换。
+
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.get(recipeId);
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            Integer sendType = null;//配送主体类型 1医院配送 2 药企配送
+            Integer giveMode = null;
+            List<Recipedetail> recipeDetails = null;
+            if (recipe != null && StringUtil.isNotBlank(recipe.getOrderCode())) {
+                IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+                //配置单个药品金额总额在pdf显示
+                if ((boolean) canShowDrugCost) {
+                    giveMode = recipe.getGiveMode();
+                    recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                    if (recipeOrder != null && null != recipeOrder.getSendType()) {
+                        sendType = recipeOrder.getSendType();
+                    }
+                    //药企配送或药店取药
+                    if ((new Integer("1").equals(giveMode) && new Integer("2").equals(sendType)) //药企配送
+                            || new Integer("3").equals(giveMode)) { //药店取药
+                        //更新单个药品金额总额
+                        if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                            //中药
+                            if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+                                //int i = 0;
+                                String[] drugInfoArgs = new String[recipeDetails.size()];
+//                                for (Recipedetail recipeDetail : recipeDetails) {
+//                                    //recipeDetail.getDrugName();
+//                                    recipeDetail.getActualSalePrice();
+////                                    String dName = (i + 1) + "、" + recipeDetail.getDrugName();
+////                                    //规格+药品单位
+////                                    String dSpec = recipeDetail.getDrugSpec() + "/" + recipeDetail.getDrugUnit();
+////                                    drugInfoArgs[i] = dName + dSpec;
+//                                    //i++;
+//                                }
+
+                                int drugOneLine = 0;
+                                int drugGroup = 4;
+                                int startDrugLineNum = 1;
+
+                                for (int i = 1; i <= recipeDetails.size(); i++) {
+                                    drugOneLine++;
+                                    page.saveState();
+                                    page.setColorFill(BaseColor.WHITE);
+                                    page.rectangle(138 + (i - 1) % drugGroup * 138, 518 - 20 * (startDrugLineNum - 1), 30, 20);
+                                    page.fill();
+                                    page.restoreState();
+
+                                    if (0 == i % drugGroup) {
+                                        startDrugLineNum++;
+                                        drugOneLine = 0;
+                                    }
+                                }
+                                page.beginText();
+                                page.setColorFill(BaseColor.BLACK);
+                                page.setFontAndSize(bf, 10);
+                                startDrugLineNum = 1;
+                                for (int i = 1; i <= recipeDetails.size(); i++) {
+                                    drugOneLine++;
+                                    page.setTextMatrix(138 + (i - 1) % drugGroup * 138, 522 - 20 * (startDrugLineNum - 1));
+                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
+                                    if (0 == i % drugGroup) {
+                                        startDrugLineNum++;
+                                        drugOneLine = 0;
+                                    }
+                                }
+                                page.endText();
+                            } else {
+                                //西药
+                                for(int i=1;i<=recipeDetails.size();i++){
+                                    page.saveState();
+                                    page.setColorFill(BaseColor.WHITE);
+                                    page.rectangle(420, 210 + 50 * (i - 1)+10, 100, 16);
+                                    page.fill();
+                                    page.restoreState();
+                                }
+
+                                page.beginText();
+                                page.setColorFill(BaseColor.BLACK);
+                                page.setFontAndSize(bf, 8);
+                                page.setTextMatrix(400, 30);//TODO liu 中药位置待测试
+                                for(int i=1;i<=recipeDetails.size();i++){
+                                    page.setTextMatrix(420, 210 + 50 * (i - 1)+10);//TODO liu 中药位置待测试
+                                    page.showText(recipeDetails.get(i).getActualSalePrice().multiply(new BigDecimal(recipeDetails.get(i).getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP)+"");
+                                }
+                                page.endText();
+                            }
+
+                        }
+                    }
+
+
+                }
+
+
+            }
+        }catch (Exception e){
+            logger.info("addTextForRecipePdf :{}",e);
+        }finally {
+            page.beginText();
+            page.setColorFill(BaseColor.BLACK);
+            if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+                //设中药文字在页面中的坐标 date20200910
+                page.setFontAndSize(bf, 10);
+                page.setTextMatrix(410, 135);
+                page.showText("药品金额 ：" + total);
+
+            } else {
+                //设置西药文字在页面中的坐标
+                page.setFontAndSize(bf, 8);
+                page.setTextMatrix(400, 30);
+                page.showText("药品金额 ：" + total);
+            }
+            page.endText();
         }
-        page.endText();
+
+        //没有给预研修改原有pdf上某个位置数据的时间，暂时先重新生成好了
 
         stamper.close();
         reader.close();
         input.close();
         output.close();
+    }
+
+    public static void main(String[] args) throws IOException, DocumentException {
+        PdfReader reader = null;
+            reader = new PdfReader((new FileInputStream(new File("/Volumes/d/data/response.pdf"))));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        File file = new File("/Volumes/d/data/1.pdf");
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        PdfStamper stamper = new PdfStamper(reader, fileOutputStream);
+
+        PdfContentByte page = stamper.getOverContent(1);
+        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 10);
+        page.setTextMatrix(410, 135);//TODO liu 中药位置待测试
+        page.showText("药品金额2222 ：" + 123);
+
+        page.endText();
+
+
+//        if (baos.toByteArray().length > 0) {
+//            fileOutputStream.write(baos.toByteArray(), 0, baos.toByteArray().length);
+//            fileOutputStream.flush();
+//        }
+        fileOutputStream.close();
+        //page.moveText();
     }
 
     private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
