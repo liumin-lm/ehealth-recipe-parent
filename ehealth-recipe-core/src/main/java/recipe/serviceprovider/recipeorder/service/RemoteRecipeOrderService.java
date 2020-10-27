@@ -391,6 +391,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
+    @RpcService
     public Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO) {
         LOGGER.info("保存处方订单电子票据入参={}",JSONObject.toJSONString(orderBillReqTO));
         RecipeOrderBillDAO orderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
