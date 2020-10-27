@@ -144,6 +144,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
                 recipeRefund.setNode(-1);
                 recipeRefund.setReason(applyReason);
+                recipeReFundSave(recipe, recipeRefund);
             } else {
                 LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 throw new DAOException("处方退费申请失败！" + result.getMsg());
@@ -160,7 +161,7 @@ public class RecipeRefundService extends RecipeBaseService{
         LOGGER.info("RecipeRefundService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        if (refundRequestBean != null && StringUtils.isEmpty(refundRequestBean.getRecipeCode())) {
+        if (refundRequestBean != null && StringUtils.isNotEmpty(refundRequestBean.getRecipeCode())) {
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (refundRequestBean.getRefundFlag()) {

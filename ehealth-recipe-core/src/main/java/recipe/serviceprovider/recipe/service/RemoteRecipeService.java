@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
@@ -111,6 +112,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     @RpcService
     @Override
@@ -287,16 +292,84 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
+        Boolean buttonIsShow = false;
+        IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+        //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
+        //Map<String, Object> recipeDetial = recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
         OperationPlatformRecipeService service = ApplicationUtils.getRecipeService(OperationPlatformRecipeService.class);
         //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改
         Map<String, Object> recipeDetial = service.findRecipeAndDetailsAndCheckById(recipeId, null);
         //根据recipeId查询退款信息 判断该处方是否存在退费
         RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
-        if (recipePatientRefundVO.getBusId() != null) {
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
-            RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
-            recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
+        //订单已支付
+        if (recipeOrder != null) {
+            if (recipeOrder.getPayFlag() == 1) {
+                //患者是否提起申请
+                if (recipePatientRefundVO.getBusId() != null) {
+                    //需要医生审核
+                    if (doctorReviewRefund) {
+                        //审核成功 显示按钮
+                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                        //医生已经审核
+                        if (recipeRefundByRecipeIdAndNode != null) {
+                            //医生已经审核通过
+                            if (recipeRefundByRecipeIdAndNode.getStatus() == 1) {
+                                //判断药师是否审核
+                                RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
+                                if (recipeRefund != null) {
+                                    //药师审核未通过  显示按钮
+                                    if (recipeRefund.getStatus() != 1) {
+                                        buttonIsShow = true;
+                                    }
+                                } else {
+                                    buttonIsShow = true;
+                                }
+                            }
+                        }
+                        //审核失败 不显示按钮
+                    } else {
+                        //不需要医生审核显示
+                        buttonIsShow = true;
+                    }
+                }
+            }
         }
+
+        if (recipeOrder != null) {
+            //已支付
+            if (recipeOrder.getPayFlag() == 1) {
+                //患者提起申请
+                if (recipePatientRefundVO.getBusId() != null) {
+
+                    DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
+                    //需要医生审核
+                    if (doctorReviewRefund) {
+                        //判断医生是否已经审核
+                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                        if (recipeRefundByRecipeIdAndNode != null) {
+                            RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                            recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                        } else {
+                            //医生未审核
+                            RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                            recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
+                            recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                        }
+                    } else {
+                        //不需要医生审核
+                        RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                        recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
+                        recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setDoctorId(null);
+                        recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                    }
+                }
+            }
+        }
+        recipeDetial.put("buttonIsShow", buttonIsShow);
         LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
         return recipeDetial;
     }
@@ -1213,8 +1286,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     RecipeService recipeService;
 
-    @Autowired
-    RecipeDAO recipeDAO;
 
     @Override
     public Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo) {
