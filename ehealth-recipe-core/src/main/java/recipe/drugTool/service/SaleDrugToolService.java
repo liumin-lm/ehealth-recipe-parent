@@ -137,7 +137,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
                     errMsg.append("药企药品编码不能为空").append(";");
                 }
-                drug.setOrganDrugCode(getStrFromCell(row.getCell(1)));
+                drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
             } catch (Exception e) {
                 LOGGER.error("药品编号有误 ," + e.getMessage(),e);
                 errMsg.append("药品编号有误").append(";");

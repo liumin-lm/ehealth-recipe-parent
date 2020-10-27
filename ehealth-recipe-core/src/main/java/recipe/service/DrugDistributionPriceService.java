@@ -105,12 +105,12 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
     public void savePriceList(List<DrugDistributionPriceBean> priceList){
         LOGGER.info("savePriceList input： [{}]", JSONUtils.toString(priceList));
         if(ValidateUtil.notBlankList(priceList)) {
-            DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
+            //DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
             HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
                 @Override
                 public void execute(StatelessSession ss) throws Exception {
                     for(DrugDistributionPriceBean priceBean : priceList){
-                        drugDistributionPriceDAO.deleteByEnterpriseIdAddr(priceBean.getEnterpriseId(),priceBean.getAddrArea());
+                       /* drugDistributionPriceDAO.deleteByEnterpriseIdAddr(priceBean.getEnterpriseId(),priceBean.getAddrArea());
                         StringBuffer logMsg = new StringBuffer();
                         DrugDistributionPrice price = getBean(priceBean,DrugDistributionPrice.class);
                         price = drugDistributionPriceDAO.save(price);
@@ -120,6 +120,11 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
                             iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
                         } catch (Exception e) {
                             LOGGER.error("业务日志记录失败： errorMessage[{}]", e.getMessage(), e);
+                        }*/
+                        try {
+                            saveOrUpdatePrice(priceBean);
+                        } catch (Exception e) {
+                            LOGGER.error("savePriceList error：", e);
                         }
                     }
                 }

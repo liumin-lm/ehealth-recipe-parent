@@ -1981,6 +1981,13 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("获取运营平台处方支付配置异常", e);
         }
+        if (recipe.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+            if(drugsEnterprise != null && drugsEnterprise.getSendType() != null) {
+                map.put("sendType", drugsEnterprise.getSendType());
+            }
+        }
         LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSONUtils.toString(map));
         return map;
     }
