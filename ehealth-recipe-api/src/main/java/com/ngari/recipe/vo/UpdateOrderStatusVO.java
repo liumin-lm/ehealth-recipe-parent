@@ -17,9 +17,18 @@ public class UpdateOrderStatusVO implements Serializable {
      */
     private Integer recipeId;
     /**
-     * 目标状态
+     * 订单id
      */
-    private Integer target;
+    private Integer orderId;
+    /**
+     * 目标订单状态
+     */
+    private Integer targetRecipeOrderStatus;
+
+    /**
+     * 源订单状态
+     */
+    private Integer sourceRecipeOrderStatus;
     /**
      * 物流单号
      */
@@ -27,5 +36,13 @@ public class UpdateOrderStatusVO implements Serializable {
     /**
      * 物流公司
      */
-    private String logisticsCompany;
+    private Integer logisticsCompany;
+    /**
+     * 配送人
+     */
+    private String sender;
+
+
 }
+
+

@@ -144,6 +144,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
                 recipeRefund.setNode(-1);
                 recipeRefund.setReason(applyReason);
+                recipeReFundSave(recipe, recipeRefund);
             } else {
                 LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 throw new DAOException("处方退费申请失败！" + result.getMsg());
@@ -159,12 +160,36 @@ public class RecipeRefundService extends RecipeBaseService{
     public void refundResultCallBack(RefundRequestBean refundRequestBean){
         LOGGER.info("RecipeRefundService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        if (refundRequestBean != null && StringUtils.isEmpty(refundRequestBean.getRecipeCode())) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if (refundRequestBean != null && StringUtils.isNotEmpty(refundRequestBean.getRecipeCode())) {
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (refundRequestBean.getRefundFlag()) {
-                //发起退费，需要根据订单是否可以发起退费
-                //1 对于药品费用在线下支付 不发起退费
+                if (new Integer(1).equals(recipeOrder.getRecipePayWay())) {
+                    //表示药品费用在线上支付
+                    RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                    recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
+                }
+                //退费申请记录保存
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+                recipeRefund.setPrice(recipeOrder.getActualPrice());
+                if (new Integer(1).equals(refundRequestBean.getSource())) {
+                    recipeRefund.setNode(2);
+                }
+                recipe.setStatus(1);
+                recipeReFundSave(recipe, recipeRefund);
             } else {
+                //退费申请记录保存
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+                recipeRefund.setPrice(recipeOrder.getActualPrice());
+                if (new Integer(1).equals(refundRequestBean.getSource())) {
+                    recipeRefund.setNode(2);
+                }
+                recipeRefund.setStatus(2);
+                recipeRefund.setReason(refundRequestBean.getRemark());
+                recipeReFundSave(recipe, recipeRefund);
                 //药企审核不通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL);
             }
@@ -263,16 +288,6 @@ public class RecipeRefundService extends RecipeBaseService{
             throw new DAOException("退费相关字典获取失败");
         }
         recipeRefund.setMemo(memo);
-//        switch(recipeRefund.getNode()){
-//            case -1:
-//                recipeRefund.setStatus(0);
-//                recipeRefund.setMemo("患者发起退费申请");
-//                break;
-//            case 0:
-//                break;
-//            default:
-//                break;
-//        }
         if(recipeRefund.getNode() == -1){
             recipeRefund.setStatus(0);
             recipeRefund.setMemo("患者发起退费申请");

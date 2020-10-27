@@ -1937,6 +1937,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //date 20190919
         //根据不同的购药方式设置订单的状态
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
         if (CollectionUtils.isNotEmpty(recipes)) {
             Recipe nowRecipe = recipes.get(0);
@@ -1956,6 +1957,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 sendTfdsMsg(nowRecipe, payMode, orderCode);
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
+                purchaseService.setRecipePayWay(order);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
