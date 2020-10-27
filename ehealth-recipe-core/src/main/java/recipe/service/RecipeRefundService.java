@@ -176,7 +176,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
                 if (new Integer(1).equals(refundRequestBean.getSource())) {
-                    recipeRefund.setNode(2);
+                    recipeRefund.setNode(5);
                 }
                 recipeRefund.setStatus(1);
                 recipeReFundSave(recipe, recipeRefund);
@@ -188,7 +188,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
                 if (new Integer(1).equals(refundRequestBean.getSource())) {
-                    recipeRefund.setNode(2);
+                    recipeRefund.setNode(5);
                 }
                 recipeRefund.setStatus(2);
                 recipeRefund.setReason(refundRequestBean.getRemark());
