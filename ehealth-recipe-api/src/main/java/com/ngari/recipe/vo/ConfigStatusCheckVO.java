@@ -6,6 +6,8 @@ import lombok.Setter;
 import java.io.Serializable;
 
 /**
+ * 获取订单状态vo
+ *
  * @author fuzi
  */
 @Getter
@@ -17,7 +19,7 @@ public class ConfigStatusCheckVO implements Serializable {
      */
     private Integer id;
     /**
-     * 位置：1处方状态，2订单状态（院取药订），3订单状态（配送到家）...
+     * 位置：1订单状态（配送到家），2订单状态（到院取药），3处方状态...
      */
     private Integer location;
     /**

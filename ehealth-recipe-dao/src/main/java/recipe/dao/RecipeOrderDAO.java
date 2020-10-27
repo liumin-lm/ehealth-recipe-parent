@@ -1410,10 +1410,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
-                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,c.EnterpriseId, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo,c.payeeCode ,r.GiveMode");
+                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,c.EnterpriseId, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo,c.payeeCode ,r.GiveMode,r.RecipeCode");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_recipe r where ( c.send_type = 2 or r.GiveMode = 3) and c.OrderCode = r.OrderCode and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime");
                 if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
-                    sql.append(" and c.OrganId =:organIdList");
+                    sql.append(" and c.OrganId in (:organIdList)");
                 }
                 if (null != request.getEnterpriseId()) {
                     sql.append(" and c.EnterpriseId =:enterpriseId");
@@ -1481,6 +1481,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTradeNo(ConversionUtils.convert(item[10], String.class));
                         response.setPayeeCode(ConversionUtils.convert(item[11], Integer.class));
                         response.setGiveMode(ConversionUtils.convert(item[12], Integer.class));
+                        response.setRecipeCode(ConversionUtils.convert(item[13],String.class));
                         resultList.add(response);
                     }
                 }

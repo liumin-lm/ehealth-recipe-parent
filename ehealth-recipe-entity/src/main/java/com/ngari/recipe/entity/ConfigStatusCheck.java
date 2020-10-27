@@ -20,7 +20,7 @@ public class ConfigStatusCheck implements Serializable {
     private static final long serialVersionUID = 3157281576674463160L;
     @ItemProperty(alias = "主键")
     private Integer id;
-    @ItemProperty(alias = "位置：1处方状态，2订单状态（院取药订），3订单状态（配送到家）...")
+    @ItemProperty(alias = "位置：1订单状态（配送到家），2订单状态（到院取药），3处方状态...")
     private Integer location;
     @ItemProperty(alias = "位置备注")
     private String locationRemark;

@@ -1,5 +1,8 @@
 package recipe.drugTool.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -44,7 +47,16 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.formula.functions.Count;
 import org.apache.poi.ss.usermodel.*;
@@ -54,6 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.bean.DoctorDrugUsageRequest;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.OrganToolBean;
 import recipe.constant.DrugMatchConstant;
 import recipe.constant.ErrorCode;
@@ -62,6 +75,7 @@ import recipe.dao.*;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DrugMatchUtil;
+import recipe.util.Md5Utils;
 import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
@@ -1788,6 +1802,68 @@ public class DrugToolService implements IDrugToolService {
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
 
+        return result;
+    }
+
+    @RpcService
+    public DrugEnterpriseResult testAldyDrug(){
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        // 校验参数组装
+        List<Map<String, Object>> paramList = new ArrayList<>();
+        Map<String, Object> drugMap = new HashedMap();
+        drugMap.put("drugCode","1519309");
+        drugMap.put("total","10");
+        drugMap.put("unit","片");
+        paramList.add(drugMap);
+
+        String signKey = "hydee";
+        String compid = "1402";
+        String signStr = "compid=" + compid + "&" + "drugList=" + JSONObject.toJSONString(paramList)+"&" + "key=" + signKey;
+        String signResult = Md5Utils.crypt(signStr);
+        Map<String, Object> paramMap = new HashedMap();
+        paramMap.put("compid",compid);
+        paramMap.put("drugList",paramList);
+        paramMap.put("sign",signResult);
+        // 校验请求
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        try {
+            String requestUrl = "http://10.153.184.78:58081/ht/zxcf_store";
+            HttpPost httpPost = new HttpPost(requestUrl);
+            httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramMap), ContentType.APPLICATION_JSON));
+            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramMap));
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            LOGGER.info("AldyfRemoteService.scanStock res={}",JSONObject.toJSONString(httpResponse));
+            HttpEntity entity = httpResponse.getEntity();
+            String response = EntityUtils.toString(entity);
+            JSONObject responseObject = JSON.parseObject(response);
+            String code = responseObject.getString("code");
+            if ("1".equals(code)){
+                JSONArray drugArray = responseObject.getJSONArray("drugList");
+                if (null != drugArray && drugArray.size() > 0){
+                    for (int i = 0; i < drugArray.size(); i++){
+                        JSONObject drug = drugArray.getJSONObject(i);
+                        if ("false".equals(drug.getString("inventory"))){
+                            result.setMsg("库存校验不通过");
+                            result.setCode(DrugEnterpriseResult.FAIL);
+                        }
+                    }
+                }
+            }else {
+                result.setMsg("库存校验返回失败");
+                result.setCode(DrugEnterpriseResult.FAIL);
+            }
+        } catch (Exception e) {
+            LOGGER.error("AldyfRemoteService.scanStock 库存校验异常：", e);
+            result.setMsg("库存校验异常");
+            result.setCode(DrugEnterpriseResult.FAIL);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                LOGGER.warn("资源关闭失败：", e);
+            }
+        }
         return result;
     }
 
