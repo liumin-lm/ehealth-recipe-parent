@@ -39,16 +39,6 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus);
-        updateLogistics(recipe, orderStatus);
-    }
-
-
-    /**
-     * 更新订单物流信息
-     *
-     * @param orderStatus
-     */
-    private void updateLogistics(Recipe recipe, UpdateOrderStatusVO orderStatus) {
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +

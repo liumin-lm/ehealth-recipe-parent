@@ -18,6 +18,8 @@ import recipe.thread.RecipeBusiThreadPool;
 import java.util.Date;
 
 /**
+ * 已完成
+ *
  * @author fuzi
  */
 public class StatusDoneImpl extends AbstractRecipeOrderStatus {
@@ -27,12 +29,11 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
 
         Date date = new Date();
-        RecipeOrder recipeOrder = new RecipeOrder();
         recipeOrder.setEffective(1);
         recipeOrder.setPayFlag(PayConstant.PAY_FLAG_PAY_SUCCESS);
         recipeOrder.setFinishTime(date);

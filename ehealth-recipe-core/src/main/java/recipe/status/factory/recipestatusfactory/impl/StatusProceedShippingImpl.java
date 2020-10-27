@@ -27,7 +27,7 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         Date date = new Date();
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
@@ -39,7 +39,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         //更新处方信息
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
 
-        RecipeOrder recipeOrder = new RecipeOrder();
         recipeOrder.setSendTime(new Date());
         recipeOrder.setOrderId(orderStatus.getOrderId());
         if (null != orderStatus.getLogisticsCompany()) {
@@ -48,7 +47,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
         }
-        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         //监管平台上传配送信息(派药)
         RecipeBusiThreadPool.execute(() -> {
             //HIS消息发送

@@ -743,6 +743,19 @@ public class PayModeOnline implements IPurchaseService {
         return OrderStatusConstant.READY_SEND;
     }
 
+    @Override
+    public void setRecipePayWay(RecipeOrder recipeOrder) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if (new Integer(2).equals(recipe.getPayMode())) {
+            recipeOrder.setRecipePayWay(0);
+        } else {
+            recipeOrder.setRecipePayWay(1);
+        }
+        recipeOrderDAO.update(recipeOrder);
+    }
+
     private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {
         List<DrugsEnterprise> returnSubDepList = new ArrayList<>();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);

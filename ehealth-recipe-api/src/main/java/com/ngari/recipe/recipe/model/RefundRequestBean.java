@@ -19,5 +19,7 @@ public class RefundRequestBean implements Serializable{
     private Boolean refundFlag;
     private Boolean otherRefundFlag;
     private String remark;
+    //来源 1 运营平台药师 2 前置机药企回调 3 前置机HIS
+    private Integer source;
 
 }
