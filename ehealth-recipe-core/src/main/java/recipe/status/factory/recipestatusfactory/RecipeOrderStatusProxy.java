@@ -33,12 +33,12 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
             return null;
         }
         IRecipeOrderStatusService factoryService = getFactoryService(status);
-        //更新订单状态
         RecipeOrder recipeOrder = new RecipeOrder();
-        recipeOrder.setOrderId(orderStatus.getOrderId());
-        recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
         //调用子类方法
         Recipe recipe = factoryService.updateStatus(orderStatus, recipeOrder);
+        //更新订单状态
+        recipeOrder.setOrderId(orderStatus.getOrderId());
+        recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         return recipe;
     }

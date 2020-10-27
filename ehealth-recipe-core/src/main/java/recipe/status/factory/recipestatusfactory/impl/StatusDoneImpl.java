@@ -3,6 +3,7 @@ package recipe.status.factory.recipestatusfactory.impl;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.PayConstant;
@@ -22,6 +23,7 @@ import java.util.Date;
  *
  * @author fuzi
  */
+@Service
 public class StatusDoneImpl extends AbstractRecipeOrderStatus {
     @Override
     public Integer getStatus() {

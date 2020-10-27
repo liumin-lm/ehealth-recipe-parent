@@ -4,6 +4,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
@@ -20,6 +21,7 @@ import java.util.Date;
  *
  * @author fuzi
  */
+@Service
 public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
     @Override
     public Integer getStatus() {

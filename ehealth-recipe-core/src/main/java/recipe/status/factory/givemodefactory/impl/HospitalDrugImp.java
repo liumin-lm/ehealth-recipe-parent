@@ -1,6 +1,7 @@
 package recipe.status.factory.givemodefactory.impl;
 
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import org.springframework.stereotype.Service;
 import recipe.status.factory.constant.GiveModeEnum;
 
 /**
@@ -8,6 +9,7 @@ import recipe.status.factory.constant.GiveModeEnum;
  *
  * @author fuzi
  */
+@Service
 public class HospitalDrugImp extends AbstractGiveMode {
     @Override
     public Integer getGiveMode() {

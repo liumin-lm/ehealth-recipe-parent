@@ -10,6 +10,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
@@ -25,6 +26,7 @@ import java.util.List;
  *
  * @author fuzi
  */
+@Service
 public class HomeDeliveryImpl extends AbstractGiveMode {
     @Autowired
     private IPatientService patientService;
