@@ -14,7 +14,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.AuditDrugListBean;
 import com.ngari.recipe.drug.model.UpDownDrugBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugListForThreeBean;
 import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBean;
 import ctd.controller.exception.ControllerException;
@@ -38,8 +37,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
-import recipe.constant.*;
-import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
@@ -1650,7 +1647,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprises));
-        if (drugsEnterprises == null) {
+        if (CollectionUtils.isEmpty(drugsEnterprises)) {
             standardResult.setCode(StandardResultDTO.FAIL);
             standardResult.setMsg("无法匹配到药企");
             return standardResult;
