@@ -62,4 +62,10 @@ public interface IPurchaseService {
      * @return 订单状态
      */
     Integer getOrderStatus(Recipe recipe);
+
+    /**
+     * 设置处方药品费用的支付方式 0 线上支付 1 线下支付
+     * @param recipeOrder 订单信息
+     */
+    void setRecipePayWay(RecipeOrder recipeOrder);
 }
