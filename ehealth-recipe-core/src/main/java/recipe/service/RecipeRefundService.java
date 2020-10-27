@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.visit.mode.ApplicationForRefundVisitReqTO;
@@ -50,7 +51,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: gaomw
  * @date:20200714
  */
-@RpcBean("recipeRefundService")
+@RpcBean(value = "recipeRefundService", mvc_authentication = false)
 public class RecipeRefundService extends RecipeBaseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeRefundService.class);
@@ -538,5 +539,12 @@ public class RecipeRefundService extends RecipeBaseService{
         } else {
             return 1;
         }
+    }
+
+    @RpcService
+    public List<String> getApp(Integer organId){
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        Object payModeDeploy = configService.getConfiguration(organId, "refundPayModel");
+        return new ArrayList<>(Arrays.asList((String[])payModeDeploy));
     }
 }
