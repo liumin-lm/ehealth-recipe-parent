@@ -145,4 +145,11 @@ public class PayModeDownload implements IPurchaseService{
     public Integer getOrderStatus(Recipe recipe) {
         return OrderStatusConstant.READY_GET_DRUG;
     }
+
+    @Override
+    public void setRecipePayWay(RecipeOrder recipeOrder) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        recipeOrder.setRecipePayWay(0);
+        recipeOrderDAO.update(recipeOrder);
+    }
 }

@@ -362,6 +362,20 @@ public class PayModeTFDS implements IPurchaseService{
         return orderStatus;
     }
 
+    @Override
+    public void setRecipePayWay(RecipeOrder recipeOrder) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
+        if (new Integer(1).equals(drugsEnterprise.getStorePayFlag())) {
+            //药品费用线上支付
+            recipeOrder.setRecipePayWay(1);
+        } else {
+            recipeOrder.setRecipePayWay(0);
+        }
+        recipeOrderDAO.update(recipeOrder);
+    }
+
     private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo){
         List<DepDetailBean> depDetailList = new ArrayList<>();
         if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
