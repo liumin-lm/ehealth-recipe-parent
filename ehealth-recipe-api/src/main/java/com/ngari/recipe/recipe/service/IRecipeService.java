@@ -749,7 +749,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
 
     /**
-     * 退款申请结构回调
+     * 退款申请结果回调
      * @param refundRequestBean 请求入参
      * @return
      */
