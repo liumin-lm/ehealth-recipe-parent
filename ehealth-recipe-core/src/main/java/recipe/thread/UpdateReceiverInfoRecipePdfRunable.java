@@ -42,7 +42,6 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             logger.warn("UpdateReceiverInfoRecipePdfRunable recipe is null  recipeId={}", recipeId);
             return;
         }
-
         try {
             String newPfd = null;
             String key = null;
@@ -52,6 +51,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
             if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(accessDrugEnterpriseService.getCompleteAddress(order)))){
+                logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                     newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(),order.getRecMobile(),accessDrugEnterpriseService.getCompleteAddress(order),recipe.getRecipeType());
                     key = "ChemistSignFile";
