@@ -31,17 +31,19 @@ import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.comment.ExtendDao;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
 @RpcSupportDAO
-public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> {
+public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> implements ExtendDao<RecipeOrder> {
     private static final Logger logger = LoggerFactory.getLogger(RecipeOrderDAO.class);
 
     private static final Map<Integer, String> DRUG_TYPE_TABLE = ImmutableMap.of(1, "西药", 2, "中成药", 3, "中药", 4, "膏方");
@@ -50,6 +52,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         super();
         this.setEntityName(RecipeOrder.class.getName());
         this.setKeyField("orderId");
+    }
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder) {
+        return updateNonNullFieldByPrimaryKey(recipeOrder, "orderId");
     }
 
     /**
