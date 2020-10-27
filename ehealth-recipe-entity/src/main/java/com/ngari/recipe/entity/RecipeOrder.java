@@ -310,6 +310,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
 
+    @ItemProperty(alias = "处方费用支付方式 0 线上支付 1 线下支付")
+    private Integer recipePayWay;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -1076,5 +1079,14 @@ public class RecipeOrder implements Serializable {
 
     public void setSendDateText(String sendDateText) {
         this.sendDateText = sendDateText;
+    }
+
+    @Column(name = "recipePayWay")
+    public Integer getRecipePayWay() {
+        return recipePayWay;
+    }
+
+    public void setRecipePayWay(Integer recipePayWay) {
+        this.recipePayWay = recipePayWay;
     }
 }

@@ -3,10 +3,7 @@ package com.ngari.recipe.hisprescription.service;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeReqDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
-import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.hisprescription.model.*;
 import ctd.util.annotation.RpcService;
 
 import java.util.Date;
@@ -59,4 +56,8 @@ public interface IQueryRecipeService {
 
     @RpcService
     Boolean updateSuperviseRecipecodeToRecipe(Integer recipeId, String superviseRecipecode);
+
+
+    @RpcService
+    RecipeOrderBillDTO getRecipeOrderBill(Integer recipeId);
 }
