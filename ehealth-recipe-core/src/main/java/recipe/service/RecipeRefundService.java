@@ -522,7 +522,7 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeCode(recipeOrder.getOrderCode());
+        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
         if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
             //当处方的购药方式为配送到家和药店取药时
             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
