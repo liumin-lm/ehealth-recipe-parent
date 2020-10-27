@@ -1806,7 +1806,7 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @RpcService
-    public void testAldyDrug(){
+    public DrugEnterpriseResult testAldyDrug(){
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         // 校验参数组装
         List<Map<String, Object>> paramList = new ArrayList<>();
@@ -1864,6 +1864,7 @@ public class DrugToolService implements IDrugToolService {
                 LOGGER.warn("资源关闭失败：", e);
             }
         }
+        return result;
     }
 
     /**
