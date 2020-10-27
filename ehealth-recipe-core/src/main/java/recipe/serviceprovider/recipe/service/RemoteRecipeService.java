@@ -295,7 +295,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Boolean buttonIsShow = false;
         IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
         //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
-        Map<String, Object> recipeDetial = recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
+        //Map<String, Object> recipeDetial = recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
         OperationPlatformRecipeService service = ApplicationUtils.getRecipeService(OperationPlatformRecipeService.class);
         //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改
         Map<String, Object> recipeDetial = service.findRecipeAndDetailsAndCheckById(recipeId, null);
