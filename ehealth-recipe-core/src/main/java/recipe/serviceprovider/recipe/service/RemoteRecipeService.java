@@ -1,6 +1,7 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -295,6 +296,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
             recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
         }
+        LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
         return recipeDetial;
     }
 
