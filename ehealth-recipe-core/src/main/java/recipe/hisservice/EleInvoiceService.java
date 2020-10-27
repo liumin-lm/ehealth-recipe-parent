@@ -368,15 +368,15 @@ public class EleInvoiceService {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "获取地址出错，请稍后再试");
             }
             if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
-                    && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()) {
+                    && StringUtils.isNotEmpty(result.getBizCode()) && null != result.getRequestId()) {
                 Map<String, String> map = new HashMap(1);
-                map.put("einvoiceNumber", result.getInvoiceNumber());
+                map.put("einvoiceNumber", result.getBizCode());
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
             }
-            //复诊
+            //复诊(通过bizCode来判断是否开票)
             if (null !=result.getInvoiceType() && "0".equals(result.getInvoiceType()) && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()){
                 IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
-                consultExService.updateInvoiceNumberByConsultId(result.getInvoiceNumber(), result.getRequestId());
+                consultExService.updateInvoiceNumberByConsultId(result.getBizCode(), result.getRequestId());
 
                 RevisitInvoiceDTO revisitInvoiceDTO = new RevisitInvoiceDTO();
                 revisitInvoiceDTO.setConsultId(result.getRequestId());
