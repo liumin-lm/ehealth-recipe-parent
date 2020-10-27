@@ -9,14 +9,16 @@ import com.ngari.his.visit.mode.FindRefundRecordReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordResponseTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
+import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -27,6 +29,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -82,11 +85,12 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setApplyReason(applyReason);
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
-        //date 20201012 加长了接口过期时间，接口20s会超时
-        HisResponseTO<String> hisResult = service.applicationForRefundVisit(request);
+
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
         if (doctorReviewRefund) {
+            //date 20201012 加长了接口过期时间，接口20s会超时
+            HisResponseTO<String> hisResult = service.applicationForRefundVisit(request);
             //说明需要医生进行审核，则需要推送给医生，此处兼容上海六院，其他医院前置机需要实现此接口并返回成功但不需要真实对接第三方
             if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
                 LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
@@ -116,17 +120,54 @@ public class RecipeRefundService extends RecipeBaseService{
             visitRequest.setPatientName(recipe.getPatientName());
             DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
             EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             if (null != doctorDTO) {
                 visitRequest.setChecker(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorDTO.getDoctorId(), recipe.getClinicOrgan(), recipe.getDepart()));
                 visitRequest.setCheckerName(doctorDTO.getName());
             }
-            visitRequest.setCheckNode("0");
+            visitRequest.setCheckNode("-1");
             visitRequest.setCheckReason(applyReason);
             SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHH:mm:ss");
             visitRequest.setCheckTime(formatter.format(new Date()));
+            visitRequest.setHospitalCode(organDTO.getOrganizeCode());
+            visitRequest.setRecipeCode(recipe.getRecipeCode());
+            visitRequest.setRefundType(getRefundType(recipeOrder));
 
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
+            if (result != null && "200".equals(result.getMsgCode())) {
+                LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
+                //退费审核记录保存
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+                recipeRefund.setPrice(recipeOrder.getActualPrice());
+                recipeRefund.setNode(-1);
+                recipeRefund.setReason(applyReason);
+            } else {
+                LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
+                throw new DAOException("处方退费申请失败！" + result.getMsg());
+            }
+        }
+    }
+
+    /**
+     * 处方退款结果回调
+     * @param refundRequestBean 请求信息
+     */
+    @RpcService
+    public void refundResultCallBack(RefundRequestBean refundRequestBean){
+        LOGGER.info("RecipeRefundService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        if (refundRequestBean != null && StringUtils.isEmpty(refundRequestBean.getRecipeCode())) {
+            Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+            if (refundRequestBean.getRefundFlag()) {
+                //发起退费，需要根据订单是否可以发起退费
+                //1 对于药品费用在线下支付 不发起退费
+            } else {
+                //药企审核不通过
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL);
+            }
         }
     }
 
