@@ -746,5 +746,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId);
+
+
+    /**
+     * 退款申请结构回调
+     * @param refundRequestBean 请求入参
+     * @return
+     */
+    @RpcService
+    ThirdResultBean refundResultCallBack(RefundRequestBean refundRequestBean);
 }
 

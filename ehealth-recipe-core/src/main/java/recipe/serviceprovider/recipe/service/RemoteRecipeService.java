@@ -1739,4 +1739,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.pharmacyToRecipePDF(recipeId);
     }
+
+    @Override
+    public ThirdResultBean refundResultCallBack(RefundRequestBean refundRequestBean) {
+        LOGGER.info("RemoteRecipeService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
+        RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
+        recipeRefundService.refundResultCallBack(refundRequestBean);
+        return null;
+    }
 }
