@@ -52,4 +52,9 @@ public class EnterpriseRecipeDetailResponse implements Serializable {
      */
     private Integer giveMode;
     private String giveModeText;
+
+    /**
+     * 医院HIS处方号
+     */
+    private String recipeCode;
 }
