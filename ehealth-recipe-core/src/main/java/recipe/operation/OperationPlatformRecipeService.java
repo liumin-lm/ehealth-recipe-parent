@@ -386,7 +386,7 @@ public class OperationPlatformRecipeService {
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
         if (e.getCreateType() != null && e.getCreateType() == 0
                 && checkResult != null && (checkResult == 1 || checkResult == 3)
-                && r.getGiveMode() != null && (r.getGiveMode() == 1 || r.getGiveMode() == 3)
+                && r.getGiveMode() != null && r.getGiveMode() != 4
                 && r.getPayFlag() != null && r.getPayFlag() == 1) {
             map.put("editFlag", 1);
         } else {
