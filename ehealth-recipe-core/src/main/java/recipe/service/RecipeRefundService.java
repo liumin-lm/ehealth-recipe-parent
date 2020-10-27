@@ -320,7 +320,7 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.error("findRefundRecordfromHis-未获取到处方单信息. recipeId={}", recipeId.toString());
             throw new DAOException("未获取到处方单信息！");
         }
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeId);
         FindRefundRecordReqTO request = new FindRefundRecordReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setBusNo(applyNo);
