@@ -1,6 +1,7 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.service.BasicAPI;
@@ -26,6 +27,7 @@ import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -226,6 +228,36 @@ public abstract class AbstractCaProcessType {
                 }
             }
         }
+        //添加水印
+        //addWaterPrint(recipe);
     }
+
+//    private void addWaterPrint(Recipe recipe) {
+//        //更新pdf
+//        if (null == recipe) {
+//            LOGGER.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipe.getRecipeId());
+//            return;
+//        }
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        try {
+//            String newPfd = null;
+//            String key = null;
+//            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+//                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getChemistSignFile(), recipe.getClinicOrgan());
+//                key = "ChemistSignFile";
+//            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+//                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(),recipe.getClinicOrgan());
+//                key = "SignFile";
+//            } else {
+//                LOGGER.warn("UpdateTotalRecipePdfRunable file is null  recipeId={}", recipe.getRecipeId());
+//            }
+//            LOGGER.info("UpdateTotalRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
+//            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
+//                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of(key, newPfd));
+//            }
+//        } catch (Exception e) {
+//            LOGGER.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipe.getRecipeId(), e);
+//        }
+//    }
 
 }

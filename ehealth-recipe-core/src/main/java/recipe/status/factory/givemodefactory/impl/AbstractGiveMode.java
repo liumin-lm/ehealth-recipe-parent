@@ -8,8 +8,11 @@ import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.status.factory.givemodefactory.IGiveModeService;
+import recipe.status.factory.orderstatusfactory.RecipeOrderStatusProxy;
 
 /**
+ * 发药方式基类
+ *
  * @author fuzi
  */
 @Service
@@ -20,7 +23,8 @@ public abstract class AbstractGiveMode implements IGiveModeService {
 
     @Autowired
     protected RecipeDAO recipeDAO;
-
+    @Autowired
+    protected RecipeOrderStatusProxy recipeOrderStatusProxy;
 
     protected Recipe getRecipe(Integer recipeId) {
         return recipeDAO.getByRecipeId(recipeId);
