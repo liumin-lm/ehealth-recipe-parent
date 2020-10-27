@@ -585,6 +585,7 @@ public class QueryRecipeService implements IQueryRecipeService {
     }
 
     @Override
+    @RpcService
     public RecipeOrderBillDTO getRecipeOrderBill(Integer recipeId) {
         RecipeOrderBillDTO billDTO = new RecipeOrderBillDTO();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
