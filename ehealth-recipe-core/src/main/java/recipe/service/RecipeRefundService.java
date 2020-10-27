@@ -178,8 +178,10 @@ public class RecipeRefundService extends RecipeBaseService{
                 if (new Integer(1).equals(refundRequestBean.getSource())) {
                     recipeRefund.setNode(2);
                 }
-                recipe.setStatus(1);
+                recipeRefund.setStatus(1);
                 recipeReFundSave(recipe, recipeRefund);
+                //审核通过
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS);
             } else {
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
