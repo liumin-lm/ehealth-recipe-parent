@@ -10,6 +10,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
@@ -25,6 +26,7 @@ import java.util.List;
  *
  * @author fuzi
  */
+@Service
 public class HomeDeliveryImpl extends AbstractGiveMode {
     @Autowired
     private IPatientService patientService;
@@ -39,16 +41,6 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus);
-        updateLogistics(recipe, orderStatus);
-    }
-
-
-    /**
-     * 更新订单物流信息
-     *
-     * @param orderStatus
-     */
-    private void updateLogistics(Recipe recipe, UpdateOrderStatusVO orderStatus) {
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +

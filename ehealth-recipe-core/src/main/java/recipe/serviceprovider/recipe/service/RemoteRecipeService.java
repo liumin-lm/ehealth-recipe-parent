@@ -76,6 +76,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
+import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
@@ -286,9 +287,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
-        IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-        //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
-        Map<String, Object> recipeDetial = recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
+        OperationPlatformRecipeService service = ApplicationUtils.getRecipeService(OperationPlatformRecipeService.class);
+        //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改
+        Map<String, Object> recipeDetial = service.findRecipeAndDetailsAndCheckById(recipeId, null);
         //根据recipeId查询退款信息 判断该处方是否存在退费
         RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
         if (recipePatientRefundVO.getBusId() != null) {

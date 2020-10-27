@@ -2,13 +2,16 @@ package recipe.status.factory.recipestatusfactory;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import recipe.dao.RecipeOrderDAO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +21,11 @@ import java.util.Map;
  */
 @Service
 public class RecipeOrderStatusProxy implements ApplicationContextAware {
-
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     private final Map<Integer, IRecipeOrderStatusService> recipeOrderStatusMap = new HashMap<>();
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+
 
     public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus) {
         Integer status = orderStatus.getSourceRecipeOrderStatus();
@@ -29,9 +33,14 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
             return null;
         }
         IRecipeOrderStatusService factoryService = getFactoryService(status);
+        RecipeOrder recipeOrder = new RecipeOrder();
         //调用子类方法
-        return factoryService.updateStatus(orderStatus);
-
+        Recipe recipe = factoryService.updateStatus(orderStatus, recipeOrder);
+        //更新订单状态
+        recipeOrder.setOrderId(orderStatus.getOrderId());
+        recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        return recipe;
     }
 
     /**

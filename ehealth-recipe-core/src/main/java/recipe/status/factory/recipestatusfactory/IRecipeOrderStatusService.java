@@ -1,6 +1,7 @@
 package recipe.status.factory.recipestatusfactory;
 
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 
 /**
@@ -20,5 +21,5 @@ public interface IRecipeOrderStatusService {
      * @param orderStatus
      * @return
      */
-    Recipe updateStatus(UpdateOrderStatusVO orderStatus);
+    Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder);
 }

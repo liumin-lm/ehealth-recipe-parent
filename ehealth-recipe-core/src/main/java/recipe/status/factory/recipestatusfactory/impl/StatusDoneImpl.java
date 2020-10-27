@@ -3,6 +3,7 @@ package recipe.status.factory.recipestatusfactory.impl;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.PayConstant;
@@ -18,8 +19,11 @@ import recipe.thread.RecipeBusiThreadPool;
 import java.util.Date;
 
 /**
+ * 已完成
+ *
  * @author fuzi
  */
+@Service
 public class StatusDoneImpl extends AbstractRecipeOrderStatus {
     @Override
     public Integer getStatus() {
@@ -27,12 +31,11 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
 
         Date date = new Date();
-        RecipeOrder recipeOrder = new RecipeOrder();
         recipeOrder.setEffective(1);
         recipeOrder.setPayFlag(PayConstant.PAY_FLAG_PAY_SUCCESS);
         recipeOrder.setFinishTime(date);

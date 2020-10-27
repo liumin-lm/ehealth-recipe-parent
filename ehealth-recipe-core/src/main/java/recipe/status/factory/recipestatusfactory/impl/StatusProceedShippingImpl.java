@@ -4,6 +4,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
@@ -20,6 +21,7 @@ import java.util.Date;
  *
  * @author fuzi
  */
+@Service
 public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
     @Override
     public Integer getStatus() {
@@ -27,7 +29,7 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         Date date = new Date();
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
@@ -39,7 +41,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         //更新处方信息
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
 
-        RecipeOrder recipeOrder = new RecipeOrder();
         recipeOrder.setSendTime(new Date());
         recipeOrder.setOrderId(orderStatus.getOrderId());
         if (null != orderStatus.getLogisticsCompany()) {
@@ -48,7 +49,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
         }
-        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         //监管平台上传配送信息(派药)
         RecipeBusiThreadPool.execute(() -> {
             //HIS消息发送
