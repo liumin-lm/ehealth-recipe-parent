@@ -1,5 +1,6 @@
-package recipe.status.factory.recipestatusfactory.impl;
+package recipe.status.factory.orderstatusfactory.impl;
 
+import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -20,6 +21,9 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+        RecipeDrugInventoryDTO request = super.recipeDrugInventory(orderStatus.getRecipeId());
+        request.setInventoryType(2);
+        super.drugInventory(request);
         return null;
     }
 }

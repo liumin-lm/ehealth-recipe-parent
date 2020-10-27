@@ -1,5 +1,6 @@
-package recipe.status.factory.recipestatusfactory.impl;
+package recipe.status.factory.orderstatusfactory.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -32,6 +33,7 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+        logger.info("StatusDoneImpl updateStatus orderStatus={},recipeOrder={}", JSON.toJSONString(orderStatus), JSON.toJSONString(recipeOrder));
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
 
@@ -67,6 +69,7 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
                     "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
         });
+        logger.info("StatusDoneImpl updateStatus recipe={}", JSON.toJSONString(recipe));
         return recipe;
     }
 }

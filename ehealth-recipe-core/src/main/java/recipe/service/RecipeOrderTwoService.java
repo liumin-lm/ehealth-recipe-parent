@@ -35,9 +35,9 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
     private GiveModeProxy giveModeProxy;
 
     @Override
-    public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
+    public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        ResultBean result = new ResultBean(200, "", true);
+        ResultBean<Boolean> result = new ResultBean(200, "", true);
         if (null == orderStatus.getRecipeId() || null == orderStatus.getTargetRecipeOrderStatus()) {
             return result;
         }
@@ -57,6 +57,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSender("system");
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
     }
 }

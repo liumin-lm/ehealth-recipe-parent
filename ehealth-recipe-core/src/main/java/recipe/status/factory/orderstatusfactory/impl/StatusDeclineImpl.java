@@ -1,4 +1,4 @@
-package recipe.status.factory.recipestatusfactory.impl;
+package recipe.status.factory.orderstatusfactory.impl;
 
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;

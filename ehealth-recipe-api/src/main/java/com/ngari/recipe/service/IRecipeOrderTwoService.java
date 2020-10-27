@@ -7,5 +7,5 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
  * @author fuzi
  */
 public interface IRecipeOrderTwoService {
-    ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO);
+    ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO);
 }
