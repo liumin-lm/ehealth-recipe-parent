@@ -848,14 +848,26 @@ public class RecipeServiceSub {
                     //备注
                     paramMap.put("dMemo" + i, "备注:" + d.getMemo());
                 }
-
-
+                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+                LOGGER.info("createParamMap recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
+                if((boolean)canShowDrugCost){
+                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
+                }
                 i++;
             }
+            paramMap.put("recipeFee", recipe.getTotalMoney()+"元" );
             paramMap.put("drugNum", i);
+
+            //水印
+            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+            if (null != waterPrintText) {
+                paramMap.put("waterPrintText", waterPrintText.toString());
+            }
+            LOGGER.info("createParamMap recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
+        LOGGER.info("createParamMap 组装参数. recipeId={},paramMap={}  ", recipe.getRecipeId(), JSONUtils.toString(paramMap));
         return paramMap;
     }
 
@@ -958,12 +970,26 @@ public class RecipeServiceSub {
                 }
 
                 paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
+//                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+//                LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
+//                if((boolean)canShowDrugCost){
+//                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
+//                }
                 i++;
             }
+            paramMap.put("recipeFee", recipe.getTotalMoney()+"元" );
             paramMap.put("drugNum", i);
+
+            //水印
+            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+            if (null != waterPrintText) {
+                paramMap.put("waterPrintText", waterPrintText.toString());
+            }
+            LOGGER.info("createParamMapForChineseMedicine recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
+        LOGGER.info("createParamMapForChineseMedicine 组装参数. recipeId={},paramMap={}  ", recipe.getRecipeId(), JSONUtils.toString(paramMap));
         return paramMap;
     }
 
@@ -1542,7 +1568,9 @@ public class RecipeServiceSub {
         r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
 //        r.setRecipeId(recipe.ge);
-        r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
+        if (StringUtils.isNotEmpty(recipe.getSignDate())){
+            r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
+        }
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
@@ -1556,7 +1584,9 @@ public class RecipeServiceSub {
         }
         r.setRecipeDrugName(stringBuilder.toString());
 
-        r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
+        if (StringUtils.isNotEmpty(recipe.getSignDate())){
+            r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
+        }
 //        r.setShowTip(recipe.getShowTip());
         r.setRecipeSourceType(2);
         r.setRecipeCode(recipe.getRecipeCode());
@@ -1976,6 +2006,13 @@ public class RecipeServiceSub {
             }
         } catch (Exception e) {
             LOGGER.error("获取运营平台处方支付配置异常", e);
+        }
+        if (recipe.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+            if(drugsEnterprise != null && drugsEnterprise.getSendType() != null) {
+                map.put("sendType", drugsEnterprise.getSendType());
+            }
         }
         LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSONUtils.toString(map));
         return map;

@@ -40,6 +40,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 
 import java.math.BigDecimal;
@@ -78,6 +79,10 @@ public class HisCallBackService {
         Recipe recipe = recipeDAO.get(result.getRecipeId());
         if (null == recipe) {
             LOGGER.error("checkPassSuccess 处方对象不存在");
+            return;
+        }
+        if(null != recipe.getStatus() && com.ngari.recipe.recipe.constant.RecipeStatusConstant.CHECK_PASS == recipe.getStatus()){
+            LOGGER.error("当前处方{}状态{}不能进行平台[checkPassSuccess]操作", result.getRecipeId(), recipe.getStatus());
             return;
         }
         // 更新处方拓展信息：his处方付费序号合集
@@ -495,6 +500,9 @@ public class HisCallBackService {
                             RecipeMsgService.batchSendMsg(recipeId, msgStatus);
                             //更新pdf
                             CommonOrder.finishGetDrugUpdatePdf(recipeId);
+                            //监管平台核销上传
+                            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                            syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
                         }
                     }
                 }

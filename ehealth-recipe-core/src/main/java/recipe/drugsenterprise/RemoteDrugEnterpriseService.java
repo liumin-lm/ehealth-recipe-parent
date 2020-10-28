@@ -30,6 +30,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import static ctd.util.AppContextHolder.getBean;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -51,12 +52,11 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.*;
-
-import static ctd.util.AppContextHolder.getBean;
 
 /**
  * 业务使用药企对接类，具体实现在CommonRemoteService
@@ -177,6 +177,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     private PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise) {
         PushRecipeAndOrder pushRecipeAndOrder = new PushRecipeAndOrder();
         pushRecipeAndOrder.setOrganId(recipe.getClinicOrgan());
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
         //设置处方信息
         pushRecipeAndOrder.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
         //设置订单信息
@@ -287,8 +290,6 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
 
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         pushRecipeAndOrder.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         //制法Code 煎法Code 中医证候Code
         try{

@@ -800,5 +800,21 @@ public class PurchaseService {
         }
     }
 
+    public void setRecipePayWay(RecipeOrder recipeOrder) {
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            IPurchaseService purchaseService = getService(recipe.getPayMode());
+            if ("111".equals(recipeOrder.getWxPayWay())){
+                recipeOrder.setRecipePayWay(1);
+                recipeOrderDAO.update(recipeOrder);
+            } else {
+                purchaseService.setRecipePayWay(recipeOrder);
+            }
+        } catch (Exception e) {
+            LOG.info("setRecipePayWay error msg:{}.", e.getMessage());
+        }
+    }
 
 }

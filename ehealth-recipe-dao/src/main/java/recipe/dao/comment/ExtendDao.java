@@ -24,8 +24,17 @@ import java.util.Map;
  * @author binglang
  * @since 2020/7/22
  */
-public interface ExtendDao {
+public interface ExtendDao<T> {
     Logger logger = LoggerFactory.getLogger(ExtendDao.class);
+
+    /**
+     * 非null对象修改方法 ---null字段不做更新
+     *
+     * @param obj 修改对象
+     * @return
+     */
+    boolean updateNonNullFieldByPrimaryKey(T obj);
+
     /**
      * updateNonNullField
      * 单表非null 字段更新

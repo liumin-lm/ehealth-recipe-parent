@@ -46,6 +46,7 @@ import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -73,6 +74,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
+import org.apache.poi.util.StringUtil;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,8 +121,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -889,6 +889,7 @@ public class RecipeService extends RecipeBaseService {
 //                }
             } catch (Exception e) {
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
+                result.setCode(RecipeResultBean.FAIL);
             }
             //标准化CA进行签名、签章==========================end=====
         } else {
@@ -1942,8 +1943,6 @@ public class RecipeService extends RecipeBaseService {
                             }
                         }
                     }
-                } else {
-                    errFlag = 1;
                 }
                 if (RecipeResultBean.FAIL.equals(scanResult3.getCode()) && errFlag == 1) {
                     //医院药企都无库存
@@ -3644,7 +3643,10 @@ public class RecipeService extends RecipeBaseService {
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             //根据审方模式改变
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterPayChange(saveFlag, dbRecipe, result, attrMap);
-
+            //支付成功后pdf异步显示对应的配送信息
+            if(new Integer("1").equals(payFlag)){
+                RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+            }
         }
         return result;
     }
@@ -4707,6 +4709,11 @@ public class RecipeService extends RecipeBaseService {
             //日志记录
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
+    }
+
+    @RpcService
+    public void aa(int recipeId){
+        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
     }
 
 }

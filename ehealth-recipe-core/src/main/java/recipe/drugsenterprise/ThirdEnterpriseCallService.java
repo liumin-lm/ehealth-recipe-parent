@@ -1650,7 +1650,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprises));
-        if (drugsEnterprises == null) {
+        if (CollectionUtils.isEmpty(drugsEnterprises)) {
             standardResult.setCode(StandardResultDTO.FAIL);
             standardResult.setMsg("无法匹配到药企");
             return standardResult;

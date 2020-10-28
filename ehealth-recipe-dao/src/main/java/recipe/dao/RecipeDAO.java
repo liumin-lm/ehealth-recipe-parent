@@ -55,7 +55,7 @@ import java.util.stream.Stream;
  * @author yuyun
  */
 @RpcSupportDAO
-public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> implements ExtendDao {
+public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> implements ExtendDao<Recipe> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
@@ -65,6 +65,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         this.setKeyField("recipeId");
     }
 
+    @Override
     public boolean updateNonNullFieldByPrimaryKey(Recipe recipe) {
         return updateNonNullFieldByPrimaryKey(recipe, "recipeId");
     }

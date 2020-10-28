@@ -107,7 +107,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
-        return CommonExtendRemoteTypeEnum.getTypeFromOrganId(organId).getDrugInventory(drugId, drugsEnterprise, organId);
+        //date 20201023 当前接口有非机构下的查看库存，
+        return CommonExtendRemoteTypeEnum.getTypeFromOrganIdAndEnterprises(organId, drugsEnterprise).getDrugInventory(drugId, drugsEnterprise, organId);
     }
 
     @Override

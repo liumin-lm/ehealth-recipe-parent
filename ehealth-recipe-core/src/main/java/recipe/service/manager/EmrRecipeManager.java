@@ -241,7 +241,6 @@ public class EmrRecipeManager {
             } catch (Exception e) {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
-            logger.info("EmrRecipeManager getMedicalInfo recipe={}，recipeExtend={}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExtend));
         }
     }
 

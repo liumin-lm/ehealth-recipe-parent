@@ -165,7 +165,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         HosrelationBean hosrelationBean = new HosrelationBean();
         hosrelationBean.setBusId(Integer.valueOf(map.get("consultId").toString()));
         hosrelationBean.setOrganId(Integer.valueOf(map.get("organId").toString()));
-        hosrelationBean.setBusType(BusTypeEnum.CONSULT.getId());
+        hosrelationBean.setBusType(100);
         hosrelationBean.setRequestUrt(Integer.valueOf(map.get("urt").toString()));
         hosrelationBean.setPatientName(MapValueUtil.getString(map, "patientName"));
         hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));

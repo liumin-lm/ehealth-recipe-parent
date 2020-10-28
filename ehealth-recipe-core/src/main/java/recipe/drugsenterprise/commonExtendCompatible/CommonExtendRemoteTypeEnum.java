@@ -2,11 +2,13 @@ package recipe.drugsenterprise.commonExtendCompatible;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import net.coobird.thumbnailator.util.exif.IfdStructure;
 import org.apache.commons.collections.CollectionUtils;
 import recipe.dao.RecipeDAO;
 
@@ -14,7 +16,7 @@ import java.util.List;
 
 /**
 * @Description:
- * 当前枚举是为了兼容默认实现的药企流程实现
+ * 当前枚举是为了兼容默认实现的药企流程实现（这些受用于流程抽象在药企环节上的）
 * @Author: JRK
 * @Date: 2020/9/21
 */
@@ -83,7 +85,17 @@ public enum CommonExtendRemoteTypeEnum {
         return CommonExtendRemoteTypeEnum.COMMON_TYPE.getRemoteType();
     }
 
-
+    public static CommonExtendEnterprisesInterface getTypeFromOrganIdAndEnterprises(Integer organId, DrugsEnterprise drugsEnterprise) {
+        if(null != organId){
+            return getTypeFromOrganId(organId);
+        }else{
+            //这里判断当是杭州市药企的时候，为了处理这种没有机构id，导致无法判断是那种药企特性流程
+            if(null != drugsEnterprise && "hzInternet".equals(drugsEnterprise.getAccount())){
+                return CommonExtendRemoteTypeEnum.HIS_ADMINISTRATION.getRemoteType();
+            }
+        }
+        return CommonExtendRemoteTypeEnum.COMMON_TYPE.getRemoteType();
+    }
 
     public static CommonExtendEnterprisesInterface getTypeFromRecipeIds(List<Integer> recipeIds) {
         if (null != recipeIds && CollectionUtils.isNotEmpty(recipeIds)) {

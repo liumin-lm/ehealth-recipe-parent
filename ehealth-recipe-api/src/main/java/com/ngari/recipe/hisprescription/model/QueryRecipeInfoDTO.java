@@ -5,6 +5,7 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -109,6 +110,41 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias="审方时间")
     private Date checkDate;
     private RecipeExtendBean recipeExtendBean;
+
+
+    @ItemProperty(alias = "患者年龄")
+    private Integer patinetAge;
+
+    @ItemProperty(alias = "药品总数量")
+    private Double drugTotalNumber;
+
+    @ItemProperty(alias = "药品总金额")
+    private BigDecimal drugTotalAmount;
+
+    public Integer getPatinetAge() {
+        return patinetAge;
+    }
+
+    public Double getDrugTotalNumber() {
+        return drugTotalNumber;
+    }
+
+    public void setDrugTotalNumber(Double drugTotalNumber) {
+        this.drugTotalNumber = drugTotalNumber;
+    }
+
+    public BigDecimal getDrugTotalAmount() {
+        return drugTotalAmount;
+    }
+
+    public void setDrugTotalAmount(BigDecimal drugTotalAmount) {
+        this.drugTotalAmount = drugTotalAmount;
+    }
+
+    public void setPatinetAge(Integer patinetAge) {
+        this.patinetAge = patinetAge;
+    }
+
 
     public Date getCheckDate() {
         return checkDate;
