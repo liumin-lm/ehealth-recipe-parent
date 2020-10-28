@@ -336,12 +336,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
 
-        if (recipeOrder != null) {
+        /*if (recipeOrder != null) {
             //已支付
             if (recipeOrder.getPayFlag() == 1) {
 
             }
-        }
+        }*/
         //患者提起申请
         if (recipePatientRefundVO.getBusId() != null) {
 
