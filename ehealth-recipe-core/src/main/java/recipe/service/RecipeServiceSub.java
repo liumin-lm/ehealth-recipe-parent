@@ -859,11 +859,10 @@ public class RecipeServiceSub {
             paramMap.put("drugNum", i);
 
             //水印
-            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-            if (null != waterPrintText) {
-                paramMap.put("waterPrintText", waterPrintText.toString());
-            }
-            LOGGER.info("createParamMap recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
+//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+//            if (null != waterPrintText) {
+//                paramMap.put("waterPrintText", waterPrintText.toString());
+//            }
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -981,11 +980,10 @@ public class RecipeServiceSub {
             paramMap.put("drugNum", i);
 
             //水印
-            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-            if (null != waterPrintText) {
-                paramMap.put("waterPrintText", waterPrintText.toString());
-            }
-            LOGGER.info("createParamMapForChineseMedicine recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
+//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+//            if (null != waterPrintText) {
+//                paramMap.put("waterPrintText", waterPrintText.toString());
+//            }
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
