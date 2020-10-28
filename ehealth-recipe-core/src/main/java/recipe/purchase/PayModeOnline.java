@@ -725,11 +725,9 @@ public class PayModeOnline implements IPurchaseService {
 
                 }
                 break;
-            case RecipeStatusConstant.WAIT_SEND:
-                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType()) {
-                    tips = "药品已发药";
-                    break;
-                }
+            case RecipeStatusConstant.ORDER_STATUS_DONE_DISPENSING:
+                tips = "药品已发药";
+                break;
             case RecipeStatusConstant.CHECK_PASS_YS:
                 tips = "处方已审核通过，请耐心等待药品配送";
                 break;
