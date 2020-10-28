@@ -23,8 +23,9 @@ public class StatusDeclineImpl extends AbstractRecipeOrderStatus {
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
-        recipe.setStatus(RecipeStatusConstant.RECIPE_FAIL);
+        recipe.setStatus(RecipeStatusConstant.REVOKE);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        recipeOrder.setEffective(0);
         return null;
     }
 }

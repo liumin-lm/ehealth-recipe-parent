@@ -46,6 +46,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.status.factory.constant.RecipeOrderStatusEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -524,7 +525,7 @@ public class RecipeListService extends RecipeBaseService{
     }
 
     private String getOrderStatusTabText(Integer status, Integer giveMode) {
-        String msg = "未知";
+        String msg;
         if (OrderStatusConstant.FINISH.equals(status)) {
             msg = "已完成";
         } else if (OrderStatusConstant.READY_PAY.equals(status)) {
@@ -545,10 +546,11 @@ public class RecipeListService extends RecipeBaseService{
         } else if (OrderStatusConstant.CANCEL_AUTO.equals(status)
                 || OrderStatusConstant.CANCEL_MANUAL.equals(status)) {
             msg = "已取消";
-        }else if (OrderStatusConstant.READY_DRUG.equals(status)){
+        } else if (OrderStatusConstant.READY_DRUG.equals(status)) {
             msg = "准备中";
+        } else {
+            msg = RecipeOrderStatusEnum.getOrderStatus(status);
         }
-
         return msg;
     }
 

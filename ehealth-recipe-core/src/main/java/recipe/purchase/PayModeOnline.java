@@ -725,22 +725,22 @@ public class PayModeOnline implements IPurchaseService {
 
                 }
                 break;
-            case RecipeStatusConstant.WAIT_SEND:
-                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType()) {
-                    tips = "药品已发药";
-                    break;
-                }
             case RecipeStatusConstant.CHECK_PASS_YS:
                 tips = "处方已审核通过，请耐心等待药品配送";
                 break;
             case RecipeStatusConstant.IN_SEND:
                 tips = "药企正在配送";
                 break;
-            case RecipeStatusConstant.RECIPE_FAIL:
-                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType()) {
+            case RecipeStatusConstant.WAIT_SEND:
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
+                    tips = "药品已发药";
+                }
+                break;
+            case RecipeStatusConstant.REVOKE:
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(order.getStatus())) {
                     tips = "药品已拒发";
                 }
-                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType()) {
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(order.getStatus())) {
                     tips = "药品已退药";
                 }
                 break;

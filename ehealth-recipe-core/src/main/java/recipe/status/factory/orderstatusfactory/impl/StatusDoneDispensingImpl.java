@@ -5,7 +5,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
-import recipe.constant.RecipeStatusConstant;
 import recipe.status.factory.constant.RecipeOrderStatusEnum;
 
 /**
@@ -28,7 +27,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         super.drugInventory(request);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
-        recipe.setStatus(RecipeStatusConstant.WAIT_SEND);
+        recipe.setStatus(orderStatus.getTargetRecipeStatus());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         return null;
     }

@@ -29,7 +29,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
 
     public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderStatusProxy updateOrderByStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        Integer status = orderStatus.getSourceRecipeOrderStatus();
+        Integer status = orderStatus.getTargetRecipeOrderStatus();
         if (null == status) {
             return null;
         }
@@ -54,7 +54,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
     private IRecipeOrderStatusService getFactoryService(Integer status) {
         IRecipeOrderStatusService recipeOrderStatusService = recipeOrderStatusMap.get(status);
         if (recipeOrderStatusService == null) {
-            logger.warn("RecipeOrderStatusProxy无效 giveMode= {}", status);
+            logger.warn("RecipeOrderStatusProxy无效 status= {}", status);
         }
         return recipeOrderStatusService;
     }
