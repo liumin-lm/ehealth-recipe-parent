@@ -730,6 +730,8 @@ public class PayModeOnline implements IPurchaseService {
                 break;
             case RecipeStatusConstant.IN_SEND:
                 tips = "药企正在配送";
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
                 if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
                     tips = "药品已发药";
                 }

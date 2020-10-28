@@ -38,7 +38,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
-        orderStatus.setTargetRecipeStatus(RecipeStatusConstant.CHECK_PASS);
+        orderStatus.setTargetRecipeStatus(RecipeStatusConstant.WAIT_SEND);
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus);
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
