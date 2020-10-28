@@ -125,7 +125,7 @@ public abstract class AbstractCaProcessType {
         }
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
         //异步添加水印
-        //RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeBean.getRecipeId()));
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeBean.getRecipeId()));
     }
     
 
@@ -228,8 +228,7 @@ public abstract class AbstractCaProcessType {
             }
         }
         //异步添加水印
-        //RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
-        //updateWaterPrintRecipePdfRunable(recipeId);
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
     }
 
 

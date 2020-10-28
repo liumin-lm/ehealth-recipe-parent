@@ -641,42 +641,4 @@ public class RecipeCAService {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), beforeStatus, RecipeStatusConstant.SIGN_ING_CODE_PHA, "重新签名，药师签名中！");
         }
     }
-
-    public void updateWaterPrintRecipePdfRunable(Integer recipeId){
-        LOGGER.info("UpdateWaterPrintRecipePdfRunable start. recipeId={}", recipeId);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.get(recipeId);
-        //更新pdf
-        if (null == recipe) {
-            LOGGER.warn("UpdateWaterPrintRecipePdfRunable recipe is null  recipeId={}", recipeId);
-            return;
-        }
-        try {
-            String newPfd = null;
-            String key = null;
-            //如果不是医生签名，则不添加水印
-            if(null !=recipe.getChecker()){
-                return;
-            }
-            //如果机构配置未配置水印
-            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-            if (null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) {
-                return;
-            }
-            if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), waterPrintText.toString());
-                key = "SignFile";
-            } else {
-                LOGGER.warn("UpdateWaterPrintRecipePdfRunable file is null  recipeId={}", recipeId);
-            }
-            LOGGER.info("UpdateWaterPrintRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
-            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
-            }
-
-        } catch (Exception e) {
-            LOGGER.error("UpdateWaterPrintRecipePdfRunable error recipeId={},e=", recipeId, e);
-        }
-    }
 }

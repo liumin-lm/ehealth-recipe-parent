@@ -267,7 +267,16 @@
             <groupId>ngari</groupId>
             <artifactId>ehealth-infra-api</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>itext</groupId>
+            <artifactId>iTextAsian</artifactId>
+            <version>2.1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>itext</groupId>
+            <artifactId>iText</artifactId>
+            <version>2.1.7</version>
+        </dependency>
 
     </dependencies>
     <profiles>
