@@ -183,15 +183,15 @@ public class PayModeToHos implements IPurchaseService{
                             tips = "订单已处理，请到院取药";
                         }
                     }
+                    if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
+                        tips = "药品已发药";
+                    }
                 }
                 break;
             case RecipeStatusConstant.CHECK_PASS_YS:
                 tips = "处方已审核通过，请到院取药";
                 break;
             case RecipeStatusConstant.NO_DRUG:
-            case RecipeStatusConstant.ORDER_STATUS_DONE_DISPENSING:
-                tips = "药品已发药";
-                break;
             case RecipeStatusConstant.IN_SEND:
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "到院取药失败";
