@@ -736,14 +736,6 @@ public class PayModeOnline implements IPurchaseService {
                     tips = "药品已发药";
                 }
                 break;
-            case RecipeStatusConstant.REVOKE:
-                if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(order.getStatus())) {
-                    tips = "药品已拒发";
-                }
-                if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(order.getStatus())) {
-                    tips = "药品已退药";
-                }
-                break;
             case RecipeStatusConstant.FINISH:
                 tips = "药企配送完成，订单完成";
                 break;
