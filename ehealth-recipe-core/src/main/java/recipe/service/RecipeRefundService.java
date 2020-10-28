@@ -175,9 +175,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                if (new Integer(1).equals(refundRequestBean.getSource())) {
-                    recipeRefund.setNode(5);
-                }
+                recipeRefund.setNode(5);
                 recipeRefund.setStatus(1);
                 recipeReFundSave(recipe, recipeRefund);
                 //审核通过
@@ -187,9 +185,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                if (new Integer(1).equals(refundRequestBean.getSource())) {
-                    recipeRefund.setNode(5);
-                }
+                recipeRefund.setNode(5);
                 recipeRefund.setStatus(2);
                 recipeRefund.setReason(refundRequestBean.getRemark());
                 recipeReFundSave(recipe, recipeRefund);
