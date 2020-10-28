@@ -736,11 +736,11 @@ public class PayModeOnline implements IPurchaseService {
                     tips = "药品已发药";
                 }
                 break;
-            case RecipeStatusConstant.RECIPE_FAIL:
-                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType()) {
+            case RecipeStatusConstant.REVOKE:
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(order.getStatus())) {
                     tips = "药品已拒发";
                 }
-                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType()) {
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(order.getStatus())) {
                     tips = "药品已退药";
                 }
                 break;
