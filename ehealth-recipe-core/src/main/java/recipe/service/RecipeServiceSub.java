@@ -861,6 +861,7 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
+        LOGGER.info("createParamMap 组装参数. recipeId={},paramMap={}  ", recipe.getRecipeId(), JSONUtils.toString(paramMap));
         return paramMap;
     }
 
@@ -974,6 +975,7 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
+        LOGGER.info("createParamMapForChineseMedicine 组装参数. recipeId={},paramMap={}  ", recipe.getRecipeId(), JSONUtils.toString(paramMap));
         return paramMap;
     }
 
