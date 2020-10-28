@@ -354,7 +354,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }*/
         //患者提起申请
-        if (recipePatientRefundVO.getBusId() != null) {
+        /*if (recipePatientRefundVO.getBusId() != null) {
 
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
             //需要医生审核
@@ -368,22 +368,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipePatientAndDoctorRefundVO.setDoctorName(null);
                 recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
             }
-        }
+        }*/
 
 
-        //判断医生是否已经审核
-        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
-        if (recipeRefundByRecipeIdAndNode != null) {
-            //已审核
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
-            RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
-            recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
-        } else {
-            //医生未审核
-            RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(null, recipePatientRefundVO);
-            recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
-            recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatusMsg(null);
-            recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+        if (recipePatientRefundVO.getBusId() != null) {
+            //判断医生是否已经审核
+            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+            if (recipeRefundByRecipeIdAndNode != null) {
+                //已审核
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
+                RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+            } else {
+                //医生未审核
+                RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(null, recipePatientRefundVO);
+                recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
+                recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatusMsg(null);
+                recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+            }
         }
         recipeDetial.put("buttonIsShow", buttonIsShow);
         LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
