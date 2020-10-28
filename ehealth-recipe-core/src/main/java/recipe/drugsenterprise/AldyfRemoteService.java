@@ -1,6 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.alijk.bqhospital.alijk.dto.BaseResult;
@@ -57,6 +58,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.third.IFileDownloadService;
+import recipe.util.Md5Utils;
 import sun.misc.BASE64Decoder;
 
 import javax.annotation.Resource;
@@ -361,11 +363,11 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
         for (Recipedetail recipedetail : recipeDetails) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
             if(saleDrugList != null && StringUtils.isNotBlank(saleDrugList.getOrganDrugCode())) {
-                Map<String, Object> paramMap = new HashedMap();
-                paramMap.put("drugCode",saleDrugList.getOrganDrugCode());
-                paramMap.put("total",recipedetail.getUseTotalDose() + "");
-                paramMap.put("unit",recipedetail.getDrugUnit());
-                paramList.add(paramMap);
+                Map<String, Object> drugMap = new HashedMap();
+                drugMap.put("drugCode",saleDrugList.getOrganDrugCode());
+                drugMap.put("total",recipedetail.getUseTotalDose() + "");
+                drugMap.put("unit",recipedetail.getDrugUnit());
+                paramList.add(drugMap);
             } else {
                 LOGGER.error("AldyfRemoteService.scanStock 配送药品目录OrganDrugCode为空，drugId:{},enterpriseId:{}", recipedetail.getDrugId(),drugsEnterprise.getId());
                 result.setMsg("配送药品目录OrganDrugCode为空");
@@ -373,22 +375,46 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 return result;
             }
         }
+        String signKey = "hydee";
+        String compid = "1402";
+        String signStr = "compid=" + compid + "&" + "drugList=" + JSONObject.toJSONString(paramList)+"&" + "key=" + signKey;
+        String signResult = Md5Utils.crypt(signStr);
+        Map<String, Object> paramMap = new HashedMap();
+        paramMap.put("compid",compid);
+        paramMap.put("drugList",paramList);
+        paramMap.put("sign",signResult);
         // 校验请求
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
             String requestUrl = "";
             HttpPost httpPost = new HttpPost(requestUrl);
             httpPost.setHeader("Content-Type", "application/json");
-            httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramList), ContentType.APPLICATION_JSON));
-            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramList));
+            httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramMap), ContentType.APPLICATION_JSON));
+            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramMap));
             HttpResponse httpResponse = httpClient.execute(httpPost);
             LOGGER.info("AldyfRemoteService.scanStock res={}",JSONObject.toJSONString(httpResponse));
             HttpEntity entity = httpResponse.getEntity();
             String response = EntityUtils.toString(entity);
             JSONObject responseObject = JSON.parseObject(response);
             String code = responseObject.getString("code");
+            if ("1".equals(code)){
+                JSONArray drugArray = responseObject.getJSONArray("drugList");
+                if (null != drugArray && drugArray.size() > 0){
+                    for (int i = 0; i < drugArray.size(); i++){
+                        JSONObject drug = drugArray.getJSONObject(i);
+                        if ("false".equals(drug.getString("inventory"))){
+                            result.setMsg("库存校验不通过");
+                            result.setCode(DrugEnterpriseResult.FAIL);
+                            return result;
+                        }
+                    }
+                }
+            }else {
+                result.setMsg("库存校验返回失败");
+                result.setCode(DrugEnterpriseResult.FAIL);
+            }
         } catch (Exception e) {
-            LOGGER.error("AldyfRemoteService.scanStock 库存校验异常", e);
+            LOGGER.error("AldyfRemoteService.scanStock 库存校验异常：", e);
             result.setMsg("库存校验异常");
             result.setCode(DrugEnterpriseResult.FAIL);
         } finally {
@@ -546,5 +572,65 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     private static String getJsonLog(Object object) {
         return JSONUtils.toString(object);
+    }
+
+    public static void main(String[] args) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        // 校验参数组装
+        List<Map<String, Object>> paramList = new ArrayList<>();
+        Map<String, Object> drugMap = new HashedMap();
+        drugMap.put("drugCode","1519309");
+        drugMap.put("total","10");
+        drugMap.put("unit","片");
+        paramList.add(drugMap);
+
+        String signKey = "hydee";
+        String compid = "1402";
+        String signStr = "compid=" + compid + "&" + "drugList=" + JSONObject.toJSONString(paramList)+"&" + "key=" + signKey;
+        String signResult = Md5Utils.crypt(signStr);
+        Map<String, Object> paramMap = new HashedMap();
+        paramMap.put("compid",compid);
+        paramMap.put("drugList",paramList);
+        paramMap.put("sign",signResult);
+        // 校验请求
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        try {
+            String requestUrl = "http://10.153.184.78:58081/ht/zxcf_store";
+            HttpPost httpPost = new HttpPost(requestUrl);
+            httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramMap), ContentType.APPLICATION_JSON));
+            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramMap));
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            LOGGER.info("AldyfRemoteService.scanStock res={}",JSONObject.toJSONString(httpResponse));
+            HttpEntity entity = httpResponse.getEntity();
+            String response = EntityUtils.toString(entity);
+            JSONObject responseObject = JSON.parseObject(response);
+            String code = responseObject.getString("code");
+            if ("1".equals(code)){
+                JSONArray drugArray = responseObject.getJSONArray("drugList");
+                if (null != drugArray && drugArray.size() > 0){
+                    for (int i = 0; i < drugArray.size(); i++){
+                        JSONObject drug = drugArray.getJSONObject(i);
+                        if ("false".equals(drug.getString("inventory"))){
+                            result.setMsg("库存校验不通过");
+                            result.setCode(DrugEnterpriseResult.FAIL);
+                        }
+                    }
+                }
+            }else {
+                result.setMsg("库存校验返回失败");
+                result.setCode(DrugEnterpriseResult.FAIL);
+            }
+        } catch (Exception e) {
+            LOGGER.error("AldyfRemoteService.scanStock 库存校验异常：", e);
+            result.setMsg("库存校验异常");
+            result.setCode(DrugEnterpriseResult.FAIL);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                LOGGER.warn("资源关闭失败：", e);
+            }
+        }
     }
 }
