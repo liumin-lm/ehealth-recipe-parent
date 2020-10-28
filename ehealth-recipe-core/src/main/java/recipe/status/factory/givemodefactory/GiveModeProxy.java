@@ -25,6 +25,7 @@ public class GiveModeProxy implements ApplicationContextAware {
 
 
     public void updateOrderByGiveMode(Integer giveMode, UpdateOrderStatusVO orderStatus) {
+        logger.info("GiveModeProxy updateOrderByGiveMode giveMode={},orderStatus={}", giveMode, JSON.toJSONString(orderStatus));
         if (null == giveMode) {
             return;
         }
@@ -36,6 +37,8 @@ public class GiveModeProxy implements ApplicationContextAware {
                 , orderStatus.getTargetRecipeOrderStatus(), "giveMode ：" + giveMode + " ,sender:" + orderStatus.getSender());
 //        //调用基类方法
 //        factoryService.test();
+        logger.info("GiveModeProxy updateOrderByGiveMode end");
+
     }
 
 

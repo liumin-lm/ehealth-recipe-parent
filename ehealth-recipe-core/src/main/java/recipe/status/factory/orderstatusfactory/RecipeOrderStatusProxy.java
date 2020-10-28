@@ -1,4 +1,4 @@
-package recipe.status.factory.recipestatusfactory;
+package recipe.status.factory.orderstatusfactory;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
@@ -28,6 +28,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
 
 
     public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus) {
+        logger.info("RecipeOrderStatusProxy updateOrderByStatus orderStatus = {}", JSON.toJSONString(orderStatus));
         Integer status = orderStatus.getSourceRecipeOrderStatus();
         if (null == status) {
             return null;
@@ -40,6 +41,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         recipeOrder.setOrderId(orderStatus.getOrderId());
         recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        logger.info("RecipeOrderStatusProxy updateOrderByStatus recipe = {}", JSON.toJSONString(recipe));
         return recipe;
     }
 

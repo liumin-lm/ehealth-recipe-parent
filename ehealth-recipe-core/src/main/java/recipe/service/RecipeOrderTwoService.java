@@ -12,12 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.status.factory.givemodefactory.GiveModeProxy;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author fuzi
@@ -35,9 +38,9 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
     private GiveModeProxy giveModeProxy;
 
     @Override
-    public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
+    public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        ResultBean result = new ResultBean(200, "", true);
+        ResultBean<Boolean> result = new ResultBean(200, "", true);
         if (null == orderStatus.getRecipeId() || null == orderStatus.getTargetRecipeOrderStatus()) {
             return result;
         }
@@ -50,6 +53,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         List<ConfigStatusCheck> statusList = configStatusCheckDAO.findByLocationAndSource(recipe.getGiveMode(), recipeOrder.getStatus());
         boolean status = statusList.stream().anyMatch(a -> a.getTarget().equals(orderStatus.getTargetRecipeOrderStatus()));
         if (!status) {
+            updateOrderStatus(orderStatus);
             return result;
         }
         //工厂代理处理状态流转
@@ -57,6 +61,14 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSender("system");
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
+    }
+
+    private void updateOrderStatus(UpdateOrderStatusVO orderStatus) {
+        RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        Map<String, Object> attrMap = new HashMap<>();
+        attrMap.put("status", orderStatus.getTargetRecipeOrderStatus());
+        recipeOrderService.updateOrderStatus(orderStatus.getRecipeId(), attrMap);
     }
 }

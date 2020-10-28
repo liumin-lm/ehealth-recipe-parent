@@ -1,9 +1,11 @@
 package recipe.thread;
 
 import com.google.common.collect.ImmutableMap;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.common.RecipeCacheService;
 
 import java.math.BigDecimal;
@@ -42,21 +45,21 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             logger.warn("UpdateReceiverInfoRecipePdfRunable recipe is null  recipeId={}", recipeId);
             return;
         }
-
         try {
             String newPfd = null;
             String key = null;
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
-            AccessDrugEnterpriseService accessDrugEnterpriseService = ApplicationUtils.getRecipeService(AccessDrugEnterpriseService.class);
+            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
-            if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(accessDrugEnterpriseService.getCompleteAddress(order)))){
+            if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order)))){
+                logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(),order.getRecMobile(),accessDrugEnterpriseService.getCompleteAddress(order),recipe.getRecipeType());
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(),order.getRecMobile(),commonRemoteService.getCompleteAddress(order),recipe.getRecipeType());
                     key = "ChemistSignFile";
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(),order.getRecMobile(),accessDrugEnterpriseService.getCompleteAddress(order),recipe.getRecipeType());
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(),order.getRecMobile(),commonRemoteService.getCompleteAddress(order),recipe.getRecipeType());
                     key = "SignFile";
                 } else {
                     logger.warn("UpdateReceiverInfoRecipePdfRunable file is null  recipeId={}", recipeId);
@@ -70,4 +73,6 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             logger.error("UpdateReceiverInfoRecipePdfRunable error recipeId={},e=", recipeId, e);
         }
     }
+
+
 }

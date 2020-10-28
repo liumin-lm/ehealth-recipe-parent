@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.visit.mode.ApplicationForRefundVisitReqTO;
@@ -50,7 +51,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: gaomw
  * @date:20200714
  */
-@RpcBean("recipeRefundService")
+@RpcBean(value = "recipeRefundService", mvc_authentication = false)
 public class RecipeRefundService extends RecipeBaseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeRefundService.class);
@@ -174,19 +175,17 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                if (new Integer(1).equals(refundRequestBean.getSource())) {
-                    recipeRefund.setNode(2);
-                }
-                recipe.setStatus(1);
+                recipeRefund.setNode(5);
+                recipeRefund.setStatus(1);
                 recipeReFundSave(recipe, recipeRefund);
+                //审核通过
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS);
             } else {
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                if (new Integer(1).equals(refundRequestBean.getSource())) {
-                    recipeRefund.setNode(2);
-                }
+                recipeRefund.setNode(5);
                 recipeRefund.setStatus(2);
                 recipeRefund.setReason(refundRequestBean.getRemark());
                 recipeReFundSave(recipe, recipeRefund);
@@ -317,7 +316,7 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.error("findRefundRecordfromHis-未获取到处方单信息. recipeId={}", recipeId.toString());
             throw new DAOException("未获取到处方单信息！");
         }
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeId);
         FindRefundRecordReqTO request = new FindRefundRecordReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setBusNo(applyNo);
@@ -521,7 +520,7 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeCode(recipeOrder.getOrderCode());
+        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
         if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
             //当处方的购药方式为配送到家和药店取药时
             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
@@ -538,5 +537,12 @@ public class RecipeRefundService extends RecipeBaseService{
         } else {
             return 1;
         }
+    }
+
+    @RpcService
+    public List<String> getApp(Integer organId){
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        Object payModeDeploy = configService.getConfiguration(organId, "refundPayModel");
+        return new ArrayList<>(Arrays.asList((String[])payModeDeploy));
     }
 }

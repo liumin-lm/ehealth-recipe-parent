@@ -72,7 +72,19 @@ public class CreateRecipePdfUtil {
         return fileId;
     }
 
+    /**
+     * 处方签pdf添加收货人信息
+     * @param pdfId
+     * @param receiver
+     * @param recMobile
+     * @param completeAddress
+     * @param recipeType
+     * @return
+     * @throws IOException
+     * @throws DocumentException
+     */
     public static String generateReceiverInfoRecipePdf(String pdfId, String receiver, String recMobile, String completeAddress, Integer recipeType) throws IOException, DocumentException {
+        logger.info("generateReceiverInfoRecipePdf pdfId={}, receiver={} ,recMobile={} ,completeAddress={}", pdfId, receiver,recMobile,completeAddress);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
@@ -92,6 +104,17 @@ public class CreateRecipePdfUtil {
         return fileId;
     }
 
+    /**
+     * 处方签pdf添加收货人信息
+     * @param input
+     * @param output
+     * @param receiver
+     * @param recMobile
+     * @param completeAddress
+     * @param type
+     * @throws IOException
+     * @throws DocumentException
+     */
     private static void addReceiverInfoRecipePdf(InputStream input, OutputStream output, String receiver, String recMobile, String completeAddress, Integer type) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
@@ -106,7 +129,7 @@ public class CreateRecipePdfUtil {
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             page.setTextMatrix(41, 581);
             page.showText("收货人姓名：" + receiver);
-            page.setTextMatrix(223, 581);
+            page.setTextMatrix(226, 581);
             page.showText("收货人电话：" + recMobile);
             page.setTextMatrix(41, 561);
             page.showText("收货人地址：" + completeAddress);

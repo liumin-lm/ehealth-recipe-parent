@@ -16,7 +16,6 @@ import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeLogService;
 import recipe.status.factory.constant.GiveModeEnum;
-import recipe.status.factory.recipestatusfactory.RecipeOrderStatusProxy;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.List;
@@ -30,8 +29,6 @@ import java.util.List;
 public class HomeDeliveryImpl extends AbstractGiveMode {
     @Autowired
     private IPatientService patientService;
-    @Autowired
-    private RecipeOrderStatusProxy recipeOrderStatusProxy;
 
     @Override
     public Integer getGiveMode() {
@@ -46,6 +43,9 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
                         ",快递公司：" + orderStatus.getLogisticsCompany() + ",快递单号：" + orderStatus.getTrackingNumber());
         //将快递公司快递单号信息用更新配送方式接口更新至his
+        if (null == recipe) {
+            return;
+        }
         if (null != orderStatus.getLogisticsCompany() && StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             RecipeBusiThreadPool.submit(() -> {
                 RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);

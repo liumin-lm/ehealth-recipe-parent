@@ -1,7 +1,6 @@
 package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -23,6 +22,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
+import recipe.status.factory.constant.RecipeOrderStatusEnum;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -177,9 +177,9 @@ public class PayModeToHos implements IPurchaseService{
                     if (new Integer(1).equals(recipe.getRecipePayType()) && order.getPayFlag() == 1) {
                         tips = "处方已支付，具体配送情况请咨询您的开方医生。";
                     } else {
-                        if(0d >= order.getActualPrice()){
+                        if (0d >= order.getActualPrice()) {
                             tips = "订单已处理，请到院取药";
-                        }else if(0d < order.getActualPrice() && payFlag == 1){
+                        } else if (0d < order.getActualPrice() && payFlag == 1) {
                             tips = "订单已处理，请到院取药";
                         }
                     }
@@ -189,13 +189,24 @@ public class PayModeToHos implements IPurchaseService{
                 tips = "处方已审核通过，请到院取药";
                 break;
             case RecipeStatusConstant.NO_DRUG:
+            case RecipeStatusConstant.IN_SEND:
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
+                    tips = "药品已发药";
+                }
+                break;
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "到院取药失败";
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(order.getStatus())) {
+                    tips = "药品已拒发";
+                }
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(order.getStatus())) {
+                    tips = "药品已退药";
+                }
                 break;
             case RecipeStatusConstant.FINISH:
                 tips = "到院取药成功，订单完成";
                 break;
-                default:
+            default:
         }
         return tips;
     }
