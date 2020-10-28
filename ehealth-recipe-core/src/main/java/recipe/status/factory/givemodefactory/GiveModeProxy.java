@@ -35,8 +35,6 @@ public class GiveModeProxy implements ApplicationContextAware {
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "giveMode ：" + giveMode + " ,sender:" + orderStatus.getSender());
-//        //调用基类方法
-//        factoryService.test();
         logger.info("GiveModeProxy updateOrderByGiveMode end");
 
     }

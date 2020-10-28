@@ -4711,4 +4711,9 @@ public class RecipeService extends RecipeBaseService {
         }
     }
 
+    @RpcService
+    public void aa(int recipeId){
+        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+    }
+
 }

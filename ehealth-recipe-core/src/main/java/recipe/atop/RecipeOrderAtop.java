@@ -31,8 +31,7 @@ public class RecipeOrderAtop extends BaseAtop {
             return result;
         } catch (Exception e) {
             logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e);
-            ResultBean<Boolean> result = new ResultBean(609, "", false);
-            return result;
+            return new ResultBean<>(609, e.getMessage(), false);
         }
     }
 }

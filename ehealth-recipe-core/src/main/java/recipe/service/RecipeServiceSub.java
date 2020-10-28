@@ -857,10 +857,17 @@ public class RecipeServiceSub {
             }
             paramMap.put("recipeFee", recipe.getTotalMoney()+"元" );
             paramMap.put("drugNum", i);
+
+            //水印
+            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+            if (null != waterPrintText) {
+                paramMap.put("waterPrintText", waterPrintText.toString());
+            }
             LOGGER.info("createParamMap recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
+        LOGGER.info("createParamMap 组装参数. recipeId={},paramMap={}  ", recipe.getRecipeId(), JSONUtils.toString(paramMap));
         return paramMap;
     }
 
@@ -972,10 +979,17 @@ public class RecipeServiceSub {
             }
             paramMap.put("recipeFee", recipe.getTotalMoney()+"元" );
             paramMap.put("drugNum", i);
+
+            //水印
+            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+            if (null != waterPrintText) {
+                paramMap.put("waterPrintText", waterPrintText.toString());
+            }
             LOGGER.info("createParamMapForChineseMedicine recipeId:{} paramMap:{}",recipe.getRecipeId(),JSONUtils.toString(paramMap));
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
+        LOGGER.info("createParamMapForChineseMedicine 组装参数. recipeId={},paramMap={}  ", recipe.getRecipeId(), JSONUtils.toString(paramMap));
         return paramMap;
     }
 

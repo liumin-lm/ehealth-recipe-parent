@@ -11,6 +11,7 @@ import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
@@ -37,6 +38,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
+        orderStatus.setTargetRecipeStatus(RecipeStatusConstant.WAIT_SEND);
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus);
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
