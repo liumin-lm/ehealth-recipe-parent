@@ -374,7 +374,7 @@ public class RecipeRefundService extends RecipeBaseService{
                         DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(record.getCheckStatus());
                     recipeRefund.setMemo(memo);
                     recipeRefund.setApplyTime(new Date());
-                    recipeRefund.setCheckTime(null);
+                    recipeRefund.setCheckTime(new Date());
                     //保存记录
                     recipeRefundDao.saveRefund(recipeRefund);
                     //date 20200717
