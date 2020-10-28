@@ -40,7 +40,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
     @Override
     public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        ResultBean<Boolean> result = new ResultBean(200, "", true);
+        ResultBean<Boolean> result = new ResultBean<>(200, "成功", true);
         if (null == orderStatus.getRecipeId() || null == orderStatus.getTargetRecipeOrderStatus()) {
             return result;
         }

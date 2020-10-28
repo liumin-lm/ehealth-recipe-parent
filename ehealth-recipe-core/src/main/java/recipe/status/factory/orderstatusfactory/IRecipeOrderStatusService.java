@@ -18,7 +18,8 @@ public interface IRecipeOrderStatusService {
     /**
      * 更新状态
      *
-     * @param orderStatus
+     * @param orderStatus 入参
+     * @param recipeOrder 变更订单数据
      * @return
      */
     Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder);
