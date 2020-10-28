@@ -31,17 +31,19 @@ import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.comment.ExtendDao;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
 @RpcSupportDAO
-public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> {
+public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> implements ExtendDao<RecipeOrder> {
     private static final Logger logger = LoggerFactory.getLogger(RecipeOrderDAO.class);
 
     private static final Map<Integer, String> DRUG_TYPE_TABLE = ImmutableMap.of(1, "西药", 2, "中成药", 3, "中药", 4, "膏方");
@@ -50,6 +52,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         super();
         this.setEntityName(RecipeOrder.class.getName());
         this.setKeyField("orderId");
+    }
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder) {
+        return updateNonNullFieldByPrimaryKey(recipeOrder, "orderId");
     }
 
     /**
@@ -102,6 +109,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and order.effective=1 and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    /**
+     * 根据处方id获取订单
+     * @param recipeId
+     * @return
+     */
+    @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
+    public abstract RecipeOrder getRecipeOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
     @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getOrderByRecipeIdQuery(@DAOParam("recipeId") Integer recipeId);
@@ -1410,10 +1425,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
-                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,c.EnterpriseId, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo,c.payeeCode ,r.GiveMode");
+                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,c.EnterpriseId, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo,c.payeeCode ,r.GiveMode,r.RecipeCode");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_recipe r where ( c.send_type = 2 or r.GiveMode = 3) and c.OrderCode = r.OrderCode and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime");
                 if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
-                    sql.append(" and c.OrganId =:organIdList");
+                    sql.append(" and c.OrganId in (:organIdList)");
                 }
                 if (null != request.getEnterpriseId()) {
                     sql.append(" and c.EnterpriseId =:enterpriseId");
@@ -1481,6 +1496,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTradeNo(ConversionUtils.convert(item[10], String.class));
                         response.setPayeeCode(ConversionUtils.convert(item[11], Integer.class));
                         response.setGiveMode(ConversionUtils.convert(item[12], Integer.class));
+                        response.setRecipeCode(ConversionUtils.convert(item[13],String.class));
                         resultList.add(response);
                     }
                 }

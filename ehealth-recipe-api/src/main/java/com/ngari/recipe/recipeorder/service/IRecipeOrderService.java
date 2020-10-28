@@ -1,10 +1,7 @@
 package com.ngari.recipe.recipeorder.service;
 
 import com.ngari.recipe.IBaseService;
-import com.ngari.recipe.common.RecipeBussResTO;
-import com.ngari.recipe.common.RecipeListReqTO;
-import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.common.RecipeTrannckingReqTO;
+import com.ngari.recipe.common.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
@@ -184,4 +181,14 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO);
+
+
+    /**
+     * 保存处方订单电子票据信息
+     *
+     * @param orderBillReqTO
+     * @return
+     */
+    @RpcService
+    Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO);
 }

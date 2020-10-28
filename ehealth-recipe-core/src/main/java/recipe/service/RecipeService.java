@@ -74,6 +74,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
+import org.apache.poi.util.StringUtil;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -3642,7 +3643,10 @@ public class RecipeService extends RecipeBaseService {
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             //根据审方模式改变
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterPayChange(saveFlag, dbRecipe, result, attrMap);
-
+            //支付成功后pdf异步显示对应的配送信息
+            if(new Integer("1").equals(payFlag)){
+                RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+            }
         }
         return result;
     }

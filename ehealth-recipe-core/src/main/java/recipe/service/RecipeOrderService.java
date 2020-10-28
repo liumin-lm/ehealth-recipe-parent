@@ -54,7 +54,6 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -94,6 +93,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方订单管理
@@ -1860,11 +1861,13 @@ public class RecipeOrderService extends RecipeBaseService {
 
     /**
      * 获取订单详情
+     * 新接口findByLocationAndSource
      *
      * @param giveMode
      * @return
      */
     @RpcService
+    @Deprecated
     public Map<Integer, String> getOrderStatusEnum(Integer giveMode) {
         HashMap<Integer, String> map = new HashMap<>();
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
@@ -1934,6 +1937,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //date 20190919
         //根据不同的购药方式设置订单的状态
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
         if (CollectionUtils.isNotEmpty(recipes)) {
             Recipe nowRecipe = recipes.get(0);
@@ -1953,6 +1957,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 sendTfdsMsg(nowRecipe, payMode, orderCode);
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
+                purchaseService.setRecipePayWay(order);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
@@ -2581,42 +2586,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
         }
-//
-//        //更新订单状态
-//        String orderCode= this.getOrderCodeByRecipeId(recipeId);
-//        if(null == orderCode){
-//            resultBean.setCode(RecipeResultBean.FAIL);
-//            resultBean.setError("更新处方订单信息失败，找不到订单信息");
-//            return resultBean;
-//        }
-//
-//        resultBean= this.updateOrderInfo(orderCode, attrMap, null);
-//        if(resultBean.getCode().equals(RecipeResultBean.FAIL)){
-//            return resultBean;
-//        }
-//
-//        //同步处方状态
-//        Map<String, Object> recipeMap = new HashMap<>();
-//        recipeMap.put("sendDate", new Date());
-//        recipeMap.put("status", status2);
-//        recipeMap.put("lastModify", new Date());
-//        //以免进行处方失效前提醒
-//        recipeMap.put("remindFlag", 1);
-//        try {
-//            boolean recipeSave = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeMap);
-//            if (!recipeSave) {
-//                resultBean.setCode(RecipeResultBean.FAIL);
-//                resultBean.setError("处方单状态同步失败");
-//            }
-//
-//        } catch (Exception e) {
-//            resultBean.setCode(RecipeResultBean.FAIL);
-//            resultBean.setError("处方单状态同步失败," + e.getMessage());
-//        }
-//        //向患者端发送消息
-//        RecipeMsgService.batchSendMsg(recipeId, status2);
-//
-//        LOGGER.info("updateOrderStatus 更新处方订单信息成功");
         return resultBean;
     }
 

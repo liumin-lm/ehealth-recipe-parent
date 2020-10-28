@@ -127,7 +127,14 @@ public enum RecipeMsgEnum {
      * 药师审核通过
      */
     RECIPE_APPROVED(134, "RecipeApproved"),
-
+    /**
+     * 第三方审核不通过
+     */
+    HIS_OR_PHARMACEUTICAL_REFUND_FAIL(135, "HisOrPharmaceuticalRefundFail"),
+    /**
+     * 第三方审核通过
+     */
+    HIS_OR_PHARMACEUTICAL_REFUND_SUCCESS(136, "HisOrPharmaceuticalRefundSuccess"),
 
     /**
      * 默认消息

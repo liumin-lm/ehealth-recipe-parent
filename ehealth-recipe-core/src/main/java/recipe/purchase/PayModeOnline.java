@@ -45,6 +45,7 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
+import recipe.status.factory.constant.RecipeOrderStatusEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -721,6 +722,7 @@ public class PayModeOnline implements IPurchaseService {
                     if (orderStatus == OrderStatusConstant.READY_PAY && new Integer(1).equals(order.getRefundFlag())) {
                         tips = "订单结算失败，费用已为您原路返回";
                     }
+
                 }
                 break;
             case RecipeStatusConstant.WAIT_SEND:
@@ -729,11 +731,22 @@ public class PayModeOnline implements IPurchaseService {
                 break;
             case RecipeStatusConstant.IN_SEND:
                 tips = "药企正在配送";
+                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType()) {
+                    tips = "药品已发药";
+                }
+                break;
+            case RecipeStatusConstant.RECIPE_FAIL:
+                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType()) {
+                    tips = "药品已拒发";
+                }
+                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType()) {
+                    tips = "药品已退药";
+                }
                 break;
             case RecipeStatusConstant.FINISH:
                 tips = "药企配送完成，订单完成";
                 break;
-                default:
+            default:
         }
         return tips;
     }
@@ -741,6 +754,19 @@ public class PayModeOnline implements IPurchaseService {
     @Override
     public Integer getOrderStatus(Recipe recipe) {
         return OrderStatusConstant.READY_SEND;
+    }
+
+    @Override
+    public void setRecipePayWay(RecipeOrder recipeOrder) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if (new Integer(2).equals(recipe.getPayMode())) {
+            recipeOrder.setRecipePayWay(0);
+        } else {
+            recipeOrder.setRecipePayWay(1);
+        }
+        recipeOrderDAO.update(recipeOrder);
     }
 
     private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {

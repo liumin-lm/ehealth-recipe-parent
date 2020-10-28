@@ -1,13 +1,14 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
-import com.ngari.ca.api.vo.*;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
@@ -16,6 +17,7 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
@@ -24,9 +26,7 @@ import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
-import com.ngari.recipe.common.RecipeBussReqTO;
-import com.ngari.recipe.common.RecipeListReqTO;
-import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.common.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
@@ -36,7 +36,6 @@ import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipe.model.CaSignResultBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
@@ -54,7 +53,6 @@ import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -79,6 +77,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
+import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
@@ -99,7 +98,7 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean("remoteRecipeService")
+@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -108,6 +107,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
 //    @Autowired
 //    private CommonCAFactory commonCAFactory;
+
+    @Autowired
+    private RecipeRefundDAO recipeRefundDAO;
+    @Autowired
+    private DoctorService doctorService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     @RpcService
     @Override
@@ -195,7 +203,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
-        LOGGER.info("remoteRecipeService.getByRecipeId={}",JSONObject.toJSONString(recipeBean));
+        LOGGER.info("remoteRecipeService.getByRecipeId={}", JSONObject.toJSONString(recipeBean));
         return recipeBean;
     }
 
@@ -284,9 +292,85 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
-        IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-        //代码已迁移 ehealth-recipeaudi 修改在ehealth-recipeaudi的对应相同的方法修改
-        return recipeAuditService.findRecipeAndDetailsAndCheckById(recipeId, null);
+        Boolean buttonIsShow = false;
+        OperationPlatformRecipeService service = ApplicationUtils.getRecipeService(OperationPlatformRecipeService.class);
+        //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改
+        Map<String, Object> recipeDetial = service.findRecipeAndDetailsAndCheckById(recipeId, null);
+        //根据recipeId查询退款信息 判断该处方是否存在退费
+        RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
+        //订单已支付
+        if (recipeOrder != null) {
+            if (recipeOrder.getPayFlag() == 1) {
+                //患者是否提起申请
+                if (recipePatientRefundVO.getBusId() != null) {
+                    //需要医生审核
+                    if (doctorReviewRefund) {
+                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                        //判断医生是否已经审核
+                        if (recipeRefundByRecipeIdAndNode != null) {
+                            //医生已经审核且审核通过
+                            if (recipeRefundByRecipeIdAndNode.getStatus() == 1) {
+                                //判断药师是否审核(运营平台)
+                                RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
+                                if (recipeRefund != null) {
+                                    //药师已经审核且未通过
+                                    if (recipeRefund.getStatus() != 1) {
+                                        buttonIsShow = true;
+                                    }
+                                } else {
+                                    //运营平台药师未审核
+                                    buttonIsShow = true;
+                                }
+                            }
+                        }
+                        //审核失败 不显示按钮
+                    } else {
+                        //不需要医生审核显示
+                        buttonIsShow = true;
+                    }
+                }
+            }
+        }
+
+        /*if (recipeOrder != null) {
+            //已支付
+            if (recipeOrder.getPayFlag() == 1) {
+
+            }
+        }*/
+        //患者提起申请
+        if (recipePatientRefundVO.getBusId() != null) {
+
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
+            //需要医生审核
+            if (doctorReviewRefund) {
+                //判断医生是否已经审核
+                RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                if (recipeRefundByRecipeIdAndNode != null) {
+                    //已审核
+                    RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                    recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                } else {
+                    //医生未审核
+                    RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                    recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
+                    recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                }
+            } else {
+                //不需要医生审核
+                RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
+                recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setDoctorId(null);
+                recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+            }
+        }
+        recipeDetial.put("buttonIsShow", buttonIsShow);
+        LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
+        return recipeDetial;
     }
 
     @RpcService
@@ -1201,8 +1285,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     RecipeService recipeService;
 
-    @Autowired
-    RecipeDAO recipeDAO;
 
     @Override
     public Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo) {
@@ -1383,7 +1465,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (CollectionUtils.isNotEmpty(organIds)) {
             recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         } else {
-            recipes =recipeDAO.findByRecipeIds(recipeIds);
+            recipes = recipeDAO.findByRecipeIds(recipeIds);
         }
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
@@ -1650,7 +1732,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<RecipeBean> findReadyCheckRecipeByOrganIdsCheckMode(List<Integer> organIds, Integer checkMode) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByOrganIdsCheckMode(organIds,checkMode);
+        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByOrganIdsCheckMode(organIds, checkMode);
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
     }
@@ -1665,8 +1747,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Date date=  DateUtils.addYears(new Date(),-1);
-        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes,date);
+        Date date = DateUtils.addYears(new Date(), -1);
+        List<Recipe> recipes = recipeDAO.queryRecipeInfoByOrganAndRecipeType(organIds, recipeTypes, date);
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
     }
 
@@ -1727,5 +1809,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public void pharmacyToRecipePDF(Integer recipeId) {
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.pharmacyToRecipePDF(recipeId);
+    }
+
+    @Override
+    public ThirdResultBean refundResultCallBack(RefundRequestBean refundRequestBean) {
+        LOGGER.info("RemoteRecipeService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
+        RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
+        recipeRefundService.refundResultCallBack(refundRequestBean);
+        return null;
     }
 }
