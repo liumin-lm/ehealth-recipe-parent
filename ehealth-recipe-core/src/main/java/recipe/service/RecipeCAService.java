@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
@@ -151,21 +152,21 @@ public class RecipeCAService {
             /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
 
-            //获取签章图片
-            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-            //根据当前的操作用户id获取
-            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(doctorId);
-            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-            } else {
-                requestSealTO.setSealBase64Str("");
-            }
-            String caPassword = "";
-            //签名时的密码从redis中获取
-            if (null != redisClient.get("caPassword")) {
-                caPassword = redisClient.get("caPassword");
-            }
-            requestSealTO.setUserPin(caPassword);
+//            //获取签章图片
+//            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+//            //根据当前的操作用户id获取
+//            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(doctorId);
+//            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+//                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+//            } else {
+//                requestSealTO.setSealBase64Str("");
+//            }
+//            String caPassword = "";
+//            //签名时的密码从redis中获取
+//            if (null != redisClient.get("caPassword")) {
+//                caPassword = redisClient.get("caPassword");
+//            }
+//            requestSealTO.setUserPin(caPassword);
 
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             String userAccount = doctorDTO.getIdNumber();
@@ -638,6 +639,44 @@ public class RecipeCAService {
         if(RecipeStatusConstant.SIGN_ING_CODE_PHA != recipe.getStatus()){
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_PHA));
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), beforeStatus, RecipeStatusConstant.SIGN_ING_CODE_PHA, "重新签名，药师签名中！");
+        }
+    }
+
+    public void updateWaterPrintRecipePdfRunable(Integer recipeId){
+        LOGGER.info("UpdateWaterPrintRecipePdfRunable start. recipeId={}", recipeId);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        //更新pdf
+        if (null == recipe) {
+            LOGGER.warn("UpdateWaterPrintRecipePdfRunable recipe is null  recipeId={}", recipeId);
+            return;
+        }
+        try {
+            String newPfd = null;
+            String key = null;
+            //如果不是医生签名，则不添加水印
+            if(null !=recipe.getChecker()){
+                return;
+            }
+            //如果机构配置未配置水印
+            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
+            if (null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) {
+                return;
+            }
+            if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), waterPrintText.toString());
+                key = "SignFile";
+            } else {
+                LOGGER.warn("UpdateWaterPrintRecipePdfRunable file is null  recipeId={}", recipeId);
+            }
+            LOGGER.info("UpdateWaterPrintRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
+            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("UpdateWaterPrintRecipePdfRunable error recipeId={},e=", recipeId, e);
         }
     }
 }
