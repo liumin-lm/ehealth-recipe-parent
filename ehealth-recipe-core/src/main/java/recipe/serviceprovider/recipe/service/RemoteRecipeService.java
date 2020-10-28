@@ -330,7 +330,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         //审核失败 不显示按钮
                     } else {
                         //不需要医生审核显示
-                        buttonIsShow = true;
+                        //buttonIsShow = true;
+                        //判断药师是否审核(运营平台)
+                        RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
+                        if (recipeRefund != null) {
+                            //药师已经审核且未通过
+                            if (recipeRefund.getStatus() != 1) {
+                                buttonIsShow = true;
+                            }
+                        } else {
+                            //运营平台药师未审核
+                            buttonIsShow = true;
+                        }
                     }
                 }
             }
