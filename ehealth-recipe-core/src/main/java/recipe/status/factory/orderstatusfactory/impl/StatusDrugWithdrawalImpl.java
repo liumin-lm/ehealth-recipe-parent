@@ -29,6 +29,7 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
         recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(RecipeStatusConstant.RECIPE_FAIL);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        recipeOrder.setEffective(0);
         return null;
     }
 }

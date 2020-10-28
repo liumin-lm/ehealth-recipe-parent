@@ -5,21 +5,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 /**
-* @Description: TabStatusEnum 类（或接口）是 首页切换页面tab展示的处方或者订单对应的状态
-* @Author: JRK
-* @Date: 2019/8/21
-*/
+ * @Description: TabStatusEnum 类（或接口）是 首页切换页面tab展示的处方或者订单对应的状态
+ * @Author: JRK
+ * @Date: 2019/8/21
+ */
 public enum TabStatusEnum {
     /**
      * 进行中订单的状态（待支付，待审核|后置，待取药(库存足够/库存不足)，待配送，配送中，准备中）
      */
-    Ongoing_Order_StatusList("ongoing", "order", new ArrayList<>(Arrays.asList(1, 9, 2, 12, 10, 3, 4, 11))),
+    Ongoing_Order_StatusList("ongoing", "order", new ArrayList<>(Arrays.asList(1, 9, 2, 12, 10, 3, 4, 11, 13))),
     /**
      * 进行中处方的状态（待处理，待审核|前置）
      * date 20200424
      * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe" , new ArrayList<>(Arrays.asList(2, 8, 27, 31))),
+    Ongoing_Recipe_StatusList("ongoing", "recipe", new ArrayList<>(Arrays.asList(2, 8, 27, 31))),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16
