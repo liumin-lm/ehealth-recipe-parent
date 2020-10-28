@@ -42,6 +42,11 @@ public class UpdateOrderStatusVO implements Serializable {
      */
     private String sender;
 
+    /**
+     * 目标处方状态
+     */
+    private Integer targetRecipeStatus;
+
 
 }
 
