@@ -191,16 +191,6 @@ public class PayModeToHos implements IPurchaseService{
             case RecipeStatusConstant.CHECK_PASS_YS:
                 tips = "处方已审核通过，请到院取药";
                 break;
-            case RecipeStatusConstant.REVOKE:
-                if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(order.getStatus())) {
-                    tips = "药品已拒发";
-                }
-                if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(order.getStatus())) {
-                    tips = "药品已退药";
-                }
-                break;
-            case RecipeStatusConstant.NO_DRUG:
-            case RecipeStatusConstant.IN_SEND:
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "到院取药失败";
                 break;

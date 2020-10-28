@@ -344,6 +344,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         }
                     }
                 }
+            } else if (recipeOrder.getPayFlag() == 4) {
+                buttonIsShow = true;
             }
         }
 
