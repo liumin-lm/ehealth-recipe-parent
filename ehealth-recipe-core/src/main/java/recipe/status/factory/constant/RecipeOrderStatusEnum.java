@@ -30,4 +30,13 @@ public enum RecipeOrderStatusEnum {
     public String getName() {
         return name;
     }
+
+    public static String getOrderStatus(Integer type) {
+        for (RecipeOrderStatusEnum e : RecipeOrderStatusEnum.values()) {
+            if (e.type.equals(type)) {
+                return e.name;
+            }
+        }
+        return "未知";
+    }
 }

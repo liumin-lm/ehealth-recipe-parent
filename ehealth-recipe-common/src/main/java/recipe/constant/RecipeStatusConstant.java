@@ -183,7 +183,6 @@ public class RecipeStatusConstant {
      * 未签名-药师
      */
     public static final int SIGN_NO_CODE_PHA = 32;
-
     /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
@@ -284,10 +283,7 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_REFUND_AUDIT_FAIL = 133;
 
-    /**
-     * 不存在的状态，订单状态已发药
-     */
-    public static final int ORDER_STATUS_DONE_DISPENSING = 140;
+
     /**
      * His或者药企审核不通过
      */
