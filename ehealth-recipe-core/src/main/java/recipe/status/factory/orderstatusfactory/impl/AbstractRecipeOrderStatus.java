@@ -8,6 +8,7 @@ import com.ngari.platform.recipe.mode.RecipeDrugInventoryInfoDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,8 +83,19 @@ public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusSer
 
     protected void drugInventory(RecipeDrugInventoryDTO request) {
         logger.info("AbstractRecipeOrderStatus drugInventory request= {}", JSON.toJSONString(request));
-        HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
-        logger.info("AbstractRecipeOrderStatus drugInventory  hisResponse= {}", JSON.toJSONString(hisResponse));
+        try {
+            HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
+            logger.info("AbstractRecipeOrderStatus drugInventory  hisResponse= {}", JSON.toJSONString(hisResponse));
+            if (null == hisResponse) {
+                throw new DAOException(609, "his返回出错");
+            }
+            if (null == hisResponse.getData() || !hisResponse.getData()) {
+                throw new DAOException(609, "his库存操作失败");
+            }
+        } catch (Exception e) {
+            logger.error("AbstractRecipeOrderStatus drugInventory hisResponse", e);
+            throw new DAOException(609, e.getMessage());
+        }
     }
 
 }
