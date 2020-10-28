@@ -28,7 +28,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         super.drugInventory(request);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
-        recipe.setStatus(RecipeStatusConstant.WAIT_SEND);
+        recipe.setStatus(RecipeStatusConstant.ORDER_STATUS_DONE_DISPENSING);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         return null;
     }
