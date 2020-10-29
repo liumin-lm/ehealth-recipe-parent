@@ -335,7 +335,8 @@ public class RecipeRefundService extends RecipeBaseService{
             if(hisResult != null && hisResult.getMsg() != null){
                 msg = hisResult.getMsg();
             }
-            throw new DAOException("获取医院退费记录失败！" + msg);
+            LOGGER.info("findRefundRecordfromHis 获取医院退费记录失败 msg:{}.", msg);
+            return null;
         }
     }
 
@@ -377,19 +378,6 @@ public class RecipeRefundService extends RecipeBaseService{
                     recipeRefund.setCheckTime(new Date());
                     //保存记录
                     recipeRefundDao.saveRefund(recipeRefund);
-                    //date 20200717
-                    //添加推送逻辑
-//                    if(9 == Integer.valueOf(record.getCheckNode())){
-//                        if(1 == Integer.valueOf(record.getCheckStatus())){
-//                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
-//                            //修改处方单状态
-//                            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, null);
-//                        }
-//                        if(2 == Integer.valueOf(record.getCheckStatus())){
-//                            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
-//
-//                        }
-//                    }
                     //将最新记录返回到前端
                     result.add(ObjectCopyUtils.convert(recipeRefund, RecipeRefundBean.class));
                 }
