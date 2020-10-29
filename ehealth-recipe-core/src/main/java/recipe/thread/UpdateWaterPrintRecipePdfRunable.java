@@ -3,20 +3,13 @@ package recipe.thread;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
-import recipe.drugsenterprise.CommonRemoteService;
 
 /**
  *  所有ca模式在医生签名完成后异步添加水印
