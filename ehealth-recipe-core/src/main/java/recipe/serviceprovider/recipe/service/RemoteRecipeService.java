@@ -315,7 +315,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             //医生已经审核且审核通过
                             if (recipeRefundByRecipeIdAndNode.getStatus() == 1) {
                                 //判断药师是否审核(运营平台)
-                                RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
+                                RecipeRefund recipeRefund = getThirdRefundStatus(recipeId);
+                                //RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
                                 if (recipeRefund != null) {
                                     //药师已经审核且未通过
                                     if (recipeRefund.getStatus() != 1) {
@@ -332,7 +333,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         //不需要医生审核显示
                         //buttonIsShow = true;
                         //判断药师是否审核(运营平台)
-                        RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
+                        //RecipeRefund recipeRefund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 2);
+                        RecipeRefund recipeRefund = getThirdRefundStatus(recipeId);
                         if (recipeRefund != null) {
                             //药师已经审核且未通过
                             if (recipeRefund.getStatus() != 1) {
@@ -344,6 +346,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         }
                     }
                 }
+            } else if (recipeOrder.getPayFlag() == 4) {
+                buttonIsShow = true;
             }
         }
 
@@ -370,26 +374,76 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }*/
 
-
         if (recipePatientRefundVO.getBusId() != null) {
             //判断医生是否已经审核
             RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+            //获取第三方审核状态
+            RecipeRefund thirdRefundStatus = getThirdRefundStatus(recipeId);
             if (recipeRefundByRecipeIdAndNode != null) {
                 //已审核
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
                 RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
+                //设置第三方审核结果返回给运营平台
+                setThirdStatus(thirdRefundStatus, recipePatientAndDoctorRefundVO);
                 recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
             } else {
                 //医生未审核
                 RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(null, recipePatientRefundVO);
                 recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatus(null);
                 recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatusMsg(null);
+                //设置第三方审核结果返回给运营平台
+                setThirdStatus(thirdRefundStatus, recipePatientAndDoctorRefundVO);
                 recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
             }
         }
         recipeDetial.put("buttonIsShow", buttonIsShow);
         LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
         return recipeDetial;
+    }
+
+    /**
+     * 设置第三方审核结果返回给运营平台
+     * @param thirdRefundStatus
+     * @param recipePatientAndDoctorRefundVO
+     */
+    private void setThirdStatus(RecipeRefund thirdRefundStatus, RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO) {
+        if (thirdRefundStatus != null) {
+            recipePatientAndDoctorRefundVO.setReasonForNoPass(thirdRefundStatus.getReason());
+            String text = null;
+            try {
+                text = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(thirdRefundStatus.getStatus());
+            } catch (ControllerException e) {
+                throw new DAOException("remoteRecipeService.findRecipeAndDetailsAndCheckById 获取第三方审核状态字典失败");
+            }
+            recipePatientAndDoctorRefundVO.setRecipeRefundStatusThirdMsg(text);
+            recipePatientAndDoctorRefundVO.setRecipeRefundStatus(thirdRefundStatus.getStatus());
+        }
+    }
+
+    /**
+     * 获取第三方审核状态
+     * @param recipeId
+     * @return
+     */
+    private RecipeRefund getThirdRefundStatus(int recipeId) {
+        //查看
+        ArrayList<Integer> nodeList = new ArrayList<>();
+        nodeList.add(5);
+        List<RecipeRefund> refundListByRecipeIdAndNodes = recipeRefundDAO.findRefundListByRecipeIdAndNodes(recipeId, nodeList);
+        if (refundListByRecipeIdAndNodes.size() > 0) {
+            //按照审核时间排序 取最新的一条
+            refundListByRecipeIdAndNodes.sort(new Comparator<RecipeRefund>() {
+                @Override
+                public int compare(RecipeRefund arg0, RecipeRefund arg1) {
+                    //这里是根据时间来排序，所以它为空的要剔除掉
+                    if (arg0.getApplyTime() == null || arg1.getApplyTime() == null) return 0;
+                    return arg1.getApplyTime().compareTo(arg0.getApplyTime()); //这是顺序
+                }
+            });
+            return refundListByRecipeIdAndNodes.get(0);
+        } else {
+            return null;
+        }
     }
 
     @RpcService

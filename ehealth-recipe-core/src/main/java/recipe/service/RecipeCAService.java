@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
@@ -151,21 +152,21 @@ public class RecipeCAService {
             /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
 
-            //获取签章图片
-            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-            //根据当前的操作用户id获取
-            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(doctorId);
-            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-            } else {
-                requestSealTO.setSealBase64Str("");
-            }
-            String caPassword = "";
-            //签名时的密码从redis中获取
-            if (null != redisClient.get("caPassword")) {
-                caPassword = redisClient.get("caPassword");
-            }
-            requestSealTO.setUserPin(caPassword);
+//            //获取签章图片
+//            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+//            //根据当前的操作用户id获取
+//            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(doctorId);
+//            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+//                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+//            } else {
+//                requestSealTO.setSealBase64Str("");
+//            }
+//            String caPassword = "";
+//            //签名时的密码从redis中获取
+//            if (null != redisClient.get("caPassword")) {
+//                caPassword = redisClient.get("caPassword");
+//            }
+//            requestSealTO.setUserPin(caPassword);
 
             DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             String userAccount = doctorDTO.getIdNumber();
