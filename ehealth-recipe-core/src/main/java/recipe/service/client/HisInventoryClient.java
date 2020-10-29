@@ -50,13 +50,13 @@ public class HisInventoryClient extends BaseClient {
         recipeDetailList.forEach(a -> {
             RecipeDrugInventoryInfoDTO info = new RecipeDrugInventoryInfoDTO();
             info.setCreateDt(a.getCreateDt());
-            info.setDrugBatch(a.getDrugBatch());
             info.setDrugCost(a.getDrugCost());
             info.setDrugId(a.getDrugId());
             info.setOrganDrugCode(a.getOrganDrugCode());
+            info.setUseTotalDose(a.getUseTotalDose());
             info.setPharmacyId(a.getPharmacyId());
             info.setProducerCode(a.getProducerCode());
-            info.setUseTotalDose(a.getUseTotalDose());
+            info.setDrugBatch(a.getDrugBatch());
             infoList.add(info);
         });
         request.setInfo(infoList);
