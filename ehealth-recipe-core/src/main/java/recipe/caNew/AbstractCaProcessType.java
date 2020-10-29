@@ -37,10 +37,7 @@ import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
-import recipe.thread.PushRecipeToHisCallable;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
+import recipe.thread.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -127,6 +124,8 @@ public abstract class AbstractCaProcessType {
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
         }
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
+        //异步添加水印
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeBean.getRecipeId()));
     }
     
 
@@ -228,36 +227,10 @@ public abstract class AbstractCaProcessType {
                 }
             }
         }
-        //添加水印
-        //addWaterPrint(recipe);
+        //异步添加水印
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
     }
 
-//    private void addWaterPrint(Recipe recipe) {
-//        //更新pdf
-//        if (null == recipe) {
-//            LOGGER.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipe.getRecipeId());
-//            return;
-//        }
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        try {
-//            String newPfd = null;
-//            String key = null;
-//            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-//                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getChemistSignFile(), recipe.getClinicOrgan());
-//                key = "ChemistSignFile";
-//            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-//                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(),recipe.getClinicOrgan());
-//                key = "SignFile";
-//            } else {
-//                LOGGER.warn("UpdateTotalRecipePdfRunable file is null  recipeId={}", recipe.getRecipeId());
-//            }
-//            LOGGER.info("UpdateTotalRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
-//            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
-//                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of(key, newPfd));
-//            }
-//        } catch (Exception e) {
-//            LOGGER.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipe.getRecipeId(), e);
-//        }
-//    }
+
 
 }

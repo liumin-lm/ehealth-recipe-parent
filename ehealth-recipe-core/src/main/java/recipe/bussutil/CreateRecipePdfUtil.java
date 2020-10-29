@@ -2,16 +2,16 @@ package recipe.bussutil;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.*;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
+import ctd.net.rpc.async.exception.AsyncTaskException;
 import lombok.Cleanup;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -19,6 +19,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.util.Date;
@@ -514,25 +516,25 @@ public class CreateRecipePdfUtil {
         }
     }
 
-
-
-//    public static String generateWaterPrintRecipePdf(String pdfId, Integer type) throws IOException, DocumentException {
-//        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-//        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-//        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-//        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-//        String fileId = null;
-//        if (fileMetaRecord != null) {
-//            File file = new File(fileMetaRecord.getFileName());
-//            OutputStream output = new FileOutputStream(file);
-//            //添加价格
-//            addTextForRecipePdf(input, output, total, type);
-//            //上传pdf文件
-//            byte[] bytes = File2byte(file);
-//            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
-//            //删除本地文件
-//            file.delete();
-//        }
-//        return fileId;
-//    }
+    /**
+     * 所有ca模式医生签名完成后添加水印
+     * @param pdfId
+     * @param waterPrintText
+     * @return
+     * @throws IOException
+     * @throws DocumentException
+     */
+    public static String generateWaterPrintRecipePdf(String pdfId, String waterPrintText) throws IOException, DocumentException {
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            //因为导入包不同，放在此类调用一直报错，所以addWaterPrintForRecipePdf放在新建工具类
+            byte[] bytes = CreateRecipePdfUtilByLowagie.addWaterPrintForRecipePdf(fileDownloadService.downloadAsByte(pdfId), waterPrintText);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+        }
+        logger.info("generateWaterPrintRecipePdf newFileId:{}",fileId);
+        return fileId;
+    }
 }
