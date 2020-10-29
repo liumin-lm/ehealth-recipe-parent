@@ -166,7 +166,7 @@ public class RecipeRefundService extends RecipeBaseService{
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (refundRequestBean.getRefundFlag()) {
-                if (new Integer(1).equals(recipeOrder.getRecipePayWay())) {
+                if (new Integer(1).equals(recipeOrder.getRecipePayWay()) && (new Integer(1).equals(recipeOrder.getPayFlag()) || new Integer(4).equals(recipeOrder.getPayFlag()))) {
                     //表示药品费用在线上支付
                     RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                     recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
