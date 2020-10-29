@@ -1,4 +1,4 @@
-package recipe.status.factory.givemodefactory;
+package recipe.factory.status.givemodefactory;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -8,8 +8,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import recipe.factory.status.constant.GiveModeEnum;
 import recipe.service.RecipeLogService;
-import recipe.status.factory.constant.GiveModeEnum;
 
 import java.util.HashMap;
 import java.util.Map;

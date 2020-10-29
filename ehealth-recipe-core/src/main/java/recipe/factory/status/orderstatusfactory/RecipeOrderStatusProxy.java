@@ -1,4 +1,4 @@
-package recipe.status.factory.orderstatusfactory;
+package recipe.factory.status.orderstatusfactory;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;

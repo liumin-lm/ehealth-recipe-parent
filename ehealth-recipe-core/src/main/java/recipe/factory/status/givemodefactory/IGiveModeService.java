@@ -1,4 +1,4 @@
-package recipe.status.factory.givemodefactory;
+package recipe.factory.status.givemodefactory;
 
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 

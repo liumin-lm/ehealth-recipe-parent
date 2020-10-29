@@ -1,4 +1,4 @@
-package recipe.status.factory.orderstatusfactory.impl;
+package recipe.factory.status.orderstatusfactory.impl;
 
 import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -6,7 +6,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
 import recipe.constant.RecipeStatusConstant;
-import recipe.status.factory.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 
 /**
  * 已退药

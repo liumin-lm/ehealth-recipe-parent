@@ -16,7 +16,7 @@ import recipe.ApplicationUtils;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.status.factory.givemodefactory.GiveModeProxy;
+import recipe.factory.status.givemodefactory.GiveModeProxy;
 
 import java.util.HashMap;
 import java.util.List;

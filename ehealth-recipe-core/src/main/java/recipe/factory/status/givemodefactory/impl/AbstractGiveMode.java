@@ -1,38 +1,32 @@
-package recipe.status.factory.orderstatusfactory.impl;
+package recipe.factory.status.givemodefactory.impl;
 
 import com.ngari.recipe.entity.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.client.HisInventoryClient;
-import recipe.status.factory.orderstatusfactory.IRecipeOrderStatusService;
+import recipe.factory.status.givemodefactory.IGiveModeService;
+import recipe.factory.status.orderstatusfactory.RecipeOrderStatusProxy;
 
 /**
- * 状态流转基类
+ * 发药方式基类
  *
  * @author fuzi
  */
-public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusService {
+@Service
+public abstract class AbstractGiveMode implements IGiveModeService {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-    /**
-     * 订单是否有效 1有效，0表示该订单已取消或者无效临时订单
-     */
-    protected final static int EFFECTIVE = 0;
-
     @Autowired
     protected RecipeOrderDAO recipeOrderDAO;
+
     @Autowired
     protected RecipeDAO recipeDAO;
     @Autowired
-    protected HisInventoryClient hisInventoryClient;
+    protected RecipeOrderStatusProxy recipeOrderStatusProxy;
 
     protected Recipe getRecipe(Integer recipeId) {
         return recipeDAO.getByRecipeId(recipeId);
-    }
-
-    @Override
-    public void upRecipeThreadPool(Recipe recipe) {
     }
 }
