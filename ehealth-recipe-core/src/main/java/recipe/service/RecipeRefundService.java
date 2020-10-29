@@ -9,6 +9,7 @@ import com.ngari.his.visit.mode.CheckForRefundVisitReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordResponseTO;
 import com.ngari.his.visit.service.IVisitService;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.DoctorService;
@@ -25,6 +26,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -172,6 +174,9 @@ public class RecipeRefundService extends RecipeBaseService{
                     //表示药品费用在线上支付
                     RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                     recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
+                    //记录操作日志
+                    IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+                    busActionLogService.recordBusinessLogRpcNew("电子处方",recipeOrder.getOrderId()+"",recipe.getDoctor() + "","【将患者"+recipe.getPatientName()+"】退费", recipe.getOrganName());
                 }
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
