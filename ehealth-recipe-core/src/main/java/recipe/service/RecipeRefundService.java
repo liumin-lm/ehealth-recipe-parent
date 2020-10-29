@@ -166,6 +166,8 @@ public class RecipeRefundService extends RecipeBaseService{
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (refundRequestBean.getRefundFlag()) {
+                //审核通过
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS);
                 if (new Integer(1).equals(recipeOrder.getRecipePayWay()) && (new Integer(1).equals(recipeOrder.getPayFlag()) || new Integer(4).equals(recipeOrder.getPayFlag()))) {
                     //表示药品费用在线上支付
                     RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -178,8 +180,6 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setNode(5);
                 recipeRefund.setStatus(1);
                 recipeReFundSave(recipe, recipeRefund);
-                //审核通过
-                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS);
             } else {
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
