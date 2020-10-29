@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.orderstatusfactory.IRecipeOrderStatusService;
-import recipe.service.client.HisInventoryClient;
 
 /**
  * 状态流转基类
@@ -25,8 +24,6 @@ public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusSer
     protected RecipeOrderDAO recipeOrderDAO;
     @Autowired
     protected RecipeDAO recipeDAO;
-    @Autowired
-    protected HisInventoryClient hisInventoryClient;
 
     protected Recipe getRecipe(Integer recipeId) {
         return recipeDAO.getByRecipeId(recipeId);
