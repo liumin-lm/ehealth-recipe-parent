@@ -1,4 +1,4 @@
-package recipe.status.factory.constant;
+package recipe.factory.status.constant;
 
 /**
  * 发药方式 枚举
@@ -30,4 +30,12 @@ public enum GiveModeEnum {
         return name;
     }
 
+    public static String getGiveModeName(Integer type) {
+        for (GiveModeEnum e : GiveModeEnum.values()) {
+            if (e.type.equals(type)) {
+                return e.name;
+            }
+        }
+        return "未知";
+    }
 }

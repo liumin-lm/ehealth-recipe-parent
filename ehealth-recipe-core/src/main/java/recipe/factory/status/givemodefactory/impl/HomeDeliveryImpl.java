@@ -1,4 +1,4 @@
-package recipe.status.factory.givemodefactory.impl;
+package recipe.factory.status.givemodefactory.impl;
 
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
+import recipe.factory.status.constant.GiveModeEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeLogService;
-import recipe.status.factory.constant.GiveModeEnum;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
                         ",快递公司：" + orderStatus.getLogisticsCompany() + ",快递单号：" + orderStatus.getTrackingNumber());
         //将快递公司快递单号信息用更新配送方式接口更新至his
-        if (null == recipe) {
+        if (null == recipe || StringUtils.isEmpty(recipe.getMpiid())) {
             return;
         }
         if (null != orderStatus.getLogisticsCompany() && StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {

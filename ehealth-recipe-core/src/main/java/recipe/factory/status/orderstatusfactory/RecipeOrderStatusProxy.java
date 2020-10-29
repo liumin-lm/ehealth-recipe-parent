@@ -1,4 +1,4 @@
-package recipe.status.factory.orderstatusfactory;
+package recipe.factory.status.orderstatusfactory;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
@@ -11,22 +11,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 订单状态修改代理类
+ *
  * @author fuzi
  */
 @Service
 public class RecipeOrderStatusProxy implements ApplicationContextAware {
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final Map<Integer, IRecipeOrderStatusService> recipeOrderStatusMap = new HashMap<>();
+
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    protected RecipeDAO recipeDAO;
 
-
+    /**
+     * 根据订单状态 更新处方状态
+     *
+     * @param orderStatus
+     * @return
+     */
     public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderStatusProxy updateOrderByStatus orderStatus = {}", JSON.toJSONString(orderStatus));
         Integer status = orderStatus.getTargetRecipeOrderStatus();
@@ -35,12 +48,16 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         }
         IRecipeOrderStatusService factoryService = getFactoryService(status);
         RecipeOrder recipeOrder = new RecipeOrder();
-        //调用子类方法
+        //根据订单状态 更新处方状态
         Recipe recipe = factoryService.updateStatus(orderStatus, recipeOrder);
+        //更新处方状态
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         //更新订单状态
         recipeOrder.setOrderId(orderStatus.getOrderId());
         recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        //异步处方信息上传
+        factoryService.upRecipeThreadPool(recipe);
         logger.info("RecipeOrderStatusProxy updateOrderByStatus recipe = {}", JSON.toJSONString(recipe));
         return recipe;
     }
