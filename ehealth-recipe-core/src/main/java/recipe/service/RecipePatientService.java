@@ -460,10 +460,12 @@ public class RecipePatientService extends RecipeBaseService {
 
     /**
      * 获取患者诊断比较结果
+     * 过期 已经迁移到医疗协同项目
      *
      * @return
      */
     @RpcService
+    @Deprecated
     public void findPatientDiagnose(PatientDiagnoseTO request) {
         LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);

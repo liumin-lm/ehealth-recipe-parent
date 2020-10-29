@@ -1,11 +1,11 @@
-package recipe.status.factory.orderstatusfactory.impl;
+package recipe.factory.status.orderstatusfactory.impl;
 
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
 import recipe.constant.RecipeStatusConstant;
-import recipe.status.factory.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 
 /**
  * 已拒发
@@ -21,11 +21,10 @@ public class StatusDeclineImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+        recipeOrder.setEffective(EFFECTIVE);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(RecipeStatusConstant.REVOKE);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        recipeOrder.setEffective(0);
-        return null;
+        return recipe;
     }
 }

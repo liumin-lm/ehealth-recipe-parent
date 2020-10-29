@@ -253,6 +253,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public void refundCallback(Integer busId, Integer refundStatus, String msg){
+        LOGGER.info("RemoteRecipeOrderService.refundCallback busId:{},refundStatus:{},msg:{}.", busId, refundStatus, msg);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(busId);
         if(null == recipe){
@@ -267,7 +268,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
             return;
         }
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
         RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(busId, 0);
         //当前处方没有患者退费记录，或者有有的医生审核没有通过则不修改处方状态

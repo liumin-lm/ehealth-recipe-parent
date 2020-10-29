@@ -6,6 +6,8 @@ import lombok.Setter;
 import java.io.Serializable;
 
 /**
+ * 修改订单状态VO
+ *
  * @author fuzi
  */
 @Getter
