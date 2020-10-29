@@ -19,6 +19,18 @@ public class RecipePatientAndDoctorRefundVO implements Serializable {
      * 医生姓名
      */
     private String doctorName;
+    /**
+     * 第三方审核状态
+     */
+    private Integer recipeRefundStatus;
+    /**
+     * 第三方审核状态文案
+     */
+    private String recipeRefundStatusThirdMsg;
+    /**
+     * 第三方审核不通过原因
+     */
+    private String reasonForNoPass;
     private RecipePatientRefundVO recipePatientRefundVO;
 
     public RecipePatientAndDoctorRefundVO(String doctorName, RecipePatientRefundVO recipePatientRefundVO) {
