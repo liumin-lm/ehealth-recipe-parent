@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 处方订单处理实现类 （新增）
+ *
  * @author fuzi
  */
 @Service
@@ -56,7 +58,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
             updateOrderStatus(orderStatus);
             return result;
         }
-        //工厂代理处理状态流转
+        //工厂代理处理 按照购药方式 修改订单信息
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSender("system");
@@ -65,6 +67,11 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         return result;
     }
 
+    /**
+     * 不在新增逻辑内的状态流转 走老方法
+     *
+     * @param orderStatus
+     */
     private void updateOrderStatus(UpdateOrderStatusVO orderStatus) {
         RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Map<String, Object> attrMap = new HashMap<>();

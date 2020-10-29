@@ -22,14 +22,13 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
-        RecipeDrugInventoryDTO request = super.recipeDrugInventory(orderStatus.getRecipeId());
+        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(2);
-        super.drugInventory(request);
+        hisInventoryClient.drugInventory(request);
+        recipeOrder.setEffective(EFFECTIVE);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(RecipeStatusConstant.REVOKE);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        recipeOrder.setEffective(0);
-        return null;
+        return recipe;
     }
 }

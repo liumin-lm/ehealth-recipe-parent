@@ -9,11 +9,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.service.RecipeLogService;
+import recipe.status.factory.constant.GiveModeEnum;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 配送方式代理类
+ *
  * @author fuzi
  */
 @Service
@@ -23,18 +26,23 @@ public class GiveModeProxy implements ApplicationContextAware {
 
     private final Map<Integer, IGiveModeService> giveModeMap = new HashMap<>();
 
-
+    /**
+     * 按照购药方式 修改订单信息
+     *
+     * @param giveMode    配送方式
+     * @param orderStatus 修改订单入参
+     */
     public void updateOrderByGiveMode(Integer giveMode, UpdateOrderStatusVO orderStatus) {
         logger.info("GiveModeProxy updateOrderByGiveMode giveMode={},orderStatus={}", giveMode, JSON.toJSONString(orderStatus));
         if (null == giveMode) {
             return;
         }
         IGiveModeService factoryService = getFactoryService(giveMode);
-        //调用子类方法
+        //根据购药方式 更新处方订单状态
         factoryService.updateStatus(orderStatus);
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
-                , orderStatus.getTargetRecipeOrderStatus(), "giveMode ：" + giveMode + " ,sender:" + orderStatus.getSender());
+                , orderStatus.getTargetRecipeOrderStatus(), GiveModeEnum.getGiveModeName(giveMode) + " ,配送人:" + orderStatus.getSender());
         logger.info("GiveModeProxy updateOrderByGiveMode end");
 
     }

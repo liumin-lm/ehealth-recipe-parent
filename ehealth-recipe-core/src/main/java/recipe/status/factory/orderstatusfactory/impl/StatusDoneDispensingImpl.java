@@ -22,13 +22,12 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
-        RecipeDrugInventoryDTO request = super.recipeDrugInventory(orderStatus.getRecipeId());
+        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(1);
-        super.drugInventory(request);
+        hisInventoryClient.drugInventory(request);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(orderStatus.getTargetRecipeStatus());
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        return null;
+        return recipe;
     }
 }

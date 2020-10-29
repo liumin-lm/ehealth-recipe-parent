@@ -36,7 +36,6 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         logger.info("StatusDoneImpl updateStatus orderStatus={},recipeOrder={}", JSON.toJSONString(orderStatus), JSON.toJSONString(recipeOrder));
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
-
         Date date = new Date();
         recipeOrder.setEffective(1);
         recipeOrder.setPayFlag(PayConstant.PAY_FLAG_PAY_SUCCESS);
@@ -44,7 +43,6 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
             recipeOrder.setPayTime(date);
         }
-
         //如果是货到付款还要更新付款时间和付款状态
         if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
             recipeOrder.setPayTime(date);
@@ -56,8 +54,14 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         recipe.setGiveFlag(1);
         recipe.setGiveUser(orderStatus.getSender());
         recipe.setStatus(RecipeStatusConstant.FINISH);
-        //更新处方信息
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        return recipe;
+    }
+
+
+    @Override
+    public void upRecipeThreadPool(Recipe recipe) {
+        logger.info("StatusDoneImpl upRecipeThreadPool recipe={}", JSON.toJSONString(recipe));
+        Integer recipeId = recipe.getRecipeId();
         //HIS消息发送
         RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
         //更新pdf
@@ -69,7 +73,5 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
                     "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
         });
-        logger.info("StatusDoneImpl updateStatus recipe={}", JSON.toJSONString(recipe));
-        return recipe;
     }
 }

@@ -30,4 +30,12 @@ public enum GiveModeEnum {
         return name;
     }
 
+    public static String getGiveModeName(Integer type) {
+        for (GiveModeEnum e : GiveModeEnum.values()) {
+            if (e.type.equals(type)) {
+                return e.name;
+            }
+        }
+        return "未知";
+    }
 }

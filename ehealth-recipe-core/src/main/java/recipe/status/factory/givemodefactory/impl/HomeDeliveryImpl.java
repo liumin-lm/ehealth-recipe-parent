@@ -45,7 +45,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
                         ",快递公司：" + orderStatus.getLogisticsCompany() + ",快递单号：" + orderStatus.getTrackingNumber());
         //将快递公司快递单号信息用更新配送方式接口更新至his
-        if (null == recipe) {
+        if (null == recipe || StringUtils.isEmpty(recipe.getMpiid())) {
             return;
         }
         if (null != orderStatus.getLogisticsCompany() && StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
