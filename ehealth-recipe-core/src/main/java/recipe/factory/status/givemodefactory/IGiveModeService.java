@@ -1,4 +1,4 @@
-package recipe.status.factory.givemodefactory;
+package recipe.factory.status.givemodefactory;
 
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 
@@ -14,7 +14,7 @@ public interface IGiveModeService {
     Integer getGiveMode();
 
     /**
-     * 更新状态
+     * 根据购药方式 更新处方订单状态
      *
      * @param orderStatus
      */
