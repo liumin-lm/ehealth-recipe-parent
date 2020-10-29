@@ -167,7 +167,15 @@ public class RecipeRefundService extends RecipeBaseService{
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (refundRequestBean != null && StringUtils.isNotEmpty(refundRequestBean.getRecipeCode())) {
             Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+            if (recipe == null) {
+                LOGGER.info("RecipeRefundService.refundResultCallBack recipe is null.");
+                return;
+            }
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (recipeOrder == null) {
+                LOGGER.info("RecipeRefundService.refundResultCallBack order is null.");
+                return;
+            }
             if (refundRequestBean.getRefundFlag()) {
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
