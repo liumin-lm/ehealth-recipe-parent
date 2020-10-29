@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 
@@ -101,7 +102,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                recipeRefund.setNode(-1);
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
                 recipeRefund.setApplyNo(hisResult.getData());
                 recipeRefund.setReason(applyReason);
                 recipeReFundSave(recipe, recipeRefund);
@@ -145,7 +146,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                recipeRefund.setNode(-1);
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
                 recipeRefund.setReason(applyReason);
                 recipeReFundSave(recipe, recipeRefund);
             } else {
@@ -172,7 +173,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                recipeRefund.setNode(5);
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
                 recipeRefund.setStatus(1);
                 recipeReFundSave(recipe, recipeRefund);
                 //审核通过
@@ -191,7 +192,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                recipeRefund.setNode(5);
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
                 recipeRefund.setStatus(2);
                 recipeRefund.setReason(refundRequestBean.getRemark());
                 recipeReFundSave(recipe, recipeRefund);
@@ -251,7 +252,7 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.info("checkForRecipeRefund-处方退费审核成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             //退费审核记录保存
             RecipeRefund recipeRefund = new RecipeRefund();
-            recipeRefund.setNode(0);
+            recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_DOCTOR);
             recipeRefund.setStatus(Integer.valueOf(checkStatus));
             recipeRefund.setReason(checkReason);
             recipeRefund.setTradeNo(list.get(0).getTradeNo());
@@ -293,7 +294,7 @@ public class RecipeRefundService extends RecipeBaseService{
             throw new DAOException("退费相关字典获取失败");
         }
         recipeRefund.setMemo(memo);
-        if(recipeRefund.getNode() == -1){
+        if(recipeRefund.getNode() == RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT){
             recipeRefund.setStatus(0);
             recipeRefund.setMemo("患者发起退费申请");
         }
@@ -395,7 +396,7 @@ public class RecipeRefundService extends RecipeBaseService{
 
             RecipeRefundBean recipeRefundBean2 =ObjectCopyUtils.convert(list.get(i), RecipeRefundBean.class);
             //退费申请多加一天等待审核的数据，并且去掉理由
-            if(list.get(i).getNode().equals(-1)){
+            if(list.get(i).getNode().equals(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT)){
                 RecipeRefundBean recipeRefundBean = new RecipeRefundBean();
                 recipeRefundBean.setBusId(list.get(i).getBusId());
                 recipeRefundBean.setMemo("等待审核");
