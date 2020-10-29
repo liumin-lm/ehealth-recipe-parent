@@ -355,7 +355,6 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public List<RecipeRefundBean> findRecipeReFundRate(Integer recipeId) {
         RecipeRefundDAO recipeRefundDao = DAOFactory.getDAO(RecipeRefundDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<RecipeRefund> list = recipeRefundDao.findRefundListByRecipeId(recipeId);
         if(list == null || list.size() == 0){
             LOGGER.error("findRecipeReFundRate-未获取到处方退费信息. recipeId={}", recipeId);
@@ -431,8 +430,6 @@ public class RecipeRefundService extends RecipeBaseService{
         List<RecipePatientRefundVO> result = new ArrayList<RecipePatientRefundVO>();
         //获取当前医生的退费处方列表，根据当前处方的开方医生审核列表获取当前退费最新的一条记录
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         return recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
     }
 
@@ -466,8 +463,6 @@ public class RecipeRefundService extends RecipeBaseService{
 
     @RpcService
     public RecipePatientRefundVO getPatientRefundRecipeByRecipeId(Integer busId) {
-
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
         return recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
     }

@@ -285,6 +285,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         //当退费成功后修改处方和订单的状态
         switch (refundStatus) {
             case 3:
+                if (new Integer(3).equals(recipeOrder.getPayFlag())) {
+                    break;
+                }
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态
                 recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
@@ -296,7 +299,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("payFlag", 3);
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
-                boolean flag = recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 break;
