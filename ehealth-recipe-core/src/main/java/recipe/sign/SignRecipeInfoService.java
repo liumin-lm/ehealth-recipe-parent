@@ -400,8 +400,10 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             // 签名原文
             signDoctorRecipeInfo.setSignBefText(caSignResult.getSignText());
             // 手签图片
-            String pictureId = uploadPicture(caSignResult.getSignPicture());
-            signDoctorRecipeInfo.setSignPictureDoc(pictureId);
+            if(StringUtils.isNotEmpty(caSignResult.getSignPicture())) {
+                String pictureId = uploadPicture(caSignResult.getSignPicture());
+                signDoctorRecipeInfo.setSignPictureDoc(pictureId);
+            }
             // 创建时间
             signDoctorRecipeInfo.setCreateDate(new Date());
             // 修改时间
