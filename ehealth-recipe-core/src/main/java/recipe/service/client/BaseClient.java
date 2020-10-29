@@ -31,7 +31,7 @@ public class BaseClient {
 
 
     protected <T> T getResponse(HisResponseTO<T> hisResponse) throws Exception {
-        logger.info("HisInventoryClient getResponse  hisResponse= {}", JSON.toJSONString(hisResponse));
+        logger.info("BaseClient getResponse  hisResponse= {}", JSON.toJSONString(hisResponse));
         if (null == hisResponse) {
             throw new DAOException(609, "his返回出错");
         }
@@ -42,7 +42,7 @@ public class BaseClient {
             throw new DAOException(609, "his出参为空");
         }
         T result = hisResponse.getData();
-        logger.info("HisInventoryClient getResponse request= {}", JSON.toJSONString(result));
+        logger.info("BaseClient getResponse request= {}", JSON.toJSONString(result));
         return result;
     }
 }
