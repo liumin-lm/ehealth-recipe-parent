@@ -186,7 +186,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeReFundSave(recipe, recipeRefund);
                 //审核通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS);
-                if (new Integer(1).equals(recipeOrder.getRecipePayWay()) && (new Integer(1).equals(recipeOrder.getPayFlag()) || new Integer(4).equals(recipeOrder.getPayFlag()))) {
+                if (new Integer(1).equals(recipeOrder.getPayFlag()) || new Integer(4).equals(recipeOrder.getPayFlag())) {
                     //表示药品费用在线上支付
                     RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                     recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
