@@ -1,4 +1,4 @@
-package recipe.status.factory.orderstatusfactory;
+package recipe.factory.status.orderstatusfactory;
 
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -16,11 +16,18 @@ public interface IRecipeOrderStatusService {
     Integer getStatus();
 
     /**
-     * 更新状态
+     * 根据订单状态 更新处方状态
      *
      * @param orderStatus 入参
      * @param recipeOrder 变更订单数据
      * @return
      */
     Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder);
+
+    /**
+     * 异步处方信息上传
+     *
+     * @param recipe
+     */
+    void upRecipeThreadPool(Recipe recipe);
 }

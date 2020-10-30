@@ -322,6 +322,12 @@ public class RecipeOrder implements Serializable {
         this.cancelReason = cancelReason;
     }
 
+    public RecipeOrder(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    //todo 默认构造器不要给init默认值啊 此方法慎用
+    @Deprecated
     public RecipeOrder() {
         initData();
     }

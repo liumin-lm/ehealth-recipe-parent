@@ -14,6 +14,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,8 @@ import java.util.Map;
 @RpcBean("remoteRecipeOrderService")
 public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> implements IRecipeOrderService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeOrderService.class);
+
     @RpcService
     @Override
     public RecipeOrderBean get(Object id) {
@@ -253,6 +256,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public void refundCallback(Integer busId, Integer refundStatus, String msg){
+        LOGGER.info("RemoteRecipeOrderService.refundCallback busId:{},refundStatus:{},msg:{}.", busId, refundStatus, msg);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(busId);
         if(null == recipe){
@@ -267,7 +271,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
             return;
         }
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
         RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(busId, 0);
         //当前处方没有患者退费记录，或者有有的医生审核没有通过则不修改处方状态
@@ -285,6 +288,10 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         //当退费成功后修改处方和订单的状态
         switch (refundStatus) {
             case 3:
+                List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeIdAndNodes(busId, Arrays.asList(9));
+                if (CollectionUtils.isNotEmpty(recipeRefunds)) {
+                    return;
+                }
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态
                 recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
@@ -296,7 +303,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("payFlag", 3);
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
-                boolean flag = recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 break;

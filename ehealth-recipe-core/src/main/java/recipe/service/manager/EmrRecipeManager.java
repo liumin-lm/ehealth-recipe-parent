@@ -241,7 +241,6 @@ public class EmrRecipeManager {
             } catch (Exception e) {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
-            logger.info("EmrRecipeManager getMedicalInfo recipe={}，recipeExtend={}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExtend));
         }
     }
 
@@ -354,7 +353,6 @@ public class EmrRecipeManager {
     private static void getMultiSearch(EmrDetailDTO detail, Recipe recipe, RecipeExtend recipeExtend) {
         /**诊断 ，中医症候特殊处理*/
         if (!RecipeEmrComment.MULTI_SEARCH.equals(detail.getType())) {
-            logger.warn("EmrRecipeManager getMultiSearch detail={}", JSONUtils.toString(detail));
             return;
         }
         List<EmrDetailValueDTO> values = JSON.parseArray(detail.getValue(), EmrDetailValueDTO.class);

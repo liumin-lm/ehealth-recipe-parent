@@ -1,4 +1,4 @@
-package recipe.status.factory.orderstatusfactory.impl;
+package recipe.factory.status.orderstatusfactory.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
-import recipe.status.factory.constant.RecipeOrderStatusEnum;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;
@@ -42,9 +42,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         //以免进行处方失效前提醒
         recipe.setRemindFlag(1);
         recipe.setStatus(RecipeStatusConstant.IN_SEND);
-        //更新处方信息
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-
         recipeOrder.setSendTime(new Date());
         recipeOrder.setOrderId(orderStatus.getOrderId());
         if (null != orderStatus.getLogisticsCompany()) {
@@ -53,17 +50,21 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
         }
+        return recipe;
+    }
+
+    @Override
+    public void upRecipeThreadPool(Recipe recipe) {
+        logger.info("StatusProceedShippingImpl upRecipeThreadPool recipe={}", JSON.toJSONString(recipe));
         //监管平台上传配送信息(派药)
         RecipeBusiThreadPool.execute(() -> {
             //HIS消息发送
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.IN_SEND);
             HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-            CommonResponse response = hisSyncService.uploadSendMedicine(recipeId);
+            CommonResponse response = hisSyncService.uploadSendMedicine(recipe.getRecipeId());
             //记录日志
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusConstant.IN_SEND,
                     "监管平台配送信息[派药]上传code" + response.getCode() + ",msg:" + response.getMsg());
         });
-        logger.info("StatusProceedShippingImpl updateStatus recipe={}", JSON.toJSONString(recipe));
-        return recipe;
     }
 }

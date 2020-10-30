@@ -13,16 +13,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.status.factory.givemodefactory.GiveModeProxy;
+import recipe.factory.status.givemodefactory.GiveModeProxy;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
+ * 处方订单处理实现类 （新增）
+ *
  * @author fuzi
  */
 @Service
@@ -40,7 +43,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
     @Override
     public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        ResultBean<Boolean> result = new ResultBean<>(200, "成功", true);
+        ResultBean<Boolean> result = new ResultBean<>(ErrorCode.SERVICE_ERROR, "参数错误", false);
         if (null == orderStatus.getRecipeId() || null == orderStatus.getTargetRecipeOrderStatus()) {
             return result;
         }
@@ -52,11 +55,12 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         //校验订单状态可否流转
         List<ConfigStatusCheck> statusList = configStatusCheckDAO.findByLocationAndSource(recipe.getGiveMode(), recipeOrder.getStatus());
         boolean status = statusList.stream().anyMatch(a -> a.getTarget().equals(orderStatus.getTargetRecipeOrderStatus()));
+        result = new ResultBean<>(200, "成功", true);
         if (!status) {
             updateOrderStatus(orderStatus);
             return result;
         }
-        //工厂代理处理状态流转
+        //工厂代理处理 按照购药方式 修改订单信息
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSender("system");
@@ -65,6 +69,11 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         return result;
     }
 
+    /**
+     * 不在新增逻辑内的状态流转 走老方法
+     *
+     * @param orderStatus
+     */
     private void updateOrderStatus(UpdateOrderStatusVO orderStatus) {
         RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Map<String, Object> attrMap = new HashMap<>();
