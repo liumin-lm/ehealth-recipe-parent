@@ -4,9 +4,11 @@ import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.RecipeStatusConstant;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.service.client.HisInventoryClient;
 
 /**
  * 已退药
@@ -15,6 +17,9 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
  */
 @Service
 public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
+    @Autowired
+    private HisInventoryClient hisInventoryClient;
+
     @Override
     public Integer getStatus() {
         return RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType();
@@ -31,4 +36,5 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
         recipe.setStatus(RecipeStatusConstant.REVOKE);
         return recipe;
     }
+    
 }
