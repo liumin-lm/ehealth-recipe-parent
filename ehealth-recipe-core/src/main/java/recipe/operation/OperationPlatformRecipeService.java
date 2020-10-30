@@ -384,8 +384,9 @@ public class OperationPlatformRecipeService {
         }
 
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
-        if (null != checkResult && (checkResult == 1 || checkResult == 3) && null != r.getGiveMode()
-                && r.getGiveMode() <= 2 && null != r.getPayFlag() && r.getPayFlag() == 1) {
+        if (null != checkResult && (checkResult == 1 || checkResult == 3) && null != r.getPayFlag() && r.getPayFlag() == 1
+                && null != r.getGiveMode()
+                && (r.getGiveMode() <= 2 || (r.getGiveMode() == 4 && e.getCreateType() != null && e.getCreateType() == 0))) {
             map.put("editFlag", 1);
         } else {
             map.put("editFlag", 0);
