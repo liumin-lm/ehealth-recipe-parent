@@ -175,8 +175,8 @@ public class RecipeCAService {
             //获取业务的组装数据
             //原先签名原文里有直接用处方字符串busString，还有使用监管平台组装的数据taskCode
             /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
-            caExt.put("taskCode", packageCAFromBus(recipeId));
             caRequest.setBussData(JSONUtils.toString(recipe));
+            caExt.put("taskCode", packageCAFromBus(recipeId));
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }
@@ -216,9 +216,10 @@ public class RecipeCAService {
         if(recipeId!=null){
             RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
             if(recipeExtend!=null){
+                EmrRecipeManager.getMedicalInfo(recipeBean, recipeExtend);
                 registerId=recipeExtend.getRegisterID();
+                request.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             }
-
         }
         //date  20200820
         //当处方id为空时设置临时的处方id，产生签名的id在和处方关联
@@ -226,12 +227,6 @@ public class RecipeCAService {
 
         request.setStartDate(null != recipeBean.getSignDate() ? recipeBean.getSignDate() : new Date());
         request.setEffectivePeriod(3);
-        RecipeExtendBean extend = recipeBean.getRecipeExtend();
-        if(null != extend){
-            RecipeExtend recipeExtend = ObjectCopyUtils.convert(extend, RecipeExtend.class);
-            EmrRecipeManager.getMedicalInfo(recipeBean, recipeExtend);
-            request.setMainDieaseDescribe(extend.getMainDieaseDescribe());
-        }
 
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
             //在线复诊
