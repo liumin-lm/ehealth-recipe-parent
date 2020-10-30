@@ -378,13 +378,17 @@ public class EleInvoiceService {
                 IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
                 consultExService.updateInvoiceNumberByConsultId(result.getBizCode(), result.getRequestId());
 
-                RevisitInvoiceDTO revisitInvoiceDTO = new RevisitInvoiceDTO();
-                revisitInvoiceDTO.setConsultId(result.getRequestId());
-                revisitInvoiceDTO.setInvoiceNumber(result.getInvoiceNumber());
-                revisitInvoiceDTO.setBizCode(StringUtils.defaultString(result.getBizCode(),""));
-                revisitInvoiceDTO.setInvoiceCode(StringUtils.defaultString(result.getInvoiceCode(),""));
-                revisitInvoiceDTO.setInvoiceRandom(StringUtils.defaultString(result.getInvoiceRandom(),""));
-                consultExService.saveRevisitInvoice(revisitInvoiceDTO);
+                IRevisitExService iRevisitExService = AppDomainContext.getBean("revisit.revisitExService", IRevisitExService.class);
+                RevisitInvoiceDTO reDTO = iRevisitExService.findRevisitInvoiceByConsultId(result.getRequestId());
+                if (null == reDTO){
+                    RevisitInvoiceDTO revisitInvoiceDTO = new RevisitInvoiceDTO();
+                    revisitInvoiceDTO.setConsultId(result.getRequestId());
+                    revisitInvoiceDTO.setInvoiceNumber(result.getInvoiceNumber());
+                    revisitInvoiceDTO.setBizCode(StringUtils.defaultString(result.getBizCode(),""));
+                    revisitInvoiceDTO.setInvoiceCode(StringUtils.defaultString(result.getInvoiceCode(),""));
+                    revisitInvoiceDTO.setInvoiceRandom(StringUtils.defaultString(result.getInvoiceRandom(),""));
+                    consultExService.saveRevisitInvoice(revisitInvoiceDTO);
+                }
             }
             List<String> list = Arrays.asList(result.getInvoiceUrl().split(","));
             LOGGER.info("EleInvoiceService.stringToList list :{}", JSONUtils.toString(list));
