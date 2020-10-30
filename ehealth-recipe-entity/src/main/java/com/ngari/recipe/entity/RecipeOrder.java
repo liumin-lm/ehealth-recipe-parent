@@ -28,6 +28,7 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
+    
 
     @ItemProperty(alias = "订单编号")
     private String orderCode;
