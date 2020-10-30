@@ -32,7 +32,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
-    protected RecipeDAO recipeDAO;
+    private RecipeDAO recipeDAO;
 
     /**
      * 根据订单状态 更新处方状态
