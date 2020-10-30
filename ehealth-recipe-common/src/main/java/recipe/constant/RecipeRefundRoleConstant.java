@@ -14,4 +14,7 @@ public class RecipeRefundRoleConstant {
 
     //第三方
     public static final int RECIPE_REFUND_ROLE_THIRD = 5;
+
+    //完成
+    public static final int RECIPE_REFUND_ROLE_FINISH = 9;
 }
