@@ -27,7 +27,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
@@ -534,7 +533,7 @@ public class RecipeToHisService {
         }
         return response;
     }
-
+    @Deprecated
     public void findPatientDiagnose(PatientDiagnoseTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));

@@ -1,4 +1,4 @@
-package recipe.status.factory.constant;
+package recipe.factory.status.constant;
 
 /**
  * 订单状态枚举

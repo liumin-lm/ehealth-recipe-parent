@@ -28,6 +28,7 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
+    
 
     @ItemProperty(alias = "订单编号")
     private String orderCode;
@@ -322,6 +323,12 @@ public class RecipeOrder implements Serializable {
         this.cancelReason = cancelReason;
     }
 
+    public RecipeOrder(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    //todo 默认构造器不要给init默认值啊 此方法慎用
+    @Deprecated
     public RecipeOrder() {
         initData();
     }
