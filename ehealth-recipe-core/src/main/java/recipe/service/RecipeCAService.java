@@ -218,7 +218,7 @@ public class RecipeCAService {
             if(recipeExtend!=null){
                 EmrRecipeManager.getMedicalInfo(recipeBean, recipeExtend);
                 registerId=recipeExtend.getRegisterID();
-                request.setMainDieaseDescribe(extend.getMainDieaseDescribe());
+                request.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             }
         }
         //date  20200820
