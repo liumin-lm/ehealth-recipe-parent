@@ -31,6 +31,8 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.UpdateWaterPrintRecipePdfRunable;
 import recipe.util.MapValueUtil;
 
 import java.util.List;
@@ -51,6 +53,8 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         //发送卡片
         RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         saveStatusAndSendMsg(status, recipe, memo);
+        //异步添加水印
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
     }
 
     protected void saveStatusAndSendMsg(Integer status, Recipe recipe, String memo) {
