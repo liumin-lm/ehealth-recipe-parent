@@ -311,8 +311,11 @@ public class RecipeRefundService extends RecipeBaseService{
         recipeRefund.setBusId(recipe.getRecipeId());
         recipeRefund.setOrganId(recipe.getClinicOrgan());
         recipeRefund.setMpiid(recipe.getMpiid());
-        recipeRefund.setPatientName(recipe.getPatientName());
-        recipeRefund.setDoctorId(recipe.getDoctor());
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        recipeRefund.setPatientName(recipe.getPatientName());Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
+        if (doctorReviewRefund) {
+            recipeRefund.setDoctorId(recipe.getDoctor());
+        }
         String memo = null;
         try {
             memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(recipeRefund.getNode()) +
@@ -457,7 +460,6 @@ public class RecipeRefundService extends RecipeBaseService{
 
     @RpcService
     public List<RecipePatientRefundVO> findPatientRefundRecipesByDoctorId(Integer doctorId, Integer refundType, int start, int limit) {
-        List<RecipePatientRefundVO> result = new ArrayList<RecipePatientRefundVO>();
         //获取当前医生的退费处方列表，根据当前处方的开方医生审核列表获取当前退费最新的一条记录
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
         return recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
