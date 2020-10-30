@@ -125,8 +125,8 @@ public class CreateRecipePdfUtil {
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
-        page.setLineWidth(new Float(0.3));
-        page.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
+//        page.setLineWidth(new Float(0.3));
+//        page.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
         page.setFontAndSize(bf, 10);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             page.setTextMatrix(41, 581);
