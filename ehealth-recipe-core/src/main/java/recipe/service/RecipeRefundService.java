@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -187,9 +188,28 @@ public class RecipeRefundService extends RecipeBaseService{
                 //审核通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS);
                 if (new Integer(1).equals(recipeOrder.getPayFlag()) || new Integer(4).equals(recipeOrder.getPayFlag())) {
-                    //表示药品费用在线上支付
-                    RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-                    recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
+                    //表示费用在线上支付
+                    if (StringUtils.isNotEmpty(recipeOrder.getOutTradeNo())) {
+                        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                        recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
+                    } else {
+                        RecipeRefund nowRecipeRefund = new RecipeRefund();
+                        nowRecipeRefund.setTradeNo(recipeOrder.getTradeNo());
+                        nowRecipeRefund.setPrice(recipeOrder.getActualPrice());
+                        nowRecipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_FINISH);
+                        nowRecipeRefund.setStatus(3);
+                        recipeReFundSave(recipe, nowRecipeRefund);
+                        //更新订单状态
+                        Map<String, Object> orderAttrMap = Maps.newHashMap();
+                        orderAttrMap.put("effective", 0);
+                        orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                        //修改支付flag的状态，退费信息
+                        orderAttrMap.put("payFlag", 3);
+                        orderAttrMap.put("refundFlag", 1);
+                        orderAttrMap.put("refundTime", new Date());
+                        recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_SUCC);
+                    }
                     //记录操作日志
                     IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
                     busActionLogService.recordBusinessLogRpcNew("电子处方",recipeOrder.getOrderId()+"",recipe.getDoctor() + "","【将患者"+recipe.getPatientName()+"】退费", recipe.getOrganName());
