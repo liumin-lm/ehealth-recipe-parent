@@ -36,7 +36,7 @@ build-api:
     - develop
   script:
     - 'cd *-api'
-    - "mvn clean deploy -Dmaven.test.skip=true || notify"
+    - "mvn clean deploy -U -Dmaven.test.skip=true || notify"
     # - 'mvn clean deploy -Dmaven.test.skip=true'
     # - 'echo $?'
   tags:
@@ -75,6 +75,7 @@ deploy:
   stage: deploy
   only: 
     - feature9
+    - feature5
   script:
     - deploy
   allow_failure: true
