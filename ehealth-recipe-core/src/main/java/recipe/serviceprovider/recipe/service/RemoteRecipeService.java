@@ -300,9 +300,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeIdWithoutCheck(recipeId);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
-        //订单已支付
+        //
         if (recipeOrder != null) {
             if (recipeOrder.getPayFlag() == 1) {
                 //患者是否提起申请
