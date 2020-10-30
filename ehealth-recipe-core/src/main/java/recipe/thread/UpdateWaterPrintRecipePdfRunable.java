@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
 
 /**
@@ -31,6 +32,7 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
         logger.info("UpdateWaterPrintRecipePdfRunable start. recipeId={}", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
+        logger.info("UpdateWaterPrintRecipePdfRunable recipeId={} recipe={}", recipeId, JSONUtils.toString(recipe));
         //更新pdf
         if (null == recipe) {
             logger.warn("UpdateWaterPrintRecipePdfRunable recipe is null  recipeId={}", recipeId);
@@ -55,7 +57,7 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
             } else {
                 logger.warn("UpdateWaterPrintRecipePdfRunable file is null  recipeId={}", recipeId);
             }
-            logger.info("UpdateWaterPrintRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
+            logger.info("UpdateWaterPrintRecipePdfRunable file recipeId={},newPfd ={},key ={}",recipeId, newPfd, key);
             if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
             }
