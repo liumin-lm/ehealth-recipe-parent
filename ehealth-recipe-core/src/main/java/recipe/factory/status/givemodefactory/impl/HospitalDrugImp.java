@@ -1,9 +1,9 @@
-package recipe.status.factory.givemodefactory.impl;
+package recipe.factory.status.givemodefactory.impl;
 
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
 import recipe.constant.RecipeStatusConstant;
-import recipe.status.factory.constant.GiveModeEnum;
+import recipe.factory.status.constant.GiveModeEnum;
 
 /**
  * 医院取药

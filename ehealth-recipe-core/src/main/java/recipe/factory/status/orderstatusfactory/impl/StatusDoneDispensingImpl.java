@@ -1,11 +1,13 @@
-package recipe.status.factory.orderstatusfactory.impl;
+package recipe.factory.status.orderstatusfactory.impl;
 
 import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.status.factory.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.service.client.HisInventoryClient;
 
 /**
  * 已发药
@@ -14,6 +16,8 @@ import recipe.status.factory.constant.RecipeOrderStatusEnum;
  */
 @Service
 public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
+    @Autowired
+    private HisInventoryClient hisInventoryClient;
 
     @Override
     public Integer getStatus() {
@@ -22,13 +26,12 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
-        RecipeDrugInventoryDTO request = super.recipeDrugInventory(orderStatus.getRecipeId());
+        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(1);
-        super.drugInventory(request);
+        hisInventoryClient.drugInventory(request);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(orderStatus.getTargetRecipeStatus());
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        return null;
+        return recipe;
     }
 }
