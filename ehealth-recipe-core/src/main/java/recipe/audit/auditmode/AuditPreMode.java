@@ -22,6 +22,8 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.UpdateWaterPrintRecipePdfRunable;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -70,6 +72,8 @@ public class AuditPreMode extends AbstractAuidtMode {
         } else if (new Integer(3).equals(checkMode)) {
                 winningRecipeAudit(recipe);
         }
+        //异步添加水印
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
     }
 
 
