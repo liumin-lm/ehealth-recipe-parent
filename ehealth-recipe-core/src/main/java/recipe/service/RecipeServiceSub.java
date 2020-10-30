@@ -1310,7 +1310,7 @@ public class RecipeServiceSub {
                     tips = "待处理";
                     break;
                 case RecipeStatusConstant.REVOKE:
-                    if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))) {
+                    if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))) {
                         cancelReason = "由于患者申请退费成功，该处方已取消。";
                         tips = "已取消";
                     } else {
