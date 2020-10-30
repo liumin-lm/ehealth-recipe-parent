@@ -150,6 +150,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
                 recipeRefund.setReason(applyReason);
                 recipeReFundSave(recipe, recipeRefund);
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {
                 LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 throw new DAOException("处方退费申请失败！" + result.getMsg());
