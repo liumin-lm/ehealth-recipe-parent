@@ -19,7 +19,9 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
@@ -74,7 +76,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
-import org.apache.poi.util.StringUtil;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1221,8 +1222,14 @@ public class RecipeService extends RecipeBaseService {
             Integer consultId = recipe.getClinicId();
             if (null != consultId) {
                 try {
-                    IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                        IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                        recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+
+                    } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                        IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                        recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+                    }
                 } catch (Exception e) {
                     LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:", consultId, e);
                 }
