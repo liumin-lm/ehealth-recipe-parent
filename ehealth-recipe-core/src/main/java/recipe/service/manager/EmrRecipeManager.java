@@ -232,8 +232,8 @@ public class EmrRecipeManager {
                 continue;
             }
             if (RecipeEmrComment.REMARK.equals(key) && (StringUtils.isEmpty(recipe.getMemo()) || "无".equals(recipe.getMemo()))) {
-                value = StringUtils.isEmpty(value) ? "无" : value;
-                recipe.setMemo(value);
+                String memo = StringUtils.isEmpty(value) ? "无" : value;
+                recipe.setMemo(memo);
                 continue;
             }
             try {
@@ -243,6 +243,7 @@ public class EmrRecipeManager {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
         }
+        logger.info("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
     }
 
 
