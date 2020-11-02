@@ -52,11 +52,12 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         }
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
         //记录日志
-        String company = orderStatus.getLogisticsCompany().toString();
+        String company;
         try {
             company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany());
         } catch (ControllerException e) {
             logger.error("toSend get logisticsCompany error. logisticsCompany={}", orderStatus.getLogisticsCompany(), e);
+            company = orderStatus.getLogisticsCompany().toString();
         }
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
