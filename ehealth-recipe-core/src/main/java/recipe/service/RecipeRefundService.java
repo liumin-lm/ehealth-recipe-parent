@@ -210,6 +210,9 @@ public class RecipeRefundService extends RecipeBaseService{
                         orderAttrMap.put("refundTime", new Date());
                         recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_SUCC);
+                        //HIS消息发送
+                        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                        hisService.recipeRefund(recipe.getRecipeId());
                     }
                     //记录操作日志
                     IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
