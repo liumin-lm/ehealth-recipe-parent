@@ -4,6 +4,7 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.DAOFactory;
@@ -38,8 +39,16 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
+        orderStatus.setSender("system");
         orderStatus.setTargetRecipeStatus(RecipeStatusConstant.WAIT_SEND);
-        Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus);
+        RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
+        if (null != orderStatus.getLogisticsCompany()) {
+            recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
+        }
+        if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
+            recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
+        }
+        Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
