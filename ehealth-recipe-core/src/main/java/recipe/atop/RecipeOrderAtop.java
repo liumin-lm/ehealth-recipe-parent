@@ -25,17 +25,18 @@ public class RecipeOrderAtop extends BaseAtop {
      * 订单状态更新
      */
     @RpcService
-    public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO) {
+    public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO) {
         logger.info("RecipeOrderAtop updateRecipeOrderStatus updateOrderStatusVO = {}", JSON.toJSONString(updateOrderStatusVO));
         try {
-            ResultBean<Boolean> result = recipeOrderTwoService.updateRecipeOrderStatus(updateOrderStatusVO);
+            ResultBean result = recipeOrderTwoService.updateRecipeOrderStatus(updateOrderStatusVO);
             logger.info("RecipeOrderAtop updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e);
-            return new ResultBean<>(ErrorCode.SERVICE_ERROR, e.getMessage(), false);
+            return ResultBean.serviceError(e.getMessage(), false);
+
         }
     }
 }

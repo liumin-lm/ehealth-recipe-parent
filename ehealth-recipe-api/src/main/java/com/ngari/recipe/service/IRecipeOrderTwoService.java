@@ -13,5 +13,5 @@ public interface IRecipeOrderTwoService {
      * @param updateOrderStatusVO
      * @return
      */
-    ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO);
+    ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO);
 }

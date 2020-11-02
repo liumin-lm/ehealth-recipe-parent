@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.constant.ErrorCode;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -41,9 +40,9 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
     private GiveModeProxy giveModeProxy;
 
     @Override
-    public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
+    public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        ResultBean<Boolean> result = new ResultBean<>(ErrorCode.SERVICE_ERROR, "参数错误", false);
+        ResultBean result = ResultBean.serviceError("参数错误");
         if (null == orderStatus.getRecipeId() || null == orderStatus.getTargetRecipeOrderStatus()) {
             return result;
         }
@@ -55,7 +54,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         //校验订单状态可否流转
         List<ConfigStatusCheck> statusList = configStatusCheckDAO.findByLocationAndSource(recipe.getGiveMode(), recipeOrder.getStatus());
         boolean status = statusList.stream().anyMatch(a -> a.getTarget().equals(orderStatus.getTargetRecipeOrderStatus()));
-        result = new ResultBean<>(200, "成功", true);
+        result = ResultBean.succeed();
         if (!status) {
             updateOrderStatus(orderStatus);
             return result;
