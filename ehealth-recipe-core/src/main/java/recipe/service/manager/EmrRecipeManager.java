@@ -232,6 +232,7 @@ public class EmrRecipeManager {
                 continue;
             }
             if (RecipeEmrComment.REMARK.equals(key) && (StringUtils.isEmpty(recipe.getMemo()) || "无".equals(recipe.getMemo()))) {
+                value = StringUtils.isEmpty(value) ? "无" : value;
                 recipe.setMemo(value);
                 continue;
             }
