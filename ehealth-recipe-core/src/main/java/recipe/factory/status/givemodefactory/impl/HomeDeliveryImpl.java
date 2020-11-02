@@ -7,7 +7,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -44,21 +43,21 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         orderStatus.setSender("system");
         orderStatus.setTargetRecipeStatus(RecipeStatusConstant.WAIT_SEND);
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
+        String company = "";
         if (null != orderStatus.getLogisticsCompany()) {
             recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
+            try {
+                company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany().toString());
+            } catch (Exception e) {
+                logger.error("HomeDeliveryImpl updateStatus company error", e);
+                company = orderStatus.getLogisticsCompany().toString();
+            }
         }
         if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
         }
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
         //记录日志
-        String company;
-        try {
-            company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany());
-        } catch (ControllerException e) {
-            logger.error("toSend get logisticsCompany error. logisticsCompany={}", orderStatus.getLogisticsCompany(), e);
-            company = orderStatus.getLogisticsCompany().toString();
-        }
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
                         ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
