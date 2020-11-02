@@ -755,5 +755,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     ThirdResultBean refundResultCallBack(RefundRequestBean refundRequestBean);
+
+    @RpcService
+    Boolean getDoctorApplyFlag(Integer recipeId);
 }
 

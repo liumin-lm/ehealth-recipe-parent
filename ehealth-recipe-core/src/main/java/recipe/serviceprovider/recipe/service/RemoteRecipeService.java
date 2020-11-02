@@ -1891,4 +1891,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeRefundService.refundResultCallBack(refundRequestBean);
         return null;
     }
+
+    @Override
+    public Boolean getDoctorApplyFlag(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe != null) {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
+        }
+        return false;
+    }
 }
