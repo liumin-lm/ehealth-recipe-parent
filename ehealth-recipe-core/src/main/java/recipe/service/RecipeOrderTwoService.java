@@ -62,13 +62,14 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         //工厂代理处理 按照购药方式 修改订单信息
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
-        orderStatus.setSender("system");
+
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
     }
 
     /**
+     * todo 需要修改成 新模式
      * 不在新增逻辑内的状态流转 走老方法
      *
      * @param orderStatus
