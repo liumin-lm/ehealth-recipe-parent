@@ -62,7 +62,6 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         //工厂代理处理 按照购药方式 修改订单信息
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
-
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
