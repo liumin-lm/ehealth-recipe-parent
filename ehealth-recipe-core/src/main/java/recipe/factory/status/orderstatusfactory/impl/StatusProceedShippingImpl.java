@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
@@ -33,7 +32,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         logger.info("StatusProceedShippingImpl updateStatus orderStatus={},recipeOrder={}",
                 JSON.toJSONString(orderStatus), JSON.toJSONString(recipeOrder));
-
         Date date = new Date();
         Integer recipeId = orderStatus.getRecipeId();
         Recipe recipe = super.getRecipe(recipeId);
@@ -43,13 +41,6 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         recipe.setRemindFlag(1);
         recipe.setStatus(RecipeStatusConstant.IN_SEND);
         recipeOrder.setSendTime(new Date());
-        recipeOrder.setOrderId(orderStatus.getOrderId());
-        if (null != orderStatus.getLogisticsCompany()) {
-            recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
-        }
-        if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
-            recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
-        }
         return recipe;
     }
 
