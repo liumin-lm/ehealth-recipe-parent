@@ -3,6 +3,8 @@ package recipe.service.common;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
@@ -404,8 +406,14 @@ public class RecipeSignService {
             Integer consultId = recipeBean.getClinicId();
             if(null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())){
                 try {
-                    IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId,2);
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
+                        IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                        recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
+
+                    } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
+                        IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                        recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
+                    }
                 } catch (Exception e){
                     LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId,e);
                 }
@@ -566,8 +574,14 @@ public class RecipeSignService {
         Integer consultId = recipeBean.getClinicId();
         if(null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())){
             try {
-                IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                recipeOnLineConsultService.sendRecipeMsg(consultId,2);
+                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
+                    IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                    recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
+
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
+                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                    recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
+                }
             } catch (Exception e){
                 LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId,e);
             }
