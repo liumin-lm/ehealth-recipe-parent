@@ -7,6 +7,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -50,9 +52,16 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         }
         Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
         //记录日志
+        String company = orderStatus.getLogisticsCompany().toString();
+        try {
+            company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany());
+        } catch (ControllerException e) {
+            logger.error("toSend get logisticsCompany error. logisticsCompany={}", orderStatus.getLogisticsCompany(), e);
+        }
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
-                        ",快递公司：" + orderStatus.getLogisticsCompany() + ",快递单号：" + orderStatus.getTrackingNumber());
+                        ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
+
         //将快递公司快递单号信息用更新配送方式接口更新至his
         if (null == recipe || StringUtils.isEmpty(recipe.getMpiid())) {
             return;
