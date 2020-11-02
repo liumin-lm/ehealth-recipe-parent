@@ -1,9 +1,10 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -27,7 +28,6 @@ import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -37,7 +37,10 @@ import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
-import recipe.thread.*;
+import recipe.thread.PushRecipeToHisCallable;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.SaveAutoReviewRunable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -188,8 +191,13 @@ public abstract class AbstractCaProcessType {
             Integer consultId = recipe.getClinicId();
             if (null != consultId) {
                 try {
-                    IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                        IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                        recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+                    } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                        IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                        recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+                    }
                 } catch (Exception e) {
                     LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
                 }

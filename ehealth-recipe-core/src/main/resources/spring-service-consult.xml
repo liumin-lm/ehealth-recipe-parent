@@ -17,5 +17,8 @@
                interface="com.ngari.revisit.process.service.IRecipeOnLineRevisitService"/>
     <reference id="revisit.revisitService" interface="com.ngari.revisit.common.service.IRevisitService"/>
 
+    <reference interface="com.ngari.consult.process.service.IRecipeOnLineConsultService"
+               id="consult.recipeOnLineConsultService"/>
+
 
 </s:beans>
