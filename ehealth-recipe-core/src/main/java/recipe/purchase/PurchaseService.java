@@ -555,7 +555,7 @@ public class PurchaseService {
                     break;
                 }
             case RecipeStatusConstant.REVOKE:
-                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))){
                     tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
 

@@ -142,11 +142,12 @@ public class CreateRecipePdfUtil {
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将文字贴入pdf
-        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+        logger.info("addReceiverInfoRecipePdf fontUrl:{}",ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString());
+        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(),  com.lowagie.text.pdf.BaseFont.IDENTITY_H, com.lowagie.text.pdf.BaseFont.NOT_EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
-        page.setLineWidth(new Float(0.3));
-        page.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
+//        page.setLineWidth(new Float(0.3));
+//        page.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
         page.setFontAndSize(bf, 10);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
             page.setTextMatrix(41, 581);

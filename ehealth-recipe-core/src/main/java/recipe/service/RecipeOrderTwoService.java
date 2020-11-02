@@ -40,9 +40,9 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
     private GiveModeProxy giveModeProxy;
 
     @Override
-    public ResultBean<Boolean> updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
+    public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
-        ResultBean<Boolean> result = new ResultBean<>(200, "成功", true);
+        ResultBean result = ResultBean.serviceError("参数错误");
         if (null == orderStatus.getRecipeId() || null == orderStatus.getTargetRecipeOrderStatus()) {
             return result;
         }
@@ -54,6 +54,7 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         //校验订单状态可否流转
         List<ConfigStatusCheck> statusList = configStatusCheckDAO.findByLocationAndSource(recipe.getGiveMode(), recipeOrder.getStatus());
         boolean status = statusList.stream().anyMatch(a -> a.getTarget().equals(orderStatus.getTargetRecipeOrderStatus()));
+        result = ResultBean.succeed();
         if (!status) {
             updateOrderStatus(orderStatus);
             return result;
@@ -61,13 +62,13 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         //工厂代理处理 按照购药方式 修改订单信息
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
-        orderStatus.setSender("system");
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
     }
 
     /**
+     * todo 需要修改成 新模式
      * 不在新增逻辑内的状态流转 走老方法
      *
      * @param orderStatus

@@ -3,6 +3,7 @@ package recipe.serviceprovider.recipeorder.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.common.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
@@ -272,16 +273,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             return;
         }
         RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
-        RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(busId, 0);
-        //当前处方没有患者退费记录，或者有有的医生审核没有通过则不修改处方状态
-        if(null == refund || 1 != refund.getStatus()){
-            return;
-        }
+
         RecipeRefund nowRecipeRefund = new RecipeRefund();
         nowRecipeRefund.setTradeNo(recipeOrder.getTradeNo());
         nowRecipeRefund.setPrice(recipeOrder.getActualPrice());
         nowRecipeRefund.setNode(9);
-        nowRecipeRefund.setApplyNo(refund.getApplyNo());
         nowRecipeRefund.setStatus(refundStatus);
         nowRecipeRefund.setReason(msg);
         //根据业务id，根据退费推送消息

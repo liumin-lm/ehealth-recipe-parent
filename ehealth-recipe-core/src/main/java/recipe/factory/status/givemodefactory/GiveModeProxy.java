@@ -1,7 +1,9 @@
 package recipe.factory.status.givemodefactory;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.spring.AppDomainContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -9,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.factory.status.constant.GiveModeEnum;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.service.RecipeLogService;
 
 import java.util.HashMap;
@@ -43,6 +46,17 @@ public class GiveModeProxy implements ApplicationContextAware {
         //记录日志
         RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                 , orderStatus.getTargetRecipeOrderStatus(), GiveModeEnum.getGiveModeName(giveMode) + " ,配送人:" + orderStatus.getSender());
+
+        //记录操作日志
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        busActionLogService.recordBusinessLogRpcNew("电子处方详情页-编辑订单",
+                orderStatus.getOrderId()+"",
+                "recipeOrder",
+                "电子处方订单【"+orderStatus.getRecipeId()+"】状态由【"
+                        + RecipeOrderStatusEnum.getOrderStatus(orderStatus.getSourceRecipeOrderStatus())+"】调整为【"+
+                        RecipeOrderStatusEnum.getOrderStatus(orderStatus.getTargetRecipeOrderStatus())+"】", "平台");
+
+
         logger.info("GiveModeProxy updateOrderByGiveMode end");
 
     }

@@ -11,6 +11,7 @@ import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.constant.ErrorCode;
 import recipe.dao.RecipeOrderBillDAO;
 
 import java.util.LinkedList;
@@ -44,7 +45,7 @@ public class HisInventoryClient extends BaseClient {
         }
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isEmpty(recipeDetailList)) {
-            return null;
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品列表为空");
         }
         List<RecipeDrugInventoryInfoDTO> infoList = new LinkedList<>();
         recipeDetailList.forEach(a -> {
@@ -75,11 +76,11 @@ public class HisInventoryClient extends BaseClient {
             HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
             Boolean result = getResponse(hisResponse);
             if (!result) {
-                throw new DAOException(609, "his库存操作失败");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "his库存操作失败");
             }
         } catch (Exception e) {
             logger.error("HisInventoryClient drugInventory hisResponse", e);
-            throw new DAOException(609, e.getMessage());
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
 

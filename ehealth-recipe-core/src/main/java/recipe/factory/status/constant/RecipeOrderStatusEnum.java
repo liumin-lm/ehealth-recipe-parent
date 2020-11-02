@@ -16,7 +16,7 @@ public enum RecipeOrderStatusEnum {
     private String name;
     private String desc;
 
-    private RecipeOrderStatusEnum(Integer type, String name, String desc) {
+     RecipeOrderStatusEnum(Integer type, String name, String desc) {
         this.type = type;
         this.name = name;
         this.desc = desc;
