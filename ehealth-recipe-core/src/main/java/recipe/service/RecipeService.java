@@ -4716,8 +4716,8 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public void aa(int recipeId){
-        //RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
-        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
+        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+        //RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
 //        RecipeCAService a=new RecipeCAService();
 //        a.updateWaterPrintRecipePdfRunable(recipeId);
     }

@@ -54,6 +54,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
+            //因为福建省立医院是个单独的模版
             if (StringUtils.isNotEmpty(organ)&&organ.contains("福建省立医院")){
                 return;
             }
@@ -69,7 +70,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
                 } else {
                     logger.warn("UpdateReceiverInfoRecipePdfRunable file is null  recipeId={}", recipeId);
                 }
-                logger.info("UpdateReceiverInfoRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
+                logger.info("UpdateReceiverInfoRecipePdfRunable file recipeid:{},newPfd ={},key ={}",recipeId, newPfd, key);
                 if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
                 }

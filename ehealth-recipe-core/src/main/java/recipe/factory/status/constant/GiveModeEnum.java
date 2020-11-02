@@ -15,7 +15,7 @@ public enum GiveModeEnum {
     private String name;
     private String desc;
 
-    private GiveModeEnum(Integer type, String name, String desc) {
+     GiveModeEnum(Integer type, String name, String desc) {
         this.type = type;
         this.name = name;
         this.desc = desc;
