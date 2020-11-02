@@ -41,6 +41,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
@@ -2607,6 +2608,75 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
 
                 setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 获取挂号序号和处方id对应关系
+     * @param mpiIdList
+     * @param start
+     * @param limit
+     * @param recipeStatusList
+     * @param mergeRecipeWay
+     * @return
+     */
+    public Map<String,List<Integer>> findRecipeIdAndRegisterIdRelation(final List<String> mpiIdList, final int start, final int limit, final List<Integer> recipeStatusList, String tabStatus,String mergeRecipeWay) {
+        HibernateStatelessResultAction<Map<String,List<Integer>>> action = new AbstractHibernateStatelessResultAction<Map<String,List<Integer>>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                if ("onRegisterIdAndChronic".equals(mergeRecipeWay)){
+                    //获取慢病和处方id集合的关系
+                    hql.append("select e.registerID,group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
+                    hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 ");
+                    if ("ongoing".equals(tabStatus)){
+                        hql.append("and d.OrderCode not is null");
+                    }
+                    //在获取的处方id集合里用最大id排序--根据慢病、挂号序号、机构id分组
+                    hql.append("GROUP BY e.registerID,e.chronicDiseaseName,d.ClinicOrgan ORDER BY SUBSTRING_INDEX(group_concat(d.RecipeID ORDER BY d.RecipeID desc),',',1) desc");
+                }else{
+                    //获取挂号序号和处方id集合的关系
+                    hql.append("select e.chronicDiseaseName,group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
+                    hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 ");
+                    if ("ongoing".equals(tabStatus)){
+                        hql.append("and d.OrderCode not is null");
+                    }
+                    //在获取的处方id集合里用最大id排序--挂号序号、机构id分组
+                    hql.append("GROUP BY e.registerID,d.ClinicOrgan ORDER BY SUBSTRING_INDEX(group_concat(d.RecipeID ORDER BY d.RecipeID desc),',',1) desc");
+                }
+
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameterList("mpiIdList", mpiIdList);
+                q.setParameterList("recipeStatusList", recipeStatusList);
+
+                q.setMaxResults(limit);
+                q.setFirstResult(start);
+                List<Object[]> result = q.list();
+                Map<String,List<Integer>> registerIdAndRecipeIds = new HashMap<>(limit);
+                if (CollectionUtils.isNotEmpty(result)) {
+                    for (Object[] objs : result) {
+                        registerIdAndRecipeIds = Maps.newHashMap();
+                        String registerId;
+                        //挂号序号为空的情况 用-1表示无挂号序号的情况
+                        if (objs[0] == null){
+                            registerId = "-1";
+                        }else {
+                            registerId = objs[0].toString();
+                        }
+                        String recipeIdStr = LocalStringUtil.toString(objs[1]);
+                        List<Integer> recipeIdList = Lists.newArrayList();
+                        if (StringUtils.isNotEmpty(recipeIdStr)) {
+                            CollectionUtils.addAll(recipeIdList, recipeIdStr.split(","));
+
+                        }
+                        registerIdAndRecipeIds.put(registerId, recipeIdList);
+                    }
+                }
+
+                setResult(registerIdAndRecipeIds);
             }
         };
         HibernateSessionTemplate.instance().execute(action);

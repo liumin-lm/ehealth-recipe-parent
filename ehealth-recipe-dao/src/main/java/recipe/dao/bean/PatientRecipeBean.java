@@ -31,6 +31,10 @@ public class PatientRecipeBean {
 
     private String organDiseaseName;
 
+    private String doctorName;
+
+    private String departName;
+
     private Date signDate;
 
     private BigDecimal totalMoney;
@@ -276,5 +280,21 @@ public class PatientRecipeBean {
 
     public void setRecipeSource(Integer recipeSource) {
         this.recipeSource = recipeSource;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 }

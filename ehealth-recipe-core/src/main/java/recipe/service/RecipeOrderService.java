@@ -1550,6 +1550,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setRecipeMode(recipe.getRecipeMode());
                     prb.setChemistSignFile(recipe.getChemistSignFile());
                     prb.setSignFile(recipe.getSignFile());
+                    prb.setDoctorName(recipe.getDoctorName());
+                    try {
+                        prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+                    } catch (ControllerException e) {
+                        LOGGER.warn("getOrderDetailById 字典转化异常");
+                    }
                     //药品详情
                     recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();

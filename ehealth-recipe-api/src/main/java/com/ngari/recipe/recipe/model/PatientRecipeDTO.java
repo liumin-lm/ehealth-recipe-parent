@@ -40,6 +40,10 @@ public class PatientRecipeDTO implements Serializable {
 
     private Date signDate;
 
+    private String doctorName;
+
+    private String departName;
+
     private BigDecimal totalMoney;
 
     private String statusText;
@@ -337,5 +341,21 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setRecipeExtend(RecipeExtendBean recipeExtendBean) {
         this.recipeExtend = recipeExtendBean;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 }
