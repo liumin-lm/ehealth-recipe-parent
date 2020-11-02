@@ -1902,4 +1902,21 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return false;
     }
+
+    @Override
+    public Map<String, String> getPatientInfo(Integer busId){
+        Map<String, String> map = new HashMap<>();
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
+        if (recipeOrder != null) {
+            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            map.put("patid", recipe.getPatientID());
+            map.put("ghxh", recipeExtend.getRegisterID());
+            return map;
+        }
+        return map;
+    }
 }
