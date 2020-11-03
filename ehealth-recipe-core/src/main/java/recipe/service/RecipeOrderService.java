@@ -1349,8 +1349,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
                     //合并处方订单取消
                     List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
-                    //取消订单接口只调一次
-                    Boolean once = true;
                     for (Recipe recipe : recipes) {
                         if (recipe != null) {
                             recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);

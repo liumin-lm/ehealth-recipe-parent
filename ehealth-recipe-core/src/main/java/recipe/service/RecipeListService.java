@@ -1036,9 +1036,13 @@ public class RecipeListService extends RecipeBaseService {
             }
             if (mergeRecipeFlag){
                 //获取合并处方分组方式
-                //onRegisterId支持同一个挂号序号下的处方合并支付
-                //onRegisterIdAndChronic支持同一个挂号序号且同一个病种的处方合并支付
+                //e.registerId支持同一个挂号序号下的处方合并支付
+                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
                 String mergeRecipeWay = (String)configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
+                //默认挂号序号分组
+                if (StringUtils.isEmpty(mergeRecipeWay)){
+                    mergeRecipeWay = "e.registerId";
+                }
                 LOGGER.error("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}",mpiId, mergeRecipeWay);
                 //返回合并处方
                 return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(),tabStatus, mergeRecipeWay);
@@ -1087,15 +1091,14 @@ public class RecipeListService extends RecipeBaseService {
                     mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId),allMpiIds));
                     mergeRecipeDTO.setFirstRecipeId(recipeId);
                     mergeRecipeDTO.setMergeRecipeFlag(true);
+                    mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
                     backList.add(mergeRecipeDTO);
                 }
             } else {
                 mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
-                if ("onRegisterIdAndChronic".equals(mergeRecipeWay)){
-                    mergeRecipeDTO.setChronicDiseaseName(entry.getKey());
-                }else {
-                    mergeRecipeDTO.setRegisterId(entry.getKey());
-                }
+                //分组字段值
+                mergeRecipeDTO.setGroupField(entry.getKey());
+                mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
                 mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue(),allMpiIds));
                 mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
                 mergeRecipeDTO.setMergeRecipeFlag(true);
