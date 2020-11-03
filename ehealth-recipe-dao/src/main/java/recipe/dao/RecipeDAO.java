@@ -2513,10 +2513,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
 
                 if ("onready".equals(tabStatus)) {
-                    hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end),t.TotalMoney as fee," + "t.SignDate as recordDate,null,t.MedicalPayFlag as medicalPayFlag,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode, t.recipeSource as recipeSource,t.payFlag as payFlag ,t.recipeId from cdr_recipe t ");
+                    hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end),t.TotalMoney as fee," + "t.SignDate as recordDate,null as couponId,t.MedicalPayFlag,t.RecipeType,t.ClinicOrgan as organId,t.recipeMode,t.giveMode,t.recipeSource,t.payFlag,t.recipeId from cdr_recipe t ");
                     hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.OrderCode is null ORDER BY t.SignDate desc");
                 } else if ("ongoing".equals(tabStatus)) {
-                    hql.append("select 2 as type,o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseNam,o.Status,o.ActualPrice as fee," + "o.CreateTime as recordDate,o.CouponId as couponId,0 as medicalPayFlag,w.recipeType as recipeType,o.OrganId,w.recipeMode as recipeMode,w.GiveMode AS giveMode,w.recipeSource as recipeSource,w.payFlag as payFlag ,w.recipeId from ");
+                    hql.append("select 2 as type,o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId,'' as diseaseNam,o.Status,o.ActualPrice as fee," + "o.CreateTime as recordDate,o.CouponId,0 as medicalPayFlag,w.recipeType,o.OrganId,w.recipeMode,w.GiveMode,w.recipeSource,w.payFlag ,w.recipeId from ");
                     hql.append("cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
                     hql.append("ORDER BY s.recordDate desc");
                 } else {
