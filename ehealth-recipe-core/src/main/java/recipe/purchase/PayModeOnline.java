@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -356,6 +357,10 @@ public class PayModeOnline implements IPurchaseService {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = dbRecipe.getRecipeId();
+        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
+        if (StringUtils.isNotEmpty(recipeIds)){
+            Splitter.on(",").splitToList(recipeIds);
+        }
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");

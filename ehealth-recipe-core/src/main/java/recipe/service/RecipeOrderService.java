@@ -264,23 +264,6 @@ public class RecipeOrderService extends RecipeBaseService {
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
 
-//        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId());
-//        //设置如果是his返回的药企信息，订单展示取自his
-//        if(new Integer(-1).equals(order.getEnterpriseId()) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
-//            order.setEnterpriseName(extend.getDeliveryName());
-//        }else{
-//
-//            //设置药企运费细则
-//            if (order.getEnterpriseId() != null) {
-//                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-//                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-//                if(drugsEnterprise != null){
-//                    order.setEnterpriseName(drugsEnterprise.getName());
-//                    order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
-//                }
-//            }
-//        }
         //date 20200311
         //设置订单的药企关联信息
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
@@ -318,11 +301,6 @@ public class RecipeOrderService extends RecipeBaseService {
             //date 20200308
             //修改流程 his端预校验返回药企信息，则没有需要排除库存
             List<Recipe> needDelList;
-
-//            if(new Integer(-1).equals(depId) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
-//                //设置为空数组
-//                needDelList = new ArrayList<Recipe>();
-//            }
             //获取需要删除的处方对象(可能已处理或者库存不足等情况的处方)
             needDelList = validateRecipeList(result, recipeList, order, payMode, payModeSupport);
             //null特殊处理，表示该处方的订单已生成，可以直接支付
@@ -604,22 +582,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        //date 20200305
-        //添加处方金额，使用his返回数据
-//        RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
-//        RecipeExtend extend = extendDAO.getByRecipeId(firstRecipe.getRecipeId());
-//        //药企是需要自己结算费用的，需要重新设置
-//        if(new Integer(-1).equals(order.getEnterpriseId()) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
-//            recipeFee = new BigDecimal(extend.getDeliveryRecipeFee());
-//        }else{
-//            //没有值，则按原先的逻辑更新数据
-//            //在线支付才需要重新计算
-//            //药店取药，货到付款也需要重新计算药品金额
-//            if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS()|| payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
-//                recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
-//            }
-//        }
-
         //date 20200311
         //设置订单上的处方价格
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
@@ -680,9 +642,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
                 if (needCalDecFee) {
                     //代煎费等于剂数乘以代煎单价
-                    decoctionFee = order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum()));
+                    //如果是合并处方-多张处方下得累加
+                    decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                 }
-                //一张订单只会有一个处方
+                //多个处方，中医辨证论治费只收一次!
                 if (i == 0) {
                     //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -691,7 +654,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1) {
                         tcmFee = (BigDecimal) findRecipeTCMPrice;//大于等于0
                     }
-                    //if(findRecipeTCMPrice==null)tcmFee=null;//区分用户是否在运营平台填写这项费用
                 }
                 LOGGER.info("处方recipeid:{},tcmFee是：{}", recipe.getRecipeId(), tcmFee);
 
@@ -702,45 +664,10 @@ public class RecipeOrderService extends RecipeBaseService {
         order.setTcmFee(tcmFee);
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(decoctionFee);
-        //当前是his返回的，范围不进行校验
-//        if(new Integer(-1).equals(order.getEnterpriseId()) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
-//            //设置运费
-//            //date 2019/12/25
-//            //调整处方方法调basic
-//            AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
-//            String operAddressId = MapValueUtil.getString(extInfo, "addressId");
-//            AddressDTO address = null;
-//            if (StringUtils.isNotEmpty(operAddressId)) {
-//                address = addressService.get(Integer.parseInt(operAddressId));
-//            } else {
-//                address = addressService.getLastAddressByMpiId(operMpiId);
-//            }
-//            if(null != address){
-//                BigDecimal expressFee = BigDecimal.ZERO;
-//                order.setExpressFee(expressFee);
-//                order.setReceiver(address.getReceiver());
-//                order.setRecMobile(address.getRecMobile());
-//                order.setRecTel(address.getRecTel());
-//                order.setZipCode(address.getZipCode());
-//                order.setAddressID(address.getAddressId());
-//                order.setAddress1(address.getAddress1());
-//                order.setAddress2(address.getAddress2());
-//                order.setAddress3(address.getAddress3());
-//                order.setAddress4(address.getAddress4());
-//                order.setAddressCanSend(true);
-//            }else{
-//                //只有需要真正保存订单时才提示
-//                if (1 == toDbFlag) {
-//                    result.setCode(RecipeResultBean.NO_ADDRESS);
-//                    result.setMsg("没有配送地址");
-//                }
-//            }
-//        }else{
 
         //药店取药不需要地址信息
         if (payModeSupport.isSupportTFDS() || payModeSupport.isSupportDownload() || payModeSupport.isSupportToHos()) {
             order.setAddressCanSend(true);
-//            order.setExpressFee(new BigDecimal("-1"));
         } else {
             //设置运费
             //date 2019/12/25
@@ -778,6 +705,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (new Integer(2).equals(recipe.getRecipeSource())) {
                 if (StringUtils.isNotEmpty(operAddressId)) {
                     //表示患者重新修改了地址
+                    //运费在这里面设置
                     setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                 } else {
                     if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
@@ -788,6 +716,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             } else {
+                //运费在这里面设置
                 setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
             }
         }
@@ -838,7 +767,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                         //药店取药的
                         Integer depId = order.getEnterpriseId();
-                        //DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
                         if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
                             //storePayFlag = 1 表示线上支付但到店取药
@@ -854,33 +782,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } else {
                 order.setActualPrice(totalFee.doubleValue());
-                //预结算在提交订单后处理固此处不需要了
-//                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-//                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
-//                if (recipeExtend != null) {
-//                    //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
-//                    if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
-//                        order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
-//                        order.setTotalFee(new BigDecimal(recipeExtend.getPayAmount()));
-//                    } else if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
-//                        //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
-//                        BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
-//                        order.setActualPrice(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp).doubleValue());
-//                        order.setTotalFee(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp));
-//                    }
-//                    //预结算总金额
-//                    if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())) {
-//                        order.setPreSettletotalAmount(new Double(recipeExtend.getPreSettletotalAmount()));
-//                    }
-//                    //医保金额
-//                    if (StringUtils.isNotEmpty(recipeExtend.getFundAmount())) {
-//                        order.setFundAmount(new Double(recipeExtend.getFundAmount()));
-//                    }
-//                    //自费金额
-//                    if (StringUtils.isNotEmpty(recipeExtend.getCashAmount())) {
-//                        order.setCashAmount(new Double(recipeExtend.getCashAmount()));
-//                    }
-//                }
             }
         }
     }
