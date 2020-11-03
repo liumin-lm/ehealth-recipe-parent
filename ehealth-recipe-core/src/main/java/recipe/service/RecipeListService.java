@@ -1010,12 +1010,12 @@ public class RecipeListService extends RecipeBaseService {
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
         //获取页面展示的对象
-        TabStatusEnum recipeStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe");
+        TabStatusEnum recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
         if (null == recipeStatusList) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到recipe的状态列表", tabStatus);
             return recipeList;
         }
-        TabStatusEnum orderStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "order");
+        TabStatusEnum orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
         if (null == orderStatusList) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到order的状态列表", tabStatus);
             return recipeList;
@@ -1076,7 +1076,7 @@ public class RecipeListService extends RecipeBaseService {
                 return backList;
             }else {
                 //还是用原来的方法获取处方
-                List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), null, tabStatus);
+                List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
                 List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = processTabListDate(backRecipeList, allMpiIds);
                 for (PatientTabStatusRecipeDTO tabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
                     mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();

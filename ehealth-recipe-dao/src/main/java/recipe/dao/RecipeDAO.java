@@ -2614,6 +2614,94 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    public List<PatientRecipeBean> findTabStatusRecipesForPatientNew(final List<String> mpiIdList,
+                                                                  final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final String tabStatus) {
+        HibernateStatelessResultAction<List<PatientRecipeBean>> action = new AbstractHibernateStatelessResultAction<List<PatientRecipeBean>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+
+                if ("onready".equals(tabStatus)) {
+                    hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end),t.TotalMoney as fee," +
+                            "t.SignDate as recordDate,null,t.MedicalPayFlag as medicalPayFlag,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,s.giveMode, t.recipeSource as recipeSource,t.payFlag as payFlag ,t.recipeId from cdr_recipe t ");
+                    hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.OrderCode is null ORDER BY t.SignDate desc");
+                }else if ("ongoing".equals(tabStatus)){
+                    hql.append("select 2 as type,o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseNam,o.Status,o.ActualPrice as fee," +
+                            "o.CreateTime as recordDate,o.CouponId as couponId,0 as medicalPayFlag,w.recipeType as recipeType,o.OrganId,w.recipeMode as recipeMode,w.GiveMode AS giveMode,w.recipeSource as recipeSource,w.payFlag as payFlag ,w.recipeId from ");
+                    hql.append("cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
+                            "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
+                    hql.append("ORDER BY s.recordDate desc");
+                }else {
+                    hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," +
+                            "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode, s.recipeSource,s.payFlag ,s.recipeId from (");
+                    hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
+                            "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName, t.Status as Status,t.TotalMoney as fee," +
+                            "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag,t.recipeId FROM cdr_recipe t " +
+                            "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
+                    hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList)");
+                    hql.append("UNION ALL ");
+                    hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
+                            "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
+                            "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag,w.recipeId FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
+                            "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
+                    hql.append(") s ORDER BY s.recordDate desc");
+                }
+
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameterList("mpiIdList", mpiIdList);
+                q.setParameterList("orderStatusList", orderStatusList);
+                q.setParameterList("recipeStatusList", recipeStatusList);
+
+                q.setMaxResults(limit);
+                q.setFirstResult(start);
+                List<Object[]> result = q.list();
+                List<PatientRecipeBean> backList = new ArrayList<>(limit);
+                if (CollectionUtils.isNotEmpty(result)) {
+                    PatientRecipeBean patientRecipeBean;
+                    for (Object[] objs : result) {
+                        patientRecipeBean = new PatientRecipeBean();
+                        patientRecipeBean.setRecordType(objs[0].toString());
+                        patientRecipeBean.setRecordCode(objs[1].toString());
+                        patientRecipeBean.setRecordId(Integer.parseInt(objs[2].toString()));
+                        patientRecipeBean.setMpiId(objs[3].toString());
+                        if (null != objs[4]) {
+                            patientRecipeBean.setOrganDiseaseName(objs[4].toString());
+                        }
+                        patientRecipeBean.setStatusCode(Integer.parseInt(objs[5].toString()));
+                        patientRecipeBean.setTotalMoney(new BigDecimal(objs[6].toString()));
+                        patientRecipeBean.setSignDate((Date) objs[7]);
+                        if (null != objs[8]) {
+                            patientRecipeBean.setCouponId(Integer.parseInt(objs[8].toString()));
+                        }
+                        if (null != objs[9]) {
+                            patientRecipeBean.setMedicalPayFlag(Integer.parseInt(objs[9].toString()));
+                        }
+                        patientRecipeBean.setRecipeType(Integer.parseInt(objs[10].toString()));
+                        patientRecipeBean.setOrganId(Integer.parseInt(objs[11].toString()));
+                        patientRecipeBean.setRecipeMode(objs[12].toString());
+                        if (null != objs[13]) {
+                            patientRecipeBean.setGiveMode(Integer.parseInt(objs[13].toString()));
+                        }
+                        if (null != objs[14]) {
+                            patientRecipeBean.setRecipeSource(Integer.parseInt(objs[14].toString()));
+                        }
+                        if (null != objs[15]) {
+                            patientRecipeBean.setPayFlag(Integer.parseInt(objs[15].toString()));
+                        }
+                        if (null != objs[16]) {
+                            patientRecipeBean.setRecipeId(Integer.parseInt(objs[16].toString()));
+                        }
+                        backList.add(patientRecipeBean);
+                    }
+                }
+
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     /**
      * 获取挂号序号和处方id对应关系
      * @param mpiIdList
