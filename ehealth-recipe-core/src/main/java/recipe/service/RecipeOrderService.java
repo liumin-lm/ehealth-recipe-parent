@@ -375,10 +375,10 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-        if(decoctionId != null){
+        if (decoctionId != null) {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if(decoctionWay != null && decoctionWay.getDecoctionPrice() != null){
+            if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
                 order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
             }
         }
@@ -602,13 +602,13 @@ public class RecipeOrderService extends RecipeBaseService {
         //膏方代表制作费
         BigDecimal otherFee = BigDecimal.ZERO;
         boolean needCalDecFee = false;
-        if(order.getDecoctionUnitPrice() != null){
+        if (order.getDecoctionUnitPrice() != null) {
             needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
         }
         //        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
         //1表示待煎
 //        if (Integer.valueOf(1).equals(decoctionFlag)) {
-            //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
+        //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
 //            BigDecimal recipeDecoctionPrice = order.getDecoctionUnitPrice();
 //            //根据机构获取代煎费
 //            order.setDecoctionUnitPrice(null != recipeDecoctionPrice ? recipeDecoctionPrice : BigDecimal.valueOf(-1));
@@ -678,25 +678,25 @@ public class RecipeOrderService extends RecipeBaseService {
             if (StringUtils.isNotEmpty(operAddressId)) {
                 address = addressService.get(Integer.parseInt(operAddressId));
             } else {
-                LOGGER.info("getDefaultAddressByMpiid mpiid:{}",operMpiId);
+                LOGGER.info("getDefaultAddressByMpiid mpiid:{}", operMpiId);
                 //获取默认收货地址
-                address=addressService.getDefaultAddressByMpiid(operMpiId);
+                address = addressService.getDefaultAddressByMpiid(operMpiId);
                 //address = addressService.getLastAddressByMpiId(operMpiId);
-                if(address!=null){
+                if (address != null) {
                     //判断街道是否完善
-                    if (StringUtils.isEmpty(address.getStreetAddress())){
-                        address=null;
-                    }else{
+                    if (StringUtils.isEmpty(address.getStreetAddress())) {
+                        address = null;
+                    } else {
                         //判断默认收货地址是否在可配送范围内,若没在配送范围内，则不返回收货地址
                         EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
                         int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
                         if (0 != flag) {
-                            address=null;
+                            address = null;
                         }
                     }
                 }
             }
-            LOGGER.info("setOrderFee mpiid:{} address:{}",operMpiId,address);
+            LOGGER.info("setOrderFee mpiid:{} address:{}", operMpiId, address);
             //此字段前端已不使用
             order.setAddressCanSend(false);
             Recipe recipe = recipeList.get(0);
@@ -1347,49 +1347,49 @@ public class RecipeOrderService extends RecipeBaseService {
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                     List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-                    Recipe recipe = recipeDAO.getByRecipeId(recipeIdList.get(0));
-                    if (recipe != null){
-                        recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
-                    }
-                    //清除医保金额
-                    RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                    recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
-                    try {
-                        //对于来源于HIS的处方单更新hisRecipe的状态
+                    //合并处方订单取消
+                    List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+                    //取消订单接口只调一次
+                    Boolean once = true;
+                    for (Recipe recipe : recipes) {
                         if (recipe != null) {
-                            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-                            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-                            if (hisRecipe != null) {
-                                hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), 1);
-                            }
+                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
                         }
-                    } catch (Exception e) {
-                        LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage(), e);
+                        //清除医保金额
+                        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                        recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
+                        try {
+                            //对于来源于HIS的处方单更新hisRecipe的状态
+                            if (recipe != null) {
+                                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                                if (hisRecipe != null) {
+                                    hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), 1);
+                                }
+                            }
+                        } catch (Exception e) {
+                            LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage(), e);
+                        }
                     }
                     //date 20200330
                     //调用支付平台取消支付接口
                     RecipeOrder orderNow;
                     INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                     RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                    if (recipe != null) {
-                        if (null != recipeIdList.get(0)) {
-                            orderNow = orderDAO.getByOrderCode(order.getOrderCode());
-                            //判断订单是否是单边账的
-                            if (0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())) {
-                                LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id{}", recipe.getRecipeId());
-
-                                Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), orderNow.getOrderId().toString());
-                                if (null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))) {
+                    if (null != recipeIdList.get(0)) {
+                        orderNow = orderDAO.getByOrderCode(order.getOrderCode());
+                        //判断订单是否是单边账的
+                        if (0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())) {
+                            Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), orderNow.getOrderId().toString());
+                            if (null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))) {
+                                for (Recipe recipe : recipes) {
                                     LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方{}成功.", recipe.getRecipeId());
                                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方" + recipe.getRecipeId() + "取消的订单对应的接口成功");
                                 }
-
                             }
-                        } else {
-                            LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
                         }
                     } else {
-                        LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方为空.");
+                        LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
                     }
                 }
             }
@@ -1476,12 +1476,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     //获取处方详情
                     prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
-                    boolean isReturnRecipeDetail=recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
-                    if(("getOrderDetail".equals(methodName)&&"recipe.service.RecipeOrderService".equals(className))){
-                        if(!isReturnRecipeDetail){
-                            List<RecipeDetailBean> recipeDetailVOs=prb.getRecipeDetail();
-                            if(recipeDetailVOs!=null&&recipeDetailVOs.size()>0){
-                                for(int j=0;j<recipeDetailVOs.size();j++){
+                    boolean isReturnRecipeDetail = recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
+                    if (("getOrderDetail".equals(methodName) && "recipe.service.RecipeOrderService".equals(className))) {
+                        if (!isReturnRecipeDetail) {
+                            List<RecipeDetailBean> recipeDetailVOs = prb.getRecipeDetail();
+                            if (recipeDetailVOs != null && recipeDetailVOs.size() > 0) {
+                                for (int j = 0; j < recipeDetailVOs.size(); j++) {
                                     recipeDetailVOs.get(j).setDrugName(null);
                                     recipeDetailVOs.get(j).setDrugSpec(null);
                                 }
@@ -1526,27 +1526,27 @@ public class RecipeOrderService extends RecipeBaseService {
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
 
-            BigDecimal needFee=new BigDecimal(0.00);
+            BigDecimal needFee = new BigDecimal(0.00);
             //当处方状态为已完成时
-            if(RecipeStatusConstant.FINISH== recipeList.get(0).getStatus()){
+            if (RecipeStatusConstant.FINISH == recipeList.get(0).getStatus()) {
                 //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
                 orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
-            }else{
+            } else {
                 // 需支付
                 // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
                 // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
-                try{
-                    LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}",order.getOrderCode(),JSONUtils.toString(order));
-                    if(PayConstant.PAY_FLAG_NOT_PAY==orderBean.getPayFlag()){
-                        needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee());
-                    }else{
-                        needFee=orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(orderBean.getActualPrice()));
+                try {
+                    LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}", order.getOrderCode(), JSONUtils.toString(order));
+                    if (PayConstant.PAY_FLAG_NOT_PAY == orderBean.getPayFlag()) {
+                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
+                    } else {
+                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(orderBean.getActualPrice()));
                     }
-                }catch(Exception e){
-                    LOGGER.error("getOrderDetailById needFee计算需支付 error :{}",e);
+                } catch (Exception e) {
+                    LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
                 }
             }
-            orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO)>=0?needFee:BigDecimal.ZERO);
+            orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);
 
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
@@ -1577,7 +1577,7 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
-            result.setExt(RecipeUtil.getParamFromOgainConfig(order,recipeList));
+            result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
             //在扩展内容中设置下载处方签的判断
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额
@@ -1603,11 +1603,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 Recipe nowRecipe = recipeList.get(0);
                 if (null != nowRecipe) {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
-                    if (recipeExtend !=null
-                            && StringUtils.isNotEmpty(recipeExtend.getMedicalSettleData())){
+                    if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getMedicalSettleData())) {
                         MedicalRespData data = new MedicalRespData();
                         List<String> list = Splitter.on("|").splitToList(recipeExtend.getMedicalSettleData());
-                        if (list.size() >= 42){
+                        if (list.size() >= 42) {
                             //本年账户支付 9
                             data.setCurrentAccountPayment(transBigDecimal(list.get(8)));
                             //历年账户支付 10
@@ -1636,18 +1635,18 @@ public class RecipeOrderService extends RecipeBaseService {
                             data.setTotal(transBigDecimal(list.get(7)));
                         }
                         ext.put("medicalRespData", data);
-                        LOGGER.info("getShowMedicalRespData data={}",JSONUtils.toString(data));
+                        LOGGER.info("getShowMedicalRespData data={}", JSONUtils.toString(data));
                         result.setExt(ext);
                     }
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("getShowMedicalRespData error",e);
+            LOGGER.error("getShowMedicalRespData error", e);
         }
     }
 
     private BigDecimal transBigDecimal(String s) {
-        if (StringUtils.isEmpty(s)){
+        if (StringUtils.isEmpty(s)) {
             s = "0.00";
         }
         return new BigDecimal(s);
@@ -1761,6 +1760,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
     /**
      * 健康端获取订单详情
+     *
      * @param orderCode
      * @return
      */
@@ -1908,7 +1908,7 @@ public class RecipeOrderService extends RecipeBaseService {
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
             // 平台物流对接--物流下单逻辑
             try {
-                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes)){
+                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes)) {
                     LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
                     createLogisticsOrder(orderCode, order, recipes.get(0));
                 }
@@ -1919,14 +1919,14 @@ public class RecipeOrderService extends RecipeBaseService {
 
         }
         //健康卡数据上传
-        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(),"030102"));
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(), "030102"));
         return result;
     }
 
     private void createLogisticsOrder(String orderCode, RecipeOrder order, Recipe recipe) {
         // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)){
+        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
             String trackingNumber = null;
             try {
                 ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
@@ -1934,29 +1934,29 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
                 trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
             } catch (Exception e) {
-                LOGGER.error("基础服务物流下单异常，发起退款流程 recipeId={}，异常=",recipe.getRecipeId(),e);
+                LOGGER.error("基础服务物流下单异常，发起退款流程 recipeId={}，异常=", recipe.getRecipeId(), e);
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
                 return;
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
-            if (StringUtils.isNotBlank(trackingNumber)){
+            if (StringUtils.isNotBlank(trackingNumber)) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "基础服务物流下单成功");
                 // 下单成功更新物流单号、物流公司
                 Map<String, Object> orderAttrMap = new HashedMap();
-                orderAttrMap.put("LogisticsCompany",enterprise.getLogisticsCompany());
-                orderAttrMap.put("TrackingNumber",trackingNumber);
+                orderAttrMap.put("LogisticsCompany", enterprise.getLogisticsCompany());
+                orderAttrMap.put("TrackingNumber", trackingNumber);
                 recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
-                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},recipeId={}",trackingNumber,enterprise.getLogisticsCompany(),recipe.getRecipeId());
+                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},recipeId={}", trackingNumber, enterprise.getLogisticsCompany(), recipe.getRecipeId());
                 // 修改状态为待配送
                 Map<String, Object> paramMap = new HashedMap();
-                paramMap.put("recipeId",recipe.getRecipeId());
+                paramMap.put("recipeId", recipe.getRecipeId());
                 ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
                 ThirdResultBean resultBean = callService.readyToSend(paramMap);
-                LOGGER.info("基础服务物流下单成功,修改状态为待配送修改参数={},修改结果={}", paramMap,JSONObject.toJSONString(resultBean));
-            }else {
+                LOGGER.info("基础服务物流下单成功,修改状态为待配送修改参数={},修改结果={}", paramMap, JSONObject.toJSONString(resultBean));
+            } else {
                 // 下单失败发起退款，退款原因=物流下单失败
-                LOGGER.info("基础服务物流下单失败，发起退款流程 recipeId={}",recipe.getRecipeId());
+                LOGGER.info("基础服务物流下单失败，发起退款流程 recipeId={}", recipe.getRecipeId());
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
             }
@@ -1972,9 +1972,9 @@ public class RecipeOrderService extends RecipeBaseService {
         // 业务类型
         logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
         // 业务编码
-        logisticsOrder.setBusinessNo(recipe.getRecipeId()+"");
+        logisticsOrder.setBusinessNo(recipe.getRecipeId() + "");
         // 快递编码
-        logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany()+"");
+        logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany() + "");
         // 寄件人姓名
         logisticsOrder.setConsignorName(enterprise.getConsignorName());
         // 寄件人手机号
@@ -2010,14 +2010,15 @@ public class RecipeOrderService extends RecipeBaseService {
 
     /**
      * 对来源于HIS的处方单状态更新为已处理
+     *
      * @param recipes
      */
     public void updateHisRecieStatus(List<Recipe> recipes) {
-        try{
-            if(!CollectionUtils.isEmpty(recipes)){
+        try {
+            if (!CollectionUtils.isEmpty(recipes)) {
                 HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-                for(Recipe recipe: recipes){
-                    if(recipe==null){
+                for (Recipe recipe : recipes) {
+                    if (recipe == null) {
                         continue;
                     }
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
@@ -2026,8 +2027,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-        }catch (Exception e){
-            LOGGER.info("updateHisRecieStatus 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.",JSONUtils.toString(recipes),e);
+        } catch (Exception e) {
+            LOGGER.info("updateHisRecieStatus 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", JSONUtils.toString(recipes), e);
         }
     }
 
@@ -2206,9 +2207,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
-            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())){
+            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
                 PatientDTO user = patientService.get(recipe.getRequestMpiId());
-                if (user!=null){
+                if (user != null) {
                     userInfo.setPatientName(user.getPatientName());
                     userInfo.setCertificate(user.getCertificate());
                     userInfo.setCertificateType(user.getCertificateType());
@@ -2223,20 +2224,20 @@ public class RecipeOrderService extends RecipeBaseService {
             req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
             HisResponseTO<String> response;
             // 从复诊获取患者渠道id
-            String patientChannelId="";
+            String patientChannelId = "";
             try {
                 if (recipe.getClinicId() != null) {
                     IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
                     LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
                     RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
                     if (revisitExDTO != null) {
-                        LOGGER.info("queryPatientChannelId res={}",JSONObject.toJSONString(revisitExDTO));
+                        LOGGER.info("queryPatientChannelId res={}", JSONObject.toJSONString(revisitExDTO));
                         patientChannelId = revisitExDTO.getProjectChannel();
                         req.setPatientChannelId(patientChannelId);
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("queryPatientChannelId error:",e);
+                LOGGER.error("queryPatientChannelId error:", e);
             }
             try {
                 //获取民科机构登记号
@@ -2246,7 +2247,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
                 if (response != null && "200".equals(response.getMsgCode())) {
                     thirdUrl = response.getData();
-                }else {
+                } else {
                     throw new DAOException(609, "获取第三方跳转链接异常");
                 }
             } catch (Exception e) {
@@ -2264,14 +2265,14 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     @RpcService
     public String getLSRecipeThirdUrl(Integer recipeId) {
-        Assert.notNull(recipeId,"recipeId must be not null");
+        Assert.notNull(recipeId, "recipeId must be not null");
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
-        String thirdUrl ="";
+        String thirdUrl = "";
         if (null != recipe) {
             PatientDTO patient = patientService.get(recipe.getMpiid());
-            if (patient !=null){
-                PatientBaseInfo patientBaseInfo =new PatientBaseInfo();
+            if (patient != null) {
+                PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
                 patientBaseInfo.setPatientName(patient.getPatientName());
                 patientBaseInfo.setCertificateType(1);
                 patientBaseInfo.setCertificate(patient.getIdcard());
@@ -2285,7 +2286,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 try {
                     response = hisService.getRecipeThirdUrl(req);
                     LOGGER.info("getLSRecipeThirdUrl res={}", JSONUtils.toString(response));
-                    if (response!=null){
+                    if (response != null) {
                         thirdUrl = response.getData();
                     }
                 } catch (Exception e) {
