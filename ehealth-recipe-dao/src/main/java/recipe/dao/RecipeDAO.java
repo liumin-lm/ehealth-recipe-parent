@@ -2513,12 +2513,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
 
                 if ("onready".equals(tabStatus)) {
-                    hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end),t.TotalMoney as fee," + "t.SignDate as recordDate,null as couponId,t.MedicalPayFlag,t.RecipeType,t.ClinicOrgan as organId,t.recipeMode,t.giveMode,t.recipeSource,t.payFlag,t.recipeId from cdr_recipe t ");
+                    hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as status,t.TotalMoney as fee," + "t.SignDate as recordDate,'' as couponId,t.MedicalPayFlag,t.RecipeType,t.ClinicOrgan as organId,t.recipeMode,t.giveMode,t.recipeSource,t.payFlag,t.recipeId from cdr_recipe t ");
                     hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.OrderCode is null ORDER BY t.SignDate desc");
                 } else if ("ongoing".equals(tabStatus)) {
                     hql.append("select 2 as type,o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId,'' as diseaseNam,o.Status,o.ActualPrice as fee," + "o.CreateTime as recordDate,o.CouponId,0 as medicalPayFlag,w.recipeType,o.OrganId,w.recipeMode,w.GiveMode,w.recipeSource,w.payFlag ,w.recipeId from ");
                     hql.append("cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
-                    hql.append("ORDER BY s.recordDate desc");
+                    hql.append("ORDER BY o.CreateTime desc");
                 } else {
                     hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," + "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode, s.recipeSource,s.payFlag ,s.recipeId from (");
                     hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," + "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName, t.Status as Status,t.TotalMoney as fee," + "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag,t.recipeId FROM cdr_recipe t " + "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
@@ -2557,7 +2557,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         patientRecipeBean.setStatusCode(Integer.parseInt(objs[5].toString()));
                         patientRecipeBean.setTotalMoney(new BigDecimal(objs[6].toString()));
                         patientRecipeBean.setSignDate((Date) objs[7]);
-                        if (null != objs[8]) {
+                        if (null != objs[8] && StringUtils.isNotEmpty(objs[8].toString())) {
                             patientRecipeBean.setCouponId(Integer.parseInt(objs[8].toString()));
                         }
                         if (null != objs[9]) {
