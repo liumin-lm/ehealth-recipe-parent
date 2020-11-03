@@ -998,25 +998,6 @@ public class RecipeOrderService extends RecipeBaseService {
      * @author: JRK
      */
     private void setAppOtherMessage(RecipeOrder order) {
-//        //date 2019/11/12
-//        //设置订单的配送地址，配送的药企名
-//        if (null != order && order.getEnterpriseId() != null) {
-//            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-//            if(CollectionUtils.isNotEmpty(recipeIdList)){
-//
-//                RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
-//                if(new Integer(-1).equals(order.getEnterpriseId()) && null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
-//                    order.setEnterpriseName(extend.getDeliveryName());
-//                }else{
-//
-//                    //设置配送方名称
-//                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-//                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-//                    order.setEnterpriseName(drugsEnterprise.getName());
-//                }
-//            }
-//        }
 
         //date 20200311
         //更改订单展示药企信息
@@ -1038,11 +1019,10 @@ public class RecipeOrderService extends RecipeBaseService {
         } else {
             //对北京互联网处方流转模式处理
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            String recipeIds = order.getRecipeIdList();
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             Recipe recipe = null;
-            if (StringUtils.isNotEmpty(recipeIds)) {
-                String recipeId = recipeIds.substring(1, recipeIds.lastIndexOf("]"));
-                recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
+            if (CollectionUtils.isNotEmpty(recipeIdList)) {
+                recipe = recipeDAO.getByRecipeId(recipeIdList.get(0));
             }
 
             if (recipe != null && new Integer(2).equals(recipe.getRecipeSource())) {

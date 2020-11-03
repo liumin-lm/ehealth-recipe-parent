@@ -2530,8 +2530,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
-                q.setParameterList("orderStatusList", orderStatusList);
-                q.setParameterList("recipeStatusList", recipeStatusList);
+                if ("onready".equals(tabStatus)){
+                    q.setParameterList("recipeStatusList", recipeStatusList);
+                }else if ("ongoing".equals(tabStatus)){
+                    q.setParameterList("orderStatusList", orderStatusList);
+                }else {
+                    q.setParameterList("orderStatusList", orderStatusList);
+                    q.setParameterList("recipeStatusList", recipeStatusList);
+                }
 
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
