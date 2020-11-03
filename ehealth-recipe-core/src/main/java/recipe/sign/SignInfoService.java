@@ -139,7 +139,9 @@ public class SignInfoService implements ISignInfoService {
     public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
         logger.info("getTaskCode2 info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
-        RegulationRecipeIndicatorsReq request = recipeCAService.getCATaskRecipeReq(recipeBean, detailBeanList);
+        RegulationRecipeIndicatorsReq request = null;
+        request = recipeCAService.getCATaskRecipeReq(recipeBean, detailBeanList);
+        logger.info("getTaskCode2 组装的处方对象{}", JSONUtils.toString(request));
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         String thirdCASign = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "thirdCASign");
