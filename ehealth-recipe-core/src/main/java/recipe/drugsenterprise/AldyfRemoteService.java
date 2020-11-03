@@ -283,7 +283,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 getMedicalInfo(dbRecipe, recipeExtend);
                 //DiagnosticParam 患者主诉
                 AlibabaAlihealthRxPrescriptionAddRequest.DiagnosticParam diagnosticParam = new AlibabaAlihealthRxPrescriptionAddRequest.DiagnosticParam();
-                diagnosticParam.setComplaints(dbRecipe.getMemo());               //诊断
+                diagnosticParam.setComplaints(StringUtils.isEmpty(dbRecipe.getMemo()) ? "无" : dbRecipe.getMemo());               //诊断
                 diagnosticParam.setDiagnosis(recipeExtend.getHistoryOfPresentIllness());   //患者主诉
                 diagnosticParam.setDisease(dbRecipe.getOrganDiseaseName());      //疾病
                 LOGGER.info("DiagnosticParam 患者主诉:{}.", getJsonLog(diagnosticParam));

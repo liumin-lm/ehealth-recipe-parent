@@ -242,6 +242,7 @@ public class EmrRecipeManager {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
         }
+        logger.info("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
     }
 
 
