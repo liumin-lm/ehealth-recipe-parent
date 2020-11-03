@@ -92,6 +92,8 @@ public class PatientRecipeDTO implements Serializable {
 
     private boolean isHiddenRecipeDetail;//是否隐方
 
+    private String recipeCode;
+
     public boolean getIsHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
     }
@@ -357,5 +359,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setDepartName(String departName) {
         this.departName = departName;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 }

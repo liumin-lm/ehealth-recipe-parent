@@ -1118,7 +1118,9 @@ public class RecipeListService extends RecipeBaseService {
                         patientRecipe.setRecordType(LIST_TYPE_RECIPE);
                         patientRecipe.setRecordId(recipe.getRecipeId());
                         patientRecipe.setStatusCode(recipe.getStatus());
+
                     }
+                    patientRecipe.setRecipeCode(recipe.getRecipeCode());
                     patientRecipe.setGiveMode(recipe.getGiveMode());
                     patientRecipe.setSignDate(recipe.getSignDate());
                     backList.add(patientRecipe);
@@ -1191,6 +1193,7 @@ public class RecipeListService extends RecipeBaseService {
                         } catch (ControllerException e) {
                             LOGGER.warn("processTabListDataNew 字典转化异常");
                         }
+                        record.setRecipeCode(recipe.getRecipeCode());
                     }
 
                     //药品详情
@@ -1238,6 +1241,7 @@ public class RecipeListService extends RecipeBaseService {
                                     record.setPayMode(recipe.getPayMode());
                                     record.setDoctorName(recipe.getDoctorName());
                                     record.setDepartName(recipe.getDepartName());
+                                    record.setRecipeCode(recipe.getRecipeCode());
 
                                     //药品详情
                                     List<RecipeDetailBean> recipedetailList = recipe.getRecipeDetail();

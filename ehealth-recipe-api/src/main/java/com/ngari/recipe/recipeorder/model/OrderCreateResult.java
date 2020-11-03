@@ -1,7 +1,10 @@
 package com.ngari.recipe.recipeorder.model;
 
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.schema.annotation.Schema;
+
+import java.util.List;
 
 /**
  * 订单创建返回对象结构
@@ -19,6 +22,11 @@ public class OrderCreateResult extends RecipeResultBean {
     private Integer couponType;
 
     private String orderCode;
+
+    /**
+     * 合并处方用
+     */
+    private List<RecipeBean> recipes;
 
     public OrderCreateResult(Integer code) {
         super(code);
@@ -38,5 +46,13 @@ public class OrderCreateResult extends RecipeResultBean {
 
     public void setCouponType(Integer couponType) {
         this.couponType = couponType;
+    }
+
+    public List<RecipeBean> getRecipes() {
+        return recipes;
+    }
+
+    public void setRecipes(List<RecipeBean> recipes) {
+        this.recipes = recipes;
     }
 }

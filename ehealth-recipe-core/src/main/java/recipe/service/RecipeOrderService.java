@@ -36,10 +36,7 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
-import com.ngari.recipe.recipe.model.PatientRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -250,6 +247,19 @@ public class RecipeOrderService extends RecipeBaseService {
             return result;
         }
 
+        //把处方对象返回给前端
+        List<RecipeBean> recipeBeans = ObjectCopyUtils.convert(recipeList, RecipeBean.class);
+        for (RecipeBean recipe : recipeBeans) {
+            //药品详情
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
+            //赋值诊断
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+            recipe.setDetailData(ObjectCopyUtils.convert(recipedetails, HisRecipeDetailBean.class));
+        }
+        result.setRecipes(recipeBeans);
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
@@ -353,7 +363,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setTotalFee(BigDecimal.ZERO);
                 order.setActualPrice(BigDecimal.ZERO.doubleValue());
                 double auditFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
-                order.setAuditFee(BigDecimal.valueOf(auditFee));
+                //如果是合并处方单，审方费得乘以处方单数
+                order.setAuditFee(BigDecimal.valueOf(auditFee).multiply(BigDecimal.valueOf(recipeList.size())));
                 double otherServiceFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE));
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
@@ -575,7 +586,8 @@ public class RecipeOrderService extends RecipeBaseService {
         //date 20190929
         //审方费判断非不需要审核再去计算
         double auditFee = ReviewTypeConstant.Not_Need_Check == firstRecipe.getReviewType() ? 0d : getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
-        order.setAuditFee(BigDecimal.valueOf(auditFee));
+        //如果是合并处方单，审方费得乘以处方单数
+        order.setAuditFee(BigDecimal.valueOf(auditFee).multiply(BigDecimal.valueOf(recipeList.size())));
         //设置其他服务费用
         double otherServiceFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE));
         order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
@@ -1551,6 +1563,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setChemistSignFile(recipe.getChemistSignFile());
                     prb.setSignFile(recipe.getSignFile());
                     prb.setDoctorName(recipe.getDoctorName());
+                    prb.setRecipeCode(recipe.getRecipeCode());
                     try {
                         prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
                     } catch (ControllerException e) {

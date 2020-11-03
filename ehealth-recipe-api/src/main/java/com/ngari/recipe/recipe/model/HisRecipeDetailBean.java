@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ public class HisRecipeDetailBean implements Serializable {
 
     private static final long serialVersionUID = 3550340367067978212L;
     private String recipeDeatilCode;
+    private Integer recipeDetailId;
     private String drugCode;
     private String drugName;
     private BigDecimal price;
@@ -137,5 +139,13 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setDrugSpec(String drugSpec) {
         this.drugSpec = drugSpec;
+    }
+
+    public Integer getRecipeDetailId() {
+        return recipeDetailId;
+    }
+
+    public void setRecipeDetailId(Integer recipeDetailId) {
+        this.recipeDetailId = recipeDetailId;
     }
 }
