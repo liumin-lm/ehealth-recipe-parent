@@ -26,6 +26,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -2757,7 +2758,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         String recipeIdStr = LocalStringUtil.toString(objs[1]);
                         List<Integer> recipeIdList = Lists.newArrayList();
                         if (StringUtils.isNotEmpty(recipeIdStr)) {
-                            CollectionUtils.addAll(recipeIdList, recipeIdStr.split(","));
+                            CollectionUtils.addAll(recipeIdList, (Integer[]) ConvertUtils.convert(recipeIdStr.split(","), Integer.class));
 
                         }
                         registerIdAndRecipeIds.put(registerId, recipeIdList);
