@@ -2749,7 +2749,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Map<String,List<Integer>> registerIdAndRecipeIds = new HashMap<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objs : result) {
-                        registerIdAndRecipeIds = Maps.newHashMap();
                         String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
                         if (objs[0] == null){

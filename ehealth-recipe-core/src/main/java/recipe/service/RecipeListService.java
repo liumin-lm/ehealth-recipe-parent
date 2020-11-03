@@ -1002,23 +1002,21 @@ public class RecipeListService extends RecipeBaseService {
     @RpcService
     public List<PatientTabStatusMergeRecipeDTO> findRecipesForPatientAndTabStatusNew(String tabStatus, String mpiId, Integer index, Integer limit) {
         LOGGER.info("findRecipesForPatientAndTabStatusNew tabStatus:{} mpiId:{} index:{} limit:{} ", tabStatus, mpiId,index,limit);
-        List<PatientTabStatusMergeRecipeDTO> recipeList = new ArrayList<>();
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatusNew mpiId为空!");
         checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
         //获取页面展示的对象
         TabStatusEnum recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
         if (null == recipeStatusList) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到recipe的状态列表", tabStatus);
-            return recipeList;
+            return new ArrayList<>();
         }
         TabStatusEnum orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
         if (null == orderStatusList) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到order的状态列表", tabStatus);
-            return recipeList;
+            return new ArrayList<>();
         }
         try {
             //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
@@ -1036,60 +1034,77 @@ public class RecipeListService extends RecipeBaseService {
                     }
                 }
             }
-            List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
-            PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
             if (mergeRecipeFlag){
                 //获取合并处方分组方式
                 //onRegisterId支持同一个挂号序号下的处方合并支付
                 //onRegisterIdAndChronic支持同一个挂号序号且同一个病种的处方合并支付
                 String mergeRecipeWay = (String)configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
                 LOGGER.error("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}",mpiId, mergeRecipeWay);
-                //先获取挂号序号和处方id的关系
-                Map<String, List<Integer>> registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, recipeStatusList.getStatusList(),tabStatus, mergeRecipeWay);
-                for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
-                    //具体到某一个挂号序号下的处方列表
-                    //先处理挂号序号为空的情况 -1
-                    if ("-1".equals(entry.getKey())) {
-                        //挂号序号为空表示不能合并处方单
-                        for (Integer recipeId : entry.getValue()){
-                            mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
-                            mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId),allMpiIds));
-                            mergeRecipeDTO.setFirstRecipeId(recipeId);
-                            mergeRecipeDTO.setMergeRecipeFlag(true);
-                            backList.add(mergeRecipeDTO);
-                        }
-                    } else {
-                        mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
-                        if ("onRegisterIdAndChronic".equals(mergeRecipeWay)){
-                            mergeRecipeDTO.setChronicDiseaseName(entry.getKey());
-                        }else {
-                            mergeRecipeDTO.setRegisterId(entry.getKey());
-                        }
-                        mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue(),allMpiIds));
-                        mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
-                        mergeRecipeDTO.setMergeRecipeFlag(true);
-                        backList.add(mergeRecipeDTO);
-                    }
-                }
-                //按处方id从大到小排列
-                backList.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
-                return backList;
+                //返回合并处方
+                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(),tabStatus, mergeRecipeWay);
             }else {
-                //还是用原来的方法获取处方
-                List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
-                List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = processTabListDate(backRecipeList, allMpiIds);
-                for (PatientTabStatusRecipeDTO tabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
-                    mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
-                    mergeRecipeDTO.setRecipe(Arrays.asList(tabStatusRecipeDTO));
-                    mergeRecipeDTO.setMergeRecipeFlag(false);
-                    backList.add(mergeRecipeDTO);
-                }
+                //返回非合并处方
+                return findNoMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
             }
 
         } catch (Exception e) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew error :.", e);
+            throw new DAOException(609,e.getMessage());
         }
-        return recipeList;
+    }
+
+    @RpcService
+    public List<PatientTabStatusMergeRecipeDTO> findNoMergeRecipe(List<String> allMpiIds, Integer index, Integer limit, List<Integer> recipeStatusList, List<Integer> orderStatusList, String tabStatus) {
+        //还是用原来的方法获取处方
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
+        PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
+        List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList, orderStatusList, tabStatus);
+        List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = processTabListDate(backRecipeList, allMpiIds);
+        for (PatientTabStatusRecipeDTO tabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
+            mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
+            mergeRecipeDTO.setRecipe(Arrays.asList(tabStatusRecipeDTO));
+            mergeRecipeDTO.setMergeRecipeFlag(false);
+            backList.add(mergeRecipeDTO);
+        }
+        return backList;
+    }
+
+    @RpcService
+    public List<PatientTabStatusMergeRecipeDTO> findMergeRecipe(List<String> allMpiIds, Integer index, Integer limit, List<Integer> statusList, String tabStatus, String mergeRecipeWay) {
+        //先获取挂号序号和处方id的关系
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
+        List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
+        Map<String, List<Integer>> registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList,tabStatus, mergeRecipeWay);
+        for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
+            //具体到某一个挂号序号下的处方列表
+            //先处理挂号序号为空的情况 -1
+            if ("-1".equals(entry.getKey())) {
+                //挂号序号为空表示不能合并处方单
+                for (Integer recipeId : entry.getValue()){
+                    mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
+                    mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId),allMpiIds));
+                    mergeRecipeDTO.setFirstRecipeId(recipeId);
+                    mergeRecipeDTO.setMergeRecipeFlag(true);
+                    backList.add(mergeRecipeDTO);
+                }
+            } else {
+                mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
+                if ("onRegisterIdAndChronic".equals(mergeRecipeWay)){
+                    mergeRecipeDTO.setChronicDiseaseName(entry.getKey());
+                }else {
+                    mergeRecipeDTO.setRegisterId(entry.getKey());
+                }
+                mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue(),allMpiIds));
+                mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
+                mergeRecipeDTO.setMergeRecipeFlag(true);
+                backList.add(mergeRecipeDTO);
+            }
+        }
+        //按处方id从大到小排列
+        backList.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
+        return backList;
     }
 
     /**
