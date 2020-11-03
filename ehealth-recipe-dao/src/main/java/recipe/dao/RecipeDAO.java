@@ -2722,7 +2722,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("select e.registerID,group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
                     hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 ");
                     if ("ongoing".equals(tabStatus)){
-                        hql.append("and d.OrderCode not is null ");
+                        hql.append("and d.OrderCode is not null ");
+                    }else if ("onready".equals(tabStatus)){
+                        hql.append("and d.OrderCode is null ");
                     }
                     //在获取的处方id集合里用最大id排序--根据慢病、挂号序号、机构id分组
                     hql.append("GROUP BY e.registerID,e.chronicDiseaseName,d.ClinicOrgan ORDER BY SUBSTRING_INDEX(group_concat(d.RecipeID ORDER BY d.RecipeID desc),',',1) desc");
