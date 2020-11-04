@@ -4,6 +4,7 @@ package recipe.serviceprovider.recipe.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -1918,5 +1919,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return map;
         }
         return map;
+    }
+
+    @Override
+    public List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        if (CollectionUtils.isNotEmpty(recipes)){
+            List<String> recipeCodes = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+            return recipeCodes;
+        }
+        return Lists.newArrayList();
     }
 }

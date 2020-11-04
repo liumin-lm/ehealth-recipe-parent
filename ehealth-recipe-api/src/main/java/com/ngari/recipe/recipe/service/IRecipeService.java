@@ -761,5 +761,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String, String> getPatientInfo(Integer busId);
+
+    @RpcService
+    List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds);
 }
 
