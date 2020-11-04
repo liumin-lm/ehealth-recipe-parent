@@ -40,6 +40,10 @@ public class PatientRecipeDTO implements Serializable {
 
     private Date signDate;
 
+    private String doctorName;
+
+    private String departName;
+
     private BigDecimal totalMoney;
 
     private String statusText;
@@ -87,6 +91,8 @@ public class PatientRecipeDTO implements Serializable {
     private Integer payFlag;//支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败
 
     private boolean isHiddenRecipeDetail;//是否隐方
+
+    private String recipeCode;
 
     public boolean getIsHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
@@ -337,5 +343,29 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setRecipeExtend(RecipeExtendBean recipeExtendBean) {
         this.recipeExtend = recipeExtendBean;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 }

@@ -1,15 +1,14 @@
 package recipe.constant;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 /**
- * @Description: TabStatusEnum 类（或接口）是 首页切换页面tab展示的处方或者订单对应的状态
- * @Author: JRK
- * @Date: 2019/8/21
+ * @Description: TabStatusEnum 类（或接口）是 首页切换页面tab展示的处方或者订单对应的状态--new
+ * 为了兼容TabStatusEnum还留着
  */
-public enum TabStatusEnum {
+public enum TabStatusEnumNew {
     /**
      * 待处理处方的状态（待处理，待审核|前置）
      * 未生成订单前的处方状态
@@ -27,7 +26,7 @@ public enum TabStatusEnum {
      * date 20200424
      * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe", new ArrayList<>(Arrays.asList(2, 8,27,31))),
+    Ongoing_Recipe_StatusList("ongoing", "recipe", new ArrayList<>(Arrays.asList(2,18))),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16
@@ -49,7 +48,7 @@ public enum TabStatusEnum {
 
     private List<Integer> statusList;
 
-    TabStatusEnum(String tabStatus, String statusType, List<Integer> statusList) {
+    TabStatusEnumNew(String tabStatus, String statusType, List<Integer> statusList) {
         this.tabStatus = tabStatus;
         this.statusType = statusType;
         this.statusList = statusList;

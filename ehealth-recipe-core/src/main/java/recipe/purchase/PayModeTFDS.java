@@ -1,6 +1,7 @@
 package recipe.purchase;
 
 import com.google.common.base.Function;
+import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -33,6 +34,7 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -211,11 +213,23 @@ public class PayModeTFDS implements IPurchaseService{
         //订单的状态统一到finishOrderPayWithoutPay中设置
         order.setStatus(OrderStatusConstant.HAS_DRUG);
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
-        order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
         order.setEnterpriseId(MapValueUtil.getInteger(extInfo, "depId"));
         order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
-        List<Recipe> recipeList = Arrays.asList(dbRecipe);
+        //todo---合并处方临时处理下先--后面改造成新接口
+        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
+        List<Integer> recipeIdLists = Arrays.asList(dbRecipe.getRecipeId());
+        if (StringUtils.isNotEmpty(recipeIds)){
+            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
+            recipeIdLists = recipeIdString.stream().map(a -> Integer.valueOf(a)).collect(Collectors.toList());
+        }
+        order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
+        List<Recipe> recipeList;
+        if (recipeIdLists.size() > 1){
+            recipeList = recipeDAO.findByRecipeIds(recipeIdLists);
+        }else {
+            recipeList = Arrays.asList(dbRecipe);
+        }
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
