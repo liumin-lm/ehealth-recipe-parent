@@ -1141,6 +1141,7 @@ public class RecipeListService extends RecipeBaseService {
                     patientRecipe.setRecipeCode(recipe.getRecipeCode());
                     patientRecipe.setGiveMode(recipe.getGiveMode());
                     patientRecipe.setSignDate(recipe.getSignDate());
+                    patientRecipe.setRecipeMode(recipe.getRecipeMode());
                     backList.add(patientRecipe);
                 }
             }
