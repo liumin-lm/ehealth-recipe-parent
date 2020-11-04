@@ -3155,4 +3155,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    public Long getNumCanMergeRecipeByMergeRecipeWay(String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName){
+        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select COUNT(d.RecipeID) from cdr_recipe d,cdr_recipe_ext e where d.RecipeID = e.recipeId ");
+                sql.append("and e.registerID =:registerId and d.ClinicOrgan =:organId ");
+                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
+                    sql.append("and e.chronicDiseaseName =:chronicDiseaseName ");
+                    sql.append("GROUP BY e.registerID,d.ClinicOrgan,e.chronicDiseaseName");
+                }else {
+                    sql.append("GROUP BY e.registerID,d.ClinicOrgan");
+                }
+                Query q = ss.createSQLQuery(sql.toString());
+                q.setParameter("registerId",registerId);
+                q.setParameter("organId",organId);
+                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
+                    q.setParameter("chronicDiseaseName",chronicDiseaseName);
+                }
+                setResult((Long)q.uniqueResult());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

@@ -1822,7 +1822,23 @@ public class RecipeServiceSub {
                 //如果创建过自费订单，则不显示医保支付
                 recipe.setMedicalPayFlag(0);
             }
-
+            //返回前端是否能合并支付的按钮--提示可以合并支付----可能患者从消息进去到处方详情时
+            Boolean mergeRecipeFlag = false;
+            try {
+                if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
+                    Boolean organMergeRecipeFlag = (Boolean)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeFlag");
+                    if (organMergeRecipeFlag!=null && organMergeRecipeFlag){
+                        String mergeRecipeWay = (String)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
+                        Long numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
+                        if (numCanMergeRecipe >1){
+                            mergeRecipeFlag = true;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl error, recipeId:{}", recipeId, e);
+            }
+            map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
