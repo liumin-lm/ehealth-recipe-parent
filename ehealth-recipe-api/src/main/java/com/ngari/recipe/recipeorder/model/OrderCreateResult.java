@@ -1,10 +1,10 @@
 package com.ngari.recipe.recipeorder.model;
 
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.schema.annotation.Schema;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单创建返回对象结构
@@ -16,6 +16,7 @@ import java.util.List;
 @Schema
 public class OrderCreateResult extends RecipeResultBean {
 
+    private static final long serialVersionUID = 6692993559284916445L;
     /**
      * 优惠券类型
      */
@@ -26,7 +27,7 @@ public class OrderCreateResult extends RecipeResultBean {
     /**
      * 合并处方用
      */
-    private List<RecipeBean> recipes;
+    private List<Map<String, Object>> recipes;
 
     public OrderCreateResult(Integer code) {
         super(code);
@@ -48,11 +49,11 @@ public class OrderCreateResult extends RecipeResultBean {
         this.couponType = couponType;
     }
 
-    public List<RecipeBean> getRecipes() {
+    public List<Map<String, Object>> getRecipes() {
         return recipes;
     }
 
-    public void setRecipes(List<RecipeBean> recipes) {
+    public void setRecipes(List<Map<String, Object>> recipes) {
         this.recipes = recipes;
     }
 }

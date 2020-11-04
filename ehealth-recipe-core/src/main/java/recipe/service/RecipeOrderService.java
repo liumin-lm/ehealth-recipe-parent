@@ -36,7 +36,10 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
+import com.ngari.recipe.recipe.model.PatientRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -51,6 +54,7 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -91,8 +95,6 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ctd.persistence.DAOFactory.getDAO;
-
 /**
  * 处方订单管理
  * company: ngarihealth
@@ -118,6 +120,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeListService recipeListService;
+
+    @Autowired
+    private RecipeService recipeService;
 
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
@@ -247,19 +252,12 @@ public class RecipeOrderService extends RecipeBaseService {
             return result;
         }
 
-        //把处方对象返回给前端
-        List<RecipeBean> recipeBeans = ObjectCopyUtils.convert(recipeList, RecipeBean.class);
-        for (RecipeBean recipe : recipeBeans) {
-            //药品详情
-            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
-            //赋值诊断
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-            recipe.setDetailData(ObjectCopyUtils.convert(recipedetails, HisRecipeDetailBean.class));
+        //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
+        List<Map<String, Object>> recipeInfos = Lists.newArrayList();
+        for (Recipe recipe : recipeList) {
+            recipeInfos.add(recipeService.getPatientRecipeById(recipe.getRecipeId()));
         }
-        result.setRecipes(recipeBeans);
+        result.setRecipes(recipeInfos);
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
