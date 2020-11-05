@@ -1832,7 +1832,7 @@ public class RecipeServiceSub {
                     Boolean organMergeRecipeFlag = (Boolean)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeFlag");
                     if (organMergeRecipeFlag!=null && organMergeRecipeFlag){
                         String mergeRecipeWay = (String)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
-                        Long numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
+                        Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
                         if (numCanMergeRecipe >1){
                             mergeRecipeFlag = true;
                         }
