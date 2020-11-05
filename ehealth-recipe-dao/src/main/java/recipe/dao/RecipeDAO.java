@@ -2682,7 +2682,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(mergeRecipeWay);
                 hql.append(",group_concat(d.RecipeID) as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is not null ");
-                hql.append("GROUP BY d.ClinicOrgan,d.OrderCode");
+                hql.append("GROUP BY d.ClinicOrgan,d.OrderCode,");
                 hql.append(mergeRecipeWay);
                 hql.append(" UNION ALL ");
                 //无订单
