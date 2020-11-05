@@ -3115,12 +3115,14 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIds(List<Integer> recipeIds) {
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
-        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-        List<Map<String, Object>> recipeInfos = Lists.newArrayList();
-        for (Recipe recipe : recipeList) {
-            recipeInfos.add(getPatientRecipeById(recipe.getRecipeId()));
+        if (CollectionUtils.isNotEmpty(recipeIds)) {
+            List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
+            for (Integer recipeId : recipeIds) {
+                recipeInfos.add(RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false));
+            }
+            return recipeInfos;
         }
-        return recipeInfos;
+        return null;
     }
 
     /**
