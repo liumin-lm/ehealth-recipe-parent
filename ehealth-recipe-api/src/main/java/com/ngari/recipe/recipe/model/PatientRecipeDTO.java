@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
 
+import com.ngari.patient.dto.PatientDTO;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -93,6 +94,11 @@ public class PatientRecipeDTO implements Serializable {
     private boolean isHiddenRecipeDetail;//是否隐方
 
     private String recipeCode;
+
+    /**订单详情页用到*/
+    private RecipeBean recipe;
+    /**订单详情页用到*/
+    private PatientDTO patient;
 
     public boolean getIsHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
@@ -367,5 +373,21 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setRecipeCode(String recipeCode) {
         this.recipeCode = recipeCode;
+    }
+
+    public RecipeBean getRecipe() {
+        return recipe;
+    }
+
+    public void setRecipe(RecipeBean recipe) {
+        this.recipe = recipe;
+    }
+
+    public PatientDTO getPatient() {
+        return patient;
+    }
+
+    public void setPatient(PatientDTO patient) {
+        this.patient = patient;
     }
 }

@@ -36,10 +36,7 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
-import com.ngari.recipe.recipe.model.PatientRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -1441,6 +1438,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignFile(recipe.getSignFile());
                     prb.setDoctorName(recipe.getDoctorName());
                     prb.setRecipeCode(recipe.getRecipeCode());
+                    prb.setRecipe( ObjectCopyUtils.convert(recipe, RecipeBean.class));
+                    prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
                         prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
                     } catch (ControllerException e) {
