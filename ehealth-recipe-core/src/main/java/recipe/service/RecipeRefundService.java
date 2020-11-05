@@ -113,7 +113,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeReFundSave(recipe, recipeRefund);
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {
-                LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                LOGGER.error("applyForRecipeRefund-applicationForRefundVisit处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
                 String msg = "";
                 if(hisResult != null && hisResult.getMsg() != null){
                     msg = hisResult.getMsg();
@@ -146,7 +146,7 @@ public class RecipeRefundService extends RecipeBaseService{
 
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             if (result != null && "200".equals(result.getMsgCode())) {
-                LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
+                LOGGER.info("applyForRecipeRefund-checkForRefundVisit 处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 //退费审核记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -264,7 +264,8 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.error("checkForRecipeRefund-未获取到处方退费信息. recipeId={}", recipeId);
             throw new DAOException("未获取到处方退费信息！");
         }
-
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         CheckForRefundVisitReqTO request = new CheckForRefundVisitReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setApplyNoHis(list.get(0).getApplyNo());
@@ -283,6 +284,7 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setCheckReason(checkReason);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHH:mm:ss");
         request.setCheckTime(formatter.format(new Date()));
+        request.setRefundType(getRefundType(recipeOrder));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<String> hisResult = service.checkForRefundVisit(request);
