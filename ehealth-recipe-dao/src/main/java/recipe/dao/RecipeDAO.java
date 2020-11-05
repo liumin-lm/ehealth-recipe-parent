@@ -2618,7 +2618,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("GROUP BY d.ClinicOrgan,");
                 //进行中的处方需要细化到已经合并了的处方单
                 if ("ongoing".equals(tabStatus)) {
-                    hql.append("GROUP BY d.OrderCode,");
+                    hql.append("d.OrderCode,");
                 }
                 hql.append(mergeRecipeWay);
                 hql.append(" ORDER BY SUBSTRING_INDEX(group_concat(d.RecipeID ORDER BY d.RecipeID desc),',',1) desc");
