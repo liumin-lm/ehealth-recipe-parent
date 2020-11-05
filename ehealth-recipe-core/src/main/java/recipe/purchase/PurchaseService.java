@@ -22,6 +22,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -52,8 +53,6 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -127,11 +126,16 @@ public class PurchaseService {
      * @param payModes 购药方式
      */
     @RpcService
-    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
+    public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        Recipe dbRecipe = recipeDAO.get(recipeId);
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("处方ids不存在");
+            return resultBean;
+        }
+        Recipe dbRecipe = recipeDAO.get(recipeIds.get(0));
         if (null == dbRecipe) {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("处方不存在");
