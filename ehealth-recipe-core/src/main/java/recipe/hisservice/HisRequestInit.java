@@ -566,11 +566,12 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static PayNotifyReqTO initPayNotifyReqTO(Recipe recipe, PatientBean patient, HealthCardBean card) {
+    public static PayNotifyReqTO initPayNotifyReqTO(List<String> recipeIdList, Recipe recipe, PatientBean patient, HealthCardBean card) {
         PayNotifyReqTO requestTO = new PayNotifyReqTO();
         try {
             requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
-            requestTO.setRecipeNo(recipe.getRecipeCode());
+            requestTO.setRecipeNo(recipeIdList.get(0));
+            requestTO.setRecipeNoS(recipeIdList);
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
             // 目前都是平台代收 后面要改
             requestTO.setPayType("1");
@@ -618,6 +619,7 @@ public class HisRequestInit {
                         requestTO.setPayType("E");
                     }
                     requestTO.setRecipeNo(recipe.getRecipeId() + "");
+                    requestTO.setRecipeNoS(recipeIdList);
                     requestTO.setRecipeCode(recipe.getRecipeCode());
                     requestTO.setOrganName(recipe.getOrganName());
                     RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);

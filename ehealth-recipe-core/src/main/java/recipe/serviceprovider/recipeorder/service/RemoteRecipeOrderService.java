@@ -324,6 +324,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
+    public Boolean updatePharmNoS(List<Integer> recipeId, String pharmNo) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        return recipeDetailDAO.updateRecipeDetailByRecipeIdS(recipeId, ImmutableMap.of("pharmNo", pharmNo));
+    }
+
+    @Override
     @RpcService
     public Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO) {
         LOGGER.info("updateRecipeTrannckingInfo.req={}", JSONObject.toJSONString(trannckingReqTO));
