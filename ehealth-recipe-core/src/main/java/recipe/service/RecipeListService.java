@@ -1104,7 +1104,9 @@ public class RecipeListService extends RecipeBaseService {
             } else {
                 mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 //分组字段值
-                mergeRecipeDTO.setGroupField(entry.getKey());
+                if (StringUtils.isNotEmpty(entry.getKey())) {
+                    mergeRecipeDTO.setGroupField(entry.getKey().split(",")[0]);
+                }
                 mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
                 mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue(), allMpiIds));
                 mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
@@ -1135,6 +1137,7 @@ public class RecipeListService extends RecipeBaseService {
                     patientRecipe.setRecipeId(recipe.getRecipeId());
                     patientRecipe.setOrganId(recipe.getClinicOrgan());
                     patientRecipe.setMpiId(recipe.getMpiid());
+                    patientRecipe.setPatientName(recipe.getPatientName());
                     //能否购药进行设置，默认可购药
                     patientRecipe.setCheckEnterprise(true);
                     if (null != patientRecipe.getOrganId()) {

@@ -2632,13 +2632,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 List<Object[]> result = q.list();
                 Map<String, List<Integer>> registerIdAndRecipeIds = new HashMap<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
+                    //相同挂号序号的情况下
+                    int i = 0;
                     for (Object[] objs : result) {
                         String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
                         if (objs[mergeRecipeWay.split(",").length - 1] == null) {
                             registerId = "-1";
                         } else {
-                            registerId = objs[mergeRecipeWay.split(",").length - 1].toString();
+                            registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
                         }
                         //根据机构配置的id的长度获取,例e.registerId,e.chronicDiseaseName 则取第三个参数是处方id列表
                         String recipeIdStr = LocalStringUtil.toString(objs[mergeRecipeWay.split(",").length]);
@@ -2648,6 +2650,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                         }
                         registerIdAndRecipeIds.put(registerId, recipeIdList);
+                        ++i;
                     }
                 }
 
@@ -2681,7 +2684,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is not null ");
                 hql.append("GROUP BY d.ClinicOrgan,d.OrderCode");
                 hql.append(mergeRecipeWay);
-                hql.append("UNION ALL ");
+                hql.append(" UNION ALL ");
                 //无订单
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
@@ -2699,13 +2702,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 List<Object[]> result = q.list();
                 Map<String, List<Integer>> registerIdAndRecipeIds = new HashMap<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
+                    int i = 0;
                     for (Object[] objs : result) {
                         String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
                         if (objs[mergeRecipeWay.split(",").length - 1] == null) {
                             registerId = "-1";
                         } else {
-                            registerId = objs[mergeRecipeWay.split(",").length - 1].toString();
+                            registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
                         }
                         //根据机构配置的id的长度获取,例e.registerId,e.chronicDiseaseName 则取第三个参数是处方id列表
                         String recipeIdStr = LocalStringUtil.toString(objs[mergeRecipeWay.split(",").length]);
@@ -2715,6 +2719,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                         }
                         registerIdAndRecipeIds.put(registerId, recipeIdList);
+                        ++i;
                     }
                 }
 
