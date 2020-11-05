@@ -856,7 +856,7 @@ public class PurchaseService {
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             IPurchaseService purchaseService = getService(recipe.getPayMode());
             if ("111".equals(recipeOrder.getWxPayWay())){

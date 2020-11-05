@@ -407,15 +407,9 @@ public class PayModeOnline implements IPurchaseService {
             //如果不需要支付则不走支付
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
-            Recipe nowRecipe = recipeDAO.get(recipeId);
-            //处方需要支付，需要在确认订单将购药方式绑定上
-            if(null == nowRecipe){
-                result.setCode(RecipeResultBean.FAIL);
-                result.setMsg("当前处方" + recipeId + "不存在！");
-                return result;
+            for (Integer recipeId3 : recipeIdLists) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId3, ImmutableMap.of("chooseFlag", 1));
             }
-            nowRecipe.setChooseFlag(1);
-            recipeDAO.update(nowRecipe);
         }
         for (Integer recipeId2 : recipeIdLists){
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
@@ -675,7 +669,7 @@ public class PayModeOnline implements IPurchaseService {
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (new Integer(2).equals(recipe.getPayMode())) {
             recipeOrder.setRecipePayWay(0);

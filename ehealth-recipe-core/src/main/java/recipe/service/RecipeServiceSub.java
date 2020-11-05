@@ -1798,7 +1798,10 @@ public class RecipeServiceSub {
             recipe.setOrderAmount(recipe.getTotalMoney());
             BigDecimal actualPrice = null;
             if (null != order) {
-                actualPrice = order.getRecipeFee();
+                //合并处方这里要改--得重新计算药品费用不能从order里取
+                //actualPrice = order.getRecipeFee();
+                RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                actualPrice = recipeOrderService.reCalculateRecipeFee(order.getEnterpriseId(), Arrays.asList(recipeId), null);
                 recipe.setDiscountAmount(order.getCouponName());
             } else {
                 // couponId = -1有优惠券  不使用 显示“不使用优惠券”

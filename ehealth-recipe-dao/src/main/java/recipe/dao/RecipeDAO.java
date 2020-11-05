@@ -2972,9 +2972,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where RecipeID =:recipeId and EnterpriseId =:depId")
     public abstract Recipe getByRecipeIdAndEnterpriseId(@DAOParam("depId") Integer depId, @DAOParam("recipeId") Integer recipeId);
 
-    @DAOMethod(sql = "from Recipe where orderCode =:orderCode order by RecipeId desc",limit = 1)
-    public abstract Recipe getByOrderCode(String orderCode);
-
     /**
      * 药师搜索方法 开方医生 审方医生 患者姓名 患者patientId
      *
