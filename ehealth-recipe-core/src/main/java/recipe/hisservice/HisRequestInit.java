@@ -570,8 +570,7 @@ public class HisRequestInit {
         PayNotifyReqTO requestTO = new PayNotifyReqTO();
         try {
             requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
-            requestTO.setRecipeNo(recipeIdList.get(0));
-            requestTO.setRecipeNoS(recipeIdList);
+            requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
             // 目前都是平台代收 后面要改
             requestTO.setPayType("1");
@@ -619,7 +618,6 @@ public class HisRequestInit {
                         requestTO.setPayType("E");
                     }
                     requestTO.setRecipeNo(recipe.getRecipeId() + "");
-                    requestTO.setRecipeNoS(recipeIdList);
                     requestTO.setRecipeCode(recipe.getRecipeCode());
                     requestTO.setOrganName(recipe.getOrganName());
                     RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
