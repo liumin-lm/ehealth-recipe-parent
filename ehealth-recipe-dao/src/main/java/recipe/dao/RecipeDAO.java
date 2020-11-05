@@ -3153,7 +3153,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     public Integer getNumCanMergeRecipeByMergeRecipeWay(String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
-        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select COUNT(d.RecipeID) from cdr_recipe d,cdr_recipe_ext e where d.RecipeID = e.recipeId ");
@@ -3170,10 +3170,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
                     q.setParameter("chronicDiseaseName",chronicDiseaseName);
                 }
-                setResult((Long)q.uniqueResult());
+                Number number = (Number) q.uniqueResult();
+                setResult(number.intValue());
             }
         };
         HibernateSessionTemplate.instance().execute(action);
-        return Integer.parseInt(action.getResult().toString());
+        return action.getResult();
     }
 }
