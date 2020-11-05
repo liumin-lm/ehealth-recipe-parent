@@ -330,7 +330,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                     List<PatientDTO> patientList = patientService.findOwnPatient(patient.getLoginId());
                     if (null != patientList && patientList.size() > 0){
                         PatientDTO userInfo = patientList.get(0);
-                        recipeDTO.setUserMobile(userInfo.getMobile());
+                        UserInfoDTO infoDTO = new UserInfoDTO();
+                        infoDTO.setUserMobile(userInfo.getMobile());
+                        infoDTO.setUserBirthDay(userInfo.getBirthday());
+                        infoDTO.setUserSex(userInfo.getPatientSex());
+                        infoDTO.setUsernName(userInfo.getPatientName());
+                        recipeDTO.setUserInfo(infoDTO);
                     }
                 }
             }
