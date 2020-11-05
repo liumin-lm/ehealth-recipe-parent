@@ -2,7 +2,6 @@ package recipe.purchase;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.model.EmploymentBean;
@@ -27,11 +26,11 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
-import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,7 +45,6 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
@@ -57,8 +55,6 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -98,40 +94,6 @@ public class PayModeOnline implements IPurchaseService {
         }
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
-
-//        //date 20200308
-//        //获取ext表里存的药企信息以及药企费用，使用此药企展示信息
-//        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
-//        if(null != extend){
-//            String deliveryRecipeFee = extend.getDeliveryRecipeFee();
-//            String deliveryCode = extend.getDeliveryCode();
-//            String deliveryName = extend.getDeliveryName();
-//            DepDetailBean depDetailBean;
-//            if(StringUtils.isNotEmpty(deliveryRecipeFee) &&
-//                    StringUtils.isNotEmpty(deliveryCode) && StringUtils.isNotEmpty(deliveryName)){
-//                LOG.info("findSupportDepList 当前处方{}的药企信息为his预校验返回信息：{}", recipeId, JSONUtils.toString(extend));
-//                depDetailBean = new DepDetailBean();
-//                //标识选择的药企是his推过来的
-//                depDetailBean.setDepId(-1);
-//                depDetailBean.setDepName(deliveryName);
-//                depDetailBean.setRecipeFee(new BigDecimal(deliveryRecipeFee));
-//                depDetailBean.setBelongDepName(deliveryName);
-//                depDetailBean.setOrderType(1);
-//                depDetailBean.setPayModeText("在线支付");
-//                depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
-//                //预留字段标识是医院推送给过来的
-//                depDetailBean.setHisDep(true);
-//
-//                depDetailList.add(depDetailBean);
-//                depListBean.setSigle(true);
-//                depListBean.setList(depDetailList);
-//                resultBean.setObject(depListBean);
-//                LOG.info("findSupportDepList 当前处方{}查询his药企列表展示信息：{}", recipeId, JSONUtils.toString(resultBean));
-//                return resultBean;
-//            }
-//
-//        }
 
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
