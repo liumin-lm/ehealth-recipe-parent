@@ -203,7 +203,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param recipeIds
      * @return
      */
-    @DAOMethod(sql = "from Recipe where recipeId in :recipeIds", limit = 0)
+    @DAOMethod(sql = "from Recipe where recipeId in :recipeIds order by recipeId desc", limit = 0)
     public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
@@ -2607,7 +2607,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //通过机构配置里配置的id来分组获取合并处方
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
-                hql.append(",group_concat(d.RecipeID ORDER BY d.RecipeID asc) as ids from cdr_recipe d,cdr_recipe_ext e ");
+                hql.append(",group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 ");
                 if ("onready".equals(tabStatus)) {
                     hql.append("and d.OrderCode is null ");
@@ -2680,7 +2680,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //有订单
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
-                hql.append(",group_concat(d.RecipeID ORDER BY d.RecipeID asc) as ids from cdr_recipe d,cdr_recipe_ext e ");
+                hql.append(",group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is not null ");
                 hql.append("GROUP BY d.ClinicOrgan,d.OrderCode,");
                 hql.append(mergeRecipeWay);

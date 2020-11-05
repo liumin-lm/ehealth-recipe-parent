@@ -1109,7 +1109,7 @@ public class RecipeListService extends RecipeBaseService {
                 }
                 mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
                 mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue()));
-                mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(entry.getValue().size() - 1));
+                mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
                 mergeRecipeDTO.setMergeRecipeFlag(true);
                 backList.add(mergeRecipeDTO);
             }
