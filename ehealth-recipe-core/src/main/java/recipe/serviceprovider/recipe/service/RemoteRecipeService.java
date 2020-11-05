@@ -1916,6 +1916,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             map.put("patid", recipe.getPatientID());
             map.put("ghxh", recipeExtend.getRegisterID());
+            StringBuilder stringBuilder = new StringBuilder();
+            if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
+                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+                if (CollectionUtils.isNotEmpty(recipes)) {
+                    for (Recipe rec : recipes) {
+                        stringBuilder.append(rec.getRecipeCode()).append(",");
+                    }
+                }
+                stringBuilder.substring(0,stringBuilder.lastIndexOf(","));
+            }
+            map.put("cfxhhj", stringBuilder.toString());
             return map;
         }
         return map;
