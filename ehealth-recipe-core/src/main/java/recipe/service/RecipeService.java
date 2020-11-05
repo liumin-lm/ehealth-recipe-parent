@@ -3108,6 +3108,22 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+     * 健康端获取处方详情-----合并处方
+     *
+     * @param recipeIds 处方ID列表
+     */
+    @RpcService
+    public List<Map<String, Object>> findPatientRecipesByIds(List<Integer> recipeIds) {
+        //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        List<Map<String, Object>> recipeInfos = Lists.newArrayList();
+        for (Recipe recipe : recipeList) {
+            recipeInfos.add(getPatientRecipeById(recipe.getRecipeId()));
+        }
+        return recipeInfos;
+    }
+
+    /**
      * 处方签获取
      *
      * @param recipeId

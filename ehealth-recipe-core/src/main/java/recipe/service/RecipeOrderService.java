@@ -193,7 +193,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
-     * 订单创建
+     * 订单创建------前端不会调用这里--前端是通过findConfirmOrderInfoExt调用了这里
      *
      * @param recipeIds 合并处方单ID
      * @param extInfo   {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
@@ -248,13 +248,6 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setMsg("处方不存在");
             return result;
         }
-
-        //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
-        List<Map<String, Object>> recipeInfos = Lists.newArrayList();
-        for (Recipe recipe : recipeList) {
-            recipeInfos.add(recipeService.getPatientRecipeById(recipe.getRecipeId()));
-        }
-        result.setRecipes(recipeInfos);
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
