@@ -1095,7 +1095,7 @@ public class RecipeListService extends RecipeBaseService {
                 //挂号序号为空表示不能合并处方单
                 for (Integer recipeId : entry.getValue()) {
                     mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
-                    mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId), allMpiIds));
+                    mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId)));
                     mergeRecipeDTO.setFirstRecipeId(recipeId);
                     mergeRecipeDTO.setMergeRecipeFlag(true);
                     mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
@@ -1108,8 +1108,8 @@ public class RecipeListService extends RecipeBaseService {
                     mergeRecipeDTO.setGroupField(entry.getKey().split(",")[0]);
                 }
                 mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
-                mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue(), allMpiIds));
-                mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
+                mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue()));
+                mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(entry.getValue().size() - 1));
                 mergeRecipeDTO.setMergeRecipeFlag(true);
                 backList.add(mergeRecipeDTO);
             }
@@ -1122,7 +1122,7 @@ public class RecipeListService extends RecipeBaseService {
     /**
      * 处理tab下的列表数据New
      */
-    private List<PatientTabStatusRecipeDTO> processTabListDataNew(List<Integer> recipeIds, List<String> allMpiIds) {
+    private List<PatientTabStatusRecipeDTO> processTabListDataNew(List<Integer> recipeIds) {
         List<PatientTabStatusRecipeDTO> backList = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -1171,6 +1171,7 @@ public class RecipeListService extends RecipeBaseService {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         if (recipeOrder != null) {
                             patientRecipe.setRecordId(recipeOrder.getOrderId());
+                            patientRecipe.setRecordCode(recipeOrder.getOrderCode());
                             patientRecipe.setStatusCode(recipeOrder.getStatus());
                             patientRecipe.setStatusText(getOrderStatusTabText(patientRecipe.getStatusCode(), patientRecipe.getGiveMode()));
                             patientRecipe.setEnterpriseId(recipeOrder.getEnterpriseId());
@@ -1197,6 +1198,7 @@ public class RecipeListService extends RecipeBaseService {
                     } else {
                         patientRecipe.setRecordType(LIST_TYPE_RECIPE);
                         patientRecipe.setRecordId(recipe.getRecipeId());
+                        patientRecipe.setRecordCode(recipe.getRecipeId().toString());
                         patientRecipe.setStatusCode(recipe.getStatus());
                         patientRecipe.setStatusText(getRecipeStatusTabText(patientRecipe.getStatusCode(), patientRecipe.getRecordId()));
                         //设置失效时间
