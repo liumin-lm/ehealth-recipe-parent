@@ -203,6 +203,7 @@ public class PurchaseService {
             }
             depListBean.setList(depListBeanList);
             resultBean.setObject(depListBean);
+            LOG.info("filterSupportDepList recipeIds={} resultBean={}", recipeIds, JSONUtils.toString(resultBean));
         }
         return resultBean;
     }
