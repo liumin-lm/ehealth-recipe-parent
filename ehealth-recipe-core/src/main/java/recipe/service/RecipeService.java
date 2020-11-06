@@ -43,7 +43,6 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
-import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -51,7 +50,6 @@ import ctd.persistence.DAOFactory;
 import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -2789,7 +2787,7 @@ public class RecipeService extends RecipeBaseService {
                 int recipeId = recipe.getRecipeId();
                 //相应订单处理
                 order = orderDAO.getOrderByRecipeId(recipeId);
-                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                 //变更处方状态
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_ORDER_CACEL);
@@ -2803,22 +2801,6 @@ public class RecipeService extends RecipeBaseService {
                 }
                 //保存处方状态变更日志
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.NO_OPERATOR, memo.toString());
-                //date 20200330
-                //调用支付平台取消支付接口
-                RecipeOrder orderNow;
-                INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
-                if (null != recipe) {
-                    //判断订单是否是单边账的
-                    if(null != order && 0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
-                        Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
-                        if (null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))) {
-                            LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方" + recipe.getRecipeId() + "取消的订单对应的接口成功");
-                        }
-                    }
-                } else {
-                    LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
-                }
             }
             //修改cdr_his_recipe status为已处理
             orderService.updateHisRecieStatus(recipes);
@@ -2855,7 +2837,7 @@ public class RecipeService extends RecipeBaseService {
                     int recipeId = recipe.getRecipeId();
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
-                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if(null != order){
                             orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
@@ -2895,22 +2877,6 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo.toString());
-                    //date 20200330
-                    //调用支付平台取消支付接口
-                    RecipeOrder orderNow;
-                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
-                    if (null != recipe) {
-                        //判断订单是否是单边账的
-                        if(null != order && 0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
-                            Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
-                            if (null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))) {
-                                LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
-                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方" + recipe.getRecipeId() + "取消的订单对应的接口成功");
-                            }
-                        }
-                    } else {
-                        LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
-                    }
                 }
                 //修改cdr_his_recipe status为已处理
                 orderService.updateHisRecieStatus(recipeList);
@@ -3513,13 +3479,13 @@ public class RecipeService extends RecipeBaseService {
         if (1 == flag || 6 == flag) {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
         } else if (PUSH_FAIL == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
         } else if (REFUND_MANUALLY == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
             //处理处方单
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
         } else if (REFUND_PATIENT == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("payFlag", 2), null);
             //处理处方单
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
@@ -4418,27 +4384,12 @@ public class RecipeService extends RecipeBaseService {
                 //相应订单处理
                 order = orderDAO.getOrderByRecipeId(recipeId);
                 if(null != order){
-
-                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
                         //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
-                    }
-                    //调用支付平台取消支付接口
-                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
-                    if (null != recipe) {
-                        //判断订单是否是单边账的
-                        if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
-                            Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
-                            if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
-                                LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
-                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"取消的订单对应的接口成功");
-                            }
-                        }
-                    }else{
-                        LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
                     }
                 }
 
@@ -4523,29 +4474,14 @@ public class RecipeService extends RecipeBaseService {
                 order = orderDAO.getOrderByRecipeId(recipeId);
                 if(null != order){
 
-                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
                         //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
                     }
-                    //调用支付平台取消支付接口
-                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
-                    if (null != recipe) {
-                        //判断订单是否是单边账的
-                        if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
-                            Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
-                            if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
-                                LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
-                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"取消的订单对应的接口成功");
-                            }
-                        }
-                    }else{
-                        LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
-                    }
                 }
-
 
                 //变更处方状态
                 status = recipe.getStatus();
@@ -4600,7 +4536,7 @@ public class RecipeService extends RecipeBaseService {
                     int recipeId = recipe.getRecipeId();
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
-                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if(null != order){
                             orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
@@ -4636,24 +4572,6 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, statusCancel, memo.toString());
-                    //date 20200330
-                    //调用支付平台取消支付接口
-                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
-                    if(null != order){
-
-                        if (null != recipe) {
-                            //判断订单是否是单边账的
-                            if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
-                                Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
-                                if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
-                                    LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
-                                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"取消的订单对应的接口成功");
-                                }
-                            }
-                        }else{
-                            LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
-                        }
-                    }
                 }
             }
         }

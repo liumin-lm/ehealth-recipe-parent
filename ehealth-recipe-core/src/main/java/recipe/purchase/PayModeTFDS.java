@@ -4,13 +4,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,11 +32,8 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -96,12 +93,17 @@ public class PayModeTFDS implements IPurchaseService{
         LOGGER.info("findSupportDepList recipeId={}, 匹配到支持药店取药药企数量[{}]", recipeId, drugsEnterprises.size());
         List<Integer> recipeIds = Arrays.asList(recipeId);
         //处理详情
+        List<Integer> recipeIdList = Arrays.asList(recipeId);
+        //合并处方药品费用处理
+        String recipeIdsforMerge = MapValueUtil.getString(extInfo, "recipeIds");
+        if (StringUtils.isNotEmpty(recipeIdsforMerge)) {
+            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIdsforMerge);
+            recipeIdList = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
+        }
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = new ArrayList<>(detailList.size());
-        Map<Integer, Double> drugIdCountMap = Maps.newHashMap();
         for (Recipedetail detail : detailList) {
             drugIds.add(detail.getDrugId());
-            drugIdCountMap.put(detail.getDrugId(), detail.getUseTotalDose());
         }
 
         List<DepDetailBean> depDetailList = new ArrayList<>();
@@ -122,28 +124,10 @@ public class PayModeTFDS implements IPurchaseService{
 
         for (DepDetailBean depDetailBean : depDetailList) {
             Integer depId = depDetailBean.getDepId();
-            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
             //如果是价格自定义的药企，则需要设置单独价格
-            if (enterprise != null && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
-                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterprise.getId(), drugIds);
-                if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-                    BigDecimal total = BigDecimal.ZERO;
-                    try {
-                        for (SaleDrugList saleDrug : saleDrugLists) {
-                            //保留3位小数
-                            total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountMap.get(saleDrug.getDrugId())))
-                                    .divide(BigDecimal.ONE, 3, RoundingMode.UP));
-                        }
-                    } catch (Exception e) {
-                        LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterprise.getId(),
-                                JSONUtils.toString(drugIds), e);
-                        continue;
-                    }
-                    //重置药企处方价格
-                    depDetailBean.setRecipeFee(total);
-                }
-            }
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            //重置药企处方价格
+            depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(depId, recipeIdList, null));
         }
 
         //对药店列表进行排序

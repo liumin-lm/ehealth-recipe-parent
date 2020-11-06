@@ -624,6 +624,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //设置订单代煎费
         Integer totalCopyNum = 0;
         BigDecimal decoctionFee = BigDecimal.ZERO;
+        //中药处方数
         int i = 0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -633,20 +634,16 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果是合并处方-多张处方下得累加
                     decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                 }
-                //多个处方，中医辨证论治费只收一次!
-                if (i == 0) {
-                    //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
-                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                    //从opbase配置项获取中医辨证论治费 recipeTCMPrice
-                    Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
-                    if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1) {
-                        tcmFee = (BigDecimal) findRecipeTCMPrice;//大于等于0
-                    }
-                }
-                LOGGER.info("处方recipeid:{},tcmFee是：{}", recipe.getRecipeId(), tcmFee);
-
+                i++;
             }
-            i++;
+        }
+        //多个处方，中医辨证论治费收多次!
+        //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        //从opbase配置项获取中医辨证论治费 recipeTCMPrice
+        Object findRecipeTCMPrice = configService.getConfiguration(recipeList.get(0).getClinicOrgan(), "recipeTCMPrice");
+        if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1) {
+            tcmFee = ((BigDecimal) findRecipeTCMPrice).multiply(new BigDecimal(i));//大于等于0
         }
         LOGGER.info("tcmFee是：{}", tcmFee);
         order.setTcmFee(tcmFee);
@@ -1229,7 +1226,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).getByOrderCode(orderCode), status);
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).getByOrderCode(orderCode), status, true);
         }
 
         return result;
@@ -1251,7 +1248,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).getOrderByRecipeId(recipeId), status);
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).getOrderByRecipeId(recipeId), status, true);
         }
 
         return result;
@@ -1271,7 +1268,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).get(orderId), status);
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).get(orderId), status, true);
         }
 
         return result;
@@ -1281,9 +1278,10 @@ public class RecipeOrderService extends RecipeBaseService {
      * 取消订单
      *
      * @param order
+     * canCancelOrderCode 能否将处方里的OrderCode设置成null
      * @return
      */
-    public RecipeResultBean cancelOrder(RecipeOrder order, Integer status) {
+    public RecipeResultBean cancelOrder(RecipeOrder order, Integer status, Boolean canCancelOrderCode) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == order || null == status) {
             result.setCode(RecipeResultBean.FAIL);
@@ -1310,20 +1308,23 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
                 this.updateOrderInfo(order.getOrderCode(), orderAttrMap, result);
 
+                //有可能自动取消的走到这里
+                //如果有正在进行中的合并处方单应该还原
+                RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                //合并处方订单取消
+                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
-                    RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-                    //合并处方订单取消
-                    List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+
                     for (Recipe recipe : recipes) {
                         if (recipe != null) {
                             recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
                         }
                         //清除医保金额
                         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                        recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
+                        recipeExtendDAO.updatefundAmountToNullByRecipeId(recipe.getRecipeId());
                         try {
                             //对于来源于HIS的处方单更新hisRecipe的状态
                             if (recipe != null) {
@@ -1337,25 +1338,38 @@ public class RecipeOrderService extends RecipeBaseService {
                             LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage(), e);
                         }
                     }
-                    //date 20200330
-                    //调用支付平台取消支付接口
-                    RecipeOrder orderNow;
-                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
-                    RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                    if (null != recipeIdList.get(0)) {
-                        orderNow = orderDAO.getByOrderCode(order.getOrderCode());
-                        //判断订单是否是单边账的
-                        if (0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())) {
-                            Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), orderNow.getOrderId().toString());
-                            if (null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))) {
-                                for (Recipe recipe : recipes) {
-                                    LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方{}成功.", recipe.getRecipeId());
-                                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方" + recipe.getRecipeId() + "取消的订单对应的接口成功");
-                                }
+                } else {
+                    //有可能退款的数据走到这里来他的canCancelOrderCode为false
+                    if (canCancelOrderCode) {
+                        for (Recipe recipe : recipes) {
+                            //未支付定时取消的处方单orderCode不设置成空
+                            if (RecipeStatusConstant.NO_PAY != recipe.getStatus()) {
+                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
+                                //清除医保金额
+                                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                                recipeExtendDAO.updatefundAmountToNullByRecipeId(recipe.getRecipeId());
                             }
                         }
-                    } else {
-                        LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
+                        //date 20200330
+                        //调用支付平台取消支付接口
+                        RecipeOrder orderNow;
+                        INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
+                        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+                        if (null != recipeIdList.get(0)) {
+                            orderNow = orderDAO.getByOrderCode(order.getOrderCode());
+                            //判断订单是否是单边账的
+                            if (0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())) {
+                                Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), orderNow.getOrderId().toString());
+                                if (null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))) {
+                                    for (Recipe recipe : recipes) {
+                                        LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方{}成功.", recipe.getRecipeId());
+                                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方" + recipe.getRecipeId() + "取消的订单对应的接口成功");
+                                    }
+                                }
+                            }
+                        } else {
+                            LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
+                        }
                     }
                 }
             }
@@ -1475,6 +1489,42 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
+                    //根据运营平台配置的选项获取生成二维码的字段
+                    try {
+                        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                        Integer qrTypeForRecipe = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "getQrTypeForRecipe");
+
+                        switch (qrTypeForRecipe) {
+                            case 1:
+                                //无
+                                break;
+                            case 2:
+                                //就诊卡号
+                                if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+                                    prb.setQrName(recipeExtend.getCardNo());
+                                }
+                                break;
+                            case 3:
+                                if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
+                                    prb.setQrName(recipeExtend.getRegisterID());
+                                }
+                                break;
+                            case 4:
+                                if (StringUtils.isNotEmpty(recipe.getPatientID())) {
+                                    prb.setQrName(recipe.getPatientID());
+                                }
+                                break;
+                            case 5:
+                                if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
+                                    prb.setQrName(recipe.getRecipeCode());
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("获取运营平台处方支付配置异常", e);
+                    }
                     patientRecipeBeanList.add(prb);
 
                     if (1 == order.getEffective()) {
@@ -1525,6 +1575,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setTel(drugsEnterprise.getTel());
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
+                    orderBean.setSendType(drugsEnterprise.getSendType());
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
@@ -1903,8 +1954,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
             } catch (Exception e) {
                 LOGGER.error("基础服务物流下单异常，发起退款流程 orderId={}，异常=", order.getOrderId(), e);
-//                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
+                for(int i=0; i<recipeS.size(); i++){
+                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
+                }
                 return;
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
@@ -1929,8 +1983,11 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
-//                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
+                for(int i=0; i<recipeS.size(); i++){
+                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
+                }
             }
         }
     }
@@ -2318,8 +2375,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //配送费
-        //有配送费并且配送费支付方式为不等于第三方支付时才计入支付金额
-        if (null != order.getExpressFee() && !(new Integer(3).equals(order.getExpressFeePayWay()))) {
+        //有配送费并且配送费支付方式为不等于第三方支付或者不等于上传运费收费标准时才计入支付金额
+        if (null != order.getExpressFee() && !(new Integer(3).equals(order.getExpressFeePayWay()) || new Integer(4).equals(order.getExpressFeePayWay()))) {
             full = full.add(order.getExpressFee());
         }
 
