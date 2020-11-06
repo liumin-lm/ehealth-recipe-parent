@@ -1023,15 +1023,7 @@ public class RecipeListService extends RecipeBaseService {
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
             Boolean mergeRecipeFlag = false;
-            //获取合并处方分组方式
-            //e.registerId支持同一个挂号序号下的处方合并支付
-            //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
-            String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
-            //默认挂号序号分组
-            if (StringUtils.isEmpty(mergeRecipeWay)) {
-                mergeRecipeWay = "e.registerId";
-            }
-            String mergeRecipeWayAfter;
+
             if (CollectionUtils.isNotEmpty(organIds)) {
                 for (Integer organId : organIds) {
                     //获取区域公众号
@@ -1041,20 +1033,34 @@ public class RecipeListService extends RecipeBaseService {
                     }
                     if (!mergeRecipeFlag) {
                         break;
-                    } else {
-                        mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
-                        if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
-                            mergeRecipeFlag = false;
-                            LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
-                            break;
-                        }
                     }
                 }
             }
+            //再根据区域公众号里是否都支持同一种合并方式
+            //默认
+            String mergeRecipeWayAfter = "e.registerId";
             if (mergeRecipeFlag) {
-                LOGGER.info("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}", mpiId, mergeRecipeWay);
+                //获取合并处方分组方式
+                //e.registerId支持同一个挂号序号下的处方合并支付
+                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
+                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
+                //默认挂号序号分组
+                if (StringUtils.isEmpty(mergeRecipeWay)) {
+                    mergeRecipeWay = "e.registerId";
+                }
+                for (int i = 1; i < organIds.size(); i++) {
+                    mergeRecipeWayAfter = (String) configService.getConfiguration(organIds.get(i), "mergeRecipeWay");
+                    if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
+                        mergeRecipeFlag = false;
+                        LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organIds.get(i), mergeRecipeWay);
+                        break;
+                    }
+                }
+                LOGGER.info("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeFlag={},mergeRecipeWay={}", mpiId, mergeRecipeFlag, mergeRecipeWay);
+            }
+            if (mergeRecipeFlag) {
                 //返回合并处方
-                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWay);
+                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWayAfter);
             } else {
                 //返回非合并处方
                 return findNoMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
