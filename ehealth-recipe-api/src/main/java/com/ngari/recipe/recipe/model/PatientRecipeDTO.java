@@ -100,6 +100,8 @@ public class PatientRecipeDTO implements Serializable {
     /**订单详情页用到*/
     private PatientDTO patient;
 
+    private String qrName;
+
     public boolean getIsHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
     }
@@ -389,5 +391,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setPatient(PatientDTO patient) {
         this.patient = patient;
+    }
+
+    public String getQrName() {
+        return qrName;
+    }
+
+    public void setQrName(String qrName) {
+        this.qrName = qrName;
     }
 }
