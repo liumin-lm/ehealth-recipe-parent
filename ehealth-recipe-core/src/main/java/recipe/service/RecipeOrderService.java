@@ -1473,6 +1473,42 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
+                    //根据运营平台配置的选项获取生成二维码的字段
+                    try {
+                        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                        Integer qrTypeForRecipe = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "getQrTypeForRecipe");
+
+                        switch (qrTypeForRecipe) {
+                            case 1:
+                                //无
+                                break;
+                            case 2:
+                                //就诊卡号
+                                if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+                                    prb.setQrName(recipeExtend.getCardNo());
+                                }
+                                break;
+                            case 3:
+                                if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
+                                    prb.setQrName(recipeExtend.getRegisterID());
+                                }
+                                break;
+                            case 4:
+                                if (StringUtils.isNotEmpty(recipe.getPatientID())) {
+                                    prb.setQrName(recipe.getPatientID());
+                                }
+                                break;
+                            case 5:
+                                if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
+                                    prb.setQrName(recipe.getRecipeCode());
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("获取运营平台处方支付配置异常", e);
+                    }
                     patientRecipeBeanList.add(prb);
 
                     if (1 == order.getEffective()) {
@@ -1523,6 +1559,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setTel(drugsEnterprise.getTel());
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
+                    orderBean.setSendType(drugsEnterprise.getSendType());
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
