@@ -2514,7 +2514,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 if ("onready".equals(tabStatus)) {
                     hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as status,t.TotalMoney as fee," + "t.SignDate as recordDate,'' as couponId,t.MedicalPayFlag,t.RecipeType,t.ClinicOrgan as organId,t.recipeMode,t.giveMode,t.recipeSource,t.payFlag,t.recipeId from cdr_recipe t ");
-                    hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.OrderCode is null ORDER BY t.SignDate desc");
+                    hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and (t.Status IN (:recipeStatusList) or (t.Status=15 and t.checkStatus = 1)) and t.OrderCode is null ORDER BY t.SignDate desc");
                 } else if ("ongoing".equals(tabStatus)) {
                     hql.append("select 2 as type,o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId,'' as diseaseNam,o.Status,o.ActualPrice as fee," + "o.CreateTime as recordDate,o.CouponId,0 as medicalPayFlag,w.recipeType,o.OrganId,w.recipeMode,w.GiveMode,w.recipeSource,w.payFlag ,w.recipeId from ");
                     hql.append("cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
@@ -2522,7 +2522,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 } else {
                     hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," + "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode, s.recipeSource,s.payFlag ,s.recipeId from (");
                     hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," + "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName, t.Status as Status,t.TotalMoney as fee," + "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag,t.recipeId FROM cdr_recipe t " + "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
-                    hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList)");
+                    hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.checkStatus != 1 ");
                     hql.append("UNION ALL ");
                     hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " + "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," + "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag,w.recipeId FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
                     hql.append(") s ORDER BY s.recordDate desc");
