@@ -1079,7 +1079,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
         if (REQUEST_OK == code && null != beforeStatus) {
             if(CHECK_ORDER.equals(checkStatus)){
-                if (!order.getStatus().equals(beforeStatus)) {
+                /*if (!order.getStatus().equals(beforeStatus)) {
                     if (order.getStatus().equals(afterStatus)) {
                         code = REQUEST_ERROR_REAPET;
                     } else {
@@ -1090,7 +1090,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                             errorMsg = "该处方单不是配送中的处方";
                         }
                     }
-                }
+                }*/
             }else{
                 if (!recipe.getStatus().equals(beforeStatus)) {
                     if (recipe.getStatus().equals(afterStatus)) {
@@ -1099,11 +1099,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         code = REQUEST_ERROR;
                         if (RecipeStatusConstant.CHECK_PASS_YS == beforeStatus) {
                             errorMsg = "该处方单不是药师审核通过的处方";
-                        } else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
+                        }
+                        /*else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
                             errorMsg = "该处方单不是待配送的处方";
                         } else if (RecipeStatusConstant.IN_SEND == beforeStatus) {
                             errorMsg = "该处方单不是配送中的处方";
-                        }
+                        }*/
                     }
                 }
             }
