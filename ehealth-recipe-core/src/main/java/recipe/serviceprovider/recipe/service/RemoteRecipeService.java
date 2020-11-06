@@ -1925,9 +1925,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         stringBuilder.append(rec.getRecipeCode()).append(",");
                     }
                 }
-                stringBuilder.substring(0,stringBuilder.lastIndexOf(","));
+                String cfxhhj = stringBuilder.substring(0,stringBuilder.lastIndexOf(","));
+                map.put("cfxhhj", cfxhhj);
             }
-            map.put("cfxhhj", stringBuilder.toString());
             return map;
         }
         return map;
