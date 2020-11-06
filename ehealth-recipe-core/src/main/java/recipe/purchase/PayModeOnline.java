@@ -145,18 +145,18 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         //处理详情
+        //为了计算药品费
         List<Integer> recipeIdList = Arrays.asList(recipeId);
         String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
         if (StringUtils.isNotEmpty(recipeIds)) {
             List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
             recipeIdList = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
         }
-        List<Recipedetail> detailList = detailDAO.findByRecipeIdList(recipeIdList);
+
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = new ArrayList<>(detailList.size());
-        Map<Integer, Double> drugIdCountMap = Maps.newHashMap();
         for (Recipedetail detail : detailList) {
             drugIds.add(detail.getDrugId());
-            drugIdCountMap.put(detail.getDrugId(), detail.getUseTotalDose());
         }
 
         RemoteDrugEnterpriseService remoteDrugEnterpriseService =
@@ -210,28 +210,9 @@ public class PayModeOnline implements IPurchaseService {
                     }
                 }
             }
-
-            //如果是价格自定义的药企，则需要设置单独价格
-            if (Integer.valueOf(0).equals(dep.getSettlementMode())) {
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
-                if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-                    BigDecimal total = BigDecimal.ZERO;
-                    try {
-                        for (SaleDrugList saleDrug : saleDrugLists) {
-                            //保留3位小数
-                            total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountMap.get(saleDrug.getDrugId())))
-                                    .divide(BigDecimal.ONE, 3, RoundingMode.UP));
-                        }
-                    } catch (Exception e) {
-                        LOG.error("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
-                                JSONUtils.toString(drugIds), e);
-                        continue;
-                    }
-
-                    //重置药企处方价格
-                    depDetailBean.setRecipeFee(total);
-                }
-            }
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            //重置药企处方价格
+            depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(dep.getId(), recipeIdList, null));
 
             depDetailList.add(depDetailBean);
         }
