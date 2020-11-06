@@ -624,6 +624,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //设置订单代煎费
         Integer totalCopyNum = 0;
         BigDecimal decoctionFee = BigDecimal.ZERO;
+        //中药处方数
         int i = 0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -633,20 +634,16 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果是合并处方-多张处方下得累加
                     decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                 }
-                //多个处方，中医辨证论治费只收一次!
-                if (i == 0) {
-                    //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
-                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                    //从opbase配置项获取中医辨证论治费 recipeTCMPrice
-                    Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
-                    if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1) {
-                        tcmFee = (BigDecimal) findRecipeTCMPrice;//大于等于0
-                    }
-                }
-                LOGGER.info("处方recipeid:{},tcmFee是：{}", recipe.getRecipeId(), tcmFee);
-
+                i++;
             }
-            i++;
+        }
+        //多个处方，中医辨证论治费收多次!
+        //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        //从opbase配置项获取中医辨证论治费 recipeTCMPrice
+        Object findRecipeTCMPrice = configService.getConfiguration(recipeList.get(0).getClinicOrgan(), "recipeTCMPrice");
+        if (findRecipeTCMPrice != null && ((BigDecimal) findRecipeTCMPrice).compareTo(BigDecimal.ZERO) > -1) {
+            tcmFee = ((BigDecimal) findRecipeTCMPrice).multiply(new BigDecimal(i));//大于等于0
         }
         LOGGER.info("tcmFee是：{}", tcmFee);
         order.setTcmFee(tcmFee);
