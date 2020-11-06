@@ -1367,6 +1367,7 @@ public class RecipeListService extends RecipeBaseService {
                                     record.setDoctorName(recipe.getDoctorName());
                                     record.setDepartName(recipe.getDepartName());
                                     record.setRecipeCode(recipe.getRecipeCode());
+                                    record.setSignDate(recipe.getSignDate());
 
                                     //药品详情
                                     List<RecipeDetailBean> recipedetailList = recipe.getRecipeDetail();
