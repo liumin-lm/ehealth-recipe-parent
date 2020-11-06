@@ -929,8 +929,10 @@ public class RecipeService extends RecipeBaseService {
                 }else{
                     //先将产生的pdf
                     String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
+                    String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
                     signImageId = doctorDTO.getSignImage();
-                    if ("shenzhenCA".equals(thirdCASign)) {
+                    if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+                        LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
                         SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
                         SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
                         if(null != docInfo){
@@ -4695,8 +4697,10 @@ public class RecipeService extends RecipeBaseService {
                     //先将产生的pdf
                     String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
                     signImageId = doctorDTOn.getSignImage();
+                    String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
                     //深圳CA特殊化处理，获取药师CA签名图片id
-                    if ("shenzhenCA".equals(thirdCASign)) {
+                    if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+                        LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
                         SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
                         SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
                         if (null != phaInfo) {
