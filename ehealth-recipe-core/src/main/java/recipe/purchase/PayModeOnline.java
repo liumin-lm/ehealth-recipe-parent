@@ -145,7 +145,13 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         //处理详情
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        List<Integer> recipeIdList = Arrays.asList(recipeId);
+        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
+        if (StringUtils.isNotEmpty(recipeIds)) {
+            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
+            recipeIdList = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
+        }
+        List<Recipedetail> detailList = detailDAO.findByRecipeIdList(recipeIdList);
         List<Integer> drugIds = new ArrayList<>(detailList.size());
         Map<Integer, Double> drugIdCountMap = Maps.newHashMap();
         for (Recipedetail detail : detailList) {

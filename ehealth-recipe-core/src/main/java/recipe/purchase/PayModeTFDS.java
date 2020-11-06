@@ -11,6 +11,7 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +36,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -96,7 +95,14 @@ public class PayModeTFDS implements IPurchaseService{
         LOGGER.info("findSupportDepList recipeId={}, 匹配到支持药店取药药企数量[{}]", recipeId, drugsEnterprises.size());
         List<Integer> recipeIds = Arrays.asList(recipeId);
         //处理详情
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        List<Integer> recipeIdList = Arrays.asList(recipeId);
+        //合并处方药品费用处理
+        String recipeIdsforMerge = MapValueUtil.getString(extInfo, "recipeIds");
+        if (StringUtils.isNotEmpty(recipeIdsforMerge)) {
+            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIdsforMerge);
+            recipeIdList = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
+        }
+        List<Recipedetail> detailList = detailDAO.findByRecipeIdList(recipeIdList);
         List<Integer> drugIds = new ArrayList<>(detailList.size());
         Map<Integer, Double> drugIdCountMap = Maps.newHashMap();
         for (Recipedetail detail : detailList) {

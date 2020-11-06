@@ -56,6 +56,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author： 0184/yu_yun
@@ -139,6 +140,8 @@ public class PurchaseService {
             return resultBean;
         }
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        //为了计算合并处方药品费
+        extInfo.put("recipeIds", String.join(",", recipeIds.stream().map(String::valueOf).collect(Collectors.toList())));
         List<DepDetailBean> depListBeanList = Lists.newArrayList();
         DepListBean depListBean = new DepListBean();
         for (Recipe dbRecipe : recipeList) {
