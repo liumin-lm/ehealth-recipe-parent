@@ -89,6 +89,7 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
             //生成post请求
             HttpPost httpPost = new HttpPost(enterprise.getAuthenUrl());
             httpPost.setHeader("Content-Type", "application/json");
+            LOGGER.info("YsqnRemoteService.pushRecipeInfo sendInfo:{}.", JSONUtils.toString(sendInfo));
             //将请求参数转成json
             StringEntity requestEntity = new StringEntity(JSONUtils.toString(sendInfo), ContentType.APPLICATION_JSON);
             httpPost.setEntity(requestEntity);
