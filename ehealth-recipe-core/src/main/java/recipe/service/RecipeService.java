@@ -789,7 +789,7 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else if (Integer.valueOf(100).equals(code)) {
             memo = "签名成功,标准对接CA方式";
-            doctorToRecipePDF(recipeId, recipe);
+            //doctorToRecipePDF(recipeId, recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
                 String loginId = MapValueUtil.getString(backMap, "loginId");
