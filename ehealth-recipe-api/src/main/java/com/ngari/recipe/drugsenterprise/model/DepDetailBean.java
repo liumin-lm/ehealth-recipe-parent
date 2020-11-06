@@ -3,7 +3,7 @@ package com.ngari.recipe.drugsenterprise.model;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * company: ngarihealth
@@ -310,5 +310,22 @@ public class DepDetailBean {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DepDetailBean that = (DepDetailBean) o;
+        return Objects.equals(depId, that.depId) && Objects.equals(depName, that.depName) && Objects.equals(payMode, that.payMode) && Objects.equals(giveModeText, that.giveModeText) && Objects.equals(payModeText, that.payModeText) && Objects.equals(recipeFee, that.recipeFee) && Objects.equals(expressFee, that.expressFee) && Objects.equals(unSendTitle, that.unSendTitle) && Objects.equals(gysCode, that.gysCode) && Objects.equals(sendMethod, that.sendMethod) && Objects.equals(payMethod, that.payMethod) && Objects.equals(pharmacyCode, that.pharmacyCode) && Objects.equals(actualFee, that.actualFee) && Objects.equals(couponFee, that.couponFee) && Objects.equals(decoctionFee, that.decoctionFee) && Objects.equals(medicalFee, that.medicalFee) && Objects.equals(address, that.address) && Objects.equals(position, that.position) && Objects.equals(belongDepName, that.belongDepName) && Objects.equals(distance, that.distance) && Objects.equals(orderType, that.orderType) && Objects.equals(hisDep, that.hisDep) && Objects.equals(hisDepCode, that.hisDepCode) && Objects.equals(hisDepFee, that.hisDepFee) && Objects.equals(memo, that.memo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(depId, depName, payMode, giveModeText, payModeText, recipeFee, expressFee, unSendTitle, gysCode, sendMethod, payMethod, pharmacyCode, actualFee, couponFee, decoctionFee, medicalFee, address, position, belongDepName, distance, orderType, hisDep, hisDepCode, hisDepFee, memo);
     }
 }

@@ -23,6 +23,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -45,6 +46,8 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -55,10 +58,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
-import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * 处方业务一些列表查询
@@ -1001,7 +1000,7 @@ public class RecipeListService extends RecipeBaseService {
      */
     @RpcService
     public List<PatientTabStatusMergeRecipeDTO> findRecipesForPatientAndTabStatusNew(String tabStatus, String mpiId, Integer index, Integer limit) {
-        LOGGER.info("findRecipesForPatientAndTabStatusNew tabStatus:{} mpiId:{} index:{} limit:{} ", tabStatus, mpiId,index,limit);
+        LOGGER.info("findRecipesForPatientAndTabStatusNew tabStatus:{} mpiId:{} index:{} limit:{} ", tabStatus, mpiId, index, limit);
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatusNew mpiId为空!");
         checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -1024,36 +1023,38 @@ public class RecipeListService extends RecipeBaseService {
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
             Boolean mergeRecipeFlag = false;
-            if (CollectionUtils.isNotEmpty(organIds)){
+            if (CollectionUtils.isNotEmpty(organIds)) {
                 for (Integer organId : organIds) {
                     //获取区域公众号
-                    mergeRecipeFlag = (Boolean)configService.getConfiguration(organId, "mergeRecipeFlag");
-                    if (mergeRecipeFlag == null){mergeRecipeFlag=false;}
-                    if (!mergeRecipeFlag){
+                    mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
+                    if (mergeRecipeFlag == null) {
+                        mergeRecipeFlag = false;
+                    }
+                    if (!mergeRecipeFlag) {
                         break;
                     }
                 }
             }
-            if (mergeRecipeFlag){
+            if (mergeRecipeFlag) {
                 //获取合并处方分组方式
                 //e.registerId支持同一个挂号序号下的处方合并支付
                 //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
-                String mergeRecipeWay = (String)configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
+                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
                 //默认挂号序号分组
-                if (StringUtils.isEmpty(mergeRecipeWay)){
+                if (StringUtils.isEmpty(mergeRecipeWay)) {
                     mergeRecipeWay = "e.registerId";
                 }
-                LOGGER.error("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}",mpiId, mergeRecipeWay);
+                LOGGER.error("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}", mpiId, mergeRecipeWay);
                 //返回合并处方
-                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(),tabStatus, mergeRecipeWay);
-            }else {
+                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWay);
+            } else {
                 //返回非合并处方
                 return findNoMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
             }
 
         } catch (Exception e) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew error :.", e);
-            throw new DAOException(609,e.getMessage());
+            throw new DAOException(609, e.getMessage());
         }
     }
 
@@ -1075,20 +1076,26 @@ public class RecipeListService extends RecipeBaseService {
     }
 
     @RpcService
-    public List<PatientTabStatusMergeRecipeDTO> findMergeRecipe(List<String> allMpiIds, Integer index, Integer limit, List<Integer> statusList, String tabStatus, String mergeRecipeWay) {
+    public List<PatientTabStatusMergeRecipeDTO> findMergeRecipe(List<String> allMpiIds, Integer index, Integer limit, List<Integer> statusList, List<Integer> orderStatusList, String tabStatus, String mergeRecipeWay) {
         //先获取挂号序号和处方id的关系
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
         List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
-        Map<String, List<Integer>> registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList,tabStatus, mergeRecipeWay);
+        Map<String, List<Integer>> registerIdRelation;
+        //已结束的tab页应该拆成有订单和无订单的合并
+        if ("isover".equals(tabStatus)) {
+            registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelationByIsover(allMpiIds, index, limit, statusList, orderStatusList, mergeRecipeWay);
+        } else {
+            registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList, orderStatusList, tabStatus, mergeRecipeWay);
+        }
         for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
             //具体到某一个挂号序号下的处方列表
             //先处理挂号序号为空的情况 -1
             if ("-1".equals(entry.getKey())) {
                 //挂号序号为空表示不能合并处方单
-                for (Integer recipeId : entry.getValue()){
+                for (Integer recipeId : entry.getValue()) {
                     mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
-                    mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId),allMpiIds));
+                    mergeRecipeDTO.setRecipe(processTabListDataNew(Arrays.asList(recipeId)));
                     mergeRecipeDTO.setFirstRecipeId(recipeId);
                     mergeRecipeDTO.setMergeRecipeFlag(true);
                     mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
@@ -1097,9 +1104,11 @@ public class RecipeListService extends RecipeBaseService {
             } else {
                 mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 //分组字段值
-                mergeRecipeDTO.setGroupField(entry.getKey());
+                if (StringUtils.isNotEmpty(entry.getKey())) {
+                    mergeRecipeDTO.setGroupField(entry.getKey().split(",")[0]);
+                }
                 mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
-                mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue(),allMpiIds));
+                mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue()));
                 mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
                 mergeRecipeDTO.setMergeRecipeFlag(true);
                 backList.add(mergeRecipeDTO);
@@ -1113,30 +1122,40 @@ public class RecipeListService extends RecipeBaseService {
     /**
      * 处理tab下的列表数据New
      */
-    private List<PatientTabStatusRecipeDTO> processTabListDataNew(List<Integer> recipeIds, List<String> allMpiIds) {
-        List<PatientRecipeBean> backList = Lists.newArrayList();
+    private List<PatientTabStatusRecipeDTO> processTabListDataNew(List<Integer> recipeIds) {
+        List<PatientTabStatusRecipeDTO> backList = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
             if (CollectionUtils.isNotEmpty(recipes)) {
+                Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
+                DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+                RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                 for (Recipe recipe : recipes) {
-                    PatientRecipeBean patientRecipe = new PatientRecipeBean();
+                    PatientTabStatusRecipeDTO patientRecipe = new PatientTabStatusRecipeDTO();
                     patientRecipe.setRecipeId(recipe.getRecipeId());
                     patientRecipe.setOrganId(recipe.getClinicOrgan());
                     patientRecipe.setMpiId(recipe.getMpiid());
-                    if (StringUtils.isNotEmpty(recipe.getOrderCode())){
-                        patientRecipe.setRecordType(LIST_TYPE_ORDER);
-                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                        if (recipeOrder != null){
-                            patientRecipe.setRecordId(recipeOrder.getOrderId());
-                            patientRecipe.setStatusCode(recipeOrder.getStatus());
+                    patientRecipe.setPatientName(recipe.getPatientName());
+                    //能否购药进行设置，默认可购药
+                    patientRecipe.setCheckEnterprise(true);
+                    if (null != patientRecipe.getOrganId()) {
+                        if (null == checkEnterprise.get(patientRecipe.getOrganId())) {
+                            checkEnterprise.put(patientRecipe.getOrganId(), drugsEnterpriseService.checkEnterprise(patientRecipe.getOrganId()));
                         }
-                    }else {
-                        patientRecipe.setRecordType(LIST_TYPE_RECIPE);
-                        patientRecipe.setRecordId(recipe.getRecipeId());
-                        patientRecipe.setStatusCode(recipe.getStatus());
-
+                        patientRecipe.setCheckEnterprise(checkEnterprise.get(patientRecipe.getOrganId()));
+                    }
+                    //处方详情
+                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+                    patientRecipe.setOrganDiseaseName(recipe.getOrganDiseaseName());
+                    patientRecipe.setDoctorName(recipe.getDoctorName());
+                    try {
+                        patientRecipe.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+                    } catch (ControllerException e) {
+                        LOGGER.warn("processTabListDataNew 字典转化异常");
                     }
                     patientRecipe.setRecipeCode(recipe.getRecipeCode());
                     patientRecipe.setGiveMode(recipe.getGiveMode());
@@ -1146,11 +1165,73 @@ public class RecipeListService extends RecipeBaseService {
                     patientRecipe.setRecipeSource(recipe.getRecipeSource());
                     patientRecipe.setRecipeType(recipe.getRecipeType());
                     patientRecipe.setTotalMoney(recipe.getTotalMoney());
+
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        patientRecipe.setRecordType(LIST_TYPE_ORDER);
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        if (recipeOrder != null) {
+                            patientRecipe.setRecordId(recipeOrder.getOrderId());
+                            patientRecipe.setRecordCode(recipeOrder.getOrderCode());
+                            patientRecipe.setStatusCode(recipeOrder.getStatus());
+                            patientRecipe.setStatusText(getOrderStatusTabText(patientRecipe.getStatusCode(), patientRecipe.getGiveMode()));
+                            patientRecipe.setEnterpriseId(recipeOrder.getEnterpriseId());
+                            if (null != recipeOrder.getLogisticsCompany()) {
+                                try {
+                                    //4.01需求：物流信息查询
+                                    String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getText(recipeOrder.getLogisticsCompany());
+                                    patientRecipe.setLogisticsCompany(logComStr);
+                                    patientRecipe.setTrackingNumber(recipeOrder.getTrackingNumber());
+                                    DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+                                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+                                    if (drugsEnterprise != null) {
+                                        // 药企物流对接方式
+                                        patientRecipe.setLogisticsType(drugsEnterprise.getLogisticsType());
+                                    }
+                                } catch (ControllerException e) {
+                                    LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", recipeOrder.getLogisticsCompany(), e);
+                                }
+                            }
+                            if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && OrderStatusConstant.READY_PAY.equals(recipeOrder.getStatus())) {
+                                patientRecipe.setRecipeSurplusHours(recipe.getRecipeSurplusHours());
+                            }
+                        }
+                    } else {
+                        patientRecipe.setRecordType(LIST_TYPE_RECIPE);
+                        patientRecipe.setRecordId(recipe.getRecipeId());
+                        patientRecipe.setRecordCode(recipe.getRecipeId().toString());
+                        patientRecipe.setStatusCode(recipe.getStatus());
+                        patientRecipe.setStatusText(getRecipeStatusTabText(patientRecipe.getStatusCode(), patientRecipe.getRecordId()));
+                        //设置失效时间
+                        if (RecipeStatusConstant.CHECK_PASS == patientRecipe.getStatusCode()) {
+                            patientRecipe.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(patientRecipe.getSignDate()));
+                        }
+                    }
+                    //药品详情
+                    List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
+                    patientRecipe.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
+                    //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
+                    getPageMsg(patientRecipe);
+                    //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
+                    PayModeShowButtonBean buttons = getShowButton(patientRecipe);
+                    patientRecipe.setButtons(buttons);
+                    //根据隐方配置返回处方详情
+                    boolean isReturnRecipeDetail = isReturnRecipeDetail(patientRecipe.getRecipeId());
+                    if (!isReturnRecipeDetail) {
+                        List<RecipeDetailBean> recipeDetailVOs = patientRecipe.getRecipeDetail();
+                        if (recipeDetailVOs != null && recipeDetailVOs.size() > 0) {
+                            for (int j = 0; j < recipeDetailVOs.size(); j++) {
+                                recipeDetailVOs.get(j).setDrugName(null);
+                                recipeDetailVOs.get(j).setDrugSpec(null);
+                            }
+                        }
+                    }
+                    //返回是否隐方
+                    patientRecipe.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
                     backList.add(patientRecipe);
                 }
             }
         }
-        return processTabListDate(backList,allMpiIds);
+        return backList;
     }
 
     /**
@@ -1205,7 +1286,7 @@ public class RecipeListService extends RecipeBaseService {
                     }
                     //处方详情
                     Recipe recipe = recipeDAO.getByRecipeId(record.getRecordId());
-                    if (recipe !=null){
+                    if (recipe != null) {
                         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                         EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);

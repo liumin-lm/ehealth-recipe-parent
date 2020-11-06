@@ -26,6 +26,7 @@ import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -48,8 +49,6 @@ import recipe.dao.RecipeRefundDAO;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**
@@ -557,7 +556,7 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
             //当处方的购药方式为配送到家和药店取药时
             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());

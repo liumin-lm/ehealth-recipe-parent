@@ -389,7 +389,7 @@ public class RecipeHisService extends RecipeBaseService {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         // 111 为卫宁支付---卫宁付不走前置机的his结算
                         if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                            List<String> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                            List<String> recipeIdList = (List<String>)JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                             PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
                             PayNotifyResTO response = service.payNotify(payNotifyReq);
                             if (null != response && response.getMsgCode() == 0) {
