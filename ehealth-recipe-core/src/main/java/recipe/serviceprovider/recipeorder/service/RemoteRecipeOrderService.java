@@ -251,8 +251,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @Override
     public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node) {
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
-        RecipeRefund refund = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, node);
-        return getBean(refund, RecipeRefundBean.class);
+        List<RecipeRefund> refunds = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, node);
+        return getBean(refunds.get(0), RecipeRefundBean.class);
     }
 
     @Override

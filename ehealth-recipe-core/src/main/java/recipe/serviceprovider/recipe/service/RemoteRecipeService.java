@@ -309,9 +309,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 if (recipePatientRefundVO.getBusId() != null) {
                     //需要医生审核
                     if (doctorReviewRefund) {
-                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                        List<RecipeRefund> recipeRefundByRecipeIdAndNodes = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
                         //判断医生是否已经审核
-                        if (recipeRefundByRecipeIdAndNode != null) {
+                        if (CollectionUtils.isNotEmpty(recipeRefundByRecipeIdAndNodes)) {
+                            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundByRecipeIdAndNodes.get(0);
                             //医生已经审核且审核通过
                             if (recipeRefundByRecipeIdAndNode.getStatus() == 1) {
                                 //判断药师是否审核(运营平台)
@@ -376,10 +377,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         if (recipePatientRefundVO.getBusId() != null) {
             //判断医生是否已经审核
-            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
+            List<RecipeRefund> recipeRefundByRecipeIdAndNodes = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
             //获取第三方审核状态
             RecipeRefund thirdRefundStatus = getThirdRefundStatus(recipeId);
-            if (recipeRefundByRecipeIdAndNode != null) {
+            if (CollectionUtils.isNotEmpty(recipeRefundByRecipeIdAndNodes)) {
+                RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundByRecipeIdAndNodes.get(0);
                 //已审核
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
                 RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
