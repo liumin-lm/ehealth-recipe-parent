@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
@@ -8,6 +9,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -22,7 +25,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeMsgEnum;
+import recipe.constant.RecipeStatusConstant;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeOrderService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,15 +42,10 @@ import java.util.Map;
  * @author yinsheng
  * @date 2020\11\4 0004 14:35
  */
+@RpcBean(value = "ysqnRemoteService")
 public class YsqnRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YsqnRemoteService.class);
-
-    private static final String requestHeadJsonKey = "Content-Type";
-
-    private static final String requestHeadJsonValue = "application/json";
-
-    private static final String requestHeadPowerKey = "Authorization";
 
     @Autowired
     private YsqRemoteService ysqRemoteService;
@@ -48,6 +53,13 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
 
+    }
+
+    @RpcService
+    public void test (List<Integer> recipeIds, Integer depId) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        pushRecipeInfo(recipeIds, drugsEnterprise);
     }
 
     @Override
@@ -66,7 +78,8 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
         List<Map<String, Object>> recipeInfoList = ysqRemoteService.getYsqRecipeInfo(recipeIds, hosInteriorSupportFlag, enterprise);
         //最终发给药企的json数据
         Map<String, Object> sendInfo = new HashMap<>();
-        sendInfo.put("APPKEY", enterprise.getUserId());
+        String[] userId = enterprise.getUserId().split("\\|");
+        sendInfo.put("APPKEY", userId[0]);
         sendInfo.put("APPSECRET", enterprise.getPassword());
         sendInfo.put("SOURCECODE", organDTO.getOrganizeCode());
         sendInfo.put("TITLES", recipeInfoList);
@@ -74,7 +87,7 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
             //发送http请求获取
             CloseableHttpClient httpclient = HttpClients.createDefault();
             //生成post请求
-            HttpPost httpPost = new HttpPost(enterprise.getToken());
+            HttpPost httpPost = new HttpPost(enterprise.getAuthenUrl());
             httpPost.setHeader("Content-Type", "application/json");
             //将请求参数转成json
             StringEntity requestEntity = new StringEntity(JSONUtils.toString(sendInfo), ContentType.APPLICATION_JSON);
@@ -84,7 +97,33 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
             HttpEntity responseEntity = response.getEntity();
             String responseStr =  EntityUtils.toString(responseEntity);
             LOGGER.info("YsqnRemoteService.pushRecipeInfo responseStr:{}.", responseStr);
-
+            Map resultMap = JSONUtils.parse(responseStr, Map.class);
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            if (resultMap != null && (boolean)resultMap.get("SUCCESS")) {
+                String message = (String)resultMap.get("MESSAGE");
+                if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
+                    recipeDAO.updatePushFlagByRecipeId(recipeIds);
+                    orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeIds.get(0)), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
+                    RecipeLogService.saveRecipeLog(recipeIds.get(0), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + enterprise.getName() + message);
+                    for (Integer recipeId : recipeIds) {
+                        //推送审核结果
+                        pushCheckResult(recipeId, 1, enterprise);
+                    }
+                    if (new Integer(3).equals(enterprise.getExpressFeePayWay())){
+                        //推送处方运费待支付消息提醒
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeIds.get(0));
+                    }
+                } else {
+                    for (Integer recipeId : recipeIds) {
+                        orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", -1), null);
+                        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "推送处方失败,药企：" + enterprise.getName() + message + ",错误：" + result.getMsg());
+                    }
+                    //当前钥世圈没有在线支付的情况
+                    result.setMsg("推送处方失败，" + result.getMsg());
+                    result.setCode(DrugEnterpriseResult.FAIL);
+                }
+            }
         } catch (Exception e) {
             LOGGER.error("YsqnRemoteService.pushRecipeInfo error msg:{}.", e.getMessage(), e);
         }
