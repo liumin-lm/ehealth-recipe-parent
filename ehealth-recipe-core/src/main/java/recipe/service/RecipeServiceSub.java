@@ -2860,7 +2860,7 @@ public class RecipeServiceSub {
             if (!recipe.canMedicalPay()) {
                 changeAttr.put("chooseFlag", 1);
             }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
         }
         result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
 
