@@ -409,7 +409,11 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.error("findRecipeReFundRate-未获取到处方退费信息. recipeId={}", recipeId);
             throw new DAOException("未获取到处方退费信息！");
         }
-        RecipeRefund applyRefund = recipeRefundDao.findRecipeRefundByRecipeIdAndNode(recipeId, -1);
+        List<RecipeRefund> applyRefunds = recipeRefundDao.findRecipeRefundByRecipeIdAndNode(recipeId, -1);
+        if (CollectionUtils.isEmpty(applyRefunds)) {
+            return null;
+        }
+        RecipeRefund applyRefund = applyRefunds.get(0);
         List<RecipeRefundBean> result = new ArrayList<>();
         //医生审核后还需要获取医院his的审核状态(医生已审核且通过、还未退费)
         RecipeRefund refundTemp = list.get(0);
