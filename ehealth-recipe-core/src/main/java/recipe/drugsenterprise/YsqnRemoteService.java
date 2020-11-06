@@ -124,6 +124,13 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
                     result.setMsg("推送处方失败，" + result.getMsg());
                     result.setCode(DrugEnterpriseResult.FAIL);
                 }
+            } else {
+                String message = (String)resultMap.get("MESSAGE");
+                orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeIds.get(0)), ImmutableMap.of("pushFlag", -1), null);
+                RecipeLogService.saveRecipeLog(recipeIds.get(0), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "推送处方失败,药企：" + enterprise.getName() + message + ",错误：" + result.getMsg());
+                //当前钥世圈没有在线支付的情况
+                result.setMsg("推送处方失败，" + result.getMsg());
+                result.setCode(DrugEnterpriseResult.FAIL);
             }
         } catch (Exception e) {
             LOGGER.error("YsqnRemoteService.pushRecipeInfo error msg:{}.", e.getMessage(), e);
