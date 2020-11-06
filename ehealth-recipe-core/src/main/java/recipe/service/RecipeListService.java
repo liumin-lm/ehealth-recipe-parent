@@ -1023,6 +1023,15 @@ public class RecipeListService extends RecipeBaseService {
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
             Boolean mergeRecipeFlag = false;
+            //获取合并处方分组方式
+            //e.registerId支持同一个挂号序号下的处方合并支付
+            //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
+            String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
+            //默认挂号序号分组
+            if (StringUtils.isEmpty(mergeRecipeWay)) {
+                mergeRecipeWay = "e.registerId";
+            }
+            String mergeRecipeWayAfter;
             if (CollectionUtils.isNotEmpty(organIds)) {
                 for (Integer organId : organIds) {
                     //获取区域公众号
@@ -1032,19 +1041,18 @@ public class RecipeListService extends RecipeBaseService {
                     }
                     if (!mergeRecipeFlag) {
                         break;
+                    } else {
+                        mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
+                        if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
+                            mergeRecipeFlag = false;
+                            LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
+                            break;
+                        }
                     }
                 }
             }
             if (mergeRecipeFlag) {
-                //获取合并处方分组方式
-                //e.registerId支持同一个挂号序号下的处方合并支付
-                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
-                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
-                //默认挂号序号分组
-                if (StringUtils.isEmpty(mergeRecipeWay)) {
-                    mergeRecipeWay = "e.registerId";
-                }
-                LOGGER.error("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}", mpiId, mergeRecipeWay);
+                LOGGER.info("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}", mpiId, mergeRecipeWay);
                 //返回合并处方
                 return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWay);
             } else {

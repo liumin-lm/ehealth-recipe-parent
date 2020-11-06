@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
@@ -1829,12 +1830,27 @@ public class RecipeServiceSub {
             Boolean mergeRecipeFlag = false;
             try {
                 if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
-                    Boolean organMergeRecipeFlag = (Boolean)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeFlag");
-                    if (organMergeRecipeFlag!=null && organMergeRecipeFlag){
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+                    List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+                    if (CollectionUtils.isNotEmpty(organIds)) {
+                        for (Integer organId : organIds) {
+                            //获取区域公众号
+                            mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
+                            if (mergeRecipeFlag == null) {
+                                mergeRecipeFlag = false;
+                            }
+                            if (!mergeRecipeFlag) {
+                                break;
+                            }
+                        }
+                    }
+                    if (mergeRecipeFlag) {
                         String mergeRecipeWay = (String)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
                         Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
-                        if (numCanMergeRecipe >1){
-                            mergeRecipeFlag = true;
+                        //获取能合并处方的单数大于1的时候才能跳转列表页
+                        if (numCanMergeRecipe <= 1) {
+                            mergeRecipeFlag = false;
                         }
                     }
                 }
