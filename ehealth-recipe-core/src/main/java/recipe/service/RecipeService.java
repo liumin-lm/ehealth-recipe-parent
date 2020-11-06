@@ -1747,6 +1747,15 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("bussSource", bussSource);
                 }
             }
+            //date 2020-11-04将CA的触发放置在开处方最后
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
+                //更新审方信息
+                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            }
+            //健康卡数据上传
+            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
+
             Integer CANewOldWay = CA_OLD_TYPE;
             Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
             if(null != caProcessType){
@@ -1759,8 +1768,7 @@ public class RecipeService extends RecipeBaseService {
                 //老版默认走后置的逻辑，直接将处方推his
                 caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
-            //健康卡数据上传
-            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
+
         } catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -3097,6 +3105,24 @@ public class RecipeService extends RecipeBaseService {
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
         return result;
+    }
+
+    /**
+     * 健康端获取处方详情-----合并处方
+     * @param ext 没用
+     * @param recipeIds 处方ID列表
+     */
+    @RpcService
+    public List<Map<String, Object>> findPatientRecipesByIds(Integer ext, List<Integer> recipeIds) {
+        //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
+        if (CollectionUtils.isNotEmpty(recipeIds)) {
+            List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
+            for (Integer recipeId : recipeIds) {
+                recipeInfos.add(RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false));
+            }
+            return recipeInfos;
+        }
+        return null;
     }
 
     /**

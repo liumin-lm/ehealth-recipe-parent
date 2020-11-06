@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -17,11 +18,14 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -52,8 +56,6 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -127,37 +129,81 @@ public class PurchaseService {
      * @param payModes 购药方式
      */
     @RpcService
-    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
+    public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        Recipe dbRecipe = recipeDAO.get(recipeId);
-        if (null == dbRecipe) {
+        if (CollectionUtils.isEmpty(recipeIds)) {
             resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("处方不存在");
+            resultBean.setMsg("处方ids不存在");
             return resultBean;
         }
-
-        if (CollectionUtils.isEmpty(payModes)) {
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("参数错误");
-            return resultBean;
-        }
-        //处方单状态不是待处理 or 处方单已被处理
-        boolean dealFlag = checkRecipeIsUser(dbRecipe, resultBean);
-        if (dealFlag) {
-            return resultBean;
-        }
-
-        try {
-            for (Integer i : payModes) {
-                IPurchaseService purchaseService = getService(i);
-                //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-                resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        List<DepDetailBean> depListBeanList = Lists.newArrayList();
+        DepListBean depListBean = new DepListBean();
+        for (Recipe dbRecipe : recipeList) {
+            if (null == dbRecipe) {
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("处方不存在");
+                return resultBean;
             }
-        } catch (Exception e) {
-            LOG.error("filterSupportDepList error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+
+            if (CollectionUtils.isEmpty(payModes)) {
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("参数错误");
+                return resultBean;
+            }
+            //处方单状态不是待处理 or 处方单已被处理
+            boolean dealFlag = checkRecipeIsUser(dbRecipe, resultBean);
+            if (dealFlag) {
+                return resultBean;
+            }
+
+            try {
+                /*for (Integer i : payModes) {
+                    IPurchaseService purchaseService = getService(i);
+                    //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
+                    resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+                }*/
+                IPurchaseService purchaseService = getService(payModes.get(0));
+                resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+                //有一个不成功就返回
+                if (!RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
+                    return resultBean;
+                }
+                depListBean = (DepListBean) resultBean.getObject();
+                if (depListBean != null) {
+                    //多个合并处方支持的药企列表取交集
+                    //第二个之后的如果没有的就没有
+                    if (CollectionUtils.isEmpty(depListBean.getList())) {
+                        return resultBean;
+                    } else {
+                        //当取第一个药企列表时先放入list再与后面的取交集
+                        if (CollectionUtils.isEmpty(depListBeanList)) {
+                            depListBeanList.addAll(depListBean.getList());
+                        } else {
+                            //交集需要处理
+                            depListBeanList.retainAll(depListBean.getList());
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                LOG.error("filterSupportDepList error", e);
+                throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+            }
+
+        }
+        //重新组装
+        if (depListBean != null) {
+            if (CollectionUtils.isNotEmpty(depListBeanList) && depListBeanList.size() == 1) {
+                depListBean.setSigle(true);
+            } else {
+                depListBean.setSigle(false);
+            }
+            depListBean.setList(depListBeanList);
+            resultBean.setObject(depListBean);
+            LOG.info("filterSupportDepList recipeIds={} resultBean={}", recipeIds, JSONUtils.toString(resultBean));
         }
         return resultBean;
     }
@@ -810,7 +856,7 @@ public class PurchaseService {
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             IPurchaseService purchaseService = getService(recipe.getPayMode());
             if ("111".equals(recipeOrder.getWxPayWay())){

@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author yinsheng
@@ -27,9 +28,9 @@ public class CommonOrder {
 
     public static void createDefaultOrder(Map<String, String> extInfo, OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport, List<Recipe> recipeList, Integer calculateFee) {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        Recipe recipe = recipeList.get(0);
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            orderService.setOrderFee(result, order, Arrays.asList(recipe.getRecipeId()), recipeList, payModeSupport, extInfo, 1);
+            orderService.setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, 1);
         } else {
             //设置默认值
             order.setExpressFee(BigDecimal.ZERO);

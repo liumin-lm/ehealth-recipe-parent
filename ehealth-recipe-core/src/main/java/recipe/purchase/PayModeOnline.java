@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -25,6 +26,7 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -43,7 +45,6 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
@@ -54,8 +55,6 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -95,40 +94,6 @@ public class PayModeOnline implements IPurchaseService {
         }
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
-
-//        //date 20200308
-//        //获取ext表里存的药企信息以及药企费用，使用此药企展示信息
-//        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
-//        if(null != extend){
-//            String deliveryRecipeFee = extend.getDeliveryRecipeFee();
-//            String deliveryCode = extend.getDeliveryCode();
-//            String deliveryName = extend.getDeliveryName();
-//            DepDetailBean depDetailBean;
-//            if(StringUtils.isNotEmpty(deliveryRecipeFee) &&
-//                    StringUtils.isNotEmpty(deliveryCode) && StringUtils.isNotEmpty(deliveryName)){
-//                LOG.info("findSupportDepList 当前处方{}的药企信息为his预校验返回信息：{}", recipeId, JSONUtils.toString(extend));
-//                depDetailBean = new DepDetailBean();
-//                //标识选择的药企是his推过来的
-//                depDetailBean.setDepId(-1);
-//                depDetailBean.setDepName(deliveryName);
-//                depDetailBean.setRecipeFee(new BigDecimal(deliveryRecipeFee));
-//                depDetailBean.setBelongDepName(deliveryName);
-//                depDetailBean.setOrderType(1);
-//                depDetailBean.setPayModeText("在线支付");
-//                depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
-//                //预留字段标识是医院推送给过来的
-//                depDetailBean.setHisDep(true);
-//
-//                depDetailList.add(depDetailBean);
-//                depListBean.setSigle(true);
-//                depListBean.setList(depDetailList);
-//                resultBean.setObject(depListBean);
-//                LOG.info("findSupportDepList 当前处方{}查询his药企列表展示信息：{}", recipeId, JSONUtils.toString(resultBean));
-//                return resultBean;
-//            }
-//
-//        }
 
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
@@ -291,61 +256,6 @@ public class PayModeOnline implements IPurchaseService {
 
     }
 
-
-    //date 20200318
-    //确认订单前校验处方信息--废弃
-    @Deprecated
-    private Map<String,Object> checkMakeOrder(Recipe dbRecipe, Map<String, String> extInfo) {
-        //首先校验：预结算
-        //再校验：同步配送信息
-
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        //修改逻辑成：事务1 -> 平台新增，his新增
-        //事务2 -> 预交付
-
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        Map<String, Object> payResult = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId(),null);
-        if ("-1".equals(payResult.get("code"))) {
-            LOG.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
-                    dbRecipe.getRecipeId(), JSONUtils.toString(payResult));
-            return payResult;
-        }
-
-
-        HisResponseTO resultSave = updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
-
-        if (null != resultSave) {
-            if (resultSave.isSuccess() && null != resultSave.getData()) {
-
-                Map<String, Object> data = (Map<String, Object>) resultSave.getData();
-
-                if (null != data.get("recipeCode")) {
-                    //新增成功更新his处方code
-                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
-                            ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
-                    LOG.info("order 当前处方{}确认订单流程：his新增成功",
-                            dbRecipe.getRecipeId());
-                    return payResult;
-                } else {
-                    payResult.put("code", "-1");
-                    payResult.put("msg", "订单信息校验失败");
-                    LOG.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
-                    return payResult;
-                }
-            } else {
-                payResult.put("code", "-1");
-                payResult.put("msg", "订单信息校验失败");
-                LOG.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
-                return payResult;
-            }
-        } else {
-            LOG.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
-            return payResult;
-        }
-    }
-
     //确认订单流程
     private OrderCreateResult getOrderCreateResult(Recipe dbRecipe, Map<String, String> extInfo, OrderCreateResult result) {
         RecipeOrder order = new RecipeOrder();
@@ -356,6 +266,19 @@ public class PayModeOnline implements IPurchaseService {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = dbRecipe.getRecipeId();
+        //todo---合并处方临时处理下先--后面改造成新接口
+        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
+        List<Integer> recipeIdLists = Arrays.asList(recipeId);
+        if (StringUtils.isNotEmpty(recipeIds)){
+            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
+            recipeIdLists = recipeIdString.stream().map(a -> Integer.valueOf(a)).collect(Collectors.toList());
+        }
+        List<Recipe> recipeList;
+        if (recipeIdLists.size() > 1){
+            recipeList = recipeDAO.findByRecipeIds(recipeIdLists);
+        }else {
+            recipeList = Arrays.asList(dbRecipe);
+        }
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
@@ -384,7 +307,7 @@ public class PayModeOnline implements IPurchaseService {
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
 
-        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
+        order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
         RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
@@ -436,8 +359,7 @@ public class PayModeOnline implements IPurchaseService {
             order.setDrugStoreName(drugStoreName);
         }
         //设置订单各种费用和配送地址
-        List<Recipe> recipeList = Arrays.asList(dbRecipe);
-        orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
+        orderService.setOrderFee(result, order,recipeIdLists, recipeList, payModeSupport, extInfo, 1);
 
         //判断设置状态
         int reviewType = dbRecipe.getReviewType();
@@ -457,7 +379,6 @@ public class PayModeOnline implements IPurchaseService {
 
         order.setExpectSendDate(MapValueUtil.getString(extInfo, "expectSendDate"));
         order.setExpectSendTime(MapValueUtil.getString(extInfo, "expectSendTime"));
-        order.setStatus(payStatus);
         order.setStatus(payStatus);
 
         //设置为有效订单
@@ -486,21 +407,17 @@ public class PayModeOnline implements IPurchaseService {
             //如果不需要支付则不走支付
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
-            Recipe nowRecipe = recipeDAO.get(recipeId);
-            //处方需要支付，需要在确认订单将购药方式绑定上
-            if(null == nowRecipe){
-                result.setCode(RecipeResultBean.FAIL);
-                result.setMsg("当前处方" + recipeId + "不存在！");
-                return result;
+            for (Integer recipeId3 : recipeIdLists) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId3, ImmutableMap.of("chooseFlag", 1));
             }
-            nowRecipe.setChooseFlag(1);
-            recipeDAO.update(nowRecipe);
         }
-        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        purchaseService.updateRecipeDetail(recipeId);
-        //date 20200318
-        //确认订单后同步配送信息接口
-        updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(),extInfo);
+        for (Integer recipeId2 : recipeIdLists){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            purchaseService.updateRecipeDetail(recipeId2);
+            //date 20200318
+            //确认订单后同步配送信息接口
+            updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
+        }
         return result;
     }
 
@@ -752,7 +669,7 @@ public class PayModeOnline implements IPurchaseService {
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (new Integer(2).equals(recipe.getPayMode())) {
             recipeOrder.setRecipePayWay(0);

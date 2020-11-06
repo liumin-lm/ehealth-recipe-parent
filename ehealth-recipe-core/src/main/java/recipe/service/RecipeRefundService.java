@@ -26,6 +26,7 @@ import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -48,8 +49,6 @@ import recipe.dao.RecipeRefundDAO;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**
@@ -113,7 +112,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeReFundSave(recipe, recipeRefund);
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {
-                LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                LOGGER.error("applyForRecipeRefund-applicationForRefundVisit处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
                 String msg = "";
                 if(hisResult != null && hisResult.getMsg() != null){
                     msg = hisResult.getMsg();
@@ -146,7 +145,7 @@ public class RecipeRefundService extends RecipeBaseService{
 
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             if (result != null && "200".equals(result.getMsgCode())) {
-                LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
+                LOGGER.info("applyForRecipeRefund-checkForRefundVisit 处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 //退费审核记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -264,7 +263,8 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.error("checkForRecipeRefund-未获取到处方退费信息. recipeId={}", recipeId);
             throw new DAOException("未获取到处方退费信息！");
         }
-
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         CheckForRefundVisitReqTO request = new CheckForRefundVisitReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setApplyNoHis(list.get(0).getApplyNo());
@@ -283,6 +283,7 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setCheckReason(checkReason);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHH:mm:ss");
         request.setCheckTime(formatter.format(new Date()));
+        request.setRefundType(getRefundType(recipeOrder));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<String> hisResult = service.checkForRefundVisit(request);
@@ -555,7 +556,7 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
             //当处方的购药方式为配送到家和药店取药时
             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
