@@ -1307,7 +1307,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
                 this.updateOrderInfo(order.getOrderCode(), orderAttrMap, result);
 
-                if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
+                //有可能自动取消的走到这里
+                //如果有正在进行中的合并处方单应该还原
+                //if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1320,7 +1322,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                         //清除医保金额
                         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                        recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
+                        recipeExtendDAO.updatefundAmountToNullByRecipeId(recipe.getRecipeId());
                         try {
                             //对于来源于HIS的处方单更新hisRecipe的状态
                             if (recipe != null) {
@@ -1355,7 +1357,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
                     }
                 }
-            }
         }
 
         return result;
