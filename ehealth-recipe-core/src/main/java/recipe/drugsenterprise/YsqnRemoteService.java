@@ -104,7 +104,7 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
                 String message = (String)resultMap.get("MESSAGE");
                 if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
                     recipeDAO.updatePushFlagByRecipeId(recipeIds);
-                    orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeIds.get(0)), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
+                    orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeIds.get(0)), ImmutableMap.of("pushFlag", 1), null);
                     RecipeLogService.saveRecipeLog(recipeIds.get(0), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + enterprise.getName() + message);
                     for (Integer recipeId : recipeIds) {
                         //推送审核结果
