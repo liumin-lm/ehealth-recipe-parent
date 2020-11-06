@@ -309,7 +309,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 if (recipePatientRefundVO.getBusId() != null) {
                     //需要医生审核
                     if (doctorReviewRefund) {
-                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
                         //判断医生是否已经审核
                         if (recipeRefundByRecipeIdAndNode != null) {
                             //医生已经审核且审核通过
@@ -376,7 +376,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         if (recipePatientRefundVO.getBusId() != null) {
             //判断医生是否已经审核
-            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
             //获取第三方审核状态
             RecipeRefund thirdRefundStatus = getThirdRefundStatus(recipeId);
             if (recipeRefundByRecipeIdAndNode != null) {
