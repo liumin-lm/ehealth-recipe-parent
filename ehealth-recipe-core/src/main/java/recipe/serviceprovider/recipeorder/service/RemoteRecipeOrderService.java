@@ -251,8 +251,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @Override
     public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node) {
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
-        RecipeRefund refund = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, node);
-        return getBean(refund, RecipeRefundBean.class);
+        List<RecipeRefund> refunds = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, node);
+        return getBean(refunds.get(0), RecipeRefundBean.class);
     }
 
     @Override
@@ -321,6 +321,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public Boolean updatePharmNo(Integer recipeId, String pharmNo) {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         return recipeDetailDAO.updateRecipeDetailByRecipeId(recipeId, ImmutableMap.of("pharmNo", pharmNo));
+    }
+
+    @Override
+    public Boolean updatePharmNoS(List<Integer> recipeId, String pharmNo) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        return recipeDetailDAO.updateRecipeDetailByRecipeIdS(recipeId, ImmutableMap.of("pharmNo", pharmNo));
     }
 
     @Override

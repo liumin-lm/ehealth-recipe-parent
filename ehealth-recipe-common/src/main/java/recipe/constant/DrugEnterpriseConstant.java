@@ -156,4 +156,9 @@ public class DrugEnterpriseConstant {
      * 基础服务物流下单寄托物名称=药品
      */
     public static final String DEPOSITUM_NAME = "药品";
+
+    /**
+     * 钥世圈简称
+     */
+    public static final String COMPANY_YSQN = "ysqn";
 }

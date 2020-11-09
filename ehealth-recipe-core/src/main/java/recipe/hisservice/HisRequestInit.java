@@ -566,7 +566,7 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static PayNotifyReqTO initPayNotifyReqTO(Recipe recipe, PatientBean patient, HealthCardBean card) {
+    public static PayNotifyReqTO initPayNotifyReqTO(List<String> recipeIdList, Recipe recipe, PatientBean patient, HealthCardBean card) {
         PayNotifyReqTO requestTO = new PayNotifyReqTO();
         try {
             requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);

@@ -174,6 +174,15 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
 
 
     /**
+     * 更新取药窗口(多个处方同时更新)
+     *
+     * @param recipeId
+     * @param pharmNo
+     */
+    @RpcService
+    Boolean updatePharmNoS(List<Integer> recipeId, String pharmNo);
+
+    /**
      * 基础服务更新处方物流状态
      *
      * @param trannckingReqTO

@@ -40,6 +40,10 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     private String organDiseaseName;
 
+    private String doctorName;
+
+    private String departName;
+
     private Date signDate;
 
     private BigDecimal totalMoney;
@@ -123,6 +127,8 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
     private Integer logisticsType;
+
+    private String recipeCode;
 
     public Integer getLogisticsType() {
         return logisticsType;
@@ -421,5 +427,29 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setThirdUrl(String thirdUrl) {
         this.thirdUrl = thirdUrl;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 }

@@ -121,6 +121,17 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "药品总金额")
     private BigDecimal drugTotalAmount;
 
+    @ItemProperty(alias = "就诊人信息")
+    private UserInfoDTO userInfo;
+
+    public UserInfoDTO getUserInfo() {
+        return userInfo;
+    }
+
+    public void setUserInfo(UserInfoDTO userInfo) {
+        this.userInfo = userInfo;
+    }
+
     public Integer getPatinetAge() {
         return patinetAge;
     }

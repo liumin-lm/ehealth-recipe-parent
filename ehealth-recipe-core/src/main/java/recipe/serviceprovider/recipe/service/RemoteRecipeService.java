@@ -4,6 +4,7 @@ package recipe.serviceprovider.recipe.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -79,6 +80,7 @@ import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -88,8 +90,6 @@ import recipe.util.MapValueUtil;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -309,9 +309,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 if (recipePatientRefundVO.getBusId() != null) {
                     //需要医生审核
                     if (doctorReviewRefund) {
-                        RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+                        List<RecipeRefund> recipeRefundByRecipeIdAndNodes = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
                         //判断医生是否已经审核
-                        if (recipeRefundByRecipeIdAndNode != null) {
+                        if (CollectionUtils.isNotEmpty(recipeRefundByRecipeIdAndNodes)) {
+                            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundByRecipeIdAndNodes.get(0);
                             //医生已经审核且审核通过
                             if (recipeRefundByRecipeIdAndNode.getStatus() == 1) {
                                 //判断药师是否审核(运营平台)
@@ -376,10 +377,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         if (recipePatientRefundVO.getBusId() != null) {
             //判断医生是否已经审核
-            RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundDAO.getRecipeRefundByRecipeIdAndNode(recipeId, 0);
+            List<RecipeRefund> recipeRefundByRecipeIdAndNodes = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, 0);
             //获取第三方审核状态
             RecipeRefund thirdRefundStatus = getThirdRefundStatus(recipeId);
-            if (recipeRefundByRecipeIdAndNode != null) {
+            if (CollectionUtils.isNotEmpty(recipeRefundByRecipeIdAndNodes)) {
+                RecipeRefund recipeRefundByRecipeIdAndNode = recipeRefundByRecipeIdAndNodes.get(0);
                 //已审核
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipePatientRefundVO.getDoctorId());
                 RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
@@ -436,7 +438,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 @Override
                 public int compare(RecipeRefund arg0, RecipeRefund arg1) {
                     //这里是根据时间来排序，所以它为空的要剔除掉
-                    if (arg0.getApplyTime() == null || arg1.getApplyTime() == null) return 0;
+                    if (arg0.getApplyTime() == null || arg1.getApplyTime() == null) {
+                        return 0;
+                    }
                     return arg1.getApplyTime().compareTo(arg0.getApplyTime()); //这是顺序
                 }
             });
@@ -1000,7 +1004,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (depId != null) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             if (recipe != null) {
                 //货到付款不走卫宁付。。。药店取药可以走卫宁付了
                 if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
@@ -1911,12 +1915,34 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
         if (recipeOrder != null) {
-            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            map.put("patid", recipe.getPatientID());
-            map.put("ghxh", recipeExtend.getRegisterID());
+            StringBuilder stringBuilder = new StringBuilder();
+            if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
+                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
+                map.put("ghxh", recipeExtend.getRegisterID());
+                map.put("patid", recipes.get(0).getPatientID());
+                if (CollectionUtils.isNotEmpty(recipes)) {
+                    for (Recipe rec : recipes) {
+                        stringBuilder.append(rec.getRecipeCode()).append(",");
+                    }
+                }
+                String cfxhhj = stringBuilder.substring(0,stringBuilder.lastIndexOf(","));
+                map.put("cfxhhj", cfxhhj);
+            }
             return map;
         }
         return map;
+    }
+
+    @Override
+    public List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        if (CollectionUtils.isNotEmpty(recipes)){
+            List<String> recipeCodes = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+            return recipeCodes;
+        }
+        return Lists.newArrayList();
     }
 }

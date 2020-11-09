@@ -126,6 +126,17 @@ public abstract class RecipeDetailDAO extends
     }
 
     /**
+     * 新处方详情自定义字段 by recipeIds
+     *
+     * @param recipeIds
+     * @param changeAttr
+     * @return
+     */
+    public Boolean updateRecipeDetailByRecipeIdS(List<Integer> recipeIds, Map<String, Object> changeAttr) {
+        return updateRecipeDetailByKeyS("recipeId", recipeIds, changeAttr);
+    }
+
+    /**
      * 更新处方详情自定义字段  by detailId
      *
      * @param detailId
@@ -166,6 +177,38 @@ public abstract class RecipeDetailDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    private Boolean updateRecipeDetailByKeyS(final String keyName, final Object keyValue, final Map<String, Object> changeAttr) {
+        if (null == changeAttr || changeAttr.isEmpty()) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update Recipedetail set ");
+                StringBuilder keyHql = new StringBuilder();
+                for (String key : changeAttr.keySet()) {
+                    keyHql.append("," + key + "=:" + key);
+                }
+                hql.append(keyHql.toString().substring(1)).append(" where " + keyName + "in (:" + keyName + ")");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameterList(keyName, (List<Object>)keyValue);
+                Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
+                while (it.hasNext()){
+                    Map.Entry<String, Object> m = it.next();
+                    q.setParameter(m.getKey(), m.getValue());
+                }
+
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     /**
      * 通过处方明细ID获取处方明细

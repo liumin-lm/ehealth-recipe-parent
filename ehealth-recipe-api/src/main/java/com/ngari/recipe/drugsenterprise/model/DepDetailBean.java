@@ -3,7 +3,7 @@ package com.ngari.recipe.drugsenterprise.model;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * company: ngarihealth
@@ -310,5 +310,22 @@ public class DepDetailBean {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DepDetailBean that = (DepDetailBean) o;
+        return Objects.equals(depId, that.depId) && Objects.equals(depName, that.depName) && Objects.equals(payMode, that.payMode) && Objects.equals(giveModeText, that.giveModeText) && Objects.equals(payModeText, that.payModeText);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(depId, depName, payMode, giveModeText, payModeText);
     }
 }

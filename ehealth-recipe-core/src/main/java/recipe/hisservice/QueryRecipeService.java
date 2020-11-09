@@ -12,6 +12,7 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
@@ -323,6 +324,20 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setDiseasesHistory(recipe.getOrganDiseaseName());
                 // 患者年龄
                 recipeDTO.setPatinetAge(getAge(patient.getBirthday()));
+                // 就诊人手机号
+                if (StringUtils.isNotBlank(patient.getLoginId())){
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    List<PatientDTO> patientList = patientService.findOwnPatient(patient.getLoginId());
+                    if (null != patientList && patientList.size() > 0){
+                        PatientDTO userInfo = patientList.get(0);
+                        UserInfoDTO infoDTO = new UserInfoDTO();
+                        infoDTO.setUserMobile(userInfo.getMobile());
+                        infoDTO.setUserBirthDay(userInfo.getBirthday());
+                        infoDTO.setUserSex(userInfo.getPatientSex());
+                        infoDTO.setUsernName(userInfo.getPatientName());
+                        recipeDTO.setUserInfo(infoDTO);
+                    }
+                }
             }
             //设置卡
             if (null != card) {

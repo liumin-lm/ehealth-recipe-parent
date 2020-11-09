@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
@@ -26,6 +27,7 @@ import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.message.api.MessageAPI;
 import com.ngari.message.api.service.ConsultMessageService;
 import com.ngari.message.api.service.INetworkclinicMsgService;
+import com.ngari.message.api.service.IRevisitMessageService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -1798,7 +1800,12 @@ public class RecipeServiceSub {
             recipe.setOrderAmount(recipe.getTotalMoney());
             BigDecimal actualPrice = null;
             if (null != order) {
-                actualPrice = order.getRecipeFee();
+                //合并处方这里要改--得重新计算药品费用不能从order里取
+                //actualPrice = order.getRecipeFee();
+                if (order.getEnterpriseId() != null) {
+                    RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                    actualPrice = recipeOrderService.reCalculateRecipeFee(order.getEnterpriseId(), Arrays.asList(recipeId), null);
+                }
                 recipe.setDiscountAmount(order.getCouponName());
             } else {
                 // couponId = -1有优惠券  不使用 显示“不使用优惠券”
@@ -1822,7 +1829,38 @@ public class RecipeServiceSub {
                 //如果创建过自费订单，则不显示医保支付
                 recipe.setMedicalPayFlag(0);
             }
-
+            //返回前端是否能合并支付的按钮--提示可以合并支付----可能患者从消息进去到处方详情时
+            Boolean mergeRecipeFlag = false;
+            try {
+                if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+                    List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+                    if (CollectionUtils.isNotEmpty(organIds)) {
+                        for (Integer organId : organIds) {
+                            //获取区域公众号
+                            mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
+                            if (mergeRecipeFlag == null) {
+                                mergeRecipeFlag = false;
+                            }
+                            if (!mergeRecipeFlag) {
+                                break;
+                            }
+                        }
+                    }
+                    if (mergeRecipeFlag) {
+                        String mergeRecipeWay = (String)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
+                        Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
+                        //获取能合并处方的单数大于1的时候才能跳转列表页
+                        if (numCanMergeRecipe <= 1) {
+                            mergeRecipeFlag = false;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl error, recipeId:{}", recipeId, e);
+            }
+            map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
@@ -1875,11 +1913,9 @@ public class RecipeServiceSub {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
         }
-        //date 20200723
-        //根据ca配置：当时深圳ca则更新处方详情中的医生图片
-        String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
+        //根据ca配置：判断签章显示是显示第三方的签章还是平台签章，默认使用平台签章
         String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
-        if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+        if("thirdSeal".equals(sealDataFrom)){
             LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
             SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
             SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
@@ -2637,14 +2673,6 @@ public class RecipeServiceSub {
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
         ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
-        //11月大版本改造--咨询id由前端传入
-        /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-        Integer consultId = null;
-        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestMpiId,
-                doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
-        }*/
         Integer consultId = recipe.getClinicId();
         Integer bussSource = recipe.getBussSource();
         if (consultId != null) {
@@ -2652,29 +2680,17 @@ public class RecipeServiceSub {
                 rMap.put("consultId", consultId);
                 rMap.put("bussSource", bussSource);
             }
-
             if (send) {
                 //11月大版本改造--咨询单或者网络门诊单是否正在处理中有他们那边判断
                 LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
                 if (RecipeBussConstant.BUSS_SOURCE_WLZX.equals(bussSource)) {
                     iNetworkclinicMsgService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
-                } else {
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)){
                     iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
+                } else if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)){
+                    IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
+                    revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
                 }
-                /*ConsultBean consultBean = iConsultService.get(consultId);
-                if (consultBean != null) {
-                    //判断咨询单状态是否为处理中
-                    if (consultBean.getConsultStatus() == RecipeSystemConstant.CONSULT_STATUS_HANDLING) {
-                        if (StringUtils.isEmpty(consultBean.getSessionID())) {
-                            recipeTagMsg.setSessionID(null);
-                        } else {
-                            recipeTagMsg.setSessionID(consultBean.getSessionID());
-                        }
-                        LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
-                        //将消息存入数据库consult_msg，并发送环信消息
-                        iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, consultBean.getConsultDoctor());
-                    }
-                }*/
             }
         }
     }
@@ -2827,7 +2843,7 @@ public class RecipeServiceSub {
             if (!recipe.canMedicalPay()) {
                 changeAttr.put("chooseFlag", 1);
             }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
         }
         result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
 

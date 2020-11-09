@@ -127,7 +127,7 @@ public class ThirdRecipeService {
         Assert.hasLength(request.getTid(), "filterSupportDepList 用户tid为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        return purchaseService.filterSupportDepList(request.getRecipeId(), Arrays.asList(request.getPayMode()), request.getFilterConditions());
+        return purchaseService.filterSupportDepList(Arrays.asList(request.getRecipeId()), Arrays.asList(request.getPayMode()), request.getFilterConditions());
     }
 
     /**
