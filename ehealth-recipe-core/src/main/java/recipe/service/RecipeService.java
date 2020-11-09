@@ -4699,11 +4699,10 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
                 } else {
                     //先将产生的pdf
-                    String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
                     signImageId = doctorDTOn.getSignImage();
                     String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
-                    //深圳CA特殊化处理，获取药师CA签名图片id
-                    if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+                    //根据ca配置：签章显示是显示第三方的签章还是平台签章，默认使用平台签章
+                    if("thirdSeal".equals(sealDataFrom)){
                         LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
                         SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
                         SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
