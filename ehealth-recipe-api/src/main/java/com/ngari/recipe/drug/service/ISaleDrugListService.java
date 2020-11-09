@@ -19,4 +19,7 @@ public interface ISaleDrugListService {
 
     @RpcService
     QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(Date startTime, Date endTime, Integer organId, String drugClass, String keyword, Integer status, int start, int limit);
+
+    @RpcService
+    Long getCountByDrugId(int drugId);
 }

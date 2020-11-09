@@ -281,4 +281,13 @@ public class SaleDrugListService implements ISaleDrugListService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         saleDrugListDAO.updateIntroduceByDepId(depId, introduce);
     }
+
+    @RpcService
+    public Long getCountByDrugId(int drugId){
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        Long result =  saleDrugListDAO.getCountByDrugId(drugId);
+        return result == null ? 0 : result;
+    }
+
+
 }

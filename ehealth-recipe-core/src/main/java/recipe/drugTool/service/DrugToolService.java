@@ -23,8 +23,11 @@ import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
+import com.ngari.recipe.drug.service.IOrganDrugListService;
+import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
@@ -1959,6 +1962,17 @@ public class DrugToolService implements IDrugToolService {
             usePathways.removeAll(pathwayUseCount);
             pathwayUseCount.addAll(usePathways);
             result.put("usePathway", pathwayUseCount);
+        }
+    }
+
+    @RpcService
+    public Boolean judgePlatformDrugDelete(int drugId){
+        Long organNum = RecipeAPI.getService(IOrganDrugListService.class).getCountByDrugId(drugId);
+        Long saleNum = RecipeAPI.getService(ISaleDrugListService.class).getCountByDrugId(drugId);
+        if(organNum>0 || saleNum>0){
+            return true;
+        }else {
+            return false;
         }
     }
 

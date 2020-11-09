@@ -11,4 +11,7 @@ public interface IDrugToolService {
 
     @RpcService(timeout = 600)
     Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator);
+
+    @RpcService
+    Boolean judgePlatformDrugDelete(int drugId);
 }
