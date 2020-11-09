@@ -11,5 +11,5 @@
 
     <reference interface="com.ngari.message.api.service.ConsultMessageService" id="msg.consultMessageService"/>
     <reference interface="com.ngari.message.api.service.INetworkclinicMsgService" id="msg.networkclinicMsgService"/>
-
+    <reference interface="com.ngari.message.api.service.IRevisitMessageService" id="msg.revisitMessageService"/>
 </s:beans>
