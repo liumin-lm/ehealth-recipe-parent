@@ -121,11 +121,7 @@ public abstract class AbstractCaProcessType {
         //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
         recipeService.doHisReturnSuccessForOrgan(recipeBean, rMap);
 
-        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
-            //更新审方信息
-            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
-        }
+
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
      }
     

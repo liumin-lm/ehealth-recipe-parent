@@ -119,11 +119,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId) {
         DrugEnterpriseResult result = getServiceByRecipeId(recipeId);
         DrugsEnterprise enterprise = result.getDrugsEnterprise();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (enterprise != null && new Integer(1).equals(enterprise.getOperationType())) {
             //药企对应的service为空，则通过前置机进行推送
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
             LOGGER.info("pushSingleRecipeInfo pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
             HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
@@ -138,9 +138,14 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
         } else {
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-                result = result.getAccessDrugEnterpriseService().pushRecipeInfo(Collections.singletonList(recipeId), enterprise);
-                if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
-                    result.setDrugsEnterprise(enterprise);
+                if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                    List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                    result = result.getAccessDrugEnterpriseService().pushRecipeInfo(recipeIdList, enterprise);
+                    if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
+                        result.setDrugsEnterprise(enterprise);
+                    }
                 }
             }
         }

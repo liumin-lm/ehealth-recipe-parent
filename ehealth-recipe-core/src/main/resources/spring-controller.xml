@@ -5,13 +5,14 @@
        			http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <!-- service register center -->
-    <ngari:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+    <ngari:applicationDomain name="eh" registryAddress="zookeeper://zk.ngarihealth.com:9999" serverId="recipe"
+                             region="syp"/>
     <ngari:connector url="${url}">
         <ngari:filter id="json"/>
         <ngari:filter id="urt"/>
     </ngari:connector>
 
-    <!--<ngari:mvcServer port="8899"/>-->
+    <ngari:mvcServer port="8899"/>
 
     <!-- pub/sub -->
     <ngari:publisher id="publisher"/>

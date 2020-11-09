@@ -13,6 +13,7 @@ import ctd.schema.annotation.Schema;
 @Schema
 public class OrderCreateResult extends RecipeResultBean {
 
+    private static final long serialVersionUID = 6692993559284916445L;
     /**
      * 优惠券类型
      */

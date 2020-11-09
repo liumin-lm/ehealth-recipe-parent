@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
@@ -10,6 +11,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -110,8 +113,20 @@ public class PayModeToHos implements IPurchaseService{
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         //订单的状态统一到finishOrderPayWithoutPay中设置
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
-        order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
-        List<Recipe> recipeList = Arrays.asList(dbRecipe);
+        //todo---合并处方临时处理下先--后面改造成新接口
+        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
+        List<Integer> recipeIdLists = Arrays.asList(dbRecipe.getRecipeId());
+        if (StringUtils.isNotEmpty(recipeIds)){
+            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
+            recipeIdLists = recipeIdString.stream().map(a -> Integer.valueOf(a)).collect(Collectors.toList());
+        }
+        order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
+        List<Recipe> recipeList;
+        if (recipeIdLists.size() > 1){
+            recipeList = recipeDAO.findByRecipeIds(recipeIdLists);
+        }else {
+            recipeList = Arrays.asList(dbRecipe);
+        }
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
