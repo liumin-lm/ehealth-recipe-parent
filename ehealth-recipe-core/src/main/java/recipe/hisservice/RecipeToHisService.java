@@ -87,7 +87,7 @@ public class RecipeToHisService {
         }
     }
 
-    public Integer listSingleQuery(RecipeListQueryReqTO request) {
+    public Integer listSingleQuery(List<RecipeListQueryReqTO> request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("listSingleQuery request={}", JSONUtils.toString(request));
         try {
@@ -138,7 +138,7 @@ public class RecipeToHisService {
     }
 
 
-    public void listQuery(RecipeListQueryReqTO request) {
+    public void listQuery(List<RecipeListQueryReqTO> request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("listQuery request={}", JSONUtils.toString(request));
         try {

@@ -446,7 +446,8 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
-
+    @Autowired
+    private RecipeDAO recipeDAO;
     /**
      * 处方批量查询
      *
@@ -457,8 +458,24 @@ public class RecipeHisService extends RecipeBaseService {
     public void recipeListQuery(List<String> recipeCodes, Integer organId) {
         if (isHisEnable(organId)) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipeCodes, organId);
-            service.listQuery(request);
+            //RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipeCodes, organId);
+            List<RecipeListQueryReqTO> requestList = new ArrayList<>();
+            for (String recipeId : recipeCodes) {
+                Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(recipeId));
+                RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
+                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+                recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
+                recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
+                recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
+                recipeListQueryReqTO.setPatientName(recipe.getPatientName());
+                recipeListQueryReqTO.setPatientId(recipe.getPatientID());
+                recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
+                recipeListQueryReqTO.setRecipeNo(recipeId);
+                requestList.add(recipeListQueryReqTO);
+            }
+            //TODO DINGXX 根据处方ID  查找患者姓名 等  然后生成List<RecipeListQueryReqTO>
+            service.listQuery(requestList);
         } else {
             LOGGER.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
         }
@@ -540,8 +557,21 @@ public class RecipeHisService extends RecipeBaseService {
 
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipe.getRecipeCode(), recipe.getClinicOrgan());
-            Integer status = service.listSingleQuery(request);
+            //RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipe.getRecipeCode(), recipe.getClinicOrgan());
+            //TODO DINGXX  设置患者姓名
+            List<RecipeListQueryReqTO> requestList = new ArrayList<>();
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
+            recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+            recipeListQueryReqTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
+            recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
+            recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
+            recipeListQueryReqTO.setPatientName(recipe.getPatientName());
+            recipeListQueryReqTO.setPatientId(recipe.getPatientID());
+            recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
+            recipeListQueryReqTO.setRecipeNo(recipeId.toString());
+            requestList.add(recipeListQueryReqTO);
+            Integer status = service.listSingleQuery(requestList);
             //审核通过的处方才能点击
             if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(status)) {
                 LOGGER.error("recipeSingleQuery recipeId=" + recipeId + " not check pass status!");
