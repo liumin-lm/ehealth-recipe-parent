@@ -2162,7 +2162,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 业务类型
         logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
         // 业务编码
-        logisticsOrder.setBusinessNo(order.getOrderId() + "");
+        logisticsOrder.setBusinessNo(order.getOrderCode());
         // 快递编码
         logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany() + "");
         // 寄件人姓名
