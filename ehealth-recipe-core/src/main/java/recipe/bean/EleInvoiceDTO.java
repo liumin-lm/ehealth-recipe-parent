@@ -1,6 +1,7 @@
 package recipe.bean;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @ClassName EleInvoiceDTO
@@ -24,6 +25,11 @@ public class EleInvoiceDTO implements Serializable {
     private String type;
     /*挂号序号*/
     private String ghxh;
+
+    /**
+     * 合并处方列表处方id
+     */
+    private List<Integer> recipeIds;
 
     public String getMpiid() {
         return mpiid;
@@ -79,5 +85,13 @@ public class EleInvoiceDTO implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public List<Integer> getRecipeIds() {
+        return recipeIds;
+    }
+
+    public void setRecipeIds(List<Integer> recipeIds) {
+        this.recipeIds = recipeIds;
     }
 }
