@@ -1878,7 +1878,9 @@ public class RecipeServiceSub {
         //date 20200723
         //根据ca配置：当时深圳ca则更新处方详情中的医生图片
         String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
-        if ("shenzhenCA".equals(thirdCASign)) {
+        String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
+        if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+            LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
             SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
             SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
             SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
