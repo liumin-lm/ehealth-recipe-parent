@@ -904,6 +904,10 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    private void doctorToRecipePDF(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        doctorToRecipePDF(recipeId,recipe);
+    }
     private void doctorToRecipePDF(Integer recipeId, Recipe recipe) {
         //在触发医生签名的时候将pdf先生成，回调的时候再将CA的返回更新
         //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
@@ -928,10 +932,10 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
                 }else{
                     //先将产生的pdf
-                    String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
+                    //根据ca配置：签章显示是显示第三方的签章还是平台签章，默认使用平台签章
                     String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
                     signImageId = doctorDTO.getSignImage();
-                    if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+                    if("thirdSeal".equals(sealDataFrom)){
                         LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
                         SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
                         SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
@@ -4723,11 +4727,20 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
-    public void aa(int recipeId){
-        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
-        //RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
+    public void aa(int pdfId) throws Exception {
+//        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+//        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
 //        RecipeCAService a=new RecipeCAService();
 //        a.updateWaterPrintRecipePdfRunable(recipeId);
+       // generateRecipePdfAndSign(223829);
+//        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+//        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+//        String pdfBase64String=new BufferedReader(new InputStreamReader(input))
+//                .lines().collect(Collectors.joining(System.lineSeparator()));;
+//        CreateRecipePdfUtil.generateDocSignImageInRecipePdf1(223829,1,true,false,input,"5fa103037826c65418509d36");
+//
+        doctorToRecipePDF(pdfId);
+        //new CaAfterProcessType().hisCallBackCARecipeFunction(pdfId);
     }
 
 }

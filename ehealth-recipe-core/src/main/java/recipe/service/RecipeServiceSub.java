@@ -1876,11 +1876,9 @@ public class RecipeServiceSub {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
         }
-        //date 20200723
-        //根据ca配置：当时深圳ca则更新处方详情中的医生图片
-        String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
+        //根据ca配置：判断签章显示是显示第三方的签章还是平台签章，默认使用平台签章
         String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
-        if("thirdSeal".equals(sealDataFrom)||"shenzhenCA".equals(thirdCASign)){
+        if("thirdSeal".equals(sealDataFrom)){
             LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
             SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
             SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
