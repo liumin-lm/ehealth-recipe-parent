@@ -44,10 +44,6 @@
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
-            <artifactId>easy-pay</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ngari</groupId>
             <artifactId>easy-pay-entity</artifactId>
             <exclusions>
                 <exclusion>
