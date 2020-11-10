@@ -472,10 +472,12 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeListQueryReqTO.setPatientName(recipe.getPatientName());
                 recipeListQueryReqTO.setPatientId(recipe.getPatientID());
                 recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
-                recipeListQueryReqTO.setRecipeNo(recipeId);
+                recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
+                /*recipeListQueryReqTO.setPatientName("刘大江");
+                recipeListQueryReqTO.setRecipeNo("29778340");
+                recipeListQueryReqTO.setOrganID("1");*/
                 requestList.add(recipeListQueryReqTO);
             }
-            //TODO DINGXX 根据处方ID  查找患者姓名 等  然后生成List<RecipeListQueryReqTO>
             service.listQuery(requestList);
         } else {
             LOGGER.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
@@ -570,7 +572,7 @@ public class RecipeHisService extends RecipeBaseService {
             recipeListQueryReqTO.setPatientName(recipe.getPatientName());
             recipeListQueryReqTO.setPatientId(recipe.getPatientID());
             recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
-            recipeListQueryReqTO.setRecipeNo(recipeId.toString());
+            recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
             requestList.add(recipeListQueryReqTO);
             Integer status = service.listSingleQuery(requestList);
             //审核通过的处方才能点击
