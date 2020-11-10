@@ -195,7 +195,7 @@ public class PurchaseService {
                             depListBeanList.retainAll(depListBean.getList());
                             //his管理的药企费用这里处理
                             //如果存在交集则取一次交集加一次费用
-                            if (CollectionUtils.isNotEmpty(depListBeanList)) {
+                            if (CollectionUtils.isNotEmpty(depListBeanList) && StringUtils.isNotEmpty(depListBeanList.get(0).getHisDepCode())) {
                                 Map<String, BigDecimal> stringObjectMap = depListBean.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
                                 for (DepDetailBean depDetailBean : depListBeanList) {
                                     if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
