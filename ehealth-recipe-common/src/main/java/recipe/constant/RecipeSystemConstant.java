@@ -88,4 +88,14 @@ public class RecipeSystemConstant {
      */
     public static final Integer USAGE_TYPE_PATHWAY = 2;
 
+    /**
+     * 记账业务 平台编码
+     */
+    public static final String SPLIT_NO_PLATFORM = "NL";
+
+    /**
+     * 记账业务  平台名称
+     */
+    public static final String SPLIT_NAME_PLATFORM = "纳里平台";
+
 }
