@@ -199,21 +199,15 @@ public class PayModeOnline implements IPurchaseService {
     }
 
     @Override
-    public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
-        LOG.info("PayModeOnline order recipeId={}",dbRecipe.getRecipeId());
+    public OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo) {
+        LOG.info("PayModeOnline order recipeId={}", JSONUtils.toString(dbRecipes));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
-        if(null != dbRecipe.getRecipeId()){
-            result = getOrderCreateResult(dbRecipe, extInfo, result);
-        }else{
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("order 当前处方信息不全！");
-        }
-        return result;
+        return getOrderCreateResult(dbRecipes, extInfo, result);
 
     }
 
     //确认订单流程
-    private OrderCreateResult getOrderCreateResult(Recipe dbRecipe, Map<String, String> extInfo, OrderCreateResult result) {
+    private OrderCreateResult getOrderCreateResult(List<Recipe> recipeList, Map<String, String> extInfo, OrderCreateResult result) {
         RecipeOrder order = new RecipeOrder();
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -221,20 +215,8 @@ public class PayModeOnline implements IPurchaseService {
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
-        Integer recipeId = dbRecipe.getRecipeId();
-        //todo---合并处方临时处理下先--后面改造成新接口
-        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
-        List<Integer> recipeIdLists = Arrays.asList(recipeId);
-        if (StringUtils.isNotEmpty(recipeIds)){
-            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
-            recipeIdLists = recipeIdString.stream().map(a -> Integer.valueOf(a)).collect(Collectors.toList());
-        }
-        List<Recipe> recipeList;
-        if (recipeIdLists.size() > 1){
-            recipeList = recipeDAO.findByRecipeIds(recipeIdLists);
-        }else {
-            recipeList = Arrays.asList(dbRecipe);
-        }
+
+        List<Integer> recipeIdLists = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
@@ -244,11 +226,13 @@ public class PayModeOnline implements IPurchaseService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
         if (StringUtils.isNotEmpty(insuredArea)) {
-            recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
+            for (Recipe recipe : recipeList) {
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
+            }
         }
 
         //杭州市互联网bug临时处理下
-        if (RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType) && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode())) {
+        if (RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType) && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())) {
             orderType = RecipeBussConstant.ORDERTYPE_HZS;
         }
 
@@ -259,24 +243,26 @@ public class PayModeOnline implements IPurchaseService {
         }
         order.setWxPayWay(payway);
         order.setOrderType(orderType);
+        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
         //处理详情
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
-        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        for (Recipe dbRecipe : recipeList) {
+            List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+            List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
 
-        order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+            order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
+            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
-        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
-        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);;
-        boolean stockFlag = remoteService.scanStock(dbRecipe, dep, drugIds);
-        if (!stockFlag) {
-            //无法配送
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("药企无法配送");
-            return result;
-        } else {
-            remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
+            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);
+            boolean stockFlag = remoteService.scanStock(dbRecipe, dep, drugIds);
+            if (!stockFlag) {
+                //无法配送
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("药企无法配送");
+                return result;
+            } else {
+                remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
+            }
         }
 
 
@@ -293,20 +279,22 @@ public class PayModeOnline implements IPurchaseService {
         if(decoctionId != null){
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if(decoctionWay != null){
-                if(decoctionWay.getDecoctionPrice() != null){
-                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-                }
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
+            for (Recipe dbRecipe : recipeList) {
+                if (decoctionWay != null) {
+                    if (decoctionWay.getDecoctionPrice() != null) {
+                        order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                    }
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
 
-            } else {
-                LOG.error("未获取到对应的代煎费，recipeId={},decoctionId={}",dbRecipe.getRecipeId(),decoctionId);
+                } else {
+                    LOG.error("未获取到对应的代煎费，recipeId={},decoctionId={}", dbRecipe.getRecipeId(), decoctionId);
+                }
             }
         }
 
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
-        order.setMpiId(dbRecipe.getMpiid());
-        order.setOrganId(dbRecipe.getClinicOrgan());
+        order.setMpiId(recipeList.get(0).getMpiid());
+        order.setOrganId(recipeList.get(0).getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         String drugStoreCode = MapValueUtil.getString(extInfo, "pharmacyCode");
         if (StringUtils.isNotEmpty(drugStoreCode)) {
@@ -318,7 +306,7 @@ public class PayModeOnline implements IPurchaseService {
         orderService.setOrderFee(result, order,recipeIdLists, recipeList, payModeSupport, extInfo, 1);
 
         //判断设置状态
-        int reviewType = dbRecipe.getReviewType();
+        int reviewType = recipeList.get(0).getReviewType();
         Integer payStatus;
         //判断处方是否免费
         if(0 >= order.getActualPrice()){
@@ -341,11 +329,11 @@ public class PayModeOnline implements IPurchaseService {
         order.setEffective(1);
 
         // 根据咨询单特殊来源标识和处方单特殊来源标识设置处方订单orderType为省中，邵逸夫医保小程序
-        if (null != dbRecipe.getClinicId()) {
+        if (null != recipeList.get(0).getClinicId()) {
             IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-            ConsultBean consultBean = consultService.getById(dbRecipe.getClinicId());
+            ConsultBean consultBean = consultService.getById(recipeList.get(0).getClinicId());
             if (null != consultBean) {
-                if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(dbRecipe.getRecipeSource()))) {
+                if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(recipeList.get(0).getRecipeSource()))) {
                     order.setOrderType(3);
                 }
             }
