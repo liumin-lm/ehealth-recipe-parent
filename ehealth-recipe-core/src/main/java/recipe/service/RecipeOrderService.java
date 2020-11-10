@@ -1955,12 +1955,12 @@ public class RecipeOrderService extends RecipeBaseService {
     private void handleRecipeSplit(RecipeOrder order, List<Recipe> recipes) {
         WnAccountSplitParam wnSplitParam = new WnAccountSplitParam();
         // 记账基本信息
-        Recipe recipe = getSplitBaseInfo(order, recipes, wnSplitParam);
+        getSplitBaseInfo(order, recipes, wnSplitParam);
         // 记账业务详情
         List<JSONObject> feeList = getSplitFeeInfo(order);
         wnSplitParam.setBusDetail(feeList);
         // 记账账户信息
-        getSplitAccountInfo(order, wnSplitParam, recipe);
+        getSplitAccountInfo(order, wnSplitParam, recipes);
         LOGGER.info("支付回调支付平台记账入参={}",JSONObject.toJSONString(wnSplitParam));
         IEasyPayService easyPayService = AppContextHolder.getBean("easypay.payService", IEasyPayService.class);
         String splitResult = easyPayService.wnAccountSplitUpload(wnSplitParam);
@@ -1975,7 +1975,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param wnSplitParam
      * @return
      */
-    private Recipe getSplitBaseInfo(RecipeOrder order, List<Recipe> recipes, WnAccountSplitParam wnSplitParam) {
+    private void getSplitBaseInfo(RecipeOrder order, List<Recipe> recipes, WnAccountSplitParam wnSplitParam) {
         // 商户订单号
         wnSplitParam.setOutTradeNo(order.getOutTradeNo());
         Recipe recipe = recipes.get(0);
@@ -2002,7 +2002,6 @@ public class RecipeOrderService extends RecipeBaseService {
         if (departmentDTO != null) {
             wnSplitParam.setDepartId(departmentDTO.getCode());
         }
-        return recipe;
     }
 
     /**
@@ -2010,9 +2009,10 @@ public class RecipeOrderService extends RecipeBaseService {
      * 账户类型 平台-1、医院-2、药店/药企-3、 医生-4、 药师-5
      * @param order
      * @param wnSplitParam
-     * @param recipe
+     * @param recipes
      */
-    private void getSplitAccountInfo(RecipeOrder order, WnAccountSplitParam wnSplitParam, Recipe recipe) {
+    private void getSplitAccountInfo(RecipeOrder order, WnAccountSplitParam wnSplitParam, List<Recipe> recipes) {
+        Recipe recipe = recipes.get(0);
         // 医院编码
         wnSplitParam.setYydm(order.getEnterpriseId()+"");
         // 分账方编码
