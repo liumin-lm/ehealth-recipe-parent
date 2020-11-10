@@ -664,6 +664,10 @@ public class RecipeHisService extends RecipeBaseService {
             request.setClinicOrgan(recipe.getClinicOrgan());
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());
+            String recipeCodeS = MapValueUtil.getString(extInfo, "recipeNoS");
+            if(recipeCodeS != null){
+                request.setHisRecipeNoS(JSONUtils.parse(recipeCodeS,ArrayList.class));
+            }
             request.setDoctorId(recipe.getDoctor() + "");
             request.setDoctorName(recipe.getDoctorName());
             request.setDepartId(recipe.getDepart() + "");
