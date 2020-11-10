@@ -27,6 +27,7 @@ import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.message.api.MessageAPI;
 import com.ngari.message.api.service.ConsultMessageService;
 import com.ngari.message.api.service.INetworkclinicMsgService;
+import com.ngari.message.api.service.IRevisitMessageService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -1912,10 +1913,10 @@ public class RecipeServiceSub {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
         }
-        //date 20200723
-        //根据ca配置：当时深圳ca则更新处方详情中的医生图片
-        String thirdCASign = (String) configService.getConfiguration(recipe.getClinicOrgan(), "thirdCASign");
-        if ("shenzhenCA".equals(thirdCASign)) {
+        //根据ca配置：判断签章显示是显示第三方的签章还是平台签章，默认使用平台签章
+        String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
+        if("thirdSeal".equals(sealDataFrom)){
+            LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
             SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
             SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
             SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
@@ -2672,14 +2673,6 @@ public class RecipeServiceSub {
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
         ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
-        //11月大版本改造--咨询id由前端传入
-        /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-        Integer consultId = null;
-        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestMpiId,
-                doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
-        }*/
         Integer consultId = recipe.getClinicId();
         Integer bussSource = recipe.getBussSource();
         if (consultId != null) {
@@ -2687,29 +2680,17 @@ public class RecipeServiceSub {
                 rMap.put("consultId", consultId);
                 rMap.put("bussSource", bussSource);
             }
-
             if (send) {
                 //11月大版本改造--咨询单或者网络门诊单是否正在处理中有他们那边判断
                 LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
                 if (RecipeBussConstant.BUSS_SOURCE_WLZX.equals(bussSource)) {
                     iNetworkclinicMsgService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
-                } else {
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)){
                     iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
+                } else if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)){
+                    IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
+                    revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
                 }
-                /*ConsultBean consultBean = iConsultService.get(consultId);
-                if (consultBean != null) {
-                    //判断咨询单状态是否为处理中
-                    if (consultBean.getConsultStatus() == RecipeSystemConstant.CONSULT_STATUS_HANDLING) {
-                        if (StringUtils.isEmpty(consultBean.getSessionID())) {
-                            recipeTagMsg.setSessionID(null);
-                        } else {
-                            recipeTagMsg.setSessionID(consultBean.getSessionID());
-                        }
-                        LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
-                        //将消息存入数据库consult_msg，并发送环信消息
-                        iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, consultBean.getConsultDoctor());
-                    }
-                }*/
             }
         }
     }

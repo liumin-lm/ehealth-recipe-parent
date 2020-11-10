@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.orderstatusfactory.IRecipeOrderStatusService;
+import recipe.service.manager.GroupRecipeManager;
 
 /**
  * 状态流转基类
@@ -14,16 +15,17 @@ import recipe.factory.status.orderstatusfactory.IRecipeOrderStatusService;
  * @author fuzi
  */
 public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusService {
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
      * 订单是否有效 1有效，0表示该订单已取消或者无效临时订单
      */
     protected final static int EFFECTIVE = 0;
-
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     protected RecipeOrderDAO recipeOrderDAO;
     @Autowired
     protected RecipeDAO recipeDAO;
+    @Autowired
+    private GroupRecipeManager groupRecipeManager;
 
     protected Recipe getRecipe(Integer recipeId) {
         return recipeDAO.getByRecipeId(recipeId);
@@ -31,5 +33,10 @@ public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusSer
 
     @Override
     public void upRecipeThreadPool(Recipe recipe) {
+    }
+
+    @Override
+    public void updateGroupRecipe(Recipe recipe, Integer orderId) {
+        groupRecipeManager.updateGroupRecipe(recipe, orderId);
     }
 }

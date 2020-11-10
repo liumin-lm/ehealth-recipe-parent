@@ -134,7 +134,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企对接方式 0 平台 1 前置机")
     private Integer operationType;
 
-    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:显示非必填，2显示必填")
     private Integer isShowExpectSendDate;
 
     @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")

@@ -87,6 +87,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract RecipeOrder getByOutTradeNo(String tradeNo);
 
     /**
+     * 根据订单号获取订单信息
+     * @param orderId
+     * @return
+     */
+    @DAOMethod
+    public abstract RecipeOrder getByOrderId(Integer orderId);
+
+    /**
      * 根据传芳id获取订单编号
      * @param recipeId
      * @return
