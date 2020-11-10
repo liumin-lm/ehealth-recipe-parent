@@ -43,6 +43,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeOrderService;
@@ -51,7 +52,6 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -180,44 +180,13 @@ public class PayModeOnline implements IPurchaseService {
         }
         subDepList = getAllSubDepList(subDepList);
         DepDetailBean depDetailBean;
+        //这里是获取到可以支持的药企列表
         for (DrugsEnterprise dep : subDepList) {
-            depDetailBean = new DepDetailBean();
-            depDetailBean.setDepId(dep.getId());
-            depDetailBean.setDepName(dep.getName());
-            depDetailBean.setRecipeFee(dbRecipe.getTotalMoney());
-            depDetailBean.setBelongDepName(dep.getName());
-            depDetailBean.setOrderType(dep.getOrderType());
-            depDetailBean.setMemo(dep.getMemo());
-            if (RecipeBussConstant.PAYMODE_ONLINE.equals(dep.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(dep.getPayModeSupport())) {
-                depDetailBean.setPayModeText("在线支付");
-                depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
-            } else {
-                depDetailBean.setPayModeText("货到付款");
-                depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
-            }
-
-            //对北京互联网厨房流转模式处理
-            if (new Integer(2).equals(dbRecipe.getRecipeSource())) {
-                HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
-                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-                if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
-                    if (new Integer(2).equals(hisRecipe.getMedicalType())) {
-                        depDetailBean.setPayModeText("货到付款");
-                        depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
-                    } else {
-                        depDetailBean.setPayModeText("在线支付");
-                        depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
-                    }
-                }
-            }
-            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            //重置药企处方价格
-            depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(dep.getId(), recipeIdList, null));
-
-            depDetailList.add(depDetailBean);
+            //这里有四个途径获取供应商列表分别是有展示药店标识的药企、his管理的药企、正常的配送到家的药企、北京互联网处方流转
+            PayModeOnlineShowDepServiceProducer.getShowDepService(dep, dbRecipe).getPayModeOnlineShowDep(dep, depDetailList, dbRecipe, recipeIdList);
         }
-        //此处校验是否存在支持药店配送的药企
-        checkStoreForSendToHom(dbRecipe, depDetailList);
+        /*//此处校验是否存在支持药店配送的药企/以及his管理的药企从预校验接口获取的
+        checkStoreForSendToHom(dbRecipe, depDetailList, recipeIdList);*/
         depListBean.setSigle(false);
         if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1) {
             depListBean.setSigle(true);
@@ -744,7 +713,7 @@ public class PayModeOnline implements IPurchaseService {
         }
     }
 
-    private void checkStoreForSendToHom(Recipe dbRecipe, List<DepDetailBean> depDetailList) {
+    private void checkStoreForSendToHom(Recipe dbRecipe, List<DepDetailBean> depDetailList, List<Integer> recipeIdList) {
         try{
             LOG.info("PayModeOnline.checkStoreForSendToHom:{}.", JSONUtils.toString(depDetailList));
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -817,10 +786,8 @@ public class PayModeOnline implements IPurchaseService {
                                     }
                                 }
                                 //如果是价格自定义的药企，则需要设置单独价格
-                                //date 20200402
-                                //判断当药企不是his返回的时候在重新计算金额
-                                if (Integer.valueOf(0).equals(drugsEnterprise.getSettlementMode()) && (depDetailBean.getHisDep() == null || (depDetailBean.getHisDep() != null && !depDetailBean.getHisDep()))) {
-                                    List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+                                if (depDetailBean.getHisDep() == null || (depDetailBean.getHisDep() != null && !depDetailBean.getHisDep())) {
+                                    /*List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
                                     if (CollectionUtils.isNotEmpty(saleDrugLists)) {
                                         BigDecimal total = BigDecimal.ZERO;
                                         try {
@@ -836,7 +803,10 @@ public class PayModeOnline implements IPurchaseService {
                                         }
                                         //重置药企处方价格
                                         depDetailBean.setRecipeFee(total);
-                                    }
+                                    }*/
+                                    RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                                    //重置药企处方价格
+                                    depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(drugsEnterprise.getId(), recipeIdList, null));
                                 }
                             }
                             depDetailList.addAll(hrList);

@@ -187,6 +187,17 @@ public class PurchaseService {
                         } else {
                             //交集需要处理
                             depListBeanList.retainAll(depListBean.getList());
+                            //his管理的药企费用这里处理
+                            //如果存在交集则取一次交集加一次费用
+                            if (CollectionUtils.isNotEmpty(depListBeanList)) {
+                                Map<String, BigDecimal> stringObjectMap = depListBean.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
+                                for (DepDetailBean depDetailBean : depListBeanList) {
+                                    if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
+                                        depDetailBean.setHisDepFee(depDetailBean.getHisDepFee().add(stringObjectMap.get(depDetailBean.getHisDepCode())));
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
