@@ -2637,8 +2637,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     for (Object[] objs : result) {
                         String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
+                        //因为Map.put会覆盖相同key的数据这里如果是ongoing根据OrderCode分组后会有多个相同的挂号序号也需要类似下面的处理
                         if (objs[mergeRecipeWay.split(",").length - 1] == null) {
-                            registerId = "-1";
+                            registerId = "-1" + "," + i;
                         } else {
                             registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
                         }
@@ -2704,8 +2705,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     for (Object[] objs : result) {
                         String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
+                        //因为Map.put会覆盖相同key的数据这里如果是ongoing根据OrderCode分组后会有多个相同的挂号序号也需要类似下面的处理
                         if (objs[mergeRecipeWay.split(",").length - 1] == null) {
-                            registerId = "-1";
+                            registerId = "-1" + "," + i;
                         } else {
                             registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
                         }
