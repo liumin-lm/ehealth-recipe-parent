@@ -6,6 +6,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -73,7 +74,13 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
         }
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (new Integer(1).equals(recipeOrder.getPushFlag())) {
+            //表示已经推送
+            return result;
+        }
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         List<Map<String, Object>> recipeInfoList = ysqRemoteService.getYsqRecipeInfo(recipeIds, hosInteriorSupportFlag, enterprise);
         //最终发给药企的json数据
@@ -100,7 +107,6 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("YsqnRemoteService.pushRecipeInfo responseStr:{}.", responseStr);
             Map resultMap = JSONUtils.parse(responseStr, Map.class);
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             if (resultMap != null && (boolean)resultMap.get("SUCCESS")) {
                 String message = (String)resultMap.get("MESSAGE");
                 if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
