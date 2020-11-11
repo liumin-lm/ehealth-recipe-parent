@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,11 +29,11 @@ public interface IPurchaseService {
     /**
      * 下单提交方法
      *
-     * @param dbRecipe
+     * @param dbRecipes
      * @param extInfo
      * @return
      */
-    OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo);
+    OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo);
 
     /**
      * RecipeBussConstant 中常量值，前端约定值
