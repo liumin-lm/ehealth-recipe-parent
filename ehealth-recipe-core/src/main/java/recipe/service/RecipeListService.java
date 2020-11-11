@@ -1053,6 +1053,11 @@ public class RecipeListService extends RecipeBaseService {
                 if (StringUtils.isEmpty(mergeRecipeWay)) {
                     mergeRecipeWay = "e.registerId";
                 }
+                //如果只有一个就取第一个
+                if (organIds.size() == 1) {
+                    mergeRecipeWayAfter = mergeRecipeWay;
+                }
+                //从第二个开始进行比较
                 for (int i = 1; i < organIds.size(); i++) {
                     mergeRecipeWayAfter = (String) configService.getConfiguration(organIds.get(i), "mergeRecipeWay");
                     if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
