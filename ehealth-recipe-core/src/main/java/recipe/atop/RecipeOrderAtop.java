@@ -32,11 +32,11 @@ public class RecipeOrderAtop extends BaseAtop {
             logger.info("RecipeOrderAtop updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
+            logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e);
             return ResultBean.serviceError(e.getMessage(), false);
-
         }
     }
 }

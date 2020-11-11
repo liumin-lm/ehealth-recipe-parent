@@ -58,6 +58,7 @@ public class ThirdRecipeService {
      *        limit  每页查询量
      * @return 处方和处方详情
      */
+    @Deprecated
     @RpcService
     public List<RecipeAndRecipeDetailsBean> findRecipesForPatientAndTabStatus(ThirdGetRecipeDetailRequest request){
         LOGGER.info("ThirdRecipeService.findRecipesForPatientAndTabStatus request:{}.", JSONUtils.toString(request));
