@@ -25,7 +25,6 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -53,6 +52,7 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,6 +77,12 @@ public class PurchaseService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+
+    @Autowired
+    private HisRecipeDAO hisRecipeDAO;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -189,7 +195,7 @@ public class PurchaseService {
                             depListBeanList.retainAll(depListBean.getList());
                             //his管理的药企费用这里处理
                             //如果存在交集则取一次交集加一次费用
-                            if (CollectionUtils.isNotEmpty(depListBeanList)) {
+                            if (CollectionUtils.isNotEmpty(depListBeanList) && StringUtils.isNotEmpty(depListBeanList.get(0).getHisDepCode())) {
                                 Map<String, BigDecimal> stringObjectMap = depListBean.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
                                 for (DepDetailBean depDetailBean : depListBeanList) {
                                     if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
@@ -231,68 +237,89 @@ public class PurchaseService {
      */
     @RpcService
     public OrderCreateResult orderForRecipe(Integer recipeId, Map<String, String> extInfo) {
-        OrderCreateResult orderCreateResult=checkOrderInfo(recipeId, extInfo);
+        OrderCreateResult orderCreateResult = checkOrderInfo(Arrays.asList(recipeId), extInfo);
         if(RecipeResultBean.FAIL==orderCreateResult.getCode()){
             return orderCreateResult;
         }
-        return order(recipeId, extInfo);
+        return order(Arrays.asList(recipeId), extInfo);
+    }
+
+    /**
+     * 为了兼容老接口重新写了一个orderForRecipe
+     *
+     * @param recipeIds
+     * @param extInfo
+     * @return
+     */
+    @RpcService
+    public OrderCreateResult orderForRecipeNew(List<Integer> recipeIds, Map<String, String> extInfo) {
+        OrderCreateResult orderCreateResult = checkOrderInfo(recipeIds, extInfo);
+        if (RecipeResultBean.FAIL == orderCreateResult.getCode()) {
+            return orderCreateResult;
+        }
+        return order(recipeIds, extInfo);
     }
 
     /**
      *
-     * @param recipeId
+     * @param recipeIds
      * 确认订单校验
      * @param extInfo
      * @return
      */
-    private OrderCreateResult checkOrderInfo(Integer recipeId, Map<String, String> extInfo) {
+    private OrderCreateResult checkOrderInfo(List<Integer> recipeIds, Map<String, String> extInfo) {
         //确认页提交订单点击提交按钮时， 需要再次判断该处方单的状态, 若处方更新了诊断和药品信息或者删除了处方或处方已支付, 则提示患者该处方已做变更, 需要从新进入处理;
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe dbRecipe = recipeDAO.get(recipeId);
-        //判断是否删除处方
-        if (null == dbRecipe) {
-            result.setCode(RecipeResultBean.CHECKFAIL);
-            result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-            LOG.info("checkOrderInfo recipeId:{} 处方不存在", recipeId);
-            return result;
-        }
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
-        //判断是订单是否已支付
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
-            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-            if (new Integer(1).equals(order.getPayFlag())) {
+        //合并处方处理
+        Recipe dbRecipe;
+        RecipeExtend recipeExtend;
+        HisRecipe hisRecipe;
+        for (Integer recipeId : recipeIds) {
+            dbRecipe = recipeDAO.get(recipeId);
+            //判断是否删除处方
+            if (null == dbRecipe) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                LOG.info("checkOrderInfo recipeId:{} 您的订单已支付", recipeId);
-            }
-        }
-        //判断诊断和药品信息是否已更改
-        if (null != dbRecipe) {
-            String organDiseaseId = MapValueUtil.getString(extInfo, "organDiseaseId");
-            String organDiseaseName = MapValueUtil.getString(extInfo, "organDiseaseName");
-            if (!organDiseaseId.equals(dbRecipe.getOrganDiseaseId()) || !organDiseaseName.equals(dbRecipe.getOrganDiseaseName())) {
-                result.setCode(RecipeResultBean.CHECKFAIL);
-                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更1",recipeId);
+                LOG.info("checkOrderInfo recipeId:{} 处方不存在", recipeId);
                 return result;
             }
-            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(),dbRecipe.getClinicOrgan(),dbRecipe.getRecipeCode());
-            if(hisRecipe!=null){
-                if (!organDiseaseId.equals(hisRecipe.getDisease()) || !organDiseaseName.equals(hisRecipe.getDiseaseName())) {
+            recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
+            //判断是订单是否已支付
+            if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
+                RecipeOrder order = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                if (new Integer(1).equals(order.getPayFlag())) {
                     result.setCode(RecipeResultBean.CHECKFAIL);
                     result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                    LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2",recipeId);
+                    LOG.info("checkOrderInfo recipeId:{} 您的订单已支付", recipeId);
+                }
+            }
+            //判断诊断和药品信息是否已更改
+            if (null != dbRecipe) {
+                String organDiseaseId = MapValueUtil.getString(extInfo, "organDiseaseId");
+                String organDiseaseName = MapValueUtil.getString(extInfo, "organDiseaseName");
+                if (!organDiseaseId.equals(dbRecipe.getOrganDiseaseId()) || !organDiseaseName.equals(dbRecipe.getOrganDiseaseName())) {
+                    result.setCode(RecipeResultBean.CHECKFAIL);
+                    result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                    LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更1", recipeId);
                     return result;
                 }
-            }else{
-                result.setCode(RecipeResultBean.CHECKFAIL);
-                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2",recipeId);
-                return result;
+                hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(), dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
+                if (hisRecipe != null) {
+                    if (!organDiseaseId.equals(hisRecipe.getDisease()) || !organDiseaseName.equals(hisRecipe.getDiseaseName())) {
+                        result.setCode(RecipeResultBean.CHECKFAIL);
+                        result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                        LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2", recipeId);
+                        return result;
+                    }
+                } else {
+                    result.setCode(RecipeResultBean.CHECKFAIL);
+                    result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                    LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2", recipeId);
+                    return result;
+                }
+
             }
 
         }
@@ -300,7 +327,7 @@ public class PurchaseService {
     }
 
     /**
-     * @param recipeId
+     * @param recipeIds
      * @param extInfo  参照RecipeOrderService createOrder定义
      *                 {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
      *                 "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
@@ -314,12 +341,14 @@ public class PurchaseService {
      * @return
      */
     @RpcService
-    public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo) {
-        LOG.info("order param: recipeId={},extInfo={}", recipeId, JSONUtils.toString(extInfo));
+    public OrderCreateResult order(List<Integer> recipeIds, Map<String, String> extInfo) {
+        LOG.info("order param: recipeId={},extInfo={}", JSONUtils.toString(recipeIds), JSONUtils.toString(extInfo));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
 
+        String recipeIdStr = StringUtils.join(recipeIds, "_");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe dbRecipe = recipeDAO.get(recipeId);
+        Recipe dbRecipe = recipeDAO.get(recipeIds.get(0));
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         if (null == dbRecipe) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方不存在");
@@ -331,31 +360,8 @@ public class PurchaseService {
             result.setMsg("缺少购药方式");
             return result;
         }
-        /*//预结算
-        //非省直医保才走自费结算
-        //省医保不走自费结算
-        if (!(orderType != null && (orderType == 1 || orderType == 3))) {
-            //目前省中和上海六院走自费预结算---上海六院改成机构配置--获取配送到家支付机构配置-平台付才走
-            //首先配的不是卫宁付
-            if (!getPayOnlineConfig(dbRecipe.getClinicOrgan())) {
-                if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))
-                        || (dbRecipe.getClinicOrgan() == 1000899)) {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId, payMode);
-                    if (!("200".equals(scanResult.get("code")))) {
-                        result.setCode(RecipeResultBean.FAIL);
-                        if (scanResult.get("msg") != null) {
-                            result.setMsg(scanResult.get("msg").toString());
-                        }
-                        return result;
-                    }
-                }
-            }
-
-        }*/
-
         //处方单状态不是待处理 or 处方单已被处理
-        boolean dealFlag = checkRecipeIsDeal(dbRecipe, result, extInfo);
+        boolean dealFlag = checkRecipeIsDeal(recipeList, result, extInfo);
         if (dealFlag) {
             return result;
         }
@@ -370,35 +376,37 @@ public class PurchaseService {
                 result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("您有正在进行中的订单");
-                unLock(recipeId);
+                unLock(recipeIdStr);
                 return result;
             }
         }
 
-        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
-        try {
-            //判断院内是否已取药，防止重复购买
-            //date 20191022到院取药取配置项
-            boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
-            boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
-            //是否支持医院取药 true：支持
-            //该医院不对接HIS的话，则不需要进行该校验
-            if (flag && hisStatus) {
-                String backInfo = recipeService.searchRecipeStatusFromHis(recipeId, 1);
-                if (StringUtils.isNotEmpty(backInfo)) {
-                    result.setCode(RecipeResultBean.FAIL);
-                    result.setMsg(backInfo);
-                    return result;
+
+        boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
+        for (Integer recipeId : recipeIds) {
+            try {
+                //判断院内是否已取药，防止重复购买
+                //date 20191022到院取药取配置项
+                boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
+                //是否支持医院取药 true：支持
+                //该医院不对接HIS的话，则不需要进行该校验
+                if (flag && hisStatus) {
+                    String backInfo = recipeService.searchRecipeStatusFromHis(recipeId, 1);
+                    if (StringUtils.isNotEmpty(backInfo)) {
+                        result.setCode(RecipeResultBean.FAIL);
+                        result.setMsg(backInfo);
+                        return result;
+                    }
                 }
+            } catch (Exception e) {
+                LOG.warn("order searchRecipeStatusFromHis exception. recipeId={}", recipeId, e);
             }
-        } catch (Exception e) {
-            LOG.warn("order searchRecipeStatusFromHis exception. recipeId={}", recipeId, e);
         }
 
         //判断是否存在分布式锁
-        boolean unlock = lock(recipeId);
+        boolean unlock = lock(recipeIdStr);
         if (!unlock) {
             //存在锁则需要返回
             result.setCode(RecipeResultBean.FAIL);
@@ -406,18 +414,18 @@ public class PurchaseService {
             return result;
         } else {
             //设置默认超时时间 30s
-            redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 30L);
+            redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeIdStr, 30L);
         }
 
         try {
             IPurchaseService purchaseService = getService(payMode);
-            result = purchaseService.order(dbRecipe, extInfo);
+            result = purchaseService.order(recipeList, extInfo);
         } catch (Exception e) {
             LOG.error("order error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         } finally {
             //订单创建完解锁
-            unLock(recipeId);
+            unLock(recipeIdStr);
         }
 
         return result;
@@ -530,33 +538,34 @@ public class PurchaseService {
      * @param result   结果
      * @return true 已被处理
      */
-    private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo) {
+    private boolean checkRecipeIsDeal(List<Recipe> recipes, RecipeResultBean result, Map<String, String> extInfo) {
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
-        }
-        //此时如果处方状态为待审核则说明药师端已经撤销了处方审核结果
-        if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
-        }
-        if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
-                || 1 == dbRecipe.getChooseFlag()) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("处方单已被处理");
-            //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
-            if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_TFDS == payMode) {
-                    result.setCode(2);
-                    result.setMsg("您已到院自取药品，无法提交药店取药");
-                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_ONLINE == payMode) {
-                    result.setCode(3);
-                    result.setMsg("您已到院自取药品，无法进行配送");
-                } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
-                    result.setCode(4);
-                    result.setMsg(dbRecipe.getOrderCode());
-                }
+        for (Recipe dbRecipe : recipes) {
+            if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE) {
+                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
             }
-            return true;
+            //此时如果处方状态为待审核则说明药师端已经撤销了处方审核结果
+            if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) {
+                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
+            }
+            if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus() || 1 == dbRecipe.getChooseFlag()) {
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("处方单已被处理");
+                //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
+                if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
+                    if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_TFDS == payMode) {
+                        result.setCode(2);
+                        result.setMsg("您已到院自取药品，无法提交药店取药");
+                    } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_ONLINE == payMode) {
+                        result.setCode(3);
+                        result.setMsg("您已到院自取药品，无法进行配送");
+                    } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                        result.setCode(4);
+                        result.setMsg(dbRecipe.getOrderCode());
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -706,51 +715,14 @@ public class PurchaseService {
             }
             return true;
         }
-        //下面这块逻辑是针对市三(医保患者)选择配送到家或者(非医保患者)已经选择了到院取药使用
-        //市三的到院取药依然使用的互联网的接口purchase
-        //去掉市三个性化流程改造成平台流程
-        /*if (RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()) {
-            Integer consultId = dbRecipe.getClinicId();
-            Integer medicalFlag = 0;
-            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
-            if (consultId != null) {
-                ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
-                if (consultExDTO != null) {
-                    medicalFlag = consultExDTO.getMedicalFlag();
-                }
-            }
-            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode()) && (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag || dbRecipe.getChooseFlag() == 1)) {
-                OrganDTO organDTO = organService.getByOrganId(dbRecipe.getClinicOrgan());
-                List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
-                result.setCode(RecipeResultBean.FAIL);
-                String tips;
-                if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
-                    tips = "您是医保病人，请到医院支付取药，医院取药窗口：";
-                } else {
-                    tips = "请到医院支付取药，医院取药窗口：";
-                }
-                if (CollectionUtils.isNotEmpty(detailList)) {
-                    String pharmNo = detailList.get(0).getPharmNo();
-                    if (StringUtils.isNotEmpty(pharmNo)) {
-                        tips += "[" + organDTO.getName() + "" + pharmNo + "取药窗口]";
-                    } else {
-                        tips += "[" + organDTO.getName() + "取药窗口]";
-                    }
-                }
-                result.setMsg(tips);
-                return true;
-            }
-        }*/
         return false;
     }
 
-    private boolean lock(Integer recipeId) {
+    private boolean lock(String recipeId) {
         return redisClient.setNX(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, "true");
     }
 
-    private boolean unLock(Integer recipeId) {
+    private boolean unLock(String recipeId) {
         return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 1L);
     }
 
