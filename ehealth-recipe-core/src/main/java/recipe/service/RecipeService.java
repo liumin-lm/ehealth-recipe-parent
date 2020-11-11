@@ -931,7 +931,12 @@ public class RecipeService extends RecipeBaseService {
                 }else{
                     //先将产生的pdf
                     //根据ca配置：签章显示是显示第三方的签章还是平台签章，默认使用平台签章
-                    String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
+                    String sealDataFrom="platFormSeal";
+                    try {
+                        sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
+                    }catch (Exception e){
+                        LOGGER.error("doctorToRecipePDF 获取签章使用方配置error, recipeId:{}", recipeId, e);
+                    }
                     signImageId = doctorDTO.getSignImage();
                     if("thirdSeal".equals(sealDataFrom)){
                         LOGGER.info("使用第三方签名，recipeId:{}",recipeId);

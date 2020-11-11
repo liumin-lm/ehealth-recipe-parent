@@ -351,7 +351,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (null == result) {
             result = RecipeResultBean.getSuccess();
         }
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
@@ -359,9 +359,9 @@ public class RecipeHisService extends RecipeBaseService {
             result.setError("处方不存在");
             return result;
         }
-        if (skipHis(recipe)) {
-            return result;
-        }
+//        if (skipHis(recipe)) {
+//            return result;
+//        }
 
         Integer status = recipe.getStatus();
         if (isHisEnable(recipe.getClinicOrgan())) {

@@ -1112,7 +1112,7 @@ public class RecipeListService extends RecipeBaseService {
         } else {
             registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList, orderStatusList, tabStatus, mergeRecipeWay);
         }
-        LOGGER.error("findMergeRecipe registerIdRelation={}", JSONUtils.toString(registerIdRelation));
+        LOGGER.info("findMergeRecipe tabStatus={},statusList={},registerIdRelation={}", tabStatus, JSONUtils.toString(statusList), JSONUtils.toString(registerIdRelation));
         for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
             String key = "";
             if (StringUtils.isNotEmpty(entry.getKey())) {

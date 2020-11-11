@@ -13,26 +13,26 @@ public enum TabStatusEnumNew {
      * 待处理处方的状态（待处理，待审核|前置）
      * 未生成订单前的处方状态
      */
-    Onready_Recipe_StatusList("onready", "recipe", new ArrayList<>(Arrays.asList(2, 8, 27, 31,32))),
+    Onready_Recipe_StatusList("onready", "recipe", Arrays.asList(2, 8, 27, 31, 32)),
 
     Onready_Order_StatusList("onready", "order", new ArrayList<>()),
 
     /**
      * 进行中订单的状态（待支付，待审核|后置，待取药(库存足够/库存不足)，待配送，配送中，准备中）
      */
-    Ongoing_Order_StatusList("ongoing", "order", new ArrayList<>(Arrays.asList(1, 9, 2, 12, 10, 3, 4, 11, 13))),
+    Ongoing_Order_StatusList("ongoing", "order", Arrays.asList(1, 9, 2, 12, 10, 3, 4, 11, 13)),
     /**
      * 进行中处方的状态（待处理，待审核|前置）
      * date 20200424
      * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe", new ArrayList<>(Arrays.asList(2, 3, 4, 5))),
+    Ongoing_Recipe_StatusList("ongoing", "recipe", Arrays.asList(2, 3, 4, 5)),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16
      * 修改已完成，可能没有订单，所以直接取处方已完成的状态
      */
-    Isover_Order_StatusList("isover", "order", new ArrayList<>(Arrays.asList(5))),
+    Isover_Order_StatusList("isover", "order", Arrays.asList(5)),
     /**
      * 已结束处方的状态(未处理，失败，未支付，审核不通过, 已完成, 已撤销，已删除，推his失败)
      * date 20191023
@@ -41,7 +41,7 @@ public enum TabStatusEnumNew {
      * 不展示已删除的处方
      * 已下载(待取药)的处方归并到已完成里
      */
-    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23, 18)));
+    Isover_Recipe_StatusList("isover", "recipe", Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23, 18));
 
     private String tabStatus;
 
@@ -64,8 +64,8 @@ public enum TabStatusEnumNew {
      * @param statusType
      * @return recipe.constant.TabStatusEnum
      */
-    public static TabStatusEnum fromTabStatusAndStatusType(String tabStatus, String statusType) {
-        for (TabStatusEnum e : TabStatusEnum.values()) {
+    public static TabStatusEnumNew fromTabStatusAndStatusType(String tabStatus, String statusType) {
+        for (TabStatusEnumNew e : TabStatusEnumNew.values()) {
             if (tabStatus.equalsIgnoreCase(e.getTabStatus()) && statusType.equalsIgnoreCase(e.getStatusType())) {
                 return e;
             }
