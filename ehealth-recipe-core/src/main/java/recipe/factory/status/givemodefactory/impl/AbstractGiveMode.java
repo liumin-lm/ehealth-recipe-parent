@@ -1,6 +1,7 @@
 package recipe.factory.status.givemodefactory.impl;
 
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,5 +29,9 @@ public abstract class AbstractGiveMode implements IGiveModeService {
 
     protected Recipe getRecipe(Integer recipeId) {
         return recipeDAO.getByRecipeId(recipeId);
+    }
+
+    @Override
+    public void updateStatusAfter(UpdateOrderStatusVO orderStatus) {
     }
 }

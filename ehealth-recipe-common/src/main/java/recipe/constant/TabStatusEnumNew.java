@@ -26,7 +26,7 @@ public enum TabStatusEnumNew {
      * date 20200424
      * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe", new ArrayList<>(Arrays.asList(2, 3, 4, 5, 18))),
+    Ongoing_Recipe_StatusList("ongoing", "recipe", new ArrayList<>(Arrays.asList(2, 3, 4, 5))),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16
@@ -39,8 +39,9 @@ public enum TabStatusEnumNew {
      * 结束添加互联网的天猫结束状态:天猫已过期,天猫已退回
      * date 2020/1/6
      * 不展示已删除的处方
+     * 已下载(待取药)的处方归并到已完成里
      */
-    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23)));
+    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23, 18)));
 
     private String tabStatus;
 

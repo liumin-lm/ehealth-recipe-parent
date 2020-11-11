@@ -1013,12 +1013,12 @@ public class RecipeListService extends RecipeBaseService {
         //获取页面展示的对象
         TabStatusEnum recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
         if (null == recipeStatusList) {
-            LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到recipe的状态列表", tabStatus);
+            LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到recipe的状态列表", tabStatus);
             return new ArrayList<>();
         }
         TabStatusEnum orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
         if (null == orderStatusList) {
-            LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到order的状态列表", tabStatus);
+            LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return new ArrayList<>();
         }
         try {
@@ -1026,6 +1026,7 @@ public class RecipeListService extends RecipeBaseService {
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("findRecipesForPatientAndTabStatusNew organIds={}", JSONUtils.toString(organIds));
             Boolean mergeRecipeFlag = false;
 
             if (CollectionUtils.isNotEmpty(organIds)) {
@@ -1052,6 +1053,11 @@ public class RecipeListService extends RecipeBaseService {
                 if (StringUtils.isEmpty(mergeRecipeWay)) {
                     mergeRecipeWay = "e.registerId";
                 }
+                //如果只有一个就取第一个
+                if (organIds.size() == 1) {
+                    mergeRecipeWayAfter = mergeRecipeWay;
+                }
+                //从第二个开始进行比较
                 for (int i = 1; i < organIds.size(); i++) {
                     mergeRecipeWayAfter = (String) configService.getConfiguration(organIds.get(i), "mergeRecipeWay");
                     if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
@@ -1060,7 +1066,7 @@ public class RecipeListService extends RecipeBaseService {
                         break;
                     }
                 }
-                LOGGER.info("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeFlag={},mergeRecipeWay={}", mpiId, mergeRecipeFlag, mergeRecipeWay);
+                LOGGER.info("findRecipesForPatientAndTabStatusNew mpiId={},mergeRecipeFlag={},mergeRecipeWay={}", mpiId, mergeRecipeFlag, mergeRecipeWay);
             }
             if (mergeRecipeFlag) {
                 //返回合并处方
@@ -1106,6 +1112,7 @@ public class RecipeListService extends RecipeBaseService {
         } else {
             registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList, orderStatusList, tabStatus, mergeRecipeWay);
         }
+        LOGGER.error("findMergeRecipe registerIdRelation={}", JSONUtils.toString(registerIdRelation));
         for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
             String key = "";
             if (StringUtils.isNotEmpty(entry.getKey())) {
