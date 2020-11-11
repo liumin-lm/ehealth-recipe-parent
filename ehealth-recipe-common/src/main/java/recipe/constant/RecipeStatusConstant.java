@@ -293,5 +293,10 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS = 136;
 
+    /**
+     * 处方开方成功,提醒患者
+     */
+    public static final int PRESCRIBE_SUCCESS = 137;
+
 
 }

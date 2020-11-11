@@ -137,6 +137,11 @@ public enum RecipeMsgEnum {
     HIS_OR_PHARMACEUTICAL_REFUND_SUCCESS(136, "HisOrPharmaceuticalRefundSuccess"),
 
     /**
+     * 处方开方成功
+     */
+    PRESCRIBE_SUCCESS(137, "PrescribeSuccess"),
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");
