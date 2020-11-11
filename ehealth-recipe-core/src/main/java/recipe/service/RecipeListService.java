@@ -1026,6 +1026,7 @@ public class RecipeListService extends RecipeBaseService {
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("findRecipesForPatientAndTabStatusNew:organIds={}", JSONUtils.toString(organIds));
             Boolean mergeRecipeFlag = false;
 
             if (CollectionUtils.isNotEmpty(organIds)) {
