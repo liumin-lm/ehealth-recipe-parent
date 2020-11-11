@@ -1107,9 +1107,13 @@ public class RecipeListService extends RecipeBaseService {
             registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList, orderStatusList, tabStatus, mergeRecipeWay);
         }
         for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
+            String key = "";
+            if (StringUtils.isNotEmpty(entry.getKey())) {
+                key = entry.getKey().split(",")[0];
+            }
             //具体到某一个挂号序号下的处方列表
             //先处理挂号序号为空的情况 -1
-            if ("-1".equals(entry.getKey())) {
+            if ("-1".equals(key)) {
                 //挂号序号为空表示不能合并处方单
                 for (Integer recipeId : entry.getValue()) {
                     mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
@@ -1122,9 +1126,7 @@ public class RecipeListService extends RecipeBaseService {
             } else {
                 mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 //分组字段值
-                if (StringUtils.isNotEmpty(entry.getKey())) {
-                    mergeRecipeDTO.setGroupField(entry.getKey().split(",")[0]);
-                }
+                mergeRecipeDTO.setGroupField(key);
                 mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
                 mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue()));
                 mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
