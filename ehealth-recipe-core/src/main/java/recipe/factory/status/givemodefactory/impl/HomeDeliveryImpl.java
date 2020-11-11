@@ -13,12 +13,17 @@ import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
+import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.factory.status.constant.GiveModeEnum;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.List;
@@ -43,27 +48,45 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         orderStatus.setSender("system");
         orderStatus.setTargetRecipeStatus(RecipeStatusConstant.WAIT_SEND);
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
-        String company = "";
         if (null != orderStatus.getLogisticsCompany()) {
             recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
-            try {
-                company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany().toString());
-            } catch (Exception e) {
-                logger.error("HomeDeliveryImpl updateStatus company error", e);
-                company = orderStatus.getLogisticsCompany().toString();
-            }
         }
         if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
         }
-        Recipe recipe = recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
-        //记录日志
-        RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
-                , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
-                        ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
+        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
+    }
 
+
+    @Override
+    public void updateStatusAfter(UpdateOrderStatusVO orderStatus) {
+        Integer recipeId = orderStatus.getRecipeId();
+        Recipe recipe = getRecipe(recipeId);
+        if (RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(orderStatus.getTargetRecipeOrderStatus())) {
+            //HIS消息发送
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+            //监管平台上传配送信息(配送到家-处方完成)
+            RecipeBusiThreadPool.execute(() -> {
+                HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
+                        "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
+            });
+        }
+
+        //记录日志
+        if (null != orderStatus.getLogisticsCompany()) {
+            try {
+                String company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany().toString());
+                RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
+                        , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
+                                ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
+            } catch (Exception e) {
+                logger.error("HomeDeliveryImpl updateStatus company error", e);
+            }
+        }
         //将快递公司快递单号信息用更新配送方式接口更新至his
-        if (null == recipe || StringUtils.isEmpty(recipe.getMpiid())) {
+        if (StringUtils.isEmpty(recipe.getMpiid())) {
             return;
         }
         if (null != orderStatus.getLogisticsCompany() && StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {

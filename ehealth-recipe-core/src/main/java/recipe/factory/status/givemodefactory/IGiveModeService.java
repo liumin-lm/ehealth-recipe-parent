@@ -19,4 +19,11 @@ public interface IGiveModeService {
      * @param orderStatus
      */
     void updateStatus(UpdateOrderStatusVO orderStatus);
+
+    /**
+     * 更新后置方法
+     *
+     * @param orderStatus
+     */
+    void updateStatusAfter(UpdateOrderStatusVO orderStatus);
 }
