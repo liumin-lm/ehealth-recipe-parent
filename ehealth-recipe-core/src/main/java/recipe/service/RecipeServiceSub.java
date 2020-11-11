@@ -1914,7 +1914,12 @@ public class RecipeServiceSub {
             map.put("recipeOrder", recipeOrder);
         }
         //根据ca配置：判断签章显示是显示第三方的签章还是平台签章，默认使用平台签章
-        String sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
+        String sealDataFrom="platFormSeal";
+        try {
+            sealDataFrom = (String) configService.getConfiguration(recipe.getClinicOrgan(), "sealDataFrom");
+        }catch (Exception e){
+            LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取签章使用方配置error, recipeId:{}", recipeId, e);
+        }
         if("thirdSeal".equals(sealDataFrom)){
             LOGGER.info("使用第三方签名，recipeId:{}",recipeId);
             SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
