@@ -1011,12 +1011,12 @@ public class RecipeListService extends RecipeBaseService {
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
         //获取页面展示的对象
-        TabStatusEnum recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
+        TabStatusEnumNew recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
         if (null == recipeStatusList) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到recipe的状态列表", tabStatus);
             return new ArrayList<>();
         }
-        TabStatusEnum orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
+        TabStatusEnumNew orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
         if (null == orderStatusList) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return new ArrayList<>();
