@@ -1448,26 +1448,30 @@ public class RecipeServiceSub {
     }
 
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
-        IRelationPatientService iRelationPatientService = AppContextHolder.getBean("pm.remoteRelationPatientService", IRelationPatientService.class);
-        RelationDoctorVO relationDoctor = iRelationPatientService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
-        /*RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);*/
-        //是否关注
-        Boolean relationFlag = false;
-        //是否签约
-        Boolean signFlag = false;
-        List<String> labelNames = Lists.newArrayList();
-        if (relationDoctor != null) {
-            relationFlag = true;
-            if (relationDoctor.getFamilyDoctorFlag()) {
-                signFlag = true;
+        try {
+            IRelationPatientService iRelationPatientService = AppContextHolder.getBean("pm.remoteRelationPatientService", IRelationPatientService.class);
+            RelationDoctorVO relationDoctor = iRelationPatientService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
+            /*RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);*/
+            //是否关注
+            Boolean relationFlag = false;
+            //是否签约
+            Boolean signFlag = false;
+            List<String> labelNames = Lists.newArrayList();
+            if (relationDoctor != null) {
+                relationFlag = true;
+                if (relationDoctor.getFamilyDoctorFlag()) {
+                    signFlag = true;
+                }
+
+                labelNames = patientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
+
             }
-
-            labelNames = patientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
-
+            patient.setRelationFlag(relationFlag);
+            patient.setSignFlag(signFlag);
+            patient.setLabelNames(labelNames);
+        } catch (Exception e) {
+            LOGGER.error("setPatientMoreInfo error. patient={},doctorId={}", JSONUtils.toString(patient), doctorId, e);
         }
-        patient.setRelationFlag(relationFlag);
-        patient.setSignFlag(signFlag);
-        patient.setLabelNames(labelNames);
     }
 
     /**
