@@ -3250,8 +3250,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
                     q.setParameter("chronicDiseaseName",chronicDiseaseName);
                 }
-                Number number = (Number) q.uniqueResult();
-                setResult(number.intValue());
+                if (q.uniqueResult() == null) {
+                    setResult(0);
+                } else {
+                    Number number = (Number) q.uniqueResult();
+                    setResult(number.intValue());
+                }
             }
         };
         HibernateSessionTemplate.instance().execute(action);

@@ -1859,6 +1859,7 @@ public class RecipeServiceSub {
                 }
             } catch (Exception e) {
                 LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl error, recipeId:{}", recipeId, e);
+                mergeRecipeFlag = false;
             }
             map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
