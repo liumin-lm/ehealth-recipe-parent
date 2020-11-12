@@ -1556,7 +1556,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (PayConstant.PAY_FLAG_NOT_PAY == orderBean.getPayFlag()) {
                         needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
                     } else {
-                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(orderBean.getActualPrice()));
+                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
                     }
                 } catch (Exception e) {
                     LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
