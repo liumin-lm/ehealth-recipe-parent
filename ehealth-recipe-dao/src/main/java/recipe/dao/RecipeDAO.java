@@ -3233,12 +3233,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    public Integer getNumCanMergeRecipeByMergeRecipeWay(String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
+    public Integer getNumCanMergeRecipeByMergeRecipeWay(String mpiId, String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select COUNT(d.RecipeID) from cdr_recipe d,cdr_recipe_ext e where d.RecipeID = e.recipeId ");
-                sql.append("and e.registerID =:registerId and d.ClinicOrgan =:organId and d.status = 2 and d.orderCode is null ");
+                sql.append("and e.registerID =:registerId and d.ClinicOrgan =:organId and d.MPIID =:mpiId and d.status = 2 and d.orderCode is null ");
                 if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay)) {
                     if (StringUtils.isNotEmpty(chronicDiseaseName)) {
                         sql.append("and e.chronicDiseaseName =:chronicDiseaseName ");
@@ -3252,6 +3252,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Query q = ss.createSQLQuery(sql.toString());
                 q.setParameter("registerId",registerId);
                 q.setParameter("organId",organId);
+                q.setParameter("mpiId", mpiId);
                 if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
                     q.setParameter("chronicDiseaseName",chronicDiseaseName);
                 }
