@@ -1981,7 +1981,7 @@ public class RecipeOrderService extends RecipeBaseService {
         Recipe recipe = recipes.get(0);
         // 交易金额 总的需要分账的金额
         BigDecimal payAmount = new BigDecimal(order.getActualPrice().toString());
-        wnSplitParam.setAmount(payAmount+"");
+        wnSplitParam.setAmount(payAmount);
         // 业务类型 5-处方
         wnSplitParam.setBusType("5");
         // 患者姓名
@@ -2054,7 +2054,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 分账明细 : 处方无法确定各项金额对应的分账比例金额,所以收款方=参与方=分账方 分账金额=总支付金额
         List<WnAccountDetail> splitList = new ArrayList<>();
         WnAccountDetail splitDTO = new WnAccountDetail();
-        splitDTO.setAmount(new BigDecimal(order.getActualPrice().toString()) + "");
+        splitDTO.setAmount(new BigDecimal(order.getActualPrice().toString()));
         splitDTO.setAccountName(splitName);
         splitDTO.setAccountNo(splitNumber);
         splitDTO.setAccountType(splitType + "");
