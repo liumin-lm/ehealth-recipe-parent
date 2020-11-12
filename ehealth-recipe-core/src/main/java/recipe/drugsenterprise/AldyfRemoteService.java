@@ -253,6 +253,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         AlibabaAlihealthRxPrescriptionImageUploadRequest imageUploadRequest = new AlibabaAlihealthRxPrescriptionImageUploadRequest();
                         imageUploadRequest.setImage(new FileItem("处方图片", img));
                         BaseResult<AlibabaAlihealthRxPrescriptionImageUploadResponse> baseResult = alihealthHospitalService.uploadPrescriptionImg(imageUploadRequest);
+                        LOGGER.info("aldyremoteservice上传图片，recipeid={},结果={}",dbRecipe.getRecipeId(),JSONObject.toJSONString(baseResult));
                         if (StringUtils.isEmpty(baseResult.getErrCode())) {
                             //上传成功
                             ossKey = baseResult.getData().getOssKey();
