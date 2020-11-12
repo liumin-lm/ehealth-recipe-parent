@@ -1,31 +1,34 @@
 package recipe.factory.status.constant;
 
-public class RecipeStatusEnum {
-    ORDER_STATUS_READY_PAY(1,"待支付",""),
+/**
+ * 处方状态枚举
+ *
+ * @author fuzi
+ */
 
-    ORDER_STATUS_READY_GET_DRUG(2,"待取药",""),
+public enum RecipeStatusEnum {
+    RECIPE_STATUS_CHECK_PASS(2, "待处理", " 审核通过(医院平台)"),
+    RECIPE_STATUS_HAVE_PAY(3, "已支付，待取药", "已支付 (HIS回传状态)"),
+    RECIPE_STATUS_IN_SEND(4, "配送中", ""),
+    RECIPE_STATUS_WAIT_SEND(5, "待配送", ""),
+    RECIPE_STATUS_FINISH(6, "已完成", ""),
+    RECIPE_STATUS_CHECK_PASS_YS(7, "审核通过", ""),
+    RECIPE_STATUS_READY_CHECK_YS(8, "待审核", "待药师审核"),
+    RECIPE_STATUS_REVOKE(9, "已撤销", "此处为已撤销的取消状态"),
+    RECIPE_STATUS_DELETE(10, "已删除", " 已删除(医生端历史处方不可见)"),
+    RECIPE_STATUS_HIS_FAIL(11, "写入his失败", "已取消：HIS写入失败"),
+    RECIPE_STATUS_NO_PAY(13, "未支付", "已取消:超过3天未支付"),
+    RECIPE_STATUS_NO_OPERATOR(14, "未处理", "已取消:超过3天未操作"),
+    RECIPE_STATUS_CHECK_NOT_PASS_YS(15, "审核不通过", "审核未通过(药师平台人工审核)"),
+    RECIPE_STATUS_RECIPE_FAIL(17, "失败", "已取消：取药失败"),
+    RECIPE_STATUS_RECIPE_DOWNLOADED(18, "待取药", "已下载：处方已下载"),
+    RECIPE_STATUS_USING(22, "处理中", "天猫使用中"),
+    RECIPE_STATUS_SIGN_ERROR_CODE_PHA(27, "待审核", "签名失败-药师"),
+    RECIPE_STATUS_SIGN_ING_CODE_PHA(31, "待审核", " 签名中-药师"),
+    RECIPE_STATUS_SIGN_NO_CODE_PHA(32, "待审核", " 未签名-药师"),
 
-    ORDER_STATUS_AWAIT_SHIPPING(3,"待配送",""),
+    ;
 
-    ORDER_STATUS_PROCEED_SHIPPING(4,"配送中",""),
-
-    ORDER_STATUS_DONE(5,"已完成",""),
-
-    ORDER_STATUS_CANCEL_NOT_PASS(6,"审核不通过","已取消"),
-
-    ORDER_STATUS_CANCEL_MANUAL(7,"已取消","手动取消"),
-
-    ORDER_STATUS_CANCEL_AUTO(8,"已取消","处方单自动取消或其他原因导致的订单取消"),
-
-    ORDER_STATUS_READY_CHECK(9,"待审核",""),
-
-    ORDER_STATUS_READY_DRUG(11,"准备中","药店取药（无库存准备中"),
-
-    ORDER_STATUS_DONE_DISPENSING(13,"已发药",""),
-
-    ORDER_STATUS_DECLINE(14,"已拒发",""),
-
-    ORDER_STATUS_DRUG_WITHDRAWAL(15,"已退药","");
 
     private Integer type;
     private String name;
@@ -46,7 +49,7 @@ public class RecipeStatusEnum {
         return name;
     }
 
-    public static String getOrderStatus(Integer type) {
+    public static String getRecipeStatus(Integer type) {
         for (RecipeStatusEnum e : RecipeStatusEnum.values()) {
             if (e.type.equals(type)) {
                 return e.name;

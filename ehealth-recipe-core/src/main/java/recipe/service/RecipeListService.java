@@ -46,6 +46,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -463,29 +464,14 @@ public class RecipeListService extends RecipeBaseService {
     private String getRecipeStatusText(int status) {
         String msg;
         switch (status) {
-            case RecipeStatusConstant.FINISH:
-                msg = "已完成";
-                break;
-            case RecipeStatusConstant.HAVE_PAY:
-                msg = "已支付，待取药";
-                break;
-            case RecipeStatusConstant.CHECK_PASS:
-                msg = "待处理";
-                break;
             case RecipeStatusConstant.HIS_FAIL:
                 msg = "已取消";
-                break;
-            case RecipeStatusConstant.IN_SEND:
-                msg = "配送中";
                 break;
             case RecipeStatusConstant.CHECK_PASS_YS:
                 msg = "待配送";
                 break;
-            case RecipeStatusConstant.USING:
-                msg = "处理中";
-                break;
             default:
-                msg = "未知状态";
+                msg = RecipeStatusEnum.getRecipeStatus(status);
         }
 
         return msg;
@@ -510,82 +496,15 @@ public class RecipeListService extends RecipeBaseService {
 
     private String getRecipeStatusTabText(int status, int recipeId) {
         String msg;
-        switch (status) {
-            case RecipeStatusConstant.FINISH:
-                msg = "已完成";
-                break;
-            case RecipeStatusConstant.HAVE_PAY:
-                msg = "已支付，待取药";
-                break;
-            case RecipeStatusConstant.CHECK_PASS:
-                msg = "待处理";
-                break;
-            case RecipeStatusConstant.NO_PAY:
-                msg = "未支付";
-                break;
-            case RecipeStatusConstant.NO_OPERATOR:
-                msg = "未处理";
-                break;
-            //已撤销从已取消拆出来
-            case RecipeStatusConstant.REVOKE:
-                RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
-                if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
-                    msg = "已取消";
-                } else {
-
-                    msg = "已撤销";
-                }
-
-                break;
-            //已撤销从已取消拆出来
-            case RecipeStatusConstant.DELETE:
-                msg = "已删除";
-                break;
-            //写入his失败从已取消拆出来
-            case RecipeStatusConstant.HIS_FAIL:
-                msg = "写入his失败";
-                break;
-            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                msg = "审核不通过";
-                break;
-            case RecipeStatusConstant.IN_SEND:
-                msg = "配送中";
-                break;
-            case RecipeStatusConstant.WAIT_SEND:
-                msg = "待配送";
-                break;
-            case RecipeStatusConstant.READY_CHECK_YS:
-                msg = "待审核";
-                break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
-                msg = "审核通过";
-                break;
-            case RecipeStatusConstant.RECIPE_FAIL:
-                msg = "失败";
-                break;
-            case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                msg = "待取药";
-                break;
-            case RecipeStatusConstant.USING:
-                msg = "处理中";
-                break;
-            //date 20200511
-            //药师签名状态依旧是待审核标识
-            case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
-                msg = "待审核";
-                break;
-            case RecipeStatusConstant.SIGN_ING_CODE_PHA:
-                msg = "待审核";
-                break;
-            //date 20200922
-            //【CA药师未签名】状态依旧是待审核标识
-            case RecipeStatusConstant.SIGN_NO_CODE_PHA:
-                msg = "待审核";
-                break;
-            default:
-                msg = "未知状态";
+        if (status == RecipeStatusConstant.REVOKE) {
+            msg = "已撤销";
+            RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
+            if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
+                msg = "已取消";
+            }
+        } else {
+            msg = RecipeStatusEnum.getRecipeStatus(status);
         }
-
         return msg;
     }
 
