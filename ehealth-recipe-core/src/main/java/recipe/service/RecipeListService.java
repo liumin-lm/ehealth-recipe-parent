@@ -96,7 +96,8 @@ public class RecipeListService extends RecipeBaseService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-
+    @Autowired
+    private RecipeOrderDAO orderDAO;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
     //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
@@ -1129,7 +1130,7 @@ public class RecipeListService extends RecipeBaseService {
             if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
                 record.setStatusText(getRecipeStatusTabText(record.getStatusCode(), record.getRecordId()));
                 //设置失效时间
-                if (RecipeStatusConstant.CHECK_PASS == record.getStatusCode()) {
+                if (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(record.getStatusCode())) {
                     record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
                 }
                 //处方详情
@@ -1192,7 +1193,8 @@ public class RecipeListService extends RecipeBaseService {
                         }
                     }
                     record.setRecipeDetail(recipedetailList);
-                    if (RecipeStatusConstant.CHECK_PASS == recipe.getStatusCode() && OrderStatusConstant.READY_PAY.equals(record.getStatusCode())) {
+                    if (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(recipe.getStatusCode())
+                            && RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(record.getStatusCode())) {
                         record.setRecipeSurplusHours(recipe.getRecipeSurplusHours());
                     }
                 });
@@ -1228,14 +1230,11 @@ public class RecipeListService extends RecipeBaseService {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
         }
         boolean isReturnRecipeDetail = true;//默认返回详情
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
         LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}", recipeId, JSONUtils.toString(recipe), JSONUtils.toString(order));
         try {
             //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
-            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
             LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方", RecipeUtil.isTcmType(recipe.getRecipeType()), isHiddenRecipeDetail);
             if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
@@ -1276,17 +1275,17 @@ public class RecipeListService extends RecipeBaseService {
      * @author: JRK
      */
     private void getPageMsg(PatientTabStatusRecipeDTO record) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if (null == recipe) {
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
-        } else {
-            record.setChemistSignFile(recipe.getChemistSignFile());
-            record.setSignFile(recipe.getSignFile());
-            record.setJumpPageType(getJumpPage(recipe));
-            record.setOrderCode(recipe.getOrderCode());
-            record.setClinicOrgan(recipe.getClinicOrgan());
+            return;
         }
+        record.setChemistSignFile(recipe.getChemistSignFile());
+        record.setSignFile(recipe.getSignFile());
+        record.setJumpPageType(getJumpPage(recipe));
+        record.setOrderCode(recipe.getOrderCode());
+        record.setClinicOrgan(recipe.getClinicOrgan());
+
     }
 
     /**
@@ -1298,10 +1297,12 @@ public class RecipeListService extends RecipeBaseService {
      * @author: JRK
      */
     private Integer getJumpPage(Recipe recipe) {
-        Integer jumpPage = RECIPE_PAGE;
-        jumpPage = null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
+        Integer jumpPage = null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
         return jumpPage;
     }
+
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
 
     /**
      * @param record 获取医院的配置项
@@ -1314,8 +1315,6 @@ public class RecipeListService extends RecipeBaseService {
      */
     private PayModeShowButtonBean getShowButton(PatientTabStatusRecipeDTO record) {
         PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
-
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if (null == recipe) {
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
@@ -1328,8 +1327,6 @@ public class RecipeListService extends RecipeBaseService {
             return payModeShowButtonBean;
         }
         //获取配置项
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode()) || RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())) {
 
             //添加按钮配置项key
@@ -1364,7 +1361,9 @@ public class RecipeListService extends RecipeBaseService {
         //设置按钮的展示类型
         Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(record.getOrganId(), "medicationGuideFlag");
         //已完成的处方单设置
-        if ((LIST_TYPE_ORDER.equals(record.getRecordType()) && OrderStatusConstant.FINISH.equals(record.getStatusCode())) || (LIST_TYPE_RECIPE.equals(record.getRecordType()) && RecipeStatusConstant.FINISH == record.getStatusCode())) {
+        if ((LIST_TYPE_ORDER.equals(record.getRecordType()) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(record.getStatusCode()))
+                || (LIST_TYPE_RECIPE.equals(record.getRecordType()) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType() == record.getStatusCode())) {
+
             //设置用药指导按钮
             if (showUseDrugConfig) {
                 payModeShowButtonBean.setSupportMedicationGuide(true);
@@ -1381,7 +1380,6 @@ public class RecipeListService extends RecipeBaseService {
         if (!payModeShowButtonBean.getSupportOnline()) {
             return payModeShowButtonBean;
         }
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
         payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
         Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
@@ -1459,7 +1457,6 @@ public class RecipeListService extends RecipeBaseService {
 
             //只有当亲处方有订单，且物流公司和订单号都有时展示物流信息
             Boolean haveSendInfo = false;
-            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
             if (null != order && null != order.getLogisticsCompany() && StringUtils.isNotEmpty(order.getTrackingNumber())) {
                 haveSendInfo = true;
