@@ -238,7 +238,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 }
                 prescriptionAddRequest.setDoctorParam(doctorParam);
                 // 签名图片改成签名pdf
-                String ossId = dbRecipe.getSignFile();
+                String ossId = dbRecipe.getSignImg();
                 String ossKey ;
                 try{
                     IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
