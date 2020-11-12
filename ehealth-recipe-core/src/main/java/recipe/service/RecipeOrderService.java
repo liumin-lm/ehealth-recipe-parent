@@ -2014,7 +2014,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private void getSplitAccountInfo(RecipeOrder order, WnAccountSplitParam wnSplitParam, List<Recipe> recipes) {
         Recipe recipe = recipes.get(0);
         // 医院编码
-        wnSplitParam.setYydm(order.getEnterpriseId()+"");
+        wnSplitParam.setYydm(recipe.getClinicOrgan()+ "");
         // 分账方编码
         String splitNumber="";
         // 分账方类型
