@@ -2678,9 +2678,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 //已结束的tab页应该拆成有订单和无订单的合并
+                hql.append("select groupField,ids from (");
                 //有订单
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
+                //取最后一个的别名
+                hql.append(" as groupField");
                 hql.append(",group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is not null ");
                 hql.append("GROUP BY d.ClinicOrgan,d.OrderCode,");
@@ -2689,8 +2692,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //无订单
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
+                hql.append(" as groupField");
                 hql.append(",d.RecipeID as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is null ");
+                hql.append(") s ORDER BY SUBSTRING_INDEX(ids,',',1) desc");
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
