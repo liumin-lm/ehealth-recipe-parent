@@ -3234,8 +3234,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select COUNT(d.RecipeID) from cdr_recipe d,cdr_recipe_ext e where d.RecipeID = e.recipeId ");
                 sql.append("and e.registerID =:registerId and d.ClinicOrgan =:organId and d.status = 2 and d.orderCode is null ");
-                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
-                    sql.append("and e.chronicDiseaseName =:chronicDiseaseName ");
+                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay)) {
+                    if (StringUtils.isNotEmpty(chronicDiseaseName)) {
+                        sql.append("and e.chronicDiseaseName =:chronicDiseaseName ");
+                    } else {
+                        sql.append("and e.chronicDiseaseName is null ");
+                    }
                     sql.append("GROUP BY e.registerID,d.ClinicOrgan,e.chronicDiseaseName");
                 }else {
                     sql.append("GROUP BY e.registerID,d.ClinicOrgan");
