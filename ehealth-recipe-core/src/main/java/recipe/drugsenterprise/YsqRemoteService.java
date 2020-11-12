@@ -955,7 +955,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
                     }
                     detailMap.put("PRC", detail.getSalePrice().toString());
-
+                    if (detail.getUseDays() != null) {
+                        //添加用药时长（天）
+                        detailMap.put("YYSC", detail.getUseDays().toString());
+                    } else {
+                        detailMap.put("YYSC", "");
+                    }
                     //药品使用
                     detailMap.put("DOSAGE", "");
                     detailMap.put("DOSAGENAME", getFormatDouble(detail.getUseDose()) + detail.getUseDoseUnit());
