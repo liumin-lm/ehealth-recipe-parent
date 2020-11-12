@@ -95,7 +95,7 @@ public class RecipeToHisService {
             LOGGER.info("listSingleQuery response={}", JSONUtils.toString(response));
             Integer busStatus = null;
             //有可能前置机没实现这个接口 返回null 保证流程走通
-            if (null == response){
+            if (null == response || CollectionUtils.isEmpty(response.getData())) {
                 return RecipeStatusConstant.CHECK_PASS;
             }
             if (null == response.getMsgCode()) {
