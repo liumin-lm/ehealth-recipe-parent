@@ -369,6 +369,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
             LOGGER.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
 
+            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.EXPRESSINFO_REMIND);
             String company = logisticsCompany;
             try {
                 company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(logisticsCompany);

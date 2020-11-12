@@ -295,5 +295,15 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS = 136;
 
+    /**
+     * 处方开方成功,提醒患者
+     */
+    public static final int PRESCRIBE_SUCCESS = 137;
+
+    /**
+     * 当药企/物流/运营平台配置返回了处方单的快递单号时，将给收货人的手机号码推送短信
+     */
+    public static final int EXPRESSINFO_REMIND = 138;
+
 
 }
