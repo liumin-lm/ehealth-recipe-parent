@@ -27,6 +27,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -45,13 +46,11 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.manager.EmrRecipeManager;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * company: ngarihealth
@@ -658,6 +657,16 @@ public class HisRequestInit {
                     requestTO.setTradeNo(order.getTradeNo());
                     requestTO.setOutTradeNo(order.getOutTradeNo());
                 }
+                //合并支付的处方需要将所有his处方编码传过去
+                RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                List<Recipe> recipeS = recipeDAO.findRecipeListByOrderCode(recipe.getOrderCode());
+                if(recipeS != null && recipeS.size() > 0){
+                    List<String> recipeNoS = new ArrayList<>();
+                    for (int i = 0; i < recipeS.size(); i++) {
+                        recipeNoS.add(recipe.getRecipeCode());
+                    }
+                    requestTO.setRecipeCodeS(recipeNoS);
+                }
             }
 
         } catch (Exception e) {
@@ -685,6 +694,39 @@ public class HisRequestInit {
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setCertID(patient.getCertificate());
             }
+            RecipeOrder order = null;
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+                order = dao.getByOrderCode(recipe.getOrderCode());
+            }
+
+            if (order != null) {
+                //期待配送时间
+                requestTO.setPlanDate(order.getExpectSendDate());
+                requestTO.setPlanTime(order.getExpectSendTime());
+                //收货人
+                requestTO.setConsignee(order.getReceiver());
+                //联系电话
+                requestTO.setContactTel(order.getRecMobile());
+                //收货地址
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                requestTO.setAddress(commonRemoteService.getCompleteAddress(order));
+                requestTO.setTrackingNumber(order.getTrackingNumber());
+                if (order.getLogisticsCompany() != null) {
+                    String logisticsCompany = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(order.getLogisticsCompany());
+                    requestTO.setLogisticsCompany(logisticsCompany);
+                }
+                //合并支付的处方需要将所有his处方编码传过去
+                RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                List<Recipe> recipeS = recipeDAO.findRecipeListByOrderCode(recipe.getOrderCode());
+                if(recipeS != null && recipeS.size() > 0){
+                    List<String> recipeNoS = new ArrayList<>();
+                    for (int i = 0; i < recipeS.size(); i++) {
+                        recipeNoS.add(recipe.getRecipeCode());
+                    }
+                    //requestTO.setRecipeNoS(recipeNoS);
+                }
+            }
 
             //此处就行改造
             if (null != recipe.getPayMode()) {
@@ -692,21 +734,17 @@ public class HisRequestInit {
                     requestTO.setTakeDrugsType("0");
                 }
                 if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
-                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                        RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
-                        RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
-                        if (order != null) {
-                            Integer depId = order.getEnterpriseId();
-                            if (depId != null) {
-                                DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                                DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
-                                if (drugsEnterprise != null && drugsEnterprise.getSendType() == RecipeSendTypeEnum.NO_PAY.getSendType()) {
-                                    //药企配送
-                                    requestTO.setTakeDrugsType("2");
-                                } else {
-                                    //医院配送
-                                    requestTO.setTakeDrugsType("1");
-                                }
+                    if (order != null) {
+                        Integer depId = order.getEnterpriseId();
+                        if (depId != null) {
+                            DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                            DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
+                            if (drugsEnterprise != null && drugsEnterprise.getSendType() == RecipeSendTypeEnum.NO_PAY.getSendType()) {
+                                //药企配送
+                                requestTO.setTakeDrugsType("2");
+                            } else {
+                                //医院配送
+                                requestTO.setTakeDrugsType("1");
                             }
                         }
                     }
@@ -715,28 +753,7 @@ public class HisRequestInit {
                     requestTO.setTakeDrugsType("3");
                 }
             }
-            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
-                RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
-                if (order != null) {
-                    //期待配送时间
-                    requestTO.setPlanDate(order.getExpectSendDate());
-                    requestTO.setPlanTime(order.getExpectSendTime());
-                    //收货人
-                    requestTO.setConsignee(order.getReceiver());
-                    //联系电话
-                    requestTO.setContactTel(order.getRecMobile());
-                    //收货地址
-                    CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-                    requestTO.setAddress(commonRemoteService.getCompleteAddress(order));
-                    requestTO.setTrackingNumber(order.getTrackingNumber());
-                    if (order.getLogisticsCompany() != null) {
-                        String logisticsCompany = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(order.getLogisticsCompany());
-                        requestTO.setLogisticsCompany(logisticsCompany);
-                    }
 
-                }
-            }
             requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
 
