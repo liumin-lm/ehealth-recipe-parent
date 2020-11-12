@@ -203,7 +203,10 @@ public class PurchaseService {
                                     }
                                 }
                             }
-
+                            //有可能前两个没取到交集直接结束
+                            if (CollectionUtils.isEmpty(depListBeanList)) {
+                                break;
+                            }
                         }
                     }
                 }
