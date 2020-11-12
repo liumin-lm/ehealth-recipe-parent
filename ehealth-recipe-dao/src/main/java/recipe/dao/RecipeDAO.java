@@ -2711,13 +2711,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     for (Object[] objs : result) {
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
                         //因为Map.put会覆盖相同key的数据这里如果是ongoing根据OrderCode分组后会有多个相同的挂号序号也需要类似下面的处理
-                        if (objs[mergeRecipeWay.split(",").length - 1] == null) {
+                        if (objs[0] == null) {
                             registerId = "-1" + "," + i;
                         } else {
-                            registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
+                            registerId = objs[0].toString() + "," + i;
                         }
                         //根据机构配置的id的长度获取,例e.registerId,e.chronicDiseaseName 则取第三个参数是处方id列表
-                        String recipeIdStr = LocalStringUtil.toString(objs[mergeRecipeWay.split(",").length]);
+                        String recipeIdStr = LocalStringUtil.toString(objs[1]);
                         List<Integer> recipeIdList = Lists.newArrayList();
                         if (StringUtils.isNotEmpty(recipeIdStr)) {
                             CollectionUtils.addAll(recipeIdList, (Integer[]) ConvertUtils.convert(recipeIdStr.split(","), Integer.class));
