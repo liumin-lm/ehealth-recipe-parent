@@ -724,7 +724,7 @@ public class HisRequestInit {
                     for (int i = 0; i < recipeS.size(); i++) {
                         recipeNoS.add(recipe.getRecipeCode());
                     }
-                    //requestTO.setRecipeNoS(recipeNoS);
+                    requestTO.setRecipeNoS(recipeNoS);
                 }
             }
 

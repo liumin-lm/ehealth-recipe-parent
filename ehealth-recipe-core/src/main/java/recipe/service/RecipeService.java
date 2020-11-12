@@ -3487,19 +3487,24 @@ public class RecipeService extends RecipeBaseService {
         //相应订单处理
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+        List<Integer> recipeIds = JSONUtils.parse(order.getRecipeIdList(), List.class);
         if (1 == flag || 6 == flag) {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
         } else if (PUSH_FAIL == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
         } else if (REFUND_MANUALLY == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
-            //处理处方单
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
+            for (Integer recid : recipeIds) {
+                //处理处方单
+                recipeDAO.updateRecipeInfoByRecipeId(recid, status, null);
+            }
         } else if (REFUND_PATIENT == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("payFlag", 2), null);
-            //处理处方单
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
+            for (Integer recid : recipeIds) {
+                //处理处方单
+                recipeDAO.updateRecipeInfoByRecipeId(recid, status, null);
+            }
         }
         orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("refundFlag", 1, "refundTime", new Date()), null);
 
