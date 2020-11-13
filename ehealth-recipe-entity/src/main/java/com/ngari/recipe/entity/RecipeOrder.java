@@ -251,6 +251,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "his推送药企名")
     private String hisEnterpriseName;
 
+
     @Column(name = "HisEnterpriseCode")
     public String getHisEnterpriseCode() {
         return hisEnterpriseCode;
@@ -313,6 +314,9 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "处方费用支付方式 0 线上支付 1 线下支付")
     private Integer recipePayWay;
+
+    @ItemProperty(alias = "发药标示：0:无需发药，1：已发药，2:已退药")
+    private Integer dispensingFlag;
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -1095,5 +1099,14 @@ public class RecipeOrder implements Serializable {
 
     public void setRecipePayWay(Integer recipePayWay) {
         this.recipePayWay = recipePayWay;
+    }
+
+    @Column(name = "dispensing_flag")
+    public Integer getDispensingFlag() {
+        return dispensingFlag;
+    }
+
+    public void setDispensingFlag(Integer dispensingFlag) {
+        this.dispensingFlag = dispensingFlag;
     }
 }

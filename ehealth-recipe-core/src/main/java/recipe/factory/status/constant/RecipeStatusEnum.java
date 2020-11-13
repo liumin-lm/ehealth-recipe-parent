@@ -27,6 +27,10 @@ public enum RecipeStatusEnum {
     RECIPE_STATUS_SIGN_ING_CODE_PHA(31, "待审核", " 签名中-药师"),
     RECIPE_STATUS_SIGN_NO_CODE_PHA(32, "待审核", " 未签名-药师"),
 
+
+    RECIPE_STATUS_DONE_DISPENSING(40, "已发药", ""),
+    RECIPE_STATUS_DECLINE(41, "已拒发", ""),
+    RECIPE_STATUS_DRUG_WITHDRAWAL(42, "已退药", ""),
     ;
 
 

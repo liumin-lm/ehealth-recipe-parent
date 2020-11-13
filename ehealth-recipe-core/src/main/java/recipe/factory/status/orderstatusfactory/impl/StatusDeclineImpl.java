@@ -4,8 +4,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
-import recipe.constant.RecipeStatusConstant;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 
 /**
  * 已拒发
@@ -24,7 +24,7 @@ public class StatusDeclineImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setEffective(EFFECTIVE);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
-        recipe.setStatus(RecipeStatusConstant.REVOKE);
+        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DECLINE.getType());
         return recipe;
     }
 }

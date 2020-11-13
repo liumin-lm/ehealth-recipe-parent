@@ -46,7 +46,6 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
         orderStatus.setSender("system");
-        orderStatus.setTargetRecipeStatus(RecipeStatusConstant.WAIT_SEND);
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         if (null != orderStatus.getLogisticsCompany()) {
             recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());

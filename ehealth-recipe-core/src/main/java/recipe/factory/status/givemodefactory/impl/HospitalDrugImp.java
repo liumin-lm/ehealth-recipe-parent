@@ -3,7 +3,6 @@ package recipe.factory.status.givemodefactory.impl;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
-import recipe.constant.RecipeStatusConstant;
 import recipe.factory.status.constant.GiveModeEnum;
 
 /**
@@ -20,7 +19,6 @@ public class HospitalDrugImp extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
-        orderStatus.setTargetRecipeStatus(RecipeStatusConstant.CHECK_PASS);
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
     }
