@@ -98,6 +98,9 @@ public class RecipeListService extends RecipeBaseService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeOrderDAO orderDAO;
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
+
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
     //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
@@ -473,11 +476,15 @@ public class RecipeListService extends RecipeBaseService {
         return RecipeOrderStatusEnum.getOrderStatus(status);
     }
 
-    private String getOrderStatusTabText(Integer status, Integer giveMode) {
+    private String getOrderStatusTabText(Integer status, Integer giveMode, Integer recipeStatus) {
         if (RecipeOrderStatusEnum.READY_GET_DRUG.contains(status)) {
             String msg = "待取药";
             if (GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType().equals(giveMode)) {
                 msg = "待下载";
+            }
+            //已下载特殊处理
+            if (RecipeStatusConstant.RECIPE_DOWNLOADED == recipeStatus) {
+                msg = "待取药";
             }
             return msg;
         } else {
@@ -868,14 +875,14 @@ public class RecipeListService extends RecipeBaseService {
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
         //获取页面展示的对象
-        TabStatusEnum recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
+        TabStatusEnumNew recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
         if (null == recipeStatusList) {
-            LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到recipe的状态列表", tabStatus);
+            LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到recipe的状态列表", tabStatus);
             return new ArrayList<>();
         }
-        TabStatusEnum orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
+        TabStatusEnumNew orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
         if (null == orderStatusList) {
-            LOGGER.error("findRecipesForPatientAndTabStatusNew:{}tab没有查询到order的状态列表", tabStatus);
+            LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return new ArrayList<>();
         }
         try {
@@ -883,7 +890,9 @@ public class RecipeListService extends RecipeBaseService {
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("findRecipesForPatientAndTabStatusNew organIds={}", JSONUtils.toString(organIds));
             Boolean mergeRecipeFlag = false;
+
             if (CollectionUtils.isNotEmpty(organIds)) {
                 for (Integer organId : organIds) {
                     //获取区域公众号
@@ -896,6 +905,9 @@ public class RecipeListService extends RecipeBaseService {
                     }
                 }
             }
+            //再根据区域公众号里是否都支持同一种合并方式
+            //默认
+            String mergeRecipeWayAfter = "e.registerId";
             if (mergeRecipeFlag) {
                 //获取合并处方分组方式
                 //e.registerId支持同一个挂号序号下的处方合并支付
@@ -905,9 +917,24 @@ public class RecipeListService extends RecipeBaseService {
                 if (StringUtils.isEmpty(mergeRecipeWay)) {
                     mergeRecipeWay = "e.registerId";
                 }
-                LOGGER.error("findRecipesForPatientAndTabStatusNew:mpiId={},mergeRecipeWay={}", mpiId, mergeRecipeWay);
+                //如果只有一个就取第一个
+                if (organIds.size() == 1) {
+                    mergeRecipeWayAfter = mergeRecipeWay;
+                }
+                //从第二个开始进行比较
+                for (int i = 1; i < organIds.size(); i++) {
+                    mergeRecipeWayAfter = (String) configService.getConfiguration(organIds.get(i), "mergeRecipeWay");
+                    if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
+                        mergeRecipeFlag = false;
+                        LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organIds.get(i), mergeRecipeWay);
+                        break;
+                    }
+                }
+                LOGGER.info("findRecipesForPatientAndTabStatusNew mpiId={},mergeRecipeFlag={},mergeRecipeWay={}", mpiId, mergeRecipeFlag, mergeRecipeWay);
+            }
+            if (mergeRecipeFlag) {
                 //返回合并处方
-                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWay);
+                return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWayAfter);
             } else {
                 //返回非合并处方
                 return findNoMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
@@ -949,10 +976,15 @@ public class RecipeListService extends RecipeBaseService {
         } else {
             registerIdRelation = recipeDAO.findRecipeIdAndRegisterIdRelation(allMpiIds, index, limit, statusList, orderStatusList, tabStatus, mergeRecipeWay);
         }
+        LOGGER.info("findMergeRecipe tabStatus={},statusList={},registerIdRelation={}", tabStatus, JSONUtils.toString(statusList), JSONUtils.toString(registerIdRelation));
         for (Map.Entry<String, List<Integer>> entry : registerIdRelation.entrySet()) {
+            String key = "";
+            if (StringUtils.isNotEmpty(entry.getKey())) {
+                key = entry.getKey().split(",")[0];
+            }
             //具体到某一个挂号序号下的处方列表
             //先处理挂号序号为空的情况 -1
-            if ("-1".equals(entry.getKey())) {
+            if ("-1".equals(key)) {
                 //挂号序号为空表示不能合并处方单
                 for (Integer recipeId : entry.getValue()) {
                     mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
@@ -965,9 +997,7 @@ public class RecipeListService extends RecipeBaseService {
             } else {
                 mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 //分组字段值
-                if (StringUtils.isNotEmpty(entry.getKey())) {
-                    mergeRecipeDTO.setGroupField(entry.getKey().split(",")[0]);
-                }
+                mergeRecipeDTO.setGroupField(key);
                 mergeRecipeDTO.setMergeRecipeWay(mergeRecipeWay);
                 mergeRecipeDTO.setRecipe(processTabListDataNew(entry.getValue()));
                 mergeRecipeDTO.setFirstRecipeId(entry.getValue().get(0));
@@ -1182,6 +1212,7 @@ public class RecipeListService extends RecipeBaseService {
                     record.setDoctorName(recipe.getDoctorName());
                     record.setDepartName(recipe.getDepartName());
                     record.setRecipeCode(recipe.getRecipeCode());
+                    record.setSignDate(recipe.getSignDate());
 
                     //药品详情
                     List<RecipeDetailBean> recipedetailList = recipe.getRecipeDetail();
@@ -1301,8 +1332,6 @@ public class RecipeListService extends RecipeBaseService {
         return jumpPage;
     }
 
-    @Autowired
-    private IConfigurationCenterUtilsService configService;
 
     /**
      * @param record 获取医院的配置项

@@ -263,6 +263,11 @@ public class EleInvoiceService {
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null");
         }
+        //如果是合并处方处理
+        List<Integer> recipeIds = eleInvoiceDTO.getRecipeIds();
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            recipeIds = Arrays.asList(recipeId);
+        }
         eleInvoiceReqTo.setRequestId(recipe.getRecipeId());
         eleInvoiceReqTo.setCreateDate(recipe.getCreateDate());
         eleInvoiceReqTo.setDeptId(recipe.getDepart());
@@ -299,7 +304,7 @@ public class EleInvoiceService {
             }
         }
 
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIds);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
             recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getOrganDrugCode(),
                     a.getDrugName(), a.getActualSalePrice(), a.getDrugUnit(), a.getUseTotalDose())));

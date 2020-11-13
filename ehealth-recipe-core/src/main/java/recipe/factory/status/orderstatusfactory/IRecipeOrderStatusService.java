@@ -30,4 +30,11 @@ public interface IRecipeOrderStatusService {
      * @param recipe
      */
     void upRecipeThreadPool(Recipe recipe);
+
+    /**
+     * 合并支付 更新同组处方 状态
+     * @param recipe
+     * @param orderId
+     */
+    void updateGroupRecipe(Recipe recipe,Integer orderId);
 }

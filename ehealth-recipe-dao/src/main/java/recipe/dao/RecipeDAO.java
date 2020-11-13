@@ -765,7 +765,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param recipeIds
      */
-    @DAOMethod(sql = "update Recipe set status = :status where recipeId = :recipeId and recipeId = :beforStatus")
+    @DAOMethod(sql = "update Recipe set status = :status where recipeId = :recipeId and status = :beforStatus")
     public abstract void updateStatusByRecipeIdAndStatus(@DAOParam("status") Integer status, @DAOParam("recipeIds") Integer recipeIds, @DAOParam("beforStatus") Integer beforStatus);
 
     /**
@@ -2514,7 +2514,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 if ("onready".equals(tabStatus)) {
                     hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as status,t.TotalMoney as fee," + "t.SignDate as recordDate,'' as couponId,t.MedicalPayFlag,t.RecipeType,t.ClinicOrgan as organId,t.recipeMode,t.giveMode,t.recipeSource,t.payFlag,t.recipeId from cdr_recipe t ");
-                    hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.OrderCode is null ORDER BY t.SignDate desc");
+                    hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and (t.Status IN (:recipeStatusList) or (t.Status=15 and t.checkStatus = 1)) and t.OrderCode is null ORDER BY t.SignDate desc");
                 } else if ("ongoing".equals(tabStatus)) {
                     hql.append("select 2 as type,o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId,'' as diseaseNam,o.Status,o.ActualPrice as fee," + "o.CreateTime as recordDate,o.CouponId,0 as medicalPayFlag,w.recipeType,o.OrganId,w.recipeMode,w.GiveMode,w.recipeSource,w.payFlag ,w.recipeId from ");
                     hql.append("cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
@@ -2522,7 +2522,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 } else {
                     hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," + "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode, s.recipeSource,s.payFlag ,s.recipeId from (");
                     hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," + "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName, t.Status as Status,t.TotalMoney as fee," + "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource ,t.payFlag as payFlag,t.recipeId FROM cdr_recipe t " + "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
-                    hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList)");
+                    hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.checkStatus != 1 ");
                     hql.append("UNION ALL ");
                     hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " + "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," + "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag,w.recipeId FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
                     hql.append(") s ORDER BY s.recordDate desc");
@@ -2634,11 +2634,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(result)) {
                     //相同挂号序号的情况下
                     int i = 0;
+                    String registerId;
                     for (Object[] objs : result) {
-                        String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
+                        //因为Map.put会覆盖相同key的数据这里如果是ongoing根据OrderCode分组后会有多个相同的挂号序号也需要类似下面的处理
                         if (objs[mergeRecipeWay.split(",").length - 1] == null) {
-                            registerId = "-1";
+                            registerId = "-1" + "," + i;
                         } else {
                             registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
                         }
@@ -2677,9 +2678,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 //已结束的tab页应该拆成有订单和无订单的合并
+                hql.append("select groupField,ids from (");
                 //有订单
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
+                //取最后一个的别名
+                hql.append(" as groupField");
                 hql.append(",group_concat(d.RecipeID ORDER BY d.RecipeID desc) as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is not null ");
                 hql.append("GROUP BY d.ClinicOrgan,d.OrderCode,");
@@ -2688,8 +2692,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //无订单
                 hql.append("select ");
                 hql.append(mergeRecipeWay);
+                hql.append(" as groupField");
                 hql.append(",d.RecipeID as ids from cdr_recipe d,cdr_recipe_ext e ");
                 hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is null ");
+                hql.append(") s ORDER BY SUBSTRING_INDEX(ids,',',1) desc");
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
@@ -2701,16 +2707,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Map<String, List<Integer>> registerIdAndRecipeIds = new HashMap<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
                     int i = 0;
+                    String registerId;
                     for (Object[] objs : result) {
-                        String registerId;
                         //挂号序号为空的情况 用-1表示无挂号序号的情况
-                        if (objs[mergeRecipeWay.split(",").length - 1] == null) {
-                            registerId = "-1";
+                        //因为Map.put会覆盖相同key的数据这里如果是ongoing根据OrderCode分组后会有多个相同的挂号序号也需要类似下面的处理
+                        if (objs[0] == null) {
+                            registerId = "-1" + "," + i;
                         } else {
-                            registerId = objs[mergeRecipeWay.split(",").length - 1].toString() + "," + i;
+                            registerId = objs[0].toString() + "," + i;
                         }
                         //根据机构配置的id的长度获取,例e.registerId,e.chronicDiseaseName 则取第三个参数是处方id列表
-                        String recipeIdStr = LocalStringUtil.toString(objs[mergeRecipeWay.split(",").length]);
+                        String recipeIdStr = LocalStringUtil.toString(objs[1]);
                         List<Integer> recipeIdList = Lists.newArrayList();
                         if (StringUtils.isNotEmpty(recipeIdStr)) {
                             CollectionUtils.addAll(recipeIdList, (Integer[]) ConvertUtils.convert(recipeIdStr.split(","), Integer.class));
@@ -3226,14 +3233,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    public Integer getNumCanMergeRecipeByMergeRecipeWay(String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
+    public Integer getNumCanMergeRecipeByMergeRecipeWay(String mpiId, String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select COUNT(d.RecipeID) from cdr_recipe d,cdr_recipe_ext e where d.RecipeID = e.recipeId ");
-                sql.append("and e.registerID =:registerId and d.ClinicOrgan =:organId ");
-                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
-                    sql.append("and e.chronicDiseaseName =:chronicDiseaseName ");
+                sql.append("and e.registerID =:registerId and d.ClinicOrgan =:organId and d.MPIID =:mpiId and d.status = 2 and d.orderCode is null ");
+                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay)) {
+                    if (StringUtils.isNotEmpty(chronicDiseaseName)) {
+                        sql.append("and e.chronicDiseaseName =:chronicDiseaseName ");
+                    } else {
+                        sql.append("and e.chronicDiseaseName is null ");
+                    }
                     sql.append("GROUP BY e.registerID,d.ClinicOrgan,e.chronicDiseaseName");
                 }else {
                     sql.append("GROUP BY e.registerID,d.ClinicOrgan");
@@ -3241,11 +3252,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Query q = ss.createSQLQuery(sql.toString());
                 q.setParameter("registerId",registerId);
                 q.setParameter("organId",organId);
+                q.setParameter("mpiId", mpiId);
                 if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
                     q.setParameter("chronicDiseaseName",chronicDiseaseName);
                 }
-                Number number = (Number) q.uniqueResult();
-                setResult(number.intValue());
+                if (q.uniqueResult() == null) {
+                    setResult(0);
+                } else {
+                    Number number = (Number) q.uniqueResult();
+                    setResult(number.intValue());
+                }
             }
         };
         HibernateSessionTemplate.instance().execute(action);
