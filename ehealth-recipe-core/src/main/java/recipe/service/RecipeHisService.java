@@ -466,7 +466,7 @@ public class RecipeHisService extends RecipeBaseService {
                 Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(recipeId));
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+                //recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
                 recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
                 recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
