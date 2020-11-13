@@ -339,8 +339,17 @@ public class QueryRecipeService implements IQueryRecipeService {
                     }
                 }
             }
+            //设置健康卡
+            if (recipe.getClinicId() != null) {
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                if (consultExDTO != null) {
+                    recipeDTO.setCardType(consultExDTO.getCardType());
+                    recipeDTO.setCardNo(consultExDTO.getCardId());
+                }
+            }
             //设置卡
-            if (null != card) {
+            if (null != card && StringUtils.isEmpty(recipeDTO.getCardNo())) {
                 recipeDTO.setCardType(card.getCardType());
                 recipeDTO.setCardNo(card.getCardId());
             }
@@ -370,6 +379,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             }
 
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
+            LOGGER.info("queryRecipe splicingBackData recipeDTO:{}", JSONUtils.toString(recipeDTO));
         } catch (Exception e) {
             LOGGER.error("queryRecipe splicingBackData error", e);
         }
