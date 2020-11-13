@@ -547,6 +547,7 @@ public class PrescribeService {
         }else {
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("distributionFlag",0));
         }
+        //TODO liu
         String cardTypeName = otherInfo.get("cardTypeName");
         String cardNo = otherInfo.get("cardNo");
         String patientType = otherInfo.get("patientType");
