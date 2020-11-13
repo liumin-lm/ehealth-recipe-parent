@@ -1,5 +1,7 @@
 package recipe.thread;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.service.RecipeHisService;
 
@@ -21,6 +23,7 @@ public class UpdateRecipeStatusFromHisCallable implements Callable<String> {
     private Integer organId;*/
 
     private Map<Integer, List<String>> map;
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateRecipeStatusFromHisCallable.class);
 
     public UpdateRecipeStatusFromHisCallable(Map<Integer, List<String>> map) {
         /*this.recipeCodes = recipeCodes;
@@ -34,9 +37,11 @@ public class UpdateRecipeStatusFromHisCallable implements Callable<String> {
             if (null == map.get(organId) || map.get(organId).isEmpty() || null == organId) {
                 continue;
             }
+
             //HIS消息发送
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             hisService.recipeListQuery(map.get(organId), organId);
+            LOGGER.info("UpdateRecipeStatusFromHisCallable 需要同步HIS处方，MAP数量=[{}]", (null == map.get(organId)) ? 0 : map.get(organId).size());
         }
         return "";
     }
