@@ -2989,7 +2989,6 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public void getRecipeStatusFromHis() {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-
         //设置查询时间段
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
         String endDt = DateConversion.getDateFormatter(DateTime.now().toDate(), DateConversion.DEFAULT_DATE_TIME);
@@ -2998,12 +2997,9 @@ public class RecipeService extends RecipeBaseService {
         List<Recipe> list = recipeDAO.getRecipeStatusFromHis(startDt, endDt);
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
         assembleQueryStatusFromHis(list, map);
-        List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(10);
-        //HIS消息发送
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(0);
         for (Integer organId : map.keySet()) {
-            hisService.recipeListQuery(map.get(organId), organId);
-            //callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
+            callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
         }
         if (CollectionUtils.isNotEmpty(callables)) {
             try {

@@ -462,11 +462,11 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             //RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipeCodes, organId);
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
-            for (String recipeId : recipeCodes) {
-                Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(recipeId));
+            for (String recipeCode : recipeCodes) {
+                Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-                //recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
                 recipeListQueryReqTO.setCardNo(recipeExtend == null ? null : recipeExtend.getCardNo());
                 recipeListQueryReqTO.setCardType(recipeExtend == null ? null : recipeExtend.getCardType());
@@ -474,12 +474,8 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeListQueryReqTO.setPatientId(recipe.getPatientID());
                 recipeListQueryReqTO.setRegisterId(recipeExtend == null ? null : recipeExtend.getRegisterID());
                 recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
-                /*recipeListQueryReqTO.setPatientName("刘大江");
-                recipeListQueryReqTO.setRecipeNo("29778340");
-                recipeListQueryReqTO.setOrganID("1");*/
                 requestList.add(recipeListQueryReqTO);
             }
-            LOGGER.error("recipeListQuery调用His成功");
             service.listQuery(requestList);
         } else {
             LOGGER.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
