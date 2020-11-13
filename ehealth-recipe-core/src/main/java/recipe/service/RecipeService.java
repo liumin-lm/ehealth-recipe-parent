@@ -3000,6 +3000,7 @@ public class RecipeService extends RecipeBaseService {
         assembleQueryStatusFromHis(list, map);
         List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(10);
         callables.add(new UpdateRecipeStatusFromHisCallable(map));
+        LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，MAP数量=[{}]", (null == list) ? 0 : map.size());
         if (CollectionUtils.isNotEmpty(callables)) {
             try {
                 RecipeBusiThreadPool.submitList(callables);
