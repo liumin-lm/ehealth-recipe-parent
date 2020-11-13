@@ -2997,13 +2997,9 @@ public class RecipeService extends RecipeBaseService {
         Map<Integer, List<String>> map = Maps.newHashMap();
         List<Recipe> list = recipeDAO.getRecipeStatusFromHis(startDt, endDt);
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
-
         assembleQueryStatusFromHis(list, map);
-        List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(0);
-        for (Integer organId : map.keySet()) {
-            callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
-        }
-
+        List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(10);
+        callables.add(new UpdateRecipeStatusFromHisCallable(map));
         if (CollectionUtils.isNotEmpty(callables)) {
             try {
                 RecipeBusiThreadPool.submitList(callables);
