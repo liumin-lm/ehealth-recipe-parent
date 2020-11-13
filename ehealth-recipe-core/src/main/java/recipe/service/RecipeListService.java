@@ -100,7 +100,8 @@ public class RecipeListService extends RecipeBaseService {
     private RecipeOrderDAO orderDAO;
     @Autowired
     private IConfigurationCenterUtilsService configService;
-
+    @Autowired
+    private RecipeRefundDAO recipeRefundDAO;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
     //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
@@ -468,7 +469,6 @@ public class RecipeListService extends RecipeBaseService {
             default:
                 msg = RecipeStatusEnum.getRecipeStatus(status);
         }
-
         return msg;
     }
 
@@ -476,33 +476,27 @@ public class RecipeListService extends RecipeBaseService {
         return RecipeOrderStatusEnum.getOrderStatus(status);
     }
 
-    private String getOrderStatusTabText(Integer status, Integer giveMode) {
-        if (RecipeOrderStatusEnum.READY_GET_DRUG.contains(status)) {
-            String msg = "待取药";
-            if (GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType().equals(giveMode)) {
-                msg = "待下载";
-            }
-            //已下载特殊处理
-//            if (RecipeStatusConstant.RECIPE_DOWNLOADED == recipeStatus) {
-//                msg = "待取药";
-//            }
-            return msg;
-        } else {
-            return getOrderStatusText(status);
+    private String getOrderStatusTabText(Integer status, Integer giveMode, Integer recipeStatus) {
+        if (RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(status)
+                && GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType().equals(giveMode)
+                && !RecipeStatusEnum.RECIPE_STATUS_RECIPE_DOWNLOADED.getType().equals(recipeStatus)) {
+            return "待下载";
         }
+        if (RecipeOrderStatusEnum.READY_GET_DRUG.contains(status)) {
+            return "待取药";
+        }
+        return getOrderStatusText(status);
+       
     }
 
     private String getRecipeStatusTabText(int status, int recipeId) {
-        if (status == RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType()) {
-            String msg = "已撤销";
-            RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
+        String msg = RecipeStatusEnum.getRecipeStatus(status);
+        if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getName().equals(msg)) {
             if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
                 msg = "已取消";
             }
-            return msg;
-        } else {
-            return RecipeStatusEnum.getRecipeStatus(status);
         }
+        return msg;
     }
 
 
@@ -1068,7 +1062,7 @@ public class RecipeListService extends RecipeBaseService {
                     patientRecipe.setRecordId(recipeOrder.getOrderId());
                     patientRecipe.setRecordCode(recipeOrder.getOrderCode());
                     patientRecipe.setStatusCode(recipeOrder.getStatus());
-                    patientRecipe.setStatusText(getOrderStatusTabText(patientRecipe.getStatusCode(), patientRecipe.getGiveMode()));
+                    patientRecipe.setStatusText(getOrderStatusTabText(patientRecipe.getStatusCode(), patientRecipe.getGiveMode(), recipe.getStatus()));
                     patientRecipe.setEnterpriseId(recipeOrder.getEnterpriseId());
                     if (null != recipeOrder.getLogisticsCompany()) {
                         try {
@@ -1105,18 +1099,17 @@ public class RecipeListService extends RecipeBaseService {
             List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             patientRecipe.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
             //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
-            getPageMsg(patientRecipe);
+            getPageMsg(patientRecipe, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
-            PayModeShowButtonBean buttons = getShowButton(patientRecipe);
+            PayModeShowButtonBean buttons = getShowButton(patientRecipe, recipe);
             patientRecipe.setButtons(buttons);
             //根据隐方配置返回处方详情
             boolean isReturnRecipeDetail = isReturnRecipeDetail(patientRecipe.getRecipeId());
-            List<RecipeDetailBean> recipeDetailVOs = patientRecipe.getRecipeDetail();
-            if (!isReturnRecipeDetail && CollectionUtils.isNotEmpty(recipeDetailVOs)) {
-                for (RecipeDetailBean detail : recipeDetailVOs) {
-                    detail.setDrugName(null);
-                    detail.setDrugSpec(null);
-                }
+            if (!isReturnRecipeDetail && CollectionUtils.isNotEmpty(patientRecipe.getRecipeDetail())) {
+                patientRecipe.getRecipeDetail().forEach(a -> {
+                    a.setDrugName(null);
+                    a.setDrugSpec(null);
+                });
             }
             //返回是否隐方
             patientRecipe.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
@@ -1156,7 +1149,7 @@ public class RecipeListService extends RecipeBaseService {
                 }
                 record.setCheckEnterprise(checkEnterprise.get(record.getOrganId()));
             }
-
+            Recipe recipe = null;
             if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
                 record.setStatusText(getRecipeStatusTabText(record.getStatusCode(), record.getRecordId()));
                 //设置失效时间
@@ -1164,7 +1157,7 @@ public class RecipeListService extends RecipeBaseService {
                     record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
                 }
                 //处方详情
-                Recipe recipe = recipeDAO.getByRecipeId(record.getRecordId());
+                recipe = recipeDAO.getByRecipeId(record.getRecordId());
                 if (recipe != null) {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
@@ -1184,7 +1177,8 @@ public class RecipeListService extends RecipeBaseService {
                 }
                 record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
             } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
-                record.setStatusText(getOrderStatusTabText(record.getStatusCode(), record.getGiveMode()));
+                recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
+                record.setStatusText(getOrderStatusTabText(record.getStatusCode(), record.getGiveMode(), recipe.getStatus()));
                 RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                 RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
                 if (!RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
@@ -1202,20 +1196,20 @@ public class RecipeListService extends RecipeBaseService {
                     // 药企物流对接方式
                     Optional.ofNullable(drugsEnterpriseDAO.getById(order.getEnterpriseId())).ifPresent(a -> record.setLogisticsType(a.getLogisticsType()));
                 }
-                Optional.ofNullable((List<PatientRecipeDTO>) order.getList()).orElseGet(Collections::emptyList).forEach(recipe -> {
-                    record.setRecipeId(recipe.getRecipeId());
-                    record.setRecipeType(recipe.getRecipeType());
-                    record.setOrganDiseaseName(recipe.getOrganDiseaseName());
-                    record.setRecipeMode(recipe.getRecipeMode());
+                Optional.ofNullable((List<PatientRecipeDTO>) order.getList()).orElseGet(Collections::emptyList).forEach(a -> {
+                    record.setRecipeId(a.getRecipeId());
+                    record.setRecipeType(a.getRecipeType());
+                    record.setOrganDiseaseName(a.getOrganDiseaseName());
+                    record.setRecipeMode(a.getRecipeMode());
                     // 订单支付方式
-                    record.setPayMode(recipe.getPayMode());
-                    record.setDoctorName(recipe.getDoctorName());
-                    record.setDepartName(recipe.getDepartName());
-                    record.setRecipeCode(recipe.getRecipeCode());
-                    record.setSignDate(recipe.getSignDate());
+                    record.setPayMode(a.getPayMode());
+                    record.setDoctorName(a.getDoctorName());
+                    record.setDepartName(a.getDepartName());
+                    record.setRecipeCode(a.getRecipeCode());
+                    record.setSignDate(a.getSignDate());
 
                     //药品详情
-                    List<RecipeDetailBean> recipedetailList = recipe.getRecipeDetail();
+                    List<RecipeDetailBean> recipedetailList = a.getRecipeDetail();
                     for (RecipeDetailBean recipedetail : recipedetailList) {
                         Recipe recipes = recipeDAO.getByRecipeId(recipedetail.getRecipeId());
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipes.getClinicOrgan());
@@ -1224,16 +1218,16 @@ public class RecipeListService extends RecipeBaseService {
                         }
                     }
                     record.setRecipeDetail(recipedetailList);
-                    if (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(recipe.getStatusCode())
+                    if (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(a.getStatusCode())
                             && RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(record.getStatusCode())) {
-                        record.setRecipeSurplusHours(recipe.getRecipeSurplusHours());
+                        record.setRecipeSurplusHours(a.getRecipeSurplusHours());
                     }
                 });
             }
             //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
-            getPageMsg(record);
+            getPageMsg(record, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
-            record.setButtons(getShowButton(record));
+            record.setButtons(getShowButton(record, recipe));
             boolean isReturnRecipeDetail = isReturnRecipeDetail(record.getRecipeId());
             //返回是否隐方
             record.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
@@ -1305,8 +1299,7 @@ public class RecipeListService extends RecipeBaseService {
      * @date: 2019/9/3
      * @author: JRK
      */
-    private void getPageMsg(PatientTabStatusRecipeDTO record) {
-        Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
+    private void getPageMsg(PatientTabStatusRecipeDTO record, Recipe recipe) {
         if (null == recipe) {
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
             return;
@@ -1342,9 +1335,8 @@ public class RecipeListService extends RecipeBaseService {
      * @date: 2019/8/19
      * @author: JRK
      */
-    private PayModeShowButtonBean getShowButton(PatientTabStatusRecipeDTO record) {
+    private PayModeShowButtonBean getShowButton(PatientTabStatusRecipeDTO record, Recipe recipe) {
         PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
-        Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if (null == recipe) {
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
             payModeShowButtonBean.noUserButtons();
