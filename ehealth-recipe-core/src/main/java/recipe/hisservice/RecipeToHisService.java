@@ -147,7 +147,7 @@ public class RecipeToHisService {
             IRecipeAuditService recipeAuditService= RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             LOGGER.info("listQuery response={}", JSONUtils.toString(response));
-            if (null == response || null == response.getMsgCode()) {
+            if (null == response || null == response.getMsgCode() || null == response.getData()) {
                 return;
             }
             List<QueryRepTO> list = response.getData();
