@@ -2999,16 +2999,8 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
         assembleQueryStatusFromHis(list, map);
         List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(10);
-        //callables.add(new UpdateRecipeStatusFromHisCallable(map));
-        LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，MAP数量=[{}]", (null == list) ? 0 : map.size());
-        //HIS消息发送
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         for (Integer organId : map.keySet()) {
-            if (null == map.get(organId) || map.get(organId).isEmpty() || null == organId) {
-                continue;
-            }
-            hisService.recipeListQuery(map.get(organId), organId);
-            LOGGER.info("UpdateRecipeStatusFromHisCallable 需要同步HIS处方，MAP数量=[{}]", (null == map.get(organId)) ? 0 : map.get(organId).size());
+            callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
         }
         if (CollectionUtils.isNotEmpty(callables)) {
             try {

@@ -351,7 +351,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (null == result) {
             result = RecipeResultBean.getSuccess();
         }
-         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
@@ -389,7 +389,7 @@ public class RecipeHisService extends RecipeBaseService {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         // 111 为卫宁支付---卫宁付不走前置机的his结算
                         if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                            List<String> recipeIdList = (List<String>)JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                            List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                             PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
                             PayNotifyResTO response = service.payNotify(payNotifyReq);
                             if (null != response && response.getMsgCode() == 0) {
@@ -449,6 +449,7 @@ public class RecipeHisService extends RecipeBaseService {
 
     @Autowired
     private RecipeDAO recipeDAO;
+
     /**
      * 处方批量查询
      *
@@ -465,7 +466,7 @@ public class RecipeHisService extends RecipeBaseService {
                 Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(recipeId));
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(recipeId));
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
                 recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
                 recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
@@ -665,8 +666,8 @@ public class RecipeHisService extends RecipeBaseService {
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());
             String recipeCodeS = MapValueUtil.getString(extInfo, "recipeNoS");
-            if(recipeCodeS != null){
-                request.setHisRecipeNoS(JSONUtils.parse(recipeCodeS,ArrayList.class));
+            if (recipeCodeS != null) {
+                request.setHisRecipeNoS(JSONUtils.parse(recipeCodeS, ArrayList.class));
             }
             request.setDoctorId(recipe.getDoctor() + "");
             request.setDoctorName(recipe.getDoctorName());
