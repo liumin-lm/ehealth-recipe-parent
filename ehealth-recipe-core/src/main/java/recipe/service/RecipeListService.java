@@ -476,16 +476,16 @@ public class RecipeListService extends RecipeBaseService {
         return RecipeOrderStatusEnum.getOrderStatus(status);
     }
 
-    private String getOrderStatusTabText(Integer status, Integer giveMode, Integer recipeStatus) {
+    private String getOrderStatusTabText(Integer status, Integer giveMode) {
         if (RecipeOrderStatusEnum.READY_GET_DRUG.contains(status)) {
             String msg = "待取药";
             if (GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType().equals(giveMode)) {
                 msg = "待下载";
             }
             //已下载特殊处理
-            if (RecipeStatusConstant.RECIPE_DOWNLOADED == recipeStatus) {
-                msg = "待取药";
-            }
+//            if (RecipeStatusConstant.RECIPE_DOWNLOADED == recipeStatus) {
+//                msg = "待取药";
+//            }
             return msg;
         } else {
             return getOrderStatusText(status);
