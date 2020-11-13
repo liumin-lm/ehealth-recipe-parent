@@ -109,35 +109,38 @@
 
 	<bean id="ysqnRemoteService" class="recipe.drugsenterprise.YsqnRemoteService"/>
 
-	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
+	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
+		  destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
-		<property name="corePoolSize" value="5" />
+		<property name="corePoolSize" value="5"/>
 		<!-- 线程池最大活跃的线程数 -->
-		<property name="maxPoolSize" value="100" />
+		<property name="maxPoolSize" value="100"/>
 		<!-- 队列的最大容量 -->
-		<property name="queueCapacity" value="100" />
-        <!-- 是否允许空闲核心线程超时 一旦超时便销毁线程 -->
-        <property name="allowCoreThreadTimeOut" value="true" />
-        <!-- 线程池中空闲线程等待工作的超时时间300s -->
-        <property name="keepAliveSeconds" value="300" />
+		<property name="queueCapacity" value="100"/>
+		<!-- 是否允许空闲核心线程超时 一旦超时便销毁线程 -->
+		<property name="allowCoreThreadTimeOut" value="true"/>
+		<!-- 线程池中空闲线程等待工作的超时时间300s -->
+		<property name="keepAliveSeconds" value="300"/>
 	</bean>
 
-    <!--合理用药设置-->
+	<!--合理用药设置-->
 	<bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
 		<property name="wnPaServiceUrl" value="${wnpa.url}"/>
-        <property name="wnPaHosCode" value="${wnpa.hoscode}"/>
+		<property name="wnPaHosCode" value="${wnpa.hoscode}"/>
 	</bean>
 
-    <bean id="onsConfig" class="recipe.mq.OnsConfig" >
-        <property name="onsSwitch" value="${ons.switch.on}"/>
-        <property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
-        <property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
-        <property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
-    </bean>
+	<bean id="onsConfig" class="recipe.mq.OnsConfig">
+		<property name="onsSwitch" value="${ons.switch.on}"/>
+		<property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
+		<property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
+		<property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
+		<property name="emrRecipe" value="${ons_emr_recipe}"/>
+	</bean>
 
-	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit" ></bean>
+	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit"></bean>
 
-	<bean id = "alihealthHospitalServiceImpl" class="com.alijk.bqhospital.alijk.service.impl.AlihealthHospitalServiceImpl">
+	<bean id="alihealthHospitalServiceImpl"
+		  class="com.alijk.bqhospital.alijk.service.impl.AlihealthHospitalServiceImpl">
 		<property name="taobaoConf" ref="taobaoConf"/>
 	</bean>
 
@@ -145,8 +148,8 @@
 		<property name="appkey" value="25761410"/>
 		<property name="secret" value="f4511d0b3a0aa1bb349c9767270c14ef"/>
 		<property name="url" value="${taobao.buss.url}"/>
-        <property name="msgUrl" value="${taobao.buss.msgUrl}" />
-        <property name="msgGroup" value="default" />
+		<property name="msgUrl" value="${taobao.buss.msgUrl}"/>
+		<property name="msgGroup" value="default"/>
 	</bean>
 	<!--注入处方审核的消息-->
     <bean id="bqHospitalTmcServer" class="com.alijk.bqhospital.alijk.message.BqHospitalTmcServer">

@@ -136,6 +136,14 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     public abstract void updatefundAmountToNullByRecipeId(@DAOParam("recipeId") int recipeId);
 
     /**
+     * 删除 电子病例处方关联
+     *
+     * @param docIndexId
+     */
+    @DAOMethod(sql = "update RecipeExtend set docIndexId=0 where docIndexId=:docIndexId")
+    public abstract void updateDocIndexId(@DAOParam("docIndexId") int docIndexId);
+
+    /**
      * 根据处方id批量删除
      *
      * @param recipeIds
