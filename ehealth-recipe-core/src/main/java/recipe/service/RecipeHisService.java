@@ -468,11 +468,11 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 //recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
-                recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
-                recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
+                recipeListQueryReqTO.setCardNo(recipeExtend == null ? null : recipeExtend.getCardNo());
+                recipeListQueryReqTO.setCardType(recipeExtend == null ? null : recipeExtend.getCardType());
                 recipeListQueryReqTO.setPatientName(recipe.getPatientName());
                 recipeListQueryReqTO.setPatientId(recipe.getPatientID());
-                recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
+                recipeListQueryReqTO.setRegisterId(recipeExtend == null ? null : recipeExtend.getRegisterID());
                 recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
                 /*recipeListQueryReqTO.setPatientName("刘大江");
                 recipeListQueryReqTO.setRecipeNo("29778340");
