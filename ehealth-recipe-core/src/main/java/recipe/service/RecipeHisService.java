@@ -479,6 +479,7 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeListQueryReqTO.setOrganID("1");*/
                 requestList.add(recipeListQueryReqTO);
             }
+            LOGGER.error("recipeListQuery调用His成功");
             service.listQuery(requestList);
         } else {
             LOGGER.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
