@@ -205,6 +205,8 @@ public class RecipeToHisService {
                         }
                     }
                 }
+            } else{
+                LOGGER.warn("listQuery MsgCode存在查询不到未审核处方单,organId={},recipeCode={}",organId);
             }
             if (CollectionUtils.isNotEmpty(payList)) {
                 HisCallBackService.havePayRecipesFromHis(payList, organId);
