@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
+import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.service.RecipeMsgService;
 
 /**
@@ -35,6 +36,8 @@ public class RecipeOrderAtop extends BaseAtop {
         try {
             ResultBean result = recipeOrderTwoService.updateRecipeOrderStatus(updateOrderStatusVO);
             if(result.getCode() == CodeEnum.SERVICE_SUCCEED.getCode()) {
+                // 同步运单信息至基础服务
+                ThirdEnterpriseCallService.sendLogisticsInfoToBase(updateOrderStatusVO.getRecipeId(),updateOrderStatusVO.getLogisticsCompany()+"",updateOrderStatusVO.getTrackingNumber());
                 this.sendExpressMsg(updateOrderStatusVO);
             }
             logger.info("RecipeOrderAtop updateRecipeOrderStatus result = {}", JSON.toJSONString(result));

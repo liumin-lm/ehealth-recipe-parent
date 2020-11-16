@@ -1,10 +1,13 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -368,7 +371,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
             LOGGER.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
-
+            try {
+                // 更新处方、处方订单成功：药企对接物流的运单信息同步基础服务
+                sendLogisticsInfoToBase(recipeId, logisticsCompany, trackingNumber);
+            } catch (Exception e) {
+                LOGGER.error("药企对接物流，同步运单信息至基础服务异常=",e);
+            }
             RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             String company = logisticsCompany;
             try {
@@ -414,6 +422,70 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
 
         thirdResultBean.setRecipe(null);
+    }
+
+    /**
+     * 药企对接物流，同步运单信息至基础服务
+     *
+     * @param recipeId
+     * @param logisticsCompany
+     * @param trackingNumber
+     */
+    public static void sendLogisticsInfoToBase(Integer recipeId, String logisticsCompany, String trackingNumber) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipeInfo = recipeDAO.getByRecipeId(recipeId);
+        if (StringUtils.isNotBlank(recipeInfo.getOrderCode())){
+            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getByOrderCode(recipeInfo.getOrderCode());
+            if (null != order && order.getEnterpriseId() != null){
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
+                    ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+                    WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
+                    // 机构id
+                    logisticsOrder.setOrganId(recipeInfo.getClinicOrgan());
+                    // 平台用户id
+                    logisticsOrder.setUserId(recipeInfo.getMpiid());
+                    // 业务类型
+                    logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
+                    // 业务编码
+                    logisticsOrder.setBusinessNo(order.getOrderCode());
+                    // 快递编码
+                    logisticsOrder.setLogisticsCode(logisticsCompany);
+                    // 运单号
+                    logisticsOrder.setWaybillNo(trackingNumber);
+                    // 运单费
+                    logisticsOrder.setWaybillFee(order.getExpressFee());
+                    // 收件人名称
+                    logisticsOrder.setAddresseeName(order.getReceiver());
+                    // 收件人手机号
+                    logisticsOrder.setAddresseePhone(order.getRecMobile());
+                    // 收件省份
+                    logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
+                    // 收件城市
+                    logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
+                    // 收件镇/区
+                    logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+                    // 收件人街道
+                    logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
+                    // 收件详细地址
+                    logisticsOrder.setAddresseeAddress(order.getAddress4());
+                    // 寄托物名称
+                    logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patientDTO = patientService.getPatientByMpiId(recipeInfo.getMpiid());
+                    if (patientDTO != null){
+                        logisticsOrder.setPatientName(patientDTO.getPatientName());
+                        logisticsOrder.setPatientPhone(patientDTO.getMobile());
+                        logisticsOrder.setPatientIdentityCardNo(patientDTO.getIdcard());
+                    }
+                    LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
+                    String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
+                    LOGGER.info("药企对接物流运单信息回写基础服务，结果={}", writeResult);
+                }
+            }
+        }
     }
 
     /**
@@ -1920,7 +1992,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param area 区域
      * @return     区域文本
      */
-    private String getAddressDic(String area) {
+    public static String getAddressDic(String area) {
         if (StringUtils.isNotEmpty(area)) {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
