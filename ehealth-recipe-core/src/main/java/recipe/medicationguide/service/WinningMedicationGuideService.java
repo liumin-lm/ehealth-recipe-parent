@@ -54,8 +54,10 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
     @Override
     @RpcService
     public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-        getMedicalInfo(recipeBean, recipeExtend);
+       if (null != recipeBean && null != recipeBean.getRecipeId()){
+           RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+           getMedicalInfo(recipeBean, recipeExtend);
+       }
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
         //获取请求url

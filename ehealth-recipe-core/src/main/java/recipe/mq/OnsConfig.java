@@ -11,6 +11,11 @@ public class OnsConfig {
     public static String hisCdrinfo;
 
     public static String dbModifyTopic;
+    /**
+     * 电子病历删除Topic
+     */
+    public static String emrRecipe;
+
 
     public void setBasicInfoTopic(String basicInfoTopic) {
         OnsConfig.basicInfoTopic = basicInfoTopic;
@@ -27,5 +32,9 @@ public class OnsConfig {
 
     public void setDbModifyTopic(String dbModifyTopic) {
         OnsConfig.dbModifyTopic = dbModifyTopic;
+    }
+
+    public void setEmrRecipe(String emrRecipe) {
+        OnsConfig.emrRecipe = emrRecipe;
     }
 }

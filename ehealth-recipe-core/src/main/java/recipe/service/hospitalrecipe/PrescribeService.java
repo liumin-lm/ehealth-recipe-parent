@@ -547,6 +547,7 @@ public class PrescribeService {
         }else {
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("distributionFlag",0));
         }
+        //TODO liu
         String cardTypeName = otherInfo.get("cardTypeName");
         String cardNo = otherInfo.get("cardNo");
         String patientType = otherInfo.get("patientType");
@@ -595,7 +596,7 @@ public class PrescribeService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //如果已付款则需要进行退款
         RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-        orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+        orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
         //取消处方单
         recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), RecipeStatusConstant.DELETE, null);
 

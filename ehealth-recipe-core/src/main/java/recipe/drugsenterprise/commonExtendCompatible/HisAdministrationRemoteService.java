@@ -140,6 +140,9 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
 
     @Override
     //医院管理药企，查询药企列表，按his返回信息展示，现阶段是预校验的时候返回的信息(Y)
+    /**
+     * 如果是合并处方这里应该返回多处方支持的药企交集
+     */
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         LOGGER.info("findSupportDep-【his管理的药企】-虚拟药企导出入参为：{}，{}，{}", JSONUtils.toString(recipeIds), JSONUtils.toString(ext), JSONUtils.toString(enterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -151,13 +154,18 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
         //修改逻辑：将his返回的药企列表信息回传成
         Integer recipeId = recipeIds.get(0);
 
+        //合并处方逻辑处理
+        if (ext.get("recipeIds") != null) {
+            recipeIds = (List<Integer>) ext.get("recipeIds");
+        }
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if(null == recipe){
             result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("当前处方" + recipeIds.get(0) + "不存在！");
+            result.setError("当前处方" + recipeId + "不存在！");
             return result;
         }
         List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
@@ -176,8 +184,11 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
         List<DepDetailBean> depDetailList = new ArrayList<>();
         if(null != extend){
             //获取当前his返回的药企信息，以及价格信息
+            //药企价格
             String deliveryRecipeFees = extend.getDeliveryRecipeFee();
+            //药企编码
             String deliveryCodes = extend.getDeliveryCode();
+            //药企名称
             String deliveryNames = extend.getDeliveryName();
             DepDetailBean depDetailBean;
             if(StringUtils.isNotEmpty(deliveryRecipeFees) &&
@@ -202,6 +213,7 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
                     depDetailBean.setHisDepCode(deliveryCodeList[i]);
                     //date 20200311
                     //医院返回的药企处方金额
+                    //如果是合并处方这里展示的应该是合并处方的金额
                     depDetailBean.setHisDepFee(new BigDecimal(deliveryRecipeFeeList[i]));
 
                     depDetailList.add(depDetailBean);
@@ -296,6 +308,7 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
         LOGGER.info("orderToRecipeFee-【his管理的药企】- order:{}, recipeIds:{}, payModeSupport:{}, recipeFee:{}, extInfo:{}",
                 JSONUtils.toString(order), JSONUtils.toString(recipeIds), JSONUtils.toString(payModeSupport), recipeFee, JSONUtils.toString(extInfo));
         BigDecimal depFee = recipeFee;
+        //这里是前端传的药企费用？
         String hisDepFee = extInfo.get("hisDepFee");
         if(StringUtils.isNotEmpty(hisDepFee)){
             depFee = new BigDecimal(hisDepFee);

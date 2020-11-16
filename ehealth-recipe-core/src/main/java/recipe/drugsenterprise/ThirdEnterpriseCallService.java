@@ -48,6 +48,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
 import recipe.serviceprovider.BaseService;
 import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
@@ -93,8 +94,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private static final Integer CHECK_RECIPE = 1;
 
     @Autowired
-    private YsqRemoteService ysqRemoteService;
-
+    private GroupRecipeManager groupRecipeManager;
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     static ThreadLocal<Map> drugInventoryRequestMap = new ThreadLocal<>();
@@ -548,18 +548,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
         attrMap.put("giveUser", sender);
-        //如果是货到付款还要更新付款时间和付款状态
-//        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
-//            attrMap.put("payFlag", 1);
-//            attrMap.put("payDate", new Date());
-//        }
         String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
         if (StringUtils.isNotEmpty(recipeFeeStr)) {
             attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
-
         if (rs) {
             //患者未取药
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -580,12 +574,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
             }
 
-
+            groupRecipeManager.updateGroupRecipe(recipeId, recipe.getOrderCode(), RecipeStatusConstant.RECIPE_FAIL);
         } else {
             code = ErrorCode.SERVICE_ERROR;
             errorMsg = "电子处方更新失败";
         }
-
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
@@ -795,6 +788,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
         String result = MapValueUtil.getString(paramMap, "result");
         String result1 = "1";
+        int status;
         if (result1.equals(result)) {
             //取药成功
             //修改处方单信息
@@ -809,6 +803,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             }
             //更新处方信息
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+            status = RecipeStatusConstant.FINISH;
             if (rs) {
                 updateRecipeDetainInfo(recipe, paramMap);
                 Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
@@ -835,6 +830,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
+            status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
                 orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
@@ -842,12 +838,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
             }
         }
-
+        groupRecipeManager.updateGroupRecipe(recipeId, recipe.getOrderCode(), status);
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
         LOGGER.info("recordDrugStoreResult:" + JSONUtils.toString(backMsg));
-
         return backMsg;
     }
 
@@ -1080,7 +1075,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
         if (REQUEST_OK == code && null != beforeStatus) {
             if(CHECK_ORDER.equals(checkStatus)){
-                if (!order.getStatus().equals(beforeStatus)) {
+                /*if (!order.getStatus().equals(beforeStatus)) {
                     if (order.getStatus().equals(afterStatus)) {
                         code = REQUEST_ERROR_REAPET;
                     } else {
@@ -1091,7 +1086,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                             errorMsg = "该处方单不是配送中的处方";
                         }
                     }
-                }
+                }*/
             }else{
                 if (!recipe.getStatus().equals(beforeStatus)) {
                     if (recipe.getStatus().equals(afterStatus)) {
@@ -1100,11 +1095,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         code = REQUEST_ERROR;
                         if (RecipeStatusConstant.CHECK_PASS_YS == beforeStatus) {
                             errorMsg = "该处方单不是药师审核通过的处方";
-                        } else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
+                        }
+                        /*else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
                             errorMsg = "该处方单不是待配送的处方";
                         } else if (RecipeStatusConstant.IN_SEND == beforeStatus) {
                             errorMsg = "该处方单不是配送中的处方";
-                        }
+                        }*/
                     }
                 }
             }

@@ -63,6 +63,11 @@ public class BusMsgConsumer {
         subscriber.attach(OnsConfig.dbModifyTopic, "base_druglist||base_organdruglist",
                 new DrugSyncObserver());
 
+        /**
+         * 接收电子病历删除发送
+         */
+        subscriber.attach(OnsConfig.emrRecipe, "emrDeleted_recipe", new MqEmrRecipeServer());
+
         /*
         subscriber.attach(OnsConfig.hisCdrinfo, "recipeMedicalInfoFromHis",
                 new RecipeMedicalInfoFromHisObserver());*/

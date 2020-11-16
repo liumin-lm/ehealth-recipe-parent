@@ -131,6 +131,7 @@ public class HisRecipeService {
             LOGGER.info("dealPatientInfo haveRecipe:{}",JSONUtils.toString(haveRecipe) );
             //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，
             if (haveRecipe != null) {
+                
                 if(new Integer(0).equals(haveRecipe.getPayFlag())
                         &&!StringUtils.isEmpty(patientDTO.getMpiId())
                         &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
@@ -1304,11 +1305,6 @@ public class HisRecipeService {
         Integer orderStatus = order.getStatus();
         String tips = "";
         switch (status) {
-            case RecipeStatusConstant.NO_PAY:
-            case RecipeStatusConstant.NO_OPERATOR:
-            case RecipeStatusConstant.REVOKE:
-            case RecipeStatusConstant.NO_DRUG:
-            case RecipeStatusConstant.DELETE:
             case RecipeStatusConstant.HIS_FAIL:
                 tips = "已取消";
                 break;

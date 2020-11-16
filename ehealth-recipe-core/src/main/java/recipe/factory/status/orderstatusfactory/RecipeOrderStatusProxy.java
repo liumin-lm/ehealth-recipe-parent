@@ -56,6 +56,8 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         //异步处方信息上传
         factoryService.upRecipeThreadPool(recipe);
+        //更新同组处方状态
+        factoryService.updateGroupRecipe(recipe, recipeOrder.getOrderId());
         logger.info("RecipeOrderStatusProxy updateOrderByStatus recipe = {}", JSON.toJSONString(recipe));
         return recipe;
     }

@@ -20,6 +20,8 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeHisService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,13 +55,22 @@ public class RecipePreSettleService {
      * @return
      */
     @RpcService
-    public Map<String, Object> unifyRecipePreSettle(Integer recipeId) {
+    public Map<String, Object> unifyRecipePreSettle(List<Integer> recipeId) {
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe == null) {
-            result.put("msg", "查不到该处方");
+        if(recipeId == null || recipeId.size() == 0){
+            result.put("msg", "查不到该处方扩展信息");
             return result;
+        }
+        Recipe recipe = null;
+        List<String> recipeNoS = new ArrayList<>();
+        for (int i = 0; i < recipeId.size(); i++) {
+            recipe = recipeDAO.getByRecipeId(recipeId.get(i));
+            if (recipe == null) {
+                result.put("msg", "查不到该处方");
+                return result;
+            }
+            recipeNoS.add(recipe.getRecipeCode());
         }
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         if (recipeOrder == null) {
@@ -72,7 +83,7 @@ public class RecipePreSettleService {
             return result;
         }
         if (!RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
-            LOGGER.info("unifyRecipePreSettle no support. recipeId={}", recipeId);
+            LOGGER.info("unifyRecipePreSettle no support. recipeId={}", JSONUtils.toString(recipeId));
             result.put("code", "200");
             return result;
         }
@@ -103,6 +114,7 @@ public class RecipePreSettleService {
                 Map<String, String> param = Maps.newHashMap();
                 param.put("depId", String.valueOf(depId));
                 param.put("insuredArea", insuredArea);
+                param.put("recipeNoS", JSONUtils.toString(recipeNoS));
                 LOGGER.info("unifyRecipePreSettle recipe={},param={},medicalPayConfig={}", recipe.getRecipeId(), JSONUtils.toString(param), medicalPayConfig);
                 if (medicalPayConfig) {
                     return recipeHisService.provincialMedicalPreSettle(recipe.getRecipeId(), param);

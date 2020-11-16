@@ -1,6 +1,5 @@
 package recipe.purchase;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
@@ -22,13 +21,11 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -97,7 +94,7 @@ public class PayModeToHos implements IPurchaseService{
     }
 
     @Override
-    public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
+    public OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo) {
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         //定义处方订单
         RecipeOrder order = new RecipeOrder();
@@ -107,48 +104,40 @@ public class PayModeToHos implements IPurchaseService{
 
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
+        List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
 
-        order.setMpiId(dbRecipe.getMpiid());
-        order.setOrganId(dbRecipe.getClinicOrgan());
+        order.setMpiId(dbRecipes.get(0).getMpiid());
+        order.setOrganId(dbRecipes.get(0).getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+        order.setExpectSendDate(MapValueUtil.getString(extInfo, "expectSendDate"));
+        order.setExpectSendTime(MapValueUtil.getString(extInfo, "expectSendTime"));
         //订单的状态统一到finishOrderPayWithoutPay中设置
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
-        //todo---合并处方临时处理下先--后面改造成新接口
-        String recipeIds = MapValueUtil.getString(extInfo, "recipeIds");
-        List<Integer> recipeIdLists = Arrays.asList(dbRecipe.getRecipeId());
-        if (StringUtils.isNotEmpty(recipeIds)){
-            List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
-            recipeIdLists = recipeIdString.stream().map(a -> Integer.valueOf(a)).collect(Collectors.toList());
-        }
         order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
-        List<Recipe> recipeList;
-        if (recipeIdLists.size() > 1){
-            recipeList = recipeDAO.findByRecipeIds(recipeIdLists);
-        }else {
-            recipeList = Arrays.asList(dbRecipe);
-        }
+
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
         if(decoctionId != null){
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if(decoctionWay != null){
-                if(decoctionWay.getDecoctionPrice() != null){
-                    calculateFee = 1;
-                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            for (Recipe dbRecipe : dbRecipes) {
+                if (decoctionWay != null) {
+                    if (decoctionWay.getDecoctionPrice() != null) {
+                        calculateFee = 1;
+                        order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                    }
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
+                } else {
+                    LOG.error("未获取到对应的代煎费，recipeId={},decoctionId={}", dbRecipe.getRecipeId(), decoctionId);
                 }
-                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap
-                    .of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
-            } else {
-                LOG.error("未获取到对应的代煎费，recipeId={},decoctionId={}",dbRecipe.getRecipeId(),decoctionId);
             }
         }
-        CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
+        CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
         order.setEffective(1);
-        boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
+        boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if(!saveFlag){
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("提交失败，请重新提交。");
@@ -197,9 +186,6 @@ public class PayModeToHos implements IPurchaseService{
                         } else if (0d < order.getActualPrice() && payFlag == 1) {
                             tips = "订单已处理，请到院取药";
                         }
-                    }
-                    if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
-                        tips = "药品已发药";
                     }
                 }
                 break;
