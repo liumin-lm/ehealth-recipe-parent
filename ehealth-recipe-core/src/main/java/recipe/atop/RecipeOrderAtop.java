@@ -37,7 +37,11 @@ public class RecipeOrderAtop extends BaseAtop {
             ResultBean result = recipeOrderTwoService.updateRecipeOrderStatus(updateOrderStatusVO);
             if(result.getCode() == CodeEnum.SERVICE_SUCCEED.getCode()) {
                 // 同步运单信息至基础服务
-                ThirdEnterpriseCallService.sendLogisticsInfoToBase(updateOrderStatusVO.getRecipeId(),updateOrderStatusVO.getLogisticsCompany()+"",updateOrderStatusVO.getTrackingNumber());
+                try {
+                    ThirdEnterpriseCallService.sendLogisticsInfoToBase(updateOrderStatusVO.getRecipeId(),updateOrderStatusVO.getLogisticsCompany()+"",updateOrderStatusVO.getTrackingNumber());
+                } catch (Exception e) {
+                    logger.error("运营平台输入运单号，同步运单信息至基础服务异常=",e);
+                }
                 this.sendExpressMsg(updateOrderStatusVO);
             }
             logger.info("RecipeOrderAtop updateRecipeOrderStatus result = {}", JSON.toJSONString(result));

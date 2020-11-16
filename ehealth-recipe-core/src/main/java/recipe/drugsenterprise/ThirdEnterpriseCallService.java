@@ -375,7 +375,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 // 更新处方、处方订单成功：药企对接物流的运单信息同步基础服务
                 sendLogisticsInfoToBase(recipeId, logisticsCompany, trackingNumber);
             } catch (Exception e) {
-                LOGGER.error("药企对接物流，同步运单信息至基础服务异常=",e);
+                LOGGER.error("药企对接物流通知处方运单号，同步运单信息至基础服务异常=",e);
             }
             RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             String company = logisticsCompany;
