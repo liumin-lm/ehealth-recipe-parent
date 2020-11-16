@@ -2511,7 +2511,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-
                 if ("onready".equals(tabStatus)) {
                     hql.append("select 1 as type,t.RecipeID as recordCode,t.RecipeID as recordId,t.MPIID,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as status,t.TotalMoney as fee," + "t.SignDate as recordDate,'' as couponId,t.MedicalPayFlag,t.RecipeType,t.ClinicOrgan as organId,t.recipeMode,t.giveMode,t.recipeSource,t.payFlag,t.recipeId from cdr_recipe t ");
                     hql.append("WHERE t.MPIID IN (:mpiIdList) and t.recipeSourceType = 1 and (t.Status IN (:recipeStatusList) or (t.Status=15 and t.checkStatus = 1)) and t.OrderCode is null ORDER BY t.SignDate desc");
