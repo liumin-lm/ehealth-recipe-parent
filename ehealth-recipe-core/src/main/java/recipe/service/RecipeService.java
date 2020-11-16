@@ -1194,7 +1194,7 @@ public class RecipeService extends RecipeBaseService {
                     memo = "当前签名处方签名成功---CA前置，his返回默认CA成功";
                 }
             }
-            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PRESCRIBE_SUCCESS);
+            RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
@@ -2990,7 +2990,6 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public void getRecipeStatusFromHis() {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-
         //设置查询时间段
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
         String endDt = DateConversion.getDateFormatter(DateTime.now().toDate(), DateConversion.DEFAULT_DATE_TIME);
@@ -2998,13 +2997,11 @@ public class RecipeService extends RecipeBaseService {
         Map<Integer, List<String>> map = Maps.newHashMap();
         List<Recipe> list = recipeDAO.getRecipeStatusFromHis(startDt, endDt);
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
-
         assembleQueryStatusFromHis(list, map);
         List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(0);
         for (Integer organId : map.keySet()) {
             callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
         }
-
         if (CollectionUtils.isNotEmpty(callables)) {
             try {
                 RecipeBusiThreadPool.submitList(callables);

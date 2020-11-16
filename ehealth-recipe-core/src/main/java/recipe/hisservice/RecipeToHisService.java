@@ -147,7 +147,7 @@ public class RecipeToHisService {
             IRecipeAuditService recipeAuditService= RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             LOGGER.info("listQuery response={}", JSONUtils.toString(response));
-            if (null == response || null == response.getMsgCode()) {
+            if (null == response || null == response.getMsgCode() || CollectionUtils.isEmpty(response.getData())) {
                 return;
             }
             List<QueryRepTO> list = response.getData();
@@ -158,54 +158,56 @@ public class RecipeToHisService {
             Map<String, EmploymentDTO> employmentMap = Maps.newHashMap();
             EmploymentDTO employmentDTO;
             Map<String,Object> checkParam = Maps.newHashMap();
-
-            for (QueryRepTO rep : list) {
-                Integer isPay = Integer.valueOf(rep.getIsPay());
-                Integer recipeStatus = Integer.valueOf(rep.getRecipeStatus());
-                Integer phStatus = Integer.valueOf(rep.getPhStatus());
-                if (recipeStatus == 1) {
-                    //有效的处方单已支付 未发药 为已支付状态
-                    if (isPay == 1 && phStatus == 0) {
-                        payList.add(rep.getRecipeNo());
-                    }
-                    //有效的处方单已支付 已发药 为已完成状态
-                    if (isPay == 1 && phStatus == 1) {
-                        finishList.add(rep.getRecipeNo());
-                    }
-                    //连云港二院处理
-                    if (StringUtils.isNotEmpty(rep.getAuditDoctorNo())){
-                        recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
-                        if (recipe != null && recipe.getChecker() == null){
-                            //审核医生信息处理
-                            employmentDTO = employmentMap.get(rep.getRecipeNo()+organId);
-                            if (null == employmentDTO) {
-                                employmentDTO = employmentService.getByJobNumberAndOrganId(
-                                        rep.getAuditDoctorNo(), organId);
-                                employmentMap.put(rep.getRecipeNo()+organId, employmentDTO);
+            if (list.size() > 0) {
+                for (QueryRepTO rep : list) {
+                    Integer isPay = Integer.valueOf(rep.getIsPay());
+                    Integer recipeStatus = Integer.valueOf(rep.getRecipeStatus());
+                    Integer phStatus = Integer.valueOf(rep.getPhStatus());
+                    if (recipeStatus == 1) {
+                        //有效的处方单已支付 未发药 为已支付状态
+                        if (isPay == 1 && phStatus == 0) {
+                            payList.add(rep.getRecipeNo());
+                        }
+                        //有效的处方单已支付 已发药 为已完成状态
+                        if (isPay == 1 && phStatus == 1) {
+                            finishList.add(rep.getRecipeNo());
+                        }
+                        //连云港二院处理
+                        if (StringUtils.isNotEmpty(rep.getAuditDoctorNo())){
+                            recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
+                            if (recipe != null && recipe.getChecker() == null){
+                                //审核医生信息处理
+                                employmentDTO = employmentMap.get(rep.getRecipeNo()+organId);
+                                if (null == employmentDTO) {
+                                    employmentDTO = employmentService.getByJobNumberAndOrganId(
+                                            rep.getAuditDoctorNo(), organId);
+                                    employmentMap.put(rep.getRecipeNo()+organId, employmentDTO);
+                                }
+                                if (null != employmentDTO) {
+                                    recipe.setChecker(employmentDTO.getDoctorId());
+                                    recipeDAO.update(recipe);
+                                    //生成药师电子签名
+                                    checkParam.put("recipeId",recipe.getRecipeId());
+                                    //审核成功
+                                    checkParam.put("result",1);
+                                    checkParam.put("checkOrgan",organId);
+                                    checkParam.put("checker",recipe.getChecker());
+                                    //是否是线下药师审核标记
+                                    checkParam.put("hosAuditFlag",1);
+                                    recipeAuditService.saveCheckResult(checkParam);
+                                    LOGGER.info("线下审方生成线上药师电子签名--end");
+                                } else {
+                                    LOGGER.warn("listQuery 审核医生[{}]在平台没有执业点", rep.getAuditDoctorName());
+                                }
+                            }else {
+                                LOGGER.warn("listQuery 查询不到未审核处方单,organId={},recipeCode={}",organId,rep.getRecipeNo());
                             }
-                            if (null != employmentDTO) {
-                                recipe.setChecker(employmentDTO.getDoctorId());
-                                recipeDAO.update(recipe);
-                                //生成药师电子签名
-                                checkParam.put("recipeId",recipe.getRecipeId());
-                                //审核成功
-                                checkParam.put("result",1);
-                                checkParam.put("checkOrgan",organId);
-                                checkParam.put("checker",recipe.getChecker());
-                                //是否是线下药师审核标记
-                                checkParam.put("hosAuditFlag",1);
-                                recipeAuditService.saveCheckResult(checkParam);
-                                LOGGER.info("线下审方生成线上药师电子签名--end");
-                            } else {
-                                LOGGER.warn("listQuery 审核医生[{}]在平台没有执业点", rep.getAuditDoctorName());
-                            }
-                        }else {
-                            LOGGER.warn("listQuery 查询不到未审核处方单,organId={},recipeCode={}",organId,rep.getRecipeNo());
                         }
                     }
                 }
+            } else{
+                LOGGER.warn("listQuery MsgCode存在查询不到未审核处方单,organId={},recipeCode={}",organId);
             }
-
             if (CollectionUtils.isNotEmpty(payList)) {
                 HisCallBackService.havePayRecipesFromHis(payList, organId);
             }
