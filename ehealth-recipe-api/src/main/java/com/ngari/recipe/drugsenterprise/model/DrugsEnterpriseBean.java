@@ -140,6 +140,34 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
     private Integer settlementMode;
 
+    @ItemProperty(alias = "物流公司")
+    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "物流类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    @ItemProperty(alias = "寄件人名称")
+    private String consignorName;
+
+    @ItemProperty(alias = "寄件人手机号")
+    private String consignorMobile;
+
+    @ItemProperty(alias = "寄件人省份编码")
+    private String consignorProvince;
+
+    @ItemProperty(alias = "寄件人城市编码")
+    private String consignorCity;
+
+    @ItemProperty(alias = "寄件人区域编码")
+    private String consignorDistrict;
+
+    @ItemProperty(alias = "寄件人详细地址")
+    private String consignorAddress;
+
+    @ItemProperty(alias = "寄件人街道编码")
+    private String consignorStreet;
+
 
     public DrugsEnterpriseBean() {
     }
