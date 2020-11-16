@@ -41,6 +41,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
@@ -580,7 +581,6 @@ public class PurchaseService {
      * @return 文案
      */
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         Integer status = recipe.getStatus();
         Integer payMode = recipe.getPayMode();
@@ -591,17 +591,17 @@ public class PurchaseService {
             order = recipeOrderDAO.getByOrderCode(orderCode);
         }
         String tips;
-        switch (status) {
-            case RecipeStatusConstant.READY_CHECK_YS:
+        switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
+            case RECIPE_STATUS_READY_CHECK_YS:
                 tips = "请耐心等待药师审核";
-                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
                     String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
-                    if (StringUtils.isNotEmpty(reason)){
+                    if (StringUtils.isNotEmpty(reason)) {
                         tips = reason;
                     }
                 }
                 break;
-            case RecipeStatusConstant.CHECK_PASS:
+            case RECIPE_STATUS_CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
                     tips = "订单待支付，请于收到处方的3日内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
@@ -611,13 +611,13 @@ public class PurchaseService {
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
                 }
                 break;
-            case RecipeStatusConstant.NO_PAY:
+            case RECIPE_STATUS_NO_PAY:
                 tips = "处方单未支付，已失效";
                 break;
-            case RecipeStatusConstant.NO_OPERATOR:
+            case RECIPE_STATUS_NO_OPERATOR:
                 tips = "处方单未处理，已失效";
                 break;
-            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+            case RECIPE_STATUS_CHECK_NOT_PASS_YS:
                 if (RecipecCheckStatusConstant.Check_Normal.equals(recipe.getCheckStatus())) {
                     tips = "处方审核不通过，请联系开方医生";
                     break;
@@ -625,7 +625,7 @@ public class PurchaseService {
                     tips = "请耐心等待药师审核";
                     break;
                 }
-            case RecipeStatusConstant.REVOKE:
+            case RECIPE_STATUS_REVOKE:
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))){
                     tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
@@ -637,23 +637,30 @@ public class PurchaseService {
                     }
                 }
                 break;
-            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+            case RECIPE_STATUS_RECIPE_DOWNLOADED:
                 tips = "已下载处方笺";
                 break;
-            case RecipeStatusConstant.USING:
+            case RECIPE_STATUS_USING:
                 tips = "处理中";
                 break;
-            //date 2019/10/16
-            //添加处方状态文案，已删除，同步his失败
-            case RecipeStatusConstant.DELETE:
+            case RECIPE_STATUS_DELETE:
                 tips = "处方单已删除";
                 break;
-            case RecipeStatusConstant.HIS_FAIL:
+            case RECIPE_STATUS_HIS_FAIL:
                 tips = "处方单同步his写入失败";
                 break;
-            case RecipeStatusConstant.FINISH:
+            case RECIPE_STATUS_DONE_DISPENSING:
+                tips = "药品已发药";
+                break;
+            case RECIPE_STATUS_DECLINE:
+                tips = "药品已拒发";
+                break;
+            case RECIPE_STATUS_DRUG_WITHDRAWAL:
+                tips = "药品已退药";
+                break;
+            case RECIPE_STATUS_FINISH:
                 //特应性处理:下载处方，不需要审核,不更新payMode
-                if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
+                if (ReviewTypeConstant.Not_Need_Check.equals(recipe.getReviewType()) && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
                     tips = "订单完成";
                     break;
                 }

@@ -81,6 +81,7 @@ public class RecipeCAService {
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
+        LOGGER.info("packageCAFromRecipe recipeId：{},doctorId:{},isDoctor:{}", recipeId,doctorId,isDoctor);
         CommonSignRequest caRequest = new CommonSignRequest();
         Map<String, Object> caExt = new HashMap<>();
         Map<String, Object> esignMap = new HashMap<>();
@@ -180,6 +181,7 @@ public class RecipeCAService {
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }
+        LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
         return caRequest;
     }
 

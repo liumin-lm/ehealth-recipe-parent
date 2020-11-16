@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -69,6 +70,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         if (null == drugsEnterpriseBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
+        LOGGER.info("addDrugsEnterprise params={}",JSONUtils.toString(drugsEnterpriseBean));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(drugsEnterpriseBean.getName());
         if (drugsEnterpriseList.size() != 0) {
@@ -78,6 +80,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         if( null == drugsEnterpriseBean.getCreateType()){
             throw new DAOException(ErrorCode.SERVICE_ERROR, "createType is null!");
         }
+        // 药企物流信息校验：平台对接物流，物流公司、寄件人信息不能为空
+        checkEnterpriseLogisticsInfo(drugsEnterpriseBean);
         drugsEnterpriseBean.setSort(100);
         drugsEnterpriseBean.setCreateDate(new Date());
         drugsEnterpriseBean.setLastModify(new Date());
@@ -106,6 +110,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         }
         if(StringUtils.isEmpty(drugsEnterprise.getCallSys())){
             drugsEnterprise.setCallSys("commonSelf");
+        }
+        // 药企物流对接方式默认药企对接
+        if (null == drugsEnterprise.getLogisticsType()){
+            drugsEnterprise.setLogisticsType(DrugEnterpriseConstant.LOGISTICS_ENT);
         }
         drugsEnterprise.setOrderType(1);
         drugsEnterprise.setStorePayFlag(0);
@@ -161,7 +169,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         if (null == drugsEnterpriseBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
-        LOGGER.info(JSONUtils.toString(drugsEnterpriseBean));
+        LOGGER.info("updateDrugsEnterprise params={}",JSONUtils.toString(drugsEnterpriseBean));
+        // 药企物流信息校验：平台对接物流，物流公司、寄件人信息不能为空
+        checkEnterpriseLogisticsInfo(drugsEnterpriseBean);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise target = drugsEnterpriseDAO.get(drugsEnterpriseBean.getId());
         if (null == target) {
@@ -222,6 +232,23 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
         }
         return getBean(target, DrugsEnterpriseBean.class);
+    }
+
+
+    /**
+     * 药企平台物流对接信息校验
+     *
+     * @param drugsEnterpriseBean
+     */
+    private void checkEnterpriseLogisticsInfo(DrugsEnterpriseBean drugsEnterpriseBean) {
+        if (DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterpriseBean.getLogisticsType())){
+            if (null == drugsEnterpriseBean.getLogisticsCompany() || StringUtils.isBlank(drugsEnterpriseBean.getConsignorAddress())
+                    || StringUtils.isBlank(drugsEnterpriseBean.getConsignorCity()) || StringUtils.isBlank(drugsEnterpriseBean.getConsignorDistrict())
+                    || StringUtils.isBlank(drugsEnterpriseBean.getConsignorMobile()) || StringUtils.isBlank(drugsEnterpriseBean.getConsignorName())
+                    || StringUtils.isBlank(drugsEnterpriseBean.getConsignorProvince()) || StringUtils.isBlank(drugsEnterpriseBean.getConsignorStreet())){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "平台对接物流，物流公司、寄件人信息不能为空!");
+            }
+        }
     }
 
     /**

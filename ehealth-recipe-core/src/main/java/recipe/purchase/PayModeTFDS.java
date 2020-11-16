@@ -10,7 +10,6 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +21,10 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
@@ -34,6 +34,8 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -301,32 +303,31 @@ public class PayModeTFDS implements IPurchaseService{
         String orderCode = recipe.getOrderCode();
         int orderStatus = order.getStatus();
         String tips = "";
-        switch (status) {
-            case RecipeStatusConstant.CHECK_PASS:
+        switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
+            case RECIPE_STATUS_CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode)) {
-                    if (orderStatus == OrderStatusConstant.HAS_DRUG) {
+                    if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType()) {
                         tips = "订单已处理，请到店取药";
-                    } else if (orderStatus == OrderStatusConstant.READY_DRUG) {
+                    } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_READY_DRUG.getType()) {
                         tips = "订单已处理，正在准备药品";
-                    } else if (orderStatus == OrderStatusConstant.NO_DRUG) {
+                    } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()) {
                         tips = "药品已准备好，请到药店取药";
                     }
                 }
                 break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
-                if (orderStatus == OrderStatusConstant.HAS_DRUG) {
+            case RECIPE_STATUS_CHECK_PASS_YS:
+                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType()) {
                     tips = "处方已审核通过，请到店取药";
-                } else if (orderStatus == OrderStatusConstant.READY_DRUG) {
+                } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_READY_DRUG.getType()) {
                     tips = "处方已审核通过，正在准备药品";
-                } else if (orderStatus == OrderStatusConstant.NO_DRUG) {
+                } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()) {
                     tips = "药品已准备好，请到药店取药";
                 }
                 break;
-            case RecipeStatusConstant.NO_DRUG:
-            case RecipeStatusConstant.RECIPE_FAIL:
+            case RECIPE_STATUS_RECIPE_FAIL:
                 tips = "药店取药失败";
                 break;
-            case RecipeStatusConstant.FINISH:
+            case RECIPE_STATUS_FINISH:
                 tips = "到店取药成功，订单完成";
                 break;
                 default:
@@ -336,7 +337,6 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public Integer getOrderStatus(Recipe recipe) {
-        Integer orderStatus = OrderStatusConstant.HAS_DRUG;
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise dep = enterpriseDAO.getById(recipe.getEnterpriseId());
@@ -347,10 +347,9 @@ public class PayModeTFDS implements IPurchaseService{
             drugIds.add(detail.getDrugId());
         }
         boolean succFlag = scanStock(recipe, dep, drugIds);
-        if (succFlag){
-            orderStatus = OrderStatusConstant.HAS_DRUG ;
-        } else if (dep.getCheckInventoryFlag() == 2) {
-            orderStatus = OrderStatusConstant.READY_DRUG;
+        Integer orderStatus = RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType();
+        if (!succFlag && dep.getCheckInventoryFlag() == 2) {
+            orderStatus = RecipeOrderStatusEnum.ORDER_STATUS_READY_DRUG.getType();
         }
         return orderStatus;
     }

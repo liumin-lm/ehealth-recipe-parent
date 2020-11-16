@@ -459,11 +459,12 @@ public class RecipeListService extends RecipeBaseService {
 
     private String getRecipeStatusText(int status) {
         String msg;
-        switch (status) {
-            case RecipeStatusConstant.HIS_FAIL:
+        RecipeStatusEnum recipeStatusEnum = RecipeStatusEnum.getRecipeStatusEnum(status);
+        switch (recipeStatusEnum) {
+            case RECIPE_STATUS_HIS_FAIL:
                 msg = "已取消";
                 break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
+            case RECIPE_STATUS_CHECK_PASS_YS:
                 msg = "待配送";
                 break;
             default:
@@ -486,7 +487,7 @@ public class RecipeListService extends RecipeBaseService {
             return "待取药";
         }
         return getOrderStatusText(status);
-       
+
     }
 
     private String getRecipeStatusTabText(int status, int recipeId) {
@@ -946,7 +947,8 @@ public class RecipeListService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
         PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
-        List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList, orderStatusList, tabStatus);
+        List<Integer> recipeIdWithoutHisAndPayList = recipeDAO.findRecipeIdWithoutHisAndPay(allMpiIds);
+        List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList, orderStatusList, tabStatus, recipeIdWithoutHisAndPayList);
         List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = processTabListDate(backRecipeList, allMpiIds);
         for (PatientTabStatusRecipeDTO tabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
             mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();

@@ -37,12 +37,16 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.constant.*;
+import recipe.constant.OrderStatusConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.ReviewTypeConstant;
+import recipe.constant.UpdateSendMsgStatusEnum;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
@@ -573,8 +577,8 @@ public class PayModeOnline implements IPurchaseService {
         String orderCode = recipe.getOrderCode();
         int orderStatus = order.getStatus();
         String tips = "";
-        switch (status) {
-            case RecipeStatusConstant.CHECK_PASS:
+        switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
+            case RECIPE_STATUS_CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode)) {
                     if (orderStatus == OrderStatusConstant.READY_SEND) {
                         tips = "订单已处理，请耐心等待药品配送";
@@ -585,13 +589,13 @@ public class PayModeOnline implements IPurchaseService {
                     }
                 }
                 break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
+            case RECIPE_STATUS_CHECK_PASS_YS:
                 tips = "处方已审核通过，请耐心等待药品配送";
                 break;
-            case RecipeStatusConstant.IN_SEND:
+            case RECIPE_STATUS_IN_SEND:
                 tips = "药企正在配送";
                 break;
-            case RecipeStatusConstant.FINISH:
+            case RECIPE_STATUS_FINISH:
                 tips = "药企配送完成，订单完成";
                 break;
             default:

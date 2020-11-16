@@ -31,6 +31,9 @@ public enum RecipeStatusEnum {
     RECIPE_STATUS_DONE_DISPENSING(40, "已发药", ""),
     RECIPE_STATUS_DECLINE(41, "已拒发", ""),
     RECIPE_STATUS_DRUG_WITHDRAWAL(42, "已退药", ""),
+
+
+    NONE(-9, "未知", ""),
     ;
 
 
@@ -53,12 +56,33 @@ public enum RecipeStatusEnum {
         return name;
     }
 
+    /**
+     * 根据类型获取名称
+     *
+     * @param type
+     * @return
+     */
     public static String getRecipeStatus(Integer type) {
         for (RecipeStatusEnum e : RecipeStatusEnum.values()) {
             if (e.type.equals(type)) {
                 return e.name;
             }
         }
-        return "未知";
+        return NONE.getName();
+    }
+
+    /**
+     * 根据类型 获取枚举类型
+     *
+     * @param type
+     * @return
+     */
+    public static RecipeStatusEnum getRecipeStatusEnum(Integer type) {
+        for (RecipeStatusEnum e : RecipeStatusEnum.values()) {
+            if (e.type.equals(type)) {
+                return e;
+            }
+        }
+        return NONE;
     }
 }
