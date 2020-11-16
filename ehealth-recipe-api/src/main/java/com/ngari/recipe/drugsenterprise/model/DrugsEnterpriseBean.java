@@ -487,4 +487,76 @@ public class DrugsEnterpriseBean implements Serializable {
     public void setSettlementMode(Integer settlementMode) {
         this.settlementMode = settlementMode;
     }
+
+    public Integer getLogisticsCompany() {
+        return logisticsCompany;
+    }
+
+    public void setLogisticsCompany(Integer logisticsCompany) {
+        this.logisticsCompany = logisticsCompany;
+    }
+
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
+
+    public String getConsignorName() {
+        return consignorName;
+    }
+
+    public void setConsignorName(String consignorName) {
+        this.consignorName = consignorName;
+    }
+
+    public String getConsignorMobile() {
+        return consignorMobile;
+    }
+
+    public void setConsignorMobile(String consignorMobile) {
+        this.consignorMobile = consignorMobile;
+    }
+
+    public String getConsignorProvince() {
+        return consignorProvince;
+    }
+
+    public void setConsignorProvince(String consignorProvince) {
+        this.consignorProvince = consignorProvince;
+    }
+
+    public String getConsignorCity() {
+        return consignorCity;
+    }
+
+    public void setConsignorCity(String consignorCity) {
+        this.consignorCity = consignorCity;
+    }
+
+    public String getConsignorDistrict() {
+        return consignorDistrict;
+    }
+
+    public void setConsignorDistrict(String consignorDistrict) {
+        this.consignorDistrict = consignorDistrict;
+    }
+
+    public String getConsignorAddress() {
+        return consignorAddress;
+    }
+
+    public void setConsignorAddress(String consignorAddress) {
+        this.consignorAddress = consignorAddress;
+    }
+
+    public String getConsignorStreet() {
+        return consignorStreet;
+    }
+
+    public void setConsignorStreet(String consignorStreet) {
+        this.consignorStreet = consignorStreet;
+    }
 }
