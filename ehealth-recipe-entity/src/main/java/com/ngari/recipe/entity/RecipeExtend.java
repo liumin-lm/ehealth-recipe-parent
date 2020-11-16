@@ -235,6 +235,12 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
 
+    /**
+     * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
+     */
+    @ItemProperty(alias = "处方退费当前节点状态")
+    private Integer refundNodeStatus;
+
     @Column(name = "recipeCostNumber")
     public String getRecipeCostNumber() {
         return recipeCostNumber;
@@ -765,5 +771,17 @@ public class RecipeExtend implements Serializable {
 
     public void setSkinTest(String skinTest) {
         this.skinTest = skinTest;
+    }
+
+    /**
+     * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
+     */
+    @Column(name = "refundNodeStatus")
+    public Integer getRefundNodeStatus() {
+        return refundNodeStatus;
+    }
+
+    public void setRefundNodeStatus(Integer refundNodeStatus) {
+        this.refundNodeStatus = refundNodeStatus;
     }
 }
