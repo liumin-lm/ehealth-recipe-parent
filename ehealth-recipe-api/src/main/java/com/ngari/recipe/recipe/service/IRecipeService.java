@@ -15,7 +15,6 @@ import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import ctd.persistence.annotation.DAOParam;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
@@ -153,7 +152,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 运营平台使用
-     *
+     * 查询处方详细信息
      * @param organId
      * @param status
      * @param doctor
@@ -166,12 +165,18 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param limit
      * @param organIds
      * @param giveMode
+     * @param refundNodeStatus efundNodeStatus 退款节点、退款状态
+     *                         0-待审核；1-审核通过，退费成功；2-审核通过，退费失败；3-审核不通过
+     *                         参见
      * @return
      */
     @RpcService
-    QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
-                                       Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
+    QueryResult<Map> findRecipesByInfo(Integer organId, Integer status, Integer doctor, String mpiid,
+                                       Date bDate, Date eDate, Integer dateType,
+                                       Integer depart, int start, int limit, List<Integer> organIds,
+                                       Integer giveMode, Integer sendType, Integer fromflag,
+                                       Integer recipeId, Integer enterpriseId, Integer checkStatus,
+                                       Integer payFlag, Integer orderType, Integer refundNodeStatus);
 
     /**
      * 运营平台使用
