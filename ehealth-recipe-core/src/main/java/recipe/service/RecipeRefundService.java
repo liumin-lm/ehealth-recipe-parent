@@ -185,9 +185,9 @@ public class RecipeRefundService extends RecipeBaseService{
                 LOGGER.info("RecipeRefundService.refundResultCallBack order is null OrderCode = {}", recipe.getOrderCode());
                 return;
             }
-            if (recipeOrder.getDispensingFlag().equals(1)) {
+            if (refundRequestBean.getRefundFlag() && recipeOrder.getDispensingFlag().equals(1)) {
                 LOGGER.info("RecipeRefundService.refundResultCallBack OrderCode = {}", recipe.getOrderCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "发药标示已发药，请操作退药");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
             }
             if (refundRequestBean.getRefundFlag()) {
                 //退费申请记录保存
