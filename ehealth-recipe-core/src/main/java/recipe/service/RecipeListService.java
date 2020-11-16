@@ -946,7 +946,8 @@ public class RecipeListService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
         PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
-        List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList, orderStatusList, tabStatus);
+        List<Integer> recipeIdWithoutHisAndPayList = recipeDAO.findRecipeIdWithoutHisAndPay(allMpiIds);
+        List<PatientRecipeBean> backRecipeList = recipeDAO.findTabStatusRecipesForPatientNew(allMpiIds, index, limit, recipeStatusList, orderStatusList, tabStatus, recipeIdWithoutHisAndPayList);
         List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = processTabListDate(backRecipeList, allMpiIds);
         for (PatientTabStatusRecipeDTO tabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
             mergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
