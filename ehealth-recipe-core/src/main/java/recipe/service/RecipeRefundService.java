@@ -158,10 +158,6 @@ public class RecipeRefundService extends RecipeBaseService{
             }
         }
     }
-
-    public RecipeRefundService() {
-    }
-
     /**
      * 处方退款结果回调
      *
