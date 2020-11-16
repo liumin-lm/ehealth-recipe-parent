@@ -1304,11 +1304,6 @@ public class HisRecipeService {
         Integer orderStatus = order.getStatus();
         String tips = "";
         switch (status) {
-            case RecipeStatusConstant.NO_PAY:
-            case RecipeStatusConstant.NO_OPERATOR:
-            case RecipeStatusConstant.REVOKE:
-            case RecipeStatusConstant.NO_DRUG:
-            case RecipeStatusConstant.DELETE:
             case RecipeStatusConstant.HIS_FAIL:
                 tips = "已取消";
                 break;
