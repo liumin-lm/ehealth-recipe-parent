@@ -1194,7 +1194,7 @@ public class RecipeService extends RecipeBaseService {
                     memo = "当前签名处方签名成功---CA前置，his返回默认CA成功";
                 }
             }
-            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PRESCRIBE_SUCCESS);
+            RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);

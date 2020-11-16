@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RecipeMsgEnum;
 import recipe.service.RecipeMsgService;
 
 /**
@@ -55,7 +55,7 @@ public class RecipeOrderAtop extends BaseAtop {
     public void sendExpressMsg(UpdateOrderStatusVO orderStatus) {
         if (!ObjectUtils.isEmpty(orderStatus.getLogisticsCompany())
                 || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
-            RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeStatusConstant.EXPRESSINFO_REMIND);
+            RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
         }
     }
 }
