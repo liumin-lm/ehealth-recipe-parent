@@ -618,7 +618,7 @@ public class PurchaseService {
                 tips = "处方单未处理，已失效";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                if (RecipecCheckStatusConstant.Check_Normal == recipe.getCheckStatus()) {
+                if (RecipecCheckStatusConstant.Check_Normal.equals(recipe.getCheckStatus())) {
                     tips = "处方审核不通过，请联系开方医生";
                     break;
                 } else {
