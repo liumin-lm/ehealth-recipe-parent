@@ -26,7 +26,6 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -44,7 +43,6 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
@@ -55,6 +53,8 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -583,7 +583,6 @@ public class PayModeOnline implements IPurchaseService {
                     if (orderStatus == OrderStatusConstant.READY_PAY && new Integer(1).equals(order.getRefundFlag())) {
                         tips = "订单结算失败，费用已为您原路返回";
                     }
-
                 }
                 break;
             case RecipeStatusConstant.CHECK_PASS_YS:
@@ -591,11 +590,6 @@ public class PayModeOnline implements IPurchaseService {
                 break;
             case RecipeStatusConstant.IN_SEND:
                 tips = "药企正在配送";
-                break;
-            case RecipeStatusConstant.WAIT_SEND:
-                if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
-                    tips = "药品已发药";
-                }
                 break;
             case RecipeStatusConstant.FINISH:
                 tips = "药企配送完成，订单完成";

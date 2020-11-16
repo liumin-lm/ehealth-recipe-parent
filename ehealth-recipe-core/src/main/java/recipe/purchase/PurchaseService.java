@@ -41,7 +41,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
@@ -619,7 +618,7 @@ public class PurchaseService {
                 tips = "处方单未处理，已失效";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                if (RecipecCheckStatusConstant.Check_Normal == recipe.getCheckStatus()) {
+                if (RecipecCheckStatusConstant.Check_Normal.equals(recipe.getCheckStatus())) {
                     tips = "处方审核不通过，请联系开方医生";
                     break;
                 } else {
@@ -630,18 +629,11 @@ public class PurchaseService {
                 if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))){
                     tips = "由于患者申请退费成功，该处方已取消。";
                 }else{
-
                     tips = "由于医生已撤销，该处方单已失效，请联系医生";
                     //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
                     //原设计：处方单待处理状态，患者未下单时可撤销，重庆大学城流程，支付完未配送可撤销，
                     if (null != order) {
                         tips = "该处方单已失效";
-                        if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(order.getStatus())) {
-                            tips = "药品已拒发";
-                        }
-                        if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(order.getStatus())) {
-                            tips = "药品已退药";
-                        }
                     }
                 }
                 break;
