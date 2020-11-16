@@ -57,6 +57,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -1932,14 +1933,24 @@ public class RecipeOrderService extends RecipeBaseService {
             } catch (Exception e) {
                 LOGGER.error("基础服务物流下单.error=", e);
             }
-            // 支付成功后调支付平台记账
-            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order){
-                try {
-                    handleRecipeSplit(order, recipes);
-                } catch (Exception e) {
-                    LOGGER.error("支付回调处方记账业务异常，error=",e);
+            //(异步的过程，不影响主流程)
+            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        // 支付成功后调支付平台记账
+                        if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order){
+                            try {
+                                handleRecipeSplit(order, recipes);
+                            } catch (Exception e) {
+                                LOGGER.error("支付回调处方记账业务异常，error=",e);
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("异步支付回调处方记账业务异常，error=",e);
+                    }
                 }
-            }
+            });
         }
         //健康卡数据上传
         RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(), "030102"));

@@ -191,7 +191,7 @@ public abstract class RecipeDetailDAO extends
                 for (String key : changeAttr.keySet()) {
                     keyHql.append("," + key + "=:" + key);
                 }
-                hql.append(keyHql.toString().substring(1)).append(" where " + keyName + "in (:" + keyName + ")");
+                hql.append(keyHql.toString().substring(1)).append(" where " + keyName + " in (:" + keyName + ")");
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameterList(keyName, (List<Object>)keyValue);
