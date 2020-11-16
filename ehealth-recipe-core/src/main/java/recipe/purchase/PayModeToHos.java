@@ -19,8 +19,8 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
@@ -172,8 +172,8 @@ public class PayModeToHos implements IPurchaseService{
         Integer payFlag = recipe.getPayFlag();
         String orderCode = recipe.getOrderCode();
         String tips = "";
-        switch (status) {
-            case RecipeStatusConstant.CHECK_PASS:
+        switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
+            case RECIPE_STATUS_CHECK_PASS:
                 //date 20190930
                 //先判断是否需要支付，再判断有没有支付
                 if (StringUtils.isNotEmpty(orderCode)) {
@@ -189,13 +189,13 @@ public class PayModeToHos implements IPurchaseService{
                     }
                 }
                 break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
+            case RECIPE_STATUS_CHECK_PASS_YS:
                 tips = "处方已审核通过，请到院取药";
                 break;
-            case RecipeStatusConstant.RECIPE_FAIL:
+            case RECIPE_STATUS_RECIPE_FAIL:
                 tips = "到院取药失败";
                 break;
-            case RecipeStatusConstant.FINISH:
+            case RECIPE_STATUS_FINISH:
                 tips = "到院取药成功，订单完成";
                 break;
             default:

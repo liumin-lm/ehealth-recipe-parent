@@ -9,6 +9,7 @@ import java.util.List;
  * @author fuzi
  */
 public enum RecipeOrderStatusEnum {
+    NONE(-9, "未知", ""),
     ORDER_STATUS_READY_PAY(1, "待支付", ""),
     ORDER_STATUS_READY_GET_DRUG(2, "待取药", ""),
     ORDER_STATUS_AWAIT_SHIPPING(3, "待配送", ""),
@@ -50,12 +51,33 @@ public enum RecipeOrderStatusEnum {
         return name;
     }
 
+    /**
+     * 根据类型获取名称
+     *
+     * @param type
+     * @return
+     */
     public static String getOrderStatus(Integer type) {
         for (RecipeOrderStatusEnum e : RecipeOrderStatusEnum.values()) {
             if (e.type.equals(type)) {
                 return e.name;
             }
         }
-        return "未知";
+        return NONE.getName();
+    }
+
+    /**
+     * 根据类型 获取枚举类型
+     *
+     * @param type
+     * @return
+     */
+    public static RecipeOrderStatusEnum getRecipeOrderStatusEnum(Integer type) {
+        for (RecipeOrderStatusEnum e : RecipeOrderStatusEnum.values()) {
+            if (e.type.equals(type)) {
+                return e;
+            }
+        }
+        return NONE;
     }
 }
