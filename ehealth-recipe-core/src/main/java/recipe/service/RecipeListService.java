@@ -933,7 +933,6 @@ public class RecipeListService extends RecipeBaseService {
                 //返回非合并处方
                 return findNoMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus);
             }
-
         } catch (Exception e) {
             LOGGER.error("findRecipesForPatientAndTabStatusNew error sql", e);
             throw new DAOException(609, e.getMessage());
@@ -943,7 +942,7 @@ public class RecipeListService extends RecipeBaseService {
     @RpcService
     public List<PatientTabStatusMergeRecipeDTO> findNoMergeRecipe(List<String> allMpiIds, Integer index, Integer limit, List<Integer> recipeStatusList, List<Integer> orderStatusList, String tabStatus) {
         //还是用原来的方法获取处方
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        // RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<PatientTabStatusMergeRecipeDTO> backList = Lists.newArrayList();
         PatientTabStatusMergeRecipeDTO mergeRecipeDTO;
         List<Integer> recipeIdWithoutHisAndPayList = recipeDAO.findRecipeIdWithoutHisAndPay(allMpiIds);
