@@ -1554,12 +1554,6 @@ public class RecipeListService extends RecipeBaseService {
         checkUserHasPermissionByDoctorId(doctorId);
 
         List<Map<String, Object>> list = new ArrayList<>(0);
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
         List<Recipe> recipeList = recipeDAO.findRecipesByTabstatusForDoctorNew(doctorId, start, limit, tapStatus);
         LOGGER.info("findRecipesForDoctorByTapstatusNew recipeList size={}", recipeList.size());
         if (CollectionUtils.isNotEmpty(recipeList)) {
@@ -1568,10 +1562,9 @@ public class RecipeListService extends RecipeBaseService {
 
             //date 20200506
             //获取处方对应的订单信息
-            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getOrderCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<String> recipeCodes = recipeList.stream().map(Recipe::getOrderCode).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
             Map<String, Integer> orderStatus = new HashMap<>();
             if (CollectionUtils.isNotEmpty(recipeCodes)) {
-
                 List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
                 orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
             }

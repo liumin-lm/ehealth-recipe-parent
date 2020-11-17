@@ -38,9 +38,13 @@ public enum RecipeOrderStatusEnum {
     /**
      * 待取药 list
      */
-    public static final List<Integer> READY_GET_DRUG = Arrays.asList(RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()
-            , RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType()
-            , RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType());
+    public static final List<Integer> READY_GET_DRUG = Arrays.asList(ORDER_STATUS_NO_DRUG.getType()
+            , ORDER_STATUS_READY_GET_DRUG.getType()
+            , ORDER_STATUS_HAS_DRUG.getType());
+
+    public static final List<Integer> DOCTOR_SHOW_ORDER_STATUS = Arrays.asList(ORDER_STATUS_READY_GET_DRUG.type
+            , ORDER_STATUS_AWAIT_SHIPPING.type, ORDER_STATUS_PROCEED_SHIPPING.type
+            , ORDER_STATUS_NO_DRUG.type, ORDER_STATUS_READY_DRUG.type, ORDER_STATUS_HAS_DRUG.type);
 
     public Integer getType() {
         return type;

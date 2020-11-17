@@ -7,6 +7,9 @@ package recipe.factory.status.constant;
  */
 
 public enum RecipeStatusEnum {
+    RECIPE_STATUS_CHECK_NOT_PASS(-1, "审核未通过", "审核未通过(HIS平台)"),
+    RECIPE_STATUS_UNSIGNED(0, "未签名", "未签名"),
+    RECIPE_STATUS_UNCHECK(1, "待审核", "待审核"),
     RECIPE_STATUS_CHECK_PASS(2, "待处理", " 审核通过(医院平台)"),
     RECIPE_STATUS_HAVE_PAY(3, "已支付，待取药", "已支付 (HIS回传状态)"),
     RECIPE_STATUS_IN_SEND(4, "配送中", ""),
@@ -20,12 +23,16 @@ public enum RecipeStatusEnum {
     RECIPE_STATUS_NO_PAY(13, "未支付", "已取消:超过3天未支付"),
     RECIPE_STATUS_NO_OPERATOR(14, "未处理", "已取消:超过3天未操作"),
     RECIPE_STATUS_CHECK_NOT_PASS_YS(15, "审核不通过", "审核未通过(药师平台人工审核)"),
+    RECIPE_STATUS_CHECKING_HOS(16, "医院确认中", "医院审核确认中"),
     RECIPE_STATUS_RECIPE_FAIL(17, "失败", "已取消：取药失败"),
     RECIPE_STATUS_RECIPE_DOWNLOADED(18, "待取药", "已下载：处方已下载"),
     RECIPE_STATUS_USING(22, "处理中", "天猫使用中"),
+    RECIPE_STATUS_CHECKING_MEDICAL_INSURANCE(24, "医保上传确认中", "医保上传确认中"),
     RECIPE_STATUS_SIGN_ERROR_CODE_PHA(27, "待审核", "签名失败-药师"),
-    RECIPE_STATUS_SIGN_ING_CODE_PHA(31, "待审核", " 签名中-药师"),
-    RECIPE_STATUS_SIGN_NO_CODE_PHA(32, "待审核", " 未签名-药师"),
+
+    RECIPE_STATUS_SIGN_ING_CODE_DOC(30, "处方签名中", "签名中-医生"),
+    RECIPE_STATUS_SIGN_ING_CODE_PHA(31, "待审核", "签名中-药师"),
+    RECIPE_STATUS_SIGN_NO_CODE_PHA(32, "待审核", "未签名-药师"),
 
 
     RECIPE_STATUS_DONE_DISPENSING(40, "已发药", ""),
@@ -68,7 +75,7 @@ public enum RecipeStatusEnum {
                 return e.name;
             }
         }
-        return NONE.getName();
+        return NONE.getName() + type;
     }
 
     /**
