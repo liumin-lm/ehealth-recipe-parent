@@ -441,7 +441,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                 if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
-                    ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
                     WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
                     // 机构id
                     logisticsOrder.setOrganId(recipeInfo.getClinicOrgan());
@@ -481,6 +480,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         logisticsOrder.setPatientIdentityCardNo(patientDTO.getIdcard());
                     }
                     LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
+                    ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
                     String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
                     LOGGER.info("药企对接物流运单信息回写基础服务，结果={}", writeResult);
                 }

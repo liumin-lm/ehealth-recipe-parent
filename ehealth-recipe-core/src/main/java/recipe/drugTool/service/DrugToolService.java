@@ -14,14 +14,14 @@ import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.regulation.service.IRegulationService;
+import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.IUsePathwaysService;
-import com.ngari.patient.service.IUsingRateService;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -71,10 +71,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.bean.DoctorDrugUsageRequest;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.OrganToolBean;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.DrugMatchConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
+import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DrugMatchUtil;
@@ -1973,6 +1975,63 @@ public class DrugToolService implements IDrugToolService {
             return true;
         }else {
             return false;
+        }
+    }
+
+    /**
+     * 处理处方历史物流数据同步至基础服务
+     */
+    @RpcService
+    public void handleRecipeLogistics(){
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        List<RecipeOrder> orders = orderDAO.findRecipeOrderWitchLogistics();
+        for (RecipeOrder order : orders){
+            try {
+                WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
+                // 机构id
+                logisticsOrder.setOrganId(order.getOrganId());
+                // 平台用户id
+                logisticsOrder.setUserId(order.getMpiId());
+                // 业务类型
+                logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
+                // 业务编码
+                logisticsOrder.setBusinessNo(order.getOrderCode());
+                // 快递编码
+                logisticsOrder.setLogisticsCode(order.getLogisticsCompany()+"");
+                // 运单号
+                logisticsOrder.setWaybillNo(order.getTrackingNumber());
+                // 运单费
+                logisticsOrder.setWaybillFee(order.getExpressFee());
+                // 收件人名称
+                logisticsOrder.setAddresseeName(order.getReceiver());
+                // 收件人手机号
+                logisticsOrder.setAddresseePhone(order.getRecMobile());
+                // 收件省份
+                logisticsOrder.setAddresseeProvince(ThirdEnterpriseCallService.getAddressDic(order.getAddress1()));
+                // 收件城市
+                logisticsOrder.setAddresseeCity(ThirdEnterpriseCallService.getAddressDic(order.getAddress2()));
+                // 收件镇/区
+                logisticsOrder.setAddresseeDistrict(ThirdEnterpriseCallService.getAddressDic(order.getAddress3()));
+                // 收件人街道
+                logisticsOrder.setAddresseeStreet(ThirdEnterpriseCallService.getAddressDic(order.getStreetAddress()));
+                // 收件详细地址
+                logisticsOrder.setAddresseeAddress(order.getAddress4());
+                // 寄托物名称
+                logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+                PatientService patientService = BasicAPI.getService(PatientService.class);
+                PatientDTO patientDTO = patientService.getPatientByMpiId(order.getMpiId());
+                if (patientDTO != null){
+                    logisticsOrder.setPatientName(patientDTO.getPatientName());
+                    logisticsOrder.setPatientPhone(patientDTO.getMobile());
+                    logisticsOrder.setPatientIdentityCardNo(patientDTO.getIdcard());
+                }
+                LOGGER.info("处方物流历史数据同步，入参={}", JSONObject.toJSONString(logisticsOrder));
+                ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+                String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
+                LOGGER.info("处方物流历史数据同步，结果={}", writeResult);
+            } catch (Exception e) {
+                LOGGER.error("处方物流历史数据同步,异常=", e);
+            }
         }
     }
 
