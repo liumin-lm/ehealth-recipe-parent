@@ -3559,14 +3559,24 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
-        //获取所有家庭成员的患者编号
+        List<String> allMpiIds = Lists.newArrayList();
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient != null) {
+            List<PatientDTO> patientDTOS = patientService.findByUrt(patient.getUrt());
+            if (CollectionUtils.isNotEmpty(patientDTOS)) {
+                allMpiIds = patientDTOS.stream().map(PatientDTO::getMpiId).collect(Collectors.toList());
+
+            }
+        }
+        return allMpiIds;
+        /*//获取所有家庭成员的患者编号
         List<String> allMpiIds = iPatientService.findMemberMpiByMpiid(mpiId);
         if (null == allMpiIds) {
             allMpiIds = new ArrayList<>(0);
         }
         //加入患者自己的编号
         allMpiIds.add(mpiId);
-        return allMpiIds;
+        return allMpiIds;*/
     }
 
     /**
