@@ -1035,7 +1035,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             enterpriseResTo.setProvince(province);
             enterpriseResTo.setCity(city);
             enterpriseResTo.setDistrict(district);
-            enterpriseResTo.setProvinceCode(provinceCode);
+            enterpriseResTo.setProvinceCode(provinceCode + "0000");
             enterpriseResTo.setAddress(address);
             enterpriseResTo.setRecvMobilePhone(recvMobilePhone);
             LOGGER.info("getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
