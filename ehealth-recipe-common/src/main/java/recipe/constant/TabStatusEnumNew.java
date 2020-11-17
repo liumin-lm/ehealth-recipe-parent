@@ -32,7 +32,7 @@ public enum TabStatusEnumNew {
      * date 2019/10/16
      * 修改已完成，可能没有订单，所以直接取处方已完成的状态
      */
-    Isover_Order_StatusList("isover", "order", Arrays.asList(5)),
+    Isover_Order_StatusList("isover", "order", Arrays.asList(5, 14, 15)),
     /**
      * 已结束处方的状态(未处理，失败，未支付，审核不通过, 已完成, 已撤销，已删除，推his失败)
      * date 20191023
@@ -41,7 +41,7 @@ public enum TabStatusEnumNew {
      * 不展示已删除的处方
      * 已下载(待取药)的处方归并到已完成里
      */
-    Isover_Recipe_StatusList("isover", "recipe", Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23, 18, 41, 42));
+    Isover_Recipe_StatusList("isover", "recipe", Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23, 18));
 
     private String tabStatus;
 

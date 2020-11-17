@@ -1590,4 +1590,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    public List<RecipeOrder> findRecipeOrderWitchLogistics(){
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "from RecipeOrder  where LogisticsCompany IS NOT NULL AND TrackingNumber IS NOT NULL";
+
+                Query q = ss.createQuery(sql);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }
