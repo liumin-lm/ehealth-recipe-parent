@@ -1982,9 +1982,10 @@ public class DrugToolService implements IDrugToolService {
      * 处理处方历史物流数据同步至基础服务
      */
     @RpcService
-    public void handleRecipeLogistics(){
+    public List<String> handleRecipeLogistics(){
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         List<RecipeOrder> orders = orderDAO.findRecipeOrderWitchLogistics();
+        List<String> errorList = new ArrayList<>();
         for (RecipeOrder order : orders){
             try {
                 WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
@@ -2030,9 +2031,11 @@ public class DrugToolService implements IDrugToolService {
                 String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
                 LOGGER.info("处方物流历史数据同步，结果={}", writeResult);
             } catch (Exception e) {
+                errorList.add(order.getOrderCode());
                 LOGGER.error("处方物流历史数据同步,异常=", e);
             }
         }
+        return errorList;
     }
 
 }
