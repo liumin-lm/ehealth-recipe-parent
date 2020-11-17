@@ -821,12 +821,17 @@ public class RecipeOrderService extends RecipeBaseService {
                     String address1 = address.getAddress1();  //省
                     String address2 = address.getAddress2();  //市
                     String address3 = address.getAddress3();  //区
+                    String address4 = address.getAddress4();  //详细地址
+                    String phone = address.getRecMobile();
                     Map<String, Object> parames = new HashMap<>();
                     parames.put("province", getAddressDic(address1));
                     parames.put("city", getAddressDic(address2));
                     parames.put("district", getAddressDic(address3));
                     parames.put("depId", order.getEnterpriseId());
                     parames.put("recipeId", recipeIds.get(0));
+                    parames.put("provinceCode", address1);
+                    parames.put("address", address4);
+                    parames.put("phone", phone);
                     RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                     Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
                     if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
