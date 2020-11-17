@@ -3,7 +3,6 @@ package recipe.service;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -880,29 +879,25 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return new ArrayList<>();
         }
+        //默认
+        Boolean mergeRecipeFlag = false;
+        String mergeRecipeWayAfter = "e.registerId";
         try {
             //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
-            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
             LOGGER.info("findRecipesForPatientAndTabStatusNew organIds={}", JSONUtils.toString(organIds));
-            Boolean mergeRecipeFlag = false;
-
             if (CollectionUtils.isNotEmpty(organIds)) {
                 for (Integer organId : organIds) {
                     //获取区域公众号
                     mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
-                    if (mergeRecipeFlag == null) {
+                    if (mergeRecipeFlag == null || !mergeRecipeFlag) {
                         mergeRecipeFlag = false;
-                    }
-                    if (!mergeRecipeFlag) {
                         break;
                     }
                 }
             }
             //再根据区域公众号里是否都支持同一种合并方式
-            //默认
-            String mergeRecipeWayAfter = "e.registerId";
             if (mergeRecipeFlag) {
                 //获取合并处方分组方式
                 //e.registerId支持同一个挂号序号下的处方合并支付
@@ -917,16 +912,20 @@ public class RecipeListService extends RecipeBaseService {
                     mergeRecipeWayAfter = mergeRecipeWay;
                 }
                 //从第二个开始进行比较
-                for (int i = 1; i < organIds.size(); i++) {
-                    mergeRecipeWayAfter = (String) configService.getConfiguration(organIds.get(i), "mergeRecipeWay");
+                for (Integer organId : organIds) {
+                    mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
                     if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
                         mergeRecipeFlag = false;
-                        LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organIds.get(i), mergeRecipeWay);
+                        LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
                         break;
                     }
                 }
                 LOGGER.info("findRecipesForPatientAndTabStatusNew mpiId={},mergeRecipeFlag={},mergeRecipeWay={}", mpiId, mergeRecipeFlag, mergeRecipeWay);
             }
+        } catch (Exception e) {
+            LOGGER.error("findRecipesForPatientAndTabStatusNew error configService", e);
+        }
+        try {
             if (mergeRecipeFlag) {
                 //返回合并处方
                 return findMergeRecipe(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), tabStatus, mergeRecipeWayAfter);
@@ -936,7 +935,7 @@ public class RecipeListService extends RecipeBaseService {
             }
 
         } catch (Exception e) {
-            LOGGER.error("findRecipesForPatientAndTabStatusNew error :.", e);
+            LOGGER.error("findRecipesForPatientAndTabStatusNew error sql", e);
             throw new DAOException(609, e.getMessage());
         }
     }
