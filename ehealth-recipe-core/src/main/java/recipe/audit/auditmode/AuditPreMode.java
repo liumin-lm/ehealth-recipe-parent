@@ -108,7 +108,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
-        //对重庆附二进行处理,审核通过将处方信息推送第三方
+        //药师审方后推送给前置机（扁鹊）
         RecipeServiceSub.pushRecipeForThird(recipe);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
