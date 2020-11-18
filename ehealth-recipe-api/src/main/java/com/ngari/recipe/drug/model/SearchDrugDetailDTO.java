@@ -16,7 +16,7 @@ import java.util.List;
  * @version： 1.0
  */
 @Schema
-public class SearchDrugDetailDTO implements Serializable {
+public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
 
     private static final long serialVersionUID = 2118094900340586830L;
 
@@ -153,6 +153,10 @@ public class SearchDrugDetailDTO implements Serializable {
     @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
     private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
+    @ItemProperty(alias = "医院库存、药企库存等列表信息")
+    private List<DrugInventoryInfo> inventories;
+
+    @Override
     public Integer getDrugId() {
         return drugId;
     }
@@ -161,6 +165,7 @@ public class SearchDrugDetailDTO implements Serializable {
         this.drugId = drugId;
     }
 
+    @Override
     public String getOrganDrugCode() {
         return organDrugCode;
     }
@@ -487,5 +492,14 @@ public class SearchDrugDetailDTO implements Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    public List<DrugInventoryInfo> getInventories() {
+        return inventories;
+    }
+
+    @Override
+    public void setInventories(List<DrugInventoryInfo> inventories) {
+        this.inventories = inventories;
     }
 }

@@ -16,7 +16,7 @@ import java.util.List;
  * @author yuyun
  */
 @Schema
-public class DrugListBean implements Serializable {
+public class DrugListBean implements IDrugInventory, Serializable {
 
     public static final long serialVersionUID = -3983203173007645688L;
 
@@ -161,7 +161,8 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "标志（浙江），1-是，0-否")
     private Integer isRegulation;
 
-
+    @ItemProperty(alias = "医院库存、药企库存等列表信息")
+    private List<DrugInventoryInfo> inventories;
 
     public DrugListBean() {
     }
@@ -182,6 +183,7 @@ public class DrugListBean implements Serializable {
         isMatched = matched;
     }
 
+    @Override
     public Integer getDrugId() {
         return drugId;
     }
@@ -419,6 +421,7 @@ public class DrugListBean implements Serializable {
         return JSONUtils.toString(this);
     }
 
+    @Override
     public String getOrganDrugCode() {
         return organDrugCode;
     }
@@ -537,5 +540,14 @@ public class DrugListBean implements Serializable {
 
     public void setIsRegulation(Integer isRegulation) {
         this.isRegulation = isRegulation;
+    }
+
+    public List<DrugInventoryInfo> getInventories() {
+        return inventories;
+    }
+
+    @Override
+    public void setInventories(List<DrugInventoryInfo> inventories) {
+        this.inventories = inventories;
     }
 }
