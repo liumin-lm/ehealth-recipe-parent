@@ -3884,6 +3884,12 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getPack())) {
             organDrug.setPack(Integer.valueOf(drug.getPack()));
         }
+        if (StringUtils.isNotEmpty(drug.getProducer())){
+            organDrug.setProducer(drug.getProducer());
+        }
+        if (StringUtils.isNotEmpty(drug.getTradename())){
+            organDrug.setSaleName(drug.getTradename());
+        }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
     }
