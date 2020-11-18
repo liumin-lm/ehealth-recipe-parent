@@ -50,6 +50,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -121,15 +122,25 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DrugsEnterprise enterprise = result.getDrugsEnterprise();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (enterprise != null && new Integer(1).equals(enterprise.getOperationType())) {
             //药企对应的service为空，则通过前置机进行推送
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
             LOGGER.info("pushSingleRecipeInfo pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (new Integer(1).equals(recipeOrder.getPushFlag())) {
+                    //表示已经推送
+                    return result;
+                }
+            }
             HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
             LOGGER.info("pushSingleRecipeInfo responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
                 //推送药企处方成功
+                orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
                 result.setCode(1);
                 String prescId = (String)responseTO.getExtend().get("prescId");
@@ -138,13 +149,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
                 }
             } else {
+                orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
                 result.setCode(0);
             }
         } else {
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
                 if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                     result = result.getAccessDrugEnterpriseService().pushRecipeInfo(recipeIdList, enterprise);
