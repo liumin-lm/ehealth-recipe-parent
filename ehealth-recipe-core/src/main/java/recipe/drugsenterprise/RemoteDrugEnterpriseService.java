@@ -304,21 +304,32 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 expandDTO.setSignFile(recipe.getSignFile());
             }
         }
-        //设置处方笺base
-        String ossId = recipe.getSignImg();
-        if(null != ossId){
-            String imgHead = "data:image/jpeg;base64,";
-            try {
-                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
-                if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
-                    LOGGER.warn("getPushRecipeAndOrder:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+        if (enterprise.getDownSignImgType() != null && enterprise.getDownSignImgType() == 1) {
+            //获取处方签链接
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String signImgFile = recipeParameterDao.getByName("fileImgUrl");
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                expandDTO.setPrescriptionImg(signImgFile + recipe.getChemistSignFile());
+            } else {
+                expandDTO.setPrescriptionImg(signImgFile + recipe.getSignFile());
+            }
+        } else {
+            //设置处方笺base
+            String ossId = recipe.getSignImg();
+            if(null != ossId){
+                String imgHead = "data:image/jpeg;base64,";
+                try {
+                    IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                    String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
+                    if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
+                        LOGGER.warn("getPushRecipeAndOrder:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                    }
+                    LOGGER.warn("getPushRecipeAndOrder:{}处方", recipe.getRecipeId());
+                    expandDTO.setPrescriptionImg(imgStr);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.error("getPushRecipeAndOrder:{}处方，获取处方图片服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
                 }
-                LOGGER.warn("getPushRecipeAndOrder:{}处方", recipe.getRecipeId());
-                expandDTO.setPrescriptionImg(imgStr);
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("getPushRecipeAndOrder:{}处方，获取处方图片服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
             }
         }
         IRecipeCheckService recipeCheckService=  RecipeAuditAPI.getService(IRecipeCheckService.class,"recipeCheckServiceImpl");
@@ -353,6 +364,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             margeRecipeBean.setRecipeBean(pushRecipeAndOrder.getRecipeBean());
             margeRecipeBean.setPushDrugListBeans(pushDrugListBeans);
             margeRecipeBean.setRecipeExtendBean(pushRecipeAndOrder.getRecipeExtendBean());
+            margeRecipeBeans.add(margeRecipeBean);
         }
 
     }
