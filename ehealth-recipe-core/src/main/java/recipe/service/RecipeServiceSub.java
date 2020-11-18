@@ -3124,7 +3124,9 @@ public class RecipeServiceSub {
             List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
             for (DrugsEnterprise drugsEnterprise : retList) {
                 if (new Integer(1).equals(drugsEnterprise.getOperationType())){
-                    drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                    if ("bqEnterprise".equals(drugsEnterprise.getAccount())){
+                        drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                    }
                 }
             }
         }catch(Exception e){
