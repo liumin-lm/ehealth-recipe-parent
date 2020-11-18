@@ -158,6 +158,7 @@ public class RecipeRefundService extends RecipeBaseService{
             }
         }
     }
+
     /**
      * 处方退款结果回调
      *
@@ -181,11 +182,12 @@ public class RecipeRefundService extends RecipeBaseService{
                 LOGGER.info("RecipeRefundService.refundResultCallBack order is null OrderCode = {}", recipe.getOrderCode());
                 return;
             }
-            if (refundRequestBean.getRefundFlag() && recipeOrder.getDispensingFlag().equals(1)) {
-                LOGGER.info("RecipeRefundService.refundResultCallBack OrderCode = {}", recipe.getOrderCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
-            }
+
             if (refundRequestBean.getRefundFlag()) {
+                if (Integer.valueOf(1).equals(recipeOrder.getDispensingFlag())) {
+                    LOGGER.info("RecipeRefundService.refundResultCallBack OrderCode = {}", recipe.getOrderCode());
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
+                }
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
