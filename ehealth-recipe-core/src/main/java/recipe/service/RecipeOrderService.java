@@ -74,6 +74,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
+import recipe.factory.status.constant.GiveModeEnum;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -1926,7 +1927,7 @@ public class RecipeOrderService extends RecipeBaseService {
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
             // 平台物流对接--物流下单逻辑--且处方购药方式为配送到家
             try {
-                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes) && "1".equals(recipes.get(0).getGiveMode())) {
+                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes) && GiveModeEnum.GIVE_MODE_HOME_DELIVERY.equals(recipes.get(0).getGiveMode())) {
                     LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
                     createLogisticsOrder(orderCode, order, recipes);
                 }
