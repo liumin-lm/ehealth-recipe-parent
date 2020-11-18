@@ -363,6 +363,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if (new Integer(1).equals(pushRecipeAndOrder.getMergeRecipeFlag())) {
             margeRecipeBean.setRecipeBean(pushRecipeAndOrder.getRecipeBean());
             margeRecipeBean.setPushDrugListBeans(pushDrugListBeans);
+            margeRecipeBean.setExpandDTO(pushRecipeAndOrder.getExpandDTO());
             margeRecipeBean.setRecipeExtendBean(pushRecipeAndOrder.getRecipeExtendBean());
             margeRecipeBeans.add(margeRecipeBean);
         }
