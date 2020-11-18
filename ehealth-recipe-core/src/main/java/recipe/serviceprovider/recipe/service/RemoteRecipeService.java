@@ -80,6 +80,7 @@ import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
+import recipe.service.manager.EmrRecipeManager;
 import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
@@ -813,8 +814,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId) {
-        RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeId);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        EmrRecipeManager.getMedicalInfo(new Recipe(), recipeExtend);
         return ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
     }
 
