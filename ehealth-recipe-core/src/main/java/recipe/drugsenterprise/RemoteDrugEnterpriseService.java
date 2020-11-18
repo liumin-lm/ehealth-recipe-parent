@@ -271,6 +271,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         MargeRecipeBean margeRecipeBean = new MargeRecipeBean();
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
         //设置处方信息
         pushRecipeAndOrder.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
 
