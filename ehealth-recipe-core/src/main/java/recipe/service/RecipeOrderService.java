@@ -1924,9 +1924,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
-            // 平台物流对接--物流下单逻辑
+            // 平台物流对接--物流下单逻辑--且处方购药方式为配送到家
             try {
-                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes)) {
+                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes) && "1".equals(recipes.get(0).getGiveMode())) {
                     LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
                     createLogisticsOrder(orderCode, order, recipes);
                 }
