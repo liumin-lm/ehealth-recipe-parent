@@ -24,7 +24,6 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import es.api.DrugSearchService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ import static recipe.bussutil.RecipeUtil.getHospitalPrice;
  * @description： 原DrugListDAO层里的一些rpc方法
  * @version： 1.0
  */
-@RpcBean(value = "drugList", mvc_authentication=false)
+@RpcBean("drugList")
 public class DrugListExtService extends BaseService<DrugListBean> {
 
     /**
@@ -192,10 +191,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugListBean.setInventories(drugInventoryInfos);
                 }
             } else {
-                int i=0;
                 for (IDrugInventory drugListBean : drugListBeans) {
-                    i++;
-                    List<DrugInfoTO> drugInfoTOListMatched = findDrugInfoTOList(drugListBean, hisResp.getData(), i%5);
+                    List<DrugInfoTO> drugInfoTOListMatched = findDrugInfoTOList(drugListBean, hisResp.getData());
                     List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
                     DrugInventoryInfo drugInventory = new DrugInventoryInfo("his", null, "0");
                     drugInventory.setPharmacyInventories(convertFrom(drugInfoTOListMatched));
@@ -220,20 +217,18 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             pharmacyInventory.setPharmacyCode(drugInfoTO.getPharmacyCode());
             pharmacyInventory.setPharmacyName(drugInfoTO.getPharmacy());
             pharmacyInventory.setAmount(drugInfoTO.getStockAmount() == null ? 0 : drugInfoTO.getStockAmount());
-//            pharmacyInventory.setAmount(drugInfoTO.getStockAmount() == null ? 0 : drugInfoTO.getStockAmount());
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
     }
 
-    private List<DrugInfoTO> findDrugInfoTOList(IDrugInventory drugListBean, List<DrugInfoTO> drugInfoTOList, int i) {
+    private List<DrugInfoTO> findDrugInfoTOList(IDrugInventory drugListBean, List<DrugInfoTO> drugInfoTOList) {
         return drugInfoTOList.stream().filter(item ->
-                drugTestMap.get(i).equalsIgnoreCase(item.getDrcode()))
+                drugListBean.getOrganDrugCode().equalsIgnoreCase(item.getDrcode()))
                 .collect(Collectors.toList());
     }
 
     private boolean isViewInventoryRealtime(Integer organId) {
-//        IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         try {
             Integer cfgValue = (Integer) configService.getConfiguration(organId, "viewDrugInventoryRealTime");
@@ -243,16 +238,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         	return true;
         }
     }
-
-    private Map<Integer, String> drugTestMap = new HashedMap() {
-        {
-            put(0,"111548");
-            put(1,"111927");
-            put(2,"111099");
-            put(3,"111509");
-            put(4,"112177");
-        }
-    };
 
     /***
      *
@@ -280,13 +265,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         request.setType("2");
         request.setOrganId(organId);
         List<DrugInfoTO> data = new ArrayList<>(organDrugList.size());
-        int i= 0;
         for (IHisDrugInventoryCondition organDrugItem : organDrugList) {
-            i++;
-            DrugInfoTO drugInfo = new DrugInfoTO(drugTestMap.get(i%5));
+            DrugInfoTO drugInfo = new DrugInfoTO(organDrugItem.getOrganDrugCode());
             List<OrganDrugList> organDrugs = drugIdProduceMap.get(organDrugItem.getOrganDrugCode());
             if (CollectionUtils.isNotEmpty(organDrugs)) {
-                Map<Integer, String> producerCodeMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getProducerCode));
+                Map<Integer, String> producerCodeMap = organDrugs.stream().collect(
+                        Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getProducerCode));
                 String producerCode = producerCodeMap.get(organDrugItem.getDrugId());
                 if (StringUtils.isNotEmpty(producerCode)) {
                     drugInfo.setManfcode(producerCode);
@@ -304,9 +288,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
             data.add(drugInfo);
         }
-        organDrugList.forEach(organDrugItem -> {
-
-        });
 
         request.setData(data);
         LOGGER.info("getDrugStock request={}", JSONUtils.toString(request));
