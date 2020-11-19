@@ -29,6 +29,7 @@ public class PharmacyDrugImpl extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
+        orderStatus.setSender("");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         recipeOrder.setPayTime(new Date());
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);

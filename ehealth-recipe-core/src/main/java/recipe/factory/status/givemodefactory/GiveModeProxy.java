@@ -52,15 +52,12 @@ public class GiveModeProxy implements ApplicationContextAware {
         IGiveModeService factoryService = getFactoryService(giveMode);
         factoryService.updateStatusAfter(orderStatus);
         //记录日志
-        RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
-                , orderStatus.getTargetRecipeOrderStatus(), GiveModeEnum.getGiveModeName(giveMode) + " ,配送人:" + orderStatus.getSender());
+        RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeStatus()
+                , orderStatus.getTargetRecipeStatus(), GiveModeEnum.getGiveModeName(giveMode) + " ,配送人:" + orderStatus.getSender());
         //记录操作日志
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("电子处方详情页-编辑订单",
-                orderStatus.getOrderId() + "",
-                "recipeOrder",
-                "电子处方订单【" + orderStatus.getRecipeId() + "】状态由【"
-                        + RecipeOrderStatusEnum.getOrderStatus(orderStatus.getSourceRecipeOrderStatus()) + "】调整为【" +
+        busActionLogService.recordBusinessLogRpcNew("电子处方详情页-编辑订单", orderStatus.getOrderId() + "", "recipeOrder",
+                "电子处方订单【" + orderStatus.getRecipeId() + "】状态由【" + RecipeOrderStatusEnum.getOrderStatus(orderStatus.getSourceRecipeOrderStatus()) + "】调整为【" +
                         RecipeOrderStatusEnum.getOrderStatus(orderStatus.getTargetRecipeOrderStatus()) + "】", "平台");
     }
 

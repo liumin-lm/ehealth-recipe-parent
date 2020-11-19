@@ -43,6 +43,16 @@ public class UpdateOrderStatusVO implements Serializable {
      * 配送人
      */
     private String sender;
+
+    /**
+     * 目标处方状态
+     */
+    private Integer targetRecipeStatus;
+
+    /**
+     * 源处方状态
+     */
+    private Integer sourceRecipeStatus;
 }
 
 
