@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
@@ -172,40 +173,45 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     private void setInventoriesIfRealTime(Integer organId, List<? extends IDrugInventory> drugListBeans,
                                           @Nullable Integer pharmacyId) {
-        if (CollectionUtils.isEmpty(drugListBeans) || !isViewInventoryRealtime(organId)) {
-            return;
-        }
-        // 如果实时查询库存
-        // 1. 调用his前置接口查询医院库存并赋值
-        List<OrganDrugList> organDrugList = drugListBeans.stream().map(item -> {
-            OrganDrugList organDrug = new OrganDrugList();
-            organDrug.setDrugId(item.getDrugId());
-            organDrug.setOrganDrugCode(item.getOrganDrugCode());
-            return organDrug;
-        }).collect(Collectors.toList());
-
-        DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, drugListBeans, pharmacyId);
-        if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())
-                || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(0)) {
-
-            // 说明查询错误, 或者
-            List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
-            drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
-            for (IDrugInventory drugListBean : drugListBeans) {
-                drugListBean.setInventories(drugInventoryInfos);
+        try {
+            if (CollectionUtils.isEmpty(drugListBeans) || !isViewInventoryRealtime(organId)) {
+                return;
             }
-        } else {
-            for (IDrugInventory drugListBean : drugListBeans) {
-                List<DrugInfoTO> drugInfoTOListMatched = findDrugInfoTOList(drugListBean, hisResp.getData());
+
+            // 如果实时查询库存
+            // 1. 调用his前置接口查询医院库存并赋值
+            List<OrganDrugList> organDrugList = drugListBeans.stream().map(item -> {
+                OrganDrugList organDrug = new OrganDrugList();
+                organDrug.setDrugId(item.getDrugId());
+                organDrug.setOrganDrugCode(item.getOrganDrugCode());
+                return organDrug;
+            }).collect(Collectors.toList());
+
+            DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, drugListBeans, pharmacyId);
+            if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())
+                    || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(0)) {
+
+                // 说明查询错误, 或者
                 List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
-                DrugInventoryInfo drugInventory = new DrugInventoryInfo("his", null, "0");
-                drugInventory.setPharmacyInventories(convertFrom(drugInfoTOListMatched));
-                drugInventoryInfos.add(drugInventory);
-                drugListBean.setInventories(drugInventoryInfos);
+                drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
+                for (IDrugInventory drugListBean : drugListBeans) {
+                    drugListBean.setInventories(drugInventoryInfos);
+                }
+            } else {
+                for (IDrugInventory drugListBean : drugListBeans) {
+                    List<DrugInfoTO> drugInfoTOListMatched = findDrugInfoTOList(drugListBean, hisResp.getData());
+                    List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
+                    DrugInventoryInfo drugInventory = new DrugInventoryInfo("his", null, "0");
+                    drugInventory.setPharmacyInventories(convertFrom(drugInfoTOListMatched));
+                    drugInventoryInfos.add(drugInventory);
+                    drugListBean.setInventories(drugInventoryInfos);
+                }
             }
-        }
 
-        // 2. 调用药企接口查询药企库存并赋值（暂不实现）
+            // 2. 调用药企接口查询药企库存并赋值（暂不实现）
+        } catch (Exception e) {
+            LOGGER.error("药品实时查询库存错误setInventoriesIfRealTime ", e);
+        }
     }
 
     private List<DrugPharmacyInventoryInfo> convertFrom(List<DrugInfoTO> drugInfoTOList) {
@@ -217,7 +223,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugPharmacyInventoryInfo pharmacyInventory = new DrugPharmacyInventoryInfo();
             pharmacyInventory.setPharmacyCode(drugInfoTO.getPharmacyCode());
             pharmacyInventory.setPharmacyName(drugInfoTO.getPharmacy());
-            pharmacyInventory.setAmount(drugInfoTO.getStockAmount());
+            pharmacyInventory.setAmount(drugInfoTO.getStockAmount() == null ? 0d : drugInfoTO.getStockAmount());
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
@@ -225,14 +231,20 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     private List<DrugInfoTO> findDrugInfoTOList(IDrugInventory drugListBean, List<DrugInfoTO> drugInfoTOList) {
         return drugInfoTOList.stream().filter(item ->
-                item.getDrcode().equalsIgnoreCase(drugListBean.getOrganDrugCode()))
+                drugListBean.getOrganDrugCode().equalsIgnoreCase(item.getDrcode()))
                 .collect(Collectors.toList());
     }
 
     private boolean isViewInventoryRealtime(Integer organId) {
-        IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Integer cfgValue = (Integer) configService.getConfiguration(organId, "viewDrugInventoryRealTime");
-        return  cfgValue.equals(1);
+//        IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        try {
+            Integer cfgValue = (Integer) configService.getConfiguration(organId, "viewDrugInventoryRealTime");
+            return  cfgValue.equals(1);
+        } catch (Exception e) {
+            LOGGER.error("获取参数viewDrugInventoryRealTime 错误 ", e);
+        	return false;
+        }
     }
 
     /***
