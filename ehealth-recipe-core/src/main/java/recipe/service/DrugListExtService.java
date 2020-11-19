@@ -219,7 +219,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugPharmacyInventoryInfo pharmacyInventory = new DrugPharmacyInventoryInfo();
             pharmacyInventory.setPharmacyCode(drugInfoTO.getPharmacyCode());
             pharmacyInventory.setPharmacyName(drugInfoTO.getPharmacy());
-//            pharmacyInventory.setAmount(drugInfoTO.getAmount() == null ? BigDecimal.ZERO : drugInfoTO.getAmount());
+            pharmacyInventory.setAmount(drugInfoTO.getStockAmount() == null ? 0 : drugInfoTO.getStockAmount());
+//            pharmacyInventory.setAmount(drugInfoTO.getStockAmount() == null ? 0 : drugInfoTO.getStockAmount());
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
