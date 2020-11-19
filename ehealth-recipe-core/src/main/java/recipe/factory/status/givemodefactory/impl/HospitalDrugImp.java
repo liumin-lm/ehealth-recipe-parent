@@ -19,6 +19,7 @@ public class HospitalDrugImp extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
+        orderStatus.setSender("");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
     }
