@@ -26,7 +26,6 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -38,13 +37,16 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.constant.*;
+import recipe.constant.OrderStatusConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.ReviewTypeConstant;
+import recipe.constant.UpdateSendMsgStatusEnum;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
@@ -55,6 +57,8 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -573,8 +577,8 @@ public class PayModeOnline implements IPurchaseService {
         String orderCode = recipe.getOrderCode();
         int orderStatus = order.getStatus();
         String tips = "";
-        switch (status) {
-            case RecipeStatusConstant.CHECK_PASS:
+        switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
+            case RECIPE_STATUS_CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode)) {
                     if (orderStatus == OrderStatusConstant.READY_SEND) {
                         tips = "订单已处理，请耐心等待药品配送";
@@ -583,21 +587,15 @@ public class PayModeOnline implements IPurchaseService {
                     if (orderStatus == OrderStatusConstant.READY_PAY && new Integer(1).equals(order.getRefundFlag())) {
                         tips = "订单结算失败，费用已为您原路返回";
                     }
-
                 }
                 break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
+            case RECIPE_STATUS_CHECK_PASS_YS:
                 tips = "处方已审核通过，请耐心等待药品配送";
                 break;
-            case RecipeStatusConstant.IN_SEND:
+            case RECIPE_STATUS_IN_SEND:
                 tips = "药企正在配送";
                 break;
-            case RecipeStatusConstant.WAIT_SEND:
-                if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(order.getStatus())) {
-                    tips = "药品已发药";
-                }
-                break;
-            case RecipeStatusConstant.FINISH:
+            case RECIPE_STATUS_FINISH:
                 tips = "药企配送完成，订单完成";
                 break;
             default:

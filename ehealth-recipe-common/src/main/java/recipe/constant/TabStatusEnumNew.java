@@ -26,13 +26,13 @@ public enum TabStatusEnumNew {
      * date 20200424
      * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe", Arrays.asList(2, 3, 4, 5)),
+    Ongoing_Recipe_StatusList("ongoing", "recipe", Arrays.asList(2, 3, 4, 5, 40)),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16
      * 修改已完成，可能没有订单，所以直接取处方已完成的状态
      */
-    Isover_Order_StatusList("isover", "order", Arrays.asList(5)),
+    Isover_Order_StatusList("isover", "order", Arrays.asList(5, 14, 15)),
     /**
      * 已结束处方的状态(未处理，失败，未支付，审核不通过, 已完成, 已撤销，已删除，推his失败)
      * date 20191023

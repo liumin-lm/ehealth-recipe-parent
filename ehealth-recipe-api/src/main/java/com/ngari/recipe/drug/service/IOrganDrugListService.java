@@ -54,4 +54,7 @@ public interface IOrganDrugListService {
 
     @RpcService
     List<OrganDrugListBean> findByDrugIdsAndOrganIds(List<Integer> drugIds,List<Integer> organIds);
+
+    @RpcService
+    Long getCountByDrugId(int drugId);
 }

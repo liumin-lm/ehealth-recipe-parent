@@ -9,6 +9,7 @@ import recipe.ApplicationUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -39,7 +40,7 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         recipe.setSender(orderStatus.getSender());
         //以免进行处方失效前提醒
         recipe.setRemindFlag(1);
-        recipe.setStatus(RecipeStatusConstant.IN_SEND);
+        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType());
         recipeOrder.setSendTime(new Date());
         return recipe;
     }

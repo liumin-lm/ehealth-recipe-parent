@@ -1194,6 +1194,7 @@ public class RecipeService extends RecipeBaseService {
                     memo = "当前签名处方签名成功---CA前置，his返回默认CA成功";
                 }
             }
+            RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
@@ -3558,14 +3559,24 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
-        //获取所有家庭成员的患者编号
+        List<String> allMpiIds = Lists.newArrayList();
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient != null) {
+            List<PatientDTO> patientDTOS = patientService.findByUrt(patient.getUrt());
+            if (CollectionUtils.isNotEmpty(patientDTOS)) {
+                allMpiIds = patientDTOS.stream().map(PatientDTO::getMpiId).collect(Collectors.toList());
+
+            }
+        }
+        return allMpiIds;
+        /*//获取所有家庭成员的患者编号
         List<String> allMpiIds = iPatientService.findMemberMpiByMpiid(mpiId);
         if (null == allMpiIds) {
             allMpiIds = new ArrayList<>(0);
         }
         //加入患者自己的编号
         allMpiIds.add(mpiId);
-        return allMpiIds;
+        return allMpiIds;*/
     }
 
     /**

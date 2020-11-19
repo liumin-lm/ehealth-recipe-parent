@@ -1052,20 +1052,34 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit       分页长度
      * @return QueryResult<Map>
      */
-    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
+    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status,
+                                              final Integer doctor, final String patientName,
+                                              final Date bDate, final Date eDate, final Integer dateType,
+                                              final Integer depart, final int start, final int limit,
+                                              List<Integer> organIds, Integer giveMode, Integer sendType,
+                                              Integer fromflag, Integer recipeId, Integer enterpriseId,
+                                              Integer checkStatus, Integer payFlag, Integer orderType,
+                                              Integer refundNodeStatus) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType);
+        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor,
+                patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId,
+                enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k").addScalar("count", LongType.INSTANCE);
+
+                // 查询总记录数
+                SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k")
+                        .addScalar("count", LongType.INSTANCE);
                 sqlQuery.setParameter("startTime", sdf.format(bDate));
                 sqlQuery.setParameter("endTime", sdf.format(eDate));
                 Long total = (Long) sqlQuery.uniqueResult();
 
-                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
+                // 查询结果
+                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString())
+                        .addEntity(Recipe.class);
                 query.setParameter("startTime", sdf.format(bDate));
                 query.setParameter("endTime", sdf.format(eDate));
                 query.setFirstResult(start);
@@ -1117,6 +1131,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             map.put("payDate", null);
                         }
                         map.put("patient", patientBean);
+
+                        // 处方退费状态
+                        map.put("refundNodeStatus", resolveRecipeRefundNodeStatus(refundNodeStatus, recipe));
+
                         maps.add(map);
                     }
                 }
@@ -1125,6 +1143,20 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
+    }
+
+    // 改为批量查询提高效率
+    private Integer resolveRecipeRefundNodeStatus(Integer refundNodeStatus, Recipe recipe) {
+        if (refundNodeStatus != null) {
+            return refundNodeStatus;
+        } else {
+            RecipeExtendDAO recipeExtendDAO =  DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null) {
+                return recipeExtend.getRefundNodeStatus();
+            }
+        }
+        return null;
     }
 
     /**
@@ -1503,11 +1535,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return hql;
     }
 
-    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType
-
-    ) {
+    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor,
+                                                             String mpiId, Integer dateType, Integer depart,
+                                                             final List<Integer> requestOrgans, Integer giveMode,
+                                                             Integer sendType, Integer fromflag, Integer recipeId,
+                                                             Integer enterpriseId, Integer checkStatus,
+                                                             Integer payFlag, Integer orderType, Integer refundNodeStatus) {
 //        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
-        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where 1=1");
+        StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
+        hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
+        hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
+        hql.append(" where 1=1");
         //new StringBuilder("select r.recipeId,o.orderCode from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1 ");
 
         //默认查询所有
@@ -1626,7 +1664,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             } else {
                 hql.append(" and o.orderType in (1,2,3,4) ");
             }
-
+        }
+        if (refundNodeStatus != null) {
+            hql.append(" and re.refundNodeStatus=").append(refundNodeStatus);
         }
         return hql;
     }
@@ -2506,7 +2546,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    public List<PatientRecipeBean> findTabStatusRecipesForPatientNew(final List<String> mpiIdList, final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final String tabStatus) {
+    public List<PatientRecipeBean> findTabStatusRecipesForPatientNew(final List<String> mpiIdList, final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final String tabStatus, final List<Integer> recipeIdWithoutHisAndPayList) {
         HibernateStatelessResultAction<List<PatientRecipeBean>> action = new AbstractHibernateStatelessResultAction<List<PatientRecipeBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -2525,7 +2565,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.recipeSourceType = 1 and t.Status IN (:recipeStatusList) and t.checkStatus != 1 ");
                     hql.append("UNION ALL ");
                     hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " + "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," + "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource ,w.payFlag as payFlag,w.recipeId FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " + "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.recipeSourceType = 1 ");
-                    hql.append(") s ORDER BY s.recordDate desc");
+                    hql.append(") s ");
+                    if (CollectionUtils.isNotEmpty(recipeIdWithoutHisAndPayList)) {
+                        hql.append("where s.recipeId not in(:recipeIdWithoutHisAndPayList)");
+                    }
+                    hql.append("ORDER BY s.recordDate desc");
                 }
 
                 Query q = ss.createSQLQuery(hql.toString());
@@ -2537,6 +2581,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }else {
                     q.setParameterList("orderStatusList", orderStatusList);
                     q.setParameterList("recipeStatusList", recipeStatusList);
+                    if (CollectionUtils.isNotEmpty(recipeIdWithoutHisAndPayList)) {
+                        q.setParameterList("recipeIdWithoutHisAndPayList", recipeIdWithoutHisAndPayList);
+                    }
                 }
 
                 q.setMaxResults(limit);
@@ -2589,9 +2636,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+
+    /**
+     * 获取his写入失败且未支付的订单号
+     *
+     * @param mpiIdList
+     * @return
+     */
+    @DAOMethod(sql = "select recipeId from Recipe where orderCode is null and status = 11 and mpiid in(:allMpiIds)")
+    public abstract List<Integer> findRecipeIdWithoutHisAndPay(@DAOParam("allMpiIds") List<String> mpiIdList);
+
+
     /**
      * 获取挂号序号和处方id对应关系
-     *
      * @param mpiIdList
      * @param start
      * @param limit
@@ -2694,12 +2751,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(mergeRecipeWay);
                 hql.append(" as groupField");
                 hql.append(",d.RecipeID as ids from cdr_recipe d,cdr_recipe_ext e ");
-                hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeStatusList) and d.recipeSourceType = 1 and d.OrderCode is null ");
+                hql.append("where d.RecipeID = e.recipeId and d.MPIID in(:mpiIdList) and d.`Status` in (:recipeWithoutHisAndPayStatusList) and d.recipeSourceType = 1 and d.OrderCode is null ");
                 hql.append(") s ORDER BY SUBSTRING_INDEX(ids,',',1) desc");
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
                 q.setParameterList("recipeStatusList", recipeStatusList);
+                q.setParameterList("recipeWithoutHisAndPayStatusList", recipeStatusList.stream().filter(a -> !a.equals(11)).collect(Collectors.toList()));
 
                 q.setMaxResults(limit);
                 q.setFirstResult(start);

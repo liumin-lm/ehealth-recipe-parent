@@ -923,5 +923,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
+    /**
+     * 根据drugId查询所有机构药品数量
+     * @param drugId  平台药品id
+     * @return         药品数量
+     */
+    @DAOMethod(sql = "select count(id) from OrganDrugList where drugId=:drugId  and status = 1",limit = 0)
+    public abstract Long getCountByDrugId(@DAOParam("drugId") int drugId);
+
+
 
 }

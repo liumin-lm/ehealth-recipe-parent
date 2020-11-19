@@ -140,6 +140,34 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
     private Integer settlementMode;
 
+    @ItemProperty(alias = "物流公司")
+    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "物流类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    @ItemProperty(alias = "寄件人名称")
+    private String consignorName;
+
+    @ItemProperty(alias = "寄件人手机号")
+    private String consignorMobile;
+
+    @ItemProperty(alias = "寄件人省份编码")
+    private String consignorProvince;
+
+    @ItemProperty(alias = "寄件人城市编码")
+    private String consignorCity;
+
+    @ItemProperty(alias = "寄件人区域编码")
+    private String consignorDistrict;
+
+    @ItemProperty(alias = "寄件人详细地址")
+    private String consignorAddress;
+
+    @ItemProperty(alias = "寄件人街道编码")
+    private String consignorStreet;
+
 
     public DrugsEnterpriseBean() {
     }
@@ -458,5 +486,77 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setSettlementMode(Integer settlementMode) {
         this.settlementMode = settlementMode;
+    }
+
+    public Integer getLogisticsCompany() {
+        return logisticsCompany;
+    }
+
+    public void setLogisticsCompany(Integer logisticsCompany) {
+        this.logisticsCompany = logisticsCompany;
+    }
+
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
+
+    public String getConsignorName() {
+        return consignorName;
+    }
+
+    public void setConsignorName(String consignorName) {
+        this.consignorName = consignorName;
+    }
+
+    public String getConsignorMobile() {
+        return consignorMobile;
+    }
+
+    public void setConsignorMobile(String consignorMobile) {
+        this.consignorMobile = consignorMobile;
+    }
+
+    public String getConsignorProvince() {
+        return consignorProvince;
+    }
+
+    public void setConsignorProvince(String consignorProvince) {
+        this.consignorProvince = consignorProvince;
+    }
+
+    public String getConsignorCity() {
+        return consignorCity;
+    }
+
+    public void setConsignorCity(String consignorCity) {
+        this.consignorCity = consignorCity;
+    }
+
+    public String getConsignorDistrict() {
+        return consignorDistrict;
+    }
+
+    public void setConsignorDistrict(String consignorDistrict) {
+        this.consignorDistrict = consignorDistrict;
+    }
+
+    public String getConsignorAddress() {
+        return consignorAddress;
+    }
+
+    public void setConsignorAddress(String consignorAddress) {
+        this.consignorAddress = consignorAddress;
+    }
+
+    public String getConsignorStreet() {
+        return consignorStreet;
+    }
+
+    public void setConsignorStreet(String consignorStreet) {
+        this.consignorStreet = consignorStreet;
     }
 }

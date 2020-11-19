@@ -7,8 +7,8 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.purchase.CommonOrder;
 
 import java.util.Date;
@@ -44,7 +44,7 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         recipe.setGiveDate(date);
         recipe.setGiveFlag(1);
         recipe.setGiveUser(orderStatus.getSender());
-        recipe.setStatus(RecipeStatusConstant.FINISH);
+        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
         return recipe;
     }
 

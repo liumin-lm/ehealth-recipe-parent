@@ -58,6 +58,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         //处方状态 1 处方保存 2 处方收费 3 处方发药 4处方退费 5处方退药 6处方拒绝接收 7已申请配送 8已配送
         switch (recipeStatus) {
             case HisBussConstant.FROMHIS_RECIPE_STATUS_ADD:
+                //TODO liu
                 if(null != notice.getCardTypeName()){
                     otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
                 }
@@ -162,6 +163,8 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 return "医保电子凭证";
             case "5":
                 return "居民健康卡";
+            case "7":
+                return "杭州健康卡";
             default:
                 return cardTypeName;
         }

@@ -5,9 +5,12 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.service.IOrganDrugListService;
+import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.SaleDrugList;
@@ -226,6 +229,13 @@ public class DrugListService extends BaseService<DrugListBean> {
         if (null == drugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
+
+        Long organNum = RecipeAPI.getService(IOrganDrugListService.class).getCountByDrugId(drugList.getDrugId());
+        Long saleNum = RecipeAPI.getService(ISaleDrugListService.class).getCountByDrugId(drugList.getDrugId());
+        if(organNum>0 || saleNum>0){
+            throw new DAOException(DAOException.VALIDATE_FALIED, "该通用药品存在关联的机构药品或者药企药品，不支持删除。");
+        }
+
         DrugList target = dao.getById(drugList.getDrugId());
         if (null == target) {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");

@@ -775,4 +775,12 @@ public class OrganDrugListService implements IOrganDrugListService {
         List<OrganDrugList> organDrugList = organDrugListDAO.findByDrugIdsAndOrganIds(drugIds, organIds);
         return ObjectCopyUtils.convert(organDrugList, OrganDrugListBean.class);
     }
+
+    @RpcService
+    public Long getCountByDrugId(int drugId){
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        Long result =  organDrugListDAO.getCountByDrugId(drugId);
+        return result == null ? 0 : result;
+    }
+
 }

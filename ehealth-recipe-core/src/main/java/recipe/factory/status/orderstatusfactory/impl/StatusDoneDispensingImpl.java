@@ -7,6 +7,7 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.client.HisInventoryClient;
 
 /**
@@ -16,6 +17,10 @@ import recipe.service.client.HisInventoryClient;
  */
 @Service
 public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
+    /**
+     * 发药标示：0:无需发药，1：已发药，2:已退药
+     */
+    protected final static int DISPENSING_FLAG_DONE = 1;
     @Autowired
     private HisInventoryClient hisInventoryClient;
 
@@ -26,12 +31,13 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+        recipeOrder.setDispensingFlag(DISPENSING_FLAG_DONE);
         RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(1);
         hisInventoryClient.drugInventory(request);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(orderStatus.getRecipeId());
-        recipe.setStatus(orderStatus.getTargetRecipeStatus());
+        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         return recipe;
     }
 }

@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.constant;
 
+import java.math.BigDecimal;
+
 /**
 * @Description: RecipePayTipEnum 类（或接口）是 处方支付提示枚举
 * @Author: JRK
@@ -16,10 +18,14 @@ public enum RecipePayTipEnum {
     Send_To_Home_Below_Need_CheckFee("ngarihealth", 2, false, "", "(需先支付药师审核费：<em>¥</em>，其余费用货到支付)"),
     /**
      * 到院取药，不需要审方/审方金额为0
+     * 20201117: 医院取药 药品费用支付提示改为 按机构配置项getHisDrugPayTip 进行提示。
+     * @see #getToHosPayTip(String, BigDecimal)
      */
     To_Hos_No_CheckFee("ngarihealth", 3, true, "提交订单后，药品费用需到医院进行支付。", "（费用请到医院支付）"),
     /**
      * 到院取药，审核费用不为0
+     * 20201117: 医院取药 药品费用支付提示改为 按机构配置项getHisDrugPayTip 进行提示。
+     * @see #getToHosPayTip(String, BigDecimal)
      */
     To_Hos_Need_CheckFee("ngarihealth", 3, false, "提交订单后，药品费用需到医院进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到医院支付）"),
     /**
@@ -69,6 +75,30 @@ public enum RecipePayTipEnum {
         this.payMode = payMode;
         this.notNeedCheckFee = notNeedCheckFee;
         this.payTip = payTip;
+    }
+
+    /**
+     * 到院取药支付提示专用。
+     * 根据医院到院取药需付款文案配置 + 审方费用生成支付提示
+     * @param gettingDrugPayTip 医院到院取药需付款文案配置
+     * @param checkFee 审核费用，不需要审方时可为null
+     * @return 支付提示
+     */
+    public String getToHosPayTip(String gettingDrugPayTip, BigDecimal checkFee) {
+        boolean notNeedCheckFee = this.notNeedCheckFee ? this.notNeedCheckFee :
+                (checkFee == null && checkFee.compareTo(BigDecimal.ZERO) <= 0);
+        if (notNeedCheckFee) {
+            if (gettingDrugPayTip == null || gettingDrugPayTip.trim().length() == 0)  {
+                return "";
+            }
+            return String.format("(%s)", gettingDrugPayTip.trim());
+        } else {
+            String checkFeeTip = String.format("需先支付药师审核费：<em>¥%s</em>", checkFee.toPlainString());
+            if (gettingDrugPayTip != null && gettingDrugPayTip.trim().length() > 0)  {
+                return String.format("(%s，%s)", checkFeeTip, gettingDrugPayTip);
+            }
+            return String.format("(%s)", checkFeeTip);
+        }
     }
 
     public static RecipePayTipEnum fromRecipeModeAndPayModeAndNotNeedCheckFee(String recipeMode, Integer payMode, Boolean notNeedCheckFee){

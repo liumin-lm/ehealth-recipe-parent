@@ -26,7 +26,6 @@ import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -38,10 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeRefundRoleConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -49,6 +45,8 @@ import recipe.dao.RecipeRefundDAO;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**
@@ -160,13 +158,13 @@ public class RecipeRefundService extends RecipeBaseService{
             }
         }
     }
-
     /**
      * 处方退款结果回调
+     *
      * @param refundRequestBean 请求信息
      */
     @RpcService
-    public void refundResultCallBack(RefundRequestBean refundRequestBean){
+    public void refundResultCallBack(RefundRequestBean refundRequestBean) {
         LOGGER.info("RecipeRefundService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -180,8 +178,12 @@ public class RecipeRefundService extends RecipeBaseService{
             }
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (recipeOrder == null) {
-                LOGGER.info("RecipeRefundService.refundResultCallBack order is null.");
+                LOGGER.info("RecipeRefundService.refundResultCallBack order is null OrderCode = {}", recipe.getOrderCode());
                 return;
+            }
+            if (refundRequestBean.getRefundFlag() && recipeOrder.getDispensingFlag().equals(1)) {
+                LOGGER.info("RecipeRefundService.refundResultCallBack OrderCode = {}", recipe.getOrderCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
             }
             if (refundRequestBean.getRefundFlag()) {
                 //退费申请记录保存

@@ -357,13 +357,16 @@ public class RecipeToHisService {
         });
         request.setData(data);
 
-        DrugInfoResponseTO response = null;
+        DrugInfoResponseTO response;
         LOGGER.info("scanDrugStock request={}", JSONUtils.toString(request));
         try {
             response = hisService.scanDrugStock(request);
             LOGGER.info("scanDrugStock response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("scanDrugStock error ", e);
+            //抛异常流程不应该继续下去
+            response = new DrugInfoResponseTO();
+            response.setMsgCode(1);
         }
         return response;
     }

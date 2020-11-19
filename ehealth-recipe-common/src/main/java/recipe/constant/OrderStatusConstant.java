@@ -2,10 +2,13 @@ package recipe.constant;
 
 /**
  * 处方订单状态常量
+ * todo 废弃常量 改用枚举 RecipeOrderStatusEnum
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2016/4/27.
  */
+@Deprecated
 public class OrderStatusConstant {
 
     /**
