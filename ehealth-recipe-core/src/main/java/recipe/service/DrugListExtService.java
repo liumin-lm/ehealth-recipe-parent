@@ -183,6 +183,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             // 1. 调用his前置接口查询医院库存并赋值
             DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, drugListBeans, pharmacyId);
             if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
+//                || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(200)
 
                 // 说明查询错误, 或者
                 List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
