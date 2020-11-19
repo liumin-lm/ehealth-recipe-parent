@@ -278,7 +278,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         // 1-查询并校验库存是否充足；2-查询库存；传空默认1
         request.setType("2");
-        request.setOrganId(1003366);
+        request.setOrganId(organId);
         List<DrugInfoTO> data = new ArrayList<>(organDrugList.size());
         int i= 0;
         for (IHisDrugInventoryCondition organDrugItem : organDrugList) {
