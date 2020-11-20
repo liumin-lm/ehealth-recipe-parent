@@ -74,6 +74,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
+import recipe.factory.status.constant.GiveModeEnum;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -1929,9 +1930,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
-            // 平台物流对接--物流下单逻辑
+            // 平台物流对接--物流下单逻辑--且处方购药方式为配送到家
             try {
-                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes)) {
+                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes) && GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipes.get(0).getGiveMode())) {
                     LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
                     createLogisticsOrder(orderCode, order, recipes);
                 }
@@ -2123,7 +2124,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
-            String trackingNumber = null;
+            String trackingNumber;
             try {
                 ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
                 CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, recipeS.get(0), enterprise);
