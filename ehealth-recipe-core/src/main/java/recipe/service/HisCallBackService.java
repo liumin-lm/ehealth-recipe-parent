@@ -411,6 +411,14 @@ public class HisCallBackService {
                     LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
                 }
                 if (null != recipe) {
+                    //对于已经在线上支付的处方不能直接取消
+                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        if (new Integer(1).equals(recipeOrder.getPayFlag())) {
+                            return;
+                        }
+                    }
                     Integer recipeId = recipe.getRecipeId();
                     Integer beforeStatus = recipe.getStatus();
                     if (null != recipeId) {
@@ -427,14 +435,6 @@ public class HisCallBackService {
                         attrMap.put("enterpriseId", null);
 
                         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HAVE_PAY, attrMap);
-                        //对于卫宁付的处方不能直接取消
-                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                            if ("111".equals(recipeOrder.getWxPayWay()) && new Integer(1).equals(recipeOrder.getPayFlag()) && new Integer(2).equals(recipeOrder.getStatus())) {
-                                return;
-                            }
-                        }
                         if (rs) {
                             //线下支付完成后取消订单
                             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);

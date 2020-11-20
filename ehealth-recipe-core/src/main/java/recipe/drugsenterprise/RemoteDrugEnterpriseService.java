@@ -252,23 +252,24 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
+        List<Recipe> recipes = Arrays.asList(recipe);
         //多处方处理
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
-            if (CollectionUtils.isNotEmpty(recipes) && recipes.size() > 1) {
-                //说明为多处方
-                pushRecipeAndOrder.setMergeRecipeFlag(1);
-            } else {
-                pushRecipeAndOrder.setMergeRecipeFlag(0);
-            }
-            for (Recipe rec : recipes) {
-                setSingleRecipeInfo(rec, enterprise, pushRecipeAndOrder, margeRecipeBeans);
-            }
-            pushRecipeAndOrder.setMargeRecipeBeans(margeRecipeBeans);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            recipes = recipeDAO.findByRecipeIds(recipeIdList);
         }
+        if (CollectionUtils.isNotEmpty(recipes) && recipes.size() > 1) {
+            //说明为多处方
+            pushRecipeAndOrder.setMergeRecipeFlag(1);
+        } else {
+            pushRecipeAndOrder.setMergeRecipeFlag(0);
+        }
+        for (Recipe rec : recipes) {
+            setSingleRecipeInfo(rec, enterprise, pushRecipeAndOrder, margeRecipeBeans);
+        }
+        pushRecipeAndOrder.setMargeRecipeBeans(margeRecipeBeans);
         LOGGER.info("getPushRecipeAndOrder pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
         return pushRecipeAndOrder;
     }
