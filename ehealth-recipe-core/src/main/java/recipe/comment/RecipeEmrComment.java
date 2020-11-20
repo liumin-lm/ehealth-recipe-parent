@@ -2,6 +2,8 @@ package recipe.comment;
 
 /**
  * 电子病例 常量类
+ *
+ * @author fuzi
  */
 public class RecipeEmrComment {
 
