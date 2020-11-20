@@ -30,11 +30,13 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.model.RecipeCheckDetailBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -272,7 +274,8 @@ public class OperationPlatformRecipeService {
         }
 
         //获取审核不通过详情
-        List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
+        IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+        List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
         map.put("reasonAndDetails", mapList);
 
         //开方日期 yyyy-MM-dd HH:mm 格式化

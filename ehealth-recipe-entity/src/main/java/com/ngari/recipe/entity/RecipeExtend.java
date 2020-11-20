@@ -239,7 +239,9 @@ public class RecipeExtend implements Serializable {
      * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
      */
     @ItemProperty(alias = "处方退费当前节点状态")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
     private Integer refundNodeStatus;
+    
 
     @Column(name = "recipeCostNumber")
     public String getRecipeCostNumber() {

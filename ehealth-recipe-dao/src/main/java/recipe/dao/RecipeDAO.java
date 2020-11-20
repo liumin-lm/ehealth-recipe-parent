@@ -1133,7 +1133,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         map.put("patient", patientBean);
 
                         // 处方退费状态
-                        map.put("refundNodeStatus", resolveRecipeRefundNodeStatus(refundNodeStatus, recipe));
+                        // 经过表结构讨论，当前不做大修改，因此将退费状态字段RefundNodeStatus放在了RecipeExtend表
+                        RecipeExtend recipeExtend =  getRecipeRefundNodeStatus(recipe);
+                        map.put("recipeExtend", recipeExtend);
 
                         maps.add(map);
                     }
@@ -1146,17 +1148,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     // 改为批量查询提高效率
-    private Integer resolveRecipeRefundNodeStatus(Integer refundNodeStatus, Recipe recipe) {
-        if (refundNodeStatus != null) {
-            return refundNodeStatus;
-        } else {
-            RecipeExtendDAO recipeExtendDAO =  DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (recipeExtend != null) {
-                return recipeExtend.getRefundNodeStatus();
-            }
-        }
-        return null;
+    private RecipeExtend getRecipeRefundNodeStatus(Recipe recipe) {
+        RecipeExtendDAO recipeExtendDAO =  DAOFactory.getDAO(RecipeExtendDAO.class);
+        return recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
     }
 
     /**
