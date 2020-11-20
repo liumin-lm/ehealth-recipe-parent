@@ -233,7 +233,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      */
     private List<DrugInfoTO> findDrugInfoTOList(IDrugInventory drugListBean, List<DrugInfoTO> drugInfoTOList) {
         return drugInfoTOList.stream().filter(item ->
-                drugTestMap.get(i).equalsIgnoreCase(item.getDrcode()))
+                drugListBean.getOrganDrugCode().equalsIgnoreCase(item.getDrcode()))
                 .collect(Collectors.toList());
     }
 
