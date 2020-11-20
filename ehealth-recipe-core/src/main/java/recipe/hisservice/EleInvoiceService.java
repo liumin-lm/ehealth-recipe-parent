@@ -406,7 +406,10 @@ public class EleInvoiceService {
                     consultExService.saveRevisitInvoice(revisitInvoiceDTO);
                 }
             }
-            List<String> list = Arrays.asList(result.getInvoiceUrl().split(","));
+            List<String> list = null;
+            if (StringUtils.isNotBlank(result.getInvoiceUrl())){
+                list = Arrays.asList(result.getInvoiceUrl().split(","));
+            }
             LOGGER.info("EleInvoiceService.stringToList list :{}", JSONUtils.toString(list));
             return list;
         } catch (Exception e) {
