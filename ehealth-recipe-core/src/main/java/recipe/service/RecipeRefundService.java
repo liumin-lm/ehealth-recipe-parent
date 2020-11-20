@@ -17,10 +17,7 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipePatientRefundVO;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
@@ -38,10 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
-import recipe.dao.RecipeRefundDAO;
+import recipe.dao.*;
+import recipe.factory.status.constant.RecipeStatusEnum;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -157,6 +152,22 @@ public class RecipeRefundService extends RecipeBaseService{
                 throw new DAOException("处方退费申请失败！" + result.getMsg());
             }
         }
+        //更新当前处方的退费审核状态
+        updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_READY_AUDIT_STATUS);
+    }
+
+    /**
+     * 更新处方退费的结点状态
+     * @param recipe  处方信息
+     * @param status  结点状态
+     */
+    public void updateRecipeRefundStatus(Recipe recipe, Integer status){
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend != null) {
+            recipeExtend.setRefundNodeStatus(status);
+            recipeExtendDAO.update(recipeExtend);
+        }
     }
 
     /**
@@ -217,11 +228,13 @@ public class RecipeRefundService extends RecipeBaseService{
                         orderAttrMap.put("refundFlag", 1);
                         orderAttrMap.put("refundTime", new Date());
                         recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+
                         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_SUCC);
                         //HIS消息发送
                         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                         hisService.recipeRefund(recipe.getRecipeId());
                     }
+                    updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS);
                     busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getRecipeId()+"","recipe","电子处方订单【"+recipe.getRecipeCode()+"】第三方退费审核通过", recipe.getOrganName());
 
                 }
@@ -305,8 +318,10 @@ public class RecipeRefundService extends RecipeBaseService{
             IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
             if(2 == Integer.valueOf(checkStatus)){
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_AUDIT_FAIL);
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_READY_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getClinicId()+"",recipe.getDoctor() + "","电子处方订单【"+recipe.getRecipeCode()+"】退费审核不通过", recipe.getOrganName());
             } else {
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getClinicId()+"",recipe.getDoctor() + "","电子处方订单【"+recipe.getRecipeCode()+"】退费审核通过", recipe.getOrganName());
             }
         } else {

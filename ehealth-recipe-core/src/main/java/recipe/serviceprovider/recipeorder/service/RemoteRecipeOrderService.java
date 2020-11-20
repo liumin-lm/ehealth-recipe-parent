@@ -25,6 +25,7 @@ import recipe.bean.ThirdResultBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBaseTrackingStatusEnum;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RefundNodeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -308,6 +309,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), msg);
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
+                recipeRefundService.updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
                 break;
             default:
                 LOGGER.warn("当前处方{}退费状态{}无法解析！", busId, refundStatus);
