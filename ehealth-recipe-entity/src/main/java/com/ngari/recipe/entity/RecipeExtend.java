@@ -241,6 +241,7 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方退费当前节点状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
     private Integer refundNodeStatus;
+    
 
     @Column(name = "recipeCostNumber")
     public String getRecipeCostNumber() {
