@@ -13,10 +13,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceDTO;
 import com.ngari.platform.recipe.mode.InvoiceItemDTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -39,10 +36,7 @@ import recipe.bean.EleInvoiceDTO;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
 import recipe.constant.MedicalChargesEnum;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.util.DateConversion;
 
 import javax.annotation.Resource;
@@ -75,6 +69,8 @@ public class EleInvoiceService {
     private DepartmentService departmentService;
     @Autowired
     private OrganService organService;
+    @Autowired
+    private RecipeOrderBillDAO recipeOrderBillDAO;
 
     @RpcService
     public List<String> findEleInvoice(EleInvoiceDTO eleInvoiceDTO) {
@@ -276,8 +272,9 @@ public class EleInvoiceService {
         InvoiceDTO invoiceDTO = new InvoiceDTO();
         invoiceDTO.setPayId(recipe.getRecipeId());
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        String invoiceNumber = "";
         if (null != recipeExtend) {
-            invoiceDTO.setInvoiceNumber(recipeExtend.getEinvoiceNumber());
+            invoiceNumber = recipeExtend.getEinvoiceNumber();
             if (StringUtils.isNotBlank(recipeExtend.getRegisterID())) {
                 eleInvoiceDTO.setGhxh(recipeExtend.getRegisterID());
             }
@@ -288,9 +285,17 @@ public class EleInvoiceService {
                 eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
             }
         }
+        if (StringUtils.isNotBlank(recipe.getOrderCode()) && StringUtils.isNotBlank(invoiceNumber)){
+            RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+            if (null != recipeOrderBill){
+                invoiceNumber = recipeOrderBill.getBillNumber();
+            }
+        }
+        invoiceDTO.setInvoiceNumber(invoiceNumber);
         List<InvoiceItemDTO> invoiceItem = new LinkedList<>();
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            invoiceDTO.setTradeNumber(recipeOrder.getTradeNo());
             invoiceDTO.setPayAmount(recipeOrder.getActualPrice());
             invoiceDTO.setPayWay(recipeOrder.getWxPayWay());
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
@@ -374,9 +379,15 @@ public class EleInvoiceService {
             }
             if (null != result.getInvoiceType() && RECIPE_TYPE.equals(result.getInvoiceType())
                     && StringUtils.isNotEmpty(result.getBizCode()) && null != result.getRequestId()) {
-                Map<String, String> map = new HashMap(1);
-                map.put("einvoiceNumber", result.getBizCode());
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
+//                Map<String, String> map = new HashMap(1);
+//                map.put("einvoiceNumber", result.getBizCode());
+//                recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
+                Recipe recipe = recipeDAO.getByRecipeId(result.getRequestId());
+                RecipeOrderBill orderBill = new RecipeOrderBill();
+                orderBill.setCreateTime(new Date());
+                orderBill.setBillNumber(result.getBizCode());
+                orderBill.setRecipeOrderCode(recipe.getOrderCode());
+                recipeOrderBillDAO.save(orderBill);
             }
             //复诊(通过bizCode来判断是否开票)
             if (null !=result.getInvoiceType() && "0".equals(result.getInvoiceType()) && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()){
