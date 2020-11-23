@@ -18,13 +18,13 @@ public class DrugPharmacyInventoryInfo implements Serializable {
     private String pharmacyName;
 
     @ItemProperty(alias = "药品库存")
-    private Double amount;
+    private String amount;
 
     public DrugPharmacyInventoryInfo() {
 
     }
 
-    public DrugPharmacyInventoryInfo(String pharmacyCode, String pharmacyName, Double amount) {
+    public DrugPharmacyInventoryInfo(String pharmacyCode, String pharmacyName, String amount) {
         this.pharmacyCode = pharmacyCode;
         this.pharmacyName = pharmacyName;
         this.amount = amount;
@@ -46,11 +46,11 @@ public class DrugPharmacyInventoryInfo implements Serializable {
         this.pharmacyName = pharmacyName;
     }
 
-    public Double getAmount() {
+    public String getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(String amount) {
         this.amount = amount;
     }
 }
