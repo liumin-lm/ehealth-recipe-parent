@@ -7,18 +7,21 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.comment.DictionaryUtil;
 import recipe.common.response.CommonResponse;
+import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
+import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -68,15 +71,20 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             RecipeBusiThreadPool.execute(() -> {
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                 CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
                         "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
             });
         }
 
-        //记录日志
-        if (null != orderStatus.getLogisticsCompany()) {
+
+        if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
             try {
-                String company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(orderStatus.getLogisticsCompany().toString());
+                //同步运单信息至基础服务
+                ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
+                //更新快递信息后，发送消息
+                RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
+                //记录日志
+                String company = DictionaryUtil.getDictionary("eh.cdr.dictionary.LogisticsCompany", orderStatus.getLogisticsCompany());
                 RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                         , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
                                 ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
