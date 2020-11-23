@@ -7,7 +7,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -40,6 +40,9 @@ import java.util.List;
 public class HomeDeliveryImpl extends AbstractGiveMode {
     @Autowired
     private IPatientService patientService;
+
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
 
     @Override
     public Integer getGiveMode() {
@@ -76,36 +79,28 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             });
         }
 
-
         if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
-            try {
-                //同步运单信息至基础服务
-                ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
-                //更新快递信息后，发送消息
-                RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
-                //记录日志
-                String company = DictionaryUtil.getDictionary("eh.cdr.dictionary.LogisticsCompany", orderStatus.getLogisticsCompany());
-                RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
-                        , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
-                                ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
-            } catch (Exception e) {
-                logger.error("HomeDeliveryImpl updateStatus company error", e);
+            //同步运单信息至基础服务
+            ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
+            //更新快递信息后，发送消息
+            RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
+            //将快递公司快递单号信息用更新配送方式接口更新至his
+            if (StringUtils.isEmpty(recipe.getMpiid())) {
+                return;
             }
-        }
-        //将快递公司快递单号信息用更新配送方式接口更新至his
-        if (StringUtils.isEmpty(recipe.getMpiid())) {
-            return;
-        }
-        if (null != orderStatus.getLogisticsCompany() && StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
-            RecipeBusiThreadPool.submit(() -> {
-                RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeBusiThreadPool.execute(() -> {
                 RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                 List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 PatientBean patientBean = patientService.get(recipe.getMpiid());
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                 service.drugTakeChange(request);
-                return null;
             });
+
+            //记录日志
+            String company = DictionaryUtil.getDictionary("eh.cdr.dictionary.LogisticsCompany", orderStatus.getLogisticsCompany());
+            RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
+                    , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
+                            ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
         }
     }
 }
