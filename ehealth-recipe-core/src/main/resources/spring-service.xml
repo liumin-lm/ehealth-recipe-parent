@@ -25,6 +25,7 @@
     <reference id="nc.networkclinicMsgService" interface="networkclinic.api.service.INetworkclinicMsgService"/>
     <!--随访-->
     <reference interface="com.ngari.follow.service.IRelationPatientService" id="pm.remoteRelationPatientService"/>
+    <reference id="pm.remoteRelationLabelService" interface="com.ngari.follow.service.IRelationLabelService"/>
     <!--电子病历-->
     <reference id="ecdr.docIndexService" interface="eh.cdr.api.service.IDocIndexService"/>
 
