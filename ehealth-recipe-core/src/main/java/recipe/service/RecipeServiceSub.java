@@ -19,6 +19,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.follow.service.IRelationLabelService;
 import com.ngari.follow.service.IRelationPatientService;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.home.asyn.model.BussCancelEvent;
@@ -1181,8 +1182,8 @@ public class RecipeServiceSub {
                 if (relationDoctor.getFamilyDoctorFlag()) {
                     signFlag = true;
                 }
-
-                labelNames = patientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
+                IRelationLabelService iRelationLabelService = AppContextHolder.getBean("pm.remoteRelationLabelService", IRelationLabelService.class);
+                labelNames = iRelationLabelService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
 
             }
             patient.setRelationFlag(relationFlag);
