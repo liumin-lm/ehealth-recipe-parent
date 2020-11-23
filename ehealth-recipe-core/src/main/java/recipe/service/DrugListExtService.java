@@ -33,6 +33,7 @@ import recipe.dao.*;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -216,7 +217,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugPharmacyInventoryInfo pharmacyInventory = new DrugPharmacyInventoryInfo();
             pharmacyInventory.setPharmacyCode(drugInfoTO.getPharmacyCode());
             pharmacyInventory.setPharmacyName(drugInfoTO.getPharmacy());
-            pharmacyInventory.setAmount(drugInfoTO.getStockAmount() == null ? 0 : drugInfoTO.getStockAmount());
+            Double amount = drugInfoTO.getStockAmount() == null ? 0 : drugInfoTO.getStockAmount();
+            // 改成字符串返回
+            pharmacyInventory.setAmount(BigDecimal.valueOf(amount).toPlainString());
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
