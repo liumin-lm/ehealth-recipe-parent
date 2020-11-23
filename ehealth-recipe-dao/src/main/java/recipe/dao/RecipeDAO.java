@@ -1140,6 +1140,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         maps.add(map);
                     }
                 }
+                logger.info("findRecipesByInfo maps:{}",JSONUtils.toString(maps));
                 setResult(new QueryResult<Map>(total, query.getFirstResult(), query.getMaxResults(), maps));
             }
         };
