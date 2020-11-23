@@ -676,7 +676,7 @@ public class DrugToolService implements IDrugToolService {
         drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
         Integer status = drugListMatch.getStatus();
 
-        List<DrugList> drugLists = drugListDAO.findRepeatDrugList(drugList.getDrugName(),drugList.getSaleName(),drugList.getDrugType(),drugList.getProducer(),drugList.getDrugSpec());
+        List<DrugList> drugLists = drugListDAO.findRepeatDrugList(drugList.getDrugName(),drugList.getSaleName(),drugList.getDrugType(),drugList.getProducer(),drugList.getDrugSpec(),drugList.getSourceOrgan());
         if(CollectionUtils.isNotEmpty(drugLists)){
             throw new DAOException(DAOException.VALIDATE_FALIED, "此药品已经存在，对应药品为【"+drugLists.get(0).getDrugCode()+"】【"+drugList.getDrugName()+"】，请勿重复添加。");
         }
