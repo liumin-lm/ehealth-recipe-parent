@@ -27,7 +27,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -46,11 +45,13 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.manager.EmrRecipeManager;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * company: ngarihealth
@@ -676,6 +677,7 @@ public class HisRequestInit {
     }
 
     public static DrugTakeChangeReqTO initDrugTakeChangeReqTO(Recipe recipe, List<Recipedetail> list, PatientBean patient, HealthCardBean card) {
+        LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe ={}", recipe.getRecipeId());
         DrugTakeChangeReqTO requestTO = new DrugTakeChangeReqTO();
         try {
             requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
