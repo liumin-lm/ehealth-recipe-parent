@@ -307,12 +307,11 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
                 drugList.setInstructions(target.getInstructions());
             }
 
-            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-            List<DrugList> drugLists = drugListDAO.findRepeatDrugListNoOrgan(d.getDrugName(),d.getSaleName(),d.getDrugType(),d.getProducer(),d.getDrugSpec());
+            List<DrugList> drugLists = dao.findRepeatDrugListNoOrgan(d.getDrugName(),d.getSaleName(),d.getDrugType(),d.getProducer(),d.getDrugSpec());
             if(!CollectionUtils.isEmpty(drugLists)){
                 boolean flag = true;
                 for (DrugList drg : drugLists){
-                    if(drg.getDrugId() == drugList.getDrugId()){
+                    if(drg.getDrugId().equals(drugList.getDrugId())){
                         flag = false;
                     }
                 }
