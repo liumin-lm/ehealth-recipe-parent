@@ -112,4 +112,7 @@ public interface IDrugService extends IBaseService<DrugListBean> {
 
     @RpcService
     Boolean saveCompareDrugListData(List<HisOrganDrugListBean> listBeen);
+
+    @RpcService
+    DrugListBean deleteDrugList(Integer drugId);
 }
