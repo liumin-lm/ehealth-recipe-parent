@@ -13,12 +13,14 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HisDrugListBean;
 import com.ngari.platform.recipe.mode.HisOrganDrugListBean;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.service.IDrugService;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
+import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugListMatch;
@@ -189,6 +191,15 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         if (null == d.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
+
+
+        Long organNum = RecipeAPI.getService(IOrganDrugListService.class).getCountByDrugId(drugList.getDrugId());
+        Long saleNum = RecipeAPI.getService(ISaleDrugListService.class).getCountByDrugId(drugList.getDrugId());
+        if(organNum>0 || saleNum>0){
+            throw new DAOException(DAOException.VALIDATE_FALIED, "该通用药品存在关联的机构药品或者药企药品，不支持删除。");
+        }
+
+
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         DrugList target = dao.getById(d.getDrugId());
         if (null == target) {
