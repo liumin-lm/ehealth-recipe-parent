@@ -312,7 +312,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             if(!CollectionUtils.isEmpty(drugLists)){
                 boolean flag = true;
                 for (DrugList drg : drugLists){
-                    if(drg.getDrugId() == drugList.getDrugId()){
+                    if(drg.getDrugId().equals(drugList.getDrugId())){
                         flag = false;
                         LOGGER.info("updateDrugList flag=:"+flag);
                     }
