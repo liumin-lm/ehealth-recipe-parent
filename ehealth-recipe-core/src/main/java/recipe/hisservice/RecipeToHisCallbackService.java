@@ -152,7 +152,7 @@ public class RecipeToHisCallbackService {
         }
         try {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(response.getRecipeId()));
-            emrRecipeManager.updateDocStatus(recipeExtend.getDocIndexId());
+            emrRecipeManager.updateDocStatus(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }
