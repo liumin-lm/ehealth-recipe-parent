@@ -800,4 +800,12 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
 
     @DAOMethod(sql = "update DrugList set usePathwaysId=:newUsePathways where usePathways=:oldUsePathways")
     public abstract void updateUsePathwaysByUsePathways(@DAOParam("oldUsePathways") String oldUsePathways ,@DAOParam("newUsePathways") String newUsePathways);
+
+    @DAOMethod(sql = " from DrugList where drugName=:drugName and saleName=:saleName  and drugType=:drugType  and producer=:producer  and drugSpec=:drugSpec and sourceOrgan=:sourceOrgan and status = 1",limit = 0)
+    public abstract List<DrugList> findRepeatDrugList(@DAOParam("drugName") String drugName,@DAOParam("saleName") String saleName,@DAOParam("drugType") Integer drugType, @DAOParam("producer") String producer, @DAOParam("drugSpec") String drugSpec , @DAOParam("sourceOrgan") Integer sourceOrgan);
+
+    @DAOMethod(sql = " from DrugList where drugName=:drugName and saleName=:saleName  and drugType=:drugType  and producer=:producer  and drugSpec=:drugSpec and status = 1",limit = 0)
+    public abstract List<DrugList> findRepeatDrugListNoOrgan(@DAOParam("drugName") String drugName,@DAOParam("saleName") String saleName,@DAOParam("drugType") Integer drugType, @DAOParam("producer") String producer, @DAOParam("drugSpec") String drugSpec);
+
+
 }

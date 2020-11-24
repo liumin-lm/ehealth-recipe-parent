@@ -6,7 +6,7 @@ package recipe.constant;
  */
 public class RefundNodeStatusConstant {
 
-    //待审核0；
+    //审核中；
     public static final Integer REFUND_NODE_READY_AUDIT_STATUS = 0;
     //1-审核通过，退款成功；
     public static final Integer REFUND_NODE_SUCCESS_STATUS = 1;

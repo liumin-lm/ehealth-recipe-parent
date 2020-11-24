@@ -250,6 +250,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeReFundSave(recipe, recipeRefund);
                 //药企审核不通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL);
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getRecipeId()+"","recipe","电子处方订单【"+recipe.getRecipeCode()+"】第三方退费审核不通过", recipe.getOrganName());
             }
         }
@@ -318,10 +319,10 @@ public class RecipeRefundService extends RecipeBaseService{
             IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
             if(2 == Integer.valueOf(checkStatus)){
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_AUDIT_FAIL);
-                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_READY_AUDIT_STATUS);
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getClinicId()+"",recipe.getDoctor() + "","电子处方订单【"+recipe.getRecipeCode()+"】退费审核不通过", recipe.getOrganName());
             } else {
-                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_READY_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getClinicId()+"",recipe.getDoctor() + "","电子处方订单【"+recipe.getRecipeCode()+"】退费审核通过", recipe.getOrganName());
             }
         } else {

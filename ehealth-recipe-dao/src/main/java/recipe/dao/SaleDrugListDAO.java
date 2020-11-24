@@ -231,7 +231,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
                         DateTime dt = new DateTime(endTime);
-                        StringBuilder hql = new StringBuilder(" from DrugList d where 1=1 ");
+                        StringBuilder hql = new StringBuilder(" from DrugList d,SaleDrugList o where 1=1 ");
                         if (!StringUtils.isEmpty(drugClass)) {
                             hql.append(" and d.drugClass like :drugClass");
                         }
@@ -250,15 +250,19 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             hql.append(")");
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)) {
-                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status = 0 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime)");
+                            hql.append(" and d.drugId = o.drugId and o.status = 0 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         } else if (ObjectUtils.nullSafeEquals(status, 1)) {
-                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status = 1 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime)");
+                            hql.append(" and d.drugId  = o.drugId and o.status = 1 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         } else if (ObjectUtils.nullSafeEquals(status, -1)) {
-                            hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime) ");
+                            hql.append(" and d.drugId <> o.drugId and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
-                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status in (0, 1) and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime)");
+                            hql.append(" and d.drugId = o.drugId and o.status in (0, 1) and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         }
-                        hql.append(" and d.status=1 order by d.drugId desc");
+                        if(ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)){
+                            hql.append(" and d.status=1 order by o.createDt desc");
+                        }else{
+                            hql.append(" and d.status=1 order by d.drugId desc");
+                        }
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                         if (!StringUtils.isEmpty(drugClass)) {
                             countQuery.setParameter("drugClass", drugClass + "%");
@@ -432,7 +436,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * @param drugId  平台药品id
      * @return         药品数量
      */
-    @DAOMethod(sql = "select count(id) from SaleDrugList where drugId=:drugId  and status = 1",limit = 0)
+    @DAOMethod(sql = "select count(organDrugId) from SaleDrugList where drugId=:drugId  and status = 1",limit = 0)
     public abstract Long getCountByDrugId(@DAOParam("drugId") int drugId);
 
 
