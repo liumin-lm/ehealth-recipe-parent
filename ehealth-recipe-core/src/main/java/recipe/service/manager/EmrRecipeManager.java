@@ -16,6 +16,7 @@ import eh.cdr.api.vo.DocIndexBean;
 import eh.cdr.api.vo.DocIndexExtBean;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.api.vo.MedicalInfoBean;
+import eh.cdr.api.vo.request.SaveEmrContractReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,8 @@ public class EmrRecipeManager {
     /**
      * 病历状态 2 暂存 4 已使用
      */
-    private static Integer DOC_STATUS_HOLD = 2;
-    private static Integer DOC_STATUS_USE = 4;
+    private static final Integer DOC_STATUS_HOLD = 2;
+    private static final Integer DOC_STATUS_USE = 4;
 
     @Resource
     private IDocIndexService docIndexService;
@@ -126,13 +127,17 @@ public class EmrRecipeManager {
      *
      * @param docId 电子病例id
      */
-    public void updateDocStatus(Integer docId) {
+    public void updateDocStatus(Integer recipeId, Integer docId) {
         logger.info("EmrRecipeManager updateDocStatus docId={}", docId);
         if (null == docId) {
             return;
         }
-
-        Boolean result = docIndexService.updateStatusByDocIndexId(docId, DOC_STATUS_USE);
+        SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
+        saveEmrContractReq.setBussId(recipeId);
+        saveEmrContractReq.setDocIndexId(docId);
+        //处方状态 1
+        saveEmrContractReq.setBussType(1);
+        Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
         logger.info("EmrRecipeManager updateDocStatus docId={} boo={}", docId, result);
     }
 

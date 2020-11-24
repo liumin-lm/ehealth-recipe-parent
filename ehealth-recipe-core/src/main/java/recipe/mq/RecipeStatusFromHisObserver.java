@@ -142,7 +142,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
             EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
-            emrRecipeManager.updateDocStatus(recipeExtend.getDocIndexId());
+            emrRecipeManager.updateDocStatus(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }
