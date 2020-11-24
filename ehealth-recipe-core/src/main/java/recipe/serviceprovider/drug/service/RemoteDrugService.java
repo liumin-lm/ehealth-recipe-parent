@@ -308,13 +308,16 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             }
 
             List<DrugList> drugLists = dao.findRepeatDrugListNoOrgan(d.getDrugName(),d.getSaleName(),d.getDrugType(),d.getProducer(),d.getDrugSpec());
+            LOGGER.info("updateDrugList 1:"+JSONUtils.toString(drugLists)+" 2:"+JSONUtils.toString(drugList));
             if(!CollectionUtils.isEmpty(drugLists)){
                 boolean flag = true;
                 for (DrugList drg : drugLists){
                     if(drg.getDrugId() == drugList.getDrugId()){
                         flag = false;
+                        LOGGER.info("updateDrugList flag=:"+flag);
                     }
                 }
+                LOGGER.info("updateDrugList flag:"+flag);
                 if(flag){
                     throw new DAOException(DAOException.VALIDATE_FALIED, "此药品已经存在，对应药品为【"+drugLists.get(0).getDrugCode()+"】【"+d.getDrugName()+"】，请勿修改。");
                 }
