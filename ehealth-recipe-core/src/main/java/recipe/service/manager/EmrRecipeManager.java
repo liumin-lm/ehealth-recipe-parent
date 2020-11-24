@@ -13,7 +13,6 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.DocIndexBean;
-import eh.cdr.api.vo.DocIndexExtBean;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.api.vo.MedicalInfoBean;
 import eh.cdr.api.vo.request.SaveEmrContractReq;
@@ -286,18 +285,9 @@ public class EmrRecipeManager {
         docIndexBean.setOrganNameByUser(recipe.getOrganName());
         docIndexBean.setClinicPersonName(recipe.getPatientName());
         docIndexBean.setLastModify(new Date());
-
         //保存电子病历
         MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
         medicalInfoBean.setDocIndexBean(docIndexBean);
-        //设置病历索引扩展信息
-        List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
-        DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
-        //业务类型 1 处方 2 复诊 3 检查 4 检验
-        docIndexExtBean.setBussType(1);
-        docIndexExtBean.setBussId(recipeExt.getRecipeId());
-        docIndexExtBeanList.add(docIndexExtBean);
-        medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
         //设置病历详情
         MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
         setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);
