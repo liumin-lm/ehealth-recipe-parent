@@ -310,7 +310,15 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             List<DrugList> drugLists = drugListDAO.findRepeatDrugListNoOrgan(d.getDrugName(),d.getSaleName(),d.getDrugType(),d.getProducer(),d.getDrugSpec());
             if(!CollectionUtils.isEmpty(drugLists)){
-                throw new DAOException(DAOException.VALIDATE_FALIED, "此药品已经存在，对应药品为【"+drugLists.get(0).getDrugCode()+"】【"+d.getDrugName()+"】，请勿修改。");
+                boolean flag = true;
+                for (DrugList drg : drugLists){
+                    if(drg.getDrugId() == drugList.getDrugId()){
+                        flag = false;
+                    }
+                }
+                if(flag){
+                    throw new DAOException(DAOException.VALIDATE_FALIED, "此药品已经存在，对应药品为【"+drugLists.get(0).getDrugCode()+"】【"+d.getDrugName()+"】，请勿修改。");
+                }
             }
 
            /*BeanUtils.map(drugList, target);*/
