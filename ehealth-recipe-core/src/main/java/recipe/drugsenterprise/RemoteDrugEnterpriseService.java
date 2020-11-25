@@ -267,6 +267,23 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 expandDTO.setSignFile(recipe.getSignFile());
             }
         }
+        //设置pdf base 64内容
+        String signFileOssId = recipe.getSignFile();
+        if(StringUtils.isNotBlank(signFileOssId)){
+            String imgHead = "data:image/jpeg;base64,";
+            try {
+                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                String imgStr = imgHead + fileDownloadService.downloadImg(signFileOssId);
+                if(StringUtils.isBlank(imgStr)){
+                    LOGGER.info("getPushRecipeAndOrder:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), signFileOssId);
+                }
+                LOGGER.warn("getPushRecipeAndOrder:{}处方", recipe.getRecipeId());
+                expandDTO.setPdfContent(imgStr);
+            } catch (Exception e) {
+                LOGGER.error("getPushRecipeAndOrder:{}处方，获取处方pdf:{},服务异常：", recipe.getRecipeId(),recipe.getSignFile(), e);
+            }
+        }
+
         //设置处方笺base
         String ossId = recipe.getSignImg();
         if(null != ossId){
