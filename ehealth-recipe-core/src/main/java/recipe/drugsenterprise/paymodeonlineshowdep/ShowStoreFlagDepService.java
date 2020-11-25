@@ -17,6 +17,8 @@ import java.util.List;
 
 /**
  * created by shiyuping on 2020/11/10
+ * @author shiyuping
+ * 展示药店标识的药企
  */
 public class ShowStoreFlagDepService implements PayModeOnlineShowDepInterface {
     /**
