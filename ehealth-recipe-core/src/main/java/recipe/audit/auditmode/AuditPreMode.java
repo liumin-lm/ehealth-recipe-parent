@@ -1,15 +1,19 @@
 package recipe.audit.auditmode;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
+import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.util.RecipeAuditAPI;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -24,6 +28,8 @@ import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateWaterPrintRecipePdfRunable;
+
+import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -83,9 +89,9 @@ public class AuditPreMode extends AbstractAuidtMode {
             Integer checkMode = recipe.getCheckMode();
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-
-                //平台审方途径下才发消息
-                if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode)) {
+            boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(),recipe.getClinicOrgan());
+                //平台审方途径下才发消息  满足自动审方的不推送
+                if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) && !flag) {
                     if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                         //增加药师首页待处理任务---创建任务
                         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
@@ -96,6 +102,36 @@ public class AuditPreMode extends AbstractAuidtMode {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             recipeService.saveRecipeDocIndex(recipe);
         }
+    }
+
+    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId){
+        LOGGER.info("judgeRecipeAutoCheck recipe={}",recipeId);
+        try{
+            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean invokeRecipeAnalysis = (Boolean)iConfigService.getConfiguration(organId,"InvokeRecipeAnalysis");
+            Integer intellectJudicialFlag = (Integer)iConfigService.getConfiguration(organId,"intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId,"autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String)iConfigService.getConfiguration(organId,"defaultRecipecheckDoctor");
+            if (invokeRecipeAnalysis && intellectJudicialFlag == 1
+                    && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+                String[] levels = autoRecipecheckLevel.split(",");
+                Integer minLevel = Integer.valueOf(levels[0]);
+                Integer maxLevel = Integer.valueOf(levels[1]);
+                IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+                Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
+                Integer dbMaxLevel = maxLevelMap.get(recipeId);
+                if(dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())){
+                    LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
+            return false;
+        }
+
     }
 
     @Override
