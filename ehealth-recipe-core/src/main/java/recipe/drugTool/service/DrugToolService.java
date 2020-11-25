@@ -1059,6 +1059,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
+                        organDrugList.setCreateDt(drugListMatch.getCreateDt());
                         organDrugList.setLastModify(new Date());
                         if (StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
                             organDrugList.setProducerCode(drugListMatch.getDrugManfCode());
