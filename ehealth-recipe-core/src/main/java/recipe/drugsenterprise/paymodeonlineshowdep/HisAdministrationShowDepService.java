@@ -16,6 +16,8 @@ import java.util.List;
 
 /**
  * created by shiyuping on 2020/11/10
+ * @author shiyuping
+ * his管理的药企
  */
 public class HisAdministrationShowDepService implements PayModeOnlineShowDepInterface {
 

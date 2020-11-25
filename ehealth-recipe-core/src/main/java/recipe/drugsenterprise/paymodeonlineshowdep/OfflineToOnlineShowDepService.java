@@ -18,12 +18,14 @@ import java.util.List;
 
 /**
  * created by shiyuping on 2020/11/10
+ * 线下转线上
+ * @author shiyuping
  */
-public class BJIntShowDepService implements PayModeOnlineShowDepInterface {
+public class OfflineToOnlineShowDepService implements PayModeOnlineShowDepInterface {
     /**
      * logger
      */
-    private static final Logger LOG = LoggerFactory.getLogger(BJIntShowDepService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OfflineToOnlineShowDepService.class);
 
     @Override
     public void getPayModeOnlineShowDep(DrugsEnterprise dep, List<DepDetailBean> depDetailList, Recipe dbRecipe, List<Integer> recipeIdList) {
@@ -33,9 +35,16 @@ public class BJIntShowDepService implements PayModeOnlineShowDepInterface {
         depDetailBean.setBelongDepName(dep.getName());
         depDetailBean.setOrderType(dep.getOrderType());
         depDetailBean.setMemo(dep.getMemo());
-
+        if (RecipeBussConstant.PAYMODE_ONLINE.equals(dep.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(dep.getPayModeSupport())) {
+            depDetailBean.setPayModeText("在线支付");
+            depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+        } else {
+            depDetailBean.setPayModeText("货到付款");
+            depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
+        }
         HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
+        //北京互联网线下转线上相关处理
         if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
             if (new Integer(2).equals(hisRecipe.getMedicalType())) {
                 depDetailBean.setPayModeText("货到付款");
