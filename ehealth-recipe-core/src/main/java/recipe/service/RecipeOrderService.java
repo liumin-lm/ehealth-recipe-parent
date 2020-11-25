@@ -2157,6 +2157,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderAttrMap.put("LogisticsCompany", enterprise.getLogisticsCompany());
                 orderAttrMap.put("TrackingNumber", trackingNumber);
                 recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
+                RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
                 LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, enterprise.getLogisticsCompany(), order.getOrderId());
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
