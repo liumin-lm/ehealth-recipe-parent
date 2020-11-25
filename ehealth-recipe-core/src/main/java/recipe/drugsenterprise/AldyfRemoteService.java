@@ -237,8 +237,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                     return getDrugEnterpriseResult(result, "医生不存在");
                 }
                 prescriptionAddRequest.setDoctorParam(doctorParam);
-                // 签名图片改成签名pdf
-                String ossId = dbRecipe.getSignFile();
+                // 签名图片
+                String ossId = dbRecipe.getSignImg();
                 String ossKey ;
                 try{
                     IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
