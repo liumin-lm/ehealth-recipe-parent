@@ -107,6 +107,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
             //上传处方pdf给第三方
             RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipeNew.getRecipeId()));
+        } else {
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送失败:" + enterprise.getName() + responseTO.getMsg());
         }
     }
 
@@ -227,20 +229,6 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //设置患者信息
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.get(recipe.getMpiid());
-        // 从复诊获取患者渠道id
-        try {
-            if (recipe.getClinicId() != null) {
-                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-                LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
-                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
-                if (revisitExDTO != null) {
-                    LOGGER.info("queryPatientChannelId res={}",JSONObject.toJSONString(revisitExDTO));
-                    pushRecipeAndOrder.getRecipeBean().setPatientChannelId(revisitExDTO.getProjectChannel());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("queryPatientChannelId error:",e);
-        }
 
         pushRecipeAndOrder.setPatientDTO(patientDTO);
         //设置用户信息
@@ -286,7 +274,20 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
         //设置处方信息
         pushRecipeAndOrder.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
-
+        // 从复诊获取患者渠道id
+        try {
+            if (recipe.getClinicId() != null) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
+                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (revisitExDTO != null) {
+                    LOGGER.info("queryPatientChannelId res={}",JSONObject.toJSONString(revisitExDTO));
+                    pushRecipeAndOrder.getRecipeBean().setPatientChannelId(revisitExDTO.getProjectChannel());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("queryPatientChannelId error:",e);
+        }
         //设置药品详情
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
