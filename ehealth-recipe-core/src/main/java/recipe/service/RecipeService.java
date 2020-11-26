@@ -3560,13 +3560,9 @@ public class RecipeService extends RecipeBaseService {
      */
     public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
         List<String> allMpiIds = Lists.newArrayList();
-        PatientDTO patient = patientService.get(mpiId);
-        if (patient != null) {
-            List<PatientDTO> patientDTOS = patientService.findByUrt(patient.getUrt());
-            if (CollectionUtils.isNotEmpty(patientDTOS)) {
-                allMpiIds = patientDTOS.stream().map(PatientDTO::getMpiId).collect(Collectors.toList());
-
-            }
+        String loginId = patientService.getLoginIdByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(loginId)) {
+            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
         }
         return allMpiIds;
         /*//获取所有家庭成员的患者编号
