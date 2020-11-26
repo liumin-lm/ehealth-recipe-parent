@@ -198,15 +198,6 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         if (null == d.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
-
-
-        Long organNum = AppContextHolder.getBean("eh.organDrugListService",IOrganDrugListService.class).getCountByDrugId(drugList.getDrugId());
-        Long saleNum = AppContextHolder.getBean("eh.saleDrugListService",ISaleDrugListService.class).getCountByDrugId(drugList.getDrugId());
-        if(organNum>0 || saleNum>0){
-            throw new DAOException(DAOException.VALIDATE_FALIED, "该通用药品存在关联的机构药品或者药企药品，不支持删除。");
-        }
-
-
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         DrugList target = dao.getById(d.getDrugId());
         if (null == target) {
@@ -314,6 +305,19 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             }
             if(null == drugList.getInstructions()){
                 drugList.setInstructions(target.getInstructions());
+            }
+
+            List<DrugList> drugLists = dao.findRepeatDrugListNoOrgan(d.getDrugName(),d.getSaleName(),d.getDrugType(),d.getProducer(),d.getDrugSpec());
+            if(!CollectionUtils.isEmpty(drugLists)){
+                boolean flag = true;
+                for (DrugList drg : drugLists){
+                    if(drg.getDrugId().equals(drugList.getDrugId())){
+                        flag = false;
+                    }
+                }
+                if(flag){
+                    throw new DAOException(DAOException.VALIDATE_FALIED, "此药品已经存在，对应药品为【"+drugLists.get(0).getDrugCode()+"】【"+d.getDrugName()+"】，请勿修改。");
+                }
             }
 
            /*BeanUtils.map(drugList, target);*/
@@ -619,4 +623,29 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             });
         }
     }
+
+    @RpcService
+    @Override
+    public DrugListBean deleteDrugList(Integer drugId) {
+        if (null == drugId) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
+        }
+        Long organNum = AppContextHolder.getBean("eh.organDrugListService",IOrganDrugListService.class).getCountByDrugId(drugId);
+        Long saleNum = AppContextHolder.getBean("eh.saleDrugListService",ISaleDrugListService.class).getCountByDrugId(drugId);
+        if(organNum>0 || saleNum>0){
+            throw new DAOException(DAOException.VALIDATE_FALIED, "该通用药品存在关联的机构药品或者药企药品，不支持删除。");
+        }
+
+        DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
+        DrugList target = dao.getById(drugId);
+        if (null == target) {
+            throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
+        }
+        target.setStatus(0);
+        DrugList drugList = dao.update(target);
+        return getBean(drugList, DrugListBean.class);
+
+    }
+
+
 }

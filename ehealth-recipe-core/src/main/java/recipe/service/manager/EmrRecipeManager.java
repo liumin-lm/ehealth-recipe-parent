@@ -13,9 +13,9 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.DocIndexBean;
-import eh.cdr.api.vo.DocIndexExtBean;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.api.vo.MedicalInfoBean;
+import eh.cdr.api.vo.request.SaveEmrContractReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +41,8 @@ public class EmrRecipeManager {
     /**
      * 病历状态 2 暂存 4 已使用
      */
-    private static Integer DOC_STATUS_HOLD = 2;
-    private static Integer DOC_STATUS_USE = 4;
+    private static final Integer DOC_STATUS_HOLD = 2;
+    private static final Integer DOC_STATUS_USE = 4;
 
     @Resource
     private IDocIndexService docIndexService;
@@ -126,13 +126,17 @@ public class EmrRecipeManager {
      *
      * @param docId 电子病例id
      */
-    public void updateDocStatus(Integer docId) {
+    public void updateDocStatus(Integer recipeId, Integer docId) {
         logger.info("EmrRecipeManager updateDocStatus docId={}", docId);
         if (null == docId) {
             return;
         }
-
-        Boolean result = docIndexService.updateStatusByDocIndexId(docId, DOC_STATUS_USE);
+        SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
+        saveEmrContractReq.setBussId(recipeId);
+        saveEmrContractReq.setDocIndexId(docId);
+        //处方状态 1
+        saveEmrContractReq.setBussType(1);
+        Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
         logger.info("EmrRecipeManager updateDocStatus docId={} boo={}", docId, result);
     }
 
@@ -281,18 +285,9 @@ public class EmrRecipeManager {
         docIndexBean.setOrganNameByUser(recipe.getOrganName());
         docIndexBean.setClinicPersonName(recipe.getPatientName());
         docIndexBean.setLastModify(new Date());
-
         //保存电子病历
         MedicalInfoBean medicalInfoBean = new MedicalInfoBean();
         medicalInfoBean.setDocIndexBean(docIndexBean);
-        //设置病历索引扩展信息
-        List<DocIndexExtBean> docIndexExtBeanList = new ArrayList<>();
-        DocIndexExtBean docIndexExtBean = new DocIndexExtBean();
-        //业务类型 1 处方 2 复诊 3 检查 4 检验
-        docIndexExtBean.setBussType(1);
-        docIndexExtBean.setBussId(recipeExt.getRecipeId());
-        docIndexExtBeanList.add(docIndexExtBean);
-        medicalInfoBean.setDocIndexExtBeanList(docIndexExtBeanList);
         //设置病历详情
         MedicalDetailBean medicalDetailBean = new MedicalDetailBean();
         setMedicalDetailBean(recipe, recipeExt, medicalDetailBean);

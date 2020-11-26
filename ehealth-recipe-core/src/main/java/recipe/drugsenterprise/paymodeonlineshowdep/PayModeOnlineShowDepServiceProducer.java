@@ -8,6 +8,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 
 /**
  * created by shiyuping on 2020/11/10
+ * @author shiyuping
  */
 public class PayModeOnlineShowDepServiceProducer {
 
@@ -17,7 +18,7 @@ public class PayModeOnlineShowDepServiceProducer {
             return new ShowStoreFlagDepService();
         }
         if (new Integer(2).equals(recipe.getRecipeSource())) {
-            return new BJIntShowDepService();
+            return new OfflineToOnlineShowDepService();
         }
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(subDep);

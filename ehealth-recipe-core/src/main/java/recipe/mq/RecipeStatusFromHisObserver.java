@@ -3,10 +3,16 @@ package recipe.mq;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.Observer;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -18,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeService;
@@ -59,10 +66,34 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         switch (recipeStatus) {
             case HisBussConstant.FROMHIS_RECIPE_STATUS_ADD:
                 //TODO liu
+                //设置健康卡
+                try {
+                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                    Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
+                    if (recipe!=null&&recipe.getClinicId() != null) {
+                        IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                        RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                        LOGGER.info("recipeId:{},consultExDTO:{}",notice.getPlatRecipeID(),JSONUtils.toString(consultExDTO));
+                        if (consultExDTO != null) {
+                            otherInfo.put("cardNo", consultExDTO.getCardId());
+                            otherInfo.put("cardType", consultExDTO.getCardType());
+                            try {
+                                otherInfo.put("cardName", DictionaryController.instance().get("eh.base.dictionary.CardType").getText(consultExDTO.getCardType()));
+                            } catch (ControllerException e) {
+                                LOGGER.error("recipeId:{},DictionaryController 字典转化异常,{}",notice.getPlatRecipeID(), e);
+                            }
+                        }
+                    }
+                }catch (Exception e){
+                    LOGGER.error("recipeId:{},onMessage His回调异常,{}",notice.getPlatRecipeID(), e);
+                }
+                //设置卡
                 if(null != notice.getCardTypeName()){
                     otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
                 }
-                otherInfo.put("cardNo", notice.getCardNo());
+                if(null != notice.getCardNo()){
+                    otherInfo.put("cardNo", notice.getCardNo());
+                }
                 //自费 0 商保 1 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A
                 otherInfo.put("patientType", notice.getPatientType());
                 //医院所属区域代码(结算发生地区域代码)
@@ -142,7 +173,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
             EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
-            emrRecipeManager.updateDocStatus(recipeExtend.getDocIndexId());
+            emrRecipeManager.updateDocStatus(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }

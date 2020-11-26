@@ -41,12 +41,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -738,7 +741,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                     organDrugList.setCreateDt(now);
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
-
+                    OrganDrugListService organDrugListService= AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
+                    //同步药品到监管备案
+                    RecipeBusiThreadPool.submit(() -> {
+                        organDrugListService.uploadDrugToRegulation(organDrugList);
+                        return null;
+                    });
                     //填充配送药品信息
                     SaleDrugList newSaleDrugList = new SaleDrugList();
                     newSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
