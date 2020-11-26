@@ -550,6 +550,7 @@ public class PrescribeService {
         //TODO liu
         String cardTypeName = otherInfo.get("cardTypeName");
         String cardNo = otherInfo.get("cardNo");
+        String cardType=otherInfo.get("cardType");
         String patientType = otherInfo.get("patientType");
         String putOnRecordID = otherInfo.get("putOnRecordID");
         String hospOrgCodeFromMedical = otherInfo.get("areaCode");
@@ -560,6 +561,9 @@ public class PrescribeService {
         }
         if (StringUtils.isNotEmpty(cardNo)){
             updateMap.put("cardNo",cardNo);
+        }
+        if (StringUtils.isNotEmpty(cardType)){
+            updateMap.put("cardType",cardType);
         }
         if (StringUtils.isNotEmpty(patientType)){
             updateMap.put("patientType",patientType);

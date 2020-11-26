@@ -78,7 +78,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                             otherInfo.put("cardNo", consultExDTO.getCardId());
                             otherInfo.put("cardType", consultExDTO.getCardType());
                             try {
-                                otherInfo.put("cardName", DictionaryController.instance().get("eh.base.dictionary.CardType").getText(consultExDTO.getCardType()));
+                                otherInfo.put("cardTypeName", DictionaryController.instance().get("eh.base.dictionary.CardType").getText(consultExDTO.getCardType()));
                             } catch (ControllerException e) {
                                 LOGGER.error("recipeId:{},DictionaryController 字典转化异常,{}",notice.getPlatRecipeID(), e);
                             }
