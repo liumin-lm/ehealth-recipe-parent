@@ -302,6 +302,7 @@ public class PrescribeService {
      * @return
      */
     public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request, Map<String, String> otherInfo) {
+        LOG.info("updateRecipeStatus request:{}, otherInfo:{}",JSONUtils.toString(request),JSONUtils.toString(otherInfo));
         HosRecipeResult result = new HosRecipeResult();
         //重置默认为失败
         result.setCode(HosRecipeResult.FAIL);
@@ -541,6 +542,7 @@ public class PrescribeService {
     }
 
     private void updateRecipeInfo(Map<String, String> otherInfo, Integer recipeId) {
+        LOG.info("updateRecipeInfo recipeId:{} otherInfo：{}",recipeId,JSONUtils.toString(otherInfo));
         if (StringUtils.isNotEmpty(otherInfo.get("distributionFlag"))
                 && "1".equals(otherInfo.get("distributionFlag"))){
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("distributionFlag", 1));
@@ -577,6 +579,7 @@ public class PrescribeService {
         if (StringUtils.isNotEmpty(insuredArea)){
             updateMap.put("insuredArea",insuredArea);
         }
+        LOG.info("updateRecipeInfo recipeId:{} updateMap：{}",recipeId,JSONUtils.toString(updateMap));
         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,updateMap);
     }
 
