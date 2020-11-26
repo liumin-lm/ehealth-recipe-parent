@@ -244,10 +244,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         try {
             Integer cfgValue = (Integer) configService.getConfiguration(organId, "viewDrugInventoryRealTime");
-            return  cfgValue.equals(1);
+            return cfgValue.equals(1);
         } catch (Exception e) {
             LOGGER.error("获取参数viewDrugInventoryRealTime 错误 ", e);
-        	return false;
+            return false;
         }
     }
 
@@ -293,10 +293,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
 
             // 药房
-            if (pharmacyId != null){
+            if (pharmacyId != null) {
                 PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
                 PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(pharmacyId);
-                if (pharmacyTcm != null){
+                if (pharmacyTcm != null) {
                     drugInfo.setPharmacyCode(pharmacyTcm.getPharmacyCode());
                     drugInfo.setPharmacy(pharmacyTcm.getPharmacyName());
                 }
@@ -459,7 +459,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 isMergeRecipeType = false;
             }
             if (isMergeRecipeType) {
-                searchTO.setLimit(limit - drugInfo.size());
+                searchTO.setLimit((limit - drugInfo.size()) == 0 ? 1 : (limit - drugInfo.size()));
                 List<String> drugInfo2 = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(), searchTO.getDrugType(), pharmacyId, searchTO.getStart(), searchTO.getLimit());
                 if (drugInfo != null && drugInfo2 != null && drugInfo2.size() != 0) {
                     drugInfo.addAll(drugInfo2);
