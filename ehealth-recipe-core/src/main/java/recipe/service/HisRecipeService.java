@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
@@ -202,8 +203,9 @@ public class HisRecipeService {
                         }
                     }
                 }
-                if(!isEquals){
+                if (!isEquals) {
                     //处方在cdr_his_recipe存在，在his不存在，则remove cdr_his_recipe data 并删除存储到平台的数据
+                    LOGGER.info("HisRecipeService mergeData:hisRecipeVoKey = {},noPayFeeHisRecipeVO={}", hisRecipeVoKey, JSON.toJSONString(noPayFeeHisRecipeVO));
                     onlyExistHisRecipeVOs.add(hisRecipeVO);
                 }
             }
@@ -243,6 +245,7 @@ public class HisRecipeService {
             List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(orderCodeList)) {
                 recipeOrderDAO.deleteByRecipeIds(orderCodeList);
+                LOGGER.info("HisRecipeService deleteOnlyExistnoHisRecipeVOs recipeList= {}", JSON.toJSONString(recipeList));
             }
         }
 
