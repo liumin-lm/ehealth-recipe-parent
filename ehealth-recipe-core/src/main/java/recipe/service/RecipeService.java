@@ -787,7 +787,7 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else if (Integer.valueOf(100).equals(code)) {
             memo = "签名成功,标准对接CA方式";
-            //doctorToRecipePDF(recipeId, recipe);
+            doctorToRecipePDF(recipeId, recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
                 String loginId = MapValueUtil.getString(backMap, "loginId");
@@ -3560,13 +3560,9 @@ public class RecipeService extends RecipeBaseService {
      */
     public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
         List<String> allMpiIds = Lists.newArrayList();
-        PatientDTO patient = patientService.get(mpiId);
-        if (patient != null) {
-            List<PatientDTO> patientDTOS = patientService.findByUrt(patient.getUrt());
-            if (CollectionUtils.isNotEmpty(patientDTOS)) {
-                allMpiIds = patientDTOS.stream().map(PatientDTO::getMpiId).collect(Collectors.toList());
-
-            }
+        String loginId = patientService.getLoginIdByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(loginId)) {
+            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
         }
         return allMpiIds;
         /*//获取所有家庭成员的患者编号
