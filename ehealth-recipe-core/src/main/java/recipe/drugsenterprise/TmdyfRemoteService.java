@@ -31,6 +31,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import static ctd.util.AppContextHolder.getBean;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -46,10 +47,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.constant.*;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
 import recipe.hisservice.HisMqRequestInit;
@@ -58,8 +56,6 @@ import recipe.service.common.RecipeCacheService;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static ctd.util.AppContextHolder.getBean;
 
 /**
  * @description 天猫大药房对接服务
@@ -457,25 +453,31 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         List<AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs> drugParams = new ArrayList<>();
         if (!ObjectUtils.isEmpty(detailList)) {
             SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            DrugListDAO drugDAO = DAOFactory.getDAO(DrugListDAO.class);
             //OrganDrugList organDrugList;
             for (int i = 0; i < detailList.size(); i++) {
                 //一张处方单可能包含相同的药品purchaseService
                 SaleDrugList saleDrugList = saleDrugDAO.getByDrugIdAndOrganId(detailList.get(i).getDrugId(), depId);
-                if (ObjectUtils.isEmpty(saleDrugList)) {
-                    throw new DAOException("未找到对应的saleDrugList");
+                DrugList drugList = drugDAO.getById(detailList.get(i).getDrugId());
+                if (ObjectUtils.isEmpty(saleDrugList) || ObjectUtils.isEmpty(drugList)) {
+                    throw new DAOException("未找到对应的药品");
                 }
                 AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs drugParam = new AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs();
                 if(null != saleDrugList.getDrugSpec()){
                     drugParam.setSpec(saleDrugList.getDrugSpec());        //药品规格
                 } else {
-                    throw new DAOException("药品规格不能为空");
+                    if (StringUtils.isNotEmpty(drugList.getDrugSpec())) {
+                        drugParam.setSpec(drugList.getDrugSpec());
+                    } else {
+                        throw new DAOException("药品规格不能为空");
+                    }
                 }
                 if(null != detailList.get(i).getUseTotalDose()){
                     drugParam.setTotal(detailList.get(i).getUseTotalDose() + "");    //药品数量
                 } else {
                     throw new DAOException("药品数量不能为空");
                 }
-                drugParam.setDrugName(saleDrugList.getSaleName());    //药品名称
+                drugParam.setDrugName(saleDrugList.getSaleName() == null ? drugList.getSaleName() : saleDrugList.getSaleName());    //药品名称
                 if(null != detailList.get(i).getUseDose()){
                     drugParam.setDose(detailList.get(i).getUseDose() + "");    //用量
                 } else {
@@ -484,7 +486,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 if(null != saleDrugList.getDrugName()){
                     drugParam.setDrugCommonName(saleDrugList.getDrugName());  //药品通用名称
                 } else {
-                    throw new DAOException("药品通用名称不能为空");
+                    if (StringUtils.isNotEmpty(drugList.getDrugName())) {
+                        drugParam.setDrugCommonName(drugList.getDrugName());
+                    } else {
+                        throw new DAOException("药品通用名称不能为空");
+                    }
                 }
                 if(null != detailList.get(i).getUseDoseUnit()){
                     drugParam.setDoseUnit(detailList.get(i).getUseDoseUnit());      //用量单位
