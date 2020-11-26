@@ -53,6 +53,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
 
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String  cardType;
+
     @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
     private String patientType;
 
@@ -696,5 +699,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setDecoctionPrice(Double decoctionPrice) {
         this.decoctionPrice = decoctionPrice;
+    }
+
+    public String getCardType() {
+        return cardType;
+    }
+
+    public void setCardType(String cardType) {
+        this.cardType = cardType;
     }
 }
