@@ -1139,9 +1139,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         // 注意：若不使用BeanUtils.map转换，而直接放对象，
                         // 会造成opbase QueryResult<Map>端枚举值的Text字段不会自动生成
                         // 还有一种方式是在opbase QueryResult<Map>端循环读取然后重新设置（张宪强的回答）
-                        Map<String, Object> recipeExtendMap = Maps.newHashMap();
-                        BeanUtils.map(recipeExtend, recipeExtendMap);
-                        map.put("recipeExtend", recipeExtendMap);
+                        if(recipeExtend != null) {
+                            Map<String, Object> recipeExtendMap = Maps.newHashMap();
+                            BeanUtils.map(recipeExtend, recipeExtendMap);
+                            map.put("recipeExtend", recipeExtendMap);
+                        }
 
                         maps.add(map);
                     }
