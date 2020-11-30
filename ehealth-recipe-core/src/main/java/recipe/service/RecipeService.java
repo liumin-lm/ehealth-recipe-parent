@@ -72,6 +72,7 @@ import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.joda.time.DateTime;
@@ -1577,7 +1578,10 @@ public class RecipeService extends RecipeBaseService {
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前审核处方签名成功");
             if(MapUtils.isNotEmpty(esignResponseMap)){
                 String recipeFileId = MapValueUtil.getString(esignResponseMap, "fileId");
-                boolean updateCheckPdf = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
+                Map<String, Object> atrMap = new HashedMap();
+                atrMap.put("chemistSignFile",recipeFileId);
+                atrMap.put("SignFile",recipeFileId);
+                boolean updateCheckPdf = recipeDAO.updateRecipeInfoByRecipeId(recipeId, atrMap);
                 LOGGER.info("当前处方更新药师签名pdf结果：{}", updateCheckPdf);
             }
         }
