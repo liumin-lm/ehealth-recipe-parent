@@ -20,6 +20,9 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugListForThreeBean;
 import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -472,12 +475,28 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     logisticsOrder.setAddresseeAddress(order.getAddress4());
                     // 寄托物名称
                     logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
-                    PatientService patientService = BasicAPI.getService(PatientService.class);
-                    PatientDTO patientDTO = patientService.getPatientByMpiId(recipeInfo.getMpiid());
-                    if (patientDTO != null){
-                        logisticsOrder.setPatientName(patientDTO.getPatientName());
-                        logisticsOrder.setPatientPhone(patientDTO.getMobile());
-                        logisticsOrder.setPatientIdentityCardNo(patientDTO.getIdcard());
+                    IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+                    PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
+                    if (patientBean != null && StringUtils.isNotBlank(patientBean.getLoginId())){
+                        PatientService patientService = BasicAPI.getService(PatientService.class);
+                        List<PatientDTO> patientList = patientService.findOwnPatient(patientBean.getLoginId());
+                        if (null != patientList && patientList.size() > 0){
+                            PatientDTO userInfo = patientList.get(0);
+                            // 就诊人名称
+                            logisticsOrder.setPatientName(userInfo.getPatientName());
+                            // 就诊人手机号
+                            logisticsOrder.setPatientPhone(userInfo.getMobile());
+                            // 就诊人身份证
+                            logisticsOrder.setPatientIdentityCardNo(StringUtils.isNotBlank(userInfo.getIdcard()) ? userInfo.getIdcard() : userInfo.getIdcard2());
+                        }
+                    }
+                    // 挂号序号
+                    if (recipeInfo.getClinicId() != null) {
+                        IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                        RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipeInfo.getClinicId());
+                        if (consultExDTO != null) {
+                            logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
+                        }
                     }
                     LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
                     ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
