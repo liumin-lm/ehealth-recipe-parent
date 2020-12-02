@@ -467,8 +467,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             setDetail(req, detailList, usingRateDic, usePathwaysDic, recipe);
 
             // 发票号
-            String einvoiceNumber = getIncoiceNumber(req, recipe);
-            req.setEinvoiceNumber(einvoiceNumber);
+            String invoiceNumber = getInvoiceNumber(req, recipe);
+            req.setEinvoiceNumber(invoiceNumber);
 
             request.add(req);
         }
@@ -481,12 +481,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipe
      * @return
      */
-    private String getIncoiceNumber(RegulationRecipeIndicatorsReq req, Recipe recipe) {
-        String einvoiceNumber = null;
+    private String getInvoiceNumber(RegulationRecipeIndicatorsReq req, Recipe recipe) {
+        String invoiceNumber = null;
         try {
             RecipeExtendService extendService = AppContextHolder.getBean("recipeExtendService", RecipeExtendService.class);
-            einvoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
-            if (StringUtils.isBlank(einvoiceNumber)){
+            invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+            if (StringUtils.isBlank(invoiceNumber)){
                 EleInvoiceService invoiceService = AppContextHolder.getBean("eleInvoiceService", EleInvoiceService.class);
                 EleInvoiceDTO invoiceDTO = new EleInvoiceDTO();
                 invoiceDTO.setId(recipe.getRecipeId());
@@ -498,11 +498,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 invoiceDTO.setType("1");
                 invoiceService.findEleInvoice(invoiceDTO);
             }
-            einvoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+            invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
         } catch (NumberFormatException e) {
             LOGGER.error("上传监管平台获取发票号异常：", e);
         }
-        return einvoiceNumber;
+        return invoiceNumber;
     }
 
     /**
