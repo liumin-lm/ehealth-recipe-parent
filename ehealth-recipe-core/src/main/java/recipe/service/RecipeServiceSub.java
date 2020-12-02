@@ -453,6 +453,7 @@ public class RecipeServiceSub {
                         detail.setDrugSpec(organDrug.getDrugSpec());
                         detail.setDrugUnit(organDrug.getUnit());
                         detail.setDefaultUseDose(organDrug.getUseDose());
+                        detail.setSaleName(organDrug.getSaleName());
                         //如果前端传了剂量单位优先用医生选择的剂量单位
                         //医生端剂量单位可以选择规格单位还是最小单位
                         if (StringUtils.isNotEmpty(detail.getUseDoseUnit())) {

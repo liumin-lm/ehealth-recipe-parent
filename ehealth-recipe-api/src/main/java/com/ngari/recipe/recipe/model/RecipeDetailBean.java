@@ -36,6 +36,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物名称")
     private String drugName;
 
+    @ItemProperty(alias = "药品商品名")
+    private String saleName;
+
     @ItemProperty(alias="药物规格")
     private String drugSpec;
 
@@ -734,5 +737,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
     }
 }
