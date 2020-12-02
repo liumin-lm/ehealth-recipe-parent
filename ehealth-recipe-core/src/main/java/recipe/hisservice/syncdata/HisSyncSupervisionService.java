@@ -27,6 +27,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -49,6 +51,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
+import recipe.hisservice.EleInvoiceService;
+import recipe.service.RecipeExtendService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -462,8 +466,36 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             setDetail(req, detailList, usingRateDic, usePathwaysDic, recipe);
 
+            // 发票号
+            String einvoiceNumber = getIncoiceNumber(req, recipe);
+            req.setEinvoiceNumber(einvoiceNumber);
+
             request.add(req);
         }
+    }
+
+    private String getIncoiceNumber(RegulationRecipeIndicatorsReq req, Recipe recipe) {
+        String einvoiceNumber = null;
+        try {
+            RecipeExtendService extendService = AppContextHolder.getBean("recipeExtendService", RecipeExtendService.class);
+            einvoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+            if (StringUtils.isBlank(einvoiceNumber)){
+                EleInvoiceService invoiceService = AppContextHolder.getBean("eleInvoiceService", EleInvoiceService.class);
+                EleInvoiceDTO invoiceDTO = new EleInvoiceDTO();
+                invoiceDTO.setId(recipe.getRecipeId());
+                invoiceDTO.setCardId(req.getCardNo());
+                invoiceDTO.setCardType(req.getCardType());
+                invoiceDTO.setGhxh(req.getPatientNumber());
+                invoiceDTO.setMpiid(recipe.getMpiid());
+                invoiceDTO.setOrganId(Integer.parseInt(req.getOrganID()));
+                invoiceDTO.setType("1");
+                invoiceService.findEleInvoice(invoiceDTO);
+            }
+            einvoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+        } catch (NumberFormatException e) {
+            LOGGER.error("上传监管平台获取发票号异常：", e);
+        }
+        return einvoiceNumber;
     }
 
     /**
