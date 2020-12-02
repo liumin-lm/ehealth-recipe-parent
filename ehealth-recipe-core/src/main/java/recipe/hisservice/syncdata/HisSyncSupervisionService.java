@@ -474,6 +474,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
     }
 
+    /**
+     * 获取发票号
+     *
+     * @param req
+     * @param recipe
+     * @return
+     */
     private String getIncoiceNumber(RegulationRecipeIndicatorsReq req, Recipe recipe) {
         String einvoiceNumber = null;
         try {
