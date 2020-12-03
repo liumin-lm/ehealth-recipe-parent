@@ -1675,8 +1675,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
-        StringBuilder hql = new StringBuilder("select if(o.EnterpriseId is not null and s.price is not null,s.price,d.price) as price, ");
-        hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
+        //StringBuilder hql = new StringBuilder("select if(o.EnterpriseId is not null and s.price is not null,s.price,d.price) as price, ");
+        //hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
+        StringBuilder hql = new StringBuilder("select ");
+        //hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
         hql.append("r.mpiid, o.*, r.*, d.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID and d.Status= 1 ");
         //hql.append("LEFT JOIN base_saledruglist s ON o.EnterpriseId = s.OrganID and d.DrugID = s.DrugId and s.Status=1 where 1=1 ");
