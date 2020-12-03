@@ -2225,7 +2225,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 // 就诊人手机号
                 logisticsOrder.setPatientPhone(patientBean.getMobile());
                 // 就诊人身份证
-                logisticsOrder.setPatientIdentityCardNo(StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2());
+                String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
+                if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18){
+                    cardNo = null;
+                }
+                logisticsOrder.setPatientIdentityCardNo(cardNo);
 
             }
             // 挂号序号
