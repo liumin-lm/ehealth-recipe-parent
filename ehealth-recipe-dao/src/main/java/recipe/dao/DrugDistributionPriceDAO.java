@@ -48,12 +48,13 @@ public abstract class DrugDistributionPriceDAO extends HibernateSupportDelegateD
 
     /**
      * 根据地区和药品序号获取
+     *
      * @param enterpriseId
      * @param addrArea
      * @return
      */
-    @DAOMethod
-    public abstract DrugDistributionPrice getByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea);
+    @DAOMethod(sql = " from DrugDistributionPrice where enterpriseId =:enterpriseId and addrArea =:addrArea")
+    public abstract List<DrugDistributionPrice> getByEnterpriseIdAndAddrArea(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrArea") String addrArea);
 
     /**
      * 根据药品序号删除
