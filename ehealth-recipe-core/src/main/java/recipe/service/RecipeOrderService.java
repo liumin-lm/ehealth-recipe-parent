@@ -2134,11 +2134,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
             } catch (Exception e) {
                 LOGGER.error("基础服务物流下单异常，发起退款流程 orderId={}，异常=", order.getOrderId(), e);
-                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-//                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
-                for(int i=0; i<recipeS.size(); i++){
-                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
-                }
+//                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+////                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
+//                for(int i=0; i<recipeS.size(); i++){
+//                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
+//                }
                 return;
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
@@ -2164,11 +2164,11 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
-                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-//                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
-                for(int i=0; i<recipeS.size(); i++){
-                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
-                }
+//                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+////                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
+//                for(int i=0; i<recipeS.size(); i++){
+//                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
+//                }
             }
         }
     }
