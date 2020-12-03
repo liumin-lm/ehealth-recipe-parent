@@ -286,12 +286,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         switch (refundStatus) {
             case 3:
                 List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeIdAndNodes(busId, Arrays.asList(9));
+                LOGGER.info("退款完成开始处理：{}",recipe.getRecipeId());
                 if (CollectionUtils.isNotEmpty(recipeRefunds)) {
                     return;
                 }
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态
                 recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
+                LOGGER.info("退款完成修改处方状态：{}",recipe.getRecipeId());
                 //订单状态修改
                 Map<String, Object> orderAttrMap = Maps.newHashMap();
                 orderAttrMap.put("effective", 0);
@@ -301,7 +303,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                LOGGER.info("退款完成修改订单状态：{}",recipe.getRecipeId());
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
+                LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}",recipe.getRecipeId());
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 break;
             case 4:

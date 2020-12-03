@@ -2219,18 +2219,14 @@ public class RecipeOrderService extends RecipeBaseService {
         try {
             IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            if (patientBean != null && StringUtils.isNotBlank(patientBean.getLoginId())){
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                List<PatientDTO> patientList = patientService.findOwnPatient(patientBean.getLoginId());
-                if (null != patientList && patientList.size() > 0){
-                    PatientDTO userInfo = patientList.get(0);
-                    // 就诊人名称
-                    logisticsOrder.setPatientName(userInfo.getPatientName());
-                    // 就诊人手机号
-                    logisticsOrder.setPatientPhone(userInfo.getMobile());
-                    // 就诊人身份证
-                    logisticsOrder.setPatientIdentityCardNo(StringUtils.isNotBlank(userInfo.getIdcard()) ? userInfo.getIdcard() : userInfo.getIdcard2());
-                }
+            if (patientBean != null){
+                // 就诊人名称
+                logisticsOrder.setPatientName(patientBean.getPatientName());
+                // 就诊人手机号
+                logisticsOrder.setPatientPhone(patientBean.getMobile());
+                // 就诊人身份证
+                logisticsOrder.setPatientIdentityCardNo(StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2());
+
             }
             // 挂号序号
             if (recipe.getClinicId() != null) {

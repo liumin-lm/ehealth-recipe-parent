@@ -218,6 +218,7 @@ public class RecipeRefundService extends RecipeBaseService{
                         nowRecipeRefund.setPrice(recipeOrder.getActualPrice());
                         nowRecipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_FINISH);
                         nowRecipeRefund.setStatus(3);
+                        LOGGER.info("存储退款完成记录-RecipeRefundService：{}",recipe.getRecipeId());
                         recipeReFundSave(recipe, nowRecipeRefund);
                         //更新订单状态
                         Map<String, Object> orderAttrMap = Maps.newHashMap();
