@@ -1276,12 +1276,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param dateType    时间类型（0：开方时间，1：审核时间）
      * @return QueryResult<Map>
      */
-    public List<Map> findRecipesByInfoForExcelN(RecipesQueryVO recipesQueryVO) {
+    public List<Object[]> findRecipesByInfoForExcelN(RecipesQueryVO recipesQueryVO) {
         this.validateOptionForStatistics(recipesQueryVO);
         final StringBuilder preparedHql = this.generateRecipeOderHQLforStatisticsN(recipesQueryVO);
-        final PatientService patientService = BasicAPI.getService(PatientService.class);
-        final DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        HibernateStatelessResultAction<List<Map>> action = new AbstractHibernateStatelessResultAction<List<Map>>() {
+        HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sbHql = preparedHql;
@@ -1290,114 +1288,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
                 query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
-                List<Object[]> objectList = query.list();
-                Set<String> mpiIds = Sets.newHashSet();
-                Set<Integer> doctorIds = Sets.newHashSet();
-                Map<String, PatientDTO> patientBeanMap = Maps.newHashMap();
-                Map<Integer, DoctorDTO> doctorBeanMap = Maps.newHashMap();
-                List<Map> maps = new ArrayList<Map>();
-                if (objectList != null) {
-                    for (Object[] obj : objectList) {
-                        Recipe recipe = (Recipe) obj[0];
-                        mpiIds.add(recipe.getMpiid());
-                        doctorIds.add(recipe.getDoctor());
-                    }
-                    List<PatientDTO> patientBeanList = Lists.newArrayList();
-                    if (0 < mpiIds.size()) {
-                        patientBeanList = patientService.findByMpiIdIn(new ArrayList<>(mpiIds));
-                    }
-                    List<DoctorDTO> doctorBeen = Lists.newArrayList();
-                    if (doctorIds.size() > 0) {
-                        doctorBeen = doctorService.findDoctorList(new ArrayList<>(doctorIds));
-                    }
-                    for (PatientDTO p : patientBeanList) {
-                        patientBeanMap.put(p.getMpiId(), p);
-                    }
-                    if (doctorBeen != null && doctorBeen.size() > 0) {
-                        for (DoctorDTO d : doctorBeen) {
-                            doctorBeanMap.put(d.getDoctorId(), d);
-                        }
-                    }
 
-                    for (Object[] obj : objectList) {
-                        Recipe recipe = (Recipe) obj[0];
-                        String mpiId = recipe.getMpiid();
-                        Integer doctorId = recipe.getDoctor();
-                        PatientDTO patient = patientBeanMap.get(mpiId);
-                        DoctorDTO doctor = doctorBeanMap.get(doctorId);
-                        Map<String, Object> map = Maps.newHashMap();
-                        BeanUtils.map(recipe, map);
-                        //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
-
-                        RecipeOrder order = (RecipeOrder) obj[1];
-                        map.put("recipeOrder", order);
-                        //处方对应药品详情信息
-                        Recipedetail recipedetails = (Recipedetail) obj[2];
-                        if (null != recipedetails) {
-                            map.put("detailDrugName", recipedetails.getDrugName());
-                            //规格
-                            map.put("detailDrugSpec", recipedetails.getDrugSpec());
-                            //单位
-                            map.put("detailDrugUnit", recipedetails.getDrugUnit());
-                            //价格
-                            map.put("detailDrugPrice", recipedetails.getSalePrice());
-                            //date 20200225 修改药品查询信息
-                            //判断处方详情中药品信息存在去新的值(如果为空说明)
-                            if (null != recipedetails.getProducer()) {
-                                //说明是新签名后添加的数据
-                                //批号
-                                map.put("detailDruglicenseNumber", recipedetails.getLicenseNumber());
-                                //生产厂家
-                                map.put("detailDrugProducer", recipedetails.getProducer());
-                            }
-
-
-                            //将药企药品价格更新上去以及药企的药品code
-                            SaleDrugList saleDrugList = (SaleDrugList) obj[3];
-                            if (null != saleDrugList) {
-                                if (null != saleDrugList && null != saleDrugList.getPrice()) {
-                                    //价格
-                                    //有订单，判断订单对应的药品是否是药企的药品价格
-                                    map.put("detailDrugPrice", saleDrugList.getPrice());
-                                }
-                                if (null != saleDrugList) {
-                                    //药企药品编码
-                                    map.put("saleDrugCode", saleDrugList.getOrganDrugCode());
-                                }
-                            }
-                            //每次剂量
-                            map.put("detailUseDose", recipedetails.getUseDose());
-                            //剂量单位
-                            map.put("detailUseDoseUnit", recipedetails.getUseDoseUnit());
-                            //用法
-                            if (StringUtils.isNotEmpty(recipedetails.getUsePathways())) {
-                                map.put("detailUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetails.getUsePathways()));
-                            }
-                            //用药频度
-                            if (StringUtils.isNotEmpty(recipedetails.getUsingRate())) {
-                                map.put("detailUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetails.getUsingRate()));
-                            }
-                            //数量
-                            map.put("detailTotalDose", recipedetails.getUseTotalDose());
-
-                            if (patient != null) {
-                                map.put("patientName", patient.getPatientName());
-                                map.put("patientMobile", patient.getMobile());
-                            }
-                        }
-                        if (doctor != null) {
-                            map.put("doctorMobile", doctor.getMobile());
-                        }
-
-                        if (null != order) {
-                            map.put("payTime", order.getPayTime());
-                        } else {
-                            map.put("payTime", null);
-                        }
-                        maps.add(map);
-                    }
-                }
-                setResult(maps);
+                setResult(query.list());
             }
         };
         HibernateSessionTemplate.instance().execute(action);
