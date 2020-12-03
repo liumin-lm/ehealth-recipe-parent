@@ -13,6 +13,8 @@ import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
+import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -2213,6 +2215,30 @@ public class RecipeOrderService extends RecipeBaseService {
         logisticsOrder.setAddresseeAddress(order.getAddress4());
         // 寄托物名称
         logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+        // 就诊人信息
+        try {
+            IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+            if (patientBean != null){
+                // 就诊人名称
+                logisticsOrder.setPatientName(patientBean.getPatientName());
+                // 就诊人手机号
+                logisticsOrder.setPatientPhone(patientBean.getMobile());
+                // 就诊人身份证
+                logisticsOrder.setPatientIdentityCardNo(StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2());
+
+            }
+            // 挂号序号
+            if (recipe.getClinicId() != null) {
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                if (consultExDTO != null) {
+                    logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("基础服务物流下单非必填信息获取异常：", e);
+        }
         return logisticsOrder;
     }
 
