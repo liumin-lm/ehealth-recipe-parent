@@ -884,7 +884,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         return;
                     }
                     RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
+                    //留着兼容
                     req.setRecipeId(recipe.getRecipeId());
+                    //前置机会根据处方id列表反查
                     req.setRecipeIds(recipeIds);
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
