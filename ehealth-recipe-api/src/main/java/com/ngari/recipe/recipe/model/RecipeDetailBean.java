@@ -210,6 +210,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "中药禁忌原因")
     private String tcmContraindicationCause;
 
+    @ItemProperty(alias = "药企药品编码")
+    private String saleDrugCode;
+
+    public String getSaleDrugCode() {
+        return saleDrugCode;
+    }
+
+    public void setSaleDrugCode(String saleDrugCode) {
+        this.saleDrugCode = saleDrugCode;
+    }
+
     public String getUseDaysB() {
         return useDaysB;
     }

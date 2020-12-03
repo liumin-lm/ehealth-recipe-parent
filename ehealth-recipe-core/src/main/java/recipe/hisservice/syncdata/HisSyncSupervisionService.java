@@ -28,6 +28,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -42,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -50,6 +52,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
+import recipe.hisservice.EleInvoiceService;
+import recipe.service.RecipeExtendService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -97,6 +101,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList, request);
+
         try {
             IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
@@ -461,6 +466,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 continue;
             }
             setDetail(req, detailList, usingRateDic, usePathwaysDic, recipe);
+
+            // 发票号
+            String invoiceNumber = getInvoiceNumber(req, recipe);
+            req.setEinvoiceNumber(invoiceNumber);
+
             //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
@@ -481,6 +491,37 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             request.add(req);
         }
+    }
+
+    /**
+     * 获取发票号
+     *
+     * @param req
+     * @param recipe
+     * @return
+     */
+    private String getInvoiceNumber(RegulationRecipeIndicatorsReq req, Recipe recipe) {
+        String invoiceNumber = null;
+        try {
+            RecipeExtendService extendService = AppContextHolder.getBean("recipeExtendService", RecipeExtendService.class);
+            invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+            if (StringUtils.isBlank(invoiceNumber)){
+                EleInvoiceService invoiceService = AppContextHolder.getBean("eleInvoiceService", EleInvoiceService.class);
+                EleInvoiceDTO invoiceDTO = new EleInvoiceDTO();
+                invoiceDTO.setId(recipe.getRecipeId());
+                invoiceDTO.setCardId(req.getCardNo());
+                invoiceDTO.setCardType(req.getCardType());
+                invoiceDTO.setGhxh(req.getPatientNumber());
+                invoiceDTO.setMpiid(recipe.getMpiid());
+                invoiceDTO.setOrganId(Integer.parseInt(req.getOrganID()));
+                invoiceDTO.setType("1");
+                invoiceService.findEleInvoice(invoiceDTO);
+            }
+            invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+        } catch (NumberFormatException e) {
+            LOGGER.error("上传监管平台获取发票号异常：", e);
+        }
+        return invoiceNumber;
     }
 
     /**
