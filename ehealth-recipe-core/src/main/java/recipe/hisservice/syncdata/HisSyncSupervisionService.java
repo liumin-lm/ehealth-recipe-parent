@@ -499,7 +499,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 invoiceService.findEleInvoice(invoiceDTO);
             }
             invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             LOGGER.error("上传监管平台获取发票号异常：", e);
         }
         return invoiceNumber;
