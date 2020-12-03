@@ -68,7 +68,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         }
         DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
 
-        List<DrugDistributionPrice> oldPriceList = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
+        List<DrugDistributionPrice> oldPriceList = drugDistributionPriceDAO.findByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
         if (CollectionUtils.isEmpty(oldPriceList)) {
             throw new DAOException("price is exist");
         }
@@ -185,7 +185,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         DrugDistributionPrice price = null;
 
         while (length >= ADDR_LENGTH) {
-            List<DrugDistributionPrice> priceList = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea.substring(0, length));
+            List<DrugDistributionPrice> priceList = drugDistributionPriceDAO.findByEnterpriseIdAndAddrArea(enterpriseId, addrArea.substring(0, length));
             if (CollectionUtils.isNotEmpty(priceList)) {
                 price = priceList.get(0);
                 break;

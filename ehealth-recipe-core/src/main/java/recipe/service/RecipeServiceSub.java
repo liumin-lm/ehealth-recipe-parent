@@ -1070,6 +1070,9 @@ public class RecipeServiceSub {
             if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
                     && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
                 tips = "待下载";
+            } else if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
+                    || RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
+                tips = "待取药";
             } else {
                 tips = RecipeOrderStatusEnum.getOrderStatus(orderStatus);
             }
