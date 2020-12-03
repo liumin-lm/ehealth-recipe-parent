@@ -14,6 +14,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
@@ -47,6 +48,7 @@ import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -882,7 +884,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         return;
                     }
                     RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
+                    //留着兼容
                     req.setRecipeId(recipe.getRecipeId());
+                    //前置机会根据处方id列表反查
                     req.setRecipeIds(recipeIds);
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
