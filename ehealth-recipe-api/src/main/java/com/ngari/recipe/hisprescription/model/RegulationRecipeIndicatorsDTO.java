@@ -107,6 +107,11 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private FirstVisitRecord firstVisitRecord;//初诊列表数据集
 
+    //发药药师姓名
+    private String dispensingApothecaryName;
+    //发药药师身份证号
+    private String dispensingApothecaryIdCard;
+
 
 
     public String getUnitID() {
@@ -707,5 +712,21 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setDeliveryStatus(Integer deliveryStatus) {
         this.deliveryStatus = deliveryStatus;
+    }
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
     }
 }

@@ -1,5 +1,6 @@
 package recipe.hisservice.syncdata;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
@@ -96,7 +97,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList, request);
-
         try {
             IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
@@ -461,7 +461,24 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 continue;
             }
             setDetail(req, detailList, usingRateDic, usePathwaysDic, recipe);
-
+            //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
+            //获取运营平台发药药师
+            if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryName())) {
+                req.setDispensingApothecaryName(recipeOrder.getDispensingApothecaryName());
+            } else if (doctorId != null) {
+                //获取默认发药药师
+                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                req.setDispensingApothecaryName(dispensingApothecary.getName());
+            }
+            if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryIdCard())) {
+                req.setDispensingApothecaryIdCard(recipeOrder.getDispensingApothecaryName());
+            } else if (doctorId != null) {
+                //获取默认发药药师
+                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                req.setDispensingApothecaryIdCard(dispensingApothecary.getIdNumber());
+            }
             request.add(req);
         }
     }
