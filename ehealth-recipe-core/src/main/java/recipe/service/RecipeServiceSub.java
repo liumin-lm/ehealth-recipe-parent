@@ -2562,6 +2562,9 @@ public class RecipeServiceSub {
 
         if (result) {
             msg = "处方撤销成功";
+            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
+            //将药品移出病历
+            emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
             //向患者推送处方撤销消息
             if (!(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() && recipe.canMedicalPay())) {
                 //医保的处方待审核时患者无法看到处方，不发送撤销消息提示
