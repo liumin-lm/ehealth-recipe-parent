@@ -36,6 +36,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物名称")
     private String drugName;
 
+    @ItemProperty(alias = "药品商品名")
+    private String saleName;
+
     @ItemProperty(alias="药物规格")
     private String drugSpec;
 
@@ -209,6 +212,17 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "中药禁忌原因")
     private String tcmContraindicationCause;
+
+    @ItemProperty(alias = "药企药品编码")
+    private String saleDrugCode;
+
+    public String getSaleDrugCode() {
+        return saleDrugCode;
+    }
+
+    public void setSaleDrugCode(String saleDrugCode) {
+        this.saleDrugCode = saleDrugCode;
+    }
 
     public String getUseDaysB() {
         return useDaysB;
@@ -734,5 +748,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
     }
 }

@@ -324,7 +324,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
         }
         //设置pdf base 64内容
-        String signFileOssId = recipe.getSignFile();
+        String signFileOssId = StringUtils.isNotBlank(recipe.getChemistSignFile()) ? recipe.getChemistSignFile() : recipe.getSignFile();
         if(StringUtils.isNotBlank(signFileOssId)){
             String imgHead = "data:image/jpeg;base64,";
             try {

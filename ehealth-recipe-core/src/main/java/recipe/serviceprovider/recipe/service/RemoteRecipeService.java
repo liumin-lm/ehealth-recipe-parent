@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
@@ -622,7 +623,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService(timeout = 600000)
     @Override
     @Deprecated
-    public List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
+    public List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
                                                     Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId) {
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
@@ -638,41 +639,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipesQueryVO.setRecipeId(recipeId);
         recipesQueryVO.setStatus(status);
         recipesQueryVO.setPatientName(patientName);
-        return findRecipeOrdersByInfoForExcel2(recipesQueryVO);
+
+        List<Object[]> objectList = findRecipeOrdersByInfoForExcel2(recipesQueryVO);
+        return objectList;
+
+
     }
 
 
     @RpcService(timeout = 600000)
     @Override
-    public List<Map> findRecipeOrdersByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
+    public List<Object[]> findRecipeOrdersByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{}", JSONUtils.toString(recipesQueryVO));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
+        //List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
 
-        //组装数据准备
-        List<Map> newRecipeMap = new ArrayList<>();
-        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+        List<Object[]> objectList = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
+        LOGGER.info("配送订单导出-getRecipeOrder size={}",objectList.size());
+        return objectList;
 
-        //组装处方相关联的数据
-        for (Map<String, Object> recipeMsg : recipeMap) {
-            Object nowRecipeId = recipeMsg.get("recipeId");
-            if (null == nowRecipeId) {
-                continue;
-            }
-            try {
-                //订单数据
-                recipeAndOrderMsg(commonRemoteService, recipeMsg);
-                recipeMsg.put("recipeOrder", null);
-                newRecipeMap.add(recipeMsg);
-            } catch (Exception e) {
-                LOGGER.error("查询关联信息异常，对应的处方id{}", nowRecipeId, e);
-                e.printStackTrace();
-                throw new DAOException("查询处方信息异常！");
-            }
-
-        }
-        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息结果:{}", newRecipeMap);
-        return newRecipeMap;
     }
 
     private void recipeAndOrderMsg(CommonRemoteService commonRemoteService, Map<String, Object> recipeMsg) throws ControllerException {
