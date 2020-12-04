@@ -1279,6 +1279,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public List<Object[]> findRecipesByInfoForExcelN(RecipesQueryVO recipesQueryVO) {
         this.validateOptionForStatistics(recipesQueryVO);
         final StringBuilder preparedHql = this.generateRecipeOderHQLforStatisticsN(recipesQueryVO);
+        logger.info("findRecipesByInfoForExcelN-sql={}",preparedHql.toString());
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1675,11 +1676,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
-        StringBuilder hql = new StringBuilder("select if(o.EnterpriseId is not null and s.price is not null,s.price,d.price) as price, ");
-        hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
-        hql.append("r.mpiid, o.*, r.*, d.*, s.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
+        //StringBuilder hql = new StringBuilder("select if(o.EnterpriseId is not null and s.price is not null,s.price,d.price) as price, ");
+        //hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
+        StringBuilder hql = new StringBuilder("select ");
+        //hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
+        hql.append("r.mpiid, o.*, r.*, d.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID and d.Status= 1 ");
-        hql.append("LEFT JOIN base_saledruglist s ON o.EnterpriseId = s.OrganID and d.DrugID = s.DrugId and s.Status=1 where 1=1 ");
+        //hql.append("LEFT JOIN base_saledruglist s ON o.EnterpriseId = s.OrganID and d.DrugID = s.DrugId and s.Status=1 where 1=1 ");
+        hql.append(" where 1=1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件

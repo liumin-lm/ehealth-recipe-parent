@@ -655,6 +655,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
 
         List<Object[]> objectList = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
+        LOGGER.info("配送订单导出-getRecipeOrder size={}",objectList.size());
         return objectList;
 
     }
