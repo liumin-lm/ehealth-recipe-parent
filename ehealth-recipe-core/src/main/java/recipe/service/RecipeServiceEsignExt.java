@@ -75,15 +75,8 @@ public class RecipeServiceEsignExt {
             Map<String, Object> paramMap = recipeService.createRecipeParamMapForPDF(recipe.getRecipeType(), recipe, details, fileName);
             //这里走生成通过的平台模板（易签保开始使用）
             pdf = esignService.createSignRecipePDF(paramMap);
-            //中药
-            if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
-                caBean.setLeftX(55);
-                caBean.setLeftY(370);
-            //西药
-            } else {
-                caBean.setLeftX(320);
-                caBean.setLeftY(735);
-            }
+            caBean.setLeftX(55);
+            caBean.setLeftY(370);
         } else {
             //药师签名
             //先下载oss服务器上的签名文件

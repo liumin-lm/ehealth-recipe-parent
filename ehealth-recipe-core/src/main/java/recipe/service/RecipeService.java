@@ -47,7 +47,6 @@ import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
@@ -121,6 +120,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -574,105 +575,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-    public RecipeResultBean generateCheckRecipePdf(Integer checker, Recipe recipe, int beforeStatus, int recipeStatus) {
-        RecipeResultBean checkResult = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-
-        boolean bl = false;
-        Integer recipeId = recipe.getRecipeId();
-        String errorMsg = "";
-        if (null != recipe.getSignFile() || StringUtils.isNotEmpty(recipe.getSignRecipeCode())) {
-            IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
-
-            Map<String, Object> dataMap = Maps.newHashMap();
-            dataMap.put("fileName", "recipecheck_" + recipeId + ".pdf");
-            dataMap.put("recipeSignFileId", recipe.getSignFile());
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                dataMap.put("templateType", "tcm");
-            } else {
-                dataMap.put("templateType", "wm");
-            }
-            // 添加机构id
-            dataMap.put("organId", recipe.getClinicOrgan());
-            Object footerRemark = configService.getConfiguration(recipe.getClinicOrgan(), "recipeDetailRemark");
-            if (null != footerRemark) {
-                dataMap.put("footerRemark", footerRemark.toString());
-            }
-            Map<String, Object> backMap = esignService.signForRecipe(false, checker, dataMap);
-            LOGGER.info("reviewRecipe  esignService backMap:{} ,e=============", JSONUtils.toString(backMap));
-            //0表示成功
-            Integer code = MapValueUtil.getInteger(backMap, "code");
-            if (Integer.valueOf(0).equals(code)) {
-                String recipeFileId = MapValueUtil.getString(backMap, "fileId");
-                bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
-            } else if (Integer.valueOf(2).equals(code)) {
-                LOGGER.info("reviewRecipe 签名成功. 高州CA模式-全SDK对接模式, recipeId={}", recipe.getRecipeId());
-                bl = true;
-            } else if (Integer.valueOf(100).equals(code)) {
-                LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式-全后台对接模式, recipeId={}", recipe.getRecipeId());
-                try {
-                    String loginId = MapValueUtil.getString(backMap, "loginId");
-                    Integer organId = recipe.getClinicOrgan();
-                    DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
-                    String userAccount = doctorDTOn.getIdNumber();
-                    String caPassword = "";
-                    //签名时的密码从redis中获取
-                    if (null != redisClient.get("caPassword")) {
-                        caPassword = redisClient.get("caPassword");
-                    }
-                    //标准化CA进行签名、签章==========================start=====
-                    //获取签章pdf数据。签名原文
-                    CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
-                    //获取签章图片
-                    DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-                    //date 20200601
-                    //修改审方签名信息为药师
-                    DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(checker);
-                    if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                        requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-                    } else {
-                        requestSealTO.setSealBase64Str("");
-                    }
-                    CommonCAFactory caFactory = new CommonCAFactory();
-                    //通过工厂获取对应的实现CA类
-                    CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-                    CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                    //date 20200618
-                    //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
-                    checkResult.setCode(RecipeResultBean.NO_ADDRESS);
-                    return checkResult;
-
-                } catch (Exception e) {
-                    LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e=============", recipeId, recipe.getDoctor(), e);
-                    bl = false;
-                    checkResult.setCode(RecipeResultBean.FAIL);
-                }
-                //标准化CA进行签名、签章==========================end=====
-            } else {
-                LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
-                errorMsg = JSONUtils.toString(backMap);
-                bl = false;
-            }
-        } else {
-            LOGGER.error("reviewRecipe signFile is empty recipeId=" + recipeId);
-            errorMsg = "signFileId is empty. recipeId=" + recipeId;
-            bl = false;
-        }
-
-        if (!bl) {
-            RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipeStatus, "reviewRecipe 添加药师签名失败. " + errorMsg);
-        }
-        //date 20200511
-        //这里设置结果值，是由于原先方法也取这个结果集作为返回map中的result
-        //当时当前方法不会根据签名和pdf的记过作为签名的结果所以用另一个字段记录结果延续下去
-        checkResult.setObject(bl);
-        //审核通过盖章
-        RecipeBusiThreadPool.execute(new GenerateSignetRecipePdfRunable(recipe.getRecipeId(), recipe.getClinicOrgan()));
-        return checkResult;
-    }
-
-
     /**
      * 药师审核不通过的情况下，医生重新开处方
      *
@@ -805,21 +707,18 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
-
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
-
+        Map<String, List<RecipeLabelVO>> map = queryRecipeLabelById(recipeId, recipe.getClinicOrgan());
         //组装生成pdf的参数
         String fileName = "recipe_" + recipeId + ".pdf";
-        Map<String, Object> paramMap = Maps.newHashMap();
+        Map<String, Object> paramMap;
         recipe.setSignDate(DateTime.now().toDate());
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             //中药pdf参数
-            paramMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, details, fileName);
+            paramMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, map, fileName);
         } else {
-            paramMap = RecipeServiceSub.createParamMap(recipe, details, fileName);
+            paramMap = RecipeServiceSub.createParamMap(recipe, map, fileName);
             //上传处方图片
             generateRecipeImageAndUpload(recipeId, paramMap);
         }
@@ -833,7 +732,6 @@ public class RecipeService extends RecipeBaseService {
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
-//        attrMapimg.put("Status", RecipeStatusConstant.SIGN_ING_CODE_DOC);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
         LOGGER.info("generateRecipeImg 签名图片成功. fileId={}, recipeId={}", imgFileId, recipe.getRecipeId());
         //0表示成功
@@ -860,7 +758,6 @@ public class RecipeService extends RecipeBaseService {
             doctorToRecipePDF(recipeId, recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
-                String loginId = MapValueUtil.getString(backMap, "loginId");
                 Integer organId = recipe.getClinicOrgan();
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
                 String userAccount = doctorDTO.getIdNumber();
@@ -881,81 +778,13 @@ public class RecipeService extends RecipeBaseService {
                 } else {
                     requestSealTO.setSealBase64Str("");
                 }
-
-//                CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-                CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-//                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
-                //date 20200618
+                caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                 result.setCode(RecipeResultBean.NO_ADDRESS);
                 return result;
-//                String fileId = null;
-//                result.setMsg(resultVo.getMsg());
-//                //date20200617
-//                //添加异步操作
-//                if(-1 == resultVo.getCode()){
-//                    result.setCode(RecipeResultBean.NO_ADDRESS);
-//                    return result;
-//                }
-//                if (resultVo != null && 200 == resultVo.getCode()) {
-//                    result.setCode(RecipeResultBean.SUCCESS);
-//                    //保存签名值、时间戳、电子签章文件
-//                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
-//                    resultVo.setFileId(fileId);
-//                    signRecipeInfoSave(recipeId, true, resultVo, organId);
-//                    try {
-//                        SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-//                        JSONObject jsonObject = new JSONObject();
-//                        jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-//                        jsonObject.put("details", JSONObject.toJSONString(details));
-//                        signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-//                        signRecipeInfoService.update(signDoctorRecipeInfo);
-//                    } catch (Exception e) {
-//                        LOGGER.error("signBefText save error："  + e.getMessage(),e);
-//                    }
-//                }else{
-//                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-//                    SmsInfoBean smsInfo = new SmsInfoBean();
-//                    smsInfo.setBusId(0);
-//                    smsInfo.setOrganId(0);
-//                    smsInfo.setBusType("DocSignNotify");
-//                    smsInfo.setSmsType("DocSignNotify");
-//                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-//                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-//                    result.setCode(RecipeResultBean.FAIL);
-//                }
-//                else {
-//                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-//                    RecipeLog recipeLog = new RecipeLog();
-//                    recipeLog.setRecipeId(recipeId);
-//                    recipeLog.setBeforeStatus(recipe.getStatus());
-//                    recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
-//                    recipeLog.setMemo(resultVo.getMsg());
-//                    recipeLog.setModifyDate(new Date());
-//                    recipeLogDAO.saveRecipeLog(recipeLog);
-//
-//                    Map<String, Object> attrMap = Maps.newHashMap();
-//                    attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
-//                    recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
-//
-//                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-//                    SmsInfoBean smsInfo = new SmsInfoBean();
-//                    smsInfo.setBusId(0);
-//                    smsInfo.setOrganId(0);
-//                    smsInfo.setBusType("SignNotify");
-//                    smsInfo.setSmsType("SignNotify");
-//                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-//                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-//                }
 
-//                if (null != recipeFileId) {
-//                    Map<String, Object> attrMap = Maps.newHashMap();
-//                    attrMap.put("signFile", recipeFileId);
-//                    attrMap.put("signDate", recipe.getSignDate());
-//                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-//                }
             } catch (Exception e) {
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
                 result.setCode(RecipeResultBean.FAIL);
@@ -965,8 +794,6 @@ public class RecipeService extends RecipeBaseService {
             memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
             LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
         }
-
-
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
         return result;
@@ -3180,6 +3007,15 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        return result;
+    }
+
+    public Map<String, List<RecipeLabelVO>> queryPdfRecipeLabelById(int recipeId, Integer organId) {
         Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
