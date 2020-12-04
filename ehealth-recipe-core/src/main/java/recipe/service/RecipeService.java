@@ -9,7 +9,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
-import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
@@ -84,7 +83,6 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
@@ -704,28 +702,9 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Map<String, List<RecipeLabelVO>> map = queryRecipeLabelById(recipeId, recipe.getClinicOrgan());
-        //组装生成pdf的参数
-        String fileName = "recipe_" + recipeId + ".pdf";
-        Map<String, Object> paramMap;
-        recipe.setSignDate(DateTime.now().toDate());
-        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-            //中药pdf参数
-            paramMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, map, fileName);
-        } else {
-            paramMap = RecipeServiceSub.createParamMap(recipe, map, fileName);
-            //上传处方图片
-            generateRecipeImageAndUpload(recipeId, paramMap);
-        }
-        //上传阿里云
-        String memo = "";
-        Object footerRemark = configService.getConfiguration(recipe.getClinicOrgan(), "recipeDetailRemark");
-        if (null != footerRemark) {
-            paramMap.put("footerRemark", footerRemark.toString());
-        }
-        Map<String, Object> backMap = esignService.signForRecipe(true, recipe.getDoctor(), paramMap);
+        Map<String, Object> backMap = queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
+
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
@@ -733,6 +712,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("generateRecipeImg 签名图片成功. fileId={}, recipeId={}", imgFileId, recipe.getRecipeId());
         //0表示成功
         Integer code = MapValueUtil.getInteger(backMap, "code");
+        String memo;
         if (Integer.valueOf(0).equals(code)) {
             String recipeFileId = MapValueUtil.getString(backMap, "fileId");
             Map<String, Object> attrMap = Maps.newHashMap();
@@ -794,11 +774,6 @@ public class RecipeService extends RecipeBaseService {
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
         return result;
-    }
-
-    private void doctorToRecipePDF(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        doctorToRecipePDF(recipeId, recipe);
     }
 
     private void doctorToRecipePDF(Integer recipeId, Recipe recipe) {
@@ -1027,22 +1002,11 @@ public class RecipeService extends RecipeBaseService {
         Integer status = RecipeStatusConstant.CHECK_PASS;
 
         String memo = "HIS审核返回：写入his成功，审核通过";
-        /*// 医保用户
-        if (recipe.canMedicalPay()) {
-            // 如果是中药或膏方处方不需要药师审核
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                status = RecipeStatusConstant.CHECK_PASS_YS;
-                //memo = "HIS审核返回：写入his成功，药师审核通过";
-                //date 医院审核日志记录放在前置机调用结果的时候记录
-            }
 
-        }*/
 
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
-            //memo = "HIS审核返回：写入his成功(其他平台处方)";
-            //date 医院审核日志记录放在前置机调用结果的时候记录
         }
 
         try {
@@ -1115,14 +1079,6 @@ public class RecipeService extends RecipeBaseService {
         }
         //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            Integer consultId = null;
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                consultId = consultIds.get(0);
-            }*/
             Integer consultId = recipe.getClinicId();
             if (null != consultId) {
                 try {
@@ -1291,15 +1247,6 @@ public class RecipeService extends RecipeBaseService {
         Integer status = RecipeStatusConstant.CHECK_PASS;
 
         String memo = "HIS审核返回：写入his成功，审核通过";
-        /*// 医保用户
-        if (recipe.canMedicalPay()) {
-            // 如果是中药或膏方处方不需要药师审核
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                status = RecipeStatusConstant.CHECK_PASS_YS;
-                memo = "HIS审核返回：写入his成功，药师审核通过";
-            }
-
-        }*/
 
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
@@ -1535,21 +1482,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 2));
 
     }
-
-
-    //暂时只有西药能生成处方图片
-    public void generateRecipeImageAndUpload(Integer recipeId, Map<String, Object> paramMap) {
-        String fileName = "img_recipe_" + recipeId + ".jpg";
-        try {
-            /*//先生成本地图片文件----这里通过esign去生成
-            byte[] bytes = CreateRecipeImageUtil.createImg(paramMap);*/
-            paramMap.put("recipeImgId", recipeId);
-            /*paramMap.put("recipeImgData",bytes);*/
-        } catch (Exception e) {
-            LOGGER.error("uploadRecipeImgSignFile exception:" + e.getMessage(), e);
-        }
-    }
-
 
     /**
      * 重试
@@ -2912,13 +2844,6 @@ public class RecipeService extends RecipeBaseService {
      * @throws Exception
      */
     public void autoPassForCheckYs(CheckYsInfoBean result) throws Exception {
-       /* Map<String, Object> checkParam = Maps.newHashMap();
-        checkParam.put("recipeId", result.getRecipeId());
-        checkParam.put("checkOrgan", result.getCheckOrganId());
-        checkParam.put("checker", result.getCheckDoctorId());
-        checkParam.put("result", 1);
-        checkParam.put("failMemo", "");
-        saveCheckResult(checkParam);*/
         //武昌项目用到--自动审核通过不走现在的审方逻辑
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(result.getRecipeId());
@@ -3012,13 +2937,13 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    public Map<String, List<RecipeLabelVO>> queryPdfRecipeLabelById(int recipeId, Integer organId) {
+    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
         Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
         }
         Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        return result;
+        return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
     }
 
     /**
@@ -3467,14 +3392,6 @@ public class RecipeService extends RecipeBaseService {
             allMpiIds = patientService.findMpiIdsByLoginId(loginId);
         }
         return allMpiIds;
-        /*//获取所有家庭成员的患者编号
-        List<String> allMpiIds = iPatientService.findMemberMpiByMpiid(mpiId);
-        if (null == allMpiIds) {
-            allMpiIds = new ArrayList<>(0);
-        }
-        //加入患者自己的编号
-        allMpiIds.add(mpiId);
-        return allMpiIds;*/
     }
 
     /**
@@ -4066,50 +3983,6 @@ public class RecipeService extends RecipeBaseService {
         return map;
     }
 
-//    /**
-//     * 根据organid和药剂数获取中药处方代煎费
-//     * @return Map<String,Object>
-//     */
-//    @RpcService
-//    public Map<String, Object>   findDecoctionFee(Map<String,String> params) {
-//        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
-//        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findDecoctionAndTCM organId不允许为空");
-//        if(StringUtils.isEmpty(params.get("useDays")))   throw new DAOException("findDecoctionAndTCM useDays不允许为空");
-//
-//        Map<String, Object> map = Maps.newHashMap();
-//        BigDecimal decoctionFee=new BigDecimal(0);
-//
-//        //从opbase配置项获取中药处方每贴代煎费 recipeDecoctionPrice
-//        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-//        Object findRecipeDecoctionPrice = configService.getConfiguration(Integer.parseInt(params.get("organId")), "recipeDecoctionPrice");
-//        LOGGER.info("findCanRecipeByAge 从opbase配置项获取中药处方每贴代煎费是{}",findRecipeDecoctionPrice);
-//        if(findRecipeDecoctionPrice!=null&& ((BigDecimal)findRecipeDecoctionPrice).compareTo(BigDecimal.ZERO)==1) decoctionFee=((BigDecimal)findRecipeDecoctionPrice).multiply(new BigDecimal(params.get("useDays")));
-//
-//        if(decoctionFee.compareTo(BigDecimal.ZERO)==-1) decoctionFee=new BigDecimal(0);//金额为负数
-//        map.put("decoctionFee",decoctionFee);
-//        return map;
-//    }
-//
-    /**
-     * 根据organid获取中医辨证论治费
-     * @return Map<String   ,   Object>
-     */
-//    @RpcService
-//    public Map<String, Object>   findTCMFee(Map<String,String> params) {
-//        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
-//        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findDecoctionAndTCM organId不允许为空");
-//
-//        Map<String, Object> map = Maps.newHashMap();
-//        BigDecimal TCMFee=new BigDecimal(0);
-//
-//        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-//        //从opbase配置项获取中医辨证论治费 recipeTCMPrice
-//        Object findRecipeTCMPrice = configService.getConfiguration(Integer.parseInt(params.get("organId")), "recipeTCMPrice");
-//        LOGGER.info("findCanRecipeByAge 从opbase配置项获取中医辨证论治费是{}",findRecipeTCMPrice);
-//        if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) TCMFee=(BigDecimal)findRecipeTCMPrice;
-//        map.put("TCMFee",TCMFee);
-//        return map;
-//    }
 
     /**
      * 根据organid 获取长处方按钮是否开启、开药天数范围
@@ -4588,23 +4461,6 @@ public class RecipeService extends RecipeBaseService {
             //日志记录
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
-    }
-
-    @RpcService
-    public void aa(int pdfId) throws Exception {
-//        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
-//        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipeId));
-//        RecipeCAService a=new RecipeCAService();
-//        a.updateWaterPrintRecipePdfRunable(recipeId);
-        // generateRecipePdfAndSign(223829);
-//        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-//        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-//        String pdfBase64String=new BufferedReader(new InputStreamReader(input))
-//                .lines().collect(Collectors.joining(System.lineSeparator()));;
-//        CreateRecipePdfUtil.generateDocSignImageInRecipePdf1(223829,1,true,false,input,"5fa103037826c65418509d36");
-//
-        doctorToRecipePDF(pdfId);
-        //new CaAfterProcessType().hisCallBackCARecipeFunction(pdfId);
     }
 
 }

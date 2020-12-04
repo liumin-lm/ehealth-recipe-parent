@@ -1,21 +1,26 @@
 package recipe.service.manager;
 
+import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.ErrorCode;
+import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -37,6 +42,30 @@ public class RecipeLabelManager {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+    @Resource
+    private IESignBaseService esignService;
+
+    public Map<String, Object> queryPdfRecipeLabelById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
+        //组装生成pdf的参数
+        String fileName = "recipe_" + recipeId + ".pdf";
+        Map<String, Object> paramMap;
+        recipe.setSignDate(DateTime.now().toDate());
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            //中药pdf参数
+            paramMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, map, fileName);
+        } else {
+            paramMap = RecipeServiceSub.createParamMap(recipe, map, fileName);
+            paramMap.put("recipeImgId", recipeId);
+        }
+        //上传阿里云
+        String memo = "";
+        Object footerRemark = configService.getConfiguration(recipe.getClinicOrgan(), "recipeDetailRemark");
+        if (null != footerRemark) {
+            paramMap.put("footerRemark", footerRemark.toString());
+        }
+        Map<String, Object> backMap = esignService.signForRecipe(true, recipe.getDoctor(), paramMap);
+        return backMap;
+    }
 
     /**
      * 获取处方签 配置 给前端展示。
@@ -145,4 +174,5 @@ public class RecipeLabelManager {
             recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
         }
     }
+
 }
