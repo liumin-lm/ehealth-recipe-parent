@@ -453,6 +453,7 @@ public class RecipeServiceSub {
                         detail.setDrugSpec(organDrug.getDrugSpec());
                         detail.setDrugUnit(organDrug.getUnit());
                         detail.setDefaultUseDose(organDrug.getUseDose());
+                        detail.setSaleName(organDrug.getSaleName());
                         //如果前端传了剂量单位优先用医生选择的剂量单位
                         //医生端剂量单位可以选择规格单位还是最小单位
                         if (StringUtils.isNotEmpty(detail.getUseDoseUnit())) {
@@ -1069,6 +1070,9 @@ public class RecipeServiceSub {
             if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
                     && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
                 tips = "待下载";
+            } else if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
+                    || RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
+                tips = "待取药";
             } else {
                 tips = RecipeOrderStatusEnum.getOrderStatus(orderStatus);
             }
@@ -2562,6 +2566,9 @@ public class RecipeServiceSub {
 
         if (result) {
             msg = "处方撤销成功";
+            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
+            //将药品移出病历
+            emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
             //向患者推送处方撤销消息
             if (!(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() && recipe.canMedicalPay())) {
                 //医保的处方待审核时患者无法看到处方，不发送撤销消息提示

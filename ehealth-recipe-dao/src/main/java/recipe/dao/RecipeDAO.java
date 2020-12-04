@@ -1285,7 +1285,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sbHql = preparedHql;
                 System.out.println(preparedHql);
-                Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(Recipe.class).addEntity(RecipeOrder.class).addEntity(Recipedetail.class).addEntity(SaleDrugList.class);
+                Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(Recipe.class).addEntity(RecipeOrder.class).addEntity(Recipedetail.class);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
                 query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
@@ -1680,7 +1680,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         //hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
         StringBuilder hql = new StringBuilder("select ");
         //hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
-        hql.append("r.mpiid, o.*, r.*, d.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
+        hql.append("o.*, r.*, d.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID and d.Status= 1 ");
         //hql.append("LEFT JOIN base_saledruglist s ON o.EnterpriseId = s.OrganID and d.DrugID = s.DrugId and s.Status=1 where 1=1 ");
         hql.append(" where 1=1 ");

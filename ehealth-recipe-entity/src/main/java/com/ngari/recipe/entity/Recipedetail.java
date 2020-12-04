@@ -22,6 +22,9 @@ public class Recipedetail implements java.io.Serializable {
 
 	private static final long serialVersionUID = -5228478904040591198L;
 
+	@ItemProperty(alias = "药品商品名")
+	private String saleName;
+
 	@ItemProperty(alias="处方明细序号")
 	private Integer recipeDetailId;
 	
@@ -886,4 +889,12 @@ public class Recipedetail implements java.io.Serializable {
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
     }
+
+	public void setSaleName(String saleName) {
+		this.saleName = saleName;
+	}
+
+	public String getSaleName() {
+		return saleName;
+	}
 }
