@@ -17,6 +17,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.ValidateUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,13 +68,14 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         }
         DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
 
-        DrugDistributionPrice oldPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
+        List<DrugDistributionPrice> oldPriceList = drugDistributionPriceDAO.findByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
+        if (CollectionUtils.isEmpty(oldPriceList)) {
+            throw new DAOException("price is exist");
+        }
+        DrugDistributionPrice oldPrice = oldPriceList.get(0);
         StringBuffer logMsg = new StringBuffer();
         if (price.getId() == null) {
             //新增
-            if (oldPrice != null) {
-                throw new DAOException("price is exist");
-            }
             DrugDistributionPrice bean = getBean(price, DrugDistributionPrice.class);
             bean = drugDistributionPriceDAO.save(bean);
             BeanUtils.map(bean, price);
@@ -183,16 +185,19 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         DrugDistributionPrice price = null;
 
         while (length >= ADDR_LENGTH) {
-            price = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea.substring(0, length));
-            if (price != null) {
+            List<DrugDistributionPrice> priceList = drugDistributionPriceDAO.findByEnterpriseIdAndAddrArea(enterpriseId, addrArea.substring(0, length));
+            if (CollectionUtils.isNotEmpty(priceList)) {
+                price = priceList.get(0);
                 break;
             }
             length -= 2;
         }
         if (price == null) {
-            price = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(enterpriseId, null);
+            List<DrugDistributionPrice> priceList = drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
+            if (CollectionUtils.isNotEmpty(priceList)) {
+                price = priceList.get(0);
+            }
         }
-
         return getBean(price, DrugDistributionPriceBean.class);
     }
 
