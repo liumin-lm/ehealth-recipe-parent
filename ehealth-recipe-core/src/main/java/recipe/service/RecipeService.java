@@ -307,6 +307,7 @@ public class RecipeService extends RecipeBaseService {
      * @param doctorId 医生ID
      * @return Map<String   ,       Object>
      */
+    @RpcService
     public Map<String, Object> openRecipeOrNotNew(Integer doctorId, Integer organId) {
         Args.notNull(organId, "organId");
         Args.notNull(doctorId, "doctorId");
