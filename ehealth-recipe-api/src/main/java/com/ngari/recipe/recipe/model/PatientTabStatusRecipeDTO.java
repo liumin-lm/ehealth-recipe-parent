@@ -91,6 +91,11 @@ public class PatientTabStatusRecipeDTO implements Serializable {
     private PayModeShowButtonBean buttons;
 
     /**
+     * 页面展示的按钮集合
+     */
+    private GiveModeShowButtonVO giveModeShowButtonVO;
+
+    /**
      * 签名通过处方笺文件
      */
     private String signFile;
@@ -195,6 +200,14 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setButtons(PayModeShowButtonBean buttons) {
         this.buttons = buttons;
+    }
+
+    public GiveModeShowButtonVO getGiveModeShowButtonVO() {
+        return giveModeShowButtonVO;
+    }
+
+    public void setGiveModeShowButtonVO(GiveModeShowButtonVO giveModeShowButtonVO) {
+        this.giveModeShowButtonVO = giveModeShowButtonVO;
     }
 
     public int getRecipeId() {
