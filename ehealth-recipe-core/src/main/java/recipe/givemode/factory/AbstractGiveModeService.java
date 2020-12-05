@@ -15,15 +15,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.constant.RecipePageButtonStatusEnum;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipecCheckStatusConstant;
-import recipe.constant.ReviewTypeConstant;
+import recipe.constant.*;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.service.RecipeServiceSub;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,14 +38,16 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeServiceSub recipeServiceSub;
 
     private static final String LIST_TYPE_RECIPE = "1";
 
     private static final String LIST_TYPE_ORDER = "2";
-
-    private static final Integer RECIPE_PAGE = 0;
-
-    private static final Integer ORDER_PAGE = 1;
 
     private static final Integer No_Show_Button = 3;
 
@@ -64,11 +66,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
-    public GiveModeShowButtonVO getGiveModeSettingFromYt(Integer organId) {
+    public GiveModeShowButtonVO getGiveModeSettingFromYypt(Integer organId) {
         List<GiveModeButtonBean> giveModeButtonBeans = new ArrayList<>();
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
         //模拟数据
-        String jsonData = "[{\"latexId\":82020,\"configType\":\"hospitalindex\",\"configId\":\"1\",\"tempId\":0,\"boxIcon\":\"box_1_4.png\",\"boxTxt\":\"配送到家\",\"linkType\":\"3\",\"boxLink\":\"supportOnline\",\"used\":true,\"creater\":4015241,\"createrName\":\"高剑3\",\"creatDate\":\"2020-12-0320:40:28\",\"updater\":4015241,\"updateName\":\"高剑3\",\"lastModify\":\"2020-12-0320:40:28\",\"recipeskip\":\"1\"},{\"latexId\":82021,\"configType\":\"hospitalindex\",\"configId\":\"1\",\"tempId\":0,\"boxIcon\":\"box_1_6.png\",\"boxTxt\":\"到院取药\",\"linkType\":\"3\",\"boxLink\":\"supportToHos\",\"used\":true,\"creater\":4015241,\"createrName\":\"高剑3\",\"creatDate\":\"2020-12-0320:40:28\",\"updater\":4015241,\"updateName\":\"高剑3\",\"lastModify\":\"2020-12-0320:40:28\",\"recipeskip\":\"1\"}]";
+        String jsonData = "[{\"latexId\":82020,\"configType\":\"hospitalindex\",\"configId\":\"1\",\"tempId\":0,\"boxIcon\":\"box_1_4.png\",\"boxTxt\":\"药企配送\",\"linkType\":\"3\",\"boxLink\":\"showSendToEnterprises\",\"used\":true,\"creater\":4015241,\"createrName\":\"高剑3\",\"creatDate\":\"2020-12-0320:40:28\",\"updater\":4015241,\"updateName\":\"高剑3\",\"lastModify\":\"2020-12-0320:40:28\",\"recipeskip\":\"1\"},{\"latexId\":82021,\"configType\":\"hospitalindex\",\"configId\":\"1\",\"tempId\":0,\"boxIcon\":\"box_1_6.png\",\"boxTxt\":\"医院配送\",\"linkType\":\"3\",\"boxLink\":\"showSendToHos\",\"used\":true,\"creater\":4015241,\"createrName\":\"高剑3\",\"creatDate\":\"2020-12-0320:40:28\",\"updater\":4015241,\"updateName\":\"高剑3\",\"lastModify\":\"2020-12-0320:40:28\",\"recipeskip\":\"1\"},{\"latexId\":82021,\"configType\":\"hospitalindex\",\"configId\":\"1\",\"tempId\":0,\"boxIcon\":\"box_1_6.png\",\"boxTxt\":\"到店取药\",\"linkType\":\"3\",\"boxLink\":\"supportTFDS\",\"used\":true,\"creater\":4015241,\"createrName\":\"高剑3\",\"creatDate\":\"2020-12-0320:40:28\",\"updater\":4015241,\"updateName\":\"高剑3\",\"lastModify\":\"2020-12-0320:40:28\",\"recipeskip\":\"1\"},{\"latexId\":82021,\"configType\":\"hospitalindex\",\"configId\":\"1\",\"tempId\":0,\"boxIcon\":\"box_1_6.png\",\"boxTxt\":\"到院自取\",\"linkType\":\"3\",\"boxLink\":\"supportToHos\",\"used\":true,\"creater\":4015241,\"createrName\":\"高剑3\",\"creatDate\":\"2020-12-0320:40:28\",\"updater\":4015241,\"updateName\":\"高剑3\",\"lastModify\":\"2020-12-0320:40:28\",\"recipeskip\":\"1\"}]";
         List<GiveModeButton> buttons = JSONArray.parseArray(jsonData, GiveModeButton.class);
         buttons.forEach(giveModeButton -> {
             GiveModeButtonBean giveModeButtonBean = new GiveModeButtonBean();
@@ -88,7 +90,25 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
-    public abstract void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
+    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+        //处理医院配送和药企配送的药企按钮，根据该机构配置的药企配送主体来决定
+        Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        boolean showSendToEnterprises = result.containsKey("showSendToEnterprises");
+        boolean showSendToHos = result.containsKey("showSendToHos");
+        //如果运营平台没有配置药企配送或者医院配送，则可不用继续处理
+        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
+        payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
+        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
+        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+        if (showSendToEnterprises && enterprisesSend == null) {
+            //表示运营平台虽然配置了药企配送但是该机构没有配置可配送的药企
+            remoteGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToEnterprises");
+        }
+        if (showSendToHos && null == hosSend ) {
+            //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
+            remoteGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
+        }
+    }
 
     @Override
     public void setOtherButton(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
@@ -102,9 +122,17 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
                 GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
                 giveModeButton.setButtonSkipType("1");
                 giveModeButton.setShowButtonName("用药指导");
-                giveModeButton.setShowButtonKey("supportMedicinal");
+                giveModeButton.setShowButtonKey("supportMedicationGuide");
                 giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
             }
+        }
+        //1.判断配置项中是否配置了下载处方签，
+        //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
+        //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            boolean isDownload = recipeServiceSub.getDownConfig(recipe, order);
+            giveModeShowButtonVO.setDownloadRecipeSign(isDownload);
         }
     }
 
@@ -119,7 +147,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             boolean supportOnline = result.containsKey("supportOnline");
             boolean supportTFDS = result.containsKey("supportTFDS");
             boolean supportToHos = result.containsKey("supportToHos");
-            boolean showUseDrugConfig = result.containsKey("supportMedicinal");
+            boolean showUseDrugConfig = result.containsKey("supportMedicationGuide");
             //当处方在待处理、前置待审核通过时，购药配送为空不展示按钮
             Boolean noHaveBuyDrugConfig = !supportOnline && !supportTFDS && !supportToHos;
 
@@ -129,7 +157,6 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             if (null != order && null != order.getLogisticsCompany() && StringUtils.isNotEmpty(order.getTrackingNumber())) {
                 haveSendInfo = true;
             }
-
             RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.
                     fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(record.getRecordType(), record.getStatusCode(), recipe.getReviewType(), showUseDrugConfig, noHaveBuyDrugConfig, haveSendInfo);
             giveModeShowButtonVO.setButtonType(buttonStatus.getPageButtonStatus());
@@ -140,8 +167,19 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
+    public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        //不支持配送，则按钮都不显示--包括药店取药
+        if (new Integer(2).equals(recipe.getDistributionFlag())) {
+            remoteGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
+            remoteGiveModeData(giveModeButtonBeans, "showSendToHos");
+            remoteGiveModeData(giveModeButtonBeans, "supportTFDS");
+        }
+    }
+
+    @Override
     public String getGiveModeTextByRecipe(Recipe recipe) {
-        GiveModeShowButtonVO giveModeShowButtonVO = this.getGiveModeSettingFromYt(recipe.getClinicOrgan());
+        GiveModeShowButtonVO giveModeShowButtonVO = this.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         String giveModeKey ;
         if (new Integer(1).equals(recipe.getGiveMode()) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -166,5 +204,25 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         Map<String, String> result = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         return result.get(giveModeKey);
+    }
+
+    protected void remoteGiveModeData(List<GiveModeButtonBean> giveModeButtonBeans, String remoteGiveMode){
+        Iterator iterator = giveModeButtonBeans.iterator();
+        while (iterator.hasNext()) {
+            GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
+            if (remoteGiveMode.equals(giveModeShowButtonVO.getShowButtonKey())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    protected void remoteData(List<GiveModeButtonBean> giveModeButtonBeans, String saveGiveMode){
+        Iterator iterator = giveModeButtonBeans.iterator();
+        while (iterator.hasNext()) {
+            GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
+            if (!saveGiveMode.equals(giveModeShowButtonVO.getShowButtonKey())) {
+                iterator.remove();
+            }
+        }
     }
 }

@@ -21,7 +21,7 @@ public interface IGiveModeBase {
      * @param organId 机构ID
      * @return        运营平台的配置项
      */
-    GiveModeShowButtonVO getGiveModeSettingFromYt(Integer organId);
+    GiveModeShowButtonVO getGiveModeSettingFromYypt(Integer organId);
 
     /**
      * 设置按钮是否可操作（比如 审方方式是前置且正在审核中时，按钮是置灰的）
@@ -53,6 +53,12 @@ public interface IGiveModeBase {
      */
     void setButtonType(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
 
+    /**
+     * 其他设置项
+     * @param giveModeShowButtonVO
+     * @param recipe
+     */
+    void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
     /**
      * 根据处方中的机构和配送类型获取文案展示
      * @param recipe 处方信息

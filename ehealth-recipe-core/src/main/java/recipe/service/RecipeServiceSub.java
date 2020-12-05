@@ -76,6 +76,8 @@ import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.givemode.factory.GiveModeFactory;
+import recipe.givemode.factory.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
@@ -1801,6 +1803,23 @@ public class RecipeServiceSub {
         return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "continueOpenRecipeFlag") && StringUtils.isEmpty(recipe.getOrderCode());
     }
 
+    private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
+        GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipeMode(recipe);
+        try {
+            //校验数据
+            giveModeBase.validRecipeData(recipe);
+        } catch (Exception e) {
+            LOGGER.error("patientRecipeInfoBottonShowNew error:{}.", e.getMessage());
+            return;
+        }
+        //从运营平台获取配置项
+        giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        //设置按钮是否可点击
+        giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
+
+    }
+
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
         //Date:20190904
         //Explain:添加患者点击按钮信息
@@ -2063,7 +2082,7 @@ public class RecipeServiceSub {
      * @date: 2019/9/10
      * @author: JRK
      */
-    private static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+    public static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
         //互联网的不需要下载处方笺
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             return false;

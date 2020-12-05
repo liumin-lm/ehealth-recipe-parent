@@ -19,6 +19,7 @@ import java.util.List;
 public class ZjsGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
     @Override
     public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+        super.setSpecialItem(record, giveModeShowButtonVO, recipe);
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //浙江省的购药方式按钮显示需要从HIS获取，目前正式环境一条数据都没有
         RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -40,16 +41,6 @@ public class ZjsGiveModeService extends AbstractGiveModeService implements IGive
             //省平台互联网购药方式的配置
             if (1 == recipe.getDistributionFlag()) {
                 remoteData(giveModeButtonBeans, "supportOnline");
-            }
-        }
-    }
-
-    private void remoteData(List<GiveModeButtonBean> giveModeButtonBeans, String saveGiveMode){
-        Iterator iterator = giveModeButtonBeans.iterator();
-        while (iterator.hasNext()) {
-            GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
-            if (!saveGiveMode.equals(giveModeShowButtonVO.getShowButtonKey())) {
-                iterator.remove();
             }
         }
     }
