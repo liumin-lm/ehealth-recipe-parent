@@ -101,6 +101,7 @@ public class HisRecipeService {
         }
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
+        patientDTO.setCardId(cardId);
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
@@ -460,6 +461,7 @@ public class HisRecipeService {
         patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
         patientBaseInfo.setMobile(patientDTO.getMobile());
         patientBaseInfo.setMpi(patientDTO.getMpiId());
+        patientBaseInfo.setCardID(patientDTO.getCardId());
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
 
         QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
