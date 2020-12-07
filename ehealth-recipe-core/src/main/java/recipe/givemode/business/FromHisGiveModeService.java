@@ -22,7 +22,8 @@ public class FromHisGiveModeService extends AbstractGiveModeService implements I
         //浙江省的购药方式按钮显示需要从HIS获取，目前正式环境一条数据都没有
         if ("1".equals(recipeExtend.getGiveModeFormHis())) {
             //只支持配送到家
-            saveGiveModeData(giveModeButtonBeans, "supportOnline");
+            saveGiveModeData(giveModeButtonBeans, "supportHosToSend");
+            saveGiveModeData(giveModeButtonBeans, "supportToEnterprise");
         } else if ("2".equals(recipeExtend.getGiveModeFormHis())) {
             //只支持到院取药
             saveGiveModeData(giveModeButtonBeans, "supportToHos");
