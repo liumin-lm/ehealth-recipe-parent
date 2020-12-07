@@ -703,8 +703,7 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Map<String, Object> backMap = queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
-
+        Map<String, Object> backMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
@@ -717,7 +716,7 @@ public class RecipeService extends RecipeBaseService {
             String recipeFileId = MapValueUtil.getString(backMap, "fileId");
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("signFile", recipeFileId);
-            attrMap.put("signDate", recipe.getSignDate());
+            attrMap.put("signDate", DateTime.now().toDate());
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
@@ -2937,15 +2936,6 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
-    }
-
     /**
      * 获取该处方的购药方式(用于判断这个处方是不是被处理)
      *
@@ -2953,8 +2943,6 @@ public class RecipeService extends RecipeBaseService {
      * @param flag     1:表示处方单详情页从到院取药转直接支付的情况判断
      * @return 0未处理  1线上支付 2货到付款 3到院支付
      */
-
-
     @RpcService
     public int getRecipePayMode(int recipeId, int flag) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
