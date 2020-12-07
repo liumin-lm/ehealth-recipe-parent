@@ -1,4 +1,4 @@
-package recipe.givemode.factory;
+package recipe.givemode.bussess;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.HisRecipe;

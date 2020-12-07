@@ -1,4 +1,4 @@
-package recipe.givemode.factory;
+package recipe.givemode.bussess;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
