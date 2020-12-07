@@ -2415,7 +2415,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        //RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
         Recipe recipe = recipeDAO.get(recipeId);
         if (null != recipe && recipe.getEnterpriseId() != null) {
@@ -2428,10 +2427,6 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == order) {
                 return thirdUrl;
             }
-            //钥世圈处理
-            /*if (DrugEnterpriseConstant.COMPANY_YSQ.equals(remoteDrugEnterpriseService.getDepAccount(order.getEnterpriseId()))) {
-                thirdUrl = remoteDrugEnterpriseService.getYsqOrderInfoUrl(recipe);
-            }*/
         }
         return thirdUrl;
     }
