@@ -203,7 +203,7 @@ public class RecipeLabelManager {
                 BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP);
                 stringBuilder.append(drugCost).append("元");
             }
-            stringBuilder.append(" \\\n ");
+            stringBuilder.append(" \n ");
             //每次剂量+剂量单位
             String useDose;
             if (StringUtils.isNotEmpty(d.getUseDoseStr())) {
@@ -221,7 +221,7 @@ public class RecipeLabelManager {
             stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(useDay);
 
             if (!StringUtils.isEmpty(d.getMemo())) {
-                stringBuilder.append(" \\\n ").append("备注:").append(d.getMemo());
+                stringBuilder.append(" \n ").append("备注:").append(d.getMemo());
             }
             list.add(new RecipeLabelVO("medicine", "drugInfo", stringBuilder.toString()));
         }
