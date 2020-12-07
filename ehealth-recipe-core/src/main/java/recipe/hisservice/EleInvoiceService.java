@@ -285,7 +285,7 @@ public class EleInvoiceService {
                 eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
             }
         }
-        if (StringUtils.isNotBlank(recipe.getOrderCode()) && StringUtils.isNotBlank(invoiceNumber)){
+        if (StringUtils.isBlank(invoiceNumber) && StringUtils.isNotBlank(recipe.getOrderCode())){
             RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
             if (null != recipeOrderBill){
                 invoiceNumber = recipeOrderBill.getBillNumber();

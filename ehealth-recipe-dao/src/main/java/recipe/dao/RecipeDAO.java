@@ -9,6 +9,9 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeDetailExportDTO;
+import com.ngari.recipe.recipe.model.RecipeExportDTO;
+import com.ngari.recipe.recipe.model.RecipeOrderExportDTO;
 import com.ngari.recipe.recipe.model.RecipesQueryVO;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -1279,12 +1282,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public List<Object[]> findRecipesByInfoForExcelN(RecipesQueryVO recipesQueryVO) {
         this.validateOptionForStatistics(recipesQueryVO);
         final StringBuilder preparedHql = this.generateRecipeOderHQLforStatisticsN(recipesQueryVO);
+        logger.info("findRecipesByInfoForExcelN-sql={}",preparedHql.toString());
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sbHql = preparedHql;
                 System.out.println(preparedHql);
-                Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(Recipe.class).addEntity(RecipeOrder.class).addEntity(Recipedetail.class).addEntity(SaleDrugList.class);
+                Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(RecipeExportDTO.class).addEntity(RecipeOrderExportDTO.class).addEntity(RecipeDetailExportDTO.class);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
                 query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
@@ -1675,11 +1679,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
-        StringBuilder hql = new StringBuilder("select if(o.EnterpriseId is not null and s.price is not null,s.price,d.price) as price, ");
-        hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
-        hql.append("r.mpiid, o.*, r.*, d.*, s.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
+        StringBuilder hql = new StringBuilder("select ");
+        hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,");
+        hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,");
+        hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose");
+        hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID and d.Status= 1 ");
-        hql.append("LEFT JOIN base_saledruglist s ON o.EnterpriseId = s.OrganID and d.DrugID = s.DrugId and s.Status=1 where 1=1 ");
+        hql.append(" where 1=1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件

@@ -5,8 +5,10 @@ import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
@@ -15,6 +17,7 @@ import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.DocIndexBean;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.api.vo.MedicalInfoBean;
+import eh.cdr.api.vo.RpDetailBean;
 import eh.cdr.api.vo.request.SaveEmrContractReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +29,7 @@ import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.comment.RecipeEmrComment;
+import recipe.dao.RecipeDetailDAO;
 import recipe.util.ByteUtils;
 
 import javax.annotation.Resource;
@@ -50,6 +54,9 @@ public class EmrRecipeManager {
     private DepartmentService departmentService;
     @Autowired
     private IDoctorService doctorService;
+
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
     /**
      * 保存电子病历 主要用于兼容老数据结构
@@ -138,6 +145,37 @@ public class EmrRecipeManager {
         saveEmrContractReq.setBussType(1);
         Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
         logger.info("EmrRecipeManager updateDocStatus docId={} boo={}", docId, result);
+    }
+
+
+    /**
+     * 当医生开方成功后将药品信息写入病历
+     *
+     * @param recipeId 处方id
+     * @param docId    病历索引id
+     */
+    public void addDrugToDOC(Integer recipeId, Integer docId) {
+        logger.info("EmrRecipeManager addDrugToDOC recipeId={} docId={}", recipeId, docId);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
+        //调用将药品信息写入病历的接口
+        try {
+            docIndexService.saveRpDetailRelation(docId, recipeId, rpDetailBean);
+        } catch (Exception e) {
+            logger.error("saveRpDetailRelation error：{} ", e);
+        }
+
+    }
+
+    public void deleteRecipeDetailsFromDoc(Integer recipeId) {
+        logger.info("EmrRecipeManager deleteRecipeDetailsFromDoc recipeId={}", recipeId);
+        //将药品信息移出病历
+        try {
+            docIndexService.deleteRpDetailRelation(recipeId);
+        } catch (Exception e) {
+            logger.warn("EmrRecipeManager deleteRecipeDetailsFromDoc error:{}", e);
+        }
+
     }
 
     /**

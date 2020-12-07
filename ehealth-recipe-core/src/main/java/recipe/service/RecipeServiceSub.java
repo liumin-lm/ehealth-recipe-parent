@@ -34,6 +34,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
@@ -76,11 +77,14 @@ import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.RecipeLabelManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -110,6 +114,8 @@ public class RecipeServiceSub {
 
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeLabelManager recipeLabelManager;
 
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
@@ -126,10 +132,24 @@ public class RecipeServiceSub {
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
-    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
+    private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
+    ;
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
+    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        try {
+            return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
+        } catch (Exception e) {
+            LOGGER.error("queryPdfRecipeLabelById error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
+        }
+    }
 
     /**
      * @param recipeBean
@@ -453,6 +473,7 @@ public class RecipeServiceSub {
                         detail.setDrugSpec(organDrug.getDrugSpec());
                         detail.setDrugUnit(organDrug.getUnit());
                         detail.setDefaultUseDose(organDrug.getUseDose());
+                        detail.setSaleName(organDrug.getSaleName());
                         //如果前端传了剂量单位优先用医生选择的剂量单位
                         //医生端剂量单位可以选择规格单位还是最小单位
                         if (StringUtils.isNotEmpty(detail.getUseDoseUnit())) {
@@ -1069,6 +1090,9 @@ public class RecipeServiceSub {
             if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
                     && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
                 tips = "待下载";
+            } else if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
+                    || RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
+                tips = "待取药";
             } else {
                 tips = RecipeOrderStatusEnum.getOrderStatus(orderStatus);
             }
@@ -1797,6 +1821,23 @@ public class RecipeServiceSub {
         return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "continueOpenRecipeFlag") && StringUtils.isEmpty(recipe.getOrderCode());
     }
 
+    private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
+        GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipeMode(recipe);
+        try {
+            //校验数据
+            giveModeBase.validRecipeData(recipe);
+        } catch (Exception e) {
+            LOGGER.error("patientRecipeInfoBottonShowNew error:{}.", e.getMessage());
+            return;
+        }
+        //从运营平台获取配置项
+        giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        //设置按钮是否可点击
+        giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
+
+    }
+
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
         //Date:20190904
         //Explain:添加患者点击按钮信息
@@ -2059,7 +2100,7 @@ public class RecipeServiceSub {
      * @date: 2019/9/10
      * @author: JRK
      */
-    private static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+    public static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
         //互联网的不需要下载处方笺
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             return false;
@@ -2562,6 +2603,9 @@ public class RecipeServiceSub {
 
         if (result) {
             msg = "处方撤销成功";
+            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
+            //将药品移出病历
+            emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
             //向患者推送处方撤销消息
             if (!(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() && recipe.canMedicalPay())) {
                 //医保的处方待审核时患者无法看到处方，不发送撤销消息提示

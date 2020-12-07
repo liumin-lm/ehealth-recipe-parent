@@ -20,6 +20,8 @@ import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -48,6 +50,8 @@ import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -58,6 +62,7 @@ import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 业务使用药企对接类，具体实现在CommonRemoteService
@@ -324,7 +329,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
         }
         //设置pdf base 64内容
-        String signFileOssId = recipe.getSignFile();
+        String signFileOssId = StringUtils.isNotBlank(recipe.getChemistSignFile()) ? recipe.getChemistSignFile() : recipe.getSignFile();
         if(StringUtils.isNotBlank(signFileOssId)){
             String imgHead = "data:image/jpeg;base64,";
             try {
@@ -575,7 +580,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     }
 
-    /**
+    /**;
      * 医生端展示药品库存情况
      * @param drugsDataBean 药品数据
      * @return 药品数据
@@ -607,44 +612,75 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         if(null == payModeDeploy){
             return result;
         }
-        List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipeMode(new Recipe());
+        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(drugsDataBean.getOrganId());
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
 
         Map<String, List> supportOnlineMap ;
         List supportOnlineList = new ArrayList();
+        Map<String, List> supportSendToHosMap ;
+        List supportSendToHosList = new ArrayList();
         Map<String, List> toStoreMap ;
         List toStoreList = new ArrayList();
         List<String> haveInventoryForOnlineList ;
         List<String> haveInventoryForStoreList ;
         //查找非自建药企配送主体为药企的药企
-        if (configurations.contains("supportOnline") || configurations.contains("supportTFDS")) {
+        if (configurations.containsKey("showSendToEnterprises") || configurations.containsKey("supportTFDS") || configurations.containsKey("showSendToHos")) {
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                supportOnlineMap = new LinkedHashMap<>();
-                toStoreMap = new LinkedHashMap<>();
-                drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
-                if (payModeSupport(drugsEnterprise , 1) && configurations.contains("supportOnline")) {
-                    haveInventoryForOnlineList = new ArrayList<>();
-                    //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
-                    //该药企配置了这个药品,可以查询该药品在药企是否有库存了
-                    if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
-                        ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, drugsDataBean.getRecipeDetailBeans());
-                        LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
-                        HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
-                        LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
-                        if (responseTO != null && responseTO.isSuccess() && responseTO.getData() != null) {
-                            result.add(responseTO.getData());
+                if (new Integer(2).equals(drugsEnterprise.getSendType())) {
+                    supportOnlineMap = new LinkedHashMap<>();
+                    drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
+                    if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToEnterprises")) {
+                        haveInventoryForOnlineList = new ArrayList<>();
+                        //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
+                        //该药企配置了这个药品,可以查询该药品在药企是否有库存了
+                        if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
+                            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, drugsDataBean.getRecipeDetailBeans());
+                            LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
+                            HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
+                            LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
+                            if (responseTO != null && responseTO.isSuccess() && responseTO.getData() != null) {
+                                result.add(responseTO.getData());
+                            }
+                        } else {//通过平台调用
+                            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
+                                haveInventoryForOnlineList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 1);
+                            }
                         }
-                    } else {//通过平台调用
-                        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
-                            haveInventoryForOnlineList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 1);
+                        if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
+                            supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
+                            supportOnlineList.add(supportOnlineMap);
                         }
                     }
-                    if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
-                        supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
-                        supportOnlineList.add(supportOnlineMap);
+                } else {
+                    supportSendToHosMap = new LinkedHashMap<>();
+                    drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
+                    if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToHos")) {
+                        haveInventoryForOnlineList = new ArrayList<>();
+                        //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
+                        //该药企配置了这个药品,可以查询该药品在药企是否有库存了
+                        if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
+                            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, drugsDataBean.getRecipeDetailBeans());
+                            LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
+                            HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
+                            LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
+                            if (responseTO != null && responseTO.isSuccess() && responseTO.getData() != null) {
+                                result.add(responseTO.getData());
+                            }
+                        } else {//通过平台调用
+                            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
+                                haveInventoryForOnlineList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 1);
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
+                            supportSendToHosMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
+                            supportSendToHosList.add(supportSendToHosMap);
+                        }
                     }
                 }
 
-                if (payModeSupport(drugsEnterprise , 3) && configurations.contains("supportTFDS")) {
+                toStoreMap = new LinkedHashMap<>();
+                if (payModeSupport(drugsEnterprise , 3) && configurations.containsKey("supportTFDS")) {
                     haveInventoryForStoreList = new ArrayList<>();
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
@@ -662,15 +698,19 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
 
             if (CollectionUtils.isNotEmpty(supportOnlineList)) {
-                payOnlineType.put("配送到家", supportOnlineList);
+                payOnlineType.put(configurations.get("supportToEnterprise"), supportOnlineList);
+                result.add(payOnlineType);
+            }
+            if (CollectionUtils.isNotEmpty(supportSendToHosList)) {
+                payOnlineType.put(configurations.get("supportHosToSend"), supportSendToHosList);
                 result.add(payOnlineType);
             }
             if (CollectionUtils.isNotEmpty(toStoreList)) {
-                toStoreType.put("药店取药", toStoreList);
+                toStoreType.put(configurations.get("supportTFDS"), toStoreList);
                 result.add(toStoreType);
             }
         }
-        if (configurations.contains("supportToHos")) {
+        if (configurations.containsKey("supportToHos")) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
             if (iHisConfigService.isHisEnable(drugsDataBean.getOrganId())){
@@ -697,13 +737,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 map.put("", list);
                 List toHosList = new ArrayList();
                 toHosList.add(map);
-                toHosType.put("到院取药", toHosList);
+                toHosType.put(configurations.get("supportToHos"), toHosList);
                 if (CollectionUtils.isNotEmpty(list)) {
                     result.add(toHosType);
                 }
             }
         }
-        if (configurations.contains("supportDownload")) {
+        if (configurations.containsKey("supportDownload")) {
             //下载处方,只要配置这个开关,默认都支持
             List<String> list = new ArrayList<>();
             for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
@@ -713,7 +753,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             map.put("", list);
             List downList = new ArrayList();
             downList.add(map);
-            downLoadType.put("下载处方", downList);
+            downLoadType.put(configurations.get("supportDownload"), downList);
             if (CollectionUtils.isNotEmpty(list)) {
                 result.add(downLoadType);
             }
