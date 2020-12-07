@@ -27,20 +27,20 @@ public class ZjsGiveModeService extends AbstractGiveModeService implements IGive
         if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
             if ("1".equals(recipeExtend.getGiveModeFormHis())) {
                 //只支持配送到家
-                remoteData(giveModeButtonBeans, "supportOnline");
+                saveGiveModeData(giveModeButtonBeans, "supportOnline");
             } else if ("2".equals(recipeExtend.getGiveModeFormHis())){
                 //只支持到院取药
-                remoteData(giveModeButtonBeans, "supportToHos");
+                saveGiveModeData(giveModeButtonBeans, "supportToHos");
             } else if ("3".equals(recipeExtend.getGiveModeFormHis())) {
                 //都支持
             } else {
                 //都不支持
-                remoteData(giveModeButtonBeans, "");
+                saveGiveModeData(giveModeButtonBeans, "");
             }
         } else {
             //省平台互联网购药方式的配置
             if (1 == recipe.getDistributionFlag()) {
-                remoteData(giveModeButtonBeans, "supportOnline");
+                removeGiveModeData(giveModeButtonBeans, "supportOnline");
             }
         }
     }

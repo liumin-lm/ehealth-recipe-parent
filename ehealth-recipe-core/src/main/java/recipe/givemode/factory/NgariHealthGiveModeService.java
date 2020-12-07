@@ -28,7 +28,7 @@ public class NgariHealthGiveModeService extends AbstractGiveModeService implemen
             Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
             boolean supportMedicalPayment = result.containsKey("supportMedicalPayment");
             if (supportMedicalPayment && !purchaseService.isMedicarePatient(recipe.getClinicOrgan(), recipe.getMpiid())){
-                super.remoteGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportMedicalPayment");
+                super.removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportMedicalPayment");
             }
         }
     }

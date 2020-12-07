@@ -114,11 +114,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
         if (showSendToEnterprises && enterprisesSend == null) {
             //表示运营平台虽然配置了药企配送但是该机构没有配置可配送的药企
-            remoteGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToEnterprises");
+            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToEnterprises");
         }
         if (showSendToHos && null == hosSend ) {
             //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
-            remoteGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
+            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
         }
     }
 
@@ -184,9 +184,9 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //不支持配送，则按钮都不显示--包括药店取药
         if (new Integer(2).equals(recipe.getDistributionFlag())) {
-            remoteGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-            remoteGiveModeData(giveModeButtonBeans, "showSendToHos");
-            remoteGiveModeData(giveModeButtonBeans, "supportTFDS");
+            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
+            removeGiveModeData(giveModeButtonBeans, "showSendToHos");
+            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
         }
     }
 
@@ -219,7 +219,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         return result.get(giveModeKey);
     }
 
-    protected void remoteGiveModeData(List<GiveModeButtonBean> giveModeButtonBeans, String remoteGiveMode){
+    protected void removeGiveModeData(List<GiveModeButtonBean> giveModeButtonBeans, String remoteGiveMode){
         Iterator iterator = giveModeButtonBeans.iterator();
         while (iterator.hasNext()) {
             GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
@@ -229,7 +229,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         }
     }
 
-    protected void remoteData(List<GiveModeButtonBean> giveModeButtonBeans, String saveGiveMode){
+    protected void saveGiveModeData(List<GiveModeButtonBean> giveModeButtonBeans, String saveGiveMode){
         Iterator iterator = giveModeButtonBeans.iterator();
         while (iterator.hasNext()) {
             GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
