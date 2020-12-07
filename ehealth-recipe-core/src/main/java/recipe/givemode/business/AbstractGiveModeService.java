@@ -75,12 +75,12 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         List<GiveModeButtonBean> giveModeButtonBeans = new ArrayList<>();
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
         IScratchableService scratchableService = AppContextHolder.getBean("eh.scratchableService", IScratchableService.class);
-        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 0);
+        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
         scratchableBeans.forEach(giveModeButton -> {
             GiveModeButtonBean giveModeButtonBean = new GiveModeButtonBean();
             giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
             giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
-            //giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
+            giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
             if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
                 giveModeButtonBeans.add(giveModeButtonBean);
             } else {
