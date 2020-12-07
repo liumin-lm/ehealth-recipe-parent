@@ -653,7 +653,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{}", JSONUtils.toString(recipesQueryVO));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
-
+        LOGGER.info("配送订单导出-getRecipeOrder 开始查询");
         List<Object[]> objectList = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
         LOGGER.info("配送订单导出-getRecipeOrder size={}",objectList.size());
         return objectList;
