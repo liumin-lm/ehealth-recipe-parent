@@ -3,6 +3,7 @@ package recipe.givemode.business;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
@@ -102,7 +103,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         //处理医院配送和药企配送的药企按钮，根据该机构配置的药企配送主体来决定
         Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         boolean showSendToEnterprises = result.containsKey("showSendToEnterprises");
@@ -120,6 +121,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
         }
+        //开处方时校验库存时存的只支持配送方式--不支持到院取药
+        if (1 == recipe.getDistributionFlag()) {
+            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
+        }
+
     }
 
     @Override

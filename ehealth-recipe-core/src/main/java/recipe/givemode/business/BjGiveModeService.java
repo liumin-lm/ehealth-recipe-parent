@@ -3,6 +3,7 @@ package recipe.givemode.business;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
@@ -22,8 +23,8 @@ import java.util.List;
 public class BjGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
 
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
-        super.setSpecialItem(record, giveModeShowButtonVO, recipe);
+    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+        super.setSpecialItem(record, giveModeShowButtonVO, recipe, recipeExtend);
         //处理北京互联网特殊按钮的展示
         HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
