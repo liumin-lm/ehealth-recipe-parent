@@ -1425,18 +1425,14 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             //如果订单是到院取药，获取His的处方单支付状态，并更新
-            ArrayList<String> recipeCodes = new ArrayList<>();
             //订单有效
             if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
                 for (Recipe recipeItem : recipeList) {
                     //到院取药
                     if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && recipeItem.getStatus() == 2) {
-                        recipeCodes.add(recipeItem.getRecipeCode());
+                        recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
+                        LOGGER.info("getOrderDetailById ListSingleQuery recipeId :{}", recipeItem.getRecipeId());
                     }
-                }
-                if (CollectionUtils.isNotEmpty(recipeCodes)) {
-                    recipeHisService.recipeListQuery(recipeCodes, order.getOrganId());
-                    LOGGER.info("getOrderDetailById ListQuery recipeCodes :{} and organId：{}", JSONUtils.toString(recipeCodes), order.getOrganId());
                 }
             }
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
