@@ -698,11 +698,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             }
 
             if (CollectionUtils.isNotEmpty(supportOnlineList)) {
-                payOnlineType.put(configurations.get("showSendToEnterprises"), supportOnlineList);
+                payOnlineType.put(configurations.get("supportToEnterprise"), supportOnlineList);
                 result.add(payOnlineType);
             }
             if (CollectionUtils.isNotEmpty(supportSendToHosList)) {
-                payOnlineType.put(configurations.get("showSendToHos"), supportSendToHosList);
+                payOnlineType.put(configurations.get("supportHosToSend"), supportSendToHosList);
                 result.add(payOnlineType);
             }
             if (CollectionUtils.isNotEmpty(toStoreList)) {
