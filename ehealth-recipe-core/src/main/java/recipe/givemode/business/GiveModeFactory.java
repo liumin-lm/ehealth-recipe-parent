@@ -1,4 +1,4 @@
-package recipe.givemode.bussess;
+package recipe.givemode.business;
 
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;

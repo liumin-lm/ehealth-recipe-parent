@@ -1,4 +1,4 @@
-package recipe.openapi.bussess.request;
+package recipe.openapi.business.request;
 
 import lombok.Data;
 

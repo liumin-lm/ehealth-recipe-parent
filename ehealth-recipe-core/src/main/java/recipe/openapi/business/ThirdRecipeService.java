@@ -1,4 +1,4 @@
-package recipe.openapi.bussess;
+package recipe.openapi.business;
 
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.AddressDTO;
@@ -28,9 +28,9 @@ import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.openapi.bussess.bean.RecipeAndRecipeDetailsBean;
-import recipe.openapi.bussess.bean.ThirdRecipeDetailBean;
-import recipe.openapi.bussess.request.*;
+import recipe.openapi.business.bean.RecipeAndRecipeDetailsBean;
+import recipe.openapi.business.bean.ThirdRecipeDetailBean;
+import recipe.openapi.business.request.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeOrderService;
