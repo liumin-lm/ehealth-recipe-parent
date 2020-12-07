@@ -1,6 +1,7 @@
 package recipe.givemode.business;
 
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
@@ -20,8 +21,8 @@ import java.util.stream.Collectors;
 public class NgariHealthGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
 
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
-        super.setSpecialItem(record, giveModeShowButtonVO, recipe);
+    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+        super.setSpecialItem(record, giveModeShowButtonVO, recipe, recipeExtend);
         //设置临沭医保例外支付的个性化按钮设置
         if (recipe.getClinicOrgan() == 1002753){
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);

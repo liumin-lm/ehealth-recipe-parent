@@ -1,6 +1,7 @@
 package recipe.givemode.business;
 
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
 
@@ -35,7 +36,7 @@ public interface IGiveModeBase {
      * @param giveModeShowButtonVO
      * @param recipe
      */
-    void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
+    void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend);
 
     /**
      * 设置其他按钮 如：用药指导
