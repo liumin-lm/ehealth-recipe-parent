@@ -1347,10 +1347,10 @@ public class RecipeListService extends RecipeBaseService {
         }
         //设置按钮是否可点击
         giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
-        //设置其他按钮
-        giveModeBase.setOtherButton(record, giveModeShowButtonVO, recipe);
         //设置按钮展示类型
         giveModeBase.setButtonType(record, giveModeShowButtonVO, recipe);
+        //后置设置处理
+        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         return giveModeShowButtonVO;
     }
 

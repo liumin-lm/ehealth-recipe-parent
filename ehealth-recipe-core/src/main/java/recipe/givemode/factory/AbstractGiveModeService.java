@@ -77,9 +77,21 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
             giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
             giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
-            giveModeButtonBeans.add(giveModeButtonBean);
+            if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
+                giveModeButtonBeans.add(giveModeButtonBean);
+            } else {
+                giveModeShowButtonVO.setListItem(giveModeButtonBean);
+            }
         });
         giveModeShowButtonVO.setGiveModeButtons(giveModeButtonBeans);
+        if (giveModeShowButtonVO.getListItem() == null) {
+            //说明运营平台没有配置列表
+            GiveModeButtonBean giveModeButtonBean = new GiveModeButtonBean();
+            giveModeButtonBean.setShowButtonKey("listItem");
+            giveModeButtonBean.setShowButtonName("列表项");
+            giveModeButtonBean.setButtonSkipType("1");
+            giveModeShowButtonVO.setListItem(giveModeButtonBean);
+        }
         return giveModeShowButtonVO;
     }
 
@@ -144,12 +156,13 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
             //查找是否包含用药指导按钮
             Map result = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
-            boolean supportOnline = result.containsKey("supportOnline");
-            boolean supportTFDS = result.containsKey("supportTFDS");
+            boolean showSendToEnterprises = result.containsKey("showSendToEnterprises");
+            boolean showSendToHos = result.containsKey("showSendToHos");
             boolean supportToHos = result.containsKey("supportToHos");
+            boolean supportTFDS = result.containsKey("supportTFDS");
             boolean showUseDrugConfig = result.containsKey("supportMedicationGuide");
             //当处方在待处理、前置待审核通过时，购药配送为空不展示按钮
-            Boolean noHaveBuyDrugConfig = !supportOnline && !supportTFDS && !supportToHos;
+            Boolean noHaveBuyDrugConfig = !showSendToEnterprises && !showSendToHos  && !supportTFDS && !supportToHos;
 
             //只有当亲处方有订单，且物流公司和订单号都有时展示物流信息
             Boolean haveSendInfo = false;
@@ -186,10 +199,10 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (new Integer(1).equals(recipeOrder.getSendType())) {
                 //表示医院配送
-                giveModeKey = "supportOnline";
+                giveModeKey = "showSendToHos";
             } else {
                 //表示药企配送
-                giveModeKey = "supportOnline";
+                giveModeKey = "showSendToEnterprises";
             }
         } else if (new Integer(2).equals(recipe.getGiveMode())) {
             //表示到院取药
