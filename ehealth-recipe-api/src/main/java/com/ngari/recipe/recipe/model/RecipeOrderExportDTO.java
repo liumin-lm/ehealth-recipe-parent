@@ -68,6 +68,28 @@ public class RecipeOrderExportDTO implements Serializable {
     private String expectSendDate;
     @ItemProperty(alias = "期望配送时间")
     private String expectSendTime;
+    @ItemProperty(alias = "配送主体类型 1医院配送 2药企配送")
+    private Integer sendType;
+    @ItemProperty(alias = "处方单id列表")
+    private String recipeIdList;
+
+    @Column(name = "RecipeIdList")
+    public String getRecipeIdList() {
+        return recipeIdList;
+    }
+
+    public void setRecipeIdList(String recipeIdList) {
+        this.recipeIdList = recipeIdList;
+    }
+
+    @Column(name = "send_type")
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
