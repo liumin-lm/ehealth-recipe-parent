@@ -68,6 +68,7 @@ import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.ObjectUtils;
 import recipe.bean.DoctorDrugUsageRequest;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.OrganToolBean;
@@ -1187,6 +1188,16 @@ public class DrugToolService implements IDrugToolService {
             provinceDrugListDAO.deleteByProvinceDrugId(id);
         }
     }
+
+
+    @RpcService
+    public Integer getNumBySourceOrgan(Integer organId) {
+        if (ObjectUtils.isEmpty(organId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        return drugListMatchDAO.getNumBySourceOrgan(organId);
+    }
+
 
     /**
      * 根据药品id更新匹配表药品机构编码
