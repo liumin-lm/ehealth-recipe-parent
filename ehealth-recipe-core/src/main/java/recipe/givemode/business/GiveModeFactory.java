@@ -15,7 +15,7 @@ import recipe.dao.RecipeExtendDAO;
  */
 public class GiveModeFactory {
 
-    public static IGiveModeBase getGiveModeBaseByRecipeMode(Recipe recipe) {
+    public static IGiveModeBase getGiveModeBaseByRecipe(Recipe recipe) {
         IGiveModeBase giveModeBase = AppContextHolder.getBean("commonGiveModeService", commonGiveModeService.class);
         if (new Integer(2).equals(recipe.getRecipeSource())) {
             //表示来源于线下转线上的处方单

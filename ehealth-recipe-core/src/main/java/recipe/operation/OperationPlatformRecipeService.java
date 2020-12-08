@@ -167,7 +167,7 @@ public class OperationPlatformRecipeService {
         //配送方式
         r.setGiveMode(recipe.getGiveMode());
         //配送方式文案
-        r.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipeMode(recipe).getGiveModeTextByRecipe(recipe));
+        r.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
         //支付状态
         r.setPayFlag(recipe.getPayFlag());
         //医生签名文件

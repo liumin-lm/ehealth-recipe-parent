@@ -1941,4 +1941,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return Lists.newArrayList();
     }
+
+    @Override
+    public String getItemSkipType(Integer organ) {
+
+        return null;
+    }
 }

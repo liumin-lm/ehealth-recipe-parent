@@ -27,10 +27,7 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.RecipeServiceSub;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -106,7 +103,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+    public void setSpecialItem(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         //处理医院配送和药企配送的药企按钮，根据该机构配置的药企配送主体来决定
         Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         boolean supportToEnterprise = result.containsKey("supportToEnterprise");
@@ -132,12 +129,14 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
-    public void setOtherButton(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
-        //设置按钮的展示类型
-        Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(record.getOrganId(), "medicationGuideFlag");
+    public void setOtherButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
+        String recordType = getRecordInfo(recipe).get("recordType");
+        String recordStatusCode = getRecordInfo(recipe).get("recordStatusCode");
+        // 按钮的展示类型
+        Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "medicationGuideFlag");
         //已完成的处方单设置
-        if ((LIST_TYPE_ORDER.equals(record.getRecordType()) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(record.getStatusCode()))
-                || (LIST_TYPE_RECIPE.equals(record.getRecordType()) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType() == record.getStatusCode())) {
+        if ((LIST_TYPE_ORDER.equals(recordType) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(recordStatusCode))
+                || (LIST_TYPE_RECIPE.equals(recordType) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recordStatusCode))) {
             //设置用药指导按钮
             if (showUseDrugConfig) {
                 GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
@@ -157,8 +156,31 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         }
     }
 
+    private Map<String, String> getRecordInfo(Recipe recipe){
+        String recordType ;
+        Integer recordStatusCode ;
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            recordType = LIST_TYPE_ORDER;
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (recipeOrder != null) {
+                recordStatusCode = recipeOrder.getStatus();
+            } else {
+                recordStatusCode = recipe.getStatus();
+            }
+        } else {
+            recordType = LIST_TYPE_RECIPE;
+            recordStatusCode = recipe.getStatus();
+        }
+        Map<String, String> map = new HashMap<>();
+        map.put("recordType", recordType);
+        map.put("recordStatusCode", recordStatusCode.toString());
+        return map;
+    }
+
     @Override
-    public void setButtonType(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+    public void setButtonType(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+        String recordType = getRecordInfo(recipe).get("recordType");
+        String recordStatusCode = getRecordInfo(recipe).get("recordStatusCode");
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         //添加判断，当选药按钮都不显示的时候，按钮状态为不展示
@@ -180,7 +202,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
                 haveSendInfo = true;
             }
             RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.
-                    fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(record.getRecordType(), record.getStatusCode(), recipe.getReviewType(), showUseDrugConfig, noHaveBuyDrugConfig, haveSendInfo);
+                    fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(recordType, Integer.parseInt(recordStatusCode), recipe.getReviewType(), showUseDrugConfig, noHaveBuyDrugConfig, haveSendInfo);
             giveModeShowButtonVO.setButtonType(buttonStatus.getPageButtonStatus());
         } else {
             LOGGER.error("当前按钮的显示信息不存在");
