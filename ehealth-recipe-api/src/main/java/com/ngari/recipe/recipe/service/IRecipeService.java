@@ -771,7 +771,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds);
 
     /**
-     * 获取该处方对应的列表跳转的类型
+     * 获取该机构对应的列表跳转的类型
      * @param recipeId
      * @return
      */
