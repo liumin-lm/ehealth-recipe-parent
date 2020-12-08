@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\12\3 0003 19:58
  */
-@Component("ngariHealthGiveModeService")
-public class NgariHealthGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
+@Component("commonGiveModeService")
+public class commonGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
 
     @Override
     public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
