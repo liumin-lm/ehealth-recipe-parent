@@ -3,7 +3,6 @@ package recipe.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -22,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
@@ -45,9 +43,7 @@ public class RecipeServiceEsignExt {
     private static final String TCM_TEMPLATETYPE = "tcm";
 
     private static IRecipeService recipeService = AppContextHolder.getBean("eh.remoteRecipeService", IRecipeService.class);
-
-    private static IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
-
+    
     /**
      * 获取移动端获取pdf文件、用于SDK进行签章
      *
@@ -67,9 +63,8 @@ public class RecipeServiceEsignExt {
         String pdf = "";
         if (isDoctor) {
             RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
-            Map<String, Object> paramMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
+            pdf = recipeServiceSub.queryPdfStrById(recipeId, recipe.getClinicOrgan());
             //这里走生成通过的平台模板（易签保开始使用）
-            pdf = esignService.createSignRecipePDF(paramMap);
             caBean.setLeftX(55);
             caBean.setLeftY(370);
         } else {

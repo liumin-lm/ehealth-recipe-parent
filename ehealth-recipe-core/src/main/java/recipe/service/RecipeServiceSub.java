@@ -137,6 +137,20 @@ public class RecipeServiceSub {
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
+    public String queryPdfStrById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        try {
+            return recipeLabelManager.queryPdfStrById(result, recipeMap);
+        } catch (Exception e) {
+            LOGGER.error("queryPdfRecipeLabelById error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
+        }
+    }
+
     public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
@@ -149,6 +163,15 @@ public class RecipeServiceSub {
             LOGGER.error("queryPdfRecipeLabelById error ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
         }
+    }
+
+    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        return result;
     }
 
     /**
