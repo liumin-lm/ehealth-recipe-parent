@@ -36,10 +36,10 @@ public class BjGiveModeService extends AbstractGiveModeService implements IGiveM
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
             if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
                 //表示为医院配送
-                saveGiveModeData(giveModeButtonBeans, "supportHosToSend");
+                saveGiveModeData(giveModeButtonBeans, "showSendToHos");
             } else {
                 //表示为药企配送
-                saveGiveModeData(giveModeButtonBeans, "supportToEnterprise");
+                saveGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
             }
         } else if (new Integer(2).equals(recipe.getGiveMode())) {
             //表示到院取药
