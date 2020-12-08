@@ -2593,7 +2593,9 @@ public class RecipeService extends RecipeBaseService {
                                     }
                                 }
                                 addHisDrug(drug,organId);
-                        }
+                        }else {
+                                continue;
+                            }
                         }else {
                             List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode());
                             if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
