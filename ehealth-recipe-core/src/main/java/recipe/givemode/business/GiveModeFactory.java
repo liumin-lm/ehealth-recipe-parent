@@ -26,11 +26,13 @@ public class GiveModeFactory {
                 return AppContextHolder.getBean("bjGiveModeService", BjGiveModeService.class);
             }
         }
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        //杭州市互联网用到从预校验中his返回的配送方式
-        if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
-            return AppContextHolder.getBean("fromHisGiveModeService", BjGiveModeService.class);
+        if (recipe.getRecipeId() != null) {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            //杭州市互联网用到从预校验中his返回的配送方式
+            if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
+                return AppContextHolder.getBean("fromHisGiveModeService", BjGiveModeService.class);
+            }
         }
         return giveModeBase;
     }

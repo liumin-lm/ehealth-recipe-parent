@@ -1945,10 +1945,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public String getItemSkipType(Integer recipeId) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+    public String getItemSkipType(Integer organId) {
+        Recipe recipe = new Recipe();
+        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
         Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getButtonSkipType));
         return (String)result.get("listItem");
     }

@@ -772,10 +772,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 获取该机构对应的列表跳转的类型
-     * @param recipeId
+     * @param organId
      * @return
      */
     @RpcService
-    String getItemSkipType(Integer recipeId);
+    String getItemSkipType(Integer organId);
 }
 
