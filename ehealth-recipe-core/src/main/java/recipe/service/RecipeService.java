@@ -2537,7 +2537,12 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-
+    /**
+     *   平台手动同步
+     * @param organId
+     * @param drugForms
+     * @return
+     */
     @RpcService(timeout = 600000)
     public  Map<String,Long> drugInfoSynMovement(Integer organId,List<String> drugForms) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
