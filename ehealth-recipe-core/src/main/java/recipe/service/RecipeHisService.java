@@ -543,6 +543,46 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipeId
      * @return
      */
+    public void getRecipeSinglePayStatusQuery(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return;
+        }
+        if (skipHis(recipe)) {
+            return;
+        }
+        if (isHisEnable(recipe.getClinicOrgan())) {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            List<RecipeListQueryReqTO> requestList = new ArrayList<>();
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
+            recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+            recipeListQueryReqTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
+            recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
+            recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
+            recipeListQueryReqTO.setPatientName(recipe.getPatientName());
+            recipeListQueryReqTO.setPatientId(recipe.getPatientID());
+            recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
+            recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
+            requestList.add(recipeListQueryReqTO);
+            Integer status = service.listSingleQuery(requestList);
+            if (status != null) {
+                if (status == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.HAVE_PAY, null);
+                }
+            }
+            } else {
+                LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+            }
+    }
+
+    /**
+     * 单个处方查询
+     *
+     * @param recipeId
+     * @return
+     */
     @RpcService
     public String recipeSingleQuery(Integer recipeId) {
         String backInfo = "";

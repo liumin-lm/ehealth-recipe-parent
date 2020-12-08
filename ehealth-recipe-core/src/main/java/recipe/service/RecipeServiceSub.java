@@ -34,6 +34,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
@@ -83,6 +84,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.RecipeLabelManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -112,6 +114,8 @@ public class RecipeServiceSub {
 
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeLabelManager recipeLabelManager;
 
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
@@ -128,10 +132,24 @@ public class RecipeServiceSub {
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
-    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
+    private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
+    ;
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
+    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        try {
+            return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
+        } catch (Exception e) {
+            LOGGER.error("queryPdfRecipeLabelById error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
+        }
+    }
 
     /**
      * @param recipeBean
