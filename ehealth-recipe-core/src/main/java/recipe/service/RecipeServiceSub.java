@@ -1650,6 +1650,7 @@ public class RecipeServiceSub {
             }
             //患者处方单详情页按钮显示
             patientRecipeInfoBottonShow(map, recipe, order);
+            patientRecipeInfoBottonShowNew(map, recipe, order);
         }
         
 
@@ -1845,7 +1846,7 @@ public class RecipeServiceSub {
     }
 
     private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
-        GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
+        GiveModeShowButtonVO giveModeShowButtonVO ;
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
             //校验数据
@@ -1858,7 +1859,11 @@ public class RecipeServiceSub {
         giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         //设置按钮是否可点击
         giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
+        //设置按钮展示类型
+        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
         //设置其他按钮
+        giveModeBase.setOtherButton(giveModeShowButtonVO, recipe);
+        map.put("giveModeShowButtonVO", giveModeShowButtonVO);
     }
 
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
