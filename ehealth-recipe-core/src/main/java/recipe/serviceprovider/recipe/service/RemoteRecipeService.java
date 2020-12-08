@@ -77,6 +77,8 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
@@ -1940,5 +1942,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return recipeCodes;
         }
         return Lists.newArrayList();
+    }
+
+    @Override
+    public String getItemSkipType(Integer organId) {
+        Recipe recipe = new Recipe();
+        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
+        Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getButtonSkipType));
+        return (String)result.get("listItem");
     }
 }

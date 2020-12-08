@@ -1846,7 +1846,7 @@ public class RecipeServiceSub {
 
     private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipeMode(recipe);
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
             //校验数据
             giveModeBase.validRecipeData(recipe);
@@ -1858,7 +1858,7 @@ public class RecipeServiceSub {
         giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         //设置按钮是否可点击
         giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
-
+        //设置其他按钮
     }
 
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {

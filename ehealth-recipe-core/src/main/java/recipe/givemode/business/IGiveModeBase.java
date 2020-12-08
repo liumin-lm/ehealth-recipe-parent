@@ -32,27 +32,24 @@ public interface IGiveModeBase {
 
     /**
      * 设置平台和互联网关于按钮个性化显示
-     * @param record
      * @param giveModeShowButtonVO
      * @param recipe
      */
-    void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend);
+    void setSpecialItem(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend);
 
     /**
      * 设置其他按钮 如：用药指导
-     * @param record
      * @param giveModeShowButtonVO
      * @param recipe
      */
-    void setOtherButton(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
+    void setOtherButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
 
     /**
      * 设置按钮展示类型(0待处理，1待支付，2查看物流，3不展示按钮（平台+互联网），4已完成，展示用药指导按钮（平台+互联网）)
-     * @param record
      * @param giveModeShowButtonVO
      * @param recipe
      */
-    void setButtonType(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
+    void setButtonType(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
 
     /**
      * 其他设置项

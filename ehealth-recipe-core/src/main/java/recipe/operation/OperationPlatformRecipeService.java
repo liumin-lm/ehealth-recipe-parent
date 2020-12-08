@@ -51,6 +51,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bussutil.openapi.util.AESUtils;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.givemode.business.GiveModeFactory;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.ChinaIDNumberUtil;
@@ -165,6 +166,8 @@ public class OperationPlatformRecipeService {
         r.setStatus(recipe.getStatus());
         //配送方式
         r.setGiveMode(recipe.getGiveMode());
+        //配送方式文案
+        r.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
         //支付状态
         r.setPayFlag(recipe.getPayFlag());
         //医生签名文件

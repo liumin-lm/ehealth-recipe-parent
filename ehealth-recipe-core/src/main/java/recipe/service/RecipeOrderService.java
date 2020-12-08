@@ -77,6 +77,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
 import recipe.factory.status.constant.GiveModeEnum;
+import recipe.givemode.business.GiveModeFactory;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -1466,7 +1467,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignFile(recipe.getSignFile());
                     prb.setDoctorName(recipe.getDoctorName());
                     prb.setRecipeCode(recipe.getRecipeCode());
-                    prb.setRecipe(ObjectCopyUtils.convert(recipe, RecipeBean.class));
+                    RecipeBean recipeBean= ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                    prb.setRecipe(recipeBean);
                     prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
                         prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));

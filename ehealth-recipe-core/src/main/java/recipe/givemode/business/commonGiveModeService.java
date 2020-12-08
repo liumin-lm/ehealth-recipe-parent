@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\12\3 0003 19:58
  */
-@Component("ngariHealthGiveModeService")
-public class NgariHealthGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
+@Component("commonGiveModeService")
+public class commonGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
 
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
-        super.setSpecialItem(record, giveModeShowButtonVO, recipe, recipeExtend);
+    public void setSpecialItem(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+        super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
         //设置临沭医保例外支付的个性化按钮设置
         if (recipe.getClinicOrgan() == 1002753){
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);

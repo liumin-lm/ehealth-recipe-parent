@@ -1332,7 +1332,7 @@ public class RecipeListService extends RecipeBaseService {
 
     private GiveModeShowButtonVO getShowButtonNew(PatientTabStatusRecipeDTO record, Recipe recipe){
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipeMode(recipe);
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
             //校验数据
             giveModeBase.validRecipeData(recipe);
@@ -1348,7 +1348,7 @@ public class RecipeListService extends RecipeBaseService {
         //设置按钮是否可点击
         giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
         //设置按钮展示类型
-        giveModeBase.setButtonType(record, giveModeShowButtonVO, recipe);
+        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
         //后置设置处理
         giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         return giveModeShowButtonVO;
