@@ -2607,14 +2607,15 @@ public class RecipeService extends RecipeBaseService {
                             addHisDrug(drug,organId);
                         }
                         addNum++;
+                        startIndex++;
                         continue;
                     }
                     updateHisOrganDrug(drug, organDrug);
                     updateNum++;
+                    startIndex++;
                     LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                 }
             }
-            startIndex++;
             if (startIndex >= total){
                 LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
                 finishFlag = false;
