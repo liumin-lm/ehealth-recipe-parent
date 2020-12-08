@@ -133,8 +133,10 @@ public class RecipeBean implements Serializable {
     private Integer payMode;
 
     @ItemProperty(alias = "发药方式")
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
+
+    @ItemProperty(alias = "发药方式文案")
+    private String giveModeText;
 
     @ItemProperty(alias = "发药人姓名")
     private String giveUser;
@@ -700,6 +702,10 @@ public class RecipeBean implements Serializable {
     public Integer getGiveFlag() {
         return giveFlag;
     }
+
+    public String getGiveModeText() { return giveModeText; }
+
+    public void setGiveModeText(String giveModeText) { this.giveModeText = giveModeText; }
 
     public void setGiveFlag(Integer giveFlag) {
         this.giveFlag = giveFlag;

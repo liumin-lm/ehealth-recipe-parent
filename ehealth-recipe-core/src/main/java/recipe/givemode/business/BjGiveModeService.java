@@ -23,8 +23,8 @@ import java.util.List;
 public class BjGiveModeService extends AbstractGiveModeService implements IGiveModeBase{
 
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
-        super.setSpecialItem(record, giveModeShowButtonVO, recipe, recipeExtend);
+    public void setSpecialItem(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+        super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
         //处理北京互联网特殊按钮的展示
         HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());

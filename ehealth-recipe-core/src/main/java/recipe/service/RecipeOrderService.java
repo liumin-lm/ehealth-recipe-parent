@@ -77,6 +77,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
 import recipe.factory.status.constant.GiveModeEnum;
+import recipe.givemode.business.GiveModeFactory;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -1425,18 +1426,14 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             //如果订单是到院取药，获取His的处方单支付状态，并更新
-            ArrayList<String> recipeCodes = new ArrayList<>();
             //订单有效
             if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
                 for (Recipe recipeItem : recipeList) {
                     //到院取药
                     if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && recipeItem.getStatus() == 2) {
-                        recipeCodes.add(recipeItem.getRecipeCode());
+                        recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
+                        LOGGER.info("getOrderDetailById ListSingleQuery recipeId :{}", recipeItem.getRecipeId());
                     }
-                }
-                if (CollectionUtils.isNotEmpty(recipeCodes)) {
-                    recipeHisService.recipeListQuery(recipeCodes, order.getOrganId());
-                    LOGGER.info("getOrderDetailById ListQuery recipeCodes :{} and organId：{}", JSONUtils.toString(recipeCodes), order.getOrganId());
                 }
             }
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
@@ -1470,7 +1467,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignFile(recipe.getSignFile());
                     prb.setDoctorName(recipe.getDoctorName());
                     prb.setRecipeCode(recipe.getRecipeCode());
-                    prb.setRecipe(ObjectCopyUtils.convert(recipe, RecipeBean.class));
+                    RecipeBean recipeBean= ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                    prb.setRecipe(recipeBean);
                     prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
                         prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
