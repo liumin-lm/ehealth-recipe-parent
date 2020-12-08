@@ -48,14 +48,6 @@ public class RecipeServiceEsignExt {
 
     private static IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
 
-    @RpcService
-    public Map<String, Object> queryPdfRecipeLabelById(Integer recipeId) {
-        RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
-        Map<String, Object> paramMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
-        return paramMap;
-    }
-
     /**
      * 获取移动端获取pdf文件、用于SDK进行签章
      *
