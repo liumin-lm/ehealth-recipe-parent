@@ -2936,12 +2936,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        return result;
+        return recipeServiceSub.queryRecipeLabelById(recipeId, organId);
     }
 
     /**

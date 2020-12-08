@@ -71,9 +71,32 @@ public class RecipeLabelManager {
         eSignDTO.setOrgan(recipe.getClinicOrgan());
         eSignDTO.setFileName("recipe_" + recipeId + ".pdf");
         eSignDTO.setParamMap(Collections.unmodifiableMap(result));
+        Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
+        eSignDTO.setRp(String.valueOf(rpTorx));
         logger.info("RecipeLabelManager queryPdfRecipeLabelById eSignDTO={}", JSONUtils.toString(eSignDTO));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
         return backMap;
+    }
+
+
+    public String queryPdfStrById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
+        RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
+        //组装生成pdf的参数
+        Map<String, Object> map = new HashMap<>();
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            //中药pdf参数
+            map.put("templateType", "tcm");
+            createChineMedicinePDF(result, recipeMap, recipe);
+        } else {
+            map.put("templateType", "wm");
+            createMedicinePDF(result, recipe);
+        }
+        Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
+        map.put("rp", String.valueOf(rpTorx));
+        map.put("paramMap", result);
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById map={}", JSONUtils.toString(map));
+        String recipePDF = esignService.createSignRecipePDF(map);
+        return recipePDF;
     }
 
     /**
