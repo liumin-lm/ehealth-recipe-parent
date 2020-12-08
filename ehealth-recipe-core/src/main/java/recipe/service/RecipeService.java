@@ -2901,6 +2901,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
+    @Deprecated
     public Map<String, Object> queryPdfRecipeLabelById(Integer recipeId) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
