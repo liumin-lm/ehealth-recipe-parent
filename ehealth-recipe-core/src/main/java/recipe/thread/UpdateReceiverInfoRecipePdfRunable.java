@@ -1,25 +1,18 @@
 package recipe.thread;
 
 import com.google.common.collect.ImmutableMap;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
-import recipe.service.common.RecipeCacheService;
-
-import java.math.BigDecimal;
 
 /**
  * 支付成功后修改pdf 添加收货人信息
@@ -53,11 +46,6 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
-            String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
-            //因为福建省立医院是个单独的模版
-            if (StringUtils.isNotEmpty(organ)&&organ.contains("福建省立医院")){
-                return;
-            }
             //存在收货人信息
             if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order)))){
                 logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);

@@ -3586,11 +3586,6 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    @RpcService
-    public void UpdateReceiverInfoRecipePdfRunable(Integer recipeId) {
-        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
-    }
-
     /**
      * 查询单个处方在HIS中的状态
      *
