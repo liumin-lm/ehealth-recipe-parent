@@ -31,7 +31,7 @@ public class GiveModeFactory {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             //杭州市互联网用到从预校验中his返回的配送方式
             if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
-                return AppContextHolder.getBean("fromHisGiveModeService", BjGiveModeService.class);
+                return AppContextHolder.getBean("fromHisGiveModeService", FromHisGiveModeService.class);
             }
         }
         return giveModeBase;
