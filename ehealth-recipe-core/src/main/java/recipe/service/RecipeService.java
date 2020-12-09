@@ -22,7 +22,10 @@ import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
+import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
+import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -2568,6 +2571,7 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("drugInfoSynMovement error ", e);
         }
         List<OrganDrugInfoTO> data = responseTO.getData();
+        LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
@@ -2606,14 +2610,15 @@ public class RecipeService extends RecipeBaseService {
                             addHisDrug(drug,organId);
                         }
                         addNum++;
+                        startIndex++;
                         continue;
                     }
                     updateHisOrganDrug(drug, organDrug);
                     updateNum++;
+                    startIndex++;
                     LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                 }
             }
-            startIndex++;
             if (startIndex >= total){
                 LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
                 finishFlag = false;
@@ -2994,6 +2999,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
+    @Deprecated
     public Map<String, Object> queryPdfRecipeLabelById(Integer recipeId) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
@@ -3555,8 +3561,6 @@ public class RecipeService extends RecipeBaseService {
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
-                //异步显示对应的药品金额，
-                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);

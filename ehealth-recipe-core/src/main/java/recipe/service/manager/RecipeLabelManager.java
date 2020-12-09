@@ -73,8 +73,8 @@ public class RecipeLabelManager {
         eSignDTO.setParamMap(Collections.unmodifiableMap(result));
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         eSignDTO.setRp(String.valueOf(rpTorx));
-        logger.info("RecipeLabelManager queryPdfRecipeLabelById eSignDTO={}", JSONUtils.toString(eSignDTO));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
+        logger.error("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
         return backMap;
     }
 
@@ -246,7 +246,7 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(d.getMemo())) {
                 stringBuilder.append(" \n ").append("备注:").append(d.getMemo());
             }
-            list.add(new RecipeLabelVO("medicine", "drugInfo", stringBuilder.toString()));
+            list.add(new RecipeLabelVO("medicine", "drugInfo" + i, stringBuilder.toString()));
         }
     }
 
