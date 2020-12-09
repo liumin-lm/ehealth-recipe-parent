@@ -110,11 +110,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
         Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
         Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
-        if (showSendToEnterprises && enterprisesSend == null) {
+        if (showSendToEnterprises && enterprisesSend == 0L) {
             //表示运营平台虽然配置了药企配送但是该机构没有配置可配送的药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToEnterprises");
         }
-        if (showSendToHos && null == hosSend ) {
+        if (showSendToHos && hosSend == 0L ) {
             //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
         }
@@ -215,6 +215,13 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
             removeGiveModeData(giveModeButtonBeans, "showSendToHos");
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
+        }
+        //从运营平台获取配置项和现在的按钮集合取交集
+        GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        List<GiveModeButtonBean> fromYyptButtons = giveModeShowButton.getGiveModeButtons();
+        if (fromYyptButtons != null) {
+            fromYyptButtons.retainAll(giveModeShowButtonVO.getGiveModeButtons());
+            giveModeShowButtonVO.setGiveModeButtons(fromYyptButtons);
         }
     }
 

@@ -1191,7 +1191,7 @@ public class DrugToolService implements IDrugToolService {
 
 
     @RpcService
-    public Integer getNumBySourceOrgan(Integer organId) {
+    public Long getNumBySourceOrgan(Integer organId) {
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
         }

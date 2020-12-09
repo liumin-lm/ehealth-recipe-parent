@@ -2552,7 +2552,10 @@ public class RecipeService extends RecipeBaseService {
     public  Map<String,Long> drugInfoSynMovement(Integer organId,List<String> drugForms) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-
+        com.ngari.patient.service.OrganConfigService organConfigService =
+                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+        Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
+        Boolean add = organConfigService.getByOrganIdEnableDrugAdd(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
         if (CollectionUtils.isEmpty(details)) {
@@ -2580,12 +2583,13 @@ public class RecipeService extends RecipeBaseService {
         int startIndex = 0;
         boolean finishFlag = true;
         long total = data.size();
+        if (sync || add){
         while (finishFlag) {
             if (!CollectionUtils.isEmpty(data)) {
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
-                    if (null == organDrug ) {
+                    if (null == organDrug && add ) {
                         String drugform = drug.getDrugform();
                         if (drugForms!= null && drugForms.size()>0){
                             int i = drugForms.indexOf(drugform);
@@ -2597,7 +2601,8 @@ public class RecipeService extends RecipeBaseService {
                                     }
                                 }
                                 addHisDrug(drug,organId);
-                        }else {
+                            }else {
+                                startIndex++;
                                 continue;
                             }
                         }else {
@@ -2612,20 +2617,24 @@ public class RecipeService extends RecipeBaseService {
                         addNum++;
                         startIndex++;
                         continue;
+                    }else if (null != organDrug && sync){
+                        updateHisOrganDrug(drug, organDrug);
+                        updateNum++;
+                        startIndex++;
+                        continue;
                     }
-                    updateHisOrganDrug(drug, organDrug);
-                    updateNum++;
+                    LOGGER.info("drugInfoSynMovement organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     startIndex++;
-                    LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                 }
             }
             if (startIndex >= total){
-                LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
+                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
                 finishFlag = false;
             }
-            map.put("addNum",addNum);
-            map.put("updateNum",updateNum);
         }
+        }
+        map.put("addNum",addNum);
+        map.put("updateNum",updateNum);
         return map;
     }
 

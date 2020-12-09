@@ -1847,6 +1847,7 @@ public class RecipeServiceSub {
 
     private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
         GiveModeShowButtonVO giveModeShowButtonVO ;
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
             //校验数据
@@ -1863,6 +1864,10 @@ public class RecipeServiceSub {
         giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
         //设置其他按钮
         giveModeBase.setOtherButton(giveModeShowButtonVO, recipe);
+        //设置特殊按钮
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
+        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         map.put("giveModeShowButtonVO", giveModeShowButtonVO);
     }
 
