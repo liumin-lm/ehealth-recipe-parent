@@ -3007,15 +3007,6 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    @RpcService
-    @Deprecated
-    public Map<String, Object> queryPdfRecipeLabelById(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
-        Map<String, Object> paramMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
-        return paramMap;
-    }
-
     /**
      * 健康端获取处方详情-----合并处方
      *
@@ -3887,7 +3878,7 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(organId)) {
             drugListMatch.setSourceOrgan(organId);
         }
-
+        drugListMatch.setStatus(0);
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
         drugListMatchDAO.save(drugListMatch);
         LOGGER.error("addHisDrug 成功", drugListMatch);

@@ -313,21 +313,14 @@ public class CreateRecipePdfUtil {
      */
     public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
                                                          String pdfBase64String, String doctorSignImageId) throws Exception{
-        float xPoint = 0f;
-        float yPoint = 0f;
-        if(isDoctor){
-                xPoint = 95f;
-                yPoint = 100f;
-        }else{
-            if(isTcm){
-                //药师-中药
-                xPoint = 280f;
-                yPoint = 100f;
-            }else{
-                //药师-西药
-                xPoint = 470f;
-                yPoint = 80f;
-            }
+        float xPoint;
+        float yPoint;
+        if (isDoctor) {
+            xPoint = 95f;
+            yPoint = 100f;
+        } else {
+            xPoint = 280f;
+            yPoint = 100f;
         }
 
         String fileId = null;

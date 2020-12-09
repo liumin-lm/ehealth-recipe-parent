@@ -71,6 +71,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -133,10 +134,16 @@ public class RecipeServiceSub {
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
     private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
-    ;
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
+    /**
+     * 获取pdf byte 格式
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
     public String queryPdfStrById(int recipeId, Integer organId) {
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
@@ -151,6 +158,13 @@ public class RecipeServiceSub {
         }
     }
 
+    /**
+     * 获取pdf oss id
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
     public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
@@ -1253,7 +1267,7 @@ public class RecipeServiceSub {
     public static PatientDTO convertPatientForRAP(PatientDTO patient) {
         PatientDTO p = new PatientDTO();
         p.setPatientName(patient.getPatientName());
-        p.setPatientSex(patient.getPatientSex());
+        p.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", patient.getPatientSex()));
         p.setBirthday(patient.getBirthday());
         p.setPatientType(patient.getPatientType());
         p.setStatus(patient.getStatus());
