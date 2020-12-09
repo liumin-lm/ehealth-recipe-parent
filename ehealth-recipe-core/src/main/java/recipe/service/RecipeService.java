@@ -3812,13 +3812,13 @@ public class RecipeService extends RecipeBaseService {
         }else {
             drugListMatch.setDrugSpec(drug.getDrugSpec());
         }
-        if (ObjectUtils.isEmpty(drug.getDrugType())) {
+        /*if (ObjectUtils.isEmpty(drug.getDrugType())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugType is required");
         }else {
             drugListMatch.setDrugType(drug.getDrugType());
-        }
-        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
-            drugListMatch.setUseDose(drug.getUseDose());
+        }*/
+        if (!ObjectUtils.isEmpty(drug.getDrugType())) {
+            drugListMatch.setDrugType(drug.getDrugType());
         }
         if (ObjectUtils.isEmpty(drug.getPack())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pack is required");
