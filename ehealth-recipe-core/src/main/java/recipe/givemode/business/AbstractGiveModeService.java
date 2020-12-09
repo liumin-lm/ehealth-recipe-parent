@@ -216,6 +216,13 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             removeGiveModeData(giveModeButtonBeans, "showSendToHos");
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
         }
+        //从运营平台获取配置项和现在的按钮集合取交集
+        GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        List<GiveModeButtonBean> fromYyptButtons = giveModeShowButton.getGiveModeButtons();
+        if (fromYyptButtons != null) {
+            fromYyptButtons.retainAll(giveModeShowButtonVO.getGiveModeButtons());
+            giveModeShowButtonVO.setGiveModeButtons(fromYyptButtons);
+        }
     }
 
     @Override
