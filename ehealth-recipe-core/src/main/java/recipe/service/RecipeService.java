@@ -3878,7 +3878,7 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(organId)) {
             drugListMatch.setSourceOrgan(organId);
         }
-
+        drugListMatch.setStatus(0);
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
         drugListMatchDAO.save(drugListMatch);
         LOGGER.error("addHisDrug 成功", drugListMatch);
