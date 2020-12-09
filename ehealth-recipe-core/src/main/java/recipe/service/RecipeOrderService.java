@@ -2407,10 +2407,10 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public String getThirdUrl(Integer recipeId) {
-        String thirdUrl = "";
+    public SkipThirdBean getThirdUrl(Integer recipeId) {
+        SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {
-            return thirdUrl;
+            return new SkipThirdBean();
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
@@ -2424,13 +2424,14 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
-                return thirdUrl;
+                return skipThirdBean;
             }
         }
-        return thirdUrl;
+        return skipThirdBean;
     }
 
-    private String getUrl(Recipe recipe) {
+    private SkipThirdBean getUrl(Recipe recipe) {
+        SkipThirdBean skipThirdBean = new SkipThirdBean();
         String thirdUrl = "";
         if (null != recipe) {
             PatientDTO patient = patientService.get(recipe.getMpiid());
@@ -2498,6 +2499,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
                 if (response != null && "200".equals(response.getMsgCode())) {
                     thirdUrl = response.getData();
+                    skipThirdBean.setUrl(thirdUrl);
                 } else {
                     throw new DAOException(609, "获取第三方跳转链接异常");
                 }
@@ -2506,7 +2508,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 throw new DAOException(609, "获取第三方跳转链接异常");
             }
         }
-        return thirdUrl;
+        return skipThirdBean;
     }
 
     /**
