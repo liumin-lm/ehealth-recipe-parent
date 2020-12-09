@@ -211,7 +211,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
     public abstract List<DrugListMatch> findDataByOrganDrugCode(@DAOParam("organDrugCode")String organDrugCode);
 
     @DAOMethod(sql = "SELECT COUNT(*) from DrugListMatch where sourceOrgan =:sourceOrgan and status !=2 ")
-    public abstract Integer getNumBySourceOrgan(@DAOParam("sourceOrgan") Integer organDrugCode);
+    public abstract Long getNumBySourceOrgan(@DAOParam("sourceOrgan") Integer organDrugCode);
 
 
     /**
