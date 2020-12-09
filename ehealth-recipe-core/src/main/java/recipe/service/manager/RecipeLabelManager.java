@@ -51,6 +51,13 @@ public class RecipeLabelManager {
     @Resource
     private IESignBaseService esignService;
 
+    /**
+     * 获取pdf oss id
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
     public Map<String, Object> queryPdfRecipeLabelById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
@@ -78,7 +85,13 @@ public class RecipeLabelManager {
         return backMap;
     }
 
-
+    /**
+     * 获取pdf byte 格式
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
     public String queryPdfStrById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         //组装生成pdf的参数
@@ -95,8 +108,7 @@ public class RecipeLabelManager {
         map.put("rp", String.valueOf(rpTorx));
         map.put("paramMap", result);
         logger.info("RecipeLabelManager queryPdfRecipeLabelById map={}", JSONUtils.toString(map));
-        String recipePDF = esignService.createSignRecipePDF(map);
-        return recipePDF;
+        return esignService.createSignRecipePDF(map);
     }
 
     /**
@@ -274,7 +286,7 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(detail.getMemo())) {
                 dTotal = dTotal + "*" + detail.getMemo();
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getDrugName() + "：" + dTotal));
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + "：" + dTotal));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));

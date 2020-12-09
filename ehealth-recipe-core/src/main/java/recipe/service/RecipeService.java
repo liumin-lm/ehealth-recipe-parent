@@ -850,18 +850,18 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void generateBarCodeForRecipePdfAndSwap(Integer recipeId, String recipeFileId, String recipeCode) {
-        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(recipeFileId)) {
-            return;
-        }
-        try {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            String newPfd = CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipeFileId, recipeCode);
-            if (StringUtils.isNotEmpty(newPfd)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", newPfd));
-            }
-        } catch (Exception e) {
-            LOGGER.error("generateBarCodeForRecipePdfAndSwap error. recipeId={}", recipeId, e);
-        }
+//        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(recipeFileId)) {
+//            return;
+//        }
+//        try {
+//            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//            String newPfd = CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipeFileId, recipeCode);
+//            if (StringUtils.isNotEmpty(newPfd)) {
+//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", newPfd));
+//            }
+//        } catch (Exception e) {
+//            LOGGER.error("generateBarCodeForRecipePdfAndSwap error. recipeId={}", recipeId, e);
+//        }
     }
 
     //重试二次医生审核通过签名
@@ -3586,7 +3586,6 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-
     /**
      * 查询单个处方在HIS中的状态
      *
@@ -3813,13 +3812,13 @@ public class RecipeService extends RecipeBaseService {
         }else {
             drugListMatch.setDrugSpec(drug.getDrugSpec());
         }
-        if (ObjectUtils.isEmpty(drug.getDrugType())) {
+        /*if (ObjectUtils.isEmpty(drug.getDrugType())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugType is required");
         }else {
             drugListMatch.setDrugType(drug.getDrugType());
-        }
-        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
-            drugListMatch.setUseDose(drug.getUseDose());
+        }*/
+        if (!ObjectUtils.isEmpty(drug.getDrugType())) {
+            drugListMatch.setDrugType(drug.getDrugType());
         }
         if (ObjectUtils.isEmpty(drug.getPack())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pack is required");
