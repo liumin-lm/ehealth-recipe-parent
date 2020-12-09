@@ -1867,6 +1867,7 @@ public class RecipeServiceSub {
         //设置特殊按钮
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
+        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         map.put("giveModeShowButtonVO", giveModeShowButtonVO);
     }
 
