@@ -2617,7 +2617,7 @@ public class RecipeService extends RecipeBaseService {
                         addNum++;
                         startIndex++;
                         continue;
-                    }else if (sync){
+                    }else if (null != organDrug && sync){
                         updateHisOrganDrug(drug, organDrug);
                         updateNum++;
                         startIndex++;
