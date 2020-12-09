@@ -3822,9 +3822,6 @@ public class RecipeService extends RecipeBaseService {
         }else {
             drugListMatch.setDrugType(drug.getDrugType());
         }
-        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
-            drugListMatch.setUseDose(drug.getUseDose());
-        }
         if (ObjectUtils.isEmpty(drug.getPack())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pack is required");
         }else {
