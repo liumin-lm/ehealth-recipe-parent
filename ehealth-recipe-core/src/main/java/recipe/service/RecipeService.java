@@ -850,18 +850,18 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void generateBarCodeForRecipePdfAndSwap(Integer recipeId, String recipeFileId, String recipeCode) {
-        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(recipeFileId)) {
-            return;
-        }
-        try {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            String newPfd = CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipeFileId, recipeCode);
-            if (StringUtils.isNotEmpty(newPfd)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", newPfd));
-            }
-        } catch (Exception e) {
-            LOGGER.error("generateBarCodeForRecipePdfAndSwap error. recipeId={}", recipeId, e);
-        }
+//        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(recipeFileId)) {
+//            return;
+//        }
+//        try {
+//            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//            String newPfd = CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipeFileId, recipeCode);
+//            if (StringUtils.isNotEmpty(newPfd)) {
+//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", newPfd));
+//            }
+//        } catch (Exception e) {
+//            LOGGER.error("generateBarCodeForRecipePdfAndSwap error. recipeId={}", recipeId, e);
+//        }
     }
 
     //重试二次医生审核通过签名
@@ -3577,6 +3577,10 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
+    public void UpdateReceiverInfoRecipePdfRunable(Integer recipeId) {
+        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+    }
 
     /**
      * 查询单个处方在HIS中的状态
