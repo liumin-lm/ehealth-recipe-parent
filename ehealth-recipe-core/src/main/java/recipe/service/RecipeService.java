@@ -3007,15 +3007,6 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    @RpcService
-    @Deprecated
-    public Map<String, Object> queryPdfRecipeLabelById(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
-        Map<String, Object> paramMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
-        return paramMap;
-    }
-
     /**
      * 健康端获取处方详情-----合并处方
      *
