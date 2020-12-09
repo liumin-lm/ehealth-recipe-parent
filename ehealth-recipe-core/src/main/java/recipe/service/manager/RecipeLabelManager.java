@@ -59,6 +59,12 @@ public class RecipeLabelManager {
      * @return
      */
     public Map<String, Object> queryPdfRecipeLabelById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
+        //因与前端公用接口 特殊处理性别转化
+        result.forEach((k, v) -> v.forEach(a -> {
+            if ("patient.patientSex".equals(a.getEnglishName())) {
+                a.setValue(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(a.getValue())));
+            }
+        }));
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         Integer recipeId = recipe.getRecipeId();
@@ -93,6 +99,12 @@ public class RecipeLabelManager {
      * @return
      */
     public String queryPdfStrById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
+        //因与前端公用接口 特殊处理性别转化
+        result.forEach((k, v) -> v.forEach(a -> {
+            if ("patient.patientSex".equals(a.getEnglishName())) {
+                a.setValue(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(a.getValue())));
+            }
+        }));
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         //组装生成pdf的参数
         Map<String, Object> map = new HashMap<>();
