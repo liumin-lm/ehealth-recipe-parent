@@ -71,6 +71,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -1266,7 +1267,7 @@ public class RecipeServiceSub {
     public static PatientDTO convertPatientForRAP(PatientDTO patient) {
         PatientDTO p = new PatientDTO();
         p.setPatientName(patient.getPatientName());
-        p.setPatientSex(patient.getPatientSex());
+        p.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", patient.getPatientSex()));
         p.setBirthday(patient.getBirthday());
         p.setPatientType(patient.getPatientType());
         p.setStatus(patient.getStatus());
