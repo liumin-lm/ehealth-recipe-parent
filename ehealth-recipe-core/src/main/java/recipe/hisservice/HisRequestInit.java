@@ -27,6 +27,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -45,13 +46,12 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.manager.EmrRecipeManager;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+import java.util.stream.Collectors;
 
 /**
  * company: ngarihealth
@@ -717,11 +717,8 @@ public class HisRequestInit {
                 //合并支付的处方需要将所有his处方编码传过去
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 List<Recipe> recipeS = recipeDAO.findRecipeListByOrderCode(recipe.getOrderCode());
-                if(recipeS != null && recipeS.size() > 0){
-                    List<String> recipeNoS = new ArrayList<>();
-                    for (int i = 0; i < recipeS.size(); i++) {
-                        recipeNoS.add(recipe.getRecipeCode());
-                    }
+                if (CollectionUtils.isNotEmpty(recipeS)) {
+                    List<String> recipeNoS = recipeS.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
                     requestTO.setRecipeNoS(recipeNoS);
                 }
             }
