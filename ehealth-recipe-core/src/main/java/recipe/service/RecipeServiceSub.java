@@ -141,8 +141,8 @@ public class RecipeServiceSub {
     /**
      * 获取pdf byte 格式
      *
-     * @param result
-     * @param recipeMap
+     * @param recipeId
+     * @param organId
      * @return
      */
     public String queryPdfStrById(int recipeId, Integer organId) {
@@ -180,6 +180,13 @@ public class RecipeServiceSub {
         }
     }
 
+    /**
+     * 获取配置的处方签
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
