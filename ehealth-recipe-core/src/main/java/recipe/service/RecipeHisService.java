@@ -543,14 +543,14 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipeId
      * @return
      */
-    public void getRecipeSinglePayStatusQuery(Integer recipeId) {
+    public Integer getRecipeSinglePayStatusQuery(Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
-            return;
+            return null;
         }
         if (skipHis(recipe)) {
-            return;
+            return null;
         }
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
@@ -571,11 +571,14 @@ public class RecipeHisService extends RecipeBaseService {
                 if (status == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.HAVE_PAY, null);
                     LOGGER.info("getRecipeSinglePayStatusQuery update success");
+                    return status;
                 }
             }
         } else {
             LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+            return null;
         }
+        return null;
     }
 
     /**
