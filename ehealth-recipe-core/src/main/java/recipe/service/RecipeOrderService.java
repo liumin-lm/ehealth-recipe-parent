@@ -1431,9 +1431,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 for (Recipe recipeItem : recipeList) {
                     //到院取药  && recipeItem.getStatus() == 2
                     if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1) {
-                        recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
-                        recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
-                        LOGGER.info("getOrderDetailById ListSingleQuery recipeId :{}", recipeItem.getRecipeId());
+                        Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
+                        if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
+                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
+                        }
                     }
                 }
             }
