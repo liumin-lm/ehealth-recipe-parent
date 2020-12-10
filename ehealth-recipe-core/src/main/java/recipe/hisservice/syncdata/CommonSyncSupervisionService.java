@@ -380,7 +380,14 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
             req.setVerificationStatus(getVerificationStatus(recipe));
-
+            //处方pdfId
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                req.recipeFileId(recipe.getChemistSignFile());
+            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                req.recipeFileId(recipe.getSignFile());
+            } else {
+                LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
+            }
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
