@@ -58,6 +58,7 @@ public class HisInventoryClient extends BaseClient {
             info.setPharmacyId(a.getPharmacyId());
             info.setProducerCode(a.getProducerCode());
             info.setDrugBatch(a.getDrugBatch());
+            info.setSalePrice(a.getSalePrice());
             infoList.add(info);
         });
         request.setInfo(infoList);

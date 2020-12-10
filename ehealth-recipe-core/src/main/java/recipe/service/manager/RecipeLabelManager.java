@@ -51,6 +51,13 @@ public class RecipeLabelManager {
     @Resource
     private IESignBaseService esignService;
 
+    /**
+     * 获取pdf oss id
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
     public Map<String, Object> queryPdfRecipeLabelById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
@@ -78,7 +85,13 @@ public class RecipeLabelManager {
         return backMap;
     }
 
-
+    /**
+     * 获取pdf byte 格式
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
     public String queryPdfStrById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         //组装生成pdf的参数
@@ -95,8 +108,7 @@ public class RecipeLabelManager {
         map.put("rp", String.valueOf(rpTorx));
         map.put("paramMap", result);
         logger.info("RecipeLabelManager queryPdfRecipeLabelById map={}", JSONUtils.toString(map));
-        String recipePDF = esignService.createSignRecipePDF(map);
-        return recipePDF;
+        return esignService.createSignRecipePDF(map);
     }
 
     /**
@@ -112,13 +124,13 @@ public class RecipeLabelManager {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id为空");
         }
-        //处理特殊字段拼接
-        setRecipeMap(recipeMap);
-
         Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
         if (CollectionUtils.isEmpty(labelMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
         }
+        //处理特殊字段拼接
+        setRecipeMap(recipeMap, (List<Scratchable>) labelMap.get("moduleFive"));
+
         Map<String, List<RecipeLabelVO>> resultMap = new HashMap<>();
         labelMap.forEach((k, v) -> {
             List<Scratchable> value = (List<Scratchable>) v;
@@ -187,10 +199,17 @@ public class RecipeLabelManager {
      *
      * @param recipeMap
      */
-    private void setRecipeMap(Map<String, Object> recipeMap) {
+    private void setRecipeMap(Map<String, Object> recipeMap, List<Scratchable> list) {
         if (CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeMap is null!");
         }
+        //处理性别转化
+        PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
+        if (null != patientDTO && StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
+            patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
+            //  recipeMap.put("patient", patientDTO);
+        }
+        //签名字段替换
         String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
         String doctorSignImgToken = null == recipeMap.get("doctorSignImgToken") ? "" : recipeMap.get("doctorSignImgToken").toString();
         if (!StringUtils.isAnyEmpty(doctorSignImg, doctorSignImgToken)) {
@@ -200,6 +219,22 @@ public class RecipeLabelManager {
         String checkerSignImgToken = null == recipeMap.get("checkerSignImgToken") ? "" : recipeMap.get("checkerSignImgToken").toString();
         if (!StringUtils.isAnyEmpty(checkerSignImg, checkerSignImgToken)) {
             recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
+        }
+        //机构名称替换
+        if (!CollectionUtils.isEmpty(list)) {
+            String boxDesc = null;
+            for (Scratchable scratchable : list) {
+                if ("recipe.organName".equals(scratchable.getBoxLink()) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
+                    boxDesc = scratchable.getBoxDesc();
+                }
+            }
+            if (StringUtils.isNotEmpty(boxDesc)) {
+                RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
+                if (null != recipeBean) {
+                    recipeBean.setOrganName(boxDesc);
+                    //recipeMap.put("recipe", recipeBean);
+                }
+            }
         }
     }
 
@@ -274,7 +309,7 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(detail.getMemo())) {
                 dTotal = dTotal + "*" + detail.getMemo();
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getDrugName() + "：" + dTotal));
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + "：" + dTotal));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));

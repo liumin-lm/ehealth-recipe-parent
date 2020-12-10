@@ -17,11 +17,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.purchase.PurchaseService;
 import recipe.service.RecipeServiceSub;
 
 import java.util.*;
@@ -110,11 +112,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
         Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
         Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
-        if (showSendToEnterprises && enterprisesSend == null) {
+        if (showSendToEnterprises && enterprisesSend == 0L) {
             //表示运营平台虽然配置了药企配送但是该机构没有配置可配送的药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToEnterprises");
         }
-        if (showSendToHos && null == hosSend ) {
+        if (showSendToHos && hosSend == 0L ) {
             //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
         }
@@ -208,6 +210,14 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
+    public void setItemListNoShow(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+        if (recipe.getClinicOrgan() == 1002753){
+            List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+            removeGiveModeData(giveModeButtonBeans, "supportMedicalPayment");
+        }
+    }
+
+    @Override
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //不支持配送，则按钮都不显示--包括药店取药
@@ -215,6 +225,13 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
             removeGiveModeData(giveModeButtonBeans, "showSendToHos");
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
+        }
+        //从运营平台获取配置项和现在的按钮集合取交集
+        GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        List<GiveModeButtonBean> fromYyptButtons = giveModeShowButton.getGiveModeButtons();
+        if (fromYyptButtons != null) {
+            fromYyptButtons.retainAll(giveModeShowButtonVO.getGiveModeButtons());
+            giveModeShowButtonVO.setGiveModeButtons(fromYyptButtons);
         }
     }
 

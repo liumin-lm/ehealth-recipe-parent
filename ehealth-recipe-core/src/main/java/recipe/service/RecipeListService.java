@@ -1333,6 +1333,7 @@ public class RecipeListService extends RecipeBaseService {
 
     private GiveModeShowButtonVO getShowButtonNew(PatientTabStatusRecipeDTO record, Recipe recipe){
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
             //校验数据
@@ -1350,6 +1351,11 @@ public class RecipeListService extends RecipeBaseService {
         giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
         //设置按钮展示类型
         giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
+        //设置特殊按钮
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
+        //设置列表不显示的按钮
+        giveModeBase.setItemListNoShow(giveModeShowButtonVO, recipe);
         //后置设置处理
         giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         return giveModeShowButtonVO;

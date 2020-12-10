@@ -1948,7 +1948,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public String getItemSkipType(Integer organId) {
         Recipe recipe = new Recipe();
         GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
-        Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getButtonSkipType));
-        return (String)result.get("listItem");
+        return giveModeShowButtonVO.getListItem().getButtonSkipType();
     }
 }

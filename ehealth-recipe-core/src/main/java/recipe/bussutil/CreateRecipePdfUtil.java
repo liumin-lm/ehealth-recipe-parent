@@ -102,12 +102,12 @@ public class CreateRecipePdfUtil {
         BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), com.lowagie.text.pdf.BaseFont.IDENTITY_H, com.lowagie.text.pdf.BaseFont.NOT_EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 10);
-        page.setTextMatrix(41, 581);
+        page.setFontAndSize(bf, 8);
+        page.setTextMatrix(41, 605);
         page.showText("收货人姓名：" + receiver);
-        page.setTextMatrix(226, 581);
+        page.setTextMatrix(226, 605);
         page.showText("收货人电话：" + recMobile);
-        page.setTextMatrix(41, 561);
+        page.setTextMatrix(41, 595);
         page.showText("收货人地址：" + completeAddress);
         page.endText();
         stamper.close();
@@ -313,21 +313,14 @@ public class CreateRecipePdfUtil {
      */
     public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
                                                          String pdfBase64String, String doctorSignImageId) throws Exception{
-        float xPoint = 0f;
-        float yPoint = 0f;
-        if(isDoctor){
-                xPoint = 95f;
-                yPoint = 100f;
-        }else{
-            if(isTcm){
-                //药师-中药
-                xPoint = 280f;
-                yPoint = 100f;
-            }else{
-                //药师-西药
-                xPoint = 470f;
-                yPoint = 80f;
-            }
+        float xPoint;
+        float yPoint;
+        if (isDoctor) {
+            xPoint = 95f;
+            yPoint = 100f;
+        } else {
+            xPoint = 280f;
+            yPoint = 100f;
         }
 
         String fileId = null;
