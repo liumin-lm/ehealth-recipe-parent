@@ -409,9 +409,9 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             req.setVerificationStatus(getVerificationStatus(recipe));
             //处方pdfId
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                req.recipeFileId(recipe.getChemistSignFile());
+                req.setRecipeFileId(recipe.getChemistSignFile());
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                req.recipeFileId(recipe.getSignFile());
+                req.setRecipeFileId(recipe.getSignFile());
             } else {
                 LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
             }
