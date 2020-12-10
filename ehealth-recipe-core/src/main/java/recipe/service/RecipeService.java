@@ -2594,7 +2594,7 @@ public class RecipeService extends RecipeBaseService {
                         if (drugForms!= null && drugForms.size()>0){
                             int i = drugForms.indexOf(drugform);
                             if (-1 != i){
-                                List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode());
+                                List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(),organId);
                                 if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
                                     for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
                                         drugListMatchDAO.remove(drugListMatch.getDrugId());
@@ -2606,7 +2606,7 @@ public class RecipeService extends RecipeBaseService {
                                 continue;
                             }
                         }else {
-                            List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode());
+                            List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(),organId);
                             if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
                                 for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
                                     drugListMatchDAO.remove(drugListMatch.getDrugId());
