@@ -107,10 +107,6 @@ public class RecipeLabelManager {
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         map.put("rp", String.valueOf(rpTorx));
         map.put("paramMap", result);
-        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
-        if (null != recipeBean) {
-            map.put("doctorName", recipeBean.getDoctorName());
-        }
         logger.info("RecipeLabelManager queryPdfRecipeLabelById map={}", JSONUtils.toString(map));
         return esignService.createSignRecipePDF(map);
     }
