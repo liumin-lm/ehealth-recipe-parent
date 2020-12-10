@@ -1401,7 +1401,7 @@ public class RecipeServiceSub {
      * @param isDoctor true:医生端  false:健康端
      * @return
      */
-    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
+    public static Map<String, Object>  getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1786,7 +1786,9 @@ public class RecipeServiceSub {
             //EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             map.put("recipeExtend", recipeExtend);
         }
-        map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
+        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+        map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
