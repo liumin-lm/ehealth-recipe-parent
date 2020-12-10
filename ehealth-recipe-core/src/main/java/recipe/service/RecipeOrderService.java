@@ -1428,8 +1428,8 @@ public class RecipeOrderService extends RecipeBaseService {
             //订单有效
             if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
                 for (Recipe recipeItem : recipeList) {
-                    //到院取药
-                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && recipeItem.getStatus() == 2) {
+                    //到院取药  && recipeItem.getStatus() == 2
+                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1) {
                         recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
                         LOGGER.info("getOrderDetailById ListSingleQuery recipeId :{}", recipeItem.getRecipeId());
                     }
