@@ -20,11 +20,16 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -48,6 +53,8 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.presettle.factory.OrderTypeFactory;
+import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
@@ -204,7 +211,7 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo) {
-        LOG.info("PayModeOnline order recipeId={}", JSONUtils.toString(dbRecipes));
+        LOG.info("PayModeOnline order recipes={}", JSONUtils.toString(dbRecipes));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         return getOrderCreateResult(dbRecipes, extInfo, result);
 
@@ -235,17 +242,13 @@ public class PayModeOnline implements IPurchaseService {
             }
         }
 
-        //杭州市互联网bug临时处理下
-        if (RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType) && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())) {
-            orderType = RecipeBussConstant.ORDERTYPE_HZS;
-        }
-
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("支付信息不全");
             return result;
         }
         order.setWxPayWay(payway);
+        //不能去掉，后面会用到
         order.setOrderType(orderType);
         DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
         //处理详情
@@ -332,16 +335,13 @@ public class PayModeOnline implements IPurchaseService {
         //设置为有效订单
         order.setEffective(1);
 
-        // 根据咨询单特殊来源标识和处方单特殊来源标识设置处方订单orderType为省中，邵逸夫医保小程序
-        if (null != recipeList.get(0).getClinicId()) {
-            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-            ConsultBean consultBean = consultService.getById(recipeList.get(0).getClinicId());
-            if (null != consultBean) {
-                if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(recipeList.get(0).getRecipeSource()))) {
-                    order.setOrderType(3);
-                }
-            }
-        }
+        OrderTypeCreateConditionRequest orderTypeCreateConditionRequest = OrderTypeCreateConditionRequest.builder()
+                .recipe(recipeList.get(0))
+                .drugsEnterprise(dep)
+                .recipeOrder(order)
+                .recipeExtend(recipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId()))
+                .build();
+        order.setOrderType(OrderTypeFactory.getRecipeOrderType(orderTypeCreateConditionRequest));
 
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
