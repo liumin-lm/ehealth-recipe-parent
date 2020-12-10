@@ -32,11 +32,14 @@ import com.ngari.message.api.service.IRevisitMessageService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.service.IRevisitService;
@@ -76,11 +79,14 @@ import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.RecipeLabelManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -110,6 +116,8 @@ public class RecipeServiceSub {
 
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeLabelManager recipeLabelManager;
 
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
@@ -126,10 +134,67 @@ public class RecipeServiceSub {
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
-    private static RecipeListService recipeListService=ApplicationUtils.getRecipeService(RecipeListService.class);;
+    private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
+    /**
+     * 获取pdf byte 格式
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
+    public String queryPdfStrById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        try {
+            return recipeLabelManager.queryPdfStrById(result, recipeMap);
+        } catch (Exception e) {
+            LOGGER.error("queryPdfRecipeLabelById error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
+        }
+    }
+
+    /**
+     * 获取pdf oss id
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
+    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        try {
+            return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
+        } catch (Exception e) {
+            LOGGER.error("queryPdfRecipeLabelById error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
+        }
+    }
+
+    /**
+     * 获取配置的处方签
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
+    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        return result;
+    }
 
     /**
      * @param recipeBean
@@ -1607,6 +1672,7 @@ public class RecipeServiceSub {
             }
             //患者处方单详情页按钮显示
             patientRecipeInfoBottonShow(map, recipe, order);
+            patientRecipeInfoBottonShowNew(map, recipe, order);
         }
         
 
@@ -1717,7 +1783,7 @@ public class RecipeServiceSub {
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+            //EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             map.put("recipeExtend", recipeExtend);
         }
         map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
@@ -1799,6 +1865,32 @@ public class RecipeServiceSub {
     private static boolean canShowContinueSignFlag(Recipe recipe) {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "continueOpenRecipeFlag") && StringUtils.isEmpty(recipe.getOrderCode());
+    }
+
+    private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
+        GiveModeShowButtonVO giveModeShowButtonVO ;
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
+        try {
+            //校验数据
+            giveModeBase.validRecipeData(recipe);
+        } catch (Exception e) {
+            LOGGER.error("patientRecipeInfoBottonShowNew error:{}.", e.getMessage());
+            return;
+        }
+        //从运营平台获取配置项
+        giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        //设置按钮是否可点击
+        giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
+        //设置按钮展示类型
+        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
+        //设置其他按钮
+        giveModeBase.setOtherButton(giveModeShowButtonVO, recipe);
+        //设置特殊按钮
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
+        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
+        map.put("giveModeShowButtonVO", giveModeShowButtonVO);
     }
 
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
@@ -2063,7 +2155,7 @@ public class RecipeServiceSub {
      * @date: 2019/9/10
      * @author: JRK
      */
-    private static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+    public static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
         //互联网的不需要下载处方笺
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             return false;
@@ -2390,8 +2482,10 @@ public class RecipeServiceSub {
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
         ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
+        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         Integer consultId = recipe.getClinicId();
         Integer bussSource = recipe.getBussSource();
+        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()));
         if (consultId != null) {
             if (null != rMap && null == rMap.get("consultId")) {
                 rMap.put("consultId", consultId);
@@ -2566,6 +2660,9 @@ public class RecipeServiceSub {
 
         if (result) {
             msg = "处方撤销成功";
+            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
+            //将药品移出病历
+            emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
             //向患者推送处方撤销消息
             if (!(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() && recipe.canMedicalPay())) {
                 //医保的处方待审核时患者无法看到处方，不发送撤销消息提示

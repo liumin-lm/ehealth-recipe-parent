@@ -46,6 +46,8 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -1101,6 +1103,8 @@ public class RecipeListService extends RecipeBaseService {
             getPageMsg(patientRecipe, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
             PayModeShowButtonBean buttons = getShowButton(patientRecipe, recipe);
+            GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(patientRecipe, recipe);
+            patientRecipe.setGiveModeShowButtonVO(giveModeShowButtonVO);
             patientRecipe.setButtons(buttons);
             //根据隐方配置返回处方详情
             boolean isReturnRecipeDetail = isReturnRecipeDetail(patientRecipe.getRecipeId());
@@ -1227,6 +1231,8 @@ public class RecipeListService extends RecipeBaseService {
             getPageMsg(record, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
             record.setButtons(getShowButton(record, recipe));
+            GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(record, recipe);
+            record.setGiveModeShowButtonVO(giveModeShowButtonVO);
             boolean isReturnRecipeDetail = isReturnRecipeDetail(record.getRecipeId());
             //返回是否隐方
             record.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
@@ -1324,6 +1330,36 @@ public class RecipeListService extends RecipeBaseService {
         return jumpPage;
     }
 
+
+    private GiveModeShowButtonVO getShowButtonNew(PatientTabStatusRecipeDTO record, Recipe recipe){
+        GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
+        try {
+            //校验数据
+            giveModeBase.validRecipeData(recipe);
+        } catch (Exception e) {
+            LOGGER.error("getShowButtonNew error:{}.", e.getMessage());
+            return giveModeShowButtonVO;
+        }
+        //从运营平台获取配置项
+        giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        if (CollectionUtils.isEmpty(giveModeShowButtonVO.getGiveModeButtons())) {
+            return giveModeShowButtonVO;
+        }
+        //设置按钮是否可点击
+        giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
+        //设置按钮展示类型
+        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
+        //设置特殊按钮
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
+        //设置列表不显示的按钮
+        giveModeBase.setItemListNoShow(giveModeShowButtonVO, recipe);
+        //后置设置处理
+        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
+        return giveModeShowButtonVO;
+    }
 
     /**
      * @param record 获取医院的配置项
