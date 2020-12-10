@@ -1281,7 +1281,7 @@ public class RecipeHisService extends RecipeBaseService {
                 OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                 List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
                 AccessDrugEnterpriseService remoteService = null;
-                if (null != enterprises) {
+                if (CollectionUtils.isNotEmpty(enterprises)) {
                     remoteService = remoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
                 }
                 if (null == remoteService) {
