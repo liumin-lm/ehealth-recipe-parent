@@ -2503,7 +2503,13 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
                 if (response != null && "200".equals(response.getMsgCode())) {
                     thirdUrl = response.getData();
-                    skipThirdBean.setUrl(thirdUrl);
+                    //前置机传过来的可能是json字符串也可能是非json
+                    try {
+                        skipThirdBean = JSONObject.parseObject(thirdUrl, SkipThirdBean.class);
+                    } catch (Exception e) {
+                        //说明不是标准的JSON格式
+                        skipThirdBean.setUrl(thirdUrl);
+                    }
                 } else {
                     throw new DAOException(609, "获取第三方跳转链接异常");
                 }
