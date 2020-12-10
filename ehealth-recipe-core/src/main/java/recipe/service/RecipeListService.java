@@ -1354,6 +1354,8 @@ public class RecipeListService extends RecipeBaseService {
         //设置特殊按钮
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
+        //设置列表不显示的按钮
+        giveModeBase.setItemListNoShow(giveModeShowButtonVO, recipe);
         //后置设置处理
         giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         return giveModeShowButtonVO;
