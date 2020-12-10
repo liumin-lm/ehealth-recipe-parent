@@ -1950,4 +1950,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
         return giveModeShowButtonVO.getListItem().getButtonSkipType();
     }
+
+    @Override
+    public String getGiveModeText(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        return GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe);
+    }
 }

@@ -777,5 +777,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     String getItemSkipType(Integer organId);
+
+    @RpcService
+    String getGiveModeText(Integer recipeId);
 }
 

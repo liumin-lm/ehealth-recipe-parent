@@ -237,6 +237,9 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
 
     @Override
     public String getGiveModeTextByRecipe(Recipe recipe) {
+        if (recipe == null) {
+            return "";
+        }
         GiveModeShowButtonVO giveModeShowButtonVO = this.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         String giveModeKey ;
         if (new Integer(1).equals(recipe.getGiveMode()) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
