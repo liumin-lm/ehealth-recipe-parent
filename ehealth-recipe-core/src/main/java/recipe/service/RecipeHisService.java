@@ -538,7 +538,7 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     /**
-     * 单个处方查询
+     * 单个处方查询更新状态
      *
      * @param recipeId
      * @return
@@ -572,9 +572,9 @@ public class RecipeHisService extends RecipeBaseService {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.HAVE_PAY, null);
                 }
             }
-            } else {
-                LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
-            }
+        } else {
+            LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+        }
     }
 
     /**
