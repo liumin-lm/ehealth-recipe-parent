@@ -128,7 +128,7 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(labelMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
         }
-        //处理特殊字段拼接
+        //处理特殊字段
         setRecipeMap(recipeMap, (List<Scratchable>) labelMap.get("moduleFive"));
 
         Map<String, List<RecipeLabelVO>> resultMap = new HashMap<>();
@@ -207,7 +207,6 @@ public class RecipeLabelManager {
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         if (null != patientDTO && StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
             patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
-            //  recipeMap.put("patient", patientDTO);
         }
         //签名字段替换
         String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
@@ -232,7 +231,6 @@ public class RecipeLabelManager {
                 RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
                 if (null != recipeBean) {
                     recipeBean.setOrganName(boxDesc);
-                    //recipeMap.put("recipe", recipeBean);
                 }
             }
         }

@@ -1,8 +1,10 @@
 package com.ngari.recipe.recipe.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -13,6 +15,8 @@ import static javax.persistence.GenerationType.IDENTITY;
  * @author Created by liuxiaofeng on 2020/12/10.
  */
 @Entity
+@Schema
+@Access(AccessType.PROPERTY)
 public class RecipeInfoExportDTO implements Serializable{
     private static final long serialVersionUID = 2739705893333991122L;
 
@@ -20,13 +24,17 @@ public class RecipeInfoExportDTO implements Serializable{
     private String patientName;
     private String mpiId;
     private String organName;
+    @ItemProperty(alias = "开方科室")
+    @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
     private Integer doctor;
     private String organDiseaseName;
     private BigDecimal totalMoney;
     private Integer checker;
     private Date checkDateYs;
+    @Dictionary(id = "eh.cdr.dictionary.FromFlag")
     private Integer fromflag;
+    @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
     private Integer status;
     private Date payTime;
     private String doctorName;
