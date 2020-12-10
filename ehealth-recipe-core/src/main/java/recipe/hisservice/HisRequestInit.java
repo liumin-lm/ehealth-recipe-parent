@@ -657,12 +657,9 @@ public class HisRequestInit {
                 //合并支付的处方需要将所有his处方编码传过去
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 List<Recipe> recipeS = recipeDAO.findRecipeListByOrderCode(recipe.getOrderCode());
-                if(recipeS != null && recipeS.size() > 0){
-                    List<String> recipeNoS = new ArrayList<>();
-                    for (int i = 0; i < recipeS.size(); i++) {
-                        recipeNoS.add(recipe.getRecipeCode());
-                    }
-                    requestTO.setRecipeCodeS(recipeNoS);
+                if (CollectionUtils.isNotEmpty(recipeS)) {
+                    List<String> recipeNoS = recipeS.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                    requestTO.setRecipeNoS(recipeNoS);
                 }
             }
 
