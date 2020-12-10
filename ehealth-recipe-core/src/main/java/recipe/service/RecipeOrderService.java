@@ -1432,10 +1432,13 @@ public class RecipeOrderService extends RecipeBaseService {
                     //到院取药  && recipeItem.getStatus() == 2
                     if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1) {
                         recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
+                        recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
                         LOGGER.info("getOrderDetailById ListSingleQuery recipeId :{}", recipeItem.getRecipeId());
                     }
                 }
             }
+            //更新处方recipe的status
+
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 //设置地址，先取处方单address4的值，没有则取订单地址
