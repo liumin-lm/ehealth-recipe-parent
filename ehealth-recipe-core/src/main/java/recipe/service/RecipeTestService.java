@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.itextpdf.text.DocumentException;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
@@ -15,8 +14,6 @@ import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.account.session.ClientSession;
-import ctd.mvc.upload.exception.FileRegistryException;
-import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
@@ -32,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
-import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
 import recipe.service.manager.EmrRecipeManager;
@@ -162,40 +158,6 @@ public class RecipeTestService {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
         return drugListExtService.findDrugListsByNameOrCodePageStaitc(organId, drugType, drugName, start);
-    }
-
-//    @RpcService
-//    public void updateCheckerName(){
-//        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-//        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-//        List<RecipeCheck> recipeChecks = recipeCheckDAO.findAllRecipeCheck();
-//        for (RecipeCheck recipeCheck : recipeChecks) {
-//            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipeCheck.getChecker());
-//            if (doctorDTO != null) {
-//                recipeCheck.setCheckerName(doctorDTO.getName());
-//                recipeCheckDAO.update(recipeCheck);
-//            }
-//        }
-//    }
-
-    @RpcService
-    public String testChangePdf(String ossid){
-
-        try {
-            String s = CreateRecipePdfUtil.transPdfIdForRecipePdf(ossid);
-            return s;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        } catch (FileRegistryException e) {
-            e.printStackTrace();
-        } catch (FileRepositoryException e) {
-            e.printStackTrace();
-        }
-        return null;
-
-
     }
 
     @RpcService

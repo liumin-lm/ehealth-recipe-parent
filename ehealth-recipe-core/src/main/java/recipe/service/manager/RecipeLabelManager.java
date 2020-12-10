@@ -51,7 +51,20 @@ public class RecipeLabelManager {
     @Resource
     private IESignBaseService esignService;
 
+    /**
+     * 获取pdf oss id
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
     public Map<String, Object> queryPdfRecipeLabelById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
+        //因与前端公用接口 特殊处理性别转化
+        result.forEach((k, v) -> v.forEach(a -> {
+            if ("patient.patientSex".equals(a.getEnglishName())) {
+                a.setValue(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(a.getValue())));
+            }
+        }));
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         Integer recipeId = recipe.getRecipeId();
@@ -71,9 +84,43 @@ public class RecipeLabelManager {
         eSignDTO.setOrgan(recipe.getClinicOrgan());
         eSignDTO.setFileName("recipe_" + recipeId + ".pdf");
         eSignDTO.setParamMap(Collections.unmodifiableMap(result));
-        logger.info("RecipeLabelManager queryPdfRecipeLabelById eSignDTO={}", JSONUtils.toString(eSignDTO));
+        Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
+        eSignDTO.setRp(String.valueOf(rpTorx));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
+        logger.error("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
         return backMap;
+    }
+
+    /**
+     * 获取pdf byte 格式
+     *
+     * @param result
+     * @param recipeMap
+     * @return
+     */
+    public String queryPdfStrById(Map<String, List<RecipeLabelVO>> result, Map<String, Object> recipeMap) {
+        //因与前端公用接口 特殊处理性别转化
+        result.forEach((k, v) -> v.forEach(a -> {
+            if ("patient.patientSex".equals(a.getEnglishName())) {
+                a.setValue(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(a.getValue())));
+            }
+        }));
+        RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
+        //组装生成pdf的参数
+        Map<String, Object> map = new HashMap<>();
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            //中药pdf参数
+            map.put("templateType", "tcm");
+            createChineMedicinePDF(result, recipeMap, recipe);
+        } else {
+            map.put("templateType", "wm");
+            createMedicinePDF(result, recipe);
+        }
+        Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
+        map.put("rp", String.valueOf(rpTorx));
+        map.put("paramMap", result);
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById map={}", JSONUtils.toString(map));
+        return esignService.createSignRecipePDF(map);
     }
 
     /**
@@ -203,7 +250,7 @@ public class RecipeLabelManager {
                 BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP);
                 stringBuilder.append(drugCost).append("元");
             }
-            stringBuilder.append(" \\r\\n ");
+            stringBuilder.append(" \n ");
             //每次剂量+剂量单位
             String useDose;
             if (StringUtils.isNotEmpty(d.getUseDoseStr())) {
@@ -221,9 +268,9 @@ public class RecipeLabelManager {
             stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(useDay);
 
             if (!StringUtils.isEmpty(d.getMemo())) {
-                stringBuilder.append(" \\r\\n ").append("备注:").append(d.getMemo());
+                stringBuilder.append(" \n ").append("备注:").append(d.getMemo());
             }
-            list.add(new RecipeLabelVO("medicine", "drugInfo", stringBuilder.toString()));
+            list.add(new RecipeLabelVO("medicine", "drugInfo" + i, stringBuilder.toString()));
         }
     }
 
@@ -251,7 +298,7 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(detail.getMemo())) {
                 dTotal = dTotal + "*" + detail.getMemo();
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getDrugName() + "：" + dTotal));
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + "：" + dTotal));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));

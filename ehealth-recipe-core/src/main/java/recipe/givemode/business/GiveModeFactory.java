@@ -15,8 +15,8 @@ import recipe.dao.RecipeExtendDAO;
  */
 public class GiveModeFactory {
 
-    public static IGiveModeBase getGiveModeBaseByRecipeMode(Recipe recipe) {
-        IGiveModeBase giveModeBase = AppContextHolder.getBean("ngariHealthGiveModeService", NgariHealthGiveModeService.class);
+    public static IGiveModeBase getGiveModeBaseByRecipe(Recipe recipe) {
+        IGiveModeBase giveModeBase = AppContextHolder.getBean("commonGiveModeService", commonGiveModeService.class);
         if (new Integer(2).equals(recipe.getRecipeSource())) {
             //表示来源于线下转线上的处方单
             HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
@@ -26,11 +26,13 @@ public class GiveModeFactory {
                 return AppContextHolder.getBean("bjGiveModeService", BjGiveModeService.class);
             }
         }
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        //杭州市互联网用到从预校验中his返回的配送方式
-        if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
-            return AppContextHolder.getBean("fromHisGiveModeService", BjGiveModeService.class);
+        if (recipe.getRecipeId() != null) {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            //杭州市互联网用到从预校验中his返回的配送方式
+            if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
+                return AppContextHolder.getBean("fromHisGiveModeService", FromHisGiveModeService.class);
+            }
         }
         return giveModeBase;
     }

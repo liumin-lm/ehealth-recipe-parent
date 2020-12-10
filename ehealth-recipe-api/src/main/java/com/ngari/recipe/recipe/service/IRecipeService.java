@@ -769,5 +769,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds);
+
+    /**
+     * 获取该机构对应的列表跳转的类型
+     * @param organId
+     * @return
+     */
+    @RpcService
+    String getItemSkipType(Integer organId);
 }
 

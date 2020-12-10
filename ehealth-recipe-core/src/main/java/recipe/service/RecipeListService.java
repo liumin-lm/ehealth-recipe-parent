@@ -866,7 +866,7 @@ public class RecipeListService extends RecipeBaseService {
     public List<PatientTabStatusMergeRecipeDTO> findRecipesForPatientAndTabStatusNew(String tabStatus, String mpiId, Integer index, Integer limit) {
         LOGGER.info("findRecipesForPatientAndTabStatusNew tabStatus:{} mpiId:{} index:{} limit:{} ", tabStatus, mpiId, index, limit);
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatusNew mpiId为空!");
-        //checkUserHasPermissionByMpiId(mpiId);
+        checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
@@ -1103,7 +1103,8 @@ public class RecipeListService extends RecipeBaseService {
             getPageMsg(patientRecipe, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
             PayModeShowButtonBean buttons = getShowButton(patientRecipe, recipe);
-            getShowButtonNew(patientRecipe, recipe);
+            GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(patientRecipe, recipe);
+            patientRecipe.setGiveModeShowButtonVO(giveModeShowButtonVO);
             patientRecipe.setButtons(buttons);
             //根据隐方配置返回处方详情
             boolean isReturnRecipeDetail = isReturnRecipeDetail(patientRecipe.getRecipeId());
@@ -1332,7 +1333,8 @@ public class RecipeListService extends RecipeBaseService {
 
     private GiveModeShowButtonVO getShowButtonNew(PatientTabStatusRecipeDTO record, Recipe recipe){
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipeMode(recipe);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
             //校验数据
             giveModeBase.validRecipeData(recipe);
@@ -1348,7 +1350,10 @@ public class RecipeListService extends RecipeBaseService {
         //设置按钮是否可点击
         giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
         //设置按钮展示类型
-        giveModeBase.setButtonType(record, giveModeShowButtonVO, recipe);
+        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
+        //设置特殊按钮
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
         //后置设置处理
         giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         return giveModeShowButtonVO;

@@ -59,7 +59,7 @@ public class RecipeExtendService {
             }else {
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-                if (StringUtils.isNotBlank(recipe.getOrderCode())){
+                if (recipe != null && StringUtils.isNotBlank(recipe.getOrderCode())){
                     RecipeOrderBillDAO recipeOrderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
                     RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
                     if (null != recipeOrderBill){

@@ -16,14 +16,14 @@ import java.util.List;
 @Component("fromHisGiveModeService")
 public class FromHisGiveModeService extends AbstractGiveModeService implements IGiveModeBase {
     @Override
-    public void setSpecialItem(PatientTabStatusRecipeDTO record, GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
-        super.setSpecialItem(record, giveModeShowButtonVO, recipe, recipeExtend);
+    public void setSpecialItem(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+        super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //浙江省的购药方式按钮显示需要从HIS获取，目前正式环境一条数据都没有
         if ("1".equals(recipeExtend.getGiveModeFormHis())) {
             //只支持配送到家
-            saveGiveModeData(giveModeButtonBeans, "supportHosToSend");
-            saveGiveModeData(giveModeButtonBeans, "supportToEnterprise");
+            saveGiveModeData(giveModeButtonBeans, "showSendToHos");
+            saveGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
         } else if ("2".equals(recipeExtend.getGiveModeFormHis())) {
             //只支持到院取药
             saveGiveModeData(giveModeButtonBeans, "supportToHos");

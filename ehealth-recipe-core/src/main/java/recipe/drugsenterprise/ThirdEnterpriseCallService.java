@@ -477,18 +477,17 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
                     IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
                     PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
-                    if (patientBean != null && StringUtils.isNotBlank(patientBean.getLoginId())){
-                        PatientService patientService = BasicAPI.getService(PatientService.class);
-                        List<PatientDTO> patientList = patientService.findOwnPatient(patientBean.getLoginId());
-                        if (null != patientList && patientList.size() > 0){
-                            PatientDTO userInfo = patientList.get(0);
-                            // 就诊人名称
-                            logisticsOrder.setPatientName(userInfo.getPatientName());
-                            // 就诊人手机号
-                            logisticsOrder.setPatientPhone(userInfo.getMobile());
-                            // 就诊人身份证
-                            logisticsOrder.setPatientIdentityCardNo(StringUtils.isNotBlank(userInfo.getIdcard()) ? userInfo.getIdcard() : userInfo.getIdcard2());
+                    if (patientBean != null ){
+                        // 就诊人名称
+                        logisticsOrder.setPatientName(patientBean.getPatientName());
+                        // 就诊人手机号
+                        logisticsOrder.setPatientPhone(patientBean.getMobile());
+                        // 就诊人身份证
+                        String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
+                        if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18){
+                            cardNo = null;
                         }
+                        logisticsOrder.setPatientIdentityCardNo(cardNo);
                     }
                     // 挂号序号
                     if (recipeInfo.getClinicId() != null) {
