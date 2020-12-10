@@ -17,11 +17,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.purchase.PurchaseService;
 import recipe.service.RecipeServiceSub;
 
 import java.util.*;
@@ -204,6 +206,14 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         } else {
             LOGGER.error("当前按钮的显示信息不存在");
             giveModeShowButtonVO.setButtonType(No_Show_Button);
+        }
+    }
+
+    @Override
+    public void setItemListNoShow(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
+        if (recipe.getClinicOrgan() == 1002753){
+            List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+            removeGiveModeData(giveModeButtonBeans, "supportMedicalPayment");
         }
     }
 

@@ -52,6 +52,13 @@ public interface IGiveModeBase {
     void setButtonType(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
 
     /**
+     * 设置列表不显示的按钮
+     * @param giveModeShowButtonVO
+     * @param recipe
+     */
+    void setItemListNoShow(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
+
+    /**
      * 其他设置项
      * @param giveModeShowButtonVO
      * @param recipe
