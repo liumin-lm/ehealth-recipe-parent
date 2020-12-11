@@ -1716,7 +1716,8 @@ public class RecipeService extends RecipeBaseService {
                             checkFlag = 3;
                         }
                         break;
-                    case "supportOnline":
+                    case "showSendToHos":
+                    case "showSendToEnterprises":
                     case "supportTFDS":
                         if (checkFlag == 0 || checkFlag == 2) {
                             checkFlag = 2;
