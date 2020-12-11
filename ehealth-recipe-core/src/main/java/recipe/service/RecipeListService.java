@@ -1102,10 +1102,8 @@ public class RecipeListService extends RecipeBaseService {
             //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
             getPageMsg(patientRecipe, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
-            PayModeShowButtonBean buttons = getShowButton(patientRecipe, recipe);
             GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(patientRecipe, recipe);
             patientRecipe.setGiveModeShowButtonVO(giveModeShowButtonVO);
-            patientRecipe.setButtons(buttons);
             //根据隐方配置返回处方详情
             boolean isReturnRecipeDetail = isReturnRecipeDetail(patientRecipe.getRecipeId());
             if (!isReturnRecipeDetail && CollectionUtils.isNotEmpty(patientRecipe.getRecipeDetail())) {
@@ -1230,7 +1228,6 @@ public class RecipeListService extends RecipeBaseService {
             //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
             getPageMsg(record, recipe);
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
-            record.setButtons(getShowButton(record, recipe));
             GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(record, recipe);
             record.setGiveModeShowButtonVO(giveModeShowButtonVO);
             boolean isReturnRecipeDetail = isReturnRecipeDetail(record.getRecipeId());
@@ -1326,8 +1323,7 @@ public class RecipeListService extends RecipeBaseService {
      * @author: JRK
      */
     private Integer getJumpPage(Recipe recipe) {
-        Integer jumpPage = null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
-        return jumpPage;
+        return null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
     }
 
 

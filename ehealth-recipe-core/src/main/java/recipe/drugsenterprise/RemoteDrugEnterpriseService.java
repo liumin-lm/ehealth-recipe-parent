@@ -604,14 +604,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //根据机构获取该机构配置的药企,需要查出药企支持的类型
         OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(drugsDataBean.getOrganId(), 1);
-        //获取配置项
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
-        //获取机构配置的支持购药方式
-        Object payModeDeploy = configService.getConfiguration(drugsDataBean.getOrganId(), "payModeDeploy");
-        if(null == payModeDeploy){
-            return result;
-        }
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(drugsDataBean.getOrganId());
         Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));

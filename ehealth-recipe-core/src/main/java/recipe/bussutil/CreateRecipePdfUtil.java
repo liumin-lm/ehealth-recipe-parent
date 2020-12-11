@@ -161,53 +161,6 @@ public class CreateRecipePdfUtil {
         return buffer;
     }
 
-    /**
-     * 为处方pdf文件生成条形码
-     * @param pdfId
-     * @param code
-     */
-    public static String generateBarCodeInRecipePdf(String pdfId,String code) throws Exception{
-        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-        String fileId = null;
-        if (fileMetaRecord != null){
-            File file = new File(fileMetaRecord.getFileName());
-            OutputStream output = new FileOutputStream(file);
-            File barCodeFile = BarCodeUtil.generateFile(code, "barcode.png");
-            //获取图片url
-            URL url = barCodeFile.toURI().toURL();
-            //添加图片
-            addBarCodeImgForRecipePdf(input,output,url);
-            //上传pdf文件
-            byte[] bytes = File2byte(file);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes,fileMetaRecord.getFileName());
-            //删除本地文件
-            file.delete();
-            barCodeFile.delete();
-        }
-        return fileId;
-
-    }
-
-    private static void addBarCodeImgForRecipePdf(InputStream input, OutputStream output, URL url) throws Exception{
-        PdfReader reader = new PdfReader(input);
-        PdfStamper stamper = new PdfStamper(reader, output);
-        PdfContentByte page = stamper.getOverContent(1);
-        //将图片贴入pdf
-        Image image = Image.getInstance(url);
-        //显示的大小为原尺寸的20%
-        image.scalePercent(50);
-        //设置图片在页面中的坐标
-        //image.setAbsolutePosition(285, 781);
-        //date 20200909 修改位置居左
-        image.setAbsolutePosition(20, 781);
-        page.addImage(image);
-        stamper.close();
-        reader.close();
-        input.close();
-    }
 
     //带坐标和比例的的图片放置
     private static void addBarCodeImgForRecipePdfByCoordinates(InputStream input, OutputStream output, URL url,

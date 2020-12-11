@@ -135,6 +135,7 @@ public class RecipeLabelManager {
         labelMap.forEach((k, v) -> {
             List<Scratchable> value = (List<Scratchable>) v;
             if (CollectionUtils.isEmpty(value)) {
+                logger.warn("RecipeLabelManager queryRecipeLabelById value is null k={} ", k);
                 return;
             }
             try {
