@@ -1,5 +1,6 @@
 package recipe.presettle;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -84,6 +85,8 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                 }
                 //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
                 request.setInsuredAreaType("1");
+                //结算的时候会用到
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea",request.getInsuredArea()));
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext != null) {
@@ -146,18 +149,14 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                     String totalAmount = hisResult.getData().getZje();
                     if (ext != null) {
                         Map<String, String> map = Maps.newHashMap();
-                        //杭州互联网用到registerNo、hisSettlementNo
+                        //杭州互联网用到registerNo、hisSettlementNo，支付的时候需要回写
+                        //不知道registerNo有什么用
                         map.put("registerNo", hisResult.getData().getGhxh());
                         map.put("hisSettlementNo", hisResult.getData().getSjh());
                         //平台和杭州互联网都用到
                         map.put("preSettleTotalAmount", totalAmount);
                         map.put("fundAmount", fundAmount);
                         map.put("cashAmount", cashAmount);
-                        //仅省医保用到insuredArea
-                        if (StringUtils.isNotEmpty(request.getInsuredArea())) {
-                            map.put("insuredArea", request.getInsuredArea());
-                        }
-                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                         //此时订单已经生成还需要更新订单信息
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         if (recipeOrder != null) {
@@ -167,9 +166,6 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                                 return result;
                             }
                         }
-                    } else {
-                        //此时ext一般已经存在，若不存在有问题
-                        LOGGER.error("MedicalPreSettleService-fail. recipeId={} recipeExtend is null", recipeId);
                     }
                     result.put("totalAmount", totalAmount);
                     result.put("fundAmount", fundAmount);

@@ -408,7 +408,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setPatientNumber(recipeExtend.getRegisterID());
                 req.setCardNo(recipeExtend.getCardNo());
                 req.setCardType(recipeExtend.getCardType());
-                req.setRegisterNo(recipeExtend.getRegisterNo());
+                req.setRegisterNo(recipeExtend.getRegisterID());
                 req.setRegisterId(recipeExtend.getRegisterID());
             }
             //处方状态
@@ -560,7 +560,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 //从his返回的挂号序号
-                req.setRegisterNo(recipeExtend.getRegisterNo());
+                req.setRegisterNo(recipeExtend.getRegisterID());
                 req.setRegisterId(recipeExtend.getRegisterID());
                 //从监管平台返回监管平台流水号
                 req.setSuperviseRecipecode(recipeExtend.getSuperviseRecipecode());
@@ -941,7 +941,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     //从his返回的挂号序号
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if (recipeExtend != null) {
-                        req.setRegisterNo(recipeExtend.getRegisterNo());
+                        req.setRegisterNo(recipeExtend.getRegisterID());
                         req.setRegisterId(recipeExtend.getRegisterID());
                     }
                     //开方医生信息
@@ -1089,7 +1089,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         } catch (Exception e) {
             LOGGER.error("调用regulation接口，上传派药信息，busId = {}", recipeId, e);
         }
-
         return commonResponse;
     }
 
@@ -1338,7 +1337,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 if (recipeExtend != null) {
                     //从his返回的挂号序号
-                    req.setRegisterNo(recipeExtend.getRegisterNo());
+                    req.setRegisterNo(recipeExtend.getRegisterID());
                     req.setRegisterId(recipeExtend.getRegisterID());
                     //从监管平台上传保存的序号
                     req.setSuperviseRecipecode(recipeExtend.getSuperviseRecipecode());

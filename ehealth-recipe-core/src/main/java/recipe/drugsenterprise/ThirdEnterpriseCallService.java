@@ -1878,12 +1878,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             } else {
                 orderDetailBean.setDecoctionFlag("0");
             }
-            if (recipeExtend != null) {
-                if (recipeExtend.getFundAmount() != null) {
-                    orderDetailBean.setMedicalFee(convertParame(recipeExtend.getFundAmount()));
-                } else {
-                    orderDetailBean.setMedicalFee("0");
-                }
+            if (recipeOrder.getFundAmount() != null) {
+                orderDetailBean.setMedicalFee(convertParame(recipeOrder.getFundAmount()));
             } else {
                 orderDetailBean.setMedicalFee("0");
             }

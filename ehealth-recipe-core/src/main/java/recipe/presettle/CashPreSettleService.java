@@ -76,21 +76,15 @@ public class CashPreSettleService implements IRecipePreSettleService {
                 if (hisResult.getData() != null) {
                     //自费金额
                     String cashAmount = hisResult.getData().getZfje();
-                    //应付金额----上海六院新增
-                    String payAmount = hisResult.getData().getYfje();
                     //总金额
                     String totalAmount = hisResult.getData().getZje();
                     //his收据号
                     String hisSettlementNo = hisResult.getData().getSjh();
                     if (StringUtils.isNotEmpty(cashAmount) && StringUtils.isNotEmpty(totalAmount)) {
-                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                        if (ext != null) {
                             Map<String, String> map = Maps.newHashMap();
                             map.put("preSettleTotalAmount", totalAmount);
                             map.put("cashAmount", cashAmount);
                             map.put("hisSettlementNo", hisSettlementNo);
-                            map.put("payAmount", payAmount);
-                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                             //订单信息更新
                             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                             if (recipeOrder != null) {
@@ -100,11 +94,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                                     return result;
                                 }
                             }
-                        } else {
-                            //此时ext一般已经存在，若不存在有问题
-                            LOGGER.error("MedicalPreSettleService-fail. recipeId={} recipeExtend is null", recipeId);
                         }
-                    }
                     result.put("totalAmount", totalAmount);
                     result.put("cashAmount", cashAmount);
                 }

@@ -241,6 +241,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    @ItemProperty(alias = "处方预结算返回门诊挂号序号")
+    private String registerNo;
+
+    @ItemProperty(alias = "处方预结算返回HIS收据号")
+    private String hisSettlementNo;
+
     @ItemProperty(alias = "订单退款标识")
     private Integer refundFlag;
 
@@ -998,5 +1004,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setNeedFee(BigDecimal needFee) {
         this.needFee = needFee;
+    }
+
+    public String getRegisterNo() {
+        return registerNo;
+    }
+
+    public void setRegisterNo(String registerNo) {
+        this.registerNo = registerNo;
+    }
+
+    public String getHisSettlementNo() {
+        return hisSettlementNo;
+    }
+
+    public void setHisSettlementNo(String hisSettlementNo) {
+        this.hisSettlementNo = hisSettlementNo;
     }
 }

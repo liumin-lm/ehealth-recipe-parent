@@ -781,14 +781,6 @@ public class RecipeHisService extends RecipeBaseService {
                     } else {
                         //此时ext一般已经存在，若不存在有问题
                         LOGGER.error("provincialMedicalPreSettle-fail. recipeId={} recipeExtend is null", recipeId);
-                        ext = new RecipeExtend();
-                        ext.setRecipeId(recipe.getRecipeId());
-                        ext.setRegisterNo(hisResult.getData().getGhxh());
-                        ext.setHisSettlementNo(hisResult.getData().getSjh());
-                        ext.setPreSettletotalAmount(hisResult.getData().getZje());
-                        ext.setFundAmount(hisResult.getData().getYbzf());
-                        ext.setCashAmount(hisResult.getData().getYfje());
-                        recipeExtendDAO.save(ext);
                     }
                     result.put("totalAmount", totalAmount);
                     result.put("fundAmount", fundAmount);
@@ -920,14 +912,6 @@ public class RecipeHisService extends RecipeBaseService {
                                     return result;
                                 }
                             }
-                        } else {
-                            ext = new RecipeExtend();
-                            ext.setRecipeId(recipe.getRecipeId());
-                            ext.setPreSettletotalAmount(totalAmount);
-                            ext.setCashAmount(cashAmount);
-                            ext.setHisSettlementNo(hisSettlementNo);
-                            ext.setPayAmount(payAmount);
-                            recipeExtendDAO.save(ext);
                         }
                     }
                     result.put("totalAmount", totalAmount);

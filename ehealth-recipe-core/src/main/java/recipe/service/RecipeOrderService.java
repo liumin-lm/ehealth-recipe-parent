@@ -784,8 +784,11 @@ public class RecipeOrderService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(map.get("cashAmount"))) {
             orderInfo.put("cashAmount", new Double(map.get("cashAmount")));
         }
-        if (StringUtils.isNotEmpty(map.get("payAmount"))) {
-            orderInfo.put("payAmount", new Double(map.get("payAmount")));
+        if (StringUtils.isNotEmpty(map.get("hisSettlementNo"))) {
+            orderInfo.put("hisSettlementNo", map.get("hisSettlementNo"));
+        }
+        if (StringUtils.isNotEmpty(map.get("registerNo"))) {
+            orderInfo.put("registerNo", map.get("registerNo"));
         }
 
         if (StringUtils.isNotEmpty(map.get("payAmount"))) {
@@ -1329,9 +1332,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         if (recipe != null) {
                             recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
                         }
-                        //清除医保金额
-                        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                        recipeExtendDAO.updatefundAmountToNullByRecipeId(recipe.getRecipeId());
                         try {
                             //对于来源于HIS的处方单更新hisRecipe的状态
                             if (recipe != null) {
@@ -1352,9 +1352,6 @@ public class RecipeOrderService extends RecipeBaseService {
                             //未支付定时取消的处方单orderCode不设置成空
                             if (RecipeStatusConstant.NO_PAY != recipe.getStatus()) {
                                 recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
-                                //清除医保金额
-                                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-                                recipeExtendDAO.updatefundAmountToNullByRecipeId(recipe.getRecipeId());
                             }
                         }
                         //date 20200330
