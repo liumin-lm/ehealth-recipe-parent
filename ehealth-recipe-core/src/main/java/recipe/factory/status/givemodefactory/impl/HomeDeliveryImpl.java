@@ -54,10 +54,12 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
-        //检查运营人员维护的运单号是否已经存在
-        List<RecipeOrder> recipeOrders = recipeOrderDAO.findByLogisticsCompanyAndTrackingNumber(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
-        if (CollectionUtils.isNotEmpty(recipeOrders)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "运单号重复");
+        if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
+            //检查运营人员维护的运单号是否已经存在
+            List<RecipeOrder> recipeOrders = recipeOrderDAO.findByLogisticsCompanyAndTrackingNumber(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
+            if (CollectionUtils.isNotEmpty(recipeOrders)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "运单号重复");
+            }
         }
         orderStatus.setSender("system");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
