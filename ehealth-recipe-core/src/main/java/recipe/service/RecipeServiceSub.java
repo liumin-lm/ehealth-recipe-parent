@@ -2746,19 +2746,9 @@ public class RecipeServiceSub {
         //平台的取平台配置项
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //获取配置项
-            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-            Object payModeDeploy = configService.getConfiguration(organId, "payModeDeploy");
-            if (null == payModeDeploy) {
-                return false;
-            }
-            List<String> configurations = new ArrayList<>(Arrays.asList((String[]) payModeDeploy));
-            //将购药方式的显示map对象转化为页面展示的对象
-            Map<String, Boolean> buttonMap = new HashMap<>(10);
-            for (String configuration : configurations) {
-                buttonMap.put(configuration, true);
-            }
-            //通过配置获取是否可以到院取药
-            return (null == buttonMap.get("supportToHos") || !buttonMap.get("supportToHos")) ? false : true;
+            GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
+            Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+            return result.containsKey("supportToHos");
         } else {
             return organService.getTakeMedicineFlagById(organId);
         }
