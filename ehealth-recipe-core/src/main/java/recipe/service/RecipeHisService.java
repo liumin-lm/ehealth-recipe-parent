@@ -538,6 +538,50 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     /**
+     * 单个处方查询更新状态
+     *
+     * @param recipeId
+     * @return
+     */
+    public Integer getRecipeSinglePayStatusQuery(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+        if (skipHis(recipe)) {
+            return null;
+        }
+        if (isHisEnable(recipe.getClinicOrgan())) {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            List<RecipeListQueryReqTO> requestList = new ArrayList<>();
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
+            recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+            recipeListQueryReqTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
+            recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
+            recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
+            recipeListQueryReqTO.setPatientName(recipe.getPatientName());
+            recipeListQueryReqTO.setPatientId(recipe.getPatientID());
+            recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
+            recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
+            requestList.add(recipeListQueryReqTO);
+            Integer status = service.listSingleQuery(requestList);
+            if (status != null) {
+                if (status == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.HAVE_PAY, null);
+                    LOGGER.info("getRecipeSinglePayStatusQuery update success");
+                    return status;
+                }
+            }
+        } else {
+            LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+            return null;
+        }
+        return null;
+    }
+
+    /**
      * 单个处方查询
      *
      * @param recipeId

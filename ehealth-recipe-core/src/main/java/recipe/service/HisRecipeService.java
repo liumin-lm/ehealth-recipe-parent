@@ -101,6 +101,11 @@ public class HisRecipeService {
         }
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(cardId)) {
+            patientDTO.setCardId(cardId);
+        } else {
+            patientDTO.setCardId("");
+        }
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
@@ -460,6 +465,7 @@ public class HisRecipeService {
         patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
         patientBaseInfo.setMobile(patientDTO.getMobile());
         patientBaseInfo.setMpi(patientDTO.getMpiId());
+        patientBaseInfo.setCardID(patientDTO.getCardId());
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
 
         QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
@@ -927,7 +933,7 @@ public class HisRecipeService {
      * @Description 获取处方详情
      */
     @RpcService
-    public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId,String mpiId,String recipeCode,String organId,Integer isCachePlatform){
+    public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId,String mpiId,String recipeCode,String organId,Integer isCachePlatform, String cardId){
         //是否缓存标志是必传字段
         //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
@@ -952,6 +958,11 @@ public class HisRecipeService {
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
                 if (null == patientDTO) {
                     throw new DAOException(609, "患者信息不存在");
+                }
+                if (StringUtils.isNotEmpty(cardId)) {
+                    patientDTO.setCardId(cardId);
+                } else {
+                    patientDTO.setCardId("");
                 }
                 recipeCodeThreadLocal.set(recipeCode);
                 //线下处方处理(存储到cdr_his相关表)

@@ -253,6 +253,7 @@ public class HisRequestInit {
                     orderItem.setRecipeFlag(1);
                     organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                     if (null != organDrug) {
+                        orderItem.setUseDoseSmallestUnit(organDrug.getUseDoseSmallestUnit());
                         //生产厂家
                         orderItem.setManfcode(organDrug.getProducerCode());
                         //药房名称
@@ -487,12 +488,6 @@ public class HisRequestInit {
                         orderItem.setDosage((null != detail.getUseDose()) ? Double.toString(detail.getUseDose()) : null);
                     }
                     orderItem.setDrunit(detail.getUseDoseUnit());
-                    /*
-                     * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
-                     * String dosageDay =
-                     * df.format(getFrequency(detail.getUsingRate(
-                     * ))*detail.getUseDose());
-                     */
                     // 传用药总量 药品包装 * 开药数量
                     Double dos = detail.getUseTotalDose() * detail.getPack();
                     orderItem.setDosageDay(dos.toString());
@@ -515,10 +510,11 @@ public class HisRequestInit {
                     }
                     organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                     if (null != organDrug) {
+                        orderItem.setUseDoseSmallestUnit(organDrug.getUseDoseSmallestUnit());
                         //生产厂家
                         orderItem.setManfcode(organDrug.getProducerCode());
                         //药房名称
-                        if (StringUtils.isEmpty(orderItem.getPharmacy())){
+                        if (StringUtils.isEmpty(orderItem.getPharmacy())) {
                             orderItem.setPharmacy(organDrug.getPharmacyName());
                         }
                         //单价

@@ -10,10 +10,12 @@ import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -29,7 +31,6 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -41,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
@@ -58,6 +58,8 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 @RpcBean("recipeCAService")
 public class RecipeCAService {
@@ -117,8 +119,7 @@ public class RecipeCAService {
                     esignMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, details, fileName);
                 } else {
                     esignMap = RecipeServiceSub.createParamMap(recipe, details, fileName);
-                    //上传处方图片
-                    recipeService.generateRecipeImageAndUpload(recipeId, esignMap);
+                    esignMap.put("recipeImgId", recipeId);
                 }
             }else{
                 //药师的组装

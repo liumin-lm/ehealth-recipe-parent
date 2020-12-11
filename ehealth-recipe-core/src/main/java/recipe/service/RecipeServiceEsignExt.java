@@ -3,11 +3,9 @@ package recipe.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
@@ -21,10 +19,8 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
@@ -32,7 +28,6 @@ import sun.misc.BASE64Decoder;
 
 import java.io.*;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,42 +43,30 @@ public class RecipeServiceEsignExt {
     private static final String TCM_TEMPLATETYPE = "tcm";
 
     private static IRecipeService recipeService = AppContextHolder.getBean("eh.remoteRecipeService", IRecipeService.class);
-
-    private static IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
-
-
+    
     /**
      * 获取移动端获取pdf文件、用于SDK进行签章
+     *
      * @param recipeId
      * @return
      * @throws Exception
      */
     @RpcService
-    public static CaSealRequestTO signCreateRecipePDF(Integer recipeId,boolean isDoctor) {
+    public static CaSealRequestTO signCreateRecipePDF(Integer recipeId, boolean isDoctor) {
         CaSealRequestTO caBean = new CaSealRequestTO();
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
         //组装生成pdf的参数
-        String fileName;
         RecipeBean recipe = recipeService.getByRecipeId(recipeId);
+        String fileName = "recipe_" + recipeId + ".pdf";
         String pdf = "";
         if (isDoctor) {
-            fileName = "recipe_" + recipeId + ".pdf";
-            List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
-            recipe.setSignDate(DateTime.now().toDate());
-            Map<String, Object> paramMap = recipeService.createRecipeParamMapForPDF(recipe.getRecipeType(), recipe, details, fileName);
+            RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
+            pdf = recipeServiceSub.queryPdfStrById(recipeId, recipe.getClinicOrgan());
             //这里走生成通过的平台模板（易签保开始使用）
-            pdf = esignService.createSignRecipePDF(paramMap);
-            //中药
-            if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
-                caBean.setLeftX(55);
-                caBean.setLeftY(370);
-            //西药
-            } else {
-                caBean.setLeftX(320);
-                caBean.setLeftY(735);
-            }
+            caBean.setLeftX(55);
+            caBean.setLeftY(370);
         } else {
             //药师签名
             //先下载oss服务器上的签名文件

@@ -345,7 +345,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService(timeout = 600000)
     @Deprecated
-    List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
+    List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
                                              Integer depart, Integer giveMode, Integer fromflag, Integer recipeId);
 
     /**
@@ -355,7 +355,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService(timeout = 600000)
-    List<Map> findRecipeOrdersByInfoForExcel2(RecipesQueryVO recipesQueryVO);
+    List<Object[]> findRecipeOrdersByInfoForExcel2(RecipesQueryVO recipesQueryVO);
 
     @RpcService
     HashMap<Integer, Long> getCountGroupByOrgan();
@@ -769,5 +769,16 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds);
+
+    /**
+     * 获取该机构对应的列表跳转的类型
+     * @param organId
+     * @return
+     */
+    @RpcService
+    String getItemSkipType(Integer organId);
+
+    @RpcService
+    String getGiveModeText(Integer recipeId);
 }
 
