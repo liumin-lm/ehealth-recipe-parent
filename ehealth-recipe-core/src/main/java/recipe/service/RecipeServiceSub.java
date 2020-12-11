@@ -1671,8 +1671,7 @@ public class RecipeServiceSub {
                 map.put("tipsType", colorType.getShowType());
             }
             //患者处方单详情页按钮显示
-            patientRecipeInfoBottonShow(map, recipe, order);
-            patientRecipeInfoBottonShowNew(map, recipe, order);
+            patientRecipeInfoButtonShowNew(map, recipe, order);
         }
         
 
@@ -1869,7 +1868,7 @@ public class RecipeServiceSub {
         return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "continueOpenRecipeFlag") && StringUtils.isEmpty(recipe.getOrderCode());
     }
 
-    private static void patientRecipeInfoBottonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
+    private static void patientRecipeInfoButtonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
         GiveModeShowButtonVO giveModeShowButtonVO ;
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
