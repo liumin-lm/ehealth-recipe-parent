@@ -135,7 +135,6 @@ public class Recipe implements Serializable {
     private Integer payMode;
 
     @ItemProperty(alias = "发药方式")
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
 
     @ItemProperty(alias = "发药人姓名")
