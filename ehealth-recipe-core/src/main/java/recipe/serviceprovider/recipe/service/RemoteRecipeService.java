@@ -272,10 +272,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                               Integer recipeId, Integer enterpriseId, Integer checkStatus,
                                               Integer payFlag, Integer orderType, Integer refundNodeStatus) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
+        QueryResult<Map> result=recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
                 checkStatus, payFlag, orderType, refundNodeStatus);
+        List<Map> records=result.getItems();
+        for(Map record:records){
+            Recipe recipe=recipeDAO.getByRecipeId((int)record.get("recipeId"));
+            record.put("giveModeText",GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+        }
+        return result;
     }
 
     @RpcService

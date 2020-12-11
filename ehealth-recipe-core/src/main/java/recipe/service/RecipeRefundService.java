@@ -584,7 +584,7 @@ public class RecipeRefundService extends RecipeBaseService{
         if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
             //当处方的购药方式为配送到家和药店取药时
             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
-            if (DrugEnterpriseConstant.COMPANY_COMMON_SELF.equals(drugsEnterprise.getCallSys())) {
+            if (new Integer(1).equals(drugsEnterprise.getSendType())) {
                 //表示为医院自建药企，退费流程应该走院内的退费流程
                 return 3;
             } else {
@@ -597,12 +597,5 @@ public class RecipeRefundService extends RecipeBaseService{
         } else {
             return 1;
         }
-    }
-
-    @RpcService
-    public List<String> getApp(Integer organId){
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Object payModeDeploy = configService.getConfiguration(organId, "refundPayModel");
-        return new ArrayList<>(Arrays.asList((String[])payModeDeploy));
     }
 }
