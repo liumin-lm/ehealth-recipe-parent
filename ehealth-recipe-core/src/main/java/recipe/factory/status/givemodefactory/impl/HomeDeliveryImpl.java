@@ -7,13 +7,16 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.comment.DictionaryUtil;
 import recipe.common.response.CommonResponse;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
@@ -51,6 +54,11 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Override
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
+        //检查运营人员维护的运单号是否已经存在
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.findByLogisticsCompanyAndTrackingNumber(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
+        if (CollectionUtils.isNotEmpty(recipeOrders)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "运单号重复");
+        }
         orderStatus.setSender("system");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         if (null != orderStatus.getLogisticsCompany()) {
