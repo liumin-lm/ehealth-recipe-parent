@@ -239,7 +239,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     public void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
         Map map = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         boolean showButton = false;
-        if (!(((null == map.get("supportTFDS")))
+        if (!((null == map.get("supportTFDS"))
                 && (null == map.get("showSendToEnterprises"))
                 && (null == map.get("showSendToHos"))
                 && (null == map.get("supportDownload"))
