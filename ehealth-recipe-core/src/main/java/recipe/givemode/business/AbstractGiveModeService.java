@@ -120,11 +120,12 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
         }
-        //开处方时校验库存时存的只支持配送方式--不支持到院取药
-        if (1 == recipe.getDistributionFlag()) {
-            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            //开处方时校验库存时存的只支持配送方式--不支持到院取药
+            if (1 == recipe.getDistributionFlag()) {
+                removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
+            }
         }
-
     }
 
     @Override
