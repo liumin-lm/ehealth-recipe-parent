@@ -19,6 +19,8 @@ public class GiveModeShowButtonVO implements Serializable{
     private Integer buttonType;
     //是否可以下载处方签
     private Boolean downloadRecipeSign;
+    //详情页的按钮总开关
+    private Boolean showButton;
     //列表选项
     private GiveModeButtonBean listItem;
     //购药按钮

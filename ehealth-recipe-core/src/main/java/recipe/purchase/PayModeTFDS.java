@@ -301,21 +301,27 @@ public class PayModeTFDS implements IPurchaseService{
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         Integer status = recipe.getStatus();
         String orderCode = recipe.getOrderCode();
-        int orderStatus = order.getStatus();
         String tips = "";
+        int orderStatus;
         switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
             case RECIPE_STATUS_CHECK_PASS:
-                if (StringUtils.isNotEmpty(orderCode)) {
-                    if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType()) {
-                        tips = "订单已处理，请到店取药";
-                    } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_READY_DRUG.getType()) {
-                        tips = "订单已处理，正在准备药品";
-                    } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()) {
-                        tips = "药品已准备好，请到药店取药";
-                    }
+                if (StringUtils.isEmpty(orderCode)) {
+                    break;
+                }
+                orderStatus = order.getStatus();
+                if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType()) {
+                    tips = "订单已处理，请到店取药";
+                } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_READY_DRUG.getType()) {
+                    tips = "订单已处理，正在准备药品";
+                } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()) {
+                    tips = "药品已准备好，请到药店取药";
                 }
                 break;
             case RECIPE_STATUS_CHECK_PASS_YS:
+                if (StringUtils.isEmpty(orderCode)) {
+                    break;
+                }
+                orderStatus = order.getStatus();
                 if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType()) {
                     tips = "处方已审核通过，请到店取药";
                 } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_READY_DRUG.getType()) {
