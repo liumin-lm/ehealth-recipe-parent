@@ -575,11 +575,11 @@ public class PayModeOnline implements IPurchaseService {
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         Integer status = recipe.getStatus();
         String orderCode = recipe.getOrderCode();
-        int orderStatus = order.getStatus();
         String tips = "";
         switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
             case RECIPE_STATUS_CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode)) {
+                    int orderStatus = order.getStatus();
                     if (orderStatus == OrderStatusConstant.READY_SEND) {
                         tips = "订单已处理，请耐心等待药品配送";
                     }
