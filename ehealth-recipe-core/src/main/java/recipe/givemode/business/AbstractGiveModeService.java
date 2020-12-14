@@ -239,11 +239,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     public void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
         Map map = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         boolean showButton = false;
-        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString()))
-                && (null == map.get("showSendToEnterprises") || 0 == Integer.parseInt(map.get("showSendToEnterprises").toString()))
-                && (null == map.get("showSendToHos") || 0 == Integer.parseInt(map.get("showSendToHos").toString()))
-                && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString()))
-                && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString()))
+        if (!(((null == map.get("supportTFDS")))
+                && (null == map.get("showSendToEnterprises"))
+                && (null == map.get("showSendToHos"))
+                && (null == map.get("supportDownload"))
+                && (null == map.get("supportToHos"))
                 && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
                 //待药师审核，审核一次不通过，待处理无订单
