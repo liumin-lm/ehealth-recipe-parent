@@ -2,9 +2,7 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
@@ -799,6 +797,25 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         } else {
             return true;
         }
+    }
+
+    @RpcService
+    public Boolean isShowSendTypeButton(Integer organId) {
+        Boolean flag = false;
+        Recipe recipe = new Recipe();
+        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
+        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        Iterator iterator = giveModeButtonBeans.iterator();
+        while (iterator.hasNext()) {
+            GiveModeButtonBean giveModeButtonBean = (GiveModeButtonBean) iterator.next();
+            if ("supportMedicalPayment".equals(giveModeButtonBean.getShowButtonKey())) {
+                iterator.remove();
+            }
+        }
+        if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
+            flag = true;
+        }
+        return  flag;
     }
 
     /**
