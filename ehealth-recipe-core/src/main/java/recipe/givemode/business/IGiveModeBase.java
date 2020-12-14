@@ -64,6 +64,13 @@ public interface IGiveModeBase {
      * @param recipe
      */
     void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
+
+    /**
+     * 设置处方详情的showButton按钮
+     * @param giveModeShowButtonVO
+     * @param recipe
+     */
+    void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe);
     /**
      * 根据处方中的机构和配送类型获取文案展示
      * @param recipe 处方信息
