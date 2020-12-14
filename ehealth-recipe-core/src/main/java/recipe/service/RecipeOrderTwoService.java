@@ -7,7 +7,6 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.service.IRecipeOrderTwoService;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,11 +58,6 @@ public class RecipeOrderTwoService implements IRecipeOrderTwoService {
         if (!status) {
             updateOrderStatus(orderStatus);
             return result;
-        }
-        //检查运营人员维护的运单号是否已经存在
-        List<RecipeOrder> recipeOrders = recipeOrderDAO.findByLogisticsCompanyAndTrackingNumber(recipeOrder.getOrderCode(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
-        if (CollectionUtils.isNotEmpty(recipeOrders)) {
-            return ResultBean.serviceError("运单号重复");
         }
         //工厂代理处理 按照购药方式 修改订单信息
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());

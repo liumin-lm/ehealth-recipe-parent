@@ -102,6 +102,7 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -1687,17 +1688,16 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> doSignRecipeCheck(RecipeBean recipe) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         Map<String, Object> rMap = Maps.newHashMap();
         Integer recipeId = recipe.getRecipeId();
-        //获取配置项
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         //添加按钮配置项key
-        Object payModeDeploy = configService.getConfiguration(recipe.getClinicOrgan(), "payModeDeploy");
-
+        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipeDAO.getByRecipeId(recipeId)).getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         int checkFlag = 0;
-        if (null != payModeDeploy) {
-            List<String> configurations = new ArrayList<>(Arrays.asList((String[]) payModeDeploy));
+        if (null != giveModeButtonBeans) {
+            List<String> configurations = giveModeButtonBeans.stream().map(e->e.getShowButtonKey()).collect(Collectors.toList());
             //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
             if (configurations == null || configurations.size() == 0) {
                 rMap.put("signResult", false);
@@ -1716,7 +1716,8 @@ public class RecipeService extends RecipeBaseService {
                             checkFlag = 3;
                         }
                         break;
-                    case "supportOnline":
+                    case "showSendToHos":
+                    case "showSendToEnterprises":
                     case "supportTFDS":
                         if (checkFlag == 0 || checkFlag == 2) {
                             checkFlag = 2;
