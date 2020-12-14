@@ -236,6 +236,30 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     }
 
     @Override
+    public void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
+        Map map = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        boolean showButton = false;
+        if (!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString()))
+                && (null == map.get("showSendToEnterprises") || 0 == Integer.parseInt(map.get("showSendToEnterprises").toString()))
+                && (null == map.get("showSendToHos") || 0 == Integer.parseInt(map.get("showSendToHos").toString()))
+                && (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString()))
+                && (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString()))
+                && (null == map.get("supportMedicalPayment")))) {
+            if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
+                //待药师审核，审核一次不通过，待处理无订单
+                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+                    showButton = true;
+                }
+            } else {
+                if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
+                    showButton = true;
+                }
+            }
+        }
+        giveModeShowButtonVO.setShowButton(showButton);
+    }
+
+    @Override
     public String getGiveModeTextByRecipe(Recipe recipe) {
         if (recipe == null) {
             return "";
