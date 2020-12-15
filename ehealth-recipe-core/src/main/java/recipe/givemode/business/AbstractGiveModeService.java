@@ -147,14 +147,6 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
                 giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
             }
         }
-        //1.判断配置项中是否配置了下载处方签，
-        //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
-        //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            boolean isDownload = recipeServiceSub.getDownConfig(recipe, order);
-            giveModeShowButtonVO.setDownloadRecipeSign(isDownload);
-        }
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe){
