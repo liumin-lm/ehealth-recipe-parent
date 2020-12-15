@@ -238,9 +238,14 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
 
     @Override
     public void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
-        Map<String, String> map = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        Map map = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         boolean showButton = false;
-        if (!StringUtils.isAnyEmpty(map.get("supportTFDS"),map.get("showSendToEnterprises"),map.get("showSendToHos"),map.get("supportDownload"),map.get("supportToHos"),map.get("supportMedicalPayment"))) {
+        if (!((null == map.get("supportTFDS"))
+                && (null == map.get("showSendToEnterprises"))
+                && (null == map.get("showSendToHos"))
+                && (null == map.get("supportDownload"))
+                && (null == map.get("supportToHos"))
+                && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
                 //待药师审核，审核一次不通过，待处理无订单
                 if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {

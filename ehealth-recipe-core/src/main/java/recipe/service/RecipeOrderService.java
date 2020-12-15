@@ -78,6 +78,7 @@ import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -377,7 +378,17 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
+        //设置购药方式文案
+        String supportType = MapValueUtil.getString(extInfo, "supportType");
+        result.getExt().put("giveModeText", getGiveModeText(supportType, order.getOrganId()));
         return result;
+    }
+
+    private String getGiveModeText(String supportType, Integer organId) {
+        Recipe recipe = new Recipe();
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
+        Map<String, String> map = giveModeBase.getGiveModeSettingFromYypt(organId).getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        return map.get(supportType);
     }
 
     //设置金额
