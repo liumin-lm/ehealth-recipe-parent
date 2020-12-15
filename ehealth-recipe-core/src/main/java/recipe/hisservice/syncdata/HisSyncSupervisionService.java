@@ -518,7 +518,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
         } catch (Exception e) {
-            LOGGER.error("上传监管平台获取发票号异常：", e);
+            LOGGER.error("上传监管平台获取发票号异常，recipeId={},", recipe.getRecipeId(),e);
         }
         return invoiceNumber;
     }
