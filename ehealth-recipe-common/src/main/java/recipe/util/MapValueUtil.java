@@ -225,7 +225,7 @@ public class MapValueUtil {
      * @param o         对象
      * @return
      */
-    public static String getFieldValueByName(String fieldName, Object o) {
+    public static Object getFieldValueByName(String fieldName, Object o) {
         if (StringUtils.isEmpty(fieldName) || null == o) {
             logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toString(o));
             return null;
@@ -237,7 +237,7 @@ public class MapValueUtil {
             if (null == value) {
                 return "";
             }
-            return value.toString();
+            return value;
         } catch (Exception e) {
             logger.error("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
             return null;
