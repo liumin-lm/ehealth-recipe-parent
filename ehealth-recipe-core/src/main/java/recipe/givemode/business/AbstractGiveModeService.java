@@ -125,6 +125,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             if (1 == recipe.getDistributionFlag()) {
                 removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
             }
+            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportDownload");
         }
     }
 
