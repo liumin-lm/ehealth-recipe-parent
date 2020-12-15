@@ -385,6 +385,8 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> map = new HashMap<>();
             map.put("giveModeText", getGiveModeText(supportType, order.getOrganId()));
             result.setExt(map);
+        } else {
+            result.getExt().put("giveModeText", getGiveModeText(supportType, order.getOrganId()));
         }
         return result;
     }
