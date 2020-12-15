@@ -755,6 +755,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             List downList = new ArrayList();
             downList.add(map);
             if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
+                downLoadType.put("supportKey", "supportDownload");
                 downLoadType.put(configurations.get("supportDownload"), downList);
             }
 
