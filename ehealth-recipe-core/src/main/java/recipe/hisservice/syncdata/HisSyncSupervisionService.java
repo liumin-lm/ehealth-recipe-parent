@@ -467,7 +467,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             setDetail(req, detailList, usingRateDic, usePathwaysDic, recipe);
 
             // 发票号
-            String invoiceNumber = getInvoiceNumber(req, recipe);
+            String invoiceNumber = getInvoiceNumber(recipeExtend, recipe);
             req.setEinvoiceNumber(invoiceNumber);
 
             //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
@@ -495,11 +495,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     /**
      * 获取发票号
      *
-     * @param req
+     * @param recipeExtend
      * @param recipe
      * @return
      */
-    private String getInvoiceNumber(RegulationRecipeIndicatorsReq req, Recipe recipe) {
+    private String getInvoiceNumber(RecipeExtend recipeExtend, Recipe recipe) {
         String invoiceNumber = null;
         try {
             RecipeExtendService extendService = AppContextHolder.getBean("recipeExtendService", RecipeExtendService.class);
@@ -508,17 +508,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 EleInvoiceService invoiceService = AppContextHolder.getBean("eleInvoiceService", EleInvoiceService.class);
                 EleInvoiceDTO invoiceDTO = new EleInvoiceDTO();
                 invoiceDTO.setId(recipe.getRecipeId());
-                invoiceDTO.setCardId(req.getCardNo());
-                invoiceDTO.setCardType(req.getCardType());
-                if (recipe.getClinicId() != null) {
-                    IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                    RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                    if (consultExDTO != null) {
-                        invoiceDTO.setGhxh(consultExDTO.getRegisterNo());
-                    }
+                if (null != recipeExtend) {
+                    invoiceDTO.setCardId(recipeExtend.getCardNo());
+                    invoiceDTO.setCardType(recipeExtend.getCardType());
+                    invoiceDTO.setGhxh(recipeExtend.getRegisterID());
                 }
                 invoiceDTO.setMpiid(recipe.getMpiid());
-                invoiceDTO.setOrganId(Integer.parseInt(req.getOrganID()));
+                invoiceDTO.setOrganId(recipe.getClinicOrgan());
                 invoiceDTO.setType("1");
                 invoiceService.findEleInvoice(invoiceDTO);
             }
