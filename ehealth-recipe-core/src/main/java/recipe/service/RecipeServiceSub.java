@@ -2484,10 +2484,8 @@ public class RecipeServiceSub {
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
         ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
-        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         Integer consultId = recipe.getClinicId();
         Integer bussSource = recipe.getBussSource();
-        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()));
         if (consultId != null) {
             if (null != rMap && null == rMap.get("consultId")) {
                 rMap.put("consultId", consultId);
@@ -2517,7 +2515,7 @@ public class RecipeServiceSub {
      */
     private static RecipeTagMsgBean getRecipeMsgTag(Recipe recipe, List<Recipedetail> details) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-
+        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         //获取诊断疾病名称
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
@@ -2570,6 +2568,7 @@ public class RecipeServiceSub {
         recipeTagMsg.setDiseaseName(diseaseName);
         recipeTagMsg.setDrugNames(drugNames);
         recipeTagMsg.setTitle(recipe.getPatientName() + "的电子处方单");
+        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()));
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }
