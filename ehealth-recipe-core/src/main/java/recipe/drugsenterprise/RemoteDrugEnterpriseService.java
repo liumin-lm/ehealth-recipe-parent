@@ -692,17 +692,17 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
                 //表示为新版的请求
                 if (CollectionUtils.isNotEmpty(supportOnlineList)) {
-                    payOnlineType.put("showSendToEnterprisesKey", "showSendToEnterprises");
+                    payOnlineType.put("supportKey", "showSendToEnterprises");
                     payOnlineType.put(configurations.get("showSendToEnterprises"), supportOnlineList);
                     result.add(payOnlineType);
                 }
                 if (CollectionUtils.isNotEmpty(supportSendToHosList)) {
-                    payShowSendToHosType.put("showSendToHosKey", "showSendToHos");
+                    payShowSendToHosType.put("supportKey", "showSendToHos");
                     payShowSendToHosType.put(configurations.get("showSendToHos"), supportSendToHosList);
                     result.add(payShowSendToHosType);
                 }
                 if (CollectionUtils.isNotEmpty(toStoreList)) {
-                    toStoreType.put("supportTFDSKey", "supportTFDS");
+                    toStoreType.put("supportKey", "supportTFDS");
                     toStoreType.put(configurations.get("supportTFDS"), toStoreList);
                     result.add(toStoreType);
                 }
@@ -736,7 +736,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 List toHosList = new ArrayList();
                 toHosList.add(map);
                 if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
-                    toHosType.put("supportToHosKey", "supportToHos");
+                    toHosType.put("supportKey", "supportToHos");
                     toHosType.put(configurations.get("supportToHos"), toHosList);
                 }
                 if (CollectionUtils.isNotEmpty(list)) {
