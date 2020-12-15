@@ -381,7 +381,13 @@ public class RecipeOrderService extends RecipeBaseService {
         //设置购药方式文案
         String supportType = MapValueUtil.getString(extInfo, "supportType");
         LOGGER.info("createOrder: ext:{}.", JSONUtils.toString(result.getExt()));
-        //result.getExt().put("giveModeText", getGiveModeText(supportType, order.getOrganId()));
+        if (result.getExt() == null) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("giveModeText", getGiveModeText(supportType, order.getOrganId()));
+            result.setExt(map);
+        } else {
+            result.getExt().put("giveModeText", getGiveModeText(supportType, order.getOrganId()));
+        }
         return result;
     }
 
