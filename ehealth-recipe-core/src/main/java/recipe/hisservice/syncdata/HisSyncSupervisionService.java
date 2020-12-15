@@ -510,13 +510,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 invoiceDTO.setId(recipe.getRecipeId());
                 invoiceDTO.setCardId(req.getCardNo());
                 invoiceDTO.setCardType(req.getCardType());
-                if (recipe.getClinicId() != null) {
-                    IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                    RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                    if (consultExDTO != null) {
-                        invoiceDTO.setGhxh(consultExDTO.getRegisterNo());
-                    }
-                }
+                invoiceDTO.setGhxh(req.getPatientNumber());
                 invoiceDTO.setMpiid(recipe.getMpiid());
                 invoiceDTO.setOrganId(Integer.parseInt(req.getOrganID()));
                 invoiceDTO.setType("1");
