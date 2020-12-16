@@ -236,7 +236,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
                 drugsEnterprises.stream().forEach(drugsEnterprise -> {
                     if (StringUtils.isNotEmpty(drugsEnterprise.getAccount()) && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                        giveModeShowButtonVO.setGiveModeButtons(null);
+                        giveModeShowButtonVO.setGiveModeButtons(new ArrayList<>());
                     }
                 });
             }
