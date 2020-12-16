@@ -2578,7 +2578,6 @@ public class RecipeService extends RecipeBaseService {
         List<OrganDrugInfoTO> data = Lists.newArrayList();
         if (responseTO != null ){
             data = responseTO.getData();
-            LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
         }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
@@ -2591,6 +2590,7 @@ public class RecipeService extends RecipeBaseService {
         if (sync || add){
         while (finishFlag) {
             if (!CollectionUtils.isEmpty(data)) {
+                LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
