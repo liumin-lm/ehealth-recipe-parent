@@ -323,8 +323,6 @@ public class RecipeLabelManager {
         }catch (Exception e){
             logger.error("用药途径 用药频率有误");
         }
-
-        list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsePathways())));
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum()));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
         if (null != extend) {
