@@ -3,6 +3,7 @@ package recipe.givemode.business;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
@@ -227,18 +229,24 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             fromYyptButtons.retainAll(giveModeShowButtonVO.getGiveModeButtons());
             giveModeShowButtonVO.setGiveModeButtons(fromYyptButtons);
         }
+        //如果是浙江省互联网的机构配置的是扁鹊的药企，则不显示任何购药方式
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
+                drugsEnterprises.stream().forEach(drugsEnterprise -> {
+                    if (StringUtils.isNotEmpty(drugsEnterprise.getAccount()) && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+                        giveModeShowButtonVO.setGiveModeButtons(null);
+                    }
+                });
+            }
+        }
     }
 
     @Override
     public void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
-        Map map = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
         boolean showButton = false;
-        if (!((null == map.get("supportTFDS"))
-                && (null == map.get("showSendToEnterprises"))
-                && (null == map.get("showSendToHos"))
-                && (null == map.get("supportDownload"))
-                && (null == map.get("supportToHos"))
-                && (null == map.get("supportMedicalPayment")))) {
+        if (CollectionUtils.isNotEmpty(giveModeShowButtonVO.getGiveModeButtons())) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
                 //待药师审核，审核一次不通过，待处理无订单
                 if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
