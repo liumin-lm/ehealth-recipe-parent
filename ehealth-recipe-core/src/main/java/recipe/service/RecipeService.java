@@ -103,6 +103,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -4628,6 +4629,19 @@ public class RecipeService extends RecipeBaseService {
     public List<Symptom> findCommonSymptomByDoctorAndOrganId(int doctor, int organId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findCommonSymptomByDoctorAndOrganId(doctor, organId, 0, 10);
+    }
+
+    @RpcService
+    public String getGiveModeTextByKey(String supportType, Integer organId){
+        //设置购药方式文案
+        return getGiveModeText(supportType, organId);
+    }
+
+    private String getGiveModeText(String supportType, Integer organId) {
+        Recipe recipe = new Recipe();
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
+        Map<String, String> map = giveModeBase.getGiveModeSettingFromYypt(organId).getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        return map.get(supportType);
     }
 
     /**
