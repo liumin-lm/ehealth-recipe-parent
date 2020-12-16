@@ -64,6 +64,8 @@ public class RecipeLabelManager {
         Integer recipeId = recipe.getRecipeId();
         //组装生成pdf的参数
         ESignDTO eSignDTO = new ESignDTO();
+        String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        eSignDTO.setRecipeType(recipeType);
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             //中药pdf参数
             eSignDTO.setTemplateType("tcm");
@@ -96,6 +98,8 @@ public class RecipeLabelManager {
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         //组装生成pdf的参数
         Map<String, Object> map = new HashMap<>();
+        String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        map.put("recipeType", recipeType);
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             //中药pdf参数
             map.put("templateType", "tcm");
