@@ -2578,8 +2578,8 @@ public class RecipeService extends RecipeBaseService {
         List<OrganDrugInfoTO> data = Lists.newArrayList();
         if (responseTO != null ){
             data = responseTO.getData();
+            LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
         }
-        LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
