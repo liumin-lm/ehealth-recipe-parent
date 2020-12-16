@@ -9,6 +9,7 @@ import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
@@ -316,7 +317,13 @@ public class RecipeLabelManager {
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));
-        list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
+        try{
+            list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
+            list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
+        }catch (Exception e){
+            logger.error("用药途径 用药频率有误");
+        }
+
         list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsePathways())));
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum()));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
