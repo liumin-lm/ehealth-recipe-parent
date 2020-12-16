@@ -706,6 +706,16 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     toStoreType.put(configurations.get("supportTFDS"), toStoreList);
                     result.add(toStoreType);
                 }
+            } else {
+                supportOnlineList.addAll(supportSendToHosList);
+                if (CollectionUtils.isNotEmpty(supportOnlineList)) {
+                    payOnlineType.put("配送到家", supportOnlineList);
+                    result.add(payOnlineType);
+                }
+                if (CollectionUtils.isNotEmpty(toStoreList)) {
+                    toStoreType.put("药店取药", toStoreList);
+                    result.add(toStoreType);
+                }
             }
         }
         if (configurations.containsKey("supportToHos")) {
@@ -738,6 +748,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
                     toHosType.put("supportKey", "supportToHos");
                     toHosType.put(configurations.get("supportToHos"), toHosList);
+                } else {
+                    toHosType.put("到院取药", toHosList);
                 }
                 if (CollectionUtils.isNotEmpty(list)) {
                     result.add(toHosType);
@@ -757,6 +769,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
                 downLoadType.put("supportKey", "supportDownload");
                 downLoadType.put(configurations.get("supportDownload"), downList);
+            } else {
+                downLoadType.put("下载处方", downList);
             }
 
             if (CollectionUtils.isNotEmpty(list)) {
