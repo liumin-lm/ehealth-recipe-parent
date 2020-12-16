@@ -321,12 +321,12 @@ public class RecipeLabelManager {
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum()));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
         if (null != extend) {
-            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()));
+            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()==null?"":extend.getDecoctionText()));
             list.add(new RecipeLabelVO("每付取汁", "tcmJuice", extend.getJuice() + extend.getJuiceUnit()));
             list.add(new RecipeLabelVO("次量", "tcmMinor", extend.getMinor() + extend.getMinorUnit()));
-            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()));
+            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()==null?"":extend.getMakeMethodText()));
         }
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()));
+        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()==null?"":recipe.getRecipeMemo()));
     }
 
 
