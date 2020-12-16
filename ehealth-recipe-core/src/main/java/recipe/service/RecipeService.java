@@ -2575,8 +2575,10 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("drugInfoSynMovement error ", e);
         }
-        List<OrganDrugInfoTO> data = responseTO.getData();
-        LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
+        List<OrganDrugInfoTO> data = Lists.newArrayList();
+        if (responseTO != null ){
+            data = responseTO.getData();
+        }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
@@ -2588,6 +2590,7 @@ public class RecipeService extends RecipeBaseService {
         if (sync || add){
         while (finishFlag) {
             if (!CollectionUtils.isEmpty(data)) {
+                LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
@@ -2628,6 +2631,8 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("drugInfoSynMovement organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     startIndex++;
                 }
+            }else {
+                break;
             }
             if (startIndex >= total){
                 LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
