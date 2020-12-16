@@ -1672,6 +1672,7 @@ public class RecipeServiceSub {
             }
             //患者处方单详情页按钮显示
             patientRecipeInfoButtonShowNew(map, recipe, order);
+            patientRecipeInfoBottonShow(map, recipe, order);
         }
         
 

@@ -1104,6 +1104,7 @@ public class RecipeListService extends RecipeBaseService {
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
             GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(patientRecipe, recipe);
             patientRecipe.setGiveModeShowButtonVO(giveModeShowButtonVO);
+            patientRecipe.setButtons(getShowButton(patientRecipe, recipe));
             //根据隐方配置返回处方详情
             boolean isReturnRecipeDetail = isReturnRecipeDetail(patientRecipe.getRecipeId());
             if (!isReturnRecipeDetail && CollectionUtils.isNotEmpty(patientRecipe.getRecipeDetail())) {
@@ -1230,6 +1231,7 @@ public class RecipeListService extends RecipeBaseService {
             //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
             GiveModeShowButtonVO giveModeShowButtonVO = getShowButtonNew(record, recipe);
             record.setGiveModeShowButtonVO(giveModeShowButtonVO);
+            record.setButtons(getShowButton(record, recipe));
             boolean isReturnRecipeDetail = isReturnRecipeDetail(record.getRecipeId());
             //返回是否隐方
             record.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
