@@ -89,8 +89,8 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
             if (null != recipeOrder) {
                 //待支付
-                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
-                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
+                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
+                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
                 patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getButtonName());
                 patientTaskArrayList.add(patientTask);
                 continue;
@@ -99,8 +99,8 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             //处理剩下的状态
             RecipeTaskEnum recipeStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipe.getStatus());
             if (RecipeTaskEnum.NONE != recipeStatusEnum) {
-                patientTask.setTaskName(recipeStatusEnum.getTaskName());
-                patientTask.setBusStatusName(recipeStatusEnum.getBusStatusName());
+                patientTask.setTaskName(recipeStatusEnum.getBusStatusName());
+                patientTask.setBusStatusName(recipeStatusEnum.getTaskName());
                 patientTask.setButtonName(recipeStatusEnum.getButtonName());
                 patientTaskArrayList.add(patientTask);
             }
