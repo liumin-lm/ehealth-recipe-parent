@@ -2570,7 +2570,7 @@ public class RecipeServiceSub {
         recipeTagMsg.setDiseaseName(diseaseName);
         recipeTagMsg.setDrugNames(drugNames);
         recipeTagMsg.setTitle(recipe.getPatientName() + "的电子处方单");
-        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()));
+        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()).get("itemList"));
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }
