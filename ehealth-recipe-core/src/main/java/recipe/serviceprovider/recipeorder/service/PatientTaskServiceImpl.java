@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.serviceprovider.service.IPatientTaskService;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -15,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
-import recipe.factory.status.constant.RecipeTaskEnum;
 import recipe.service.HisRecipeService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.serviceprovider.recipeorder.service.constant.RecipeTaskEnum;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,9 +54,9 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
     public List<PatientTask> findPatientTask(String mpiId, Integer organId, Integer start, Integer limit) {
         //打印日志， 校验参数
         LOGGER.info("PatientTaskServiceImpl findPatientTask mpiId={},organId={},start={},limit={}", mpiId, organId, start, limit);
-        if (StringUtils.isEmpty(mpiId) && organId == null) {
-            LOGGER.error("PatientTaskServiceImpl findPatientTask mpiId,organId is null");
-            return null;
+        if (StringUtils.isEmpty(mpiId) && null == organId) {
+            LOGGER.warn("PatientTaskServiceImpl findPatientTask mpiId,organId is null");
+            throw new DAOException(DAOException.VALUE_NEEDED, "mpiId is null or organId is null");
         }
 
         List<PatientTask> patientTaskArrayList = new ArrayList<>();
@@ -65,13 +66,16 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
         List<RecipeOrder> recipeOrders = recipeDAO.queryOrderCodeUnpaid(mpiId, organId);
         //将list转变为map
         Map<String, RecipeOrder> recipeOrderMap = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
+        //通过recipe集合获取recipeExtends对象集合
+        List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a));
         for (Recipe recipe : recipes) {
             PatientTask patientTask = new PatientTask();
             Map<String, Object> params = new HashMap<>();
             ModuleInfo moduleInfo = new ModuleInfo();
             //调用电子病历进行获取病情名
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtendMap.get(recipe.getRecipeId()));
             patientTask.setDiseaseName(recipe.getOrganDiseaseName());
             patientTask.setBusType("recipe");
             patientTask.setBusId(recipe.getRecipeId());
@@ -85,12 +89,15 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             moduleInfo.setInitFn("doHandle");
             moduleInfo.setUrl("eh.wx.health.patientRecipe.RecipeDetail");
             patientTask.setModuleInfo(moduleInfo);
+            if (null == recipe.getOrderCode()) {
+                continue;
+            }
             //判断处方状态
             RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
             if (null != recipeOrder) {
                 //待支付
-                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
-                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
+                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
+                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
                 patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getButtonName());
                 patientTaskArrayList.add(patientTask);
                 continue;
@@ -99,8 +106,8 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             //处理剩下的状态
             RecipeTaskEnum recipeStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipe.getStatus());
             if (RecipeTaskEnum.NONE != recipeStatusEnum) {
-                patientTask.setTaskName(recipeStatusEnum.getBusStatusName());
-                patientTask.setBusStatusName(recipeStatusEnum.getTaskName());
+                patientTask.setTaskName(recipeStatusEnum.getTaskName());
+                patientTask.setBusStatusName(recipeStatusEnum.getBusStatusName());
                 patientTask.setButtonName(recipeStatusEnum.getButtonName());
                 patientTaskArrayList.add(patientTask);
             }
