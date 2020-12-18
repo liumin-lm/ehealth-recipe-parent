@@ -1672,6 +1672,7 @@ public class RecipeServiceSub {
             }
             //患者处方单详情页按钮显示
             patientRecipeInfoButtonShowNew(map, recipe, order);
+            patientRecipeInfoBottonShow(map, recipe, order);
         }
         
 
@@ -1869,6 +1870,8 @@ public class RecipeServiceSub {
     }
 
     private static void patientRecipeInfoButtonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
+        //是否可以下载处方签
+        map.put("isDownload", getDownConfig(recipe, order));
         GiveModeShowButtonVO giveModeShowButtonVO ;
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
@@ -1891,6 +1894,7 @@ public class RecipeServiceSub {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
         giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
+        giveModeBase.setShowButton(giveModeShowButtonVO, recipe);
         map.put("giveModeShowButtonVO", giveModeShowButtonVO);
     }
 
@@ -2483,10 +2487,8 @@ public class RecipeServiceSub {
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
         ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
-        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         Integer consultId = recipe.getClinicId();
         Integer bussSource = recipe.getBussSource();
-        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()));
         if (consultId != null) {
             if (null != rMap && null == rMap.get("consultId")) {
                 rMap.put("consultId", consultId);
@@ -2516,7 +2518,7 @@ public class RecipeServiceSub {
      */
     private static RecipeTagMsgBean getRecipeMsgTag(Recipe recipe, List<Recipedetail> details) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-
+        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         //获取诊断疾病名称
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
@@ -2569,6 +2571,7 @@ public class RecipeServiceSub {
         recipeTagMsg.setDiseaseName(diseaseName);
         recipeTagMsg.setDrugNames(drugNames);
         recipeTagMsg.setTitle(recipe.getPatientName() + "的电子处方单");
+        recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()).get("itemList"));
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }

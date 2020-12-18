@@ -3,6 +3,7 @@ package recipe.givemode.business;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
@@ -120,11 +122,13 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             //表示运营平台虽然配置了医院配送但是该机构没有配置可配送的自建药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToHos");
         }
-        //开处方时校验库存时存的只支持配送方式--不支持到院取药
-        if (1 == recipe.getDistributionFlag()) {
-            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            //开处方时校验库存时存的只支持配送方式--不支持到院取药
+            if (1 == recipe.getDistributionFlag()) {
+                removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
+            }
+            removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportDownload");
         }
-
     }
 
     @Override
@@ -144,14 +148,6 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
                 giveModeButton.setShowButtonKey("supportMedicationGuide");
                 giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
             }
-        }
-        //1.判断配置项中是否配置了下载处方签，
-        //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
-        //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            boolean isDownload = recipeServiceSub.getDownConfig(recipe, order);
-            giveModeShowButtonVO.setDownloadRecipeSign(isDownload);
         }
     }
 
@@ -233,6 +229,36 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             fromYyptButtons.retainAll(giveModeShowButtonVO.getGiveModeButtons());
             giveModeShowButtonVO.setGiveModeButtons(fromYyptButtons);
         }
+        //如果是浙江省互联网的机构配置的是扁鹊的药企，则不显示任何购药方式
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
+                drugsEnterprises.stream().forEach(drugsEnterprise -> {
+                    if (StringUtils.isNotEmpty(drugsEnterprise.getAccount()) && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+                        giveModeShowButtonVO.setGiveModeButtons(new ArrayList<>());
+                    }
+                });
+            }
+        }
+    }
+
+    @Override
+    public void setShowButton(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe){
+        boolean showButton = false;
+        if (CollectionUtils.isNotEmpty(giveModeShowButtonVO.getGiveModeButtons())) {
+            if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
+                //待药师审核，审核一次不通过，待处理无订单
+                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+                    showButton = true;
+                }
+            } else {
+                if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
+                    showButton = true;
+                }
+            }
+        }
+        giveModeShowButtonVO.setShowButton(showButton);
     }
 
     @Override

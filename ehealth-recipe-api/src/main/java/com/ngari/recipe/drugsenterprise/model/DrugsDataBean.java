@@ -14,6 +14,7 @@ public class DrugsDataBean implements Serializable{
 
     private Integer organId;
     private List<RecipeDetailBean> recipeDetailBeans;
+    private String newVersionFlag;
 
     public Integer getOrganId() {
         return organId;
@@ -29,5 +30,13 @@ public class DrugsDataBean implements Serializable{
 
     public void setRecipeDetailBeans(List<RecipeDetailBean> recipeDetailBeans) {
         this.recipeDetailBeans = recipeDetailBeans;
+    }
+
+    public String getNewVersionFlag() {
+        return newVersionFlag;
+    }
+
+    public void setNewVersionFlag(String newVersionFlag) {
+        this.newVersionFlag = newVersionFlag;
     }
 }

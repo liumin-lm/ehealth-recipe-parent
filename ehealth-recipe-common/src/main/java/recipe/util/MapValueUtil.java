@@ -237,6 +237,9 @@ public class MapValueUtil {
             if (null == value) {
                 return "";
             }
+            if (value instanceof Date) {
+                return ByteUtils.dateToSting((Date) value);
+            }
             return value.toString();
         } catch (Exception e) {
             logger.error("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);

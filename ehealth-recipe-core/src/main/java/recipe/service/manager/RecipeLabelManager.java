@@ -9,6 +9,7 @@ import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +65,8 @@ public class RecipeLabelManager {
         Integer recipeId = recipe.getRecipeId();
         //组装生成pdf的参数
         ESignDTO eSignDTO = new ESignDTO();
+        String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        eSignDTO.setRecipeType(recipeType);
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             //中药pdf参数
             eSignDTO.setTemplateType("tcm");
@@ -96,6 +99,8 @@ public class RecipeLabelManager {
         RecipeBean recipe = (RecipeBean) recipeMap.get("recipe");
         //组装生成pdf的参数
         Map<String, Object> map = new HashMap<>();
+        String recipeType = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        map.put("recipeType", recipeType);
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             //中药pdf参数
             map.put("templateType", "tcm");
@@ -312,17 +317,21 @@ public class RecipeLabelManager {
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));
-        list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
-        list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsePathways())));
+        try{
+            list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
+            list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
+        }catch (Exception e){
+            logger.error("用药途径 用药频率有误");
+        }
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum()));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
         if (null != extend) {
-            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()));
+            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()==null?"":extend.getDecoctionText()));
             list.add(new RecipeLabelVO("每付取汁", "tcmJuice", extend.getJuice() + extend.getJuiceUnit()));
             list.add(new RecipeLabelVO("次量", "tcmMinor", extend.getMinor() + extend.getMinorUnit()));
-            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()));
+            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()==null?"":extend.getMakeMethodText()));
         }
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()));
+        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()==null?"":recipe.getRecipeMemo()));
     }
 
 
