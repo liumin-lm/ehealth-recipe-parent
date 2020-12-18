@@ -2,11 +2,8 @@ package recipe.dao;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -3188,6 +3185,29 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
         return action.getResult();
     }
+
+    /**
+     * 根据 患者id和机构id进行查询处方单，并且根据开放时间进行倒序
+     *
+     * @param mpiId       患者id
+     * @param clinicOrgan 机构id
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where clinicOrgan=:clinicOrgan and mpiId=:mpiId order by signDate DESC")
+    public abstract List<Recipe> queryRecipeInfoByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") Integer clinicOrgan, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+
+    /**
+     * 根据患者id和机构id查询对应的未支付的订单
+     *
+     * @param mpiId
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId AND orderCode is not null and payFlag =0")
+    public abstract List<RecipeOrder> queryOrderCodeUnpaid(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
+
 
     public Integer getNumCanMergeRecipeByMergeRecipeWay(String mpiId, String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
