@@ -11,6 +11,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,9 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
         List<PatientTask> patientTaskArrayList = new ArrayList<>();
         // 获取对应的处方单
         List<Recipe> recipes = recipeDAO.queryRecipeInfoByMpiIdAndOrganId(mpiId, organId, start, limit);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return patientTaskArrayList;
+        }
         //查询出未支付的订单
         List<RecipeOrder> recipeOrders = recipeDAO.queryOrderCodeUnpaid(mpiId, organId);
         //将list转变为map
@@ -89,19 +93,18 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             moduleInfo.setInitFn("doHandle");
             moduleInfo.setUrl("eh.wx.health.patientRecipe.RecipeDetail");
             patientTask.setModuleInfo(moduleInfo);
-            if (null == recipe.getOrderCode()) {
-                continue;
-            }
-            //判断处方状态
-            RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
-            if (null != recipeOrder) {
-                //待支付
-                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
-                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
-                patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getButtonName());
-                patientTaskArrayList.add(patientTask);
-                continue;
+            if (null != recipe.getOrderCode()) {
 
+                //判断处方状态
+                RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
+                if (null != recipeOrder) {
+                    //待支付
+                    patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
+                    patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
+                    patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getButtonName());
+                    patientTaskArrayList.add(patientTask);
+                    continue;
+                }
             }
             //处理剩下的状态
             RecipeTaskEnum recipeStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipe.getStatus());
