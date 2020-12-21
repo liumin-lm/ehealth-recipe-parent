@@ -1965,4 +1965,91 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         return GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe);
     }
+
+
+    //@Override
+    /*public Map<String, Object> workloadTop(Integer organId, Integer start, Integer limit){
+        Map<String, Object> result = new HashMap();
+        List<Map<String, Object>> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,start,limit);
+        List<Map<String, Object>> recipeCount = new ArrayList<>();
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
+        for (Map<String, Object> item : recipeByOrderCodegroupByDis) {
+            //药师姓名存在
+            if (item.containsKey("dispensingApothecaryName") && item.get("dispensingApothecaryName") != null) {
+                if (StringUtils.isNotEmpty(item.get("dispensingApothecaryName").toString())) {
+                    recipeCount.add(item);
+                } else if (doctorId != null) {
+                    //获取默认发药药师
+                    DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                    Map<String, Object> newa = new HashMap<>();
+                    newa.put("dispensingApothecaryName", dispensingApothecary.getName());
+                    newa.put("recipeCount", item.get("recipeCount"));
+                    newa.put("totalMoney", item.get("totalMoney"));
+                    recipeCount.add(newa);
+                }
+            } else{
+                //获取默认发药药师
+                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                Map<String, Object> newa = new HashMap<>();
+                newa.put("dispensingApothecaryName", dispensingApothecary.getName());
+                newa.put("recipeCount", item.get("recipeCount"));
+                newa.put("totalMoney", item.get("totalMoney"));
+                recipeCount.add(newa);
+            }
+        }
+
+        Double totalCount = 0.0;
+        Double totalMoney = 0.0;
+        Map<String, Double> total = new HashMap();
+        for (Map<String, Object> item : recipeCount) {
+            totalCount += Double.parseDouble(item.get("recipeCount").toString());
+            totalMoney += Double.parseDouble(item.get("totalMoney").toString());
+        }
+        total.put("countRecipe", totalCount);
+        total.put("countMoney", totalMoney);
+        result.put("single", recipeCount);
+        result.put("total", total);
+        return result;
+    }*/
+
+    /**
+     * 深圳二院药房工作量统计报表服务
+     * @param organId 机构ID
+     * @return Map<String, Object>
+     * @Author dxx
+     */
+    @Override
+    public List<WorkLoadTopDTO> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit){
+        List<WorkLoadTopDTO> result = new ArrayList<>();
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,start,limit,startDateStr,endDateStr,doctorName);
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
+        for (WorkLoadTopDTO workLoadTopDTO : recipeByOrderCodegroupByDis) {
+            //药师姓名存在
+            if (StringUtils.isNotEmpty(workLoadTopDTO.getDispensingApothecaryName())) {
+                result.add(workLoadTopDTO);
+            } else if (doctorId != null) {
+                //获取默认发药药师
+                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                workLoadTopDTO.setDispensingApothecaryName(dispensingApothecary.getName());
+                result.add(workLoadTopDTO);
+            }
+        }
+
+        Integer totalCount = 0;
+        Double totalMoney = 0.0;
+        for (WorkLoadTopDTO workLoadTopDTO : result) {
+            totalCount += workLoadTopDTO.getRecipeCount();
+            totalMoney += workLoadTopDTO.getTotalMoney();
+        }
+        WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
+        workLoadTopDTO.setDispensingApothecaryName("合计");
+        workLoadTopDTO.setTotalMoney(totalMoney);
+        workLoadTopDTO.setRecipeCount(totalCount);
+        result.add(workLoadTopDTO);
+        return result;
+    }
 }

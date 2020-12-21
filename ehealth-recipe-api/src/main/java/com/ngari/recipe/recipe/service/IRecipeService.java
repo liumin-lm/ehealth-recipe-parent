@@ -780,5 +780,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     String getGiveModeText(Integer recipeId);
+
+    /**
+     * 深圳二院药房工作量统计报表服务
+     * @param organId 机构ID
+     * @return Map<String, Object>
+     * @Author dxx
+     */
+    @RpcService
+    public List<WorkLoadTopDTO> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit);
 }
 
