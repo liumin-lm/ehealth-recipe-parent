@@ -33,11 +33,14 @@ import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -285,6 +288,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return drugListBeans;
     }
 
+    /**
+     * 该方法已经挪到queryDrugInventoriesByRealTime方法了--这里只做兼容使用
+     * @param organId
+     * @param drugListBeans
+     * @param pharmacyId
+     */
+    @Deprecated
     private void setInventoriesIfRealTime(Integer organId, List<? extends IDrugInventory> drugListBeans,
                                           @Nullable Integer pharmacyId) {
         try {
@@ -294,7 +304,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
             // 如果实时查询库存
             // 1. 调用his前置接口查询医院库存并赋值
-            DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, drugListBeans, pharmacyId);
+            OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+            List<Integer> drugIds = drugListBeans.stream().map(IHisDrugInventoryCondition::getDrugId)
+                    .collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = drugDao.findByOrganIdAndDrugIds(organId, drugIds);
+            DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
             if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
 //                || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(200)
 
@@ -315,7 +329,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }
 
-            // 2. 调用药企接口查询药企库存并赋值（暂不实现）
+            // 2. 调用药企接口查询药企库存并赋值
         } catch (Exception e) {
             LOGGER.error("药品实时查询库存错误setInventoriesIfRealTime ", e);
         }
@@ -375,16 +389,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * @return DrugInfoResponseTO.code = 0
      */
     public DrugInfoResponseTO getHisDrugStock(Integer organId,
-                                              List<? extends IHisDrugInventoryCondition> organDrugList,
+                                              List<OrganDrugList> organDrugList,
                                               @Nullable Integer pharmacyId) {
-        OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
 
         // 从同事那儿得知有的医院需要ProduceCode
-        List<Integer> drugIds = organDrugList.stream().map(IHisDrugInventoryCondition::getDrugId)
-                .collect(Collectors.toList());
-        List<OrganDrugList> organDrugListWithProducer = drugDao.findByOrganIdAndDrugIds(organId, drugIds);
-        Map<String, List<OrganDrugList>> drugIdProduceMap = organDrugListWithProducer.stream()
+        Map<String, List<OrganDrugList>> drugIdProduceMap = organDrugList.stream()
                 .collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
 
         // 构建请求体
@@ -393,7 +404,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         request.setType("2");
         request.setOrganId(organId);
         List<DrugInfoTO> data = new ArrayList<>(organDrugList.size());
-        for (IHisDrugInventoryCondition organDrugItem : organDrugList) {
+        for (OrganDrugList organDrugItem : organDrugList) {
             DrugInfoTO drugInfo = new DrugInfoTO(organDrugItem.getOrganDrugCode());
             List<OrganDrugList> organDrugs = drugIdProduceMap.get(organDrugItem.getOrganDrugCode());
             if (CollectionUtils.isNotEmpty(organDrugs)) {
@@ -846,5 +857,119 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
         //现在 按照字典的录入顺序显示
         return itemList;
+    }
+
+    @RpcService
+    public List<DrugListBean> queryDrugInventoriesByRealTime(QueryDrugInventoriesDTO req){
+        Assert.notNull(req,"req is required");
+        Assert.notNull(req.getOrganId(),"organId is required");
+        Assert.notNull(req.getDrugIds(),"drugIds is required");
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<DrugList> drugLists = drugListDAO.findByDrugIds(req.getDrugIds());
+        List<DrugListBean> drugListBeans = getList(drugLists, DrugListBean.class);
+        //查询医院库存
+        setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
+        //查询药企库存
+        setDrugsEnterpriseInventories(req.getOrganId(),drugListBeans);
+        return drugListBeans;
+    }
+
+    private void setHosInventories(Integer organId, List<Integer> drugIds, List<DrugListBean> drugListBeans, Integer pharmacyId) {
+        try {
+            if (CollectionUtils.isEmpty(drugListBeans)) {
+                return;
+            }
+            OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+            List<OrganDrugList> organDrugLists = drugDao.findByOrganIdAndDrugIds(organId, drugIds);
+            Map<Integer, String> drugIdAndOrganDrugCode = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId,
+                    OrganDrugList::getOrganDrugCode));
+            // 调用his前置接口查询医院库存并赋值
+            DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
+            if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
+                // 说明查询错误
+                List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>(1);
+                drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
+                drugListBeans.forEach(drugListBean -> drugListBean.setInventories(drugInventoryInfos));
+            } else {
+                DrugInventoryInfo drugInventory;
+                List<DrugInventoryInfo> drugInventoryInfos;
+                //循环查询的药品
+                for (IDrugInventory drugListBean : drugListBeans) {
+                    List<DrugInfoTO> drugInfoTOListMatched = hisResp.getData().stream().filter(item ->
+                            drugIdAndOrganDrugCode.get(drugListBean.getDrugId()).equalsIgnoreCase(item.getDrcode()))
+                            .collect(Collectors.toList());
+                    drugInventoryInfos = Lists.newArrayList();
+                    drugInventory = DrugInventoryInfo.builder()
+                            .type("his")
+                            .pharmacyInventories(convertFrom(drugInfoTOListMatched))
+                            .remoteQueryStatus("0")
+                            .build();
+                    drugInventoryInfos.add(drugInventory);
+                    drugListBean.setInventories(drugInventoryInfos);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("查询医院药品实时查询库存错误setHosInventories ", e);
+        }
+    }
+
+    private void setDrugsEnterpriseInventories(Integer organId, List<? extends IDrugInventory> drugListBeans) {
+        try {
+            OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            //1.先判断机构下面存不存在药企，如果存在获取机构下关联的药企
+            List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+            List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+            //2.找到每一个药能支持的药企关系
+            List<Integer> drugIds = drugListBeans.stream().map(IHisDrugInventoryCondition::getDrugId).collect(Collectors.toList());
+            // 2.1药品1:药企A,药企B
+            Map<Integer, List<String>> drugDepIdRel = saleDrugListDAO.findDrugDepRelation(drugIds, deps);
+            // 2.2将药企id转换成药企对象
+            Map<Integer, List<DrugsEnterprise>> drugDepRel = Maps.newHashMap();
+            drugDepIdRel.forEach((a,b)-> drugDepRel.put(a,drugsEnterpriseDAO.findByIdIn(b.stream().map(Integer::valueOf).collect(Collectors.toList()))));
+            //3.再判断该药品是否存在药企的配送目录里
+            //单个药库存对象
+            DrugInventoryInfo drugInventory;
+            //库存对象集合
+            List<DrugInventoryInfo> drugInventoryInfos = null;
+            List<DrugPharmacyInventoryInfo> pharmacyInventories;
+            for (IDrugInventory drugListBean : drugListBeans) {
+                if (drugListBean instanceof DrugListBean){
+                    drugInventoryInfos = ((DrugListBean) drugListBean).getInventories();
+                }
+                if (drugInventoryInfos == null){
+                    drugInventoryInfos = Lists.newArrayList();
+                }
+                // 3.1 获取药品关联的药企列表
+                if (CollectionUtils.isNotEmpty(drugDepRel.get(drugListBean.getDrugId()))){
+                    //4.通过查询库存接口查询药企药品库存
+                    String inventory;
+                    pharmacyInventories = Lists.newArrayList();
+                    DrugPharmacyInventoryInfo pharmacyInventory;
+                    List<DrugsEnterprise> drugsEnterprises = drugDepRel.get(drugListBean.getDrugId());
+                    for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                        inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
+                        pharmacyInventory = new DrugPharmacyInventoryInfo();
+                        pharmacyInventory.setPharmacyCode(String.valueOf(drugsEnterprise.getId()));
+                        pharmacyInventory.setPharmacyName(drugsEnterprise.getName());
+                        //库存数量or有无库存
+                        pharmacyInventory.setAmount(inventory);
+                        pharmacyInventories.add(pharmacyInventory);
+                    }
+                    drugInventory = DrugInventoryInfo.builder()
+                            .type("drugEnterprise")
+                            .pharmacyInventories(pharmacyInventories)
+                            .remoteQueryStatus("0")
+                            .build();
+                    drugInventoryInfos.add(drugInventory);
+                    drugListBean.setInventories(drugInventoryInfos);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("查询药企药品实时查询库存错误setDrugsEnterpriseInventories ", e);
+        }
+
     }
 }
