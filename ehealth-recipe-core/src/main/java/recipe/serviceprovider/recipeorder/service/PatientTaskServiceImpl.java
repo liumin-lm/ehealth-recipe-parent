@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.service.HisRecipeService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.serviceprovider.recipeorder.service.constant.RecipeTaskEnum;
@@ -39,7 +40,7 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
     private RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
     private RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-
+    private RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
     /**
      * 首页获取用户需要处理的处方单
@@ -67,7 +68,7 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             return patientTaskArrayList;
         }
         //查询出未支付的订单
-        List<RecipeOrder> recipeOrders = recipeDAO.queryOrderCodeUnpaid(mpiId, organId);
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.queryOrderCodeUnpaid(mpiId, organId);
         //将list转变为map
         Map<String, RecipeOrder> recipeOrderMap = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
         //通过recipe集合获取recipeExtends对象集合
@@ -93,8 +94,7 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             moduleInfo.setInitFn("doHandle");
             moduleInfo.setUrl("eh.wx.health.patientRecipe.RecipeDetail");
             patientTask.setModuleInfo(moduleInfo);
-            if (null != recipe.getOrderCode()) {
-
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 //判断处方状态
                 RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
                 if (null != recipeOrder) {
