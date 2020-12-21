@@ -2068,12 +2068,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @Date 20201221
      */
     @RpcService
-    public List<PharmacyMonthlyReportDTO> pharmacyMonthlyReport(Integer organId, String depart, String startDate, String endDate, Integer start, Integer limit) {
-        List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDate, endDate, false, start, limit);
+    public List<PharmacyMonthlyReportDTO> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit) {
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, start, limit);
         //判断是否最后一页
         if (true) {
             //合计
-            List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDate, endDate, true, start, limit);
+            List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, true, start, limit);
             recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
         }
         List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
@@ -2110,7 +2112,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param limit
      */
     @RpcService
-    public List<PharmacyTopDTO> pharmacyTop(Integer organId, Integer status, String startDate, String endDate,Integer order, Integer start, Integer limit){
+    public List<PharmacyTopDTO> pharmacyTop(Integer organId, Integer status, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
         String orderStatus = "13,14,15";
         if (status == 2) {
             orderStatus = "13";
@@ -2121,7 +2123,50 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (status == 4) {
             orderStatus = "15";
         }
-        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, orderStatus, startDate, endDate, order, start, limit);
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, orderStatus, startDateStr, endDateStr, order, start, limit);
         return drugCountOrderByCountOrMoneyCountGroupByDrugId;
+    }
+
+    /**
+     *
+     * @param organId
+     * @param status
+     * @param startDate
+     * @param endDate
+     * @param order
+     * @param start
+     * @param limit
+     * @Author dxx
+     * @date 20201221
+     */
+    @RpcService
+    public List<RecipeDrugDetialReportDTO> findRecipeDrugDetialReport(Integer organId, Date startDate, Date endDate, String cardNo, String patientName, String billNumber, String recipeId,
+                                           Integer orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        String orderStatusStr = "13,14,15";
+        if (orderStatus == 2) {
+            orderStatusStr = "13";
+        }
+        if (orderStatus == 3) {
+            orderStatusStr = "14";
+        }
+        if (orderStatus == 4) {
+            orderStatusStr = "15";
+        }
+        return recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, cardNo, patientName, billNumber, recipeId,
+                orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, start, limit);
+    }
+
+    /**
+     * 根据recipeId获取处方单详情
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findRecipeDrugDetialByRecipeId(Integer recipeId) {
+        return recipeDAO.findRecipeDrugDetialByRecipeId(recipeId);
     }
 }
