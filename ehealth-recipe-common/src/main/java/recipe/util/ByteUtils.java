@@ -2,6 +2,9 @@ package recipe.util;
 
 import org.springframework.util.StringUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ByteUtils {
 	public static String COMMA = ",";
 	public static String DOT = "\\.";
@@ -31,7 +34,7 @@ public class ByteUtils {
 		}
 		return resultSb.toString();
 	}
-	
+
 	/**
 	 * 字节转为16进制串
 	 * @param b
@@ -100,6 +103,35 @@ public class ByteUtils {
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	/**
+	 * 格式化时间
+	 *
+	 * @param date
+	 * @return
+	 */
+	public static String dateToSting(Date date) {
+		return dateToSting(date, "yyyy-MM-dd HH:mm");
+	}
+
+	/**
+	 * 格式化时间
+	 *
+	 * @param date
+	 * @param pattern
+	 * @return
+	 */
+	public static String dateToSting(Date date, String pattern) {
+		if (null == date || StringUtils.isEmpty(pattern)) {
+			return "";
+		}
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+			return sdf.format(date);
+		} catch (Exception e) {
+			return "";
 		}
 	}
 }

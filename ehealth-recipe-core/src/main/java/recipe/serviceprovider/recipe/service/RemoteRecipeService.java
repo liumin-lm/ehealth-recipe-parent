@@ -1951,10 +1951,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public String getItemSkipType(Integer organId) {
+    public Map<String, String> getItemSkipType(Integer organId) {
+        Map<String, String> map = new HashMap<>();
         Recipe recipe = new Recipe();
         GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
-        return giveModeShowButtonVO.getListItem().getButtonSkipType();
+        map.put("itemList", giveModeShowButtonVO.getListItem().getButtonSkipType());
+        return map;
     }
 
     @Override

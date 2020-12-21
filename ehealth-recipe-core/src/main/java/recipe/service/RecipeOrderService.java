@@ -78,6 +78,7 @@ import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -379,7 +380,6 @@ public class RecipeOrderService extends RecipeBaseService {
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
     }
-
     //设置金额
     private double getFee(Object fee) {
         return null != fee ? Double.parseDouble(fee.toString()) : 0d;
@@ -2404,6 +2404,15 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
+    public String getThirdUrl(Integer recipeId) {
+        SkipThirdBean skipThirdBean = getThirdUrlNew(recipeId);
+        if (skipThirdBean != null && StringUtils.isNotEmpty(skipThirdBean.getUrl())) {
+            return skipThirdBean.getUrl();
+        }
+        return "";
+
+    }
     /**
      * 从微信模板消息跳转时 先获取一下是否需要跳转第三方地址
      * 或者处方审核成功后推送处方卡片消息时点击跳转(互联网)
@@ -2411,7 +2420,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public SkipThirdBean getThirdUrl(Integer recipeId) {
+    public SkipThirdBean getThirdUrlNew(Integer recipeId) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {
             return new SkipThirdBean();

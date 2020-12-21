@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -29,6 +30,8 @@ import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.comment.RecipeEmrComment;
+import recipe.constant.ErrorCode;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.util.ByteUtils;
 
@@ -57,6 +60,9 @@ public class EmrRecipeManager {
 
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * 保存电子病历 主要用于兼容老数据结构
@@ -156,11 +162,15 @@ public class EmrRecipeManager {
      */
     public void addDrugToDOC(Integer recipeId, Integer docId) {
         logger.info("EmrRecipeManager addDrugToDOC recipeId={} docId={}", recipeId, docId);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
+        }
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
         //调用将药品信息写入病历的接口
         try {
-            docIndexService.saveRpDetailRelation(docId, recipeId, rpDetailBean);
+            docIndexService.saveRpDetailRelation(docId, recipeId, recipe.getRecipeType(), rpDetailBean);
         } catch (Exception e) {
             logger.error("saveRpDetailRelation error：{} ", e);
         }

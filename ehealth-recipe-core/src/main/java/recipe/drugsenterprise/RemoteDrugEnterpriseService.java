@@ -2,9 +2,7 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
@@ -590,6 +588,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         LOGGER.info("getDrugsEnterpriseInventory drugsDataBean:{}.", JSONUtils.toString(drugsDataBean));
         List result = new ArrayList();
         Map payOnlineType = new HashMap();
+        Map payShowSendToHosType = new HashMap();
         Map toStoreType = new HashMap();
         Map toHosType= new HashMap();
         Map downLoadType = new HashMap();
@@ -690,17 +689,33 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 }
             }
 
-            if (CollectionUtils.isNotEmpty(supportOnlineList)) {
-                payOnlineType.put(configurations.get("showSendToEnterprises"), supportOnlineList);
-                result.add(payOnlineType);
-            }
-            if (CollectionUtils.isNotEmpty(supportSendToHosList)) {
-                payOnlineType.put(configurations.get("showSendToHos"), supportSendToHosList);
-                result.add(payOnlineType);
-            }
-            if (CollectionUtils.isNotEmpty(toStoreList)) {
-                toStoreType.put(configurations.get("supportTFDS"), toStoreList);
-                result.add(toStoreType);
+            if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
+                //表示为新版的请求
+                if (CollectionUtils.isNotEmpty(supportOnlineList)) {
+                    payOnlineType.put("supportKey", "showSendToEnterprises");
+                    payOnlineType.put(configurations.get("showSendToEnterprises"), supportOnlineList);
+                    result.add(payOnlineType);
+                }
+                if (CollectionUtils.isNotEmpty(supportSendToHosList)) {
+                    payShowSendToHosType.put("supportKey", "showSendToHos");
+                    payShowSendToHosType.put(configurations.get("showSendToHos"), supportSendToHosList);
+                    result.add(payShowSendToHosType);
+                }
+                if (CollectionUtils.isNotEmpty(toStoreList)) {
+                    toStoreType.put("supportKey", "supportTFDS");
+                    toStoreType.put(configurations.get("supportTFDS"), toStoreList);
+                    result.add(toStoreType);
+                }
+            } else {
+                supportOnlineList.addAll(supportSendToHosList);
+                if (CollectionUtils.isNotEmpty(supportOnlineList)) {
+                    payOnlineType.put("配送到家", supportOnlineList);
+                    result.add(payOnlineType);
+                }
+                if (CollectionUtils.isNotEmpty(toStoreList)) {
+                    toStoreType.put("药店取药", toStoreList);
+                    result.add(toStoreType);
+                }
             }
         }
         if (configurations.containsKey("supportToHos")) {
@@ -730,7 +745,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 map.put("", list);
                 List toHosList = new ArrayList();
                 toHosList.add(map);
-                toHosType.put(configurations.get("supportToHos"), toHosList);
+                if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
+                    toHosType.put("supportKey", "supportToHos");
+                    toHosType.put(configurations.get("supportToHos"), toHosList);
+                } else {
+                    toHosType.put("到院取药", toHosList);
+                }
                 if (CollectionUtils.isNotEmpty(list)) {
                     result.add(toHosType);
                 }
@@ -746,7 +766,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             map.put("", list);
             List downList = new ArrayList();
             downList.add(map);
-            downLoadType.put(configurations.get("supportDownload"), downList);
+            if (StringUtils.isNotEmpty(drugsDataBean.getNewVersionFlag())) {
+                downLoadType.put("supportKey", "supportDownload");
+                downLoadType.put(configurations.get("supportDownload"), downList);
+            } else {
+                downLoadType.put("下载处方", downList);
+            }
+
             if (CollectionUtils.isNotEmpty(list)) {
                 result.add(downLoadType);
             }
@@ -799,6 +825,25 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         } else {
             return true;
         }
+    }
+
+    @RpcService
+    public Boolean isShowSendTypeButton(Integer organId) {
+        Boolean flag = false;
+        Recipe recipe = new Recipe();
+        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
+        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        Iterator iterator = giveModeButtonBeans.iterator();
+        while (iterator.hasNext()) {
+            GiveModeButtonBean giveModeButtonBean = (GiveModeButtonBean) iterator.next();
+            if ("supportMedicalPayment".equals(giveModeButtonBean.getShowButtonKey())) {
+                iterator.remove();
+            }
+        }
+        if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
+            flag = true;
+        }
+        return  flag;
     }
 
     /**
