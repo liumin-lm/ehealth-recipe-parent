@@ -84,7 +84,7 @@ public class RecipeLabelManager {
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         eSignDTO.setRp(String.valueOf(rpTorx));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
-        logger.error("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
         return backMap;
     }
 
