@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
@@ -19,8 +18,10 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -78,7 +79,6 @@ import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
@@ -121,6 +121,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private DepartmentService departmentService;
 
     @RpcService
     @Override
@@ -2051,5 +2053,75 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         workLoadTopDTO.setRecipeCount(totalCount);
         result.add(workLoadTopDTO);
         return result;
+    }
+
+    /**
+     * 深圳二院发药月报
+     * @param organId
+     * @param depart
+     * @param startDate
+     * @param endDate
+     * @param start
+     * @param limit
+     * @return
+     * @Author dxx
+     * @Date 20201221
+     */
+    @RpcService
+    public List<PharmacyMonthlyReportDTO> pharmacyMonthlyReport(Integer organId, String depart, String startDate, String endDate, Integer start, Integer limit) {
+        List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDate, endDate, false, start, limit);
+        //判断是否最后一页
+        if (true) {
+            //合计
+            List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDate, endDate, true, start, limit);
+            recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
+        }
+        List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
+        for (PharmacyMonthlyReportDTO pharmacyMonthlyReportDTO : recipeDetialCountgroupByDepart) {
+            if (getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId) != null) {
+                pharmacyMonthlyReportDTO.setDepartName(getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId));
+            }
+        }
+        return recipeDetialCountgroupByDepart;
+    }
+
+    /**
+     * 根据depart获取科室名称
+     *
+     * @return
+     */
+    private String getDepart(Integer departId, List<DepartmentDTO> departmentDTOS) {
+        for (DepartmentDTO departmentDTO : departmentDTOS) {
+            if (departmentDTO.getDeptId() == departId) {
+                return departmentDTO.getName();
+            }
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param organId
+     * @param status  1：全部 2.发药 3.退药 4.拒发
+     * @param startDate
+     * @param endDate
+     * @param order 排序方式
+     * @param start
+     * @param limit
+     */
+    @RpcService
+    public List<PharmacyTopDTO> pharmacyTop(Integer organId, Integer status, String startDate, String endDate,Integer order, Integer start, Integer limit){
+        String orderStatus = "13,14,15";
+        if (status == 2) {
+            orderStatus = "13";
+        }
+        if (status == 3) {
+            orderStatus = "14";
+        }
+        if (status == 4) {
+            orderStatus = "15";
+        }
+        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, orderStatus, startDate, endDate, order, start, limit);
+        return drugCountOrderByCountOrMoneyCountGroupByDrugId;
     }
 }
