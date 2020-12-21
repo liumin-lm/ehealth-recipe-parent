@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -7,10 +8,12 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
-import com.ngari.his.recipe.mode.DrugInfoRequestTO;
-import com.ngari.his.recipe.mode.DrugInfoResponseTO;
-import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.mode.PatientDiagnosisDTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
@@ -22,12 +25,14 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import es.api.DrugSearchService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.serviceprovider.BaseService;
@@ -38,6 +43,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,6 +66,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugListExtService.class);
 
     private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
+
+    @Autowired
+    private PatientService patientService;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -104,6 +114,109 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }
         }
+    }
+
+    /**
+     * 查询his常用药品列表
+     * @param drugDTO
+     * @return
+     */
+    @RpcService
+    public List<DrugListBean> findHisCommonDrugList(HisCommonDrugReqDTO drugDTO) {
+        LOGGER.info("查询his常用药品列表入参={}", JSONObject.toJSONString(drugDTO));
+        Args.notNull(drugDTO, "drugDTO");
+        Args.notNull(drugDTO.getOrganId(),"organId");
+        Args.notBlank(drugDTO.getLineCode(),"lineCode");
+        Args.notNull(drugDTO.getDrugType(),"drugType");
+        Args.notNull(drugDTO.getMpiId(),"mpiId");
+        if (drugDTO.getDrugLimit() == null ){
+            drugDTO.setDrugLimit(20);
+        }
+        Future<QueryDrugResTO> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+            QueryDrugReqTO reqTO = new QueryDrugReqTO();
+            reqTO.setOrganId(drugDTO.getOrganId());
+            reqTO.setDrugLimit(drugDTO.getDrugLimit());
+            reqTO.setDeptCode(drugDTO.getDeptCode());
+            reqTO.setDeptName(drugDTO.getDeptName());
+            List<PatientDiagnosisDTO> diagnosisList = ObjectCopyUtils.convert(drugDTO.getDiagnosisList(), PatientDiagnosisDTO.class);
+            reqTO.setDiagnosisList(diagnosisList);
+            reqTO.setDoctorId(drugDTO.getDoctorId());
+            reqTO.setDoctorName(drugDTO.getDoctorName());
+            reqTO.setDrugType(drugDTO.getDrugType());
+            reqTO.setIsInsurance(1);
+            reqTO.setLineCode(drugDTO.getLineCode());
+            reqTO.setMpiId(drugDTO.getMpiId());
+            PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId() + "");
+            if (null != patient){
+                reqTO.setPatientName(patient.getPatientName());
+                reqTO.setIdType(patient.getCertificateType());
+                reqTO.setIdNumber(patient.getCertificate());
+            }
+            IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+            QueryDrugResTO result = hisService.queryHisCommonDrugList(reqTO);
+            return result;
+        });
+        QueryDrugResTO hisDrug = null;
+        try {
+            LOGGER.info("查询his常用药品列表--调用his开始，入参={}",JSONObject.toJSONString(drugDTO));
+            hisDrug = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            LOGGER.info("查询his常用药品列表--查询结果={}",JSONObject.toJSONString(hisDrug));
+        } catch (Exception e) {
+            LOGGER.error("查询his常用药品列表--调用异常，入参={}",JSONObject.toJSONString(drugDTO),e);
+        }
+        List<DrugListBean> drugList = new ArrayList<>();
+        if (null != hisDrug && null != hisDrug.getData() && CollectionUtils.isNotEmpty(hisDrug.getData().getDetails())){
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            List<DrugDetailTO> hisDrugList = hisDrug.getData().getDetails();
+            for (DrugDetailTO drug : hisDrugList){
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(drugDTO.getOrganId(),drug.getOrganDrugCode());
+                if (null != organDrug){
+                    DrugListBean drugListBean = getBean(organDrug,DrugListBean.class);
+                    drugListBean.setHisciIsClaim(drug.getIsClaim());
+                    drugListBean.setHisciReimburseRate(drug.getReimburse());
+                    drugList.add(drugListBean);
+                }
+            }
+        }
+
+        return drugList;
+    }
+
+    /**
+     * 搜索his药品信息
+     *
+     * @param searchDrug
+     * @return
+     */
+    @RpcService
+    public HisDrugInfoDTO searchHisDrugDetailForDortor(HisDrugInfoReqDTO searchDrug){
+        LOGGER.info("搜索his药品列表入参={}", JSONObject.toJSONString(searchDrug));
+        Args.notNull(searchDrug, "drugDTO");
+        Args.notNull(searchDrug.getOrganId(),"organId");
+        Args.notBlank(searchDrug.getLineCode(),"lineCode");
+        Args.notNull(searchDrug.getDrugType(),"drugType");
+        Args.notNull(searchDrug.getMpiId(),"mpiId");
+        Args.notNull(searchDrug.getPageNum(),"pageNum");
+        Integer pageSize = searchDrug.getPageSize() == null ? 20 : searchDrug.getPageSize();
+        Integer startNum = (searchDrug.getPageNum() - 1) * pageSize;
+        List<SearchDrugDetailDTO> searchList = searchDrugListWithES(searchDrug.getOrganId(),
+                searchDrug.getDrugType(), searchDrug.getKeyWord(), null, startNum, pageSize);
+        if (CollectionUtils.isNotEmpty(searchList)){
+            List<String> organDrugCodeList = searchList.stream().map(SearchDrugDetailDTO::getOrganDrugCode).collect(Collectors.toList());
+            // 过滤后为0，es搜索下一页
+        }
+        return null;
+    }
+
+    @RpcService
+    public List<DrugListBean> testTimeOut(){
+
+        try {
+            Thread.sleep(5000000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
     }
 
     /**
