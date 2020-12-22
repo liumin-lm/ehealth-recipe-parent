@@ -559,7 +559,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean = new com.ngari.recipe.recipe.model.RecipeDetailBean();
             recipeDetailBean.setDrugId(drugId);
             recipeDetailBeans.add(recipeDetailBean);
-            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(organId, drugsEnterprise, recipeDetailBeans);
+            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsEnterprise.getOrganId(), drugsEnterprise, recipeDetailBeans);
             LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
             HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
