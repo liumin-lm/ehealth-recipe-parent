@@ -17,6 +17,7 @@ import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,6 +64,8 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         if (addressList.size() != 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "Enterprise Address exist");
         }
+        enterpriseAddress.setCreateTime(new Date());
+        enterpriseAddress.setLastModify(new Date());
         return this.save(enterpriseAddress);
     }
 
@@ -82,6 +85,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
             target.setEnterpriseId(enterpriseAddress.getEnterpriseId());
             target.setStatus(enterpriseAddress.getStatus());
             target.setAddress(enterpriseAddress.getAddress());
+            target.setLastModify(new Date());
             target = this.update(target);
             newList.add(target);
         }
