@@ -47,7 +47,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
 
-    @Resource(name = "drugList")
+    @Resource(name = "eh.drugList")
     private DrugListExtService drugListExtService;
 
     @Override
