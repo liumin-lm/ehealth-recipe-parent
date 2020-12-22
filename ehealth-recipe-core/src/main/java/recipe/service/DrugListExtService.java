@@ -297,16 +297,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return reqTO;
     }
 
-    @RpcService
-    public List<DrugListBean> testTimeOut(){
 
-        try {
-            Thread.sleep(5000000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-    }
 
     /**
      * 常用药品列表服务new

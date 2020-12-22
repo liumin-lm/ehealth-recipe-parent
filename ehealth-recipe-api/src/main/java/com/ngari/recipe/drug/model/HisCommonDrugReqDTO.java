@@ -17,7 +17,7 @@ public class HisCommonDrugReqDTO implements Serializable {
     @ItemProperty(alias = "机构id")
     private Integer organId;
     @ItemProperty(alias = "机构名称")
-    private Integer organName;
+    private String organName;
     @ItemProperty(alias = "商保渠道编码")
     private String lineCode;
     @ItemProperty(alias = "药品分类编码")
@@ -25,7 +25,7 @@ public class HisCommonDrugReqDTO implements Serializable {
     @ItemProperty(alias = "医生id")
     private Integer doctorId;
     @ItemProperty(alias = "医生名称")
-    private Integer doctorName;
+    private String doctorName;
     @ItemProperty(alias = "科室编码")
     private String deptCode;
     @ItemProperty(alias = "科室名称")
