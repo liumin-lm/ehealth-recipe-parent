@@ -211,16 +211,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             Boolean search = false;
             List<SearchDrugDetailDTO> searchList;
             Integer pageNum = searchDrug.getPageNum();
+            HisSearchDrugDTO searchResult = new HisSearchDrugDTO();
+
             do {
                 nextPage = nextPage + 1;
+                searchResult.setNextPage(nextPage);
                 Integer startNum = (pageNum - 1) * pageSize;
                 searchList = searchDrugListWithES(searchDrug.getOrganId(),
                         searchDrug.getDrugType(), searchDrug.getKeyWord(), null, startNum, pageSize);
+                searchResult.setSearchList(searchList);
                 if (CollectionUtils.isNotEmpty(searchList)){
                     QueryDrugReqTO reqTO = getQueryDrugReqTO(searchDrug, searchList);
                     LOGGER.info("查询his药品商保信息--开始查询，入参={}",JSONObject.toJSONString(reqTO));
                     IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
                     hisDrug = hisService.queryHisDrugInfo(reqTO);
+                    searchResult.setHisDrug(hisDrug);
                     LOGGER.info("查询his药品商保信息--过滤结果={}",JSONObject.toJSONString(hisDrug));
                     // 过滤后为0(请求成功但药品列表为空)，且es有下一页-->搜索es下一页
                     if (searchList.size() == pageSize && null != hisDrug && "200".equals(hisDrug.getMsgCode()) && CollectionUtils.isEmpty(hisDrug.getData().getDetails())){
@@ -232,10 +237,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }while (search);
 
-            HisSearchDrugDTO searchResult = new HisSearchDrugDTO();
-            searchResult.setNextPage(nextPage);
-            searchResult.setHisDrug(hisDrug);
-            searchResult.setSearchList(searchList);
             return searchResult;
         });
         HisSearchDrugDTO searchDrugDTO = null;
@@ -255,7 +256,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             List<DrugDetailTO> hisDrugList = hisDrug.getData().getDetails();
             for (DrugDetailTO drug : hisDrugList){
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(searchDrug.getOrganId(),drug.getOrganDrugCode());
-                if (null != organDrug){
+                if (null != organDrug && null != detailMap.get(drug.getOrganDrugCode())){
                     SearchDrugDetailDTO drugListBean = getBean(detailMap.get(drug.getOrganDrugCode()), SearchDrugDetailDTO.class);
                     drugListBean.setHisciIsClaim(drug.getIsClaim());
                     drugListBean.setHisciReimburseRate(drug.getReimburse());
