@@ -77,6 +77,7 @@ public class RecipeLabelManager {
             eSignDTO.setImgFileId(recipeId.toString());
         }
         eSignDTO.setLoginId(patientDTO.getLoginId());
+        eSignDTO.setDoctorName(recipe.getDoctorName());
         eSignDTO.setDoctorId(recipe.getDoctor());
         eSignDTO.setOrgan(recipe.getClinicOrgan());
         eSignDTO.setFileName("recipe_" + recipeId + ".pdf");

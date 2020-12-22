@@ -604,7 +604,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     public Map<String, Object> getDrugInventory(Integer depId, Integer drugId){
         Map<String, Object> map = new HashMap<>();
         RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        String inventory = enterpriseService.getDrugInventory(depId, drugId, null);
+        String inventory = enterpriseService.getDrugInventory(depId, drugId, -1);
         //根据药企ID查询该药企该药品的库存数量
         map.put("inventory", inventory);
         return map;
