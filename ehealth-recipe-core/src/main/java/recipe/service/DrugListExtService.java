@@ -152,21 +152,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             reqTO.setIsInsurance(1);
             reqTO.setLineCode(drugDTO.getLineCode());
             reqTO.setMpiId(drugDTO.getMpiId());
-            PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId() + "");
+            PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId());
             if (null != patient){
                 reqTO.setPatientName(patient.getPatientName());
                 reqTO.setIdType(patient.getCertificateType());
                 reqTO.setIdNumber(patient.getCertificate());
             }
             IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+            LOGGER.info("查询his常用药品列表--调用his开始，入参={}",JSONObject.toJSONString(reqTO));
             QueryDrugResTO result = hisService.queryHisCommonDrugList(reqTO);
+            LOGGER.info("查询his常用药品列表--查询结果={}",JSONObject.toJSONString(result));
             return result;
         });
         QueryDrugResTO hisDrug = null;
         try {
-            LOGGER.info("查询his常用药品列表--调用his开始，入参={}",JSONObject.toJSONString(drugDTO));
             hisDrug = hisTask.get(5000, TimeUnit.MILLISECONDS);
-            LOGGER.info("查询his常用药品列表--查询结果={}",JSONObject.toJSONString(hisDrug));
         } catch (Exception e) {
             LOGGER.error("查询his常用药品列表--调用异常，入参={}",JSONObject.toJSONString(drugDTO),e);
         }
@@ -248,7 +248,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
         List<SearchDrugDetailDTO> drugList = new ArrayList<>();
         QueryDrugResTO hisDrug = null== searchDrugDTO ? null : searchDrugDTO.getHisDrug();
-        List<SearchDrugDetailDTO> searchList = searchDrugDTO.getSearchList();
+        List<SearchDrugDetailDTO> searchList = searchDrugDTO == null ? null : searchDrugDTO.getSearchList();
         if (null != hisDrug && null != hisDrug.getData() && CollectionUtils.isNotEmpty(hisDrug.getData().getDetails())){
             Map<String, SearchDrugDetailDTO> detailMap = searchList.stream().collect(Collectors.toMap(SearchDrugDetailDTO::getOrganDrugCode, (drugdetail -> drugdetail)));
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -267,7 +267,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Boolean hasNextPage = (CollectionUtils.isEmpty(searchList) || searchList.size() < pageSize) ? false : true;
         HisDrugInfoDTO result = new HisDrugInfoDTO();
         result.setDrugDetailList(drugList);
-        result.setNextPage(searchDrugDTO.getNextPage());
+        Integer nextPage = null == searchDrugDTO ? searchDrug.getPageNum() + 1 : searchDrugDTO.getNextPage();
+        result.setNextPage(nextPage);
         result.setHasNextPage(hasNextPage);
         return result;
     }
