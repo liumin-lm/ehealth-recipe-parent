@@ -945,6 +945,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      */
     @RpcService
     public List<DrugListBean> queryDrugInventoriesByRealTime(QueryDrugInventoriesDTO req){
+        LOGGER.info("queryDrugInventoriesByRealTime req:{}", JSONUtils.toString(req));
         Assert.notNull(req,"req is required");
         Assert.notNull(req.getOrganId(),"organId is required");
         Assert.notNull(req.getDrugIds(),"drugIds is required");
