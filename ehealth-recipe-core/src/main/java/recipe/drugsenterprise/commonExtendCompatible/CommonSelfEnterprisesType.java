@@ -1,6 +1,5 @@
 package recipe.drugsenterprise.commonExtendCompatible;
 
-import com.google.common.base.Joiner;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -14,13 +13,10 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -34,6 +30,7 @@ import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +47,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
 
-    @Autowired
+    @Resource(name = "drugList")
     private DrugListExtService drugListExtService;
 
     @Override
