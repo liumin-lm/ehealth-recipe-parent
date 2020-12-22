@@ -2067,7 +2067,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @Author dxx
      * @Date 20201221
      */
-    @RpcService
+    @Override
     public List<PharmacyMonthlyReportDTO> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit) {
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
@@ -2102,7 +2102,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     /**
-     *
+     *发药排行
      * @param organId
      * @param status  1：全部 2.发药 3.退药 4.拒发
      * @param startDate
@@ -2111,7 +2111,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param start
      * @param limit
      */
-    @RpcService
+    @Override
     public List<PharmacyTopDTO> pharmacyTop(Integer organId, Integer status, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
         String orderStatus = "13,14,15";
         if (status == 2) {
@@ -2156,8 +2156,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (orderStatus == 4) {
             orderStatusStr = "15";
         }
-        return recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, cardNo, patientName, billNumber, recipeId,
+        List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
+        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, cardNo, patientName, billNumber, recipeId,
                 orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, start, limit);
+        for (RecipeDrugDetialReportDTO recipeDrugDetialReportDTO : recipeDrugDetialReport) {
+            if (getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId) != null) {
+                recipeDrugDetialReportDTO.setDepartName(getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId));
+            }
+        }
+        return recipeDrugDetialReport;
     }
 
     /**
@@ -2167,6 +2174,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService
     public List<Map<String, Object>> findRecipeDrugDetialByRecipeId(Integer recipeId) {
-        return recipeDAO.findRecipeDrugDetialByRecipeId(recipeId);
+        List<Map<String, Object>> recipeDrugDetialByRecipeId = recipeDAO.findRecipeDrugDetialByRecipeId(recipeId);
+        try {
+            String text = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipeDrugDetialByRecipeId.get(0).get("usePathways"));
+            recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", text);
+        } catch (ControllerException e) {
+            recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", "");
+            LOGGER.error("给药方式字典获取失败", e);
+        }
+        return recipeDrugDetialByRecipeId;
     }
 }

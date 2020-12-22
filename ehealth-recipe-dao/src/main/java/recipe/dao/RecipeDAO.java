@@ -2722,13 +2722,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tcr.depart,\n" +
                         "\tcr.patientName,\n" +
                         "\tcr.CreateDate as sendDate,\n" +
-                        "\tcr.STATUS,\n" +
+                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' ELSE '无' END AS STATUS,\n" +
                         "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
                         "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
                         "\t'' AS dispensingWindow,\n" +
                         "\tcr.doctorName,\n" +
                         "\tcr.totalMoney,\n" +
-                        "\tcr.RecipeType,\n" +
+                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' ELSE '中成药' END AS RecipeType,\n" +
                         "\tcr.CreateDate,\n" +
                         "\tco.PayTime\n" +
                         "FROM\n" +
@@ -2792,13 +2792,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
                         value.setPatientName(String.valueOf(objects[3]));
                         value.setSendDate(String.valueOf(objects[4]));
-                        value.setStatus(Integer.parseInt(String.valueOf(objects[5])));
+                        value.setStatus(String.valueOf(objects[5]));
                         value.setSendApothecaryName(String.valueOf(objects[6]));
                         value.setDispensingApothecaryName(String.valueOf(objects[7]));
                         value.setDispensingWindow(String.valueOf(objects[8]));
                         value.setDoctorName(String.valueOf(objects[9]));
                         value.setTotalMoney(Double.valueOf(String.valueOf(objects[10])));
-                        value.setRecipeType(Integer.valueOf(String.valueOf(objects[11])));
+                        value.setRecipeType(String.valueOf(objects[11]));
                         value.setCreateDate(String.valueOf(objects[12]));
                         value.setPayTime(String.valueOf(objects[13]));
                         vo.add(value);
@@ -2851,7 +2851,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " crt.drugCost,\n" +
                         " crt.sendNumber,\n" +
                         " crt.dosageUnit,\n" +
-                        " crt.producer\n" +
+                        " crt.producer,\n" +
+                        " cr.OrganDiseaseName\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipe_ext cre ON (cr.RecipeID = cre.recipeId)\n" +
@@ -2869,27 +2870,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         Map<String, Object> value = new HashMap<>();
-                        value.put("patientName", objects[0]);
+                        value.put("billNumber", objects[0] == null ? "":objects[0]);
                         value.put("patientName", objects[1]);
                         value.put("patientType", objects[2]);
                         value.put("CreateDate", objects[3]);
                         value.put("recipeId", objects[4]);
                         value.put("doctorName", objects[5]);
-                        value.put("sendApothecaryName", objects[6]);
-                        value.put("dispensingApothecaryName", objects[7]);
-                        value.put("birthday", objects[8]);
-                        value.put("patientSex", objects[9]);
-                        value.put("mobile", objects[10]);
-                        value.put("memo", objects[11]);
-                        value.put("cardNo", objects[12]);
-                        value.put("drugSpec", objects[13]);
-                        value.put("useDoseStr", objects[14]);
-                        value.put("useDose", objects[15]);
-                        value.put("usePathways", objects[16]);
-                        value.put("drugCost", objects[17]);
-                        value.put("sendNumber", objects[18]);
-                        value.put("dosageUnit", objects[19]);
-                        value.put("producer", objects[20]);
+                        value.put("sendApothecaryName", objects[6] == null ? "":objects[6]);
+                        value.put("dispensingApothecaryName", objects[7] == null ? "":objects[7]);
+                        value.put("birthday", objects[8] == null ? "":objects[8]);
+                        value.put("patientSex", objects[9] == null ? "":objects[9]);
+                        value.put("mobile", objects[10] == null ? "":objects[10]);
+                        value.put("memo", objects[11] == null ? "":objects[11]);
+                        value.put("cardNo", objects[12] == null ? "":objects[12]);
+                        value.put("drugSpec", objects[13] == null ? "":objects[13]);
+                        value.put("useDoseStr", objects[14] == null ? "":objects[14]);
+                        value.put("useDose", objects[15] == null ? "":objects[15]);
+                        value.put("usePathways", objects[16] == null ? "":objects[16]);
+                        value.put("drugCost", objects[17] == null ? "":objects[17]);
+                        value.put("sendNumber", objects[18] == null ? "":objects[18]);
+                        value.put("dosageUnit", objects[19] == null ? "":objects[19]);
+                        value.put("producer", objects[20] == null ? "":objects[20]);
+                        value.put("OrganDiseaseName", objects[21] == null ? "":objects[21]);
                         vo.add(value);
                     }
                 }

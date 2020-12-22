@@ -789,5 +789,11 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public List<WorkLoadTopDTO> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit);
+
+    @RpcService
+    public List<PharmacyMonthlyReportDTO> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit);
+
+    @RpcService
+    public List<PharmacyTopDTO> pharmacyTop(Integer organId, Integer status, Date startDate, Date endDate, Integer order, Integer start, Integer limit);
 }
 
