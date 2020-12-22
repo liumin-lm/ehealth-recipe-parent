@@ -1612,8 +1612,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId and payFlag =0")
-    public abstract List<RecipeOrder> queryOrderCodeUnpaid(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId")
+    public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
 
 
     /**

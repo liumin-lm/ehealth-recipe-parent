@@ -67,14 +67,14 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
         if (CollectionUtils.isEmpty(recipes)) {
             return patientTaskArrayList;
         }
-        //查询出未支付的订单
-        List<RecipeOrder> recipeOrders = recipeOrderDAO.queryOrderCodeUnpaid(mpiId, organId);
-        //将list转变为map
+        //将recipeOrder转为map
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.queryRecipeOrderByMpiIdAndOrganId(mpiId, organId);
         Map<String, RecipeOrder> recipeOrderMap = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
         //通过recipe集合获取recipeExtends对象集合
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a));
+
         for (Recipe recipe : recipes) {
             PatientTask patientTask = new PatientTask();
             Map<String, Object> params = new HashMap<>();
@@ -94,28 +94,30 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             moduleInfo.setInitFn("doHandle");
             moduleInfo.setUrl("eh.wx.health.patientRecipe.RecipeDetail");
             patientTask.setModuleInfo(moduleInfo);
+
+
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                //判断处方状态
+                //根据recipe获取对应的order对象，再对order对像的状态进行判断
                 RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
-                if (null != recipeOrder) {
-                    //待支付
-                    patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getTaskName());
-                    patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getBusStatusName());
-                    patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_UNPAID.getButtonName());
+                RecipeTaskEnum recipeOrderStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipeOrder.getStatus());
+                if (RecipeTaskEnum.NONE != recipeOrderStatusEnum) {
+                    patientTask.setTaskName(recipeOrderStatusEnum.getTaskName());
+                    patientTask.setBusStatusName(recipeOrderStatusEnum.getBusStatusName());
+                    patientTask.setButtonName(recipeOrderStatusEnum.getButtonName());
                     patientTaskArrayList.add(patientTask);
                     continue;
                 }
             }
-            //处理剩下的状态
-            RecipeTaskEnum recipeStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipe.getStatus());
-            if (RecipeTaskEnum.NONE != recipeStatusEnum) {
-                patientTask.setTaskName(recipeStatusEnum.getTaskName());
-                patientTask.setBusStatusName(recipeStatusEnum.getBusStatusName());
-                patientTask.setButtonName(recipeStatusEnum.getButtonName());
+
+            //判断待处理的状态
+            if (2 == recipe.getStatus()) {
+                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_PENDING.getTaskName());
+                patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_PENDING.getButtonName());
+                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_PENDING.getBusStatusName());
                 patientTaskArrayList.add(patientTask);
+
             }
         }
-
         LOGGER.info("PatientTaskServiceImpl findPatientTask List<PatientTask>:{}", JSONUtils.toString(patientTaskArrayList));
         return patientTaskArrayList;
     }
