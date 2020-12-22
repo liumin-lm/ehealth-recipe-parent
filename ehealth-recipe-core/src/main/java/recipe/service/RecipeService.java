@@ -3907,24 +3907,66 @@ public class RecipeService extends RecipeBaseService {
             BigDecimal drugPrice = new BigDecimal(drug.getPrice());
             organDrug.setSalePrice(drugPrice);
         }
+        //药品单位
         if (StringUtils.isNotEmpty(drug.getUnit())) {
             String packUnit = drug.getUnit();
             organDrug.setUnit(packUnit);
         }
+        //药品规格
         if (StringUtils.isNotEmpty(drug.getDrugSpec())) {
             organDrug.setDrugSpec(drug.getDrugSpec());
         }
+        //医保药品编码
         if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
             organDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
         }
+        //转换系数
         if (!ObjectUtils.isEmpty(drug.getPack())) {
             organDrug.setPack(Integer.valueOf(drug.getPack()));
         }
+        //生产厂家
         if (StringUtils.isNotEmpty(drug.getProducer())) {
             organDrug.setProducer(drug.getProducer());
         }
+        //商品名
         if (StringUtils.isNotEmpty(drug.getSaleName())) {
             organDrug.setSaleName(drug.getSaleName());
+        }
+        //通用名
+        if (StringUtils.isNotEmpty(drug.getDrugName())) {
+            organDrug.setDrugName(drug.getDrugName());
+        }
+        //单次剂量单位（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDoseUnit())) {
+            organDrug.setUseDoseUnit(drug.getUseDoseUnit());
+        }
+        //院内检索关键字
+        if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
+            organDrug.setRetrievalCode(drug.getRetrievalCode());
+        }
+        //药房编码
+        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            organDrug.setPharmacy(drug.getPharmacyCode());
+        }
+        //监管平台药品编码
+        if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
+            organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
+        }
+        //是否基药
+        if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {
+            organDrug.setBaseDrug(drug.getBaseDrug());
+        }
+        //批准文号
+        if (!ObjectUtils.isEmpty(drug.getLicenseNumber())) {
+            organDrug.setLicenseNumber(drug.getLicenseNumber());
+        }
+        //包装材料
+        if (!ObjectUtils.isEmpty(drug.getPackingMaterials())) {
+            organDrug.setPackingMaterials(drug.getPackingMaterials());
+        }
+        //医保剂型编码
+        if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
+            organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
         LOGGER.info("updateHisOrganDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
@@ -3945,21 +3987,123 @@ public class RecipeService extends RecipeBaseService {
             BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
             organDrug.setSalePrice(drugPrice);
         }
+        //药品规格
         if (StringUtils.isNotEmpty(drug.getDrmodel())) {
             organDrug.setDrugSpec(drug.getDrmodel());
         }
+        //医保药品编码
         if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
             organDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
         }
+        //转换系数
         if (StringUtils.isNotEmpty(drug.getPack())) {
             organDrug.setPack(Integer.valueOf(drug.getPack()));
         }
+        //生产厂家
         if (StringUtils.isNotEmpty(drug.getProducer())) {
             organDrug.setProducer(drug.getProducer());
         }
+        //商品名称
         if (StringUtils.isNotEmpty(drug.getTradename())) {
             organDrug.setSaleName(drug.getTradename());
         }
+        //通用名
+        if (StringUtils.isNotEmpty(drug.getDrname())) {
+            organDrug.setDrugName(drug.getDrname());
+        }
+        //药品包装单位
+        if (StringUtils.isNotEmpty(drug.getPackUnit())) {
+            organDrug.setUnit(drug.getPackUnit());
+        }
+        //实际单次剂量（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
+            organDrug.setUseDose(drug.getUseDose());
+        }
+        //推荐单次剂量（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getRecommendedUseDose())) {
+            organDrug.setRecommendedUseDose(drug.getRecommendedUseDose());
+        }
+        //单次剂量单位（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDoseUnit())) {
+            organDrug.setUseDoseUnit(drug.getUseDoseUnit());
+        }
+        //实际单位剂量（最小单位）
+        if (!ObjectUtils.isEmpty(drug.getSmallestUnitUseDose())) {
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        //默认单位剂量（最小单位）
+        if (!ObjectUtils.isEmpty(drug.getDefaultSmallestUnitUseDose())) {
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        //单位剂量单位（最小单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnit())) {
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
+        //使用频率平台
+        if (!ObjectUtils.isEmpty(drug.getUsingRate())) {
+            organDrug.setUsingRate(drug.getUsingRate());
+        }
+        //用药途径平台
+        if (!ObjectUtils.isEmpty(drug.getUsePathways())) {
+            organDrug.setUsePathways(drug.getUsePathways());
+        }
+        //搜索关键字，一般包含通用名，商品名及医院自定义值
+        if (!ObjectUtils.isEmpty(drug.getSearchKey())) {
+            organDrug.setSearchKey(drug.getSearchKey());
+        }
+        //使用状态 0 无效 1 有效
+        if (!ObjectUtils.isEmpty(drug.getStatus())) {
+            organDrug.setStatus(drug.getStatus());
+        }
+        //生产厂家代码
+        if (!ObjectUtils.isEmpty(drug.getProducerCode())) {
+            organDrug.setProducerCode(drug.getProducerCode());
+        }
+        //外带药标志 1:外带药
+        if (!ObjectUtils.isEmpty(drug.getTakeMedicine())) {
+            organDrug.setTakeMedicine(drug.getTakeMedicine());
+        }
+        //院内检索关键字
+        if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
+            organDrug.setRetrievalCode(drug.getRetrievalCode());
+        }
+        //药房
+        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            organDrug.setPharmacy(drug.getPharmacyCode());
+        }
+        //医院药房名字
+        if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
+            organDrug.setPharmacyName(drug.getPharmacy());
+        }
+        //监管平台药品编码
+        if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
+            organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
+        }
+        //剂型
+        if (!ObjectUtils.isEmpty(drug.getDrugForm())) {
+            organDrug.setDrugForm(drug.getDrugForm());
+        }
+        //是否基药
+        if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {
+            organDrug.setBaseDrug(drug.getBaseDrug());
+        }
+        //批准文号
+        if (!ObjectUtils.isEmpty(drug.getLicenseNumber())) {
+            organDrug.setLicenseNumber(drug.getLicenseNumber());
+        }
+        //包装材料
+        if (!ObjectUtils.isEmpty(drug.getPackingMaterials())) {
+            organDrug.setPackingMaterials(drug.getPackingMaterials());
+        }
+        //HIS剂型编码
+        if (!ObjectUtils.isEmpty(drug.getDrugFormCode())) {
+            organDrug.setDrugFormCode(drug.getDrugFormCode());
+        }
+        //医保剂型编码
+        if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
+            organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
+        }
+
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
     }

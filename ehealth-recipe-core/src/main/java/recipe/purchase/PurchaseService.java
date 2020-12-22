@@ -780,7 +780,7 @@ public class PurchaseService {
     }
 
     /**
-     * 医保结算申请（预结算）
+     * 医保结算申请（预结算）---仅医保小程序使用
      *
      * @return
      */
