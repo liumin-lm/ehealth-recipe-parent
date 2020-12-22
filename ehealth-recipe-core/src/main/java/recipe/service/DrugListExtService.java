@@ -257,7 +257,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             for (DrugDetailTO drug : hisDrugList){
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(searchDrug.getOrganId(),drug.getOrganDrugCode());
                 if (null != organDrug && null != detailMap.get(drug.getOrganDrugCode())){
-                    SearchDrugDetailDTO drugListBean = getBean(detailMap.get(drug.getOrganDrugCode()), SearchDrugDetailDTO.class);
+                    SearchDrugDetailDTO drugListBean = detailMap.get(drug.getOrganDrugCode());
                     drugListBean.setHisciIsClaim(drug.getIsClaim());
                     drugListBean.setHisciReimburseRate(drug.getReimburse());
                     drugList.add(drugListBean);
