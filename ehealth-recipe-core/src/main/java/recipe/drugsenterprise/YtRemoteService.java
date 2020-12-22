@@ -512,14 +512,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 } else {
                     sendYtRecipe.setCostType(1);
                 }
-                if (recipeOrder.getOrderType() == 1) {
-                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
-                    if (recipeExtend != null && recipeExtend.getFundAmount() != null) {
-                        sendYtRecipe.setFundAmount(Double.parseDouble(recipeExtend.getFundAmount()));
-                    } else {
-                        sendYtRecipe.setFundAmount(0.0);
-                    }
+                if (recipeOrder.getOrderType() == 1 && recipeOrder.getFundAmount() != null) {
+                    sendYtRecipe.setFundAmount(recipeOrder.getFundAmount());
                 } else {
                     sendYtRecipe.setFundAmount(0.0);
                 }

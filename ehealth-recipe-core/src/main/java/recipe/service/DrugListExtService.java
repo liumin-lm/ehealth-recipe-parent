@@ -28,6 +28,7 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import es.api.DrugSearchService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
+import recipe.bean.HisSearchDrugDTO;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
@@ -138,6 +140,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Future<QueryDrugResTO> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
             QueryDrugReqTO reqTO = new QueryDrugReqTO();
             reqTO.setOrganId(drugDTO.getOrganId());
+            reqTO.setOrganName(drugDTO.getOrganName());
             reqTO.setDrugLimit(drugDTO.getDrugLimit());
             reqTO.setDeptCode(drugDTO.getDeptCode());
             reqTO.setDeptName(drugDTO.getDeptName());
@@ -149,21 +152,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             reqTO.setIsInsurance(1);
             reqTO.setLineCode(drugDTO.getLineCode());
             reqTO.setMpiId(drugDTO.getMpiId());
-            PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId() + "");
+            PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId());
             if (null != patient){
                 reqTO.setPatientName(patient.getPatientName());
                 reqTO.setIdType(patient.getCertificateType());
                 reqTO.setIdNumber(patient.getCertificate());
             }
             IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+            LOGGER.info("查询his常用药品列表--调用his开始，入参={}",JSONObject.toJSONString(reqTO));
             QueryDrugResTO result = hisService.queryHisCommonDrugList(reqTO);
+            LOGGER.info("查询his常用药品列表--查询结果={}",JSONObject.toJSONString(result));
             return result;
         });
         QueryDrugResTO hisDrug = null;
         try {
-            LOGGER.info("查询his常用药品列表--调用his开始，入参={}",JSONObject.toJSONString(drugDTO));
             hisDrug = hisTask.get(5000, TimeUnit.MILLISECONDS);
-            LOGGER.info("查询his常用药品列表--查询结果={}",JSONObject.toJSONString(hisDrug));
         } catch (Exception e) {
             LOGGER.error("查询his常用药品列表--调用异常，入参={}",JSONObject.toJSONString(drugDTO),e);
         }
@@ -201,26 +204,102 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Args.notNull(searchDrug.getMpiId(),"mpiId");
         Args.notNull(searchDrug.getPageNum(),"pageNum");
         Integer pageSize = searchDrug.getPageSize() == null ? 20 : searchDrug.getPageSize();
-        Integer startNum = (searchDrug.getPageNum() - 1) * pageSize;
-        List<SearchDrugDetailDTO> searchList = searchDrugListWithES(searchDrug.getOrganId(),
-                searchDrug.getDrugType(), searchDrug.getKeyWord(), null, startNum, pageSize);
-        if (CollectionUtils.isNotEmpty(searchList)){
-            List<String> organDrugCodeList = searchList.stream().map(SearchDrugDetailDTO::getOrganDrugCode).collect(Collectors.toList());
-            // 过滤后为0，es搜索下一页
-        }
-        return null;
-    }
 
-    @RpcService
-    public List<DrugListBean> testTimeOut(){
+        Future<HisSearchDrugDTO> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+            QueryDrugResTO hisDrug = null;
+            Integer nextPage = searchDrug.getPageNum();
+            Boolean search = false;
+            List<SearchDrugDetailDTO> searchList;
+            Integer pageNum = searchDrug.getPageNum();
+            HisSearchDrugDTO searchResult = new HisSearchDrugDTO();
 
+            do {
+                nextPage = nextPage + 1;
+                searchResult.setNextPage(nextPage);
+                Integer startNum = (pageNum - 1) * pageSize;
+                searchList = searchDrugListWithES(searchDrug.getOrganId(),
+                        searchDrug.getDrugType(), searchDrug.getKeyWord(), null, startNum, pageSize);
+                searchResult.setSearchList(searchList);
+                if (CollectionUtils.isNotEmpty(searchList)){
+                    QueryDrugReqTO reqTO = getQueryDrugReqTO(searchDrug, searchList);
+                    LOGGER.info("查询his药品商保信息--开始查询，入参={}",JSONObject.toJSONString(reqTO));
+                    IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+                    hisDrug = hisService.queryHisDrugInfo(reqTO);
+                    searchResult.setHisDrug(hisDrug);
+                    LOGGER.info("查询his药品商保信息--过滤结果={}",JSONObject.toJSONString(hisDrug));
+                    // 过滤后为0(请求成功但药品列表为空)，且es有下一页-->搜索es下一页
+                    if (searchList.size() == pageSize && null != hisDrug && "200".equals(hisDrug.getMsgCode()) && CollectionUtils.isEmpty(hisDrug.getData().getDetails())){
+                        search = true;
+                        pageNum = pageNum + 1;
+                    }else {
+                        search = false;
+                    }
+                }
+            }while (search);
+
+            return searchResult;
+        });
+        HisSearchDrugDTO searchDrugDTO = null;
         try {
-            Thread.sleep(5000000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            searchDrugDTO = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            LOGGER.info("查询his药品商保信息--查询结果={}",JSONObject.toJSONString(searchDrugDTO));
+        } catch (Exception e) {
+            LOGGER.error("查询his药品商保信息--调用异常，入参={}",JSONObject.toJSONString(searchDrug),e);
         }
-        return new ArrayList<>();
+
+        List<SearchDrugDetailDTO> drugList = new ArrayList<>();
+        QueryDrugResTO hisDrug = null== searchDrugDTO ? null : searchDrugDTO.getHisDrug();
+        List<SearchDrugDetailDTO> searchList = searchDrugDTO == null ? null : searchDrugDTO.getSearchList();
+        if (null != hisDrug && null != hisDrug.getData() && CollectionUtils.isNotEmpty(hisDrug.getData().getDetails())){
+            Map<String, SearchDrugDetailDTO> detailMap = searchList.stream().collect(Collectors.toMap(SearchDrugDetailDTO::getOrganDrugCode, (drugdetail -> drugdetail)));
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            List<DrugDetailTO> hisDrugList = hisDrug.getData().getDetails();
+            for (DrugDetailTO drug : hisDrugList){
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(searchDrug.getOrganId(),drug.getOrganDrugCode());
+                if (null != organDrug && null != detailMap.get(drug.getOrganDrugCode())){
+                    SearchDrugDetailDTO drugListBean = detailMap.get(drug.getOrganDrugCode());
+                    drugListBean.setHisciIsClaim(drug.getIsClaim());
+                    drugListBean.setHisciReimburseRate(drug.getReimburse());
+                    drugList.add(drugListBean);
+                }
+            }
+        }
+        //是否有下一页
+        Boolean hasNextPage = (CollectionUtils.isEmpty(searchList) || searchList.size() < pageSize) ? false : true;
+        HisDrugInfoDTO result = new HisDrugInfoDTO();
+        result.setDrugDetailList(drugList);
+        Integer nextPage = null == searchDrugDTO ? searchDrug.getPageNum() + 1 : searchDrugDTO.getNextPage();
+        result.setNextPage(nextPage);
+        result.setHasNextPage(hasNextPage);
+        return result;
     }
+
+    private QueryDrugReqTO getQueryDrugReqTO(HisDrugInfoReqDTO searchDrug, List<SearchDrugDetailDTO> searchList) {
+        List<String> organDrugCodeList = searchList.stream().map(SearchDrugDetailDTO::getOrganDrugCode).collect(Collectors.toList());
+        QueryDrugReqTO reqTO = new QueryDrugReqTO();
+        reqTO.setOrganDrugCodeList(organDrugCodeList);
+        reqTO.setOrganId(searchDrug.getOrganId());
+        reqTO.setOrganName(searchDrug.getOrganName());
+        reqTO.setDeptCode(searchDrug.getDeptCode());
+        reqTO.setDeptName(searchDrug.getDeptName());
+        List<PatientDiagnosisDTO> diagnosisList = ObjectCopyUtils.convert(searchDrug.getDiagnosisList(), PatientDiagnosisDTO.class);
+        reqTO.setDiagnosisList(diagnosisList);
+        reqTO.setDoctorId(searchDrug.getDoctorId());
+        reqTO.setDoctorName(searchDrug.getDoctorName());
+        reqTO.setDrugType(searchDrug.getDrugType());
+        reqTO.setIsInsurance(1);
+        reqTO.setLineCode(searchDrug.getLineCode());
+        reqTO.setMpiId(searchDrug.getMpiId());
+        PatientDTO patient = patientService.getPatientByMpiId(searchDrug.getMpiId() + "");
+        if (null != patient){
+            reqTO.setPatientName(patient.getPatientName());
+            reqTO.setIdType(patient.getCertificateType());
+            reqTO.setIdNumber(patient.getCertificate());
+        }
+        return reqTO;
+    }
+
+
 
     /**
      * 常用药品列表服务new
@@ -859,8 +938,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return itemList;
     }
 
+    /**
+     * 医生端 搜索药品页和常用药品页----实时显示药品库存
+     * @param req
+     * @return
+     */
     @RpcService
     public List<DrugListBean> queryDrugInventoriesByRealTime(QueryDrugInventoriesDTO req){
+        LOGGER.info("queryDrugInventoriesByRealTime req:{}", JSONUtils.toString(req));
         Assert.notNull(req,"req is required");
         Assert.notNull(req.getOrganId(),"organId is required");
         Assert.notNull(req.getDrugIds(),"drugIds is required");
@@ -881,6 +966,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
             OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = drugDao.findByOrganIdAndDrugIds(organId, drugIds);
+            if (CollectionUtils.isEmpty(organDrugLists)){
+                return;
+            }
             Map<Integer, String> drugIdAndOrganDrugCode = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId,
                     OrganDrugList::getOrganDrugCode));
             // 调用his前置接口查询医院库存并赋值

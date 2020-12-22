@@ -313,7 +313,7 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(detail.getMemo())) {
                 dTotal = dTotal + "*" + detail.getMemo();
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + "：" + dTotal));
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + ":" + dTotal));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));

@@ -511,12 +511,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     }
 
     /**
-     * 展示药企药品库存
+     * 展示药企药品库存----使用新接口queryDrugInventoriesByRealTime 这里只做兼容使用
      * @param drugId   药品编码
      * @param organId  机构编码
      * @return         库存情况
      */
     @RpcService
+    @Deprecated
     public Map<String, Object> showDrugsEnterpriseInventory(Integer drugId, Integer organId){
         LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{}.", drugId, organId);
         Map<String, Object> result = new HashMap<>();

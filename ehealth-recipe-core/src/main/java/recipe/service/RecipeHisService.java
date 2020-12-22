@@ -68,9 +68,12 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.presettle.factory.PreSettleFactory;
+import recipe.presettle.settle.IRecipeSettleService;
 import recipe.purchase.PayModeOnline;
 import recipe.purchase.PurchaseEnum;
 import recipe.purchase.PurchaseService;
+import recipe.retry.RecipeRetryService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -83,8 +86,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * @author yu_yun
@@ -117,6 +118,9 @@ public class RecipeHisService extends RecipeBaseService {
     private IUsingRateService usingRateService;
     @Autowired
     private IUsePathwaysService usePathwaysService;
+
+    @Resource
+    RecipeRetryService recipeRetryService;
 
     /**
      * 发送处方
@@ -351,8 +355,6 @@ public class RecipeHisService extends RecipeBaseService {
         if (null == result) {
             result = RecipeResultBean.getSuccess();
         }
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             result.setCode(RecipeResultBean.FAIL);
@@ -377,52 +379,15 @@ public class RecipeHisService extends RecipeBaseService {
                 //打印日志，程序继续执行，不影响支付回调
                 LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(), recipe.getRecipeId(), e);
             }
-            DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
-            LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
             //线上支付完成需要发送消息（结算）（省医保则是医保结算）
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == payFlag) {
-                //调用前置机结算支持两种方式---配送到家和药店取药
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
-                    //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
-                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                        // 111 为卫宁支付---卫宁付不走前置机的his结算
-                        if (recipeOrder != null && !"111".equals(recipeOrder.getWxPayWay())) {
-                            List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-                            PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
-                            PayNotifyResTO response = service.payNotify(payNotifyReq);
-                            if (null != response && response.getMsgCode() == 0) {
-                                //结算成功
-                                if (response.getData() != null) {
-                                    Recipedetail detail = new Recipedetail();
-                                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-                                    detail.setPharmNo(response.getData().getWindows());
-                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
-                                } else {
-                                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), null);
-                                }
-
-                            } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) || (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))) {
-                                //前置机返回结算失败，或者医保结算前置机返回null
-                                result.setCode(RecipeResultBean.FAIL);
-                                if (response != null && response.getMsg() != null) {
-                                    result.setError(response.getMsg());
-                                } else {
-                                    result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
-                                }
-                                HisCallBackService.havePayFail(recipe.getRecipeId());
-                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
-                            } else {
-                                //非医保结算前置机返回null可能未对接接口
-                                LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
-                            }
-                        }
-                    }
-                }
+                //处理处方结算
+                doRecipeSettle(recipe, patientBean, cardBean, result);
             }
 
             if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
+                DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
+                LOGGER.info("drugTakeChange 请求参数:{}.", JSONUtils.toString(request));
                 Boolean success = service.drugTakeChange(request);
                 //date 20200410
                 //前置机为实现判断
@@ -445,6 +410,48 @@ public class RecipeHisService extends RecipeBaseService {
         }
 
         return result;
+    }
+
+    private void doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
+        //调用前置机结算支持两种方式---配送到家和药店取药
+        if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+            if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                result.setCode(RecipeResultBean.FAIL);
+                return;
+            }
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (recipeOrder == null) {
+                result.setCode(RecipeResultBean.FAIL);
+                return;
+            }
+            //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
+            // 111 为卫宁支付---卫宁付不走前置机的his结算
+            if ("111".equals(recipeOrder.getWxPayWay())) {
+                result.setCode(RecipeResultBean.FAIL);
+                return;
+            }
+            //PayNotifyResTO response = service.payNotify(payNotifyReq);
+            IRecipeSettleService settleService = PreSettleFactory.getSettleService(recipeOrder.getOrganId(), recipeOrder.getOrderType());
+            if (settleService == null) {
+                return;
+            }
+            List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
+            PayNotifyResTO response = null;
+            try {
+                //如果异常重试处理
+                response = recipeRetryService.doRecipeSettle(settleService,payNotifyReq);
+            } catch (Exception e) {
+                LOGGER.error("doRecipeSettle error",e);
+                //三次重试后还是异常当做失败处理
+                response = new PayNotifyResTO();
+                response.setMsgCode(1);
+                response.setMsg(e.getMessage());
+            }
+            settleService.doRecipeSettleResponse(response,recipe,result);
+
+        }
     }
 
     @Autowired
@@ -682,12 +689,13 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     /**
-     * 处方省医保预结算接口+杭州市互联网预结算接口
+     * 处方省医保预结算接口+杭州市互联网预结算接口---废弃
      *
      * @param recipeId
      * @param extInfo  扩展信息
      * @return
      */
+    @Deprecated
     @RpcService
     public Map<String, Object> provincialMedicalPreSettle(Integer recipeId, Map<String, String> extInfo) {
         Map<String, Object> result = Maps.newHashMap();
@@ -815,14 +823,6 @@ public class RecipeHisService extends RecipeBaseService {
                     } else {
                         //此时ext一般已经存在，若不存在有问题
                         LOGGER.error("provincialMedicalPreSettle-fail. recipeId={} recipeExtend is null", recipeId);
-                        ext = new RecipeExtend();
-                        ext.setRecipeId(recipe.getRecipeId());
-                        ext.setRegisterNo(hisResult.getData().getGhxh());
-                        ext.setHisSettlementNo(hisResult.getData().getSjh());
-                        ext.setPreSettletotalAmount(hisResult.getData().getZje());
-                        ext.setFundAmount(hisResult.getData().getYbzf());
-                        ext.setCashAmount(hisResult.getData().getYfje());
-                        recipeExtendDAO.save(ext);
                     }
                     result.put("totalAmount", totalAmount);
                     result.put("fundAmount", fundAmount);
@@ -891,6 +891,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param payMode
      * @return
      */
+    @Deprecated
     @RpcService
     public Map<String, Object> provincialCashPreSettle(Integer recipeId, Integer payMode) {
         Map<String, Object> result = Maps.newHashMap();
@@ -953,14 +954,6 @@ public class RecipeHisService extends RecipeBaseService {
                                     return result;
                                 }
                             }
-                        } else {
-                            ext = new RecipeExtend();
-                            ext.setRecipeId(recipe.getRecipeId());
-                            ext.setPreSettletotalAmount(totalAmount);
-                            ext.setCashAmount(cashAmount);
-                            ext.setHisSettlementNo(hisSettlementNo);
-                            ext.setPayAmount(payAmount);
-                            recipeExtendDAO.save(ext);
                         }
                     }
                     result.put("totalAmount", totalAmount);
@@ -1807,7 +1800,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         }
         result.put("hisRecipe", recipes);
-        result.put("patient", convertSensitivePatientForRAP(patientDTO));
+        result.put("patient", RecipeServiceSub.convertSensitivePatientForRAP(patientDTO));
         return result;
         //转换平台字段
     }
