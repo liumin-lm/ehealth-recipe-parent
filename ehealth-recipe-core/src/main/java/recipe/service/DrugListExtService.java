@@ -937,6 +937,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return itemList;
     }
 
+    /**
+     * 医生端 搜索药品页和常用药品页----实时显示药品库存
+     * @param req
+     * @return
+     */
     @RpcService
     public List<DrugListBean> queryDrugInventoriesByRealTime(QueryDrugInventoriesDTO req){
         Assert.notNull(req,"req is required");
@@ -959,6 +964,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
             OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = drugDao.findByOrganIdAndDrugIds(organId, drugIds);
+            if (CollectionUtils.isEmpty(organDrugLists)){
+                return;
+            }
             Map<Integer, String> drugIdAndOrganDrugCode = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId,
                     OrganDrugList::getOrganDrugCode));
             // 调用his前置接口查询医院库存并赋值

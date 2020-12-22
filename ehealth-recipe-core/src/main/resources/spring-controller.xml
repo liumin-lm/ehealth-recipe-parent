@@ -11,6 +11,18 @@
         <ngari:filter id="urt"/>
     </ngari:connector>
 
+    <!--zookeeper://zk.ngarihealth.com:1111  f1环境
+    zookeeper://zk.ngarihealth.com:2222  f2环境
+    zookeeper://zk.ngarihealth.com:3333  f3环境
+    zookeeper://zk.ngarihealth.com:4444 FAT
+    zookeeper://zk.ngarihealth.com:6666 UAT
+    zookeeper://zk.ngarihealth.com:5555  f5环境
+    zookeeper://zk.ngarihealth.com:9999  devtest环境
+    zookeeper://zk.ngarihealth.com:8888  shishi环境
+    zookeeper://zk.ngarihealth.com:7777  f6环境
+    zookeeper://zk.ngarihealth.com:8899  f7环境-->
+    <!--http://localhost:8899//*.jsonRequest-->
+
     <!--<ngari:mvcServer port="8899"/>-->
 
     <!-- pub/sub -->
