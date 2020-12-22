@@ -82,7 +82,7 @@ public class EnterpriseAddress implements java.io.Serializable{
         this.status = status;
     }
 
-    @Column(name = "createTime", nullable = false)
+    @Column(name = "createTime")
     public Date getCreateTime() {
         return createTime;
     }
@@ -91,7 +91,7 @@ public class EnterpriseAddress implements java.io.Serializable{
         this.createTime = createTime;
     }
 
-    @Column(name = "lastModify", nullable = false)
+    @Column(name = "lastModify")
     public Date getLastModify() {
         return lastModify;
     }
