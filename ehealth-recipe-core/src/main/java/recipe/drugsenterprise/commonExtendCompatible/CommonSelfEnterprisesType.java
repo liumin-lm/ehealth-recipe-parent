@@ -49,10 +49,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
 
-    @Autowired
-    @Qualifier("drugList")
-    private DrugListExtService drugListExtService;
-
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PublicSelfRemoteService pushRecipeInfo not implement.");
@@ -237,6 +233,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         //自建药企查询医院库存
+        DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
         DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
