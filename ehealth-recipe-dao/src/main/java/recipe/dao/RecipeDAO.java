@@ -2572,10 +2572,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     for (Object[] objects : result) {
                         WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
                         workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
-                        //value.put("dispensingApothecaryName", objects[0]);
-                        //value.put("recipeCount", objects[1]);
                         workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
-                        //value.put("totalMoney", objects[2]);
                         workLoadTopDTO.setTotalMoney(Double.valueOf(objects[2].toString()));
                         vo.add(workLoadTopDTO);
                     }
@@ -2592,14 +2589,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<Map<String, Object>> findRecipeDetialCountgroupByDepart(Integer organId, String srartDate, String endDate,Boolean isAll, Integer start, Integer limit) {
-        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
+    public List<PharmacyMonthlyReportDTO> findRecipeDetialCountgroupByDepart(Integer organId, String depart, String startDate, String endDate, Boolean isAll, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "select sum(totalMoney) as totalMoney, count(RECIPEID) as count,sum(totalMoney)/count(RECIPEID) AS avgMoney from cdr_recipe where CreateDate BETWEEN '" + srartDate + "'\n" +
-                        "\t\tAND '" + endDate + "' and ClinicOrgan =:organId";
+                String sql = "select depart, sum(totalMoney) as totalMoney, count(RECIPEID) as count,sum(totalMoney)/count(RECIPEID) AS avgMoney from cdr_recipe where CreateDate BETWEEN '" + startDate + "'\n" +
+                        "\t\tAND '" + endDate + "' and ClinicOrgan =:organId ";
+                if (StringUtils.isNotEmpty(depart)) {
+                    sql += " and depart='" + depart + "'";
+                }
                 if (!isAll) {
-                    sql = sql + " group by depart;";
+                    sql = sql + " group by depart";
                 }
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
@@ -2608,14 +2608,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     q.setMaxResults(limit);
                 }
                 List<Object[]> result = q.list();
-                List<Map<String, Object>> vo = new ArrayList<>();
-
+                List<PharmacyMonthlyReportDTO> vo = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
-                        Map<String, Object> value = new HashMap<>();
-                        value.put("totalMoney", objects[0]);
-                        value.put("count", objects[1]);
-                        value.put("avgMoney", objects[2]);
+                        PharmacyMonthlyReportDTO value = new PharmacyMonthlyReportDTO();
+                        value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
+                        value.setTotalMoney(Double.valueOf(String.valueOf(objects[1])));
+                        value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
+                        value.setAvgMoney(Double.valueOf(String.valueOf(objects[3])));
                         vo.add(value);
                     }
                 }
@@ -2628,56 +2628,74 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
 
     /**
-     * 发药查询 整体
+     * 发药排行
+     *
      * @param organId
      * @return
      */
-    public List<Map<String, Object>> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, String srartDate, String endDate,Boolean isOrderByPrice, Integer start, Integer limit) {
-        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
+    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, String status, String startDate, String endDate, Integer order, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
                 String sql = "SELECT\n" +
-                        "\trd.drugId,rd.drugName,rd.drugSpec,rd.drugUnit,sum(rd.useTotalDose) as count,rd.drugCost,SUM(rd.saleprice) as countMoney,case bd.drugtype when 1 then '西药' else '中药' end as drugtype\n" +
+                        "\trd.drugId,\n" +
+                        "\trd.drugName,\n" +
+                        "\trd.drugSpec,\n" +
+                        "\trd.drugUnit,\n" +
+                        "\tsum(rd.useTotalDose) AS count,\n" +
+                        "\trd.drugCost,\n" +
+                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\tCASE bd.drugtype\n" +
+                        "WHEN 1 THEN\n" +
+                        "\t'西药'\n" +
+                        "ELSE\n" +
+                        "\t'中药'\n" +
+                        "END AS drugtype\n" +
                         "FROM\n" +
-                        "\tcdr_recipedetail rd left join base_druglist bd on (rd.drugId= bd.drugid)\n" +
+                        "\tcdr_recipedetail rd\n" +
+                        "LEFT JOIN cdr_recipe cr ON (rd.RecipeID = rd.RecipeID)\n" +
+                        "LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
+                        "LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)\n" +
                         "WHERE\n" +
-                        "\trecipeId IN (\n" +
-                        "\t\tSELECT\n" +
-                        "\t\t\trecipeId\n" +
-                        "\t\tFROM\n" +
-                        "\t\t\tcdr_recipe\n" +
-                        "\t\tWHERE\n" +
-                        "\t\t\tCreateDate BETWEEN '" + srartDate + "'\n" +
-                        "\t\tAND '" + endDate + "' and ClinicOrgan = :organId\n" +
-                        "\t\tORDER BY\n" +
-                        "\t\t\tgivedate DESC\n" +
-                        "\t)\n" +
-                        "GROUP BY drugId ";
-                if (isOrderByPrice) {
+                        "\tcr.CreateDate BETWEEN '" + startDate + " '\n" +
+                        "AND '" + endDate + "'\n" +
+                        "AND ClinicOrgan = :organId\n" +
+                        "AND co.`Status` IN (:status)\n" +
+                        "GROUP BY\n" +
+                        "\tdrugId\n";
+                if (order == 1) {
                     sql += "order by SUM(rd.saleprice) desc";
-                } else {
-                    sql += "order by sum(rd.useTotalDose)";
+                }
+                if (order == 2) {
+                    sql += "order by SUM(rd.saleprice) asc";
+                }
+                if (order == 3) {
+                    sql += "order by sum(rd.useTotalDose) desc";
+                }
+                if (order == 4) {
+                    sql += "order by sum(rd.useTotalDose) asc";
                 }
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
+                q.setParameter("status", status);
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
                     q.setMaxResults(limit);
                 }
                 List<Object[]> result = q.list();
-                List<Map<String, Object>> vo = new ArrayList<>();
+                List<PharmacyTopDTO> vo = new ArrayList<>();
 
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
-                        Map<String, Object> value = new HashMap<>();
-                        value.put("drugId", objects[0]);
-                        value.put("drugName", objects[1]);
-                        value.put("drugSpec", objects[2]);
-                        value.put("drugUnit", objects[3]);
-                        value.put("count", objects[4]);
-                        value.put("drugCost", objects[5]);
-                        value.put("countMoney", objects[6]);
-                        value.put("drugtype", objects[7]);
+                        PharmacyTopDTO value = new PharmacyTopDTO();
+                        value.setDrugId(String.valueOf(objects[0]));
+                        value.setDrugName(String.valueOf(objects[1]));
+                        value.setDrugSpec(String.valueOf(objects[2]));
+                        value.setDrugUnit(String.valueOf(objects[3]));
+                        value.setCount(Integer.valueOf(String.valueOf(objects[4])));
+                        value.setDrugCost(Double.valueOf(String.valueOf(objects[5])));
+                        value.setCountMoney(Double.valueOf(String.valueOf(objects[6])));
+                        value.setDrugtype(String.valueOf(objects[7]));
                         vo.add(value);
                     }
                 }
@@ -2689,66 +2707,100 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
-     * 药品发药排行
+     * 发药查询整体
      * @param organId
      * @return
      */
-    public List<Map<String, Object>> findRecipeDrugDetial(Integer organId, String startDate, String endDate, Integer start, Integer limit) {
-        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
+    public List<RecipeDrugDetialReportDTO> findRecipeDrugDetialReport(Integer organId, String startDate, String endDate, String cardNo, String patientName, String billNumber, String recipeId,
+                                                                      String orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<RecipeDrugDetialReportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeDrugDetialReportDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
                 String sql = "SELECT\n" +
+                        "\tcrb.bill_number,\n" +
                         "\tcr.recipeId,\n" +
                         "\tcr.depart,\n" +
                         "\tcr.patientName,\n" +
                         "\tcr.CreateDate as sendDate,\n" +
-                        "\tcr. STATUS,\n" +
-                        "\t'' AS Pricing,\n" +
+                        "\tcr.STATUS,\n" +
                         "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
                         "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
                         "\t'' AS dispensingWindow,\n" +
-                        "\tcr.doctor,\n" +
-                        "\tcr.actualPrice,\n" +
+                        "\tcr.doctorName,\n" +
+                        "\tcr.totalMoney,\n" +
                         "\tcr.RecipeType,\n" +
                         "\tcr.CreateDate,\n" +
                         "\tco.PayTime\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" +
+                        "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
+                        "LEFT JOIN cdr_recipe_ext cre ON cre.recipeId = cr.RecipeID\n" +
                         "WHERE\n" +
                         "\tcr.ClinicOrgan = :organId\n" +
                         "AND (\n" +
-                        "\tco. STATUS IN (13, 14, 15)\n" +
-                        "\tOR co.PayFlag = 3\n" +
+                        "\tco. STATUS IN (" + orderStatus + ")\n" +
                         ")\n" +
                         "AND CreateDate BETWEEN '" + startDate + "'\n" +
-                        "AND '" + endDate + "';";
+                        "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") +
+                        (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName = :patientName" : "") +
+                        (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :bill_number" : "") +
+                        (StringUtils.isNotEmpty(recipeId) ? " AND cr.recipeId = :recipeId" : "") +
+                        (recipeType != null ? " AND cr.recipeType = :recipeType" : "") +
+                        (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName = :dispensingApothecaryName" : "") +
+                        (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName = :doctorName" : "") +
+                        (depart != null ? " AND cr.depart = :depart" : "");
+                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
+                if (StringUtils.isNotEmpty(cardNo)) {
+                    q.setParameter("cardNo", cardNo);
+                }
+                if (StringUtils.isNotEmpty(patientName)) {
+                    q.setParameter("patientName", patientName);
+                }
+                if (StringUtils.isNotEmpty(billNumber)) {
+                    q.setParameter("billNumber", billNumber);
+                }
+                if (StringUtils.isNotEmpty(recipeId)) {
+                    q.setParameter("recipeId", recipeId);
+                }
+                if (recipeType != null) {
+                    q.setParameter("recipeType", recipeType);
+                }
+                if (StringUtils.isNotEmpty(dispensingApothecaryName)) {
+                    q.setParameter("dispensingApothecaryName", dispensingApothecaryName);
+                }
+                if (StringUtils.isNotEmpty(doctorName)) {
+                    q.setParameter("doctorName", doctorName);
+                }
+                if (depart != null) {
+                    q.setParameter("depart", depart);
+                }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
                     q.setMaxResults(limit);
                 }
                 List<Object[]> result = q.list();
-                List<Map<String, Object>> vo = new ArrayList<>();
+                List<RecipeDrugDetialReportDTO> vo = new ArrayList<>();
 
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
-                        Map<String, Object> value = new HashMap<>();
-                        value.put("recipeId", objects[0]);
-                        value.put("depart", objects[1]);
-                        value.put("patientName", objects[2]);
-                        value.put("sendDate", objects[3]);
-                        value.put("STATUS", objects[4]);
-                        value.put("Pricing", objects[5]);
-                        value.put("sendApothecaryName", objects[6]);
-                        value.put("dispensingApothecaryName", objects[7]);
-                        value.put("dispensingWindow", objects[8]);
-                        value.put("doctor", objects[9]);
-                        value.put("actualPrice", objects[10]);
-                        value.put("RecipeType", objects[11]);
-                        value.put("CreateDate", objects[12]);
-                        value.put("PayTime", objects[13]);
+                        RecipeDrugDetialReportDTO value = new RecipeDrugDetialReportDTO();
+                        value.setBillNumber(String.valueOf(objects[0]));
+                        value.setRecipeId(Integer.valueOf(String.valueOf(objects[1])));
+                        value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
+                        value.setPatientName(String.valueOf(objects[3]));
+                        value.setSendDate(String.valueOf(objects[4]));
+                        value.setStatus(Integer.parseInt(String.valueOf(objects[5])));
+                        value.setSendApothecaryName(String.valueOf(objects[6]));
+                        value.setDispensingApothecaryName(String.valueOf(objects[7]));
+                        value.setDispensingWindow(String.valueOf(objects[8]));
+                        value.setDoctorName(String.valueOf(objects[9]));
+                        value.setTotalMoney(Double.valueOf(String.valueOf(objects[10])));
+                        value.setRecipeType(Integer.valueOf(String.valueOf(objects[11])));
+                        value.setCreateDate(String.valueOf(objects[12]));
+                        value.setPayTime(String.valueOf(objects[13]));
                         vo.add(value);
                     }
                 }
