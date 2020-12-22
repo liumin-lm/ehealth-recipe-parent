@@ -87,8 +87,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
-
 /**
  * @author yu_yun
  * his接口服务
@@ -1802,7 +1800,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         }
         result.put("hisRecipe", recipes);
-        result.put("patient", convertSensitivePatientForRAP(patientDTO));
+        result.put("patient", RecipeServiceSub.convertSensitivePatientForRAP(patientDTO));
         return result;
         //转换平台字段
     }
