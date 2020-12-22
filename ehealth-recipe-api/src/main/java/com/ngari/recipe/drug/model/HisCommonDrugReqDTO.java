@@ -33,7 +33,7 @@ public class HisCommonDrugReqDTO implements Serializable {
     @ItemProperty(alias = "常用药品数量")
     private Integer drugLimit;
     @ItemProperty(alias = "患者id")
-    private Integer mpiId;
+    private String mpiId;
     @ItemProperty(alias = "诊断信息")
     private List<PatientDiagnosisDTO> diagnosisList;
 

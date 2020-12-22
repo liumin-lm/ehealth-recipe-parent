@@ -31,7 +31,7 @@ public class HisDrugInfoReqDTO implements Serializable{
     @ItemProperty(alias = "科室名称")
     private String deptName;
     @ItemProperty(alias = "患者id")
-    private Integer mpiId;
+    private String mpiId;
     @ItemProperty(alias = "诊断信息")
     private List<PatientDiagnosisDTO> diagnosisList;
     @ItemProperty(alias = "搜索关键字")
