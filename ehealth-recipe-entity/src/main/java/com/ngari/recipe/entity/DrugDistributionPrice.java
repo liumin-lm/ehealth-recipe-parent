@@ -85,7 +85,7 @@ public class DrugDistributionPrice implements java.io.Serializable {
         this.distributionPrice = distributionPrice;
     }
 
-    @Column(name = "createTime", nullable = false)
+    @Column(name = "createTime")
     public Date getCreateTime() {
         return createTime;
     }
@@ -94,7 +94,7 @@ public class DrugDistributionPrice implements java.io.Serializable {
         this.createTime = createTime;
     }
 
-    @Column(name = "lastModify", nullable = false)
+    @Column(name = "lastModify")
     public Date getLastModify() {
         return lastModify;
     }
