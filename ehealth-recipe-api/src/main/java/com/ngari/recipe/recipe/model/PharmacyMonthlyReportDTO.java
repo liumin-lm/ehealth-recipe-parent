@@ -2,11 +2,13 @@ package com.ngari.recipe.recipe.model;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class PharmacyMonthlyReportDTO {
     private Integer depart;
-    private Double totalMoney;
+    private BigDecimal totalMoney;
     private Integer recipeCount;
-    private Double avgMoney;
+    private BigDecimal avgMoney;
     private String departName;
 }

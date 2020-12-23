@@ -2096,8 +2096,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (start + limit >= size) {
             //合计
             List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, true, start, limit);
-            recipeDetialCountgroupByDepart1.get(0).setDepartName("合计");
-            recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
+            if (recipeDetialCountgroupByDepart1.size() > 0) {
+                recipeDetialCountgroupByDepart1.get(0).setDepartName("合计");
+                recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
+            } else {
+                PharmacyMonthlyReportDTO pharmacyMonthlyReportDTO = new PharmacyMonthlyReportDTO();
+                pharmacyMonthlyReportDTO.setDepartName("合计");
+                pharmacyMonthlyReportDTO.setDepart(0);
+                pharmacyMonthlyReportDTO.setAvgMoney(new BigDecimal(0.00));
+                pharmacyMonthlyReportDTO.setRecipeCount(0);
+                pharmacyMonthlyReportDTO.setTotalMoney(new BigDecimal(0.00));
+                recipeDetialCountgroupByDepart.add(pharmacyMonthlyReportDTO);
+            }
         }
         Map<String, Object> reports = new HashMap<>();
         reports.put("total", size);

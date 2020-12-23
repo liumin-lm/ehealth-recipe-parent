@@ -2,6 +2,8 @@ package com.ngari.recipe.recipe.model;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class PharmacyTopDTO {
     private String drugId;
@@ -9,7 +11,7 @@ public class PharmacyTopDTO {
     private String drugSpec;
     private String drugUnit;
     private String count;
-    private Double drugCost;
-    private Double countMoney;
+    private BigDecimal drugCost;
+    private BigDecimal countMoney;
     private String drugtype;
 }

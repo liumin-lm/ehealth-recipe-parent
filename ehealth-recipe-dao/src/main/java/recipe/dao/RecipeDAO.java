@@ -26,6 +26,7 @@ import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -43,6 +44,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -2612,12 +2614,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 List<PharmacyMonthlyReportDTO> vo = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
-                        PharmacyMonthlyReportDTO value = new PharmacyMonthlyReportDTO();
-                        value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
-                        value.setTotalMoney(Double.valueOf(String.valueOf(objects[1])));
-                        value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
-                        value.setAvgMoney(Double.valueOf(String.valueOf(objects[3])));
-                        vo.add(value);
+                        if (Integer.valueOf(String.valueOf(objects[2])) > 0) {
+                            PharmacyMonthlyReportDTO value = new PharmacyMonthlyReportDTO();
+                            value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
+                            value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
+                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            vo.add(value);
+                        }
                     }
                 }
                 setResult(vo);
@@ -2659,6 +2663,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND ClinicOrgan = :organId\n" +
                         "AND rd.drugCost is not null\n" +
                         "AND co.`Status` IN (13,14,15)\n" +
+                        "AND rd.useTotalDose is not null\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "GROUP BY\n" +
                         "\tdrugId\n";
@@ -2695,8 +2700,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.setDrugSpec(String.valueOf(objects[2]));
                         value.setDrugUnit(String.valueOf(objects[3]));
                         value.setCount(String.valueOf(objects[4]));
-                        value.setDrugCost(Double.valueOf(String.valueOf(objects[5])));
-                        value.setCountMoney(Double.valueOf(String.valueOf(objects[6])));
+                        value.setDrugCost(new BigDecimal(String.valueOf(objects[5])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                        value.setCountMoney(new BigDecimal(String.valueOf(objects[6])).divide(BigDecimal.ONE,2, RoundingMode.UP));
                         value.setDrugtype(String.valueOf(objects[7]));
                         vo.add(value);
                     }
