@@ -2206,22 +2206,8 @@ public class RecipeOrderService extends RecipeBaseService {
         orderDto.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
         // 业务编码
         orderDto.setBusinessNo(order.getOrderCode());
-        // 快递编码
+        // 物流公司编码
         orderDto.setLogisticsCode(enterprise.getLogisticsCompany() + "");
-        //寄件人姓名
-        orderDto.setConsignorName(enterprise.getConsignorName());
-        //寄件人手机号
-        orderDto.setConsignorPhone(enterprise.getConsignorMobile());
-        //寄件人省份
-        orderDto.setConsignorProvince(getAddressDic(enterprise.getConsignorProvince()));
-        //寄件人城市
-        orderDto.setConsignorCity(getAddressDic(enterprise.getConsignorCity()));
-        // 寄件人区域
-        orderDto.setConsignorDistrict(getAddressDic(enterprise.getConsignorDistrict()));
-        // 寄件人街道
-        orderDto.setConsignorStreet(getAddressDic(enterprise.getConsignorStreet()));
-        // 寄件人详细地址
-        orderDto.setConsignorAddress(enterprise.getConsignorAddress());
         //纳里收件人主键
         orderDto.setUserId(recipe.getReceiver());
         // 收件人名称
@@ -2234,40 +2220,19 @@ public class RecipeOrderService extends RecipeBaseService {
         orderDto.setAddresseeCity(getAddressDic(order.getAddress2()));
         // 收件镇/区
         orderDto.setAddresseeDistrict(getAddressDic(order.getAddress3()));
-        // 收件人街道
-        orderDto.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
         // 收件详细地址
         orderDto.setAddresseeAddress(order.getAddress4());
         //寄托物名称
         orderDto.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
-        //寄托物数量，默认1
-        orderDto.setDepositumNo(1);
-        //备注
-        //orderDto.setRemark();
         //运单号
-        orderDto.setWaybillNo(order.getOrderCode());
+        orderDto.setWaybillNo(recipe.getRecipeCode());
         //运单费用
         orderDto.setWaybillFee(order.getExpressFee());
+
+        RecipeExtendDAO recipeExtendDAO=getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         //门诊号
-        //orderDto.setOutpatientNumber();
-        try {
-            IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            if (patientBean != null){
-                // 就诊人名称
-                orderDto.setPatientName(patientBean.getPatientName());
-                // 就诊人手机号
-                orderDto.setPatientPhone(patientBean.getMobile());
-                // 就诊人身份证
-                String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
-                if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18){
-                    cardNo = null;
-                }
-                orderDto.setPatientIdentityCardNo(cardNo);
-            }
-        } catch (Exception e) {
-            LOGGER.error("", e);
-        }
+        orderDto.setOutpatientNumber(recipeExtend.getRegisterID());
         return orderDto;
     }
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
