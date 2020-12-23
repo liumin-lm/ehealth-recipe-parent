@@ -131,6 +131,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("查询his常用药品列表入参={}", JSONObject.toJSONString(drugDTO));
         Args.notNull(drugDTO, "drugDTO");
         Args.notNull(drugDTO.getOrganId(),"organId");
+        Args.notNull(drugDTO.getOrganName(),"organName");
         Args.notBlank(drugDTO.getLineCode(),"lineCode");
         Args.notNull(drugDTO.getDrugType(),"drugType");
         Args.notNull(drugDTO.getMpiId(),"mpiId");
@@ -210,6 +211,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("搜索his药品列表入参={}", JSONObject.toJSONString(searchDrug));
         Args.notNull(searchDrug, "drugDTO");
         Args.notNull(searchDrug.getOrganId(),"organId");
+        Args.notNull(searchDrug.getOrganName(),"organName");
         Args.notBlank(searchDrug.getLineCode(),"lineCode");
         Args.notNull(searchDrug.getDrugType(),"drugType");
         Args.notNull(searchDrug.getMpiId(),"mpiId");
