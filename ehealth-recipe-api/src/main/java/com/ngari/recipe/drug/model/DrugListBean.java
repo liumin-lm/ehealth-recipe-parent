@@ -173,6 +173,10 @@ public class DrugListBean implements IDrugInventory, Serializable {
     public DrugListBean() {
     }
 
+    public DrugListBean(Integer drugId) {
+        this.drugId = drugId;
+    }
+
     public String getHisciReimburseRate() {
         return hisciReimburseRate;
     }
