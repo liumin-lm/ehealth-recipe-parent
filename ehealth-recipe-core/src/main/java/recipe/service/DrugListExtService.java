@@ -138,26 +138,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             drugDTO.setDrugLimit(20);
         }
         Future<QueryDrugResTO> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-            QueryDrugReqTO reqTO = new QueryDrugReqTO();
-            reqTO.setOrganId(drugDTO.getOrganId());
-            reqTO.setOrganName(drugDTO.getOrganName());
-            reqTO.setDrugLimit(drugDTO.getDrugLimit());
-            reqTO.setDeptCode(drugDTO.getDeptCode());
-            reqTO.setDeptName(drugDTO.getDeptName());
-            List<PatientDiagnosisDTO> diagnosisList = ObjectCopyUtils.convert(drugDTO.getDiagnosisList(), PatientDiagnosisDTO.class);
-            reqTO.setDiagnosisList(diagnosisList);
-            reqTO.setDoctorId(drugDTO.getDoctorId());
-            reqTO.setDoctorName(drugDTO.getDoctorName());
-            reqTO.setDrugType(drugDTO.getDrugType());
-            reqTO.setIsInsurance(1);
-            reqTO.setLineCode(drugDTO.getLineCode());
-            reqTO.setMpiId(drugDTO.getMpiId());
-            PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId());
-            if (null != patient){
-                reqTO.setPatientName(patient.getPatientName());
-                reqTO.setIdType(patient.getCertificateType());
-                reqTO.setIdNumber(patient.getCertificate());
-            }
+            QueryDrugReqTO reqTO = getHisCommonDrugReqTO(drugDTO);
             IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
             LOGGER.info("查询his常用药品列表--调用his开始，入参={}",JSONObject.toJSONString(reqTO));
             QueryDrugResTO result = hisService.queryHisCommonDrugList(reqTO);
@@ -186,6 +167,36 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
 
         return drugList;
+    }
+
+    /**
+     * 组装his常用药品列表查询入参
+     *
+     * @param drugDTO
+     * @return
+     */
+    private QueryDrugReqTO getHisCommonDrugReqTO(HisCommonDrugReqDTO drugDTO) {
+        QueryDrugReqTO reqTO = new QueryDrugReqTO();
+        reqTO.setOrganId(drugDTO.getOrganId());
+        reqTO.setOrganName(drugDTO.getOrganName());
+        reqTO.setDrugLimit(drugDTO.getDrugLimit());
+        reqTO.setDeptCode(drugDTO.getDeptCode());
+        reqTO.setDeptName(drugDTO.getDeptName());
+        List<PatientDiagnosisDTO> diagnosisList = ObjectCopyUtils.convert(drugDTO.getDiagnosisList(), PatientDiagnosisDTO.class);
+        reqTO.setDiagnosisList(diagnosisList);
+        reqTO.setDoctorId(drugDTO.getDoctorId());
+        reqTO.setDoctorName(drugDTO.getDoctorName());
+        reqTO.setDrugType(drugDTO.getDrugType());
+        reqTO.setIsInsurance(1);
+        reqTO.setLineCode(drugDTO.getLineCode());
+        reqTO.setMpiId(drugDTO.getMpiId());
+        PatientDTO patient = patientService.getPatientByMpiId(drugDTO.getMpiId());
+        if (null != patient){
+            reqTO.setPatientName(patient.getPatientName());
+            reqTO.setIdType(patient.getCertificateType());
+            reqTO.setIdNumber(patient.getCertificate());
+        }
+        return reqTO;
     }
 
     /**
