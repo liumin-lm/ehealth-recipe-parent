@@ -29,7 +29,7 @@ public class PrePayInHospitalServiceTest {
         String end = DateConversion.formatDateTimeWithSec(new Date());
         start = "2020-01-01 00:00:00";
         end = "2020-10-31 23:59:59";
-        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(1, start, end, null, null, null, null, "13,14,15", null, null, null, null, 0, 10);
+        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(1, start, end,null, null, null, null, null, "13,14,15", null, null, null, null, 0, 10);
         System.out.println(recipeDrugDetialReport);
     }
 
