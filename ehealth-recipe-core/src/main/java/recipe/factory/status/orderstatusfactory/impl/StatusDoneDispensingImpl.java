@@ -10,6 +10,8 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.client.HisInventoryClient;
 
+import java.util.Date;
+
 /**
  * 已发药
  *
@@ -32,6 +34,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_DONE);
+        recipeOrder.setDispensingTime(new Date());
         RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(1);
         hisInventoryClient.drugInventory(request);
