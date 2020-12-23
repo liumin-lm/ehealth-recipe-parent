@@ -6,6 +6,7 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -38,6 +39,12 @@ public class DrugDistributionPrice implements java.io.Serializable {
 
     @ItemProperty(alias = "配送价格")
     private BigDecimal distributionPrice;
+
+    @ItemProperty(alias = "创建时间")
+    private Date createTime;
+
+    @ItemProperty(alias = "最近修改时间")
+    private Date lastModify;
 
 
     @Id
@@ -76,6 +83,24 @@ public class DrugDistributionPrice implements java.io.Serializable {
 
     public void setDistributionPrice(BigDecimal distributionPrice) {
         this.distributionPrice = distributionPrice;
+    }
+
+    @Column(name = "createTime")
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    @Column(name = "lastModify")
+    public Date getLastModify() {
+        return lastModify;
+    }
+
+    public void setLastModify(Date lastModify) {
+        this.lastModify = lastModify;
     }
 
     @Override
