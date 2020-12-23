@@ -17,6 +17,8 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -46,9 +48,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     private static final String searchMapLongitude = "longitude";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
-
-    @Resource(name = "eh.drugList")
-    private DrugListExtService drugListExtService;
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -234,6 +233,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         //自建药企查询医院库存
+        DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
         DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
