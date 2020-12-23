@@ -2054,7 +2054,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             totalMoney += workLoadTopDTO.getTotalMoney();
         }
         //判断是否最后一页
-        if (true) {
+        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
+        if (start + limit >= size) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
             workLoadTopDTO.setTotalMoney(totalMoney);
@@ -2062,7 +2063,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             result.add(workLoadTopDTO);
         }
         Map<String, Object> reports = new HashMap<>();
-        reports.put("total", recipeDAO.findRecipeByOrderCodegroupByDis(organId,null,null,startDateStr,endDateStr,doctorName).size());
+        reports.put("total", size);
         reports.put("data", result);
         return reports;
     }
@@ -2090,15 +2091,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 pharmacyMonthlyReportDTO.setDepartName(getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId));
             }
         }
+        int size = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, null, null).size();
         //判断是否最后一页
-        if (true) {
+        if (start + limit >= size) {
             //合计
             List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, true, start, limit);
             recipeDetialCountgroupByDepart1.get(0).setDepartName("合计");
             recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
         }
         Map<String, Object> reports = new HashMap<>();
-        reports.put("total", recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, null, null).size());
+        reports.put("total", size);
         reports.put("data", recipeDetialCountgroupByDepart);
         return reports;
     }
