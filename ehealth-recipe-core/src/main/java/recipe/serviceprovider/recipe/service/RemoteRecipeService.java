@@ -2112,7 +2112,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private String getDepart(Integer departId, List<DepartmentDTO> departmentDTOS) {
         for (DepartmentDTO departmentDTO : departmentDTOS) {
-            if (departmentDTO.getDeptId() == departId) {
+            if (departmentDTO.getDeptId().equals(departId) ) {
                 return departmentDTO.getName();
             }
         }

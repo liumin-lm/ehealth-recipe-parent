@@ -2601,6 +2601,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (!isAll) {
                     sql = sql + " group by depart";
                 }
+                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (start != null && limit != null) {
