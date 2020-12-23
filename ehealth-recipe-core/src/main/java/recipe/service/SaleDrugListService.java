@@ -250,7 +250,6 @@ public class SaleDrugListService implements ISaleDrugListService {
     }
 
     @Override
-    @RpcService
     public SaleDrugListDTO getByDrugId(Integer drugId ){
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList=saleDrugListDAO.get(drugId);
