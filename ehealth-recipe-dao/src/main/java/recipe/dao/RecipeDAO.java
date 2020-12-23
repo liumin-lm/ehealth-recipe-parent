@@ -2859,9 +2859,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " cre.cardNo,\n" +
                         " crt.drugSpec,\n" +
                         " crt.useDoseStr,\n" +
-                        " crt.useDose,\n" +
+                        " crt.usingRate,\n" +
                         " crt.usePathways,\n" +
                         " crt.drugCost,\n" +
+                        " crt.drugName,\n" +
                         " crt.sendNumber,\n" +
                         " crt.dosageUnit,\n" +
                         " crt.producer,\n" +
@@ -2876,6 +2877,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "WHERE\n" +
                         "\tcr.RecipeID = :recipeId";
                 Query q = statelessSession.createSQLQuery(sql);
+                System.out.println(sql);
                 q.setParameter("recipeId", recipeId);
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> vo = new ArrayList<>();
@@ -2898,13 +2900,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("cardNo", objects[12] == null ? "":objects[12]);
                         value.put("drugSpec", objects[13] == null ? "":objects[13]);
                         value.put("useDoseStr", objects[14] == null ? "":objects[14]);
-                        value.put("useDose", objects[15] == null ? "":objects[15]);
+                        value.put("usingRate", objects[15] == null ? "":objects[15]);
                         value.put("usePathways", objects[16] == null ? "":objects[16]);
                         value.put("drugCost", objects[17] == null ? "":objects[17]);
-                        value.put("sendNumber", objects[18] == null ? "":objects[18]);
-                        value.put("dosageUnit", objects[19] == null ? "":objects[19]);
-                        value.put("producer", objects[20] == null ? "":objects[20]);
-                        value.put("OrganDiseaseName", objects[21] == null ? "":objects[21]);
+                        value.put("drugName", objects[18] == null ? "":objects[18]);
+                        value.put("sendNumber", objects[19] == null ? "":objects[19]);
+                        value.put("dosageUnit", objects[20] == null ? "":objects[20]);
+                        value.put("producer", objects[21] == null ? "":objects[21]);
+                        value.put("OrganDiseaseName", objects[22] == null ? "":objects[22]);
                         vo.add(value);
                     }
                 }
