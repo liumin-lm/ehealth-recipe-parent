@@ -17,8 +17,8 @@ public class PreSettleFactory {
     public static IRecipePreSettleService getPreSettleService(Integer organId,Integer orderType){
         //根据运营平台机构配置判断是否走预结算
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Integer[] configOrderType = (Integer[])configService.getConfiguration(organId, "preSettleOrderType");
-        if (Arrays.asList(configOrderType).contains(orderType)){
+        String[] configOrderType = (String[])configService.getConfiguration(organId, "preSettleOrderType");
+        if (Arrays.asList(configOrderType).contains(String.valueOf(orderType))){
             return RecipeOrderTypeEnum.getPreSettleService(orderType);
         }
         return null;
@@ -28,8 +28,8 @@ public class PreSettleFactory {
     public static IRecipeSettleService getSettleService(Integer organId, Integer orderType){
         //根据运营平台机构配置判断是否走结算
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Integer[] configOrderType = (Integer[])configService.getConfiguration(organId, "recipeSettleOrderType");
-        if (Arrays.asList(configOrderType).contains(orderType)){
+        String[] configOrderType = (String[])configService.getConfiguration(organId, "recipeSettleOrderType");
+        if (Arrays.asList(configOrderType).contains(String.valueOf(orderType))){
             return RecipeOrderTypeEnum.getSettleService(orderType);
         }
         return null;
