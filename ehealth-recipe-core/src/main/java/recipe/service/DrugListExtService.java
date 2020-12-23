@@ -206,38 +206,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Integer pageSize = searchDrug.getPageSize() == null ? 20 : searchDrug.getPageSize();
 
         Future<HisSearchDrugDTO> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-            QueryDrugResTO hisDrug = null;
-            Integer nextPage = searchDrug.getPageNum();
-            Boolean search = false;
-            List<SearchDrugDetailDTO> searchList;
-            Integer pageNum = searchDrug.getPageNum();
-            HisSearchDrugDTO searchResult = new HisSearchDrugDTO();
-
-            do {
-                nextPage = nextPage + 1;
-                searchResult.setNextPage(nextPage);
-                Integer startNum = (pageNum - 1) * pageSize;
-                searchList = searchDrugListWithES(searchDrug.getOrganId(),
-                        searchDrug.getDrugType(), searchDrug.getKeyWord(), null, startNum, pageSize);
-                searchResult.setSearchList(searchList);
-                if (CollectionUtils.isNotEmpty(searchList)){
-                    QueryDrugReqTO reqTO = getQueryDrugReqTO(searchDrug, searchList);
-                    LOGGER.info("查询his药品商保信息--开始查询，入参={}",JSONObject.toJSONString(reqTO));
-                    IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-                    hisDrug = hisService.queryHisDrugInfo(reqTO);
-                    searchResult.setHisDrug(hisDrug);
-                    LOGGER.info("查询his药品商保信息--过滤结果={}",JSONObject.toJSONString(hisDrug));
-                    // 过滤后为0(请求成功但药品列表为空)，且es有下一页-->搜索es下一页
-                    if (searchList.size() == pageSize && null != hisDrug && "200".equals(hisDrug.getMsgCode()) && CollectionUtils.isEmpty(hisDrug.getData().getDetails())){
-                        search = true;
-                        pageNum = pageNum + 1;
-                    }else {
-                        search = false;
-                    }
-                }
-            }while (search);
-
-            return searchResult;
+            return queryHisDrugInfo(searchDrug, pageSize);
         });
         HisSearchDrugDTO searchDrugDTO = null;
         try {
@@ -247,6 +216,19 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             LOGGER.error("查询his药品商保信息--调用异常，入参={}",JSONObject.toJSONString(searchDrug),e);
         }
 
+        HisDrugInfoDTO result = handleDrugInfoResponse(searchDrug, pageSize, searchDrugDTO);
+        return result;
+    }
+
+    /**
+     * 商保药品信息处理
+     *
+     * @param searchDrug
+     * @param pageSize
+     * @param searchDrugDTO
+     * @return
+     */
+    private HisDrugInfoDTO handleDrugInfoResponse(HisDrugInfoReqDTO searchDrug, Integer pageSize, HisSearchDrugDTO searchDrugDTO) {
         List<SearchDrugDetailDTO> drugList = new ArrayList<>();
         QueryDrugResTO hisDrug = null== searchDrugDTO ? null : searchDrugDTO.getHisDrug();
         List<SearchDrugDetailDTO> searchList = searchDrugDTO == null ? null : searchDrugDTO.getSearchList();
@@ -274,6 +256,55 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return result;
     }
 
+    /**
+     * 查询his商保药品信息
+     *
+     * @param searchDrug
+     * @param pageSize
+     * @return
+     */
+    private HisSearchDrugDTO queryHisDrugInfo(HisDrugInfoReqDTO searchDrug, Integer pageSize) {
+        QueryDrugResTO hisDrug;
+        Integer nextPage = searchDrug.getPageNum();
+        Boolean search = false;
+        List<SearchDrugDetailDTO> searchList;
+        Integer pageNum = searchDrug.getPageNum();
+        HisSearchDrugDTO searchResult = new HisSearchDrugDTO();
+
+        do {
+            nextPage = nextPage + 1;
+            searchResult.setNextPage(nextPage);
+            Integer startNum = (pageNum - 1) * pageSize;
+            searchList = searchDrugListWithES(searchDrug.getOrganId(),
+                    searchDrug.getDrugType(), searchDrug.getKeyWord(), null, startNum, pageSize);
+            searchResult.setSearchList(searchList);
+            if (CollectionUtils.isNotEmpty(searchList)){
+                QueryDrugReqTO reqTO = getQueryDrugReqTO(searchDrug, searchList);
+                LOGGER.info("查询his药品商保信息--开始查询，入参={}", JSONObject.toJSONString(reqTO));
+                IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+                hisDrug = hisService.queryHisDrugInfo(reqTO);
+                searchResult.setHisDrug(hisDrug);
+                LOGGER.info("查询his药品商保信息--过滤结果={}",JSONObject.toJSONString(hisDrug));
+                // 过滤后为0(请求成功但药品列表为空)，且es有下一页-->搜索es下一页
+                if (searchList.size() == pageSize && null != hisDrug && "200".equals(hisDrug.getMsgCode()) && CollectionUtils.isEmpty(hisDrug.getData().getDetails())){
+                    search = true;
+                    pageNum = pageNum + 1;
+                }else {
+                    search = false;
+                }
+            }
+        }while (search);
+
+        return searchResult;
+    }
+
+    /**
+     * 获取商保药品信息入参
+     *
+     * @param searchDrug
+     * @param searchList
+     * @return
+     */
     private QueryDrugReqTO getQueryDrugReqTO(HisDrugInfoReqDTO searchDrug, List<SearchDrugDetailDTO> searchList) {
         List<String> organDrugCodeList = searchList.stream().map(SearchDrugDetailDTO::getOrganDrugCode).collect(Collectors.toList());
         QueryDrugReqTO reqTO = new QueryDrugReqTO();
