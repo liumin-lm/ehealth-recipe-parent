@@ -2159,6 +2159,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService
     public Map<String, Object> findRecipeDrugDetialReport(DispendingPharmacyReportReqTo dispendingPharmacyReportReqTo) {
+        LOGGER.info("DispendingPharmacyReportReqTo is {}", JSONUtils.toString(dispendingPharmacyReportReqTo));
         Integer organId = dispendingPharmacyReportReqTo.getOrganId();
         Date startDate = dispendingPharmacyReportReqTo.getStartDate();
         Date endDate = dispendingPharmacyReportReqTo.getEndDate();
@@ -2198,6 +2199,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         reports.put("total", recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, drugName, cardNo, patientName, billNumber, recipeId,
                 orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, null, null).size());
         reports.put("data", recipeDrugDetialReport);
+        LOGGER.info("List<RecipeDrugDetialReportDTO> size is {}", recipeDrugDetialReport.size());
         return reports;
     }
 
