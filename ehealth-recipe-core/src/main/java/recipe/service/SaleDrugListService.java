@@ -245,6 +245,7 @@ public class SaleDrugListService implements ISaleDrugListService {
     public SaleDrugListDTO getByOrganIdAndDrugId(Integer enterprise, Integer drugId ){
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList=saleDrugListDAO.getByDrugIdAndOrganId(drugId,enterprise);
+        logger.info("getByOrganIdAndDrugId1111:" + saleDrugList);
         return ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class);
     }
 
