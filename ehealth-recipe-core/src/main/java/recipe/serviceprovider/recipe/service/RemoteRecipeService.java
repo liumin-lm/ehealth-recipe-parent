@@ -2152,27 +2152,28 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 发药查询
-     * @param organId
-     * @param startDate
-     * @param endDate
-     * @param cardNo
-     * @param patientName
-     * @param billNumber
-     * @param recipeId
-     * @param orderStatus
-     * @param depart
-     * @param doctorName
-     * @param dispensingApothecaryName
-     * @param recipeType
-     * @param start
-     * @param limit
+     *
      * @return
      * @Author dxx
      * @Date 20201222
      */
     @RpcService
-    public Map<String, Object> findRecipeDrugDetialReport(Integer organId, Date startDate, Date endDate,String drugName, String cardNo, String patientName, String billNumber, String recipeId,
-                                           Integer orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
+    public Map<String, Object> findRecipeDrugDetialReport(DispendingPharmacyReportReqTo dispendingPharmacyReportReqTo) {
+        Integer organId = dispendingPharmacyReportReqTo.getOrganId();
+        Date startDate = dispendingPharmacyReportReqTo.getStartDate();
+        Date endDate = dispendingPharmacyReportReqTo.getEndDate();
+        Integer orderStatus = dispendingPharmacyReportReqTo.getOrderStatus();
+        String drugName = dispendingPharmacyReportReqTo.getDrugName();
+        String cardNo = dispendingPharmacyReportReqTo.getCardNo();
+        String patientName = dispendingPharmacyReportReqTo.getPatientName();
+        String billNumber = dispendingPharmacyReportReqTo.getBillNumber();
+        String recipeId = dispendingPharmacyReportReqTo.getRecipeId();
+        Integer depart = dispendingPharmacyReportReqTo.getDepart();
+        String doctorName = dispendingPharmacyReportReqTo.getDoctorName();
+        String dispensingApothecaryName = dispendingPharmacyReportReqTo.getDispensingApothecaryName();
+        Integer recipeType = dispendingPharmacyReportReqTo.getRecipeType();
+        Integer start = dispendingPharmacyReportReqTo.getStart();
+        Integer limit = dispendingPharmacyReportReqTo.getLimit();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
         String orderStatusStr = "13,14,15";
