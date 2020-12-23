@@ -1028,9 +1028,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Assert.notNull(req,"req is required");
         Assert.notNull(req.getOrganId(),"organId is required");
         Assert.notNull(req.getDrugIds(),"drugIds is required");
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        List<DrugList> drugLists = drugListDAO.findByDrugIds(req.getDrugIds());
-        List<DrugListBean> drugListBeans = getList(drugLists, DrugListBean.class);
+        List<DrugListBean> drugListBeans = new ArrayList<>(req.getDrugIds().size());
+        req.getDrugIds().forEach(a-> drugListBeans.add(new DrugListBean(a)));
         //查询医院库存
         setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
         //查询药企库存----若超过5s还未返回库存, 则不展示对应药企库存字段;
