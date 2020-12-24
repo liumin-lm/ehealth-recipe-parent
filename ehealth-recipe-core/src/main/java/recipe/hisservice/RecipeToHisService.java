@@ -235,6 +235,7 @@ public class RecipeToHisService {
         return response;
     }
 
+    @Deprecated
     public PayNotifyResTO payNotify(PayNotifyReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("payNotify request={}", JSONUtils.toString(request));

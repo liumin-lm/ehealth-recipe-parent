@@ -1,9 +1,6 @@
 package recipe.presettle;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
-import com.ngari.base.common.ICommonService;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -14,11 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.RecipeHisService;
+import recipe.presettle.factory.PreSettleFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +22,7 @@ import java.util.Map;
 
 /**
  * created by shiyuping on 2020/9/22
+ * @author shiyuping
  */
 @RpcBean
 public class RecipePreSettleService {
@@ -33,16 +30,11 @@ public class RecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePreSettleService.class);
 
     @Autowired
-    private RecipeHisService recipeHisService;
-
-    @Autowired
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     /**
      * 统一处方预结算接口
@@ -89,13 +81,19 @@ public class RecipePreSettleService {
         }
         Integer depId = recipeOrder.getEnterpriseId();
         Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
-        DrugsEnterprise dep = null;
-        //到院取药有可能为空
-        if (depId != null) {
-            dep = drugsEnterpriseDAO.getById(depId);
+        String insuredArea = extend.getInsuredArea();
+        Map<String, Object> param = Maps.newHashMap();
+        param.put("depId", depId);
+        param.put("insuredArea", insuredArea);
+        param.put("recipeNoS", JSONUtils.toString(recipeNoS));
+        param.put("payMode", recipe.getPayMode());
+        //获取对应预结算服务
+        IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipe.getClinicOrgan(),orderType);
+        if (preSettleService != null){
+            return preSettleService.recipePreSettle(recipe.getRecipeId(), param);
         }
 
-        if (orderType == 0 && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+        /*if (orderType == 0 && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //平台自费预结算--仅少数机构用到
             //目前省中走自费预结算
             if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))) {
@@ -121,7 +119,7 @@ public class RecipePreSettleService {
                 }
             }
 
-        }
+        }*/
         result.put("code", "200");
         return result;
     }

@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
@@ -19,8 +18,10 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -78,7 +79,6 @@ import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
@@ -121,6 +121,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private DepartmentService departmentService;
 
     @RpcService
     @Override
@@ -1964,5 +1966,220 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         return GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe);
+    }
+
+
+    /**
+     * 深圳二院药房工作量统计报表服务
+     * @param organId 机构ID
+     * @param startDate
+     * @param endDate
+     * @param doctorName
+     * @param start
+     * @param limit
+     * @return
+     * @Author dxx
+     * @Date 20201222
+     */
+    @Override
+    public Map<String, Object> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit){
+        LOGGER.info("workloadTop request is {}", organId + startDate.toString() + endDate.toLocaleString() + start + limit);
+        List<WorkLoadTopDTO> result = new ArrayList<>();
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,start,limit,startDateStr,endDateStr,doctorName);
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
+        for (WorkLoadTopDTO workLoadTopDTO : recipeByOrderCodegroupByDis) {
+            //药师姓名存在
+            if (StringUtils.isNotEmpty(workLoadTopDTO.getDispensingApothecaryName())) {
+                result.add(workLoadTopDTO);
+            } else if (doctorId != null) {
+                //获取默认发药药师
+                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                workLoadTopDTO.setDispensingApothecaryName(dispensingApothecary.getName());
+                result.add(workLoadTopDTO);
+            }
+        }
+
+        Integer totalCount = 0;
+        Double totalMoney = 0.0;
+        for (WorkLoadTopDTO workLoadTopDTO : result) {
+            totalCount += workLoadTopDTO.getRecipeCount();
+            totalMoney += workLoadTopDTO.getTotalMoney();
+        }
+        //判断是否最后一页
+        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
+        if (start + limit >= size) {
+            WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
+            workLoadTopDTO.setDispensingApothecaryName("合计");
+            workLoadTopDTO.setTotalMoney(totalMoney);
+            workLoadTopDTO.setRecipeCount(totalCount);
+            result.add(workLoadTopDTO);
+        }
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", size);
+        reports.put("data", result);
+        LOGGER.info("pharmacyMonthlyReport response size is {}", result.size());
+        return reports;
+    }
+
+    /**
+     * 深圳二院发药月报
+     * @param organId
+     * @param depart
+     * @param startDate
+     * @param endDate
+     * @param start
+     * @param limit
+     * @return
+     * @Author dxx
+     * @Date 20201221
+     */
+    @Override
+    public Map<String, Object> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit) {
+        LOGGER.info("pharmacyMonthlyReport request is {}", organId + depart + startDate.toString() + endDate.toLocaleString() + start + limit);
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, start, limit);
+        List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
+        for (PharmacyMonthlyReportDTO pharmacyMonthlyReportDTO : recipeDetialCountgroupByDepart) {
+            if (getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId) != null) {
+                pharmacyMonthlyReportDTO.setDepartName(getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId));
+            }
+        }
+        int size = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, null, null).size();
+        //判断是否最后一页
+        if (start + limit >= size) {
+            //合计
+            List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, true, start, limit);
+            if (recipeDetialCountgroupByDepart1.size() > 0) {
+                recipeDetialCountgroupByDepart1.get(0).setDepartName("合计");
+                recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
+            } else {
+                PharmacyMonthlyReportDTO pharmacyMonthlyReportDTO = new PharmacyMonthlyReportDTO();
+                pharmacyMonthlyReportDTO.setDepartName("合计");
+                pharmacyMonthlyReportDTO.setDepart(0);
+                pharmacyMonthlyReportDTO.setAvgMoney(new BigDecimal(0.00));
+                pharmacyMonthlyReportDTO.setRecipeCount(0);
+                pharmacyMonthlyReportDTO.setTotalMoney(new BigDecimal(0.00));
+                recipeDetialCountgroupByDepart.add(pharmacyMonthlyReportDTO);
+            }
+        }
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", size);
+        reports.put("data", recipeDetialCountgroupByDepart);
+        LOGGER.info("pharmacyMonthlyReport response is {}", recipeDetialCountgroupByDepart.size());
+        return reports;
+    }
+
+    /**
+     * 根据depart获取科室名称
+     *
+     * @return
+     */
+    private String getDepart(Integer departId, List<DepartmentDTO> departmentDTOS) {
+        for (DepartmentDTO departmentDTO : departmentDTOS) {
+            if (departmentDTO.getDeptId().equals(departId) ) {
+                return departmentDTO.getName();
+            }
+        }
+        return null;
+    }
+
+    /**
+     *发药排行
+     * @param organId
+     * @param status  0：全部 1.xi药 2.退药 3.拒发
+     * @param startDate
+     * @param endDate
+     * @param order 排序方式
+     * @param start
+     * @param limit
+     */
+    @Override
+    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
+        LOGGER.info("pharmacyTop is {}", organId + drugType + startDate.toLocaleString() + endDate.toLocaleString() + order + start + limit + "");
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, start, limit);
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, null, null).size());
+        reports.put("data", drugCountOrderByCountOrMoneyCountGroupByDrugId);
+        LOGGER.info("pharmacyTop response size is {}", drugCountOrderByCountOrMoneyCountGroupByDrugId.size());
+        return reports;
+    }
+
+    /**
+     * 发药查询
+     *
+     * @return
+     * @Author dxx
+     * @Date 20201222
+     */
+    @RpcService
+    public Map<String, Object> findRecipeDrugDetialReport(DispendingPharmacyReportReqTo dispendingPharmacyReportReqTo) {
+        LOGGER.info("findRecipeDrugDetialReport is {}", JSONUtils.toString(dispendingPharmacyReportReqTo));
+        Integer organId = dispendingPharmacyReportReqTo.getOrganId();
+        Date startDate = dispendingPharmacyReportReqTo.getStartDate();
+        Date endDate = dispendingPharmacyReportReqTo.getEndDate();
+        Integer orderStatus = dispendingPharmacyReportReqTo.getOrderStatus();
+        String drugName = dispendingPharmacyReportReqTo.getDrugName();
+        String cardNo = dispendingPharmacyReportReqTo.getCardNo();
+        String patientName = dispendingPharmacyReportReqTo.getPatientName();
+        String billNumber = dispendingPharmacyReportReqTo.getBillNumber();
+        String recipeId = dispendingPharmacyReportReqTo.getRecipeId();
+        Integer depart = dispendingPharmacyReportReqTo.getDepart();
+        String doctorName = dispendingPharmacyReportReqTo.getDoctorName();
+        String dispensingApothecaryName = dispendingPharmacyReportReqTo.getDispensingApothecaryName();
+        Integer recipeType = dispendingPharmacyReportReqTo.getRecipeType();
+        Integer start = dispendingPharmacyReportReqTo.getStart();
+        Integer limit = dispendingPharmacyReportReqTo.getLimit();
+        String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
+        String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
+        String orderStatusStr = "13,14,15";
+        if (orderStatus == 2) {
+            orderStatusStr = "13";
+        }
+        if (orderStatus == 3) {
+            orderStatusStr = "14";
+        }
+        if (orderStatus == 4) {
+            orderStatusStr = "15";
+        }
+        List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
+        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr,drugName, cardNo, patientName, billNumber, recipeId,
+                orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, start, limit);
+        for (RecipeDrugDetialReportDTO recipeDrugDetialReportDTO : recipeDrugDetialReport) {
+            if (getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId) != null) {
+                recipeDrugDetialReportDTO.setDepartName(getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId));
+            }
+        }
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, drugName, cardNo, patientName, billNumber, recipeId,
+                orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, null, null).size());
+        reports.put("data", recipeDrugDetialReport);
+        LOGGER.info("List<RecipeDrugDetialReportDTO> size is {}", recipeDrugDetialReport.size());
+        return reports;
+    }
+
+    /**
+     * 根据recipeId获取处方单详情
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findRecipeDrugDetialByRecipeId(Integer recipeId) {
+        LOGGER.info("findRecipeDrugDetialByRecipeId {}", JSONUtils.toString(recipeId));
+        List<Map<String, Object>> recipeDrugDetialByRecipeId = recipeDAO.findRecipeDrugDetialByRecipeId(recipeId);
+        try {
+            String text = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipeDrugDetialByRecipeId.get(0).get("usePathways"));
+            recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", text);
+        } catch (ControllerException e) {
+            recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", "");
+            LOGGER.error("给药方式字典获取失败", e);
+        }
+        LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
+        return recipeDrugDetialByRecipeId;
     }
 }

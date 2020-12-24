@@ -637,18 +637,14 @@ public class HisRequestInit {
                             //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
                             requestTO.setInsuredAreaType("1");
                         }
-                        if (extend.getCashAmount() != null) {
-                            //自负金额
-                            requestTO.setCashAmount(extend.getCashAmount());
-                            //应付金额
-                            requestTO.setPayAmount(extend.getPayAmount());
-                            //总金额
-                            requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
-                            //his收据号
-                            requestTO.setHisSettlementNo(extend.getHisSettlementNo());
-                        } else {
-                            LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}", recipe.getRecipeId());
-                        }
+                        //自负金额
+                        requestTO.setCashAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
+                        //应付金额
+                        requestTO.setPayAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
+                        //总金额
+                        requestTO.setPreSettleTotalAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()).toPlainString());
+                        //his收据号
+                        requestTO.setHisSettlementNo(order.getHisSettlementNo());
                     }
 
                     requestTO.setTradeNo(order.getTradeNo());

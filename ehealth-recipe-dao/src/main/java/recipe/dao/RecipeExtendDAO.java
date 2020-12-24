@@ -127,13 +127,6 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "select recipeId from RecipeExtend where rxNo=:rxNo")
     public abstract List<Integer> findRecipeIdsByRxNo(@DAOParam("rxNo") String rxNo);
 
-    /**
-     * 根据处方id更新医保金额为空
-     *
-     * @param recipeId
-     */
-    @DAOMethod(sql = "update RecipeExtend set preSettleTotalAmount=null ,fundAmount= null, cashAmount = null where recipeId=:recipeId")
-    public abstract void updatefundAmountToNullByRecipeId(@DAOParam("recipeId") int recipeId);
 
     /**
      * 删除 电子病例处方关联
@@ -160,11 +153,4 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)")
     public abstract List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
-    /**
-     * 根据处方挂号序号查询已经做过预结算的
-     *
-     * @param registerID
-     */
-    @DAOMethod(sql = "from RecipeExtend where registerID =:registerID and preSettleTotalAmount is not null")
-    public abstract List<RecipeExtend> querySettleRecipeExtendByRegisterID(@DAOParam("registerID") String registerID);
 }

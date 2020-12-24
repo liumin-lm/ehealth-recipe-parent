@@ -164,7 +164,33 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "医院库存、药企库存等列表信息")
     private List<DrugInventoryInfo> inventories;
 
+    @ItemProperty(alias = "his药品商保保险比例")
+    private String hisciReimburseRate;
+
+    @ItemProperty(alias = "his药品是否商保标识")
+    private Integer hisciIsClaim;
+
     public DrugListBean() {
+    }
+
+    public DrugListBean(Integer drugId) {
+        this.drugId = drugId;
+    }
+
+    public String getHisciReimburseRate() {
+        return hisciReimburseRate;
+    }
+
+    public void setHisciReimburseRate(String hisciReimburseRate) {
+        this.hisciReimburseRate = hisciReimburseRate;
+    }
+
+    public Integer getHisciIsClaim() {
+        return hisciIsClaim;
+    }
+
+    public void setHisciIsClaim(Integer hisciIsClaim) {
+        this.hisciIsClaim = hisciIsClaim;
     }
 
     public Integer getBaseDrug() {

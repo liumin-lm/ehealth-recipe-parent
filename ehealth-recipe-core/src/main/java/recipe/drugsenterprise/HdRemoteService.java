@@ -569,10 +569,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
         //添加医保金额
         if (order != null && order.getOrderType() == 1) {
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
-            if (recipeExtend != null && recipeExtend.getFundAmount() != null) {
-                sendHdRecipe.setMedicalFee(recipeExtend.getFundAmount());
+            if (order.getFundAmount() != null) {
+                sendHdRecipe.setMedicalFee(String.valueOf(order.getFundAmount()));
                 sendHdRecipe.setMedicalPay("1");
             } else {
                 sendHdRecipe.setMedicalFee("0");

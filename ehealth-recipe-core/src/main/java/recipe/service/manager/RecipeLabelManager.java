@@ -77,7 +77,7 @@ public class RecipeLabelManager {
             eSignDTO.setImgFileId(recipeId.toString());
         }
         eSignDTO.setLoginId(patientDTO.getLoginId());
-        eSignDTO.setDoctorName(recipe.getDoctorName());
+        //eSignDTO.setDoctorName(recipe.getDoctorName());
         eSignDTO.setDoctorId(recipe.getDoctor());
         eSignDTO.setOrgan(recipe.getClinicOrgan());
         eSignDTO.setFileName("recipe_" + recipeId + ".pdf");
@@ -309,7 +309,7 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(detail.getMemo())) {
                 dTotal = dTotal + "*" + detail.getMemo();
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + "：" + dTotal));
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + ":" + dTotal));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));

@@ -148,6 +148,11 @@ public class DrugEnterpriseConstant {
     public static final Integer LOGISTICS_PLATFORM=1;
 
     /**
+     * 药企对接物流方式-药企对接-HIS
+     */
+    public static final Integer LOGISTICS_ENT_HIS = 3;
+
+    /**
      * 基础服务物流下单业务类型 处方=1
      */
     public static final Integer BUSINESS_TYPE = 1;
