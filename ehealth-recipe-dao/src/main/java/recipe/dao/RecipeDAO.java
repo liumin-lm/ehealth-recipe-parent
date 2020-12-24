@@ -2552,7 +2552,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "WHERE\n" +
                         "\tr.ordercode IS NOT NULL\n" +
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
-                        "AND o.dispensingApothecaryName = :dispensingApothecaryName\n" : "") +
+                        "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
                         "AND o.status in (13,14,15)\n" +
                         "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
@@ -2561,7 +2561,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
-                    q.setParameter("dispensingApothecaryName", doctorName);
+                    q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
                 }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
