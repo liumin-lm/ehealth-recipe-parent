@@ -53,7 +53,6 @@ public class RecipeOrder implements Serializable {
     private String recipeIdList;
 
     @ItemProperty(alias = "支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败")
-    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderPayFlag")
     private Integer payFlag;
 
     @ItemProperty(alias = "优惠券ID")
