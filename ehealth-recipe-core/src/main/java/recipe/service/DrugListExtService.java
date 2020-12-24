@@ -156,18 +156,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         } catch (Exception e) {
             LOGGER.error("查询his常用药品列表--调用异常，入参={}",JSONObject.toJSONString(drugDTO),e);
         }
-        //   test
-        hisDrug = new QueryDrugResTO();
-        List<DrugDetailTO> hisList = new ArrayList<>();
-        DrugDetailTO drugDetailTO = new DrugDetailTO();
-        drugDetailTO.setOrganDrugCode("042000601");
-        drugDetailTO.setReimburse("商30%");
-        drugDetailTO.setIsClaim(1);
-        hisList.add(drugDetailTO);
-        DrugDetailResTO data= new DrugDetailResTO();
-        data.setDetails(hisList);
-        hisDrug.setData(data);
-        //   test
+
         List<DrugListBean> drugList = new ArrayList<>();
         if (null != hisDrug && null != hisDrug.getData() && CollectionUtils.isNotEmpty(hisDrug.getData().getDetails())){
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -259,20 +248,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         } catch (Exception e) {
             LOGGER.error("查询his药品商保信息--调用异常，入参={}",JSONObject.toJSONString(searchDrug),e);
         }
-
-        //   test
-        QueryDrugResTO his = new QueryDrugResTO();
-        DrugDetailResTO detailResTO = new DrugDetailResTO();
-        List<DrugDetailTO> details = new ArrayList<>();
-        DrugDetailTO drugDetailTO = new DrugDetailTO();
-        drugDetailTO.setOrganDrugCode("214500903");
-        drugDetailTO.setIsClaim(1);
-        drugDetailTO.setReimburse("商30%");
-        details.add(drugDetailTO);
-        detailResTO.setDetails(details);
-        his.setData(detailResTO);
-        searchDrugDTO.setHisDrug(his);
-        //   test
 
         HisDrugInfoDTO result = handleDrugInfoResponse(searchDrug, pageSize, searchDrugDTO);
         LOGGER.info("查询his药品商保信息--返回前端={}",JSONObject.toJSONString(result));
@@ -1050,6 +1025,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
         //查询药企库存----若超过5s还未返回库存, 则不展示对应药企库存字段;
         setDrugsEnterpriseInventoriesByFiveSeconds(req.getOrganId(),drugListBeans);
+        //todo 测试代码--后面需要删
+        if (req.getPharmacyId() != null){
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         return drugListBeans;
     }
 
