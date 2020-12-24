@@ -1025,6 +1025,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
         //查询药企库存----若超过5s还未返回库存, 则不展示对应药企库存字段;
         setDrugsEnterpriseInventoriesByFiveSeconds(req.getOrganId(),drugListBeans);
+        //todo 测试代码--后面需要删
+        if (req.getPharmacyId() != null){
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         return drugListBeans;
     }
 

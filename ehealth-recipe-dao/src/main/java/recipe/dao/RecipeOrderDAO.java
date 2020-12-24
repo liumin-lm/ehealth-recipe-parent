@@ -1603,6 +1603,17 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     /**
+     * 根据患者id和机构id查询对应的未支付的订单
+     *
+     * @param mpiId
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId")
+    public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
+
+
+    /**
      * 根据订单号、物流单获取订单
      *
      * @param orderId          订单号
