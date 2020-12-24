@@ -53,6 +53,31 @@ public class RecipeLabelManager {
     private IESignBaseService esignService;
 
     /**
+     * 因为pdf动态配置无法得知再次写入时所需高度，故计算
+     * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
+     *
+     * @param organId 机构id
+     * @return Y坐标点位 （默认400 超过6字段 每个字段降低5px高度）
+     */
+    public int getPdfReceiverHeight(Integer organId) {
+        int height = 420;
+        if (null == organId) {
+            return height;
+        }
+        Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
+        if (CollectionUtils.isEmpty(labelMap)) {
+            return height;
+        }
+        List<Scratchable> list = (List<Scratchable>) labelMap.get("moduleTwo");
+        int heightSize = list.size() - 6;
+        if (heightSize < 0) {
+            return height;
+        } else {
+            return height - heightSize * 5;
+        }
+    }
+
+    /**
      * 获取pdf oss id
      *
      * @param result
@@ -77,7 +102,7 @@ public class RecipeLabelManager {
             eSignDTO.setImgFileId(recipeId.toString());
         }
         eSignDTO.setLoginId(patientDTO.getLoginId());
-        //eSignDTO.setDoctorName(recipe.getDoctorName());
+        eSignDTO.setDoctorName(recipe.getDoctorName());
         eSignDTO.setDoctorId(recipe.getDoctor());
         eSignDTO.setOrgan(recipe.getClinicOrgan());
         eSignDTO.setFileName("recipe_" + recipeId + ".pdf");

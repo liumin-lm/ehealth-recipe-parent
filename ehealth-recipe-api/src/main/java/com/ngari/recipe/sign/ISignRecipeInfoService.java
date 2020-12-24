@@ -1,6 +1,7 @@
 package com.ngari.recipe.sign;
 
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
+import com.ngari.recipe.sign.model.SignDoctorRecipeInfoDTO;
 import ctd.util.annotation.RpcService;
 
 public interface ISignRecipeInfoService {
@@ -9,4 +10,7 @@ public interface ISignRecipeInfoService {
 
     @RpcService
     void saveCaSignResult(CaSignResultUpgradeBean caSignResultBean);
+
+    @RpcService
+    SignDoctorRecipeInfoDTO getSignRecipeInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType);
 }
