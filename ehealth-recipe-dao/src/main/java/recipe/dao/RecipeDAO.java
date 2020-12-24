@@ -26,6 +26,7 @@ import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -43,6 +44,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -2525,6 +2527,387 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
 
                 setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 药房工作量
+     * @param organId
+     * @return
+     */
+    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
+        HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                String sql = "SELECT\n" +
+                        "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" +
+                        "\tcount(recipeId) AS recipeCount,\n" +
+                        "\tsum(totalMoney) totalMoney\n" +
+                        "FROM\n" +
+                        "\tcdr_recipe r\n" +
+                        "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" +
+                        "WHERE\n" +
+                        "\tr.ordercode IS NOT NULL\n" +
+                        "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
+                        "AND o.dispensingApothecaryName = :dispensingApothecaryName\n" : "") +
+                        "AND o.status in (13,14,15)\n" +
+                        "AND r.CreateDate BETWEEN '" + startDate + "'\n" +
+                        "AND '" + endDate + "'\n" +
+                        "GROUP BY\n" +
+                        "\to.dispensingApothecaryName";
+                Query q = statelessSession.createSQLQuery(sql);
+                q.setParameter("organId", organId);
+                if (StringUtils.isNotEmpty(doctorName)) {
+                    q.setParameter("dispensingApothecaryName", doctorName);
+                }
+                if (start != null && limit != null) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                List<Object[]> result = q.list();
+                List<WorkLoadTopDTO> vo = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)){
+                    for (Object[] objects : result) {
+                        WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
+                        workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
+                        workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
+                        workLoadTopDTO.setTotalMoney(Double.valueOf(objects[2].toString()));
+                        vo.add(workLoadTopDTO);
+                    }
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 发药月报
+     * @param organId
+     * @return
+     */
+    public List<PharmacyMonthlyReportDTO> findRecipeDetialCountgroupByDepart(Integer organId, String depart, String startDate, String endDate, Boolean isAll, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>>() {
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                String sql = "select depart, sum(totalMoney) as totalMoney, count(RECIPEID) as count,sum(totalMoney)/count(RECIPEID) AS avgMoney from cdr_recipe where CreateDate BETWEEN '" + startDate + "'\n" +
+                        "\t\tAND '" + endDate + "' and ClinicOrgan =:organId and totalMoney is not null";
+                if (StringUtils.isNotEmpty(depart)) {
+                    sql += " and depart='" + depart + "'";
+                }
+                if (!isAll) {
+                    sql = sql + " group by depart";
+                }
+                Query q = statelessSession.createSQLQuery(sql);
+                q.setParameter("organId", organId);
+                if (start != null && limit != null) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                List<Object[]> result = q.list();
+                List<PharmacyMonthlyReportDTO> vo = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    for (Object[] objects : result) {
+                        if (Integer.valueOf(String.valueOf(objects[2])) > 0) {
+                            PharmacyMonthlyReportDTO value = new PharmacyMonthlyReportDTO();
+                            value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
+                            value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
+                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            vo.add(value);
+                        }
+                    }
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
+    /**
+     * 发药排行
+     *
+     * @param organId
+     * @return
+     */
+    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String startDate, String endDate, Integer order, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                String sql = "SELECT\n" +
+                        "\trd.drugId,\n" +
+                        "\trd.drugName,\n" +
+                        "\trd.drugSpec,\n" +
+                        "\trd.drugUnit,\n" +
+                        "\tcast(sum(rd.useTotalDose) as SIGNED) AS count,\n" +
+                        "\trd.drugCost,\n" +
+                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\tCASE bd.drugtype WHEN 1 THEN '西药' WHEN 2 THEN '中成药' ELSE '中草药' " +
+                        "END AS drugtype\n" +
+                        "FROM\n" +
+                        "\tcdr_recipedetail rd\n" +
+                        "LEFT JOIN cdr_recipe cr ON (rd.RecipeID = rd.RecipeID)\n" +
+                        "LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
+                        "LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)\n" +
+                        "WHERE\n" +
+                        "\tcr.CreateDate BETWEEN '" + startDate + " '\n" +
+                        "AND '" + endDate + "'\n" +
+                        "AND ClinicOrgan = :organId\n" +
+                        "AND rd.drugCost is not null\n" +
+                        "AND co.`Status` IN (13,14,15)\n" +
+                        "AND rd.useTotalDose is not null\n" +
+                        (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
+                        "GROUP BY\n" +
+                        "\tdrugId\n";
+                if (order == 1) {
+                    sql += "order by SUM(rd.saleprice) desc";
+                }
+                if (order == 2) {
+                    sql += "order by SUM(rd.saleprice) asc";
+                }
+                if (order == 3) {
+                    sql += "order by sum(rd.useTotalDose) desc";
+                }
+                if (order == 4) {
+                    sql += "order by sum(rd.useTotalDose) asc";
+                }
+                Query q = statelessSession.createSQLQuery(sql);
+                q.setParameter("organId", organId);
+                if (drugType != 0) {
+                    q.setParameter("drugType", drugType);
+                }
+                if (start != null && limit != null) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                List<Object[]> result = q.list();
+                List<PharmacyTopDTO> vo = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)) {
+                    for (Object[] objects : result) {
+                        PharmacyTopDTO value = new PharmacyTopDTO();
+                        value.setDrugId(String.valueOf(objects[0]));
+                        value.setDrugName(String.valueOf(objects[1]));
+                        value.setDrugSpec(String.valueOf(objects[2]));
+                        value.setDrugUnit(String.valueOf(objects[3]));
+                        value.setCount(String.valueOf(objects[4]));
+                        value.setDrugCost(new BigDecimal(String.valueOf(objects[5])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                        value.setCountMoney(new BigDecimal(String.valueOf(objects[6])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                        value.setDrugtype(String.valueOf(objects[7]));
+                        vo.add(value);
+                    }
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 发药查询整体
+     * @param organId
+     * @return
+     */
+    public List<RecipeDrugDetialReportDTO> findRecipeDrugDetialReport(Integer organId, String startDate, String endDate,String drugName, String cardNo, String patientName, String billNumber, String recipeId,
+                                                                      String orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<RecipeDrugDetialReportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeDrugDetialReportDTO>>() {
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                String sql = "SELECT\n" +
+                        "\tcrb.bill_number,\n" +
+                        "\tcr.recipeId,\n" +
+                        "\tcr.depart,\n" +
+                        "\tcr.patientName,\n" +
+                        "\tcr.CreateDate as sendDate,\n" +
+                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' ELSE '无' END AS STATUS,\n" +
+                        "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
+                        "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
+                        "\t'' AS dispensingWindow,\n" +
+                        "\tcr.doctorName,\n" +
+                        "\tcr.totalMoney,\n" +
+                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' ELSE '中成药' END AS RecipeType,\n" +
+                        "\tcr.CreateDate,\n" +
+                        "\tco.PayTime\n" +
+                        "FROM\n" +
+                        "\tcdr_recipe cr\n" +
+                        "LEFT JOIN cdr_recipedetail rd ON (cr.RecipeID = rd.RecipeID)\n" +
+                        "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" +
+                        "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
+                        "LEFT JOIN cdr_recipe_ext cre ON cre.recipeId = cr.RecipeID\n" +
+                        "LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
+                        "WHERE\n" +
+                        "\tcr.ClinicOrgan = :organId\n" +
+                        "AND (\n" +
+                        "\tco. STATUS IN (" + orderStatus + ")\n" +
+                        ")\n" +
+                        "AND CreateDate BETWEEN '" + startDate + "'\n" +
+                        "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") +
+                        (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName like :patientName" : "") +
+                        (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :billNumber" : "") +
+                        (StringUtils.isNotEmpty(recipeId) ? " AND cr.recipeId = :recipeId" : "") +
+                        (recipeType != null ? " AND cr.recipeType = :recipeType" : "") +
+                        (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName like :dispensingApothecaryName" : "") +
+                        (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
+                        (StringUtils.isNotEmpty(drugName) ? " AND rd.drugName like :drugName" : "") +
+                        (depart != null ? " AND cr.depart = :depart" : "");
+                Query q = statelessSession.createSQLQuery(sql);
+                q.setParameter("organId", organId);
+                if (StringUtils.isNotEmpty(cardNo)) {
+                    q.setParameter("cardNo", cardNo);
+                }
+                if (StringUtils.isNotEmpty(patientName)) {
+                    q.setParameter("patientName", "%"+patientName+"%");
+                }
+                if (StringUtils.isNotEmpty(billNumber)) {
+                    q.setParameter("billNumber", billNumber);
+                }
+                if (StringUtils.isNotEmpty(recipeId)) {
+                    q.setParameter("recipeId", recipeId);
+                }
+                if (recipeType != null) {
+                    q.setParameter("recipeType", recipeType);
+                }
+                if (StringUtils.isNotEmpty(dispensingApothecaryName)) {
+                    q.setParameter("dispensingApothecaryName", "%"+dispensingApothecaryName+"%");
+                }
+                if (StringUtils.isNotEmpty(doctorName)) {
+                    q.setParameter("doctorName", "%"+doctorName+"%");
+                }
+                if (depart != null) {
+                    q.setParameter("depart", depart);
+                }
+                if (depart != null) {
+                    q.setParameter("drugName", "%"+drugName+"%");
+                }
+                if (start != null && limit != null) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                List<Object[]> result = q.list();
+                List<RecipeDrugDetialReportDTO> vo = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)) {
+                    for (Object[] objects : result) {
+                        RecipeDrugDetialReportDTO value = new RecipeDrugDetialReportDTO();
+                        value.setBillNumber(String.valueOf(objects[0]));
+                        value.setRecipeId(Integer.valueOf(String.valueOf(objects[1])));
+                        value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
+                        value.setPatientName(String.valueOf(objects[3]));
+                        value.setSendDate(String.valueOf(objects[4]));
+                        value.setStatus(String.valueOf(objects[5]));
+                        value.setSendApothecaryName(String.valueOf(objects[6]));
+                        value.setDispensingApothecaryName(String.valueOf(objects[7]));
+                        value.setDispensingWindow(String.valueOf(objects[8]));
+                        value.setDoctorName(String.valueOf(objects[9]));
+                        value.setTotalMoney(Double.valueOf(String.valueOf(objects[10])));
+                        value.setRecipeType(String.valueOf(objects[11]));
+                        value.setCreateDate(String.valueOf(objects[12]));
+                        value.setPayTime(String.valueOf(objects[13]));
+                        vo.add(value);
+                    }
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 发药查询 单个
+     * @param recipeId
+     * @return
+     */
+    public List<Map<String, Object>> findRecipeDrugDetialByRecipeId(Integer recipeId) {
+        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                String sql = "SELECT\n" +
+                        "\tcrb.bill_number,\n" +
+                        "\tcr.patientName,\n" +
+                        "\tCASE cre.patientType\n" +
+                        "WHEN 0 THEN\n" +
+                        "\t'自费'\n" +
+                        "ELSE\n" +
+                        "\t'医保'\n" +
+                        "END AS patientType,\n" +
+                        " cr.CreateDate,\n" +
+                        " cr.recipeId,\n" +
+                        " cr.doctorName,\n" +
+                        " co.dispensingApothecaryName AS sendApothecaryName,\n" +
+                        " co.dispensingApothecaryName AS dispensingApothecaryName,\n" +
+                        " mp.birthday AS birthday,\n" +
+                        " CASE mp.patientSex\n" +
+                        "WHEN 1 THEN\n" +
+                        "\t'男'\n" +
+                        "ELSE\n" +
+                        "\t'女'\n" +
+                        "END AS patientSex,\n" +
+                        " mp.mobile AS mobile,\n" +
+                        " '' AS memo,\n" +
+                        " cre.cardNo,\n" +
+                        " crt.drugSpec,\n" +
+                        " crt.useDoseStr,\n" +
+                        " crt.usingRate,\n" +
+                        " crt.usePathways,\n" +
+                        " crt.drugCost,\n" +
+                        " crt.drugName,\n" +
+                        " crt.sendNumber,\n" +
+                        " crt.dosageUnit,\n" +
+                        " crt.producer,\n" +
+                        " cr.OrganDiseaseName\n" +
+                        "FROM\n" +
+                        "\tcdr_recipe cr\n" +
+                        "LEFT JOIN cdr_recipe_ext cre ON (cr.RecipeID = cre.recipeId)\n" +
+                        "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" +
+                        "LEFT JOIN cdr_recipedetail crt ON crt.RecipeID = cre.recipeId\n" +
+                        "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
+                        "LEFT JOIN eh_basic_devtest.MPI_Patient mp ON cr.MPIID = mp.MPIID\n" +
+                        "WHERE\n" +
+                        "\tcr.RecipeID = :recipeId";
+                Query q = statelessSession.createSQLQuery(sql);
+                System.out.println(sql);
+                q.setParameter("recipeId", recipeId);
+                List<Object[]> result = q.list();
+                List<Map<String, Object>> vo = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)) {
+                    for (Object[] objects : result) {
+                        Map<String, Object> value = new HashMap<>();
+                        value.put("billNumber", objects[0] == null ? "":objects[0]);
+                        value.put("patientName", objects[1]);
+                        value.put("patientType", objects[2]);
+                        value.put("CreateDate", objects[3]);
+                        value.put("recipeId", objects[4]);
+                        value.put("doctorName", objects[5]);
+                        value.put("sendApothecaryName", objects[6] == null ? "":objects[6]);
+                        value.put("dispensingApothecaryName", objects[7] == null ? "":objects[7]);
+                        value.put("birthday", objects[8] == null ? "":objects[8]);
+                        value.put("patientSex", objects[9] == null ? "":objects[9]);
+                        value.put("mobile", objects[10] == null ? "":objects[10]);
+                        value.put("memo", objects[11] == null ? "":objects[11]);
+                        value.put("cardNo", objects[12] == null ? "":objects[12]);
+                        value.put("drugSpec", objects[13] == null ? "":objects[13]);
+                        value.put("useDoseStr", objects[14] == null ? "":objects[14]);
+                        value.put("usingRate", objects[15] == null ? "":objects[15]);
+                        value.put("usePathways", objects[16] == null ? "":objects[16]);
+                        value.put("drugCost", objects[17] == null ? "":objects[17]);
+                        value.put("drugName", objects[18] == null ? "":objects[18]);
+                        value.put("sendNumber", objects[19] == null ? "":objects[19]);
+                        value.put("dosageUnit", objects[20] == null ? "":objects[20]);
+                        value.put("producer", objects[21] == null ? "":objects[21]);
+                        value.put("OrganDiseaseName", objects[22] == null ? "":objects[22]);
+                        vo.add(value);
+                    }
+                }
+                setResult(vo);
             }
         };
         HibernateSessionTemplate.instance().execute(action);

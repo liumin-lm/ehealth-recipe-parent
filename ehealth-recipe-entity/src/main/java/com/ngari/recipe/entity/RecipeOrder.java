@@ -228,7 +228,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "医保结算人脸识别token")
     private String smkFaceToken;
 
-    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保")
+    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保 5医院自费")
     @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
@@ -240,6 +240,12 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
+
+    @ItemProperty(alias = "处方预结算返回门诊挂号序号")
+    private String registerNo;
+
+    @ItemProperty(alias = "处方预结算返回HIS收据号")
+    private String hisSettlementNo;
 
     //date 20200311
     //存储his预校验的用户选中的药企code
@@ -1108,5 +1114,21 @@ public class RecipeOrder implements Serializable {
 
     public void setDispensingFlag(Integer dispensingFlag) {
         this.dispensingFlag = dispensingFlag;
+    }
+
+    public String getRegisterNo() {
+        return registerNo;
+    }
+
+    public void setRegisterNo(String registerNo) {
+        this.registerNo = registerNo;
+    }
+
+    public String getHisSettlementNo() {
+        return hisSettlementNo;
+    }
+
+    public void setHisSettlementNo(String hisSettlementNo) {
+        this.hisSettlementNo = hisSettlementNo;
     }
 }

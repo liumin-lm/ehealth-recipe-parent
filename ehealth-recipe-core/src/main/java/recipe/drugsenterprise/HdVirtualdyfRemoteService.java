@@ -73,12 +73,12 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         //0医院取药 1物流配送 2药店取药 3未知
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
-        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeIds.get(0));
+        RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
         //如果走杭州市医保预结算了就不走这里去做his结算了
-        if (extend != null && StringUtils.isNotEmpty(extend.getPreSettletotalAmount())) {
+        if (order != null && order.getPreSettletotalAmount()!=null) {
             return DrugEnterpriseResult.getSuccess();
         }
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
@@ -127,8 +127,6 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
             //商户订单号
             updateTakeDrugWayReqTO.setOutTradeNo(recipe.getOutTradeNo());
             if (StringUtils.isNotEmpty(recipe.getOrderCode())){
-                RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
-                RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
                 if (order!=null){
                     //收货人
                     updateTakeDrugWayReqTO.setConsignee(order.getReceiver());

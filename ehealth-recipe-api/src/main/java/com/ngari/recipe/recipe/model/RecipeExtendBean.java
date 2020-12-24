@@ -74,21 +74,6 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "医保结算请求串")
     private String medicalSettleData;
 
-    @ItemProperty(alias = "门诊挂号序号（医保）")
-    private String registerNo;
-
-    @ItemProperty(alias = "HIS收据号（医保）")
-    private String hisSettlementNo;
-
-    @ItemProperty(alias = "处方预结算返回支付总金额")
-    private String preSettleTotalAmount;
-
-    @ItemProperty(alias = "处方预结算返回医保支付金额")
-    private String fundAmount;
-
-    @ItemProperty(alias = "处方预结算返回自费金额")
-    private String cashAmount;
-
     @ItemProperty(alias = "开处方页面病种选择开关标识")
     private Integer recipeChooseChronicDisease;
     @ItemProperty(alias = "病种标识")
@@ -187,9 +172,6 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "皮肤反应测验")
     private String skinTest;
 
-    @ItemProperty(alias = "处方预结算返回应付金额")
-    private String payAmount;
-
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
@@ -223,14 +205,6 @@ public class RecipeExtendBean implements Serializable {
 
     public void setSkinTest(String skinTest) {
         this.skinTest = skinTest;
-    }
-
-    public String getPayAmount() {
-        return payAmount;
-    }
-
-    public void setPayAmount(String payAmount) {
-        this.payAmount = payAmount;
     }
 
     public Integer getFromFlag() {
@@ -531,46 +505,6 @@ public class RecipeExtendBean implements Serializable {
 
     public void setMedicalSettleData(String medicalSettleData) {
         this.medicalSettleData = medicalSettleData;
-    }
-
-    public String getRegisterNo() {
-        return registerNo;
-    }
-
-    public void setRegisterNo(String registerNo) {
-        this.registerNo = registerNo;
-    }
-
-    public String getHisSettlementNo() {
-        return hisSettlementNo;
-    }
-
-    public void setHisSettlementNo(String hisSettlementNo) {
-        this.hisSettlementNo = hisSettlementNo;
-    }
-
-    public String getPreSettleTotalAmount() {
-        return preSettleTotalAmount;
-    }
-
-    public void setPreSettleTotalAmount(String preSettleTotalAmount) {
-        this.preSettleTotalAmount = preSettleTotalAmount;
-    }
-
-    public String getFundAmount() {
-        return fundAmount;
-    }
-
-    public void setFundAmount(String fundAmount) {
-        this.fundAmount = fundAmount;
-    }
-
-    public String getCashAmount() {
-        return cashAmount;
-    }
-
-    public void setCashAmount(String cashAmount) {
-        this.cashAmount = cashAmount;
     }
 
     public String getChronicDiseaseFlag() {

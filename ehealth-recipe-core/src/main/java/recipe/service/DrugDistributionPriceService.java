@@ -25,6 +25,7 @@ import recipe.dao.DrugDistributionPriceDAO;
 import recipe.serviceprovider.BaseService;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -75,6 +76,8 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
                 throw new DAOException("price is exist");
             }
             DrugDistributionPrice bean = getBean(price, DrugDistributionPrice.class);
+            bean.setCreateTime(new Date());
+            bean.setLastModify(new Date());
             bean = drugDistributionPriceDAO.save(bean);
             BeanUtils.map(bean, price);
             logMsg.append(" 新增:").append(bean.toString());
@@ -88,6 +91,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
                 throw new DAOException("price is exist and not this id");
             }
             BeanUtils.map(price, oldPrice);
+            oldPrice.setLastModify(new Date());
             oldPrice = drugDistributionPriceDAO.update(oldPrice);
             logMsg.append(" 更新：原").append(oldPrice.toString()).append("更新为").append(oldPrice.toString());
         }

@@ -87,21 +87,6 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "医保结算请求串")
     private String medicalSettleData;
 
-    @ItemProperty(alias = "门诊挂号序号（医保）")
-    private String registerNo;
-
-    @ItemProperty(alias = "HIS收据号（医保）")
-    private String hisSettlementNo;
-
-    @ItemProperty(alias = "处方预结算返回支付总金额")
-    private String preSettleTotalAmount;
-
-    @ItemProperty(alias = "处方预结算返回医保支付金额")
-    private String fundAmount;
-
-    @ItemProperty(alias = "处方预结算返回自费金额")
-    private String cashAmount;
-
     @ItemProperty(alias = "his返回的处方总金额")
     private String deliveryRecipeFee;
 
@@ -200,9 +185,6 @@ public class RecipeExtend implements Serializable {
     public void setDeliveryRecipeFee(String deliveryRecipeFee) {
         this.deliveryRecipeFee = deliveryRecipeFee;
     }
-
-    @ItemProperty(alias = "处方预结算返回应付金额")
-    private String payAmount;
 
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
@@ -507,60 +489,6 @@ public class RecipeExtend implements Serializable {
 
     public void setPatientType(String patientType) {
         this.patientType = patientType;
-    }
-
-    @Column(name = "registerNo")
-    public String getRegisterNo() {
-        return registerNo;
-    }
-
-    public void setRegisterNo(String registerNo) {
-        this.registerNo = registerNo;
-    }
-
-    @Column(name = "hisSettlementNo")
-    public String getHisSettlementNo() {
-        return hisSettlementNo;
-    }
-
-    public void setHisSettlementNo(String hisSettlementNo) {
-        this.hisSettlementNo = hisSettlementNo;
-    }
-
-    @Column(name = "preSettleTotalAmount")
-    public String getPreSettletotalAmount() {
-        return preSettleTotalAmount;
-    }
-
-    public void setPreSettletotalAmount(String preSettleTotalAmount) {
-        this.preSettleTotalAmount = preSettleTotalAmount;
-    }
-
-    @Column(name = "fundAmount")
-    public String getFundAmount() {
-        return fundAmount;
-    }
-
-    public void setFundAmount(String fundAmount) {
-        this.fundAmount = fundAmount;
-    }
-
-    @Column(name = "cashAmount")
-    public String getCashAmount() {
-        return cashAmount;
-    }
-
-    public void setCashAmount(String cashAmount) {
-        this.cashAmount = cashAmount;
-    }
-
-    @Column(name = "payAmount")
-    public String getPayAmount() {
-        return payAmount;
-    }
-
-    public void setPayAmount(String payAmount) {
-        this.payAmount = payAmount;
     }
 
     @Column(name = "fromFlag")

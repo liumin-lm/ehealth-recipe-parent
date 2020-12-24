@@ -465,18 +465,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder sqlPay = new StringBuilder();
                 StringBuilder sqlRefund = new StringBuilder();
                 if (drugId != null) {
-                    sqlPay.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose as ActualPrice");
+                    sqlPay.append("SELECT r.recipeId, r.patientName, d.saleDrugCode, dep.NAME, r.organName, d.drugName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.drugSpec, d.producer,d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)),IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose as ActualPrice");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
-                    sqlRefund.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * (0-d.useTotalDose) as ActualPrice");
+                    sqlRefund.append("SELECT r.recipeId, r.patientName, d.saleDrugCode, dep.NAME, r.organName, d.drugName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.drugSpec, d.producer,d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)),IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * (0-d.useTotalDose) as ActualPrice");
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 } else {
-                    sqlPay.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, 1 as dose, o.RecipeFee as ActualPrice");
-                    sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
+                    sqlPay.append("SELECT r.recipeId, r.patientName, d.saleDrugCode, dep.NAME, r.organName, d.drugName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.drugSpec, d.producer,1 as dose,o.RecipeFee, o.RecipeFee as ActualPrice");
+                    sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
-                    sqlRefund.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, 1 as dose, 0-o.RecipeFee as ActualPrice");
-                    sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
+                    sqlRefund.append("SELECT r.recipeId, r.patientName, d.saleDrugCode, dep.NAME, r.organName, d.drugName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.drugSpec, d.producer,1 as dose,0-o.RecipeFee , 0-o.RecipeFee as ActualPrice");
+                    sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId  LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 }
                 if (organId != null) {
@@ -525,7 +525,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Set<String> mpiIds = Sets.newHashSet();
                 if (CollectionUtils.isNotEmpty(result)){
 
-                    //获取全部身份证信息
+                    /*//获取全部身份证信息
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     Map<String, String> patientBeanMap = Maps.newHashMap();
                     for (Object[] obj : result) {
@@ -539,23 +539,28 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         for (PatientDTO p : patientBeanList) {
                             patientBeanMap.put(p.getMpiId(), p.getIdcard());
                         }
-                    }
+                    }*/
 
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
                         vo.put("recipeId", objs[0] == null ? null : (Integer)objs[0]);
                         vo.put("patientName", objs[1] == null ? null : (String)objs[1]);
-                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String)objs[2]));
+                        vo.put("saleDrugCode", objs[2] == null ? null : (String)objs[2]);
                         vo.put("enterpriseName", objs[3] == null ? null : (String)objs[3]);
                         vo.put("organName", objs[4] == null ? null : (String)objs[4]);
-                        vo.put("doctorName", objs[5] == null ? null : (String)objs[5]);
+                        vo.put("drugName", objs[5] == null ? null : (String)objs[5]);
                         vo.put("signDate", objs[6] == null ? null : (Date)objs[6]);
                         vo.put("payType", objs[7] == null ? null : objs[7].toString());
                         vo.put("payTime", objs[8] == null ? null : (Date)objs[8]);
                         vo.put("refundTime", objs[9] == null ? null : (Date)objs[9]);
-                        vo.put("dose", objs[10] == null ? null : objs[10].toString());
-                        vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
+                        vo.put("drugSpec",objs[10]==null ? null :(String)objs[10]);
+                        vo.put("producer",objs[11]==null ? null :(String)objs[11]);
+                        vo.put("useTotalDose",objs[12]==null ? null : Double.valueOf(objs[12]+""));
+                        vo.put("price",objs[13]==null ? null : Double.valueOf(objs[13]+""));
+                        vo.put("actualPrice",objs[14]==null ? null : Double.valueOf(objs[14]+""));
+
+                        //vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
                         backList.add(vo);
                     }
                 }
@@ -1205,17 +1210,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder queryhql = new StringBuilder("SELECT er.ClinicOrgan ,er.OrganName ,count( * ),IFNULL( sum( ero.ActualPrice ), 0.00 )," +
                         "IFNULL( sum( ero.RecipeFee ),0.00 ) ,IFNULL( sum( ero.registerFee ), 0.00 )," +
                         "IFNULL( sum( ero.auditFee ), 0.00 )  ,IFNULL( sum( ero.expressFee ), 0.00 )," +
-                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) ,IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
-                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) - IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
+                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) ,IFNULL( cast(sum( ero.fundAmount ) AS decimal(15,2)), 0.00 )," +
+                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) - IFNULL( cast(sum( ero.fundAmount ) AS decimal(15,2)), 0.00 )," +
                         "sum( IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) ," +
                         "IFNULL( sum(ero.ActualPrice), 0.00 ) - IFNULL( sum(ero.auditFee), 0.00 ) - IFNULL( sum( ero.expressFee ), 0.00 ) -sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) )");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
-                        " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
                         " WHERE  ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null");
                 StringBuilder queryCount = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode " +
-                        " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
                         " WHERE  ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null");
 
                 if (CollectionUtils.isNotEmpty(organIdList)) {
@@ -1282,13 +1285,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder queryhql = new StringBuilder("SELECT er.recipeId ,er.patientName ,er.MPIID ,ero.paytime ," +
                         "IFNULL(ero.ActualPrice ,0.00),IFNULL(ero.RecipeFee  ,0.00),IFNULL(ero.registerFee ,0.00) ," +
                         "IFNULL(ero.auditFee  ,0.00) ,IFNULL(ero.expressFee  ,0.00) ,IF ( ero.payeeCode = 1, " +
-                        "IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ,IFNULL(cre.fundAmount  ,0.00) ," +
-                        "IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) - cast(IFNULL(cre.fundAmount  ,0.00) AS decimal(15,2)) ," +
+                        "IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ,IFNULL(ero.fundAmount  ,0.00) ," +
+                        "IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) - cast(IFNULL(ero.fundAmount  ,0.00) AS decimal(15,2)) ," +
                         "IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 )   ," +
                         "IFNULL(ero.ActualPrice ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ),ero.outTradeNo,er.recipeCode,ero.EnterpriseId");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode " +
-                        " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
                         " WHERE ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null AND ero.paytime BETWEEN :startTime AND :endTime");
                 if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     sql.append(" And er.recipeId =:recipeId");
@@ -1530,10 +1532,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 StringBuilder queryhql = new StringBuilder("SELECT cr.recipeId ,cr.patientName ,cr.MPIID ,( CASE cr.GiveMode WHEN 1 THEN \"配送到家\" WHEN 2 THEN \"医院取药\" WHEN 3 THEN \"药店取药\" WHEN 4 THEN \"患者自选\" else \"\" END )," +
-                        "cr.GiveMode,cro.paytime,IFNULL(cro.ActualPrice,0.00),IFNULL(ret.fundAmount,0.00),IFNULL(cro.ActualPrice,0.00) - IFNULL(ret.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
+                        "cr.GiveMode,cro.paytime,IFNULL(cro.ActualPrice,0.00),IFNULL(cro.fundAmount,0.00),IFNULL(cro.ActualPrice,0.00) - IFNULL(cro.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe cr" +
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
-                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.outTradeNo is not null ");
+                        " WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.outTradeNo is not null ");
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     sql.append(" AND cro.OrganId in :organIdList ");
                 }

@@ -1,6 +1,7 @@
 package com.ngari.recipe.drug.model;
 
 import ctd.schema.annotation.ItemProperty;
+import lombok.Builder;
 
 import java.io.Serializable;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
  * @author Zhou Wenfei
  * date 2020/11/18 19:30
  */
+@Builder
 public class DrugInventoryInfo implements Serializable {
     private static final long serialVersionUID = 7452550864993181555L;
 
