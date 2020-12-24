@@ -595,7 +595,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId){
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId,Integer recipeId, Integer payType){
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -632,6 +632,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlPay.append(" and d.drugId = :drugId and d.status = 1 ");
                     sqlRefund.append(" and d.drugId = :drugId and d.status = 1 ");
                 }
+                if(recipeId != null){
+                    sqlPay.append(" and r.recipeId = :recipeId");
+                    sqlRefund.append(" and r.recipeId = :recipeId");
+                }
+                if(payType != null){
+                    sqlPay.append(" and o.payFlag = :payType ");
+                    sqlRefund.append(" and o.payFlag = :payType ");
+                }
+
 
                 //退款的处方单需要展示两条记录，所以要在取一次
                 sql.append("SELECT sum(count), sum(totalPrice) as totalPrice  from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) b");
@@ -648,6 +657,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if (drugId != null) {
                     q.setParameter("drugId", drugId);
+                }
+                if(recipeId != null){
+                    q.setParameter("recipeId", recipeId);
+                }
+                if(payType!=null){
+                    q.setParameter("payType", payType);
                 }
                 List<Object[]> result = q.list();
                 Map<String, Object> vo = new HashMap ();
