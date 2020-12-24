@@ -625,7 +625,7 @@ public class RecipeSignService {
                 return checkResult;
             }
         } catch (Exception e) {
-            LOG.error("hisRecipeCheck error",e);
+            LOG.error("hisRecipeCheck error recipeId:{}", recipeBean.getRecipeId(), e);
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
             rMap.put("errorMsg", "his处方检查异常");

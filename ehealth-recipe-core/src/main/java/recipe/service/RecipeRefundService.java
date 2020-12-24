@@ -302,6 +302,7 @@ public class RecipeRefundService extends RecipeBaseService{
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHH:mm:ss");
         request.setCheckTime(formatter.format(new Date()));
         request.setRefundType(getRefundType(recipeOrder));
+        request.setRecipeCode(recipe.getRecipeCode());
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<String> hisResult = service.checkForRefundVisit(request);
