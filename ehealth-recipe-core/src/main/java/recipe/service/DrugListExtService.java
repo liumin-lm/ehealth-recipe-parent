@@ -156,7 +156,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         } catch (Exception e) {
             LOGGER.error("查询his常用药品列表--调用异常，入参={}",JSONObject.toJSONString(drugDTO),e);
         }
-        //  test
+        //   test
         hisDrug = new QueryDrugResTO();
         List<DrugDetailTO> hisList = new ArrayList<>();
         DrugDetailTO drugDetailTO = new DrugDetailTO();
@@ -167,7 +167,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugDetailResTO data= new DrugDetailResTO();
         data.setDetails(hisList);
         hisDrug.setData(data);
-        //  test
+        //   test
         List<DrugListBean> drugList = new ArrayList<>();
         if (null != hisDrug && null != hisDrug.getData() && CollectionUtils.isNotEmpty(hisDrug.getData().getDetails())){
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -193,7 +193,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugListBean.setPrice1(drugList1.getPrice1());
                     drugListBean.setPrice2(drugList1.getPrice2());
                 }
-                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(drugListBean.getDrugId(), drugListBean.getDrugId());
+                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(drugDTO.getOrganId(), drugListBean.getDrugId());
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
@@ -260,7 +260,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             LOGGER.error("查询his药品商保信息--调用异常，入参={}",JSONObject.toJSONString(searchDrug),e);
         }
 
-        //  test
+        //   test
         QueryDrugResTO his = new QueryDrugResTO();
         DrugDetailResTO detailResTO = new DrugDetailResTO();
         List<DrugDetailTO> details = new ArrayList<>();
@@ -272,7 +272,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         detailResTO.setDetails(details);
         his.setData(detailResTO);
         searchDrugDTO.setHisDrug(his);
-        //  test
+        //   test
 
         HisDrugInfoDTO result = handleDrugInfoResponse(searchDrug, pageSize, searchDrugDTO);
         LOGGER.info("查询his药品商保信息--返回前端={}",JSONObject.toJSONString(result));
