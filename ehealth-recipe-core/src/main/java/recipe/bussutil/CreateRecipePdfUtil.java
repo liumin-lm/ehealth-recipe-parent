@@ -52,17 +52,18 @@ public class CreateRecipePdfUtil {
     }
     /**
      * 处方签pdf添加收货人信息
+     *
      * @param pdfId
      * @param receiver
      * @param recMobile
      * @param completeAddress
-     * @param recipeType
+     * @param height
      * @return
      * @throws IOException
      * @throws DocumentException
      */
-    public static String generateReceiverInfoRecipePdf(String pdfId, String receiver, String recMobile, String completeAddress, Integer recipeType) throws IOException, DocumentException {
-        logger.info("generateReceiverInfoRecipePdf pdfId={}, receiver={} ,recMobile={} ,completeAddress={}", pdfId, receiver,recMobile,completeAddress);
+    public static String generateReceiverInfoRecipePdf(String pdfId, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
+        logger.info("generateReceiverInfoRecipePdf pdfId={}, receiver={} ,recMobile={} ,completeAddress={}", pdfId, receiver, recMobile, completeAddress);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
@@ -72,7 +73,7 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //添加接收人信息
-            addReceiverInfoRecipePdf(input, output, receiver, recMobile,completeAddress,recipeType);
+            addReceiverInfoRecipePdf(input, output, receiver, recMobile, completeAddress, height);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -84,30 +85,30 @@ public class CreateRecipePdfUtil {
 
     /**
      * 处方签pdf添加收货人信息
+     *
      * @param input
      * @param output
      * @param receiver
      * @param recMobile
      * @param completeAddress
-     * @param type
+     * @param height
      * @throws IOException
      * @throws DocumentException
      */
-    private static void addReceiverInfoRecipePdf(InputStream input, OutputStream output, String receiver, String recMobile, String completeAddress, Integer type) throws IOException, DocumentException {
+    private static void addReceiverInfoRecipePdf(InputStream input, OutputStream output, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将文字贴入pdf
-        logger.info("addReceiverInfoRecipePdf fontUrl:{}", ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString());
-        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), com.lowagie.text.pdf.BaseFont.IDENTITY_H, com.lowagie.text.pdf.BaseFont.NOT_EMBEDDED);
+        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        page.setTextMatrix(10, 400);
+        page.setTextMatrix(10, height);
         page.showText("收货人姓名：" + receiver);
-        page.setTextMatrix(150, 400);
+        page.setTextMatrix(150, height);
         page.showText("收货人电话：" + recMobile);
-        page.setTextMatrix(10, 390);
+        page.setTextMatrix(10, height - 15);
         page.showText("收货人地址：" + completeAddress);
         page.endText();
         stamper.close();
