@@ -2755,7 +2755,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         (recipeType != null ? " AND cr.recipeType = :recipeType" : "") +
                         (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName like :dispensingApothecaryName" : "") +
                         (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
-                        (StringUtils.isNotEmpty(drugName) ? " AND rd.drugName like :drugName" : "") +
+                        (StringUtils.isNotEmpty(drugName) ? " AND rd.DrugName like :drugName" : "") +
                         (depart != null ? " AND cr.depart = :depart" : "");
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
@@ -2783,7 +2783,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (depart != null) {
                     q.setParameter("depart", depart);
                 }
-                if (depart != null) {
+                if (StringUtils.isNotEmpty(drugName) ) {
                     q.setParameter("drugName", "%"+drugName+"%");
                 }
                 if (start != null && limit != null) {
@@ -2832,12 +2832,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 String sql = "SELECT\n" +
                         "\tcrb.bill_number,\n" +
                         "\tcr.patientName,\n" +
-                        "\tCASE cre.patientType\n" +
-                        "WHEN 0 THEN\n" +
-                        "\t'自费'\n" +
-                        "ELSE\n" +
-                        "\t'医保'\n" +
-                        "END AS patientType,\n" +
+                        "\tcre.medicalTypeText\n" +
+                        "AS patientType,\n" +
                         " co.dispensingTime,\n" +
                         " cr.recipeId,\n" +
                         " cr.doctorName,\n" +
