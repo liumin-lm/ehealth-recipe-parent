@@ -16,7 +16,7 @@ public class MedicalInsuranceProgramHandler implements IOrderTypeConditionHandle
     @Override
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
         // 根据咨询单特殊来源标识和处方单特殊来源标识设置处方订单orderType为省中，邵逸夫医保小程序
-        if (request.getRecipe() == null || null != request.getRecipe().getClinicId()) {
+        if (request.getRecipe() == null || null == request.getRecipe().getClinicId()) {
             return null;
         }
         IConsultService consultService = ConsultAPI.getService(IConsultService.class);
