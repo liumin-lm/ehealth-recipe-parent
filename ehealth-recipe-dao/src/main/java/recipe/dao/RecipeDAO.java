@@ -2558,7 +2558,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
@@ -2603,7 +2602,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (!isAll) {
                     sql = sql + " group by depart";
                 }
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (start != null && limit != null) {
@@ -2679,7 +2677,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (order == 4) {
                     sql += "order by sum(rd.useTotalDose) asc";
                 }
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (drugType != 0) {
@@ -2752,22 +2749,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         ")\n" +
                         "AND CreateDate BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") +
-                        (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName = :patientName" : "") +
-                        (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :bill_number" : "") +
+                        (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName like :patientName" : "") +
+                        (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :billNumber" : "") +
                         (StringUtils.isNotEmpty(recipeId) ? " AND cr.recipeId = :recipeId" : "") +
                         (recipeType != null ? " AND cr.recipeType = :recipeType" : "") +
-                        (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName = :dispensingApothecaryName" : "") +
-                        (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName = :doctorName" : "") +
-                        (StringUtils.isNotEmpty(drugName) ? " AND rd.drugName = :drugName" : "") +
+                        (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName like :dispensingApothecaryName" : "") +
+                        (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
+                        (StringUtils.isNotEmpty(drugName) ? " AND rd.drugName like :drugName" : "") +
                         (depart != null ? " AND cr.depart = :depart" : "");
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(cardNo)) {
                     q.setParameter("cardNo", cardNo);
                 }
                 if (StringUtils.isNotEmpty(patientName)) {
-                    q.setParameter("patientName", patientName);
+                    q.setParameter("patientName", "%"+patientName+"%");
                 }
                 if (StringUtils.isNotEmpty(billNumber)) {
                     q.setParameter("billNumber", billNumber);
@@ -2779,16 +2775,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     q.setParameter("recipeType", recipeType);
                 }
                 if (StringUtils.isNotEmpty(dispensingApothecaryName)) {
-                    q.setParameter("dispensingApothecaryName", dispensingApothecaryName);
+                    q.setParameter("dispensingApothecaryName", "%"+dispensingApothecaryName+"%");
                 }
                 if (StringUtils.isNotEmpty(doctorName)) {
-                    q.setParameter("doctorName", doctorName);
+                    q.setParameter("doctorName", "%"+doctorName+"%");
                 }
                 if (depart != null) {
                     q.setParameter("depart", depart);
                 }
                 if (depart != null) {
-                    q.setParameter("drugName", drugName);
+                    q.setParameter("drugName", "%"+drugName+"%");
                 }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
