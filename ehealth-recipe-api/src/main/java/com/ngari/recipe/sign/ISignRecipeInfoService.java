@@ -11,5 +11,6 @@ public interface ISignRecipeInfoService {
     @RpcService
     void saveCaSignResult(CaSignResultUpgradeBean caSignResultBean);
 
+    @RpcService
     SignDoctorRecipeInfoDTO getSignRecipeInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType);
 }

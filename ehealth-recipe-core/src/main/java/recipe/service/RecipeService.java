@@ -179,7 +179,6 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RecipeLabelManager recipeLabelManager;
-
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -3578,7 +3577,7 @@ public class RecipeService extends RecipeBaseService {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterPayChange(saveFlag, dbRecipe, result, attrMap);
             //支付成功后pdf异步显示对应的配送信息
             if (new Integer("1").equals(payFlag)) {
-                RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId));
+                RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
             }
         }
         return result;
