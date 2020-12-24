@@ -2558,7 +2558,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
@@ -2603,7 +2602,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (!isAll) {
                     sql = sql + " group by depart";
                 }
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (start != null && limit != null) {
@@ -2679,7 +2677,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (order == 4) {
                     sql += "order by sum(rd.useTotalDose) asc";
                 }
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (drugType != 0) {
@@ -2760,7 +2757,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
                         (StringUtils.isNotEmpty(drugName) ? " AND rd.drugName like :drugName" : "") +
                         (depart != null ? " AND cr.depart = :depart" : "");
-                System.out.println(sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(cardNo)) {
