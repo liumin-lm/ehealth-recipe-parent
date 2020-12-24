@@ -300,7 +300,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private HisSearchDrugDTO queryHisDrugInfo(HisDrugInfoReqDTO searchDrug, Integer pageSize) {
         QueryDrugResTO hisDrug;
         Integer nextPage = searchDrug.getPageNum();
-        Boolean search = false;
+        Boolean search;
         List<SearchDrugDetailDTO> searchList;
         Integer pageNum = searchDrug.getPageNum();
         HisSearchDrugDTO searchResult = new HisSearchDrugDTO();
@@ -326,6 +326,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }else {
                     search = false;
                 }
+            }else {
+                search = false;
             }
         }while (search);
 
