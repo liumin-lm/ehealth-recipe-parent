@@ -323,6 +323,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 if (searchList.size() == pageSize && null != hisDrug && "200".equals(hisDrug.getMsgCode()) && CollectionUtils.isEmpty(hisDrug.getData().getDetails())){
                     search = true;
                     pageNum = pageNum + 1;
+                    LOGGER.info("查询his药品商保信息--当前页没有商保药品信息，查询下一页，es当前页查询结果数量={}",searchList.size());
                 }else {
                     search = false;
                 }
