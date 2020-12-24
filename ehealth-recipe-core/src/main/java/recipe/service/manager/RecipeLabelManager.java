@@ -57,10 +57,10 @@ public class RecipeLabelManager {
      * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
      *
      * @param organId 机构id
-     * @return Y坐标点位 （默认400 超过6字段 每个字段降低5px高度）
+     * @return Y坐标点位 （默认430 超过6字段 每个字段降低5px高度）
      */
     public int getPdfReceiverHeight(Integer organId) {
-        int height = 400;
+        int height = 430;
         if (null == organId) {
             return height;
         }
