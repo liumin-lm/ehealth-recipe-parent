@@ -564,7 +564,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
-                return (String)responseTO.getExtend().get("inventor");
+                String inventor = (String)responseTO.getExtend().get("inventor");
+                if (StringUtils.isEmpty(inventor)) {
+                    return "有库存";
+                }
+                return inventor;
             } else {
                 return "0";
             }
@@ -857,15 +861,24 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         try{
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
             for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), organId);
-                if (saleDrugList != null && CollectionUtils.isNotEmpty(organDrugLists)) {
+
+                if (saleDrugList != null) {
                     ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
                     scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
                     scanDrugListBean.setTotal("5");
-                    scanDrugListBean.setUnit(organDrugLists.get(0).getUnit());
+                    if (organId != null && organId < 0) {
+                        DrugList drugList = drugListDAO.getById(recipeDetailBean.getDrugId());
+                        scanDrugListBean.setUnit(drugList.getUnit());
+                    } else {
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), organId);
+                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                            scanDrugListBean.setUnit(organDrugLists.get(0).getUnit());
+                        }
+                    }
                     scanDrugListBeans.add(scanDrugListBean);
                 }
             }

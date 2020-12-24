@@ -77,6 +77,7 @@ public class RecipeLabelManager {
             eSignDTO.setImgFileId(recipeId.toString());
         }
         eSignDTO.setLoginId(patientDTO.getLoginId());
+        eSignDTO.setDoctorName(recipe.getDoctorName());
         eSignDTO.setDoctorId(recipe.getDoctor());
         eSignDTO.setOrgan(recipe.getClinicOrgan());
         eSignDTO.setFileName("recipe_" + recipeId + ".pdf");
@@ -84,7 +85,7 @@ public class RecipeLabelManager {
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         eSignDTO.setRp(String.valueOf(rpTorx));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
-        logger.error("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
         return backMap;
     }
 
@@ -267,12 +268,7 @@ public class RecipeLabelManager {
             }
             stringBuilder.append(" \n ");
             //每次剂量+剂量单位
-            String useDose;
-            if (StringUtils.isNotEmpty(d.getUseDoseStr())) {
-                useDose = d.getUseDoseStr();
-            } else {
-                useDose = d.getUseDose() != null ? String.valueOf(d.getUseDose()) : "" + d.getUseDoseUnit();
-            }
+            String useDose = null == d.getUseDose() ? "" : d.getUseDose() + d.getUseDoseUnit();
             String uDose = "Sig: 每次" + useDose;
 
             //用药频次
