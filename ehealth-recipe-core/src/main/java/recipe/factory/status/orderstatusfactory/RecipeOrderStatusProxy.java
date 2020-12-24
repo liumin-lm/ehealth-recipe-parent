@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +55,8 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         //更新订单状态
         recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
+        //订单状态改变时间
+        recipeOrder.setDispensingStatusAlterTime(new Date());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         //异步处方信息上传
         factoryService.upRecipeThreadPool(recipe);

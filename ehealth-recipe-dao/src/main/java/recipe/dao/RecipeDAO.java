@@ -2617,7 +2617,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
                             value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
                             value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
-                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[3])).divide(BigDecimal.ONE,2, RoundingMode.UP));
                             vo.add(value);
                         }
                     }
