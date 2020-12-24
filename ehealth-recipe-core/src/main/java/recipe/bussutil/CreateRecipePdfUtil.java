@@ -100,7 +100,7 @@ public class CreateRecipePdfUtil {
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将文字贴入pdf
-        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
@@ -108,7 +108,7 @@ public class CreateRecipePdfUtil {
         page.showText("收货人姓名：" + receiver);
         page.setTextMatrix(150, height);
         page.showText("收货人电话：" + recMobile);
-        page.setTextMatrix(10, height - 15);
+        page.setTextMatrix(10, height - 10);
         page.showText("收货人地址：" + completeAddress);
         page.endText();
         stamper.close();

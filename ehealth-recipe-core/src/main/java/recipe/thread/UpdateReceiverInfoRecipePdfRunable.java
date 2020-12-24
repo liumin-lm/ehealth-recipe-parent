@@ -8,7 +8,6 @@ import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
@@ -25,13 +24,13 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateReceiverInfoRecipePdfRunable.class);
 
-    @Autowired
-    private RecipeLabelManager recipeLabelManager;
+    private final RecipeLabelManager recipeLabelManager;
 
-    private Integer recipeId;
+    private final Integer recipeId;
 
-    public UpdateReceiverInfoRecipePdfRunable(Integer recipeId) {
+    public UpdateReceiverInfoRecipePdfRunable(Integer recipeId, RecipeLabelManager recipeLabelManager) {
         this.recipeId = recipeId;
+        this.recipeLabelManager = recipeLabelManager;
     }
 
     @Override
