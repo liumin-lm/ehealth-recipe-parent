@@ -23,7 +23,9 @@ public class DrugPharmacyInventoryInfo implements Serializable {
     public DrugPharmacyInventoryInfo() {
 
     }
-
+    public DrugPharmacyInventoryInfo(String amount) {
+        this.amount = amount;
+    }
     public DrugPharmacyInventoryInfo(String pharmacyCode, String pharmacyName, String amount) {
         this.pharmacyCode = pharmacyCode;
         this.pharmacyName = pharmacyName;

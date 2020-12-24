@@ -240,14 +240,14 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         if (null == response) {
             return "有库存";
         } else {
-            if (Integer.valueOf(0).equals(response.getMsgCode())) {
+            if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
                 if (CollectionUtils.isEmpty(response.getData())){
                     return "有库存";
                 }else {
                     List<DrugInfoTO> data = response.getData();
                     Double stockAmount = data.get(0).getStockAmount();
                     if (stockAmount != null){
-                        return String.valueOf(stockAmount);
+                        return BigDecimal.valueOf(stockAmount).toPlainString();
                     }else {
                         return "有库存";
                     }
