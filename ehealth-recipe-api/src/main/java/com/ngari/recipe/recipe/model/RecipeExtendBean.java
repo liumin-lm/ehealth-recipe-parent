@@ -172,9 +172,6 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "皮肤反应测验")
     private String skinTest;
 
-    @ItemProperty(alias = "处方预结算返回应付金额")
-    private String payAmount;
-
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
@@ -208,14 +205,6 @@ public class RecipeExtendBean implements Serializable {
 
     public void setSkinTest(String skinTest) {
         this.skinTest = skinTest;
-    }
-
-    public String getPayAmount() {
-        return payAmount;
-    }
-
-    public void setPayAmount(String payAmount) {
-        this.payAmount = payAmount;
     }
 
     public Integer getFromFlag() {

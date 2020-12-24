@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
-import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
@@ -111,11 +110,9 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                 }
             }else {
                 //互联网模式
-                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-                    if (status == 2 && canUploadByReviewType(recipe)) {
-                        response = service.uploadRecipeIndicators(Arrays.asList(recipe));
-                        flag = true;
-                    }
+                if (status == 2 && canUploadByReviewType(recipe)) {
+                    response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                    flag = true;
                 }
             }
         } catch (Exception e) {

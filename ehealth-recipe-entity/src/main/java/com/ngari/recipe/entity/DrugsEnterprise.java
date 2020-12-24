@@ -147,7 +147,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
     private Integer logisticsCompany;
 
-    @ItemProperty(alias = "物流类型 1-平台 2-药企")
+    @ItemProperty(alias = "物流类型 1-平台 2-药企 3-药企(His)")
     private Integer logisticsType;
 
     @ItemProperty(alias = "寄件人名称")

@@ -66,7 +66,7 @@ public class RecipeServiceEsignExt {
             pdf = recipeServiceSub.queryPdfStrById(recipeId, recipe.getClinicOrgan());
             //这里走生成通过的平台模板（易签保开始使用）
             caBean.setLeftX(55);
-            caBean.setLeftY(370);
+            caBean.setLeftY(70);
         } else {
             //药师签名
             //先下载oss服务器上的签名文件
@@ -124,15 +124,8 @@ public class RecipeServiceEsignExt {
                 pdf = new String(Base64.encode(byteData));
             }
             fileName = "recipecheck_" + recipeId + ".pdf";
-            //中药
-            if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
-                caBean.setLeftX(390);
-                caBean.setLeftY(30);
-            //西药
-            } else {
-                caBean.setLeftX(500);
-                caBean.setLeftY(90);
-            }
+            caBean.setLeftX(240);
+            caBean.setLeftY(70);
         }
 
         caBean.setSealHeight(40);

@@ -10,6 +10,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.entity.ShoppingDrug;
 import com.ngari.recipe.entity.ShoppingOrder;
+import com.ngari.recipe.service.IShoppingService;
 import com.ngari.recipe.shoppingorder.model.ShoppingDrugDTO;
 import com.ngari.recipe.shoppingorder.model.ShoppingOrderDTO;
 import ctd.persistence.DAOFactory;
@@ -41,7 +42,7 @@ import java.util.*;
  * @author:liuya date:2017/12/6
  */
 @RpcBean("shoppingService")
-public class ShoppingService {
+public class ShoppingService implements IShoppingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShoppingService.class);
 
@@ -113,7 +114,7 @@ public class ShoppingService {
         return res;
     }
 
-    /**
+    /**z
      * 健康商城完成支付后回调接口
      *
      * @param request

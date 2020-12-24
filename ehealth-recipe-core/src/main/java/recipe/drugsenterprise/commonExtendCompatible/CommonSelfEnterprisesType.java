@@ -49,10 +49,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
 
-    @Autowired
-    @Qualifier("drugList")
-    private DrugListExtService drugListExtService;
-
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PublicSelfRemoteService pushRecipeInfo not implement.");
@@ -237,20 +233,21 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         //自建药企查询医院库存
+        DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
         DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
         if (null == response) {
             return "有库存";
         } else {
-            if (Integer.valueOf(0).equals(response.getMsgCode())) {
+            if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
                 if (CollectionUtils.isEmpty(response.getData())){
                     return "有库存";
                 }else {
                     List<DrugInfoTO> data = response.getData();
                     Double stockAmount = data.get(0).getStockAmount();
                     if (stockAmount != null){
-                        return String.valueOf(stockAmount);
+                        return BigDecimal.valueOf(stockAmount).toPlainString();
                     }else {
                         return "有库存";
                     }

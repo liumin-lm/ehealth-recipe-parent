@@ -1969,60 +1969,21 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
 
-    //@Override
-    /*public Map<String, Object> workloadTop(Integer organId, Integer start, Integer limit){
-        Map<String, Object> result = new HashMap();
-        List<Map<String, Object>> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,start,limit);
-        List<Map<String, Object>> recipeCount = new ArrayList<>();
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
-        for (Map<String, Object> item : recipeByOrderCodegroupByDis) {
-            //药师姓名存在
-            if (item.containsKey("dispensingApothecaryName") && item.get("dispensingApothecaryName") != null) {
-                if (StringUtils.isNotEmpty(item.get("dispensingApothecaryName").toString())) {
-                    recipeCount.add(item);
-                } else if (doctorId != null) {
-                    //获取默认发药药师
-                    DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
-                    Map<String, Object> newa = new HashMap<>();
-                    newa.put("dispensingApothecaryName", dispensingApothecary.getName());
-                    newa.put("recipeCount", item.get("recipeCount"));
-                    newa.put("totalMoney", item.get("totalMoney"));
-                    recipeCount.add(newa);
-                }
-            } else{
-                //获取默认发药药师
-                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
-                Map<String, Object> newa = new HashMap<>();
-                newa.put("dispensingApothecaryName", dispensingApothecary.getName());
-                newa.put("recipeCount", item.get("recipeCount"));
-                newa.put("totalMoney", item.get("totalMoney"));
-                recipeCount.add(newa);
-            }
-        }
-
-        Double totalCount = 0.0;
-        Double totalMoney = 0.0;
-        Map<String, Double> total = new HashMap();
-        for (Map<String, Object> item : recipeCount) {
-            totalCount += Double.parseDouble(item.get("recipeCount").toString());
-            totalMoney += Double.parseDouble(item.get("totalMoney").toString());
-        }
-        total.put("countRecipe", totalCount);
-        total.put("countMoney", totalMoney);
-        result.put("single", recipeCount);
-        result.put("total", total);
-        return result;
-    }*/
-
     /**
      * 深圳二院药房工作量统计报表服务
      * @param organId 机构ID
-     * @return Map<String, Object>
+     * @param startDate
+     * @param endDate
+     * @param doctorName
+     * @param start
+     * @param limit
+     * @return
      * @Author dxx
+     * @Date 20201222
      */
     @Override
-    public List<WorkLoadTopDTO> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit){
+    public Map<String, Object> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit){
+        LOGGER.info("workloadTop request is {}", organId + startDate.toString() + endDate.toLocaleString() + start + limit);
         List<WorkLoadTopDTO> result = new ArrayList<>();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
@@ -2047,12 +2008,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             totalCount += workLoadTopDTO.getRecipeCount();
             totalMoney += workLoadTopDTO.getTotalMoney();
         }
-        WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
-        workLoadTopDTO.setDispensingApothecaryName("合计");
-        workLoadTopDTO.setTotalMoney(totalMoney);
-        workLoadTopDTO.setRecipeCount(totalCount);
-        result.add(workLoadTopDTO);
-        return result;
+        //判断是否最后一页
+        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
+        if (start + limit >= size) {
+            WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
+            workLoadTopDTO.setDispensingApothecaryName("合计");
+            workLoadTopDTO.setTotalMoney(totalMoney);
+            workLoadTopDTO.setRecipeCount(totalCount);
+            result.add(workLoadTopDTO);
+        }
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", size);
+        reports.put("data", result);
+        LOGGER.info("pharmacyMonthlyReport response size is {}", result.size());
+        return reports;
     }
 
     /**
@@ -2068,23 +2037,40 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @Date 20201221
      */
     @Override
-    public List<PharmacyMonthlyReportDTO> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit) {
+    public Map<String, Object> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit) {
+        LOGGER.info("pharmacyMonthlyReport request is {}", organId + depart + startDate.toString() + endDate.toLocaleString() + start + limit);
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
         List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, start, limit);
-        //判断是否最后一页
-        if (true) {
-            //合计
-            List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, true, start, limit);
-            recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
-        }
         List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
         for (PharmacyMonthlyReportDTO pharmacyMonthlyReportDTO : recipeDetialCountgroupByDepart) {
             if (getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId) != null) {
                 pharmacyMonthlyReportDTO.setDepartName(getDepart(pharmacyMonthlyReportDTO.getDepart(), allByOrganId));
             }
         }
-        return recipeDetialCountgroupByDepart;
+        int size = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, false, null, null).size();
+        //判断是否最后一页
+        if (start + limit >= size) {
+            //合计
+            List<PharmacyMonthlyReportDTO> recipeDetialCountgroupByDepart1 = recipeDAO.findRecipeDetialCountgroupByDepart(organId, depart, startDateStr, endDateStr, true, start, limit);
+            if (recipeDetialCountgroupByDepart1.size() > 0) {
+                recipeDetialCountgroupByDepart1.get(0).setDepartName("合计");
+                recipeDetialCountgroupByDepart.addAll(recipeDetialCountgroupByDepart1);
+            } else {
+                PharmacyMonthlyReportDTO pharmacyMonthlyReportDTO = new PharmacyMonthlyReportDTO();
+                pharmacyMonthlyReportDTO.setDepartName("合计");
+                pharmacyMonthlyReportDTO.setDepart(0);
+                pharmacyMonthlyReportDTO.setAvgMoney(new BigDecimal(0.00));
+                pharmacyMonthlyReportDTO.setRecipeCount(0);
+                pharmacyMonthlyReportDTO.setTotalMoney(new BigDecimal(0.00));
+                recipeDetialCountgroupByDepart.add(pharmacyMonthlyReportDTO);
+            }
+        }
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", size);
+        reports.put("data", recipeDetialCountgroupByDepart);
+        LOGGER.info("pharmacyMonthlyReport response is {}", recipeDetialCountgroupByDepart.size());
+        return reports;
     }
 
     /**
@@ -2094,7 +2080,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private String getDepart(Integer departId, List<DepartmentDTO> departmentDTOS) {
         for (DepartmentDTO departmentDTO : departmentDTOS) {
-            if (departmentDTO.getDeptId() == departId) {
+            if (departmentDTO.getDeptId().equals(departId) ) {
                 return departmentDTO.getName();
             }
         }
@@ -2104,7 +2090,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      *发药排行
      * @param organId
-     * @param status  1：全部 2.发药 3.退药 4.拒发
+     * @param status  0：全部 1.xi药 2.退药 3.拒发
      * @param startDate
      * @param endDate
      * @param order 排序方式
@@ -2112,38 +2098,43 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param limit
      */
     @Override
-    public List<PharmacyTopDTO> pharmacyTop(Integer organId, Integer status, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
-        String orderStatus = "13,14,15";
-        if (status == 2) {
-            orderStatus = "13";
-        }
-        if (status == 3) {
-            orderStatus = "14";
-        }
-        if (status == 4) {
-            orderStatus = "15";
-        }
+    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
+        LOGGER.info("pharmacyTop is {}", organId + drugType + startDate.toLocaleString() + endDate.toLocaleString() + order + start + limit + "");
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, orderStatus, startDateStr, endDateStr, order, start, limit);
-        return drugCountOrderByCountOrMoneyCountGroupByDrugId;
+        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, start, limit);
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, null, null).size());
+        reports.put("data", drugCountOrderByCountOrMoneyCountGroupByDrugId);
+        LOGGER.info("pharmacyTop response size is {}", drugCountOrderByCountOrMoneyCountGroupByDrugId.size());
+        return reports;
     }
 
     /**
+     * 发药查询
      *
-     * @param organId
-     * @param status
-     * @param startDate
-     * @param endDate
-     * @param order
-     * @param start
-     * @param limit
+     * @return
      * @Author dxx
-     * @date 20201221
+     * @Date 20201222
      */
     @RpcService
-    public List<RecipeDrugDetialReportDTO> findRecipeDrugDetialReport(Integer organId, Date startDate, Date endDate, String cardNo, String patientName, String billNumber, String recipeId,
-                                           Integer orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
+    public Map<String, Object> findRecipeDrugDetialReport(DispendingPharmacyReportReqTo dispendingPharmacyReportReqTo) {
+        LOGGER.info("findRecipeDrugDetialReport is {}", JSONUtils.toString(dispendingPharmacyReportReqTo));
+        Integer organId = dispendingPharmacyReportReqTo.getOrganId();
+        Date startDate = dispendingPharmacyReportReqTo.getStartDate();
+        Date endDate = dispendingPharmacyReportReqTo.getEndDate();
+        Integer orderStatus = dispendingPharmacyReportReqTo.getOrderStatus();
+        String drugName = dispendingPharmacyReportReqTo.getDrugName();
+        String cardNo = dispendingPharmacyReportReqTo.getCardNo();
+        String patientName = dispendingPharmacyReportReqTo.getPatientName();
+        String billNumber = dispendingPharmacyReportReqTo.getBillNumber();
+        String recipeId = dispendingPharmacyReportReqTo.getRecipeId();
+        Integer depart = dispendingPharmacyReportReqTo.getDepart();
+        String doctorName = dispendingPharmacyReportReqTo.getDoctorName();
+        String dispensingApothecaryName = dispendingPharmacyReportReqTo.getDispensingApothecaryName();
+        Integer recipeType = dispendingPharmacyReportReqTo.getRecipeType();
+        Integer start = dispendingPharmacyReportReqTo.getStart();
+        Integer limit = dispendingPharmacyReportReqTo.getLimit();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
         String orderStatusStr = "13,14,15";
@@ -2157,14 +2148,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             orderStatusStr = "15";
         }
         List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
-        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, cardNo, patientName, billNumber, recipeId,
+        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr,drugName, cardNo, patientName, billNumber, recipeId,
                 orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, start, limit);
         for (RecipeDrugDetialReportDTO recipeDrugDetialReportDTO : recipeDrugDetialReport) {
             if (getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId) != null) {
                 recipeDrugDetialReportDTO.setDepartName(getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId));
             }
         }
-        return recipeDrugDetialReport;
+        Map<String, Object> reports = new HashMap<>();
+        reports.put("total", recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, drugName, cardNo, patientName, billNumber, recipeId,
+                orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, null, null).size());
+        reports.put("data", recipeDrugDetialReport);
+        LOGGER.info("List<RecipeDrugDetialReportDTO> size is {}", recipeDrugDetialReport.size());
+        return reports;
     }
 
     /**
@@ -2174,6 +2170,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService
     public List<Map<String, Object>> findRecipeDrugDetialByRecipeId(Integer recipeId) {
+        LOGGER.info("findRecipeDrugDetialByRecipeId {}", JSONUtils.toString(recipeId));
         List<Map<String, Object>> recipeDrugDetialByRecipeId = recipeDAO.findRecipeDrugDetialByRecipeId(recipeId);
         try {
             String text = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipeDrugDetialByRecipeId.get(0).get("usePathways"));
@@ -2182,6 +2179,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", "");
             LOGGER.error("给药方式字典获取失败", e);
         }
+        LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
         return recipeDrugDetialByRecipeId;
     }
 }

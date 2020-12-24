@@ -638,9 +638,11 @@ public class HisRequestInit {
                             requestTO.setInsuredAreaType("1");
                         }
                         //自负金额
-                        requestTO.setCashAmount(String.valueOf(order.getCashAmount()));
+                        requestTO.setCashAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
+                        //应付金额
+                        requestTO.setPayAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
                         //总金额
-                        requestTO.setPreSettleTotalAmount(String.valueOf(order.getPreSettletotalAmount()));
+                        requestTO.setPreSettleTotalAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()).toPlainString());
                         //his收据号
                         requestTO.setHisSettlementNo(order.getHisSettlementNo());
                     }
