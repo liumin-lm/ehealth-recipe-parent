@@ -60,7 +60,7 @@ public class MedicalSettleService implements IRecipeSettleService {
                 }
             }
             HisCallBackService.havePayFail(recipe.getRecipeId());
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "支付完成结算失败，his返回原因：" + response.getMsg());
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "支付完成结算失败，his返回：" + JSONUtils.toString(response));
         }
     }
 }

@@ -13,6 +13,7 @@ import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.service.manager.RecipeLabelManager;
 
 /**
  * 支付成功后修改pdf 添加收货人信息
@@ -23,10 +24,13 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateReceiverInfoRecipePdfRunable.class);
 
-    private Integer recipeId;
+    private final RecipeLabelManager recipeLabelManager;
 
-    public UpdateReceiverInfoRecipePdfRunable(Integer recipeId) {
+    private final Integer recipeId;
+
+    public UpdateReceiverInfoRecipePdfRunable(Integer recipeId, RecipeLabelManager recipeLabelManager) {
         this.recipeId = recipeId;
+        this.recipeLabelManager = recipeLabelManager;
     }
 
     @Override
@@ -49,11 +53,12 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             //存在收货人信息
             if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order)))){
                 logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);
+                int height = recipeLabelManager.getPdfReceiverHeight(recipe.getClinicOrgan());
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(),order.getRecMobile(),commonRemoteService.getCompleteAddress(order),recipe.getRecipeType());
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), height);
                     key = "ChemistSignFile";
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(),order.getRecMobile(),commonRemoteService.getCompleteAddress(order),recipe.getRecipeType());
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), height);
                     key = "SignFile";
                 } else {
                     logger.warn("UpdateReceiverInfoRecipePdfRunable file is null  recipeId={}", recipeId);
