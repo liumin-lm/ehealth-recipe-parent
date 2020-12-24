@@ -266,12 +266,7 @@ public class RecipeLabelManager {
             }
             stringBuilder.append(" \n ");
             //每次剂量+剂量单位
-            String useDose;
-            if (StringUtils.isNotEmpty(d.getUseDoseStr())) {
-                useDose = d.getUseDoseStr();
-            } else {
-                useDose = d.getUseDose() != null ? String.valueOf(d.getUseDose()) : "" + d.getUseDoseUnit();
-            }
+            String useDose = null == d.getUseDose() ? "" : d.getUseDose() + d.getUseDoseUnit();
             String uDose = "Sig: 每次" + useDose;
 
             //用药频次

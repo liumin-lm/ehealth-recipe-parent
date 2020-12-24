@@ -103,11 +103,11 @@ public class CreateRecipePdfUtil {
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        page.setTextMatrix(41, 550);
+        page.setTextMatrix(41, 610);
         page.showText("收货人姓名：" + receiver);
-        page.setTextMatrix(226, 550);
+        page.setTextMatrix(226, 610);
         page.showText("收货人电话：" + recMobile);
-        page.setTextMatrix(41, 540);
+        page.setTextMatrix(41, 590);
         page.showText("收货人地址：" + completeAddress);
         page.endText();
         stamper.close();
