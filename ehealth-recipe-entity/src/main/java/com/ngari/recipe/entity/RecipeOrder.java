@@ -324,6 +324,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "发药标示：0:无需发药，1：已发药，2:已退药")
     private Integer dispensingFlag;
 
+    @ItemProperty(alias = "已发药时间")
+    private Date dispensingTime;
+
+    @ItemProperty(alias = "发药状态修改时间")
+    private Date dispensingStatusAlterTime;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -1131,4 +1137,23 @@ public class RecipeOrder implements Serializable {
     public void setHisSettlementNo(String hisSettlementNo) {
         this.hisSettlementNo = hisSettlementNo;
     }
+
+    @Column(name = "dispensingTime")
+    public Date getDispensingTime() {
+        return dispensingTime;
+    }
+
+    public void setDispensingTime(Date dispensingTime) {
+        this.dispensingTime = dispensingTime;
+    }
+
+    @Column(name = "dispensingStatusAlterTime")
+    public Date getDispensingStatusAlterTime() {
+        return dispensingStatusAlterTime;
+    }
+
+    public void setDispensingStatusAlterTime(Date dispensingStatusAlterTime) {
+        this.dispensingStatusAlterTime = dispensingStatusAlterTime;
+    }
+
 }

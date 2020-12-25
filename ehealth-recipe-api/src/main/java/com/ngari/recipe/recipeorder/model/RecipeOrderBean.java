@@ -5,6 +5,7 @@ import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.Column;
 import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -294,6 +295,12 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
     private Integer logisticsType;
+
+    @ItemProperty(alias = "已发药时间")
+    private Date dispensingTime;
+
+    @ItemProperty(alias = "发药状态修改时间")
+    private Date dispensingStatusAlterTime;
 
     public Integer getLogisticsType() {
         return logisticsType;
@@ -1020,5 +1027,23 @@ public class RecipeOrderBean implements Serializable {
 
     public void setHisSettlementNo(String hisSettlementNo) {
         this.hisSettlementNo = hisSettlementNo;
+    }
+
+    @Column(name = "dispensingTime")
+    public Date getDispensingTime() {
+        return dispensingTime;
+    }
+
+    public void setDispensingTime(Date dispensingTime) {
+        this.dispensingTime = dispensingTime;
+    }
+
+    @Column(name = "dispensingStatusAlterTime")
+    public Date getDispensingStatusAlterTime() {
+        return dispensingStatusAlterTime;
+    }
+
+    public void setDispensingStatusAlterTime(Date dispensingStatusAlterTime) {
+        this.dispensingStatusAlterTime = dispensingStatusAlterTime;
     }
 }
