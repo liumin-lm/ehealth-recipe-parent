@@ -123,6 +123,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeDAO recipeDAO;
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private PatientService patientService;
 
     @RpcService
     @Override
@@ -2179,6 +2181,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", "");
             LOGGER.error("给药方式字典获取失败", e);
         }
+        PatientDTO mpiid = patientService.getPatientByMpiId(String.valueOf(recipeDrugDetialByRecipeId.get(0).get("MPIID")));
+        recipeDrugDetialByRecipeId.get(0).put("patientSex", mpiid.getPatientSex().equals("1")?"男":"女");
+        recipeDrugDetialByRecipeId.get(0).put("mobile", mpiid.getMobile());
+        recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
         return recipeDrugDetialByRecipeId;
     }
