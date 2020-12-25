@@ -1202,8 +1202,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             .remoteQueryStatus("0")
                             .build();
                     drugInventoryInfos.add(drugInventory);
-                    drugListBean.setInventories(drugInventoryInfos);
                 }
+                drugListBean.setInventories(drugInventoryInfos);
             }
         } catch (Exception e) {
             LOGGER.error("查询药企药品实时查询库存错误setDrugsEnterpriseInventories ", e);
