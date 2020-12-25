@@ -2017,7 +2017,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         //判断是否最后一页
         int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
-        if (start + limit >= size) {
+        if (start + limit >= size && recipeByOrderCodegroupByDis.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
             workLoadTopDTO.setTotalMoney(totalMoney);

@@ -415,25 +415,30 @@ public class RecipeHisService extends RecipeBaseService {
     private void doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
         //调用前置机结算支持两种方式---配送到家和药店取药
         if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+            LOGGER.info("doRecipeSettle recipeId={}",recipe.getRecipeId());
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                LOGGER.error("doRecipeSettle orderCode is null; recipeId={}",recipe.getRecipeId());
                 result.setCode(RecipeResultBean.FAIL);
                 return;
             }
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (recipeOrder == null) {
+                LOGGER.error("doRecipeSettle recipeOrder is null ; recipeId={}",recipe.getRecipeId());
                 result.setCode(RecipeResultBean.FAIL);
                 return;
             }
             //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
             // 111 为卫宁支付---卫宁付不走前置机的his结算
             if ("111".equals(recipeOrder.getWxPayWay())) {
+                LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}",recipe.getRecipeId());
                 result.setCode(RecipeResultBean.FAIL);
                 return;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
             IRecipeSettleService settleService = PreSettleFactory.getSettleService(recipeOrder.getOrganId(), recipeOrder.getOrderType());
             if (settleService == null) {
+                LOGGER.info("doRecipeSettle settleService is null; recipeId={}",recipe.getRecipeId());
                 return;
             }
             List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
@@ -450,7 +455,6 @@ public class RecipeHisService extends RecipeBaseService {
                 response.setMsg(e.getMessage());
             }
             settleService.doRecipeSettleResponse(response,recipe,result);
-
         }
     }
 
