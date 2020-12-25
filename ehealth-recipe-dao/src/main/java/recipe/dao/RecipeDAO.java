@@ -2797,7 +2797,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         RecipeDrugDetialReportDTO value = new RecipeDrugDetialReportDTO();
-                        value.setBillNumber(String.valueOf(objects[0]));
+                        value.setBillNumber(String.valueOf(objects[0] == null ? "": objects[0]));
                         value.setRecipeId(Integer.valueOf(String.valueOf(objects[1])));
                         value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
                         value.setPatientName(String.valueOf(objects[3]));

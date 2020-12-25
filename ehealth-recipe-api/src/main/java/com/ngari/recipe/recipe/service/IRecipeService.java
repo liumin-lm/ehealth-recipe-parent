@@ -385,6 +385,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
 
+    @RpcService
+    List<RecipeExtendBean> findRecipeExtendByRecipeIds(List<Integer> recipeIds);
+
     /**
      * 保存处方扩展信息
      *
