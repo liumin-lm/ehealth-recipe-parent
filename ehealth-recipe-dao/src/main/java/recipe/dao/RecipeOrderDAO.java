@@ -472,10 +472,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 } else {
-                    sqlPay.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, 1 as dose, o.RecipeFee as ActualPrice ,d.saleDrugCode,d.drugName,d.drugSpec,d.producer,IF(d.settlementMode = 1,d.salePrice,d.actualSalePrice) as price");
+                    sqlPay.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, o.RecipeFee*d.useTotalDose as ActualPrice ,d.saleDrugCode,d.drugName,d.drugSpec,d.producer,o.RecipeFee as price,d.drugId");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
-                    sqlRefund.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, 1 as dose, 0-o.RecipeFee as ActualPrice ,d.saleDrugCode,d.drugName,d.drugSpec,d.producer,IF(d.settlementMode = 1,d.salePrice,d.actualSalePrice) as price");
+                    sqlRefund.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, (0-o.RecipeFee)*d.useTotalDose as ActualPrice ,d.saleDrugCode,d.drugName,d.drugSpec,d.producer,(0-o.RecipeFee) as price,d.drugId");
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode  INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id");
                     sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 }
@@ -567,7 +567,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.put("payType", objs[7] == null ? null : objs[7].toString());
                         vo.put("payTime", objs[8] == null ? null : (Date)objs[8]);
                         vo.put("refundTime", objs[9] == null ? null : (Date)objs[9]);
-                        vo.put("useTotalDose", objs[10] == null ? null : objs[10].toString());
+                        vo.put("useTotalDose", objs[10] == null ? null : Double.valueOf(objs[10]+""));
                         vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
                         if(drugId==null){
                             vo.put("saleDrugCode",objs[12] == null ? null : (String)objs[12]);
@@ -575,6 +575,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                             vo.put("drugSpec",objs[14] == null ? null : (String)objs[14]);
                             vo.put("producer",objs[15] == null ? null : (String)objs[15]);
                             vo.put("price",objs[16] == null ? null : Double.valueOf(objs[16]+""));
+                            vo.put("drugId",objs[17] == null ? null : (Integer)objs[17]);
                         }
                         backList.add(vo);
                     }
