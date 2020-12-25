@@ -2574,7 +2574,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
                         workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
                         workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
-                        workLoadTopDTO.setTotalMoney(Double.valueOf(objects[2].toString()));
+                        workLoadTopDTO.setTotalMoney(new BigDecimal(String.valueOf(objects[2])).divide(BigDecimal.ONE,2, RoundingMode.UP));
                         vo.add(workLoadTopDTO);
                     }
                 }
