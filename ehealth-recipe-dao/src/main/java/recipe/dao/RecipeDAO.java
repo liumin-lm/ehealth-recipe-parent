@@ -2757,6 +2757,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
                         (StringUtils.isNotEmpty(drugName) ? " AND rd.DrugName like :drugName" : "") +
                         (depart != null ? " AND cr.depart = :depart" : "");
+                sql += " group by cr.recipeId";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(cardNo)) {
@@ -2869,7 +2870,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "WHERE\n" +
                         "\tcr.RecipeID = :recipeId";
                 Query q = statelessSession.createSQLQuery(sql);
-                System.out.println(sql);
+                LOGGER.info("findRecipeDrugDetialByRecipeId sql : " + sql);
                 q.setParameter("recipeId", recipeId);
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> vo = new ArrayList<>();
