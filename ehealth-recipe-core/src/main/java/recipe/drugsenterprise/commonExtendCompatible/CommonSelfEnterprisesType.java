@@ -232,29 +232,38 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
-        //自建药企查询医院库存
-        DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
-        DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
-        if (null == response) {
+        if (drugsEnterprise == null){
             return "有库存";
-        } else {
-            if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
-                if (CollectionUtils.isEmpty(response.getData())){
-                    return "有库存";
-                }else {
-                    List<DrugInfoTO> data = response.getData();
-                    Double stockAmount = data.get(0).getStockAmount();
-                    if (stockAmount != null){
-                        return BigDecimal.valueOf(stockAmount).toPlainString();
-                    }else {
+        }
+        //自建药企查询医院库存
+        //医院配送查医院库存
+        //药企配送则默认有库存
+        if (new Integer(1).equals(drugsEnterprise.getSendType())){
+            DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
+            DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
+            if (null == response) {
+                return "有库存";
+            } else {
+                if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
+                    if (CollectionUtils.isEmpty(response.getData())){
                         return "有库存";
+                    }else {
+                        List<DrugInfoTO> data = response.getData();
+                        Double stockAmount = data.get(0).getStockAmount();
+                        if (stockAmount != null){
+                            return BigDecimal.valueOf(stockAmount).toPlainString();
+                        }else {
+                            return "有库存";
+                        }
                     }
                 }
             }
+            return "无库存";
+        }else {
+            return "有库存";
         }
-        return "无库存";
     }
 
     @Override
