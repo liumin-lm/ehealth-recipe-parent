@@ -503,7 +503,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlRefund.append(" and o.payFlag = :payType ");
                 }
                 //退款的处方单需要展示两条记录，所以要在取一次
-                sql.append("SELECT * from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) a");
+                if(payType==1)sql=sqlPay;
+                else if(payType==3)sql=sqlRefund;
+                else sql.append("SELECT * from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) a");
                 if (orderColumn != null) {
                     sql.append(" order by " + orderColumn + " ");
                 }
