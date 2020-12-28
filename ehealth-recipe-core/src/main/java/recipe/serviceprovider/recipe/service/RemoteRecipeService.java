@@ -1997,7 +1997,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<WorkLoadTopDTO> result = new ArrayList<>();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,start,limit,startDateStr,endDateStr,doctorName);
+        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
         for (WorkLoadTopDTO workLoadTopDTO : recipeByOrderCodegroupByDis) {
@@ -2012,6 +2012,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
 
+        //核减
+        List<WorkLoadTopDTO> reduce = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14,15", start, limit, startDateStr, endDateStr, doctorName);
+        for (WorkLoadTopDTO workLoadTopDTO : reduce) {
+            for (WorkLoadTopDTO loadTopDTO : result) {
+                if (workLoadTopDTO.getDispensingApothecaryName().equals(loadTopDTO.getDispensingApothecaryName())) {
+                    loadTopDTO.setTotalMoney(loadTopDTO.getTotalMoney().subtract(workLoadTopDTO.getTotalMoney()));
+                }
+            }
+
+        }
         Integer totalCount = 0;
         Double totalMoney = 0.0;
         for (WorkLoadTopDTO workLoadTopDTO : result) {
@@ -2019,7 +2029,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             totalMoney += workLoadTopDTO.getTotalMoney().doubleValue();
         }
         //判断是否最后一页
-        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
+        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15", null, null, startDateStr, endDateStr, doctorName).size();
         if (start + limit >= size && recipeByOrderCodegroupByDis.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");

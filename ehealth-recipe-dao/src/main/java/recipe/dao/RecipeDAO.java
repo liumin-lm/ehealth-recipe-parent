@@ -2538,7 +2538,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
+    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
         HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2553,13 +2553,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tr.ordercode IS NOT NULL\n" +
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
-                        "AND o.status in (13,14,15)\n" +
+                        "AND o.status in (:orderStatus)\n" +
                         "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
+                q.setParameter("orderStatus", orderStatus);
                 if (StringUtils.isNotEmpty(doctorName)) {
                     q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
                 }
