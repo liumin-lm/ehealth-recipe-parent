@@ -1185,6 +1185,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     pharmacyInventories = new ArrayList<>(drugsEnterprises.size());
                     for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                         inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
+                        //过滤掉暂不支持库存查询的药企
+                        if (inventory.length()>5){
+                            continue;
+                        }
                         pharmacyInventory = new DrugPharmacyInventoryInfo();
                         pharmacyInventory.setPharmacyCode(String.valueOf(drugsEnterprise.getId()));
                         pharmacyInventory.setPharmacyName(drugsEnterprise.getName());
