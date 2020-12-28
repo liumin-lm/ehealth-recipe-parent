@@ -70,6 +70,9 @@ public class ShyyRemoteService  extends AccessDrugEnterpriseService {
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        if (saleDrugList.getInventory() == null){
+            return "0";
+        }
         return saleDrugList.getInventory()+"";
     }
 
