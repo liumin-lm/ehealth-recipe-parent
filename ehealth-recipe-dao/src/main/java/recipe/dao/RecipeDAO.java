@@ -2595,7 +2595,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
                 String sql = "select cr.depart, sum(cr.totalMoney) as totalMoney, count(cr.RECIPEID) as count,sum(cr.totalMoney)/count(cr.RECIPEID) AS avgMoney from cdr_recipe cr LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)  where co.dispensingTime BETWEEN '" + startDate + "'\n" +
-                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null";
+                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null AND co.STATUS IN (4,5,13)";
                 if (StringUtils.isNotEmpty(depart)) {
                     sql += " and depart='" + depart + "'";
                 }
@@ -2699,7 +2699,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t\tAND '"+endDate+"'\n" +
                         "\t\tAND ClinicOrgan = :organId\n" +
                         "\t\tAND rd.drugCost IS NOT NULL\n" +
-                        "\t\tAND co.`Status` IN (13, 14, 15)\n" +
+                        "\t\tAND co.`Status` IN (13, 4, 5)\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "\t) GROUP BY\n" +
                         "\tdrugId\n";

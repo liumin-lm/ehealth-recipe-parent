@@ -2147,9 +2147,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Integer limit = dispendingPharmacyReportReqTo.getLimit();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        String orderStatusStr = "13,14,15";
+        String orderStatusStr = "4,5,13,14,15";
         if (orderStatus == 2) {
-            orderStatusStr = "13";
+            orderStatusStr = "4,5,13";
         }
         if (orderStatus == 3) {
             orderStatusStr = "14";
