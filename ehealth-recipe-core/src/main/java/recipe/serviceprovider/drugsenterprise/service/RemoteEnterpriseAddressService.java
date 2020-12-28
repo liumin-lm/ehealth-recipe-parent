@@ -7,10 +7,13 @@ import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.EnterpriseAddressDAO;
 import recipe.service.EnterpriseAddressService;
 import recipe.serviceprovider.BaseService;
+import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
 import java.util.List;
 
@@ -22,6 +25,7 @@ import java.util.List;
  */
 @RpcBean("remoteEnterpriseAddressService")
 public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddressDTO> implements IEnterpriseAddressService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeOrderService.class);
 
     @RpcService
     @Override
@@ -45,7 +49,10 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
     public void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         if(ValidateUtil.notBlankList(enterpriseAddressDTOList)) {
-            addressDAO.deleteByEnterpriseId(enterpriseAddressDTOList.get(0).getEnterpriseId());
+            Integer enterpriseId=enterpriseAddressDTOList.get(0).getEnterpriseId();
+            LOGGER.info("addEnterpriseAddressList EnterpriseId=[{}],size=[{}]",enterpriseId,enterpriseAddressDTOList.size());
+
+            addressDAO.deleteByEnterpriseId(enterpriseId);
             for (EnterpriseAddressDTO enterpriseAddressDTO : enterpriseAddressDTOList) {
                 EnterpriseAddress enterpriseAddress = getBean(enterpriseAddressDTO, EnterpriseAddress.class);
                 EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
