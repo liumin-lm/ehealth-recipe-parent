@@ -674,7 +674,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "select a from OrganDrugList a, DrugList b where a.drugId=b.drugId",limit = 0)
+    @DAOMethod(sql = "select a from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1",limit = 0)
     public abstract List<OrganDrugList> findAllForPage(@DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
@@ -682,7 +682,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      *
      * @return
      */
-    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId")
+    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1")
     public abstract long getUsefulTotal();
 
     /**

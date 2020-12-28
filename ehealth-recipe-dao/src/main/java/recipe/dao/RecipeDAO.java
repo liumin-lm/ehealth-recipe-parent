@@ -2574,7 +2574,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
                         workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
                         workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
-                        workLoadTopDTO.setTotalMoney(Double.valueOf(objects[2].toString()));
+                        workLoadTopDTO.setTotalMoney(new BigDecimal(String.valueOf(objects[2])).setScale(2, BigDecimal.ROUND_HALF_UP));
                         vo.add(workLoadTopDTO);
                     }
                 }
@@ -2615,9 +2615,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (Integer.valueOf(String.valueOf(objects[2])) > 0) {
                             PharmacyMonthlyReportDTO value = new PharmacyMonthlyReportDTO();
                             value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
-                            value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).setScale(2, BigDecimal.ROUND_HALF_UP));
                             value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
-                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[3])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[3])).setScale(2, BigDecimal.ROUND_HALF_UP));
                             vo.add(value);
                         }
                     }
@@ -2640,7 +2640,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" +
+                /*String sql = "SELECT\n" +
                         "\trd.drugId,\n" +
                         "\trd.drugName,\n" +
                         "\trd.drugSpec,\n" +
@@ -2649,7 +2649,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\trd.drugCost,\n" +
                         "\tSUM(rd.saleprice) AS countMoney,\n" +
                         "\tCASE bd.drugtype WHEN 1 THEN '西药' WHEN 2 THEN '中成药' ELSE '中草药' " +
-                        "END AS drugtype\n" +
+                        "END AS drugtype,\n" +
+                        "END AS cr.recipeId\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipedetail rd ON (cr.RecipeID = rd.RecipeID)\n" +
@@ -2664,6 +2665,43 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND rd.useTotalDose is not null\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "GROUP BY\n" +
+                        "\tdrugId,cr.recipeId\n";*/
+                String sql = "SELECT\n" +
+                        "\trd.drugId,\n" +
+                        "\trd.drugName,\n" +
+                        "\trd.drugSpec,\n" +
+                        "\trd.drugUnit,\n" +
+                        "\tcast(\n" +
+                        "\t\tsum(rd.useTotalDose) AS SIGNED\n" +
+                        "\t) AS count,\n" +
+                        "\trd.drugCost,\n" +
+                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\tCASE bd.drugtype\n" +
+                        "WHEN 1 THEN\n" +
+                        "\t'西药'\n" +
+                        "WHEN 2 THEN\n" +
+                        "\t'中成药'\n" +
+                        "ELSE\n" +
+                        "\t'中草药'\n" +
+                        "END AS drugtype\n" +
+                        "FROM\n" +
+                        "\tcdr_recipedetail rd\n" +
+                        " LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
+                        "WHERE\n" +
+                        "\trd.recipeid IN (\n" +
+                        "\t\tSELECT\n" +
+                        "\t\t\trecipeId\n" +
+                        "\t\tFROM\n" +
+                        "\t\t\tcdr_recipe cr\n" +
+                        "\t\tLEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)\n" +
+                        "\t\tWHERE\n" +
+                        "\t\t\tco.dispensingTime BETWEEN '" + startDate + "  '\n" +
+                        "\t\tAND '"+endDate+"'\n" +
+                        "\t\tAND ClinicOrgan = :organId\n" +
+                        "\t\tAND rd.drugCost IS NOT NULL\n" +
+                        "\t\tAND co.`Status` IN (13, 14, 15)\n" +
+                        (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
+                        "\t) GROUP BY\n" +
                         "\tdrugId\n";
                 if (order == 1) {
                     sql += "order by SUM(rd.saleprice) desc";
@@ -2697,8 +2735,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.setDrugSpec(String.valueOf(objects[2]));
                         value.setDrugUnit(String.valueOf(objects[3]));
                         value.setCount(String.valueOf(objects[4]));
-                        value.setDrugCost(new BigDecimal(String.valueOf(objects[5])).divide(BigDecimal.ONE,2, RoundingMode.UP));
-                        value.setCountMoney(new BigDecimal(String.valueOf(objects[6])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                        value.setDrugCost(new BigDecimal(String.valueOf(objects[5])).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        value.setCountMoney(new BigDecimal(String.valueOf(objects[6])).setScale(2, BigDecimal.ROUND_HALF_UP));
                         value.setDrugtype(String.valueOf(objects[7]));
                         vo.add(value);
                     }

@@ -91,6 +91,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -2015,14 +2016,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Double totalMoney = 0.0;
         for (WorkLoadTopDTO workLoadTopDTO : result) {
             totalCount += workLoadTopDTO.getRecipeCount();
-            totalMoney += workLoadTopDTO.getTotalMoney();
+            totalMoney += workLoadTopDTO.getTotalMoney().doubleValue();
         }
         //判断是否最后一页
         int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
         if (start + limit >= size && recipeByOrderCodegroupByDis.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
-            workLoadTopDTO.setTotalMoney(totalMoney);
+            workLoadTopDTO.setTotalMoney(new BigDecimal(totalMoney).setScale(2, BigDecimal.ROUND_HALF_UP));
             workLoadTopDTO.setRecipeCount(totalCount);
             result.add(workLoadTopDTO);
         }
