@@ -102,7 +102,7 @@ public enum RecipeOrderTypeEnum {
         IRecipeSettleService recipeSettleService = null;
         for (RecipeOrderTypeEnum e : RecipeOrderTypeEnum.values()) {
             if (e.type.equals(orderType)) {
-                if (StringUtils.isNotEmpty(e.getPreSettleServiceName())) {
+                if (StringUtils.isNotEmpty(e.getSettleServiceName())) {
                     recipeSettleService = AppContextHolder.getBean(e.getSettleServiceName(), IRecipeSettleService.class);
                     break;
                 }
