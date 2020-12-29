@@ -20,6 +20,9 @@ public interface IDrugDistributionPriceService {
     public List<DrugDistributionPriceBean> findByEnterpriseId(Integer enterpriseId);
 
     @RpcService
+    DrugDistributionPriceBean getByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea);
+
+    @RpcService
     void savePriceList(List<DrugDistributionPriceBean> priceList);
 
     @RpcService
