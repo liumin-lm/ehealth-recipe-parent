@@ -60,7 +60,7 @@ public class RecipeLabelManager {
      * @return Y坐标点位 （默认430 超过6字段 每个字段降低5px高度）
      */
     public int getPdfReceiverHeight(Integer organId) {
-        int height = 440;
+        int height = 450;
         if (null == organId) {
             return height;
         }
@@ -69,11 +69,11 @@ public class RecipeLabelManager {
             return height;
         }
         List<Scratchable> list = (List<Scratchable>) labelMap.get("moduleTwo");
-        int heightSize = list.size() - 6;
-        if (heightSize < 0) {
+        int heightSize = list.size();
+        if (heightSize == 0) {
             return height;
         } else {
-            return height - heightSize * 6;
+            return height - heightSize * 3;
         }
     }
 
