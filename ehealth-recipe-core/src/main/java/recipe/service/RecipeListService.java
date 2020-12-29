@@ -611,7 +611,7 @@ public class RecipeListService extends RecipeBaseService {
             return date2.compareTo(date1);
         });
         Long totalConsumedTime=new Date().getTime()-beginTime;
-        LOGGER.info("dealRepeatDataAndSort cost",totalConsumedTime);
+        LOGGER.info("dealRepeatDataAndSort cost:{}",totalConsumedTime);
         return res;
     }
 
@@ -705,7 +705,7 @@ public class RecipeListService extends RecipeBaseService {
         }
         LOGGER.info("instanceRecipesAndPatient response recipes:{} ,patient:{} ,list:{}", JSONUtils.toString(recipes), JSONUtils.toString(patient), JSONUtils.toString(list));
         Long totalConsumedTime=new Date().getTime()-beginTime;
-        LOGGER.info("instanceRecipesAndPatient cost",totalConsumedTime);
+        LOGGER.info("instanceRecipesAndPatient cost:{}",totalConsumedTime);
         return list;
     }
 
