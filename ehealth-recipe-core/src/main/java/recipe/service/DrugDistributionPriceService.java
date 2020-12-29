@@ -169,7 +169,17 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");
         }
         List<DrugDistributionPrice> res = DAOFactory.getDAO(DrugDistributionPriceDAO.class).findByEnterpriseId(enterpriseId);
-        return ObjectCopyUtils.convert(res,DrugDistributionPriceBean.class);
+        return ObjectCopyUtils.convert(res, DrugDistributionPriceBean.class);
+    }
+
+    @RpcService
+    @Override
+    public DrugDistributionPriceBean getByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea) {
+        if (enterpriseId == null || StringUtils.isEmpty(addrArea)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");
+        }
+        DrugDistributionPrice price = DAOFactory.getDAO(DrugDistributionPriceDAO.class).getByEnterpriseIdAndAddrArea(enterpriseId, addrArea);
+        return getBean(price, DrugDistributionPriceBean.class);
     }
 
     @RpcService
