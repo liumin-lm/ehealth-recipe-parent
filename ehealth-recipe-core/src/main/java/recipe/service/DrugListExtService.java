@@ -1109,6 +1109,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             //只处理有无库存情况 不显示数量
             //循环查询的药品
             for (IDrugInventory drugListBean : drugListBeans) {
+                //如果机构药品中查不到就不返回医院库存
+                if(StringUtils.isEmpty(drugIdAndOrganDrugCode.get(drugListBean.getDrugId()))){
+                    continue;
+                }
                 drugInventoryInfos = new ArrayList<>(1);
                 drugInventory = DrugInventoryInfo.builder()
                         .type("his")

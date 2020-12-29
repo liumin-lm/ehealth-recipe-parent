@@ -467,17 +467,17 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (drugId != null) {
                     sqlPay.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose as ActualPrice");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
-                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) and d.status = 1 ");
+                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
                     sqlRefund.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * (0-d.useTotalDose) as ActualPrice");
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
-                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) and d.status = 1 ");
+                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 } else {
                     sqlPay.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '支付成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price))*d.useTotalDose as ActualPrice ,d.saleDrugCode,d.drugName,d.drugSpec,d.producer,IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price,d.drugId");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
-                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) and d.status = 1 ");
+                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
                     sqlRefund.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, '退款成功' as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, (0-IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)))*d.useTotalDose as ActualPrice ,d.saleDrugCode,d.drugName,d.drugSpec,d.producer,(0-IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price))) as price,d.drugId");
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode  INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id");
-                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) and d.status = 1 ");
+                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 }
                 if (organId != null) {
                     sqlPay.append(" and r.clinicOrgan = :organId");
@@ -493,6 +493,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (drugId != null) {
                     sqlPay.append(" and d.drugId = :drugId and d.status = 1");
                     sqlRefund.append(" and d.drugId = :drugId and d.status = 1");
+                } else {
+                    sqlPay.append(" and d.`status` = 1");
+                    sqlRefund.append(" and d.`status` = 1");
                 }
                 if(recipeId != null){
                     sqlPay.append(" and r.recipeId = :recipeId");
@@ -608,17 +611,17 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (drugId != null) {
                     sqlPay.append("SELECT count(1) as count, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose) as totalPrice ");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID");
-                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) and d.status = 1 ");
+                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
                     sqlRefund.append("SELECT count(1) as count, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * (0-d.useTotalDose)) as totalPrice ");
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID");
-                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) and d.status = 1 ");
+                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 } else {
                     sqlPay.append("SELECT count(1) as count, sum(o.RecipeFee) as totalPrice");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode ");
-                    sqlPay.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) and d.status = 1 ");
+                    sqlPay.append(" WHERE r.GiveMode = 1  and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
                     sqlRefund.append("SELECT count(1) as count, sum(0-o.RecipeFee) as totalPrice");
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode ");
-                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) and d.status = 1 ");
+                    sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 }
                 if (organId != null) {
                     sqlPay.append(" and r.clinicOrgan = :organId");
