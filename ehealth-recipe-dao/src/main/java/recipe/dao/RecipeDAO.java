@@ -3110,6 +3110,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      */
     public List<Recipe> findRecipeListByDoctorAndPatientAndStatusList(final Integer doctorId, final String mpiId, final Integer start, final Integer limit, final List<Integer> statusList) {
+        Long beginTime = new Date().getTime();
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -3134,6 +3135,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
 
         List<Recipe> recipes = action.getResult();
+        Long totalConsumedTime=new Date().getTime()-beginTime;
+        LOGGER.info("findRecipeListByDoctorAndPatientAndStatusList cost",totalConsumedTime);
         return recipes;
     }
 
