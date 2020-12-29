@@ -1485,7 +1485,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setDoctorName(recipe.getDoctorName());
                     prb.setRecipeCode(recipe.getRecipeCode());
                     RecipeBean recipeBean= ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                    recipeBean.setGiveModeText(order.getGiveModeText());
+                    if (StringUtils.isNotEmpty(order.getGiveModeText())) {
+                        recipeBean.setGiveModeText(order.getGiveModeText());
+                    } else {
+                        recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                    }
                     prb.setRecipe(recipeBean);
                     prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
