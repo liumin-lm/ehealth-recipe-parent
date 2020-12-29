@@ -257,6 +257,11 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "his推送药企名")
     private String hisEnterpriseName;
 
+    @ItemProperty(alias = "订单所属配送方式")
+    private String giveModeKey;
+
+    @ItemProperty(alias = "订单所属配送方式的文案")
+    private String giveModeText;
 
     @Column(name = "HisEnterpriseCode")
     public String getHisEnterpriseCode() {
@@ -1156,4 +1161,21 @@ public class RecipeOrder implements Serializable {
         this.dispensingStatusAlterTime = dispensingStatusAlterTime;
     }
 
+    @Column(name = "giveModeKey")
+    public String getGiveModeKey() {
+        return giveModeKey;
+    }
+
+    public void setGiveModeKey(String giveModeKey) {
+        this.giveModeKey = giveModeKey;
+    }
+
+    @Column(name = "giveModeText")
+    public String getGiveModeText() {
+        return giveModeText;
+    }
+
+    public void setGiveModeText(String giveModeText) {
+        this.giveModeText = giveModeText;
+    }
 }
