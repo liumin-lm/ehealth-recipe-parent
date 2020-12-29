@@ -29,7 +29,7 @@ public class PatientChooseMedicalOrCashWayHandler implements IOrderTypeCondition
             //目前除了医院结算药企的配置之外没有自费预结算
             //这次发版后杭州市医保会修改配置前端没有医保按钮只有提交订单
             //也就是患者选择了医保肯定就是省直医保的类型
-            if (!RecipeBussConstant.ORDERTYPE_ZF.equals(orderType)) {
+            if (RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)) {
                 return RecipeOrderTypeEnum.PROVINCIAL_MEDICAL.getType();
             } else {
                 //根据患者的绑定的市名卡判断是杭州市医保还是普通自费
