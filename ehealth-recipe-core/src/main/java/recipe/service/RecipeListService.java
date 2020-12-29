@@ -569,6 +569,7 @@ public class RecipeListService extends RecipeBaseService {
      */
     private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
         LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}", JSONUtils.toString(onLineAndUnderLineRecipesByRecipe), JSONUtils.toString(upderLineRecipesByHis));
+        Long beginTime = new Date().getTime();
         List<Map<String, Object>> res = new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes = (List<HisRecipeBean>) upderLineRecipesByHis.get("hisRecipe");
@@ -609,7 +610,8 @@ public class RecipeListService extends RecipeBaseService {
             Date date2 = ((RecipeBean) o2.get("recipe")).getCreateDate() == null ? new Date() : ((RecipeBean) o2.get("recipe")).getCreateDate();
             return date2.compareTo(date1);
         });
-
+        Long totalConsumedTime=new Date().getTime()-beginTime;
+        LOGGER.info("dealRepeatDataAndSort cost",totalConsumedTime);
         return res;
     }
 
@@ -645,6 +647,7 @@ public class RecipeListService extends RecipeBaseService {
      */
     public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes, PatientVO patient) {
         LOGGER.info("instanceRecipesAndPatient recipes:{} ,patient:{} ", JSONUtils.toString(recipes), JSONUtils.toString(patient));
+        Long beginTime = new Date().getTime();
         List<Map<String, Object>> list = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipes)) {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -701,6 +704,8 @@ public class RecipeListService extends RecipeBaseService {
 
         }
         LOGGER.info("instanceRecipesAndPatient response recipes:{} ,patient:{} ,list:{}", JSONUtils.toString(recipes), JSONUtils.toString(patient), JSONUtils.toString(list));
+        Long totalConsumedTime=new Date().getTime()-beginTime;
+        LOGGER.info("instanceRecipesAndPatient cost",totalConsumedTime);
         return list;
     }
 
