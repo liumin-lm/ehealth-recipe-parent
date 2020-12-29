@@ -164,12 +164,16 @@ public class ChinaIDNumberUtil
 		if (StringUtils.isEmpty(idCard)) {
 			return "";
 		}
-		//显示前1-3位
-		String str1 = idCard.substring(0, 3);
-		//显示后15-18位
-		String str2 = idCard.substring(14, 18);
-		idCard = str1 + "***********" + str2;
-		return idCard;
+        try {
+            //显示前1-3位
+            String str1 = idCard.substring(0, 3);
+            //显示后15-18位
+            String str2 = idCard.substring(14, 18);
+            idCard = str1 + "***********" + str2;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idCard;
 	}
 
     /**
