@@ -458,12 +458,24 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
             if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
 //                || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(200)
-
-                // 说明查询错误, 或者
                 List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
-                drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
-                for (IDrugInventory drugListBean : drugListBeans) {
-                    drugListBean.setInventories(drugInventoryInfos);
+                if (hisResp == null){
+                    // 说明查询错误, 或者
+                    drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
+                }else {
+                    String amount;
+                    if (Integer.valueOf(0).equals(hisResp.getMsgCode()) || Integer.valueOf(200).equals(hisResp.getMsgCode())){
+                        amount = "有库存";
+                    }else {
+                        amount = "无库存";
+                    }
+                    drugInventoryInfos.add(new DrugInventoryInfo("his", Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)), "0"));
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
                 }
             } else {
                 for (IDrugInventory drugListBean : drugListBeans) {
