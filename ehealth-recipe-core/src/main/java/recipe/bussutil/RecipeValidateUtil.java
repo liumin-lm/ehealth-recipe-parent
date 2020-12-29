@@ -201,6 +201,58 @@ public class RecipeValidateUtil {
     }
 
     /**
+     * 处方详情用到返回实际处方明细药品--与删除了的药品无关
+     * @param recipe
+     * @return
+     */
+    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe) {
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+
+        Integer recipeId = recipe.getRecipeId();
+        List<RecipeDetailBean> backDetailList = new ArrayList<>();
+        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isEmpty(details)) {
+            return backDetailList;
+        }
+        List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
+
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
+        for (RecipeDetailBean recipeDetail : detailBeans) {
+            OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
+            if (organDrug!=null){
+                recipeDetail.setDrugForm(organDrug.getDrugForm());
+                //设置医生端每次剂量和剂量单位联动关系
+                List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
+                //用药单位不为空时才返回给前端
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+                }
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+                }
+                recipeDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            }
+            try {
+                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsingRate());
+                if (usingRateDTO != null) {
+                    recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                }
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways());
+                if (usePathwaysDTO != null) {
+                    recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                }
+            } catch (Exception e) {
+                LOGGER.info("validateDrugsImpl error,recipeId={}", recipeId, e);
+            }
+            backDetailList.add(recipeDetail);
+        }
+        return backDetailList;
+    }
+
+    /**
      * 校验处方数据
      *
      * @param recipeId
