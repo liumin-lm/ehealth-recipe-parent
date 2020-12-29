@@ -162,6 +162,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         DAOFactory.getDAO(DrugDistributionPriceDAO.class).deleteById(id);
     }
 
+    @RpcService
     @Override
     public List<DrugDistributionPriceBean> findByEnterpriseId(Integer enterpriseId) {
         if (enterpriseId == null) {
