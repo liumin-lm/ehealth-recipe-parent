@@ -494,8 +494,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlPay.append(" and d.drugId = :drugId and d.status = 1");
                     sqlRefund.append(" and d.drugId = :drugId and d.status = 1");
                 } else {
-                    sqlPay.append(" and d.status = 1");
-                    sqlRefund.append(" and d.status = 1");
+                    sqlPay.append(" and d.`status` = 1");
+                    sqlRefund.append(" and d.`status` = 1");
                 }
                 if(recipeId != null){
                     sqlPay.append(" and r.recipeId = :recipeId");
@@ -637,9 +637,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (drugId != null) {
                     sqlPay.append(" and d.drugId = :drugId and d.status = 1 ");
                     sqlRefund.append(" and d.drugId = :drugId and d.status = 1 ");
-                } else {
-                    sqlPay.append(" and d.status = 1 ");
-                    sqlRefund.append(" and d.status = 1 ");
                 }
                 if(recipeId != null){
                     sqlPay.append(" and r.recipeId = :recipeId");
