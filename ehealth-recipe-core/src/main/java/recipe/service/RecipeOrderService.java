@@ -2210,7 +2210,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 业务编码
         orderDto.setBusinessNo(order.getOrderCode());
         // 物流公司编码
-        orderDto.setLogisticsCode(enterprise.getLogisticsCompany() + "");
+        orderDto.setLogisticsCode("1003");
         //纳里收件人主键
         orderDto.setUserId(recipe.getReceiver());
         // 收件人名称
