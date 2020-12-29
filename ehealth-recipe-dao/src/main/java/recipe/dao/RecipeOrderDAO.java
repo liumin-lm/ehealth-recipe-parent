@@ -616,7 +616,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID");
                     sqlRefund.append(" WHERE r.GiveMode = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
                 } else {
-                    sqlPay.append("SELECT count(1) as count, LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
+                    sqlPay.append("SELECT count(1) as count, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose) as totalPrice ");
                     sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
                     sqlPay.append(" WHERE r.GiveMode = 1  and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
                     sqlRefund.append("SELECT count(1) as count, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * (0-d.useTotalDose)) as totalPrice ");
