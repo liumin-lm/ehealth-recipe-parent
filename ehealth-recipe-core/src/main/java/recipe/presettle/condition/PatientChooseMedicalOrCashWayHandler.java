@@ -23,6 +23,9 @@ public class PatientChooseMedicalOrCashWayHandler implements IOrderTypeCondition
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
         if (request.getRecipeOrder() != null) {
             Integer orderType = request.getRecipeOrder().getOrderType();
+            if (orderType == null){
+                return RecipeOrderTypeEnum.COMMON_SELF.getType();
+            }
             //目前除了医院结算药企的配置之外没有自费预结算
             //这次发版后杭州市医保会修改配置前端没有医保按钮只有提交订单
             //也就是患者选择了医保肯定就是省直医保的类型

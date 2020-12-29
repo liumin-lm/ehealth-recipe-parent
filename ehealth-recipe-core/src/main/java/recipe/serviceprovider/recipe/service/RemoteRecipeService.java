@@ -91,6 +91,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,6 +124,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeDAO recipeDAO;
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private PatientService patientService;
 
     @RpcService
     @Override
@@ -820,6 +823,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         EmrRecipeManager.getMedicalInfo(new Recipe(), recipeExtend);
         return ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+    }
+
+    @Override
+    public List<RecipeExtendBean> findRecipeExtendByRecipeIds(List<Integer> recipeIds) {
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        return ObjectCopyUtils.convert(recipeExtends, RecipeExtendBean.class);
     }
 
     @Override
@@ -1987,7 +1997,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<WorkLoadTopDTO> result = new ArrayList<>();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,start,limit,startDateStr,endDateStr,doctorName);
+        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
         for (WorkLoadTopDTO workLoadTopDTO : recipeByOrderCodegroupByDis) {
@@ -2002,18 +2012,28 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
 
+        //核减
+        List<WorkLoadTopDTO> reduce = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14,15", start, limit, startDateStr, endDateStr, doctorName);
+        for (WorkLoadTopDTO workLoadTopDTO : reduce) {
+            for (WorkLoadTopDTO loadTopDTO : result) {
+                if (workLoadTopDTO.getDispensingApothecaryName().equals(loadTopDTO.getDispensingApothecaryName())) {
+                    loadTopDTO.setTotalMoney(loadTopDTO.getTotalMoney().subtract(workLoadTopDTO.getTotalMoney()));
+                }
+            }
+
+        }
         Integer totalCount = 0;
         Double totalMoney = 0.0;
         for (WorkLoadTopDTO workLoadTopDTO : result) {
             totalCount += workLoadTopDTO.getRecipeCount();
-            totalMoney += workLoadTopDTO.getTotalMoney();
+            totalMoney += workLoadTopDTO.getTotalMoney().doubleValue();
         }
         //判断是否最后一页
-        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, null, null, startDateStr, endDateStr, doctorName).size();
+        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15", null, null, startDateStr, endDateStr, doctorName).size();
         if (start + limit >= size && recipeByOrderCodegroupByDis.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
-            workLoadTopDTO.setTotalMoney(totalMoney);
+            workLoadTopDTO.setTotalMoney(new BigDecimal(totalMoney).setScale(2, BigDecimal.ROUND_HALF_UP));
             workLoadTopDTO.setRecipeCount(totalCount);
             result.add(workLoadTopDTO);
         }
@@ -2137,9 +2157,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Integer limit = dispendingPharmacyReportReqTo.getLimit();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        String orderStatusStr = "13,14,15";
+        String orderStatusStr = "4,5,13,14,15";
         if (orderStatus == 2) {
-            orderStatusStr = "13";
+            orderStatusStr = "4,5,13";
         }
         if (orderStatus == 3) {
             orderStatusStr = "14";
@@ -2179,6 +2199,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", "");
             LOGGER.error("给药方式字典获取失败", e);
         }
+        PatientDTO mpiid = patientService.getPatientByMpiId(String.valueOf(recipeDrugDetialByRecipeId.get(0).get("MPIID")));
+        recipeDrugDetialByRecipeId.get(0).put("patientSex", mpiid.getPatientSex().equals("1")?"男":"女");
+        recipeDrugDetialByRecipeId.get(0).put("mobile", mpiid.getMobile());
+        recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
         return recipeDrugDetialByRecipeId;
     }

@@ -2538,7 +2538,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
+    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
         HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2553,13 +2553,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tr.ordercode IS NOT NULL\n" +
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
-                        "AND o.status in (13,14,15)\n" +
+                        "AND o.status in (:orderStatus)\n" +
                         "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
+                q.setParameter("orderStatus", orderStatus);
                 if (StringUtils.isNotEmpty(doctorName)) {
                     q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
                 }
@@ -2574,7 +2575,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
                         workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
                         workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
-                        workLoadTopDTO.setTotalMoney(Double.valueOf(objects[2].toString()));
+                        workLoadTopDTO.setTotalMoney(new BigDecimal(String.valueOf(objects[2])).setScale(2, BigDecimal.ROUND_HALF_UP));
                         vo.add(workLoadTopDTO);
                     }
                 }
@@ -2595,7 +2596,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
                 String sql = "select cr.depart, sum(cr.totalMoney) as totalMoney, count(cr.RECIPEID) as count,sum(cr.totalMoney)/count(cr.RECIPEID) AS avgMoney from cdr_recipe cr LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)  where co.dispensingTime BETWEEN '" + startDate + "'\n" +
-                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null";
+                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null AND co.STATUS IN (4,5,13)";
                 if (StringUtils.isNotEmpty(depart)) {
                     sql += " and depart='" + depart + "'";
                 }
@@ -2615,9 +2616,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (Integer.valueOf(String.valueOf(objects[2])) > 0) {
                             PharmacyMonthlyReportDTO value = new PharmacyMonthlyReportDTO();
                             value.setDepart(Integer.valueOf(String.valueOf(objects[0])));
-                            value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setTotalMoney(new BigDecimal(String.valueOf(objects[1])).setScale(2, BigDecimal.ROUND_HALF_UP));
                             value.setRecipeCount(Integer.valueOf(String.valueOf(objects[2])));
-                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[3])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                            value.setAvgMoney(new BigDecimal(String.valueOf(objects[3])).setScale(2, BigDecimal.ROUND_HALF_UP));
                             vo.add(value);
                         }
                     }
@@ -2640,7 +2641,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" +
+                /*String sql = "SELECT\n" +
                         "\trd.drugId,\n" +
                         "\trd.drugName,\n" +
                         "\trd.drugSpec,\n" +
@@ -2649,7 +2650,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\trd.drugCost,\n" +
                         "\tSUM(rd.saleprice) AS countMoney,\n" +
                         "\tCASE bd.drugtype WHEN 1 THEN '西药' WHEN 2 THEN '中成药' ELSE '中草药' " +
-                        "END AS drugtype\n" +
+                        "END AS drugtype,\n" +
+                        "END AS cr.recipeId\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipedetail rd ON (cr.RecipeID = rd.RecipeID)\n" +
@@ -2664,6 +2666,43 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND rd.useTotalDose is not null\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "GROUP BY\n" +
+                        "\tdrugId,cr.recipeId\n";*/
+                String sql = "SELECT\n" +
+                        "\trd.drugId,\n" +
+                        "\trd.drugName,\n" +
+                        "\trd.drugSpec,\n" +
+                        "\trd.drugUnit,\n" +
+                        "\tcast(\n" +
+                        "\t\tsum(rd.useTotalDose) AS SIGNED\n" +
+                        "\t) AS count,\n" +
+                        "\trd.drugCost,\n" +
+                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\tCASE bd.drugtype\n" +
+                        "WHEN 1 THEN\n" +
+                        "\t'西药'\n" +
+                        "WHEN 2 THEN\n" +
+                        "\t'中成药'\n" +
+                        "ELSE\n" +
+                        "\t'中草药'\n" +
+                        "END AS drugtype\n" +
+                        "FROM\n" +
+                        "\tcdr_recipedetail rd\n" +
+                        " LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
+                        "WHERE\n" +
+                        "\trd.recipeid IN (\n" +
+                        "\t\tSELECT\n" +
+                        "\t\t\trecipeId\n" +
+                        "\t\tFROM\n" +
+                        "\t\t\tcdr_recipe cr\n" +
+                        "\t\tLEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)\n" +
+                        "\t\tWHERE\n" +
+                        "\t\t\tco.dispensingTime BETWEEN '" + startDate + "  '\n" +
+                        "\t\tAND '"+endDate+"'\n" +
+                        "\t\tAND ClinicOrgan = :organId\n" +
+                        "\t\tAND rd.drugCost IS NOT NULL\n" +
+                        "\t\tAND co.`Status` IN (13, 4, 5)\n" +
+                        (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
+                        "\t) GROUP BY\n" +
                         "\tdrugId\n";
                 if (order == 1) {
                     sql += "order by SUM(rd.saleprice) desc";
@@ -2697,8 +2736,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.setDrugSpec(String.valueOf(objects[2]));
                         value.setDrugUnit(String.valueOf(objects[3]));
                         value.setCount(String.valueOf(objects[4]));
-                        value.setDrugCost(new BigDecimal(String.valueOf(objects[5])).divide(BigDecimal.ONE,2, RoundingMode.UP));
-                        value.setCountMoney(new BigDecimal(String.valueOf(objects[6])).divide(BigDecimal.ONE,2, RoundingMode.UP));
+                        value.setDrugCost(new BigDecimal(String.valueOf(objects[5])).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        value.setCountMoney(new BigDecimal(String.valueOf(objects[6])).setScale(2, BigDecimal.ROUND_HALF_UP));
                         value.setDrugtype(String.valueOf(objects[7]));
                         vo.add(value);
                     }
@@ -2725,7 +2764,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tcr.recipeId,\n" +
                         "\tcr.depart,\n" +
                         "\tcr.patientName,\n" +
-                        "\tco.dispensingTime as sendDate,\n" +
+                        "\tDATE_FORMAT(co.dispensingTime, '%Y-%m-%d %k:%i:%s') as sendDate,\n" +
                         "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' ELSE '无' END AS STATUS,\n" +
                         "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
                         "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
@@ -2733,8 +2772,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tcr.doctorName,\n" +
                         "\tcr.totalMoney,\n" +
                         "\tCASE cr.RecipeType WHEN 1 THEN '西药' ELSE '中成药' END AS RecipeType,\n" +
-                        "\tcr.CreateDate,\n" +
-                        "\tco.PayTime\n" +
+                        "\tDATE_FORMAT(cr.CreateDate, '%Y-%m-%d %k:%i:%s') as CreateDate,\n" +
+                        "\tDATE_FORMAT(co.PayTime, '%Y-%m-%d %k:%i:%s') as PayTime\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipedetail rd ON (cr.RecipeID = rd.RecipeID)\n" +
@@ -2757,6 +2796,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
                         (StringUtils.isNotEmpty(drugName) ? " AND rd.DrugName like :drugName" : "") +
                         (depart != null ? " AND cr.depart = :depart" : "");
+                sql += " group by cr.recipeId";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(cardNo)) {
@@ -2796,7 +2836,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         RecipeDrugDetialReportDTO value = new RecipeDrugDetialReportDTO();
-                        value.setBillNumber(String.valueOf(objects[0]));
+                        value.setBillNumber(String.valueOf(objects[0] == null ? "": objects[0]));
                         value.setRecipeId(Integer.valueOf(String.valueOf(objects[1])));
                         value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
                         value.setPatientName(String.valueOf(objects[3]));
@@ -2839,14 +2879,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " cr.doctorName,\n" +
                         " co.dispensingApothecaryName AS sendApothecaryName,\n" +
                         " co.dispensingApothecaryName AS dispensingApothecaryName,\n" +
-                        " mp.birthday AS birthday,\n" +
-                        " CASE mp.patientSex\n" +
-                        "WHEN 1 THEN\n" +
-                        "\t'男'\n" +
-                        "ELSE\n" +
-                        "\t'女'\n" +
-                        "END AS patientSex,\n" +
-                        " mp.mobile AS mobile,\n" +
                         " '' AS memo,\n" +
                         " cre.cardNo,\n" +
                         " crt.drugSpec,\n" +
@@ -2858,18 +2890,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " crt.sendNumber,\n" +
                         " crt.dosageUnit,\n" +
                         " crt.producer,\n" +
-                        " cr.OrganDiseaseName\n" +
+                        " cr.OrganDiseaseName,\n" +
+                        " cr.MPIID\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipe_ext cre ON (cr.RecipeID = cre.recipeId)\n" +
                         "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" +
                         "LEFT JOIN cdr_recipedetail crt ON crt.RecipeID = cre.recipeId\n" +
                         "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
-                        "LEFT JOIN eh_basic_devtest.MPI_Patient mp ON cr.MPIID = mp.MPIID\n" +
                         "WHERE\n" +
                         "\tcr.RecipeID = :recipeId";
                 Query q = statelessSession.createSQLQuery(sql);
-                System.out.println(sql);
+                LOGGER.info("findRecipeDrugDetialByRecipeId sql : " + sql);
                 q.setParameter("recipeId", recipeId);
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> vo = new ArrayList<>();
@@ -2885,21 +2917,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("doctorName", objects[5]);
                         value.put("sendApothecaryName", objects[6] == null ? "":objects[6]);
                         value.put("dispensingApothecaryName", objects[7] == null ? "":objects[7]);
-                        value.put("birthday", objects[8] == null ? "":objects[8]);
-                        value.put("patientSex", objects[9] == null ? "":objects[9]);
-                        value.put("mobile", objects[10] == null ? "":objects[10]);
-                        value.put("memo", objects[11] == null ? "":objects[11]);
-                        value.put("cardNo", objects[12] == null ? "":objects[12]);
-                        value.put("drugSpec", objects[13] == null ? "":objects[13]);
-                        value.put("useDoseStr", objects[14] == null ? "":objects[14]);
-                        value.put("usingRate", objects[15] == null ? "":objects[15]);
-                        value.put("usePathways", objects[16] == null ? "":objects[16]);
-                        value.put("drugCost", objects[17] == null ? "":objects[17]);
-                        value.put("drugName", objects[18] == null ? "":objects[18]);
-                        value.put("sendNumber", objects[19] == null ? "":objects[19]);
-                        value.put("dosageUnit", objects[20] == null ? "":objects[20]);
-                        value.put("producer", objects[21] == null ? "":objects[21]);
-                        value.put("OrganDiseaseName", objects[22] == null ? "":objects[22]);
+                        value.put("memo", objects[8] == null ? "":objects[8]);
+                        value.put("cardNo", objects[9] == null ? "":objects[9]);
+                        value.put("drugSpec", objects[10] == null ? "":objects[10]);
+                        value.put("useDoseStr", objects[11] == null ? "":objects[11]);
+                        value.put("usingRate", objects[12] == null ? "":objects[12]);
+                        value.put("usePathways", objects[13] == null ? "":objects[13]);
+                        value.put("drugCost", objects[14] == null ? "":objects[14]);
+                        value.put("drugName", objects[15] == null ? "":objects[15]);
+                        value.put("sendNumber", objects[16] == null ? "":objects[16]);
+                        value.put("dosageUnit", objects[17] == null ? "":objects[17]);
+                        value.put("producer", objects[18] == null ? "":objects[18]);
+                        value.put("OrganDiseaseName", objects[19] == null ? "":objects[19]);
+                        value.put("MPIID", objects[20] == null ? "":objects[20]);
                         vo.add(value);
                     }
                 }
