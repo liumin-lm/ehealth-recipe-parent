@@ -248,7 +248,11 @@ public class PayModeOnline implements IPurchaseService {
             return result;
         }
         order.setWxPayWay(payway);
-        //不能去掉，后面会用到
+        //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())
+                && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)){
+            orderType = RecipeBussConstant.ORDERTYPE_HZS;
+        }
         order.setOrderType(orderType);
         //设置确认订单页购药方式的key
         String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
