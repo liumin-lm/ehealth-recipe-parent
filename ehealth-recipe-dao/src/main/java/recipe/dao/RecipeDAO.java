@@ -3136,7 +3136,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
         List<Recipe> recipes = action.getResult();
         Long totalConsumedTime=new Date().getTime()-beginTime;
-        LOGGER.info("findRecipeListByDoctorAndPatientAndStatusList cost",totalConsumedTime);
+        LOGGER.info("findRecipeListByDoctorAndPatientAndStatusList cost:{}",totalConsumedTime);
         return recipes;
     }
 

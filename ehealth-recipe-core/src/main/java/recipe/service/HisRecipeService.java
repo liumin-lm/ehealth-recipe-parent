@@ -175,15 +175,16 @@ public class HisRecipeService {
             List<HisRecipeVO> onlyExistnoPayFeeHisRecipeVOs=new ArrayList<>();
             List<HisRecipeVO> onlyExistHisRecipeVOs=new ArrayList<>();
 
-            //
+            //遍历his返回待缴费处方
             for(HisRecipeVO noPayFeeHisRecipeVOHisRecipeVO :noPayFeeHisRecipeVO ){
                 String noPayFeeHisRecipeVOKey=noPayFeeHisRecipeVOHisRecipeVO.getMpiId()+noPayFeeHisRecipeVOHisRecipeVO.getClinicOrgan()+noPayFeeHisRecipeVOHisRecipeVO.getRecipeCode();
                 Boolean isEquals=false;
+                //遍历已存到 cdr_his_recipe表处方
                 for(HisRecipeVO hisRecipeVO:hisRecipeVOs){
                     String hisRecipeVoKey=hisRecipeVO.getMpiId()+hisRecipeVO.getClinicOrgan()+hisRecipeVO.getRecipeCode();
                     if(!StringUtils.isEmpty(noPayFeeHisRecipeVOKey)){
                         if(noPayFeeHisRecipeVOKey.equals(hisRecipeVoKey)){
-                            //处方在cdr_his_recipe存在，在his存在，则取cdr_his_recipe
+                            //处方在cdr_his_recipe存在，在his存在，则取his
                             equalsHisRecipeVOs.add(noPayFeeHisRecipeVOHisRecipeVO);
                             isEquals=true;
                             continue;
@@ -459,6 +460,8 @@ public class HisRecipeService {
      * @Desciption  从 his查询待缴费已缴费的处方信息
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+        //TODO question 查询条件带recipeCode
+        //TODO question 让前置机去过滤数据
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
@@ -704,6 +707,17 @@ public class HisRecipeService {
     }
 
 
+    /**
+     * 保存线下处方数据到cdr_his_recipe、HisRecipeDetail、HisRecipeExt
+     * 保存前先校验数据
+     * （1）如果数据在cdr_his_recipe已经存在,并且不是由本人生成，支付状态为未支付，先删除cdr_his_recipe[这里少删了表]，后新增
+     *                                  ，并且是由本人生成 ，则跳过此处方
+     * （2）如果数据在cdr_his_recipe不存在，则直接新增
+     * @param responseTO
+     * @param patientDTO
+     * @param flag
+     * @return
+     */
     @RpcService
     public List<HisRecipe> saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
         List<HisRecipe> hisRecipes=new ArrayList<>();
@@ -726,7 +740,7 @@ public class HisRecipeService {
                     hisRecipeIds.add(hisRecipe1.getHisRecipeID());
                     //同recipeCode,organId不是本人生成的线下处方
                     Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
-                    //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则先删除后新增
+                    //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_his_recipe，则先删除后新增
                     if (haveRecipe != null) {
                         if(new Integer(0).equals(haveRecipe.getPayFlag())){
                             hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
@@ -823,6 +837,8 @@ public class HisRecipeService {
                     LOGGER.error("hisRecipeDAO.save error ", e);
                     return hisRecipes;
                 }
+
+                //TODO 需要提到判断条件之外 保存前判断处方关联数据是否存在  存在先删除 然后新增 不存在新增
                 if (null != queryHisRecipResTO.getExt()) {
                     for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
                         HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO, HisRecipeExt.class);
@@ -830,6 +846,7 @@ public class HisRecipeService {
                         hisRecipeExtDAO.save(ext);
                     }
                 }
+                //TODO 需要提到判断条件之外 保存前判断处方关联数据是否存在  存在先删除 然后新增 不存在新增
                 if (null != queryHisRecipResTO.getDrugList()) {
                     for (RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
                         HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetail.class);
@@ -951,6 +968,7 @@ public class HisRecipeService {
                 payFlag = 1;
             }
         }
+        //TODO liumin 这个条件应改为hisRecipeId是否存在，存在表明已经转成线上了，不用走这个逻辑了  但是重复走这个逻辑也没关系，保存时会判断，存在数据也不会新增
         if(hisRecipe.getStatus() != 2 || payFlag == 1){
             LOGGER.info("getHisRecipeDetail 进入");
             try{
@@ -1057,6 +1075,7 @@ public class HisRecipeService {
         Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
         LOGGER.info("saveRecipeFromHisRecipe haveRecipe:{}.", JSONUtils.toString(haveRecipe));
         if (haveRecipe != null) {
+            //TODO 在表存在 更新除recipeId外所有数据 这里删掉 因为在校验的时候会判断如果不是由本人生成的待缴费处方会更新全部信息
             //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则替换用户信息
             if(new Integer(0).equals(haveRecipe.getPayFlag())
                     &&!StringUtils.isEmpty(hisRecipe.getMpiId())
@@ -1411,8 +1430,11 @@ public class HisRecipeService {
                 LOGGER.info("hisRecipeInfoCheck recipeOrderList = {}", JSONUtils.toString(recipeOrderList));
                 List<String> recipeOrderCode = recipeOrderList.stream().filter(a -> a.getPayFlag().equals(PayConstant.PAY_FLAG_PAY_SUCCESS)).map(RecipeOrder::getOrderCode).collect(Collectors.toList());
                 List<String> recipeCodeExclude = recipeList.stream().filter(a -> recipeOrderCode.contains(a.getOrderCode())).map(Recipe::getRecipeCode).distinct().collect(Collectors.toList());
-                //排除支付订单处方
+                //排除支付订单处方（找到非已支付的recipeCode）
                 recipeCodeList = recipeCodeList.stream().filter(a -> !recipeCodeExclude.contains(a)).collect(Collectors.toList());
+                //question TODO 比如his 返回已缴费的处方 ordercode就是空 这样吧his返回的已缴费的处方也过滤出来了
+
+
                 LOGGER.info("hisRecipeInfoCheck recipeCodeList = {}", JSONUtils.toString(recipeCodeList));
                 if (CollectionUtils.isEmpty(recipeCodeList)) {
                     return;
@@ -1539,6 +1561,7 @@ public class HisRecipeService {
         }
         recipeExtendDAO.deleteByRecipeIds(recipeIds);
         recipeDetailDAO.deleteByRecipeIds(recipeIds);
+        //question TODO recipe 主表不删 修改具体哪些字段（除id外所有字段）
         recipeDAO.deleteByRecipeIds(recipeIds);
         LOGGER.info("deleteSetRecipeCode is delete end ");
     }
