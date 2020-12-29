@@ -270,11 +270,11 @@ public class CreateRecipePdfUtil {
         float xPoint;
         float yPoint;
         if (isDoctor) {
-            xPoint = 95f;
-            yPoint = 100f;
+            xPoint = 55f;
+            yPoint = 76f;
         } else {
-            xPoint = 280f;
-            yPoint = 100f;
+            xPoint = 190f;
+            yPoint = 76f;
         }
 
         String fileId = null;

@@ -458,12 +458,24 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
             if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
 //                || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(200)
-
-                // 说明查询错误, 或者
                 List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
-                drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
-                for (IDrugInventory drugListBean : drugListBeans) {
-                    drugListBean.setInventories(drugInventoryInfos);
+                if (hisResp == null){
+                    // 说明查询错误, 或者
+                    drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
+                }else {
+                    String amount;
+                    if (Integer.valueOf(0).equals(hisResp.getMsgCode()) || Integer.valueOf(200).equals(hisResp.getMsgCode())){
+                        amount = "有库存";
+                    }else {
+                        amount = "无库存";
+                    }
+                    drugInventoryInfos.add(new DrugInventoryInfo("his", Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)), "0"));
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
                 }
             } else {
                 for (IDrugInventory drugListBean : drugListBeans) {
@@ -493,7 +505,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             pharmacyInventory.setPharmacyCode(drugInfoTO.getPharmacyCode());
             pharmacyInventory.setPharmacyName(drugInfoTO.getPharmacy());
             if (drugInfoTO.getStockAmount() == null){
-                amount = "0";
+                amount = "有库存";
             }else {
                 amount = BigDecimal.valueOf(drugInfoTO.getStockAmount()).toPlainString();
             }
@@ -1041,49 +1053,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             if (CollectionUtils.isEmpty(organDrugLists)){
                 return;
             }
-            //区分实时查和点击单个药品查
-            if (isViewInventoryRealtime(organId)){
-                //实时查
-                setHosInventoriesRealTime(organId,organDrugLists,drugListBeans,pharmacyId);
-            }else {
-                //点击单个药品查
-                setHosInventoriesSingle(organId,organDrugLists,drugListBeans,pharmacyId);
-            }
+            setHosInventoriesRealTime(organId,organDrugLists,drugListBeans,pharmacyId);
         } catch (Exception e) {
             LOGGER.error("查询医院药品实时查询库存错误setHosInventories ", e);
         }
-    }
-
-    private void setHosInventoriesSingle(Integer organId, List<OrganDrugList> organDrugLists, List<DrugListBean> drugListBeans, Integer pharmacyId) {
-        // 调用his前置接口查询医院库存并赋值
-        DrugInfoResponseTO response = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
-        List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>(1);
-        if (null == response) {
-            //不显示医院库存
-            drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
-        } else {
-            //显示医院库存
-            String amount;
-            //前置机成功码可能返回0或者200
-            if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
-                if (CollectionUtils.isEmpty(response.getData())){
-                    amount = "有库存";
-                }else {
-                    List<DrugInfoTO> data = response.getData();
-                    Double stockAmount = data.get(0).getStockAmount();
-                    if (stockAmount != null){
-                        amount = BigDecimal.valueOf(stockAmount).toPlainString();
-                    }else {
-                        amount = "有库存";
-                    }
-                }
-            }else {
-                amount = "无库存";
-            }
-            drugInventoryInfos.add(new DrugInventoryInfo("his", Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)), "0"));
-        }
-        //导这里只会有一个药，如果传了多个药会有问题
-        drugListBeans.forEach(drugListBean -> drugListBean.setInventories(drugInventoryInfos));
     }
 
     private void setHosInventoriesRealTime(Integer organId, List<OrganDrugList> organDrugLists, List<DrugListBean> drugListBeans,
@@ -1094,26 +1067,52 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         // 调用his前置接口查询医院库存并赋值
         DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
         List<DrugInventoryInfo> drugInventoryInfos;
-        if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
-            // 说明查询错误
+        if (hisResp == null) {
+            // 说明查询错误 设置status为1为查询失败-前端不显示
             for (DrugListBean drugListBean : drugListBeans) {
                 drugInventoryInfos = new ArrayList<>(1);
                 drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
                 drugListBean.setInventories(drugInventoryInfos);
             }
         } else {
+            //显示医院库存
+            String amount;
             DrugInventoryInfo drugInventory;
+            //前置机成功码可能返回0或者200
+            if (Integer.valueOf(0).equals(hisResp.getMsgCode()) || Integer.valueOf(200).equals(hisResp.getMsgCode())){
+                //当没返回库存数量的时候
+                if (CollectionUtils.isEmpty(hisResp.getData())){
+                    amount = "有库存";
+                }else {
+                    //当返回库存数量的时候
+                    //循环查询的药品
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        //只保存organDrugCode一样的药品
+                        List<DrugInfoTO> drugInfoTOListMatched = hisResp.getData().stream().filter(item ->
+                                drugIdAndOrganDrugCode.get(drugListBean.getDrugId()).equalsIgnoreCase(item.getDrcode()))
+                                .collect(Collectors.toList());
+                        drugInventoryInfos = Lists.newArrayList();
+                        //一个药品下his有可能返回多个药房
+                        drugInventory = DrugInventoryInfo.builder()
+                                .type("his")
+                                .pharmacyInventories(convertFrom(drugInfoTOListMatched))
+                                .remoteQueryStatus("0")
+                                .build();
+                        drugInventoryInfos.add(drugInventory);
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
+                    return;
+                }
+            }else {
+                amount = "无库存";
+            }
+            //只处理有无库存情况 不显示数量
             //循环查询的药品
             for (IDrugInventory drugListBean : drugListBeans) {
-                //只保存organDrugCode一样的药品
-                List<DrugInfoTO> drugInfoTOListMatched = hisResp.getData().stream().filter(item ->
-                        drugIdAndOrganDrugCode.get(drugListBean.getDrugId()).equalsIgnoreCase(item.getDrcode()))
-                        .collect(Collectors.toList());
-                drugInventoryInfos = Lists.newArrayList();
-                //一个药品下his有可能返回多个药房
+                drugInventoryInfos = new ArrayList<>(1);
                 drugInventory = DrugInventoryInfo.builder()
                         .type("his")
-                        .pharmacyInventories(convertFrom(drugInfoTOListMatched))
+                        .pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)))
                         .remoteQueryStatus("0")
                         .build();
                 drugInventoryInfos.add(drugInventory);
@@ -1121,6 +1120,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
         }
     }
+
     private void setDrugsEnterpriseInventoriesByFiveSeconds(Integer organId, List<DrugListBean> drugListBeans) {
         Future<? extends List<? extends IDrugInventory>> fiveSecondsTask =
                 GlobalEventExecFactory.instance().getExecutor().submit(() -> setDrugsEnterpriseInventories(organId, drugListBeans));
