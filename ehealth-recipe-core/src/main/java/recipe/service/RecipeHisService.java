@@ -379,13 +379,14 @@ public class RecipeHisService extends RecipeBaseService {
                 //打印日志，程序继续执行，不影响支付回调
                 LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(), recipe.getRecipeId(), e);
             }
+            boolean canDrugTakeChange = true;
             //线上支付完成需要发送消息（结算）（省医保则是医保结算）
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == payFlag) {
                 //处理处方结算
-                doRecipeSettle(recipe, patientBean, cardBean, result);
+                canDrugTakeChange = doRecipeSettle(recipe, patientBean, cardBean, result);
             }
 
-            if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
+            if (canDrugTakeChange) {
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
                 LOGGER.info("drugTakeChange 请求参数:{}.", JSONUtils.toString(request));
                 Boolean success = service.drugTakeChange(request);
@@ -412,34 +413,39 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
-    private void doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
+    /**
+     *
+     * @param recipe
+     * @param patientBean
+     * @param cardBean
+     * @param result
+     * @return  是否走更新配送信息接口
+     */
+    private boolean doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
         //调用前置机结算支持两种方式---配送到家和药店取药
         if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
             LOGGER.info("doRecipeSettle recipeId={}",recipe.getRecipeId());
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 LOGGER.error("doRecipeSettle orderCode is null; recipeId={}",recipe.getRecipeId());
-                result.setCode(RecipeResultBean.FAIL);
-                return;
+                return false;
             }
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (recipeOrder == null) {
                 LOGGER.error("doRecipeSettle recipeOrder is null ; recipeId={}",recipe.getRecipeId());
-                result.setCode(RecipeResultBean.FAIL);
-                return;
+                return false;
             }
             //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
             // 111 为卫宁支付---卫宁付不走前置机的his结算
             if ("111".equals(recipeOrder.getWxPayWay())) {
                 LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}",recipe.getRecipeId());
-                result.setCode(RecipeResultBean.FAIL);
-                return;
+                return false;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
             IRecipeSettleService settleService = PreSettleFactory.getSettleService(recipeOrder.getOrganId(), recipeOrder.getOrderType());
             if (settleService == null) {
                 LOGGER.info("doRecipeSettle settleService is null; recipeId={}",recipe.getRecipeId());
-                return;
+                return true;
             }
             List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
             PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
@@ -456,6 +462,7 @@ public class RecipeHisService extends RecipeBaseService {
             }
             settleService.doRecipeSettleResponse(response,recipe,result);
         }
+        return true;
     }
 
     @Autowired
