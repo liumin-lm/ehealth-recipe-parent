@@ -1467,7 +1467,7 @@ public class RecipeServiceSub {
             }
         }
         map.put("patient", patient);
-        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe), isDoctor, recipe.getClinicOrgan()));
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
         if (isDoctor == false) {
