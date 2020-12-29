@@ -27,6 +27,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -45,13 +46,11 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.manager.EmrRecipeManager;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * company: ngarihealth
@@ -638,11 +637,16 @@ public class HisRequestInit {
                             requestTO.setInsuredAreaType("1");
                         }
                         //自负金额
-                        requestTO.setCashAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
-                        //应付金额
-                        requestTO.setPayAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
-                        //总金额
-                        requestTO.setPreSettleTotalAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()).toPlainString());
+                        if (order.getCashAmount() != null) {
+                            requestTO.setCashAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
+                            //应付金额
+                            requestTO.setPayAmount(BigDecimal.valueOf(order.getCashAmount()).toPlainString());
+                        }
+                        if (order.getPreSettletotalAmount() != null) {
+                            //总金额
+                            requestTO.setPreSettleTotalAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()).toPlainString());
+                        }
+
                         //his收据号
                         requestTO.setHisSettlementNo(order.getHisSettlementNo());
                     }
