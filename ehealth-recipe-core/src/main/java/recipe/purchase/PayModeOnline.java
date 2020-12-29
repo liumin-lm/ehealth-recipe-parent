@@ -250,6 +250,10 @@ public class PayModeOnline implements IPurchaseService {
         order.setWxPayWay(payway);
         //不能去掉，后面会用到
         order.setOrderType(orderType);
+        //设置确认订单页购药方式的key
+        String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
+        order.setGiveModeKey(giveModeKey);
+        order.setGiveModeText(CommonOrder.getGiveModeText(recipeList.get(0).getClinicOrgan(), giveModeKey));
         DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
         //处理详情
         for (Recipe dbRecipe : recipeList) {

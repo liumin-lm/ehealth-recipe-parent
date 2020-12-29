@@ -324,10 +324,6 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrganId(firstRecipe.getClinicOrgan());
             order.setOrderCode(this.getOrderCode(order.getMpiId()));
             order.setStatus(OrderStatusConstant.READY_PAY);
-            //设置确认订单页购药方式的key
-            String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
-            order.setGiveModeKey(giveModeKey);
-            order.setGiveModeText(getGiveModeText(firstRecipe.getClinicOrgan(), giveModeKey));
             //设置订单各种费用和配送地址
             Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
             if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
@@ -425,18 +421,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return payModeSupport;
-    }
-
-    private String getGiveModeText(Integer organId, String key){
-        try {
-            IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-            GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
-            Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
-            return (String)configurations.get(key);
-        } catch (Exception e) {
-            LOGGER.error("getGiveModeText organId:{}, key:{}.", organId, key);
-        }
-        return "";
     }
 
     /**
@@ -1485,7 +1469,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setDoctorName(recipe.getDoctorName());
                     prb.setRecipeCode(recipe.getRecipeCode());
                     RecipeBean recipeBean= ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                    recipeBean.setGiveModeText(order.getGiveModeText());
+                    if (StringUtils.isNotEmpty(order.getGiveModeText())) {
+                        recipeBean.setGiveModeText(order.getGiveModeText());
+                    } else {
+                        recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                    }
                     prb.setRecipe(recipeBean);
                     prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
