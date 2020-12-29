@@ -73,7 +73,7 @@ public class RecipeLabelManager {
         if (heightSize == 0) {
             return height;
         } else {
-            return height - heightSize * 2;
+            return height - heightSize * 4;
         }
     }
 
