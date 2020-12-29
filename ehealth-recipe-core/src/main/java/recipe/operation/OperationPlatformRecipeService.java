@@ -1,4 +1,5 @@
 package recipe.operation;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
@@ -180,6 +181,13 @@ public class OperationPlatformRecipeService {
         r.setSignCADate(recipe.getSignCADate());
         r.setFromflag(recipe.getFromflag());
         r.setOrderCode(recipe.getOrderCode());
+        //贴数
+        r.setCopyNum(recipe.getCopyNum());
+        //总金额
+        r.setTotalMoney(recipe.getTotalMoney());
+        r.setActualPrice(recipe.getActualPrice());
+        //处方备注
+        r.setRecipeMemo(recipe.getRecipeMemo());
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
@@ -335,7 +343,7 @@ public class OperationPlatformRecipeService {
         Boolean cancelRecipeFlag = false;
         //只有审核通过的才有标识
         if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)
-                && !(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus())) {
+                && !(RecipeStatusConstant.SIGN_NO_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus())) {
             cancelRecipeFlag = true;
         }
         map.put("cancelRecipeFlag", cancelRecipeFlag);
@@ -560,6 +568,14 @@ public class OperationPlatformRecipeService {
         }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
+        } else if (RecipeStatusConstant.REVOKE == status) {
+            //date 20200721 添加“已取消”状态
+            if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))) {
+                return RecipePharmacistCheckConstant.Cancel;
+            }
+            checkResult = 4;
+        } else if (RecipeStatusConstant.SIGN_NO_CODE_PHA == status) {
+            checkResult = 8;
         } else {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
                 checkResult = RecipePharmacistCheckConstant.Second_Sign;

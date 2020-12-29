@@ -74,13 +74,15 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        //解决老版本的支付流水号错误回传,这里应该传收据号
+        String hisSettlementNo =StringUtils.isEmpty(recipeOrder.getHisSettlementNo())?recipeOrder.getTradeNo():recipeOrder.getHisSettlementNo();
         if(recipeOrder == null){
             LOGGER.error("applyForRecipeRefund-未获取到处方单信息. recipeId={}", recipeId.toString());
             throw new DAOException("未获取到处方订单信息！");
         }
         ApplicationForRefundVisitReqTO request = new ApplicationForRefundVisitReqTO();
         request.setOrganId(recipe.getClinicOrgan());
-        request.setBusNo(recipeOrder.getTradeNo());
+        request.setBusNo(hisSettlementNo);
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
         request.setApplyReason(applyReason);
@@ -116,7 +118,7 @@ public class RecipeRefundService extends RecipeBaseService{
             //不需要医生审核，则直接推送给第三方
             CheckForRefundVisitReqTO visitRequest = new CheckForRefundVisitReqTO();
             visitRequest.setOrganId(recipe.getClinicOrgan());
-            visitRequest.setBusNo(recipeOrder.getTradeNo());
+            visitRequest.setBusNo(hisSettlementNo);
             visitRequest.setPatientId(recipe.getPatientID());
             visitRequest.setPatientName(recipe.getPatientName());
             DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
@@ -283,10 +285,12 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        //解决老版本的支付流水号错误回传
+        String hisSettlementNo =StringUtils.isEmpty(recipeOrder.getHisSettlementNo())?recipeOrder.getTradeNo():recipeOrder.getHisSettlementNo();
         CheckForRefundVisitReqTO request = new CheckForRefundVisitReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setApplyNoHis(list.get(0).getApplyNo());
-        request.setBusNo(list.get(0).getTradeNo());
+        request.setBusNo(hisSettlementNo);
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
@@ -392,9 +396,11 @@ public class RecipeRefundService extends RecipeBaseService{
             throw new DAOException("未获取到处方单信息！");
         }
         RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeId);
+        //解决老版本的支付流水号错误回传
+        String hisSettlementNo =StringUtils.isEmpty(recipeOrder.getHisSettlementNo())?recipeOrder.getTradeNo():recipeOrder.getHisSettlementNo();
         FindRefundRecordReqTO request = new FindRefundRecordReqTO();
         request.setOrganId(recipe.getClinicOrgan());
-        request.setBusNo(applyNo);
+        request.setBusNo(hisSettlementNo);
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
         request.setRefundType(getRefundType(recipeOrder));

@@ -146,14 +146,34 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
 
             try {
-                drug.setDrugName(getStrFromCell(row.getCell(2)));
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
+                        errMsg.append("平台药品编号不能为空").append(";");
+                    }
+                    DrugList byId = drugListDAO.getById(Integer.parseInt(getStrFromCell(row.getCell(31))));
+                    if (byId != null){
+                        drug.setDrugName(byId.getDrugName());
+                    }
+                }else {
+                    drug.setDrugName(getStrFromCell(row.getCell(2)));
+                }
             } catch (Exception e) {
                 LOGGER.error("药品名有误 ," + e.getMessage(),e);
                 errMsg.append("药品名有误").append(";");
             }
 
             try {
-                drug.setSaleName(getStrFromCell(row.getCell(3)));
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
+                        errMsg.append("平台药品编号不能为空").append(";");
+                    }
+                    DrugList byId = drugListDAO.getById(Integer.parseInt(getStrFromCell(row.getCell(31))));
+                    if (byId != null){
+                        drug.setDrugName(byId.getSaleName());
+                    }
+                }else {
+                    drug.setSaleName(getStrFromCell(row.getCell(3)));
+                }
             } catch (Exception e) {
                 LOGGER.error("药品商品名有误 ," + e.getMessage(),e);
                 errMsg.append("药品商品名有误").append(";");
