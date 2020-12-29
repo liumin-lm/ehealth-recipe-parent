@@ -60,7 +60,7 @@ public class RecipeLabelManager {
      * @return Y坐标点位 （默认430 超过6字段 每个字段降低5px高度）
      */
     public int getPdfReceiverHeight(Integer organId) {
-        int height = 450;
+        int height = 440;
         if (null == organId) {
             return height;
         }
@@ -73,7 +73,7 @@ public class RecipeLabelManager {
         if (heightSize < 0) {
             return height;
         } else {
-            return height - heightSize * 7;
+            return height - heightSize * 6;
         }
     }
 
