@@ -2139,13 +2139,23 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param limit
      */
     @Override
-    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
+    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
         LOGGER.info("pharmacyTop is {}", organId + drugType + startDate.toLocaleString() + endDate.toLocaleString() + order + start + limit + "");
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, start, limit);
+        String orderStatusStr = "4,5,13";
+        if (orderStatus == 1) {
+            orderStatusStr = "4";
+        }
+        if (orderStatus == 2) {
+            orderStatusStr = "5";
+        }
+        if (orderStatus == 3) {
+            orderStatusStr = "13";
+        }
+        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, orderStatusStr, startDateStr, endDateStr, order, start, limit);
         Map<String, Object> reports = new HashMap<>();
-        reports.put("total", recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, null, null).size());
+        reports.put("total", recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, orderStatusStr, startDateStr, endDateStr, order, null, null).size());
         reports.put("data", drugCountOrderByCountOrMoneyCountGroupByDrugId);
         LOGGER.info("pharmacyTop response size is {}", drugCountOrderByCountOrMoneyCountGroupByDrugId.size());
         return reports;

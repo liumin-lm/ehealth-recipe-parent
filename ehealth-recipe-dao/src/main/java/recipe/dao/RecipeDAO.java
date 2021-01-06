@@ -2636,7 +2636,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String startDate, String endDate, Integer order, Integer start, Integer limit) {
+    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String orderStatus, String startDate, String endDate, Integer order, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2699,7 +2699,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t\tAND '"+endDate+"'\n" +
                         "\t\tAND ClinicOrgan = :organId\n" +
                         "\t\tAND rd.drugCost IS NOT NULL\n" +
-                        "\t\tAND co.`Status` IN (13, 4, 5)\n" +
+                        "\t\tAND co.`Status` IN (" + orderStatus + ")\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "\t) GROUP BY\n" +
                         "\tdrugId\n";
