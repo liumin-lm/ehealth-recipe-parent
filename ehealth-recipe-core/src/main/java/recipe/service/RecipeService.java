@@ -713,7 +713,7 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Map<String, Object> backMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan());
+        Map<String, Object> backMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan(), recipe.getStatus());
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
