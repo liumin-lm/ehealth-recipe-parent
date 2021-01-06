@@ -44,7 +44,7 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         return getBean(address, EnterpriseAddressDTO.class);
     }
 
-    @RpcService
+    @RpcService(timeout = 600000)
     @Override
     public void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
