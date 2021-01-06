@@ -2553,14 +2553,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tr.ordercode IS NOT NULL\n" +
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
-                        "AND o.status in (:orderStatus)\n" +
+                        "AND o.status in (" + orderStatus + ")\n" +
                         "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
-                q.setParameter("orderStatus", orderStatus);
                 if (StringUtils.isNotEmpty(doctorName)) {
                     q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
                 }
@@ -2637,7 +2636,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String startDate, String endDate, Integer order, Integer start, Integer limit) {
+    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String orderStatus, String startDate, String endDate, Integer order, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2700,7 +2699,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t\tAND '"+endDate+"'\n" +
                         "\t\tAND ClinicOrgan = :organId\n" +
                         "\t\tAND rd.drugCost IS NOT NULL\n" +
-                        "\t\tAND co.`Status` IN (13, 4, 5)\n" +
+                        "\t\tAND co.`Status` IN (" + orderStatus + ")\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "\t) GROUP BY\n" +
                         "\tdrugId\n";
