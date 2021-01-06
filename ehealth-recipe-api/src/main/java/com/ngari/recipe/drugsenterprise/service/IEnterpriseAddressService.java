@@ -23,7 +23,7 @@ public interface IEnterpriseAddressService extends IBaseService<EnterpriseAddres
     @RpcService
     void deleteEnterpriseAddressById(List<Integer> ids);
 
-    @RpcService(timeout = 600000)
+    @RpcService
     void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList);
 
     @RpcService

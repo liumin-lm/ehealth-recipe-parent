@@ -1,5 +1,6 @@
 package recipe.serviceprovider.drugsenterprise.service;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.service.IEnterpriseAddressService;
 import com.ngari.recipe.entity.EnterpriseAddress;
@@ -14,6 +15,7 @@ import recipe.dao.EnterpriseAddressDAO;
 import recipe.service.EnterpriseAddressService;
 import recipe.serviceprovider.BaseService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.List;
 
@@ -44,19 +46,24 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         return getBean(address, EnterpriseAddressDTO.class);
     }
 
-    @RpcService(timeout = 600000)
+    @RpcService
     @Override
     public void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         if(ValidateUtil.notBlankList(enterpriseAddressDTOList)) {
-            Integer enterpriseId=enterpriseAddressDTOList.get(0).getEnterpriseId();
-            LOGGER.info("addEnterpriseAddressList EnterpriseId=[{}],size=[{}]",enterpriseId,enterpriseAddressDTOList.size());
-
+            Integer enterpriseId = enterpriseAddressDTOList.get(0).getEnterpriseId();
+            LOGGER.info("addEnterpriseAddressList EnterpriseId=[{}],size=[{}]", enterpriseId, enterpriseAddressDTOList.size());
             addressDAO.deleteByEnterpriseId(enterpriseId);
-            for (EnterpriseAddressDTO enterpriseAddressDTO : enterpriseAddressDTOList) {
-                EnterpriseAddress enterpriseAddress = getBean(enterpriseAddressDTO, EnterpriseAddress.class);
-                EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
-            }
+            RecipeBusiThreadPool.execute(() -> {
+                for (EnterpriseAddressDTO enterpriseAddressDTO : enterpriseAddressDTOList) {
+                    EnterpriseAddress enterpriseAddress = getBean(enterpriseAddressDTO, EnterpriseAddress.class);
+                    try {
+                        addressDAO.addEnterpriseAddress(enterpriseAddress);
+                    } catch (Exception e) {
+                        LOGGER.warn("addEnterpriseAddressList error enterpriseAddress = {}", JSON.toJSONString(enterpriseAddress), e);
+                    }
+                }
+            });
         }
     }
 
