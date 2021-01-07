@@ -207,7 +207,7 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @param enterpriseId 药企Id
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 30)
     public List<EnterpriseAddressDTO> findByEnterPriseId(Integer enterpriseId) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         List<EnterpriseAddressDTO> result = ObjectCopyUtils.convert(dao.findByEnterpriseIdAndStatus(enterpriseId, 1), EnterpriseAddressDTO.class);
