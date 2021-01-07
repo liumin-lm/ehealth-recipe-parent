@@ -178,7 +178,7 @@ public class EmrRecipeManager {
             }
         });
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("EmrRecipeManager updateDocStatus docId={} boo={},boo={}", docId, result, JSON.toJSONString(recipeUpdate));
+        logger.info("EmrRecipeManager updateDocStatus docId={} boo={},recipeUpdate={}", docId, result, JSON.toJSONString(recipeUpdate));
     }
 
     public void deleteRecipeDetailsFromDoc(Integer recipeId) {
@@ -276,7 +276,7 @@ public class EmrRecipeManager {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
         }
-        logger.info("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
+        logger.debug("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
     }
 
     /**
