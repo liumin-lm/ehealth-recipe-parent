@@ -85,6 +85,14 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    /**
+     * 这里只有处方新增，处方取消放前置机处理了，如果这个接口修改了入参需要通知前置机同步修改取消处方接口
+     *
+     * @param enterprise
+     * @param result
+     * @param recipe
+     * @param flag
+     */
     private void pushRecipeInfoForSy(DrugsEnterprise enterprise, DrugEnterpriseResult result, Recipe recipe, Integer flag) {
         getMedicalInfo(recipe);
         LOGGER.info("pushRecipeInfoForSy recipeId:{}, flag:{}.", recipe.getRecipeId(), flag);
@@ -165,8 +173,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 try{
                     Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
                     Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
-                    ebsDetail.setDirections(StringUtils.isNotEmpty(recipedetail.getUsingRateTextFromHis())?recipedetail.getUsingRateTextFromHis():usingRateDic.getText(recipedetail.getUsingRate())
-                            + (StringUtils.isNotEmpty(recipedetail.getUsePathwaysTextFromHis())?recipedetail.getUsePathwaysTextFromHis():usePathwaysDic.getText(recipedetail.getUsePathways())));
+                    ebsDetail.setDirections(StringUtils.isNotEmpty(recipedetail.getUsingRateTextFromHis())?recipedetail.getUsingRateTextFromHis():usingRateDic.getText(recipedetail.getUsingRate()) + (StringUtils.isNotEmpty(recipedetail.getUsePathwaysTextFromHis())?recipedetail.getUsePathwaysTextFromHis():usePathwaysDic.getText(recipedetail.getUsePathways())));
                 }catch(Exception e){
                     LOGGER.error("pushRecipeInfo 用法用量获取失败.",e);
                 }
