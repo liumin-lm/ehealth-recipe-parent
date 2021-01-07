@@ -1,7 +1,6 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.visit.mode.ApplicationForRefundVisitReqTO;
@@ -23,6 +22,7 @@ import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -36,12 +36,13 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -238,6 +239,8 @@ public class RecipeRefundService extends RecipeBaseService{
                         hisService.recipeRefund(recipe.getRecipeId());
                     }
                     updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS);
+                    //退费应该按取消处方处理通知给药企
+                    doCancelRecipeForEnterprise(recipe);
                     busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getRecipeId()+"","recipe","电子处方订单【"+recipe.getRecipeCode()+"】第三方退费审核通过", recipe.getOrganName());
 
                 }
@@ -257,6 +260,26 @@ public class RecipeRefundService extends RecipeBaseService{
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核",recipe.getRecipeId()+"","recipe","电子处方订单【"+recipe.getRecipeCode()+"】第三方退费审核不通过", recipe.getOrganName());
             }
         }
+    }
+
+    /**
+     * 处方退费应该按取消处方处理通知给药企
+     *
+     * @param recipe
+     */
+    private void doCancelRecipeForEnterprise(Recipe recipe) {
+        RecipeCancelService recipeCancelService = ApplicationUtils.getRecipeService(RecipeCancelService.class);
+        HisResponseTO response = recipeCancelService.doCancelRecipeForEnterprise(recipe);
+        if (response == null) {
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方退费-未对接取消药企处方接口");
+            return;
+        }
+        if (response.isSuccess()) {
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方退费-调用取消药企处方成功");
+        } else {
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方退费-调用取消药企处方失败，原因：" + response.getMsg());
+        }
+
     }
 
     /*
