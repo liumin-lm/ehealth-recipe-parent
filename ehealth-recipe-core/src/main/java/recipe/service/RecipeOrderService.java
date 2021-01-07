@@ -69,7 +69,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
-import recipe.bean.*;
+import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.PurchaseResponse;
+import recipe.bean.RecipePayModeSupportBean;
+import recipe.bean.ThirdResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -79,7 +82,6 @@ import recipe.drugsenterprise.*;
 import recipe.easypay.IEasyPayService;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -2198,7 +2200,9 @@ public class RecipeOrderService extends RecipeBaseService {
             //药企对接-无回写接口:将处方信息传给基础服务线
             ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
             WriteBackLogisticsOrderDto orderDto = getWriteBackLogisticsOrderDto(order, recipeS.get(0), enterprise);
-            logisticsOrderService.writeBackLogisticsOrder(orderDto);
+            LOGGER.info("基础服务物流下单入参 req={}", JSONUtils.toString(orderDto));
+            String res = logisticsOrderService.writeBackLogisticsOrder(orderDto);
+            LOGGER.info("基础服务物流下单结果 res={}", res);
         }
     }
     private WriteBackLogisticsOrderDto getWriteBackLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise){
