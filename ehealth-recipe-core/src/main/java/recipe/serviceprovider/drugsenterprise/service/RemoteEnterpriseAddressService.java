@@ -67,7 +67,7 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         addressDAO.deleteByEnterpriseId(enterpriseId);
 
         List<FutureTask<String>> futureTasks = new LinkedList<>();
-        List<List<EnterpriseAddressDTO>> groupList = Lists.partition(enterpriseAddressDTOList, 400);
+        List<List<EnterpriseAddressDTO>> groupList = Lists.partition(enterpriseAddressDTOList, 500);
         groupList.forEach(a -> {
             FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseAddress(a));
             futureTasks.add(ft);
