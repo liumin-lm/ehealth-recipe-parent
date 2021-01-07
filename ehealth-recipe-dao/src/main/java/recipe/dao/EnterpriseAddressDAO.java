@@ -39,7 +39,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
      * @return
      */
     @DAOMethod(sql = "select count(*) from EnterpriseAddress where enterpriseId=:enterpriseId and address=:address")
-    public abstract Long findByEnterpriseIdAndAddress(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("address") String address);
+    public abstract Long getCountByEnterpriseIdAndAddress(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("address") String address);
 
     /**
      * 添加药企配送地址
@@ -59,7 +59,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         if (ObjectUtils.isEmpty(enterpriseAddress.getAddress())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "Address is null");
         }
-        Long size = findByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), enterpriseAddress.getAddress());
+        Long size = getCountByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), enterpriseAddress.getAddress());
         if (null != size && size > 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "Enterprise Address exist");
         }
