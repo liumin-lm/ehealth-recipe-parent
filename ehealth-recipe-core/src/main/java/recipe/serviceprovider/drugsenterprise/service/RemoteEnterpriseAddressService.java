@@ -2,7 +2,6 @@ package recipe.serviceprovider.drugsenterprise.service;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Lists;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.service.IEnterpriseAddressService;
 import com.ngari.recipe.entity.EnterpriseAddress;
@@ -67,12 +66,12 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         addressDAO.deleteByEnterpriseId(enterpriseId);
 
         List<FutureTask<String>> futureTasks = new LinkedList<>();
-        List<List<EnterpriseAddressDTO>> groupList = Lists.partition(enterpriseAddressDTOList, 500);
-        groupList.forEach(a -> {
-            FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseAddress(a));
-            futureTasks.add(ft);
-            GlobalEventExecFactory.instance().getExecutor().submit(ft);
-        });
+        //List<List<EnterpriseAddressDTO>> groupList = Lists.partition(enterpriseAddressDTOList, 500);
+        // groupList.forEach(a -> {
+        FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseAddress(enterpriseAddressDTOList));
+        futureTasks.add(ft);
+        GlobalEventExecFactory.instance().getExecutor().submit(ft);
+        // });
         String result = "";
         try {
             for (FutureTask<String> futureTask : futureTasks) {

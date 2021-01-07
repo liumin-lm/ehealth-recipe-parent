@@ -121,6 +121,16 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
     }
 
     /**
+     * 根据药企Id  + 使用状态 查询能够配送的地址
+     *
+     * @param enterpriseId
+     * @param status
+     * @return
+     */
+    @DAOMethod(sql = "From EnterpriseAddress where enterpriseId=:enterpriseId and Status=:status")
+    public abstract List<EnterpriseAddress> findByEnterpriseIdAndStatus(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("status") Integer status);
+
+    /**
      * 根据药企Id 查询能够配送的地址
      * zhongzx
      *

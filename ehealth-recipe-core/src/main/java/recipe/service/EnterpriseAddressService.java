@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseAddress;
@@ -9,7 +10,6 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -210,7 +210,8 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
     @RpcService
     public List<EnterpriseAddressDTO> findByEnterPriseId(Integer enterpriseId) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        return getList(dao.findByEnterPriseId(enterpriseId), EnterpriseAddressDTO.class);
+        List<EnterpriseAddressDTO> result = ObjectCopyUtils.convert(dao.findByEnterpriseIdAndStatus(enterpriseId, 1), EnterpriseAddressDTO.class);
+        return result;
     }
 
     /**
