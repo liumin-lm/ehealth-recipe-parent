@@ -7,8 +7,11 @@ import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
@@ -24,6 +27,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -601,6 +605,7 @@ public class RecipeListService extends RecipeBaseService {
             Map<String, Object> map = new HashMap<>();
             map.put("recipe", RecipeServiceSub.convertHisRecipeForRAP(hisRecipeBean));
             map.put("patient", upderLineRecipesByHis.get("patient"));
+            attachDocSignPic(hisRecipeBean,map);
             res.add(map);
         }
 
@@ -613,6 +618,28 @@ public class RecipeListService extends RecipeBaseService {
         Long totalConsumedTime=new Date().getTime()-beginTime;
         LOGGER.info("dealRepeatDataAndSort cost:{}",totalConsumedTime);
         return res;
+    }
+
+    /**
+     * 线下处方设置签名图片
+     * @param hisRecipeBean
+     * @param map
+     */
+    private void attachDocSignPic(HisRecipeBean hisRecipeBean, Map<String, Object> map) {
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+        if (StringUtils.isNotEmpty(hisRecipeBean.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipeBean.getDoctorCode(), hisRecipeBean.getClinicOrgan());
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+                //设置签名图片
+                Map<String,String> signInfo=RecipeServiceSub.attachSealPic(hisRecipeBean.getClinicOrgan(),employmentDTO.getDoctorId(),null,null);
+                if (StringUtils.isNotEmpty(signInfo.get("doctorSignImg"))){
+                    Map<String,String> otherInfo=new HashMap<>();
+                    otherInfo.put("doctorSignImg", signInfo.get("doctorSignImg"));
+                    otherInfo.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
+                    map.put("otherInfo",otherInfo);
+                }
+            }
+        }
     }
 
     /**
