@@ -1810,8 +1810,11 @@ public class RecipeHisService extends RecipeBaseService {
             recipes.add(r);
 
         }
+        //排序 根据createDate倒序
+        Collections.sort(recipes, Comparator.comparing(RecipeBean::getCreateDate).reversed());
         result.put("hisRecipe", recipes);
         result.put("patient", RecipeServiceSub.convertSensitivePatientForRAP(patientDTO));
+        LOGGER.info("queryHisInsureRecipeListFromHis  result:{}", JSONUtils.toString(result));
         return result;
         //转换平台字段
     }

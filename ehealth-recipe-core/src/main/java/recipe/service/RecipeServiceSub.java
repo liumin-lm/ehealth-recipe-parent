@@ -166,7 +166,7 @@ public class RecipeServiceSub {
      * @param organId
      * @return
      */
-    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId) {
+    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId, int recipeStatus) {
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
@@ -176,6 +176,9 @@ public class RecipeServiceSub {
             return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
         } catch (Exception e) {
             LOGGER.error("queryPdfRecipeLabelById error ", e);
+            //日志记录
+            String memo = "签名上传文件失败！原因：" + e.getMessage();
+            RecipeLogService.saveRecipeLog(recipeId, recipeStatus, recipeStatus, memo);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
         }
     }
