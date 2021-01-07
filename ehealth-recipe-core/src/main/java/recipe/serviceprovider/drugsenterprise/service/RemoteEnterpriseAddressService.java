@@ -57,6 +57,7 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
     @RpcService(timeout = 60)
     @Override
     public void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
+        long start = System.currentTimeMillis();
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         if (CollectionUtils.isEmpty(enterpriseAddressDTOList)) {
             return;
@@ -89,6 +90,7 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         if (!StringUtils.isEmpty(result)) {
             throw new DAOException(DAOException.VALUE_NEEDED, result);
         }
+        LOGGER.info("addEnterpriseAddressList end = {} ", System.currentTimeMillis() - start);
     }
 
     private String batchAddEnterpriseAddress(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
