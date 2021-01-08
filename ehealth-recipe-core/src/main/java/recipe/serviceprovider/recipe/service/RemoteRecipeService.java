@@ -2245,13 +2245,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     /**
-     * 根据复诊Id查询处方状态
+     * 复诊查询处方状态是否有效
      * @param bussSource
      * @param clinicId
+     * @param  statusCode
      * @return
      */
     @RpcService
-    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId){
+    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {}", JSONUtils.toString(clinicId));
         //查询处方记录
         List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
@@ -2260,12 +2261,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return false;
         }
         for (Recipe recipe:recipeList){
-            //校验复诊记录是否存在
-            if (recipe.getClinicId()==clinicId){
-                //类型2：处方开成功了（回写his成功），且不包含已退费状态（支付了已退费）和已失效状态（未支付）， 就当有效处方--（已支付且未产生退费）
-                //1.未失效（三天失效）   2.没有退费       ---有效状态
+                //类型2：处方开成功了（回写his成功），且不包含已退费状态或者已失效状态， 就当有效处方
                 //0未支付，1已支付，2退款中，3退款成功，4支付失败'
-                if (recipe.getRecipeCode()!=null&&recipe.getPayFlag()==1){
+                if (recipe.getRecipeCode()!=null&&statusCode==2){
                     //校验处方单是否已退费
                     String orderCode = recipe.getOrderCode();
                     //根据订单编号查找对应的订单
@@ -2273,14 +2271,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     //判断处方订单是否已经退费
                     return (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true;
                 }
-                /*
-                问题：类型1：回写了his,未支付（三天有效）算不算，有效处方；
-                 */
+
                 //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
-                if (recipe.getRecipeCode()!=null){
+                if (recipe.getRecipeCode()!=null&&statusCode==1){
                     return true;
                 }
-            }
         }
         return false;
     }

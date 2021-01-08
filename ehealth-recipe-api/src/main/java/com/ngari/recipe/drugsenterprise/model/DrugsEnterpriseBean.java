@@ -77,7 +77,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "排序，1最前，越往后越小")
     private Integer sort;
 
-    @ItemProperty(alias = "校验药品库存标志0 不需要校验 1 需要校验")
+    @ItemProperty(alias = "校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存")
     private Integer checkInventoryFlag;
 
     @ItemProperty(alias = "药店信息")

@@ -123,6 +123,9 @@ public class RecipeServiceSub {
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
+    private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
+
+
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
@@ -1831,60 +1834,65 @@ public class RecipeServiceSub {
      * @Author liumin
      */
     public static Map<String,String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId){
+        LOGGER.info("attachSealPic param clinicOrgan:{},doctorId:{},checker:{},recipeId:{}",clinicOrgan,doctorId,checker,recipeId);
         Map<String,String> map=new HashMap<>();
-        //根据ca配置：判断签章显示是显示第三方的签章还是平台签章，默认使用平台签章
-        String sealDataFrom="platFormSeal";
-        try {
-            sealDataFrom = (String) configService.getConfiguration(clinicOrgan, "sealDataFrom");
+        try{
+            //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
+            String sealDataFrom="platFormSeal";
+            try {
+                sealDataFrom = (String) configService.getConfiguration(clinicOrgan, "sealDataFrom");
+            }catch (Exception e){
+                if(recipeId!=null){
+                    LOGGER.error("attachSealPic 获取签章使用方配置error, recipeId:{}", recipeId, e);
+                }else{
+                    LOGGER.error("attachSealPic 获取签章使用方配置error, clinicOrgan:{}", clinicOrgan, e);
+                }
+            }
+            if("thirdSeal".equals(sealDataFrom)){
+                LOGGER.info("attachSealPic 使用第三方签名，recipeId:{}",recipeId);
+                SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
+                SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
+                SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
+                if (null != docInfo) {
+                    //医生图片
+                    if (StringUtils.isNotEmpty(docInfo.getSignPictureDoc())) {
+                        map.put("doctorSignImg", docInfo.getSignPictureDoc());
+                    }
+                }
+                //药师图片
+                if(null != phaInfo){
+                    if (StringUtils.isNotEmpty(phaInfo.getSignPictureDoc())) {
+                        map.put("checkerSignImg", phaInfo.getSignPictureDoc());
+                    }
+                }
+            }
+            //线下手签
+            else if("offlineSeal".equals(sealDataFrom)){
+                LOGGER.info("attachSealPic 线下手签，clinicOrgan:{}",clinicOrgan);
+                String doctorSignImg=doctorExtendService.getCaSignPictureByDocId(doctorId);
+                if (StringUtils.isNotBlank(doctorSignImg)) {
+                    map.put("doctorSignImg", doctorSignImg);
+                }
+                //线下处方没有药师审方 如果线上处方设置成线下手签
+                String checkerSignImg=doctorExtendService.getCaSignPictureByDocId(checker);
+                if (StringUtils.isNotBlank(checkerSignImg)) {
+                    map.put("checkerSignImg", checkerSignImg);
+                }
+            }
+            //平台手签
+            else {
+                //设置医生手签图片id
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+                if (doctorDTO != null) {
+                    map.put("doctorSignImg", doctorDTO.getSignImage());
+                }
+                DoctorDTO auditDTO = doctorService.getByDoctorId(checker);
+                if (auditDTO != null) {
+                    map.put("checkerSignImg", auditDTO.getSignImage());
+                }
+            }
         }catch (Exception e){
-            LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取签章使用方配置error, recipeId:{}", recipeId, e);
-        }
-        if("thirdSeal".equals(sealDataFrom)){
-            LOGGER.info("attachSealPic 使用第三方签名，recipeId:{}",recipeId);
-            SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
-            SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
-            SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
-            if (null != docInfo) {
-                //医生图片
-                if (StringUtils.isNotEmpty(docInfo.getSignPictureDoc())) {
-                    map.put("doctorSignImg", docInfo.getSignPictureDoc());
-                    //map.put("doctorSignImgToken", FileAuth.instance().createToken(docInfo.getSignPictureDoc(), 3600L));
-                }
-            }
-            //药师图片
-            if(null != phaInfo){
-                if (StringUtils.isNotEmpty(phaInfo.getSignPictureDoc())) {
-                    map.put("checkerSignImg", phaInfo.getSignPictureDoc());
-                    //map.put("checkerSignImgToken", FileAuth.instance().createToken(phaInfo.getSignPictureDoc(), 3600L));
-                }
-            }
-        }
-        //线下手签
-        else if("offlineSeal".equals(sealDataFrom)){
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-            if (doctorDTO != null) {
-                map.put("doctorSignImg", doctorDTO.getSignImage());
-                //map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
-            }
-            //线下处方没有药师审方 如果线上处方设置成线下手签
-            DoctorDTO auditDTO = doctorService.getByDoctorId(checker);
-            if (auditDTO != null) {
-                map.put("checkerSignImg", auditDTO.getSignImage());
-                //map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
-            }
-        }
-        else {
-            //设置医生手签图片id
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-            if (doctorDTO != null) {
-                map.put("doctorSignImg", doctorDTO.getSignImage());
-                //map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
-            }
-            DoctorDTO auditDTO = doctorService.getByDoctorId(checker);
-            if (auditDTO != null) {
-                map.put("checkerSignImg", auditDTO.getSignImage());
-                //map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
-            }
+            LOGGER.error("attachSealPic clinicOrgan:{} error:{}", clinicOrgan, e);
         }
         return map;
     }
