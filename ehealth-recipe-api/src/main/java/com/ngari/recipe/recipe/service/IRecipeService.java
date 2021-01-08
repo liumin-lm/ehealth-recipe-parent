@@ -798,5 +798,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate, Integer order, Integer start, Integer limit);
+
+    /**
+     * 处方状态同步到复诊
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @RpcService
+    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId);
 }
 

@@ -3304,6 +3304,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select sum(totalMoney) from Recipe where clinicOrgan = :organId AND payFlag = 1 AND createDate BETWEEN :startDate AND :endDate AND bussSource = 2 AND depart in :deptIds")
     public abstract BigDecimal getRecipeIncome(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate, @DAOParam("deptIds") List<Integer> deptIds);
 
+    /**
+     * 通过复诊业务来源调用查询处方状态
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
+    public abstract List<Recipe> findRecipeStatusByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId);
+
+
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
 

@@ -2131,7 +2131,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      *发药排行
      * @param organId
-     * @param status  0：全部 1.xi药 2.退药 3.拒发
+     * @param orderStatus  0：全部 1.xi药 2.退药 3.拒发
      * @param startDate
      * @param endDate
      * @param order 排序方式
@@ -2242,5 +2242,46 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
         return recipeDrugDetialByRecipeId;
+    }
+
+    /**
+     * 根据复诊Id查询处方状态
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @RpcService
+    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId){
+        LOGGER.info("findRecipeStatusByBussSourceAndClinicId {}", JSONUtils.toString(clinicId));
+        //查询处方记录
+        List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
+        //没有复诊的记录,无复诊状态
+        if (recipeList==null||recipeList.size()==0){
+            return false;
+        }
+        for (Recipe recipe:recipeList){
+            //校验复诊记录是否存在
+            if (recipe.getClinicId()==clinicId){
+                //类型2：处方开成功了（回写his成功），且不包含已退费状态（支付了已退费）和已失效状态（未支付）， 就当有效处方--（已支付且未产生退费）
+                //1.未失效（三天失效）   2.没有退费       ---有效状态
+                //0未支付，1已支付，2退款中，3退款成功，4支付失败'
+                if (recipe.getRecipeCode()!=null&&recipe.getPayFlag()==1){
+                    //校验处方单是否已退费
+                    String orderCode = recipe.getOrderCode();
+                    //根据订单编号查找对应的订单
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+                    //判断处方订单是否已经退费
+                    return (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true;
+                }
+                /*
+                问题：类型1：回写了his,未支付（三天有效）算不算，有效处方；
+                 */
+                //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
+                if (recipe.getRecipeCode()!=null){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
