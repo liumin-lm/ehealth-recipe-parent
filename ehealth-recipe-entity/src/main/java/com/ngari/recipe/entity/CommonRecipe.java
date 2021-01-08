@@ -49,6 +49,30 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
 
+    @ItemProperty(alias = "常用方中的药品信息")
+    private String recipeDetailJsonConfig;
+
+    @ItemProperty(alias = "是否是长处方")
+    private String isLongRecipe;
+
+    @Column(name = "recipeDetailJsonConfig")
+    public String getRecipeDetailJsonConfig() {
+        return recipeDetailJsonConfig;
+    }
+
+    public void setRecipeDetailJsonConfig(String recipeDetailJsonConfig) {
+        this.recipeDetailJsonConfig = recipeDetailJsonConfig;
+    }
+
+    @Column(name = "isLongRecipe")
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
+    }
+
     @Column(name = "OrganId")
     public Integer getOrganId() {
         return organId;

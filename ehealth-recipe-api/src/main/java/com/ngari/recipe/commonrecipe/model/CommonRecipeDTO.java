@@ -55,6 +55,27 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "常用方的状态")
     private Integer commonRecipeStatus;
 
+    @ItemProperty(alias = "常用方中的药品信息")
+    private String recipeDetailJsonConfig;
+
+    @ItemProperty(alias = "是否是长处方")
+    private String isLongRecipe;
+
+    public String getRecipeDetailJsonConfig() {
+        return recipeDetailJsonConfig;
+    }
+
+    public void setRecipeDetailJsonConfig(String recipeDetailJsonConfig) {
+        this.recipeDetailJsonConfig = recipeDetailJsonConfig;
+    }
+
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
+    }
 
     public CommonRecipeDTO() {
     }
@@ -170,6 +191,8 @@ public class CommonRecipeDTO implements Serializable {
                 ", pharmacyName='" + pharmacyName + '\'' +
                 ", drugIdList=" + drugIdList +
                 ", commonRecipeStatus=" + commonRecipeStatus +
+                ", recipeDetailJsonConfig='" + recipeDetailJsonConfig + '\'' +
+                ", isLongRecipe='" + isLongRecipe + '\'' +
                 '}';
     }
 }
