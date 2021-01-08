@@ -80,8 +80,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     @Autowired
     DrugListDAO drugListDAO;
-    @Autowired
-    DrugListExtService drugListExtService;
+    DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
     //手动推送给第三方
     @RpcService
