@@ -122,6 +122,9 @@ public class RecipeBean implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer checker;
 
+    @ItemProperty(alias = "审核药师姓名")
+    private Integer checkerText;
+
     @ItemProperty(alias = "人工审核日期")
     private Date checkDateYs;
 
@@ -1350,5 +1353,13 @@ public class RecipeBean implements Serializable {
 
     public void setEmrStatus(Boolean emrStatus) {
         this.emrStatus = emrStatus;
+    }
+
+    public Integer getCheckerText() {
+        return checkerText;
+    }
+
+    public void setCheckerText(Integer checkerText) {
+        this.checkerText = checkerText;
     }
 }
