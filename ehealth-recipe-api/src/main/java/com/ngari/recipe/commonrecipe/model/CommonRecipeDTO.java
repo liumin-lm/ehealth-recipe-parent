@@ -4,9 +4,9 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by  on 2017/5/22.
@@ -44,7 +44,51 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
+    @ItemProperty(alias = "失效药品id列表")
+    private List<Integer> drugIdList;
+
+    @ItemProperty(alias = "常用方的状态")
+    private Integer commonRecipeStatus;
+
+
     public CommonRecipeDTO() {
+    }
+
+    public Integer getCommonRecipeStatus() {
+        return commonRecipeStatus;
+    }
+
+    public void setCommonRecipeStatus(Integer commonRecipeStatus) {
+        this.commonRecipeStatus = commonRecipeStatus;
+    }
+
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
+    public List<Integer> getDrugIdList() {
+        return drugIdList;
+    }
+
+    public void setDrugIdList(List<Integer> drugIdList) {
+        this.drugIdList = drugIdList;
     }
 
     public Integer getDoctorId() {
@@ -109,5 +153,23 @@ public class CommonRecipeDTO implements Serializable {
 
     public void setRecipeJsonConfig(String recipeJsonConfig) {
         this.recipeJsonConfig = recipeJsonConfig;
+    }
+
+    @Override
+    public String toString() {
+        return "CommonRecipeDTO{" +
+                "doctorId=" + doctorId +
+                ", commonRecipeName='" + commonRecipeName + '\'' +
+                ", commonRecipeId=" + commonRecipeId +
+                ", recipeType=" + recipeType +
+                ", createDt=" + createDt +
+                ", lastModify=" + lastModify +
+                ", organId=" + organId +
+                ", recipeJsonConfig='" + recipeJsonConfig + '\'' +
+                ", pharmacyId=" + pharmacyId +
+                ", pharmacyName='" + pharmacyName + '\'' +
+                ", drugIdList=" + drugIdList +
+                ", commonRecipeStatus=" + commonRecipeStatus +
+                '}';
     }
 }
