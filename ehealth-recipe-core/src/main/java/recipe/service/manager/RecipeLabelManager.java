@@ -248,8 +248,12 @@ public class RecipeLabelManager {
         }
         String checkerSignImg = null == recipeMap.get("checkerSignImg") ? "" : recipeMap.get("checkerSignImg").toString();
         String checkerSignImgToken = null == recipeMap.get("checkerSignImgToken") ? "" : recipeMap.get("checkerSignImgToken").toString();
+
+        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
         if (!StringUtils.isAnyEmpty(checkerSignImg, checkerSignImgToken)) {
             recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
+        } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText1())) {
+            recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText1());
         }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {
@@ -260,7 +264,6 @@ public class RecipeLabelManager {
                 }
             }
             if (StringUtils.isNotEmpty(boxDesc)) {
-                RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
                 if (null != recipeBean) {
                     recipeBean.setOrganName(boxDesc);
                 }

@@ -4822,14 +4822,14 @@ public class RecipeService extends RecipeBaseService {
                 }
                 //先将产生的pdf
                 //设置签名图片
-                String fileId;
+                String fileId = null;
                 Map<String, String> signInfo = RecipeServiceSub.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
                 if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
                     String signImageId = signInfo.get("checkerSignImg");
                     String pdfBase64Str = requestSealTO.getPdfBase64Str();
                     //将生成的处方pdf生成id
                     fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getChecker(), false, TCM_TEMPLATETYPE.equals(recipe.getRecipeType()), pdfBase64Str, signImageId);
-                } else {
+                } else if (StringUtils.isNotEmpty(recipe.getCheckerText1())) {
                     fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipe.getSignFile(), recipe.getCheckerText1());
                 }
                 if (StringUtils.isNotEmpty(fileId)) {

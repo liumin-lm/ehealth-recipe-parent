@@ -277,7 +277,7 @@ public class CreateRecipePdfUtil {
             page.beginText();
             page.setColorFill(BaseColor.BLACK);
             page.setFontAndSize(bf, 10);
-            page.setTextMatrix(190f, 76f);
+            page.setTextMatrix(199f, 82f);
             page.showText(checker);
             page.endText();
             stamper.close();
