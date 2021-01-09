@@ -778,11 +778,11 @@ public class Recipe implements Serializable {
     }
 
     @Column(name = "CheckerText")
-    public String getCheckerText() {
+    public String getCheckerText1() {
         return checkerText;
     }
 
-    public void setCheckerText(String checkerText) {
+    public void setCheckerText1(String checkerText) {
         this.checkerText = checkerText;
     }
 

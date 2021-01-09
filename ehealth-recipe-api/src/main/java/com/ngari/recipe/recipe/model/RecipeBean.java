@@ -4,7 +4,6 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -123,7 +122,7 @@ public class RecipeBean implements Serializable {
     private Integer checker;
 
     @ItemProperty(alias = "审核药师姓名")
-    private Integer checkerText;
+    private String checkerText;
 
     @ItemProperty(alias = "人工审核日期")
     private Date checkDateYs;
@@ -1355,11 +1354,11 @@ public class RecipeBean implements Serializable {
         this.emrStatus = emrStatus;
     }
 
-    public Integer getCheckerText() {
+    public String getCheckerText1() {
         return checkerText;
     }
 
-    public void setCheckerText(Integer checkerText) {
+    public void setCheckerText1(String checkerText) {
         this.checkerText = checkerText;
     }
 }

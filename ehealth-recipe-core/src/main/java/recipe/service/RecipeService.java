@@ -4797,7 +4797,6 @@ public class RecipeService extends RecipeBaseService {
         //date 202001013 修改非易签保流程下的pdf
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        String fileId;
         if (null == recipe) {
             LOGGER.warn("当前处方{}信息为null，生成药师pdf部分失败", recipeId);
             return;
@@ -4815,26 +4814,28 @@ public class RecipeService extends RecipeBaseService {
             }
             //使用平台CA模式，手动生成pdf
             //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
-            String pdfBase64Str;
-            String signImageId="";
             if (usePlatform) {
                 CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
                 if (null == requestSealTO) {
                     LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
-                } else {
-                    //先将产生的pdf
-                    //设置签名图片
-                    Map<String,String> signInfo=RecipeServiceSub.attachSealPic(recipe.getClinicOrgan(),recipe.getDoctor(),recipe.getChecker(),recipeId);
-                    if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))){
-                        signImageId=signInfo.get("checkerSignImg");
-                    }
-                    pdfBase64Str = requestSealTO.getPdfBase64Str();
+                    return;
+                }
+                //先将产生的pdf
+                //设置签名图片
+                String fileId;
+                Map<String, String> signInfo = RecipeServiceSub.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+                if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
+                    String signImageId = signInfo.get("checkerSignImg");
+                    String pdfBase64Str = requestSealTO.getPdfBase64Str();
                     //将生成的处方pdf生成id
                     fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getChecker(), false, TCM_TEMPLATETYPE.equals(recipe.getRecipeType()), pdfBase64Str, signImageId);
+                } else {
+                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipe.getSignFile(), recipe.getCheckerText1());
+                }
+                if (StringUtils.isNotEmpty(fileId)) {
                     RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, null, null, false, fileId);
                 }
             }
-
         } catch (Exception e) {
             LOGGER.warn("当前处方{}是使用平台药师部分pdf的,生成失败！", recipe.getRecipeId());
             //日志记录
