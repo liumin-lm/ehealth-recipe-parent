@@ -61,6 +61,17 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
 
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
     public String getRecipeDetailJsonConfig() {
         return recipeDetailJsonConfig;
     }
@@ -193,6 +204,7 @@ public class CommonRecipeDTO implements Serializable {
                 ", commonRecipeStatus=" + commonRecipeStatus +
                 ", recipeDetailJsonConfig='" + recipeDetailJsonConfig + '\'' +
                 ", isLongRecipe='" + isLongRecipe + '\'' +
+                ", pharmacyCode='" + pharmacyCode + '\'' +
                 '}';
     }
 }

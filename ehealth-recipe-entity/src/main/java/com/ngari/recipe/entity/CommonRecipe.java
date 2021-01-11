@@ -55,6 +55,19 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
 
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+
+    @Column(name = "pharmacyCode")
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
     @Column(name = "recipeDetailJsonConfig")
     public String getRecipeDetailJsonConfig() {
         return recipeDetailJsonConfig;
