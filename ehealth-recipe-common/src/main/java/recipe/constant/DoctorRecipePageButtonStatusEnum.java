@@ -11,7 +11,7 @@ public enum DoctorRecipePageButtonStatusEnum {
     /**
      * 继续签名--在 [ 待审核、待处理 ] 的处方单详情页显示 [ 继续开方 ] 按钮
      */
-    continueOpenRecipeFlag("continueOpenRecipeFlag", Arrays.asList(RecipeStatusConstant.READY_CHECK_YS, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECKING_HOS)),
+    continueOpenRecipeFlag("continueOpenRecipeFlag", Arrays.asList(RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.READY_CHECK_YS, RecipeStatusConstant.CHECK_PASS)),
 
     /**
      * 重新签名--医生签名失败时

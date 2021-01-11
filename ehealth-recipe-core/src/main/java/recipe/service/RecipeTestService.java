@@ -32,6 +32,7 @@ import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
@@ -306,5 +307,19 @@ public class RecipeTestService {
         List<Integer> organIds = organList.stream().map(OrganDTO::getOrganId).distinct().collect(Collectors.toList());
         organIds.forEach(this::saveDoc);
         LOGGER.info("RecipeTestService saveDocList end");
+    }
+
+    /**
+     * 处方退费应该按取消处方处理通知给药企--test
+     *
+     * @param
+     */
+    @RpcService
+    public HisResponseTO doCancelRecipeForEnterprise(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeCancelService recipeCancelService = ApplicationUtils.getRecipeService(RecipeCancelService.class);
+        HisResponseTO response = recipeCancelService.doCancelRecipeForEnterprise(recipe);
+        return response;
     }
 }

@@ -3314,6 +3314,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipeStatusByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId);
 
 
+    /**
+     *
+     * @param bussSource
+     * @param clinicId
+     * @param Status
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status not in(13,14)")
+    public abstract List<Recipe> findRecipeStatusLoseByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId,@DAOParam("status") Integer Status);
+
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
 
