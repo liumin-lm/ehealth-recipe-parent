@@ -1,7 +1,9 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
@@ -15,6 +17,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -41,6 +44,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.ErrorCode;
@@ -51,9 +55,7 @@ import recipe.dao.*;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
+import recipe.service.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.third.IFileDownloadService;
@@ -75,6 +77,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDrugEnterpriseService.class);
 
     private static final String COMMON_SERVICE = "commonRemoteService";
+
+    @Autowired
+    DrugListDAO drugListDAO;
+    DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
     //手动推送给第三方
     @RpcService
@@ -476,6 +482,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             result.setCode(DrugEnterpriseResult.SUCCESS);
             return result;
         }
+
+        //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
+        //根据处方查询医院库存
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
+            return HosscanStock(recipeId,drugsEnterprise);
+        }
+
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
@@ -552,6 +565,28 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         result.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
+
+        //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
+        //根据药品id查询
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            //机构药品列表
+            List<OrganDrugList> organDrugList= organDrugListDAO.findByOrganId(organId);
+            //获取药品
+            DrugList drug = drugListDAO.getById(drugId);
+            for (OrganDrugList organDrugList1:organDrugList){
+                //存在药品
+                if (organDrugList1.getDrugId().equals(drugId)){
+                    DrugInfoResponseTO hisDrugStock = drugListExtService.getHisDrugStock(organId, organDrugList, null);
+                    return "有库存";
+                }else {
+                    //药品不存在，无库存
+                    return "0";
+                }
+            }
+        }
+
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
@@ -1238,4 +1273,43 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         }
         return new ArrayList<>();
     }
+
+    public DrugEnterpriseResult HosscanStock(Integer recipeId, DrugsEnterprise drugsEnterprise){
+        LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();//result=0检验失败
+
+        //1.医院处方服务
+        Map<String, Object> rMap = Maps.newHashMap();
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        //2.根据处方Id查询医院的库存
+        com.ngari.recipe.common.RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
+        //3.查询库存失败
+        if (RecipeResultBean.FAIL.equals(scanResult.getCode())){
+            rMap.put("signResult", false);
+            rMap.put("recipeId", recipeId);
+            //上海六院无库存不允许开，直接弹出提示
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            if (recipe.getClinicOrgan() == 1000899) {
+                //错误信息弹出框，只有 确定  按钮
+                rMap.put("errorFlag", true);
+                List<String> nameList = (List<String>) scanResult.getObject();
+                rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                result.setExt(rMap);
+                return result;
+            }
+            rMap.put("msg", scanResult.getError());
+            if ("1".equals(scanResult.getExtendValue())) {
+                //这个字段为true，前端展示框内容为msg，走二次确认配送流程调用sendDistributionRecipe
+                rMap.put("scanDrugStock", true);
+
+            }
+            result.setExt(rMap);
+            return result;
+        }
+        rMap.put("scanResult", scanResult);
+        result.setExt(rMap);
+        return result;
+    }
+
 }

@@ -797,6 +797,16 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     public Map<String, Object> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit);
 
     @RpcService
-    public Map<String, Object> pharmacyTop(Integer organId, Integer status, Date startDate, Date endDate, Integer order, Integer start, Integer limit);
+    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate, Integer order, Integer start, Integer limit);
+
+    /**
+     * 复诊查询处方状态是否有效
+     * @param bussSource  业务来源（复诊）
+     * @param clinicId  复诊Id
+     * @param statusCode  1 类型1  2类型2
+     * @return
+     */
+    @RpcService
+    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode);
 }
 

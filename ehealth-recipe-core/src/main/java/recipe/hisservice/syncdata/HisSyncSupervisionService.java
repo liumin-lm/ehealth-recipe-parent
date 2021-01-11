@@ -175,6 +175,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         DoctorExtendDTO doctorExtendDTO;
         RevisitExDTO consultExDTO;
         SignDoctorRecipeInfo caInfo;
+        RedisClient redisClient = RedisClient.instance();
+        String caSignature = null;
         for (Recipe recipe : recipeList) {
             recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
@@ -248,6 +250,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //药师签名值
                 req.setAuditDoctorSign(caInfo.getSignCodePha());
             }
+            //如果其他ca里取不到默认用e签宝的
+            if (StringUtils.isEmpty(req.getDoctorSign()) && doctorDTO.getESignId() != null) {
+                //设置医生电子签名
+                try {
+                    caSignature = redisClient.get(doctorDTO.getESignId() + "_signature");
+                } catch (Exception e) {
+                    LOGGER.error("get caSignature error. doctorId={}", doctorDTO.getDoctorId(), e);
+                }
+                req.setDoctorSign(StringUtils.isNotEmpty(caSignature) ? caSignature : "");
+            }
             //药师处理
             if (recipe.getChecker() != null) {
                 doctorDTO = doctorMap.get(recipe.getChecker());
@@ -283,7 +295,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                             req.setAuditSubjectName(subCodeDTO.getSubName());
                         }
                     }
-
+                }
+                //设置药师电子签名
+                //如果其他ca里取不到默认用e签宝的
+                if (StringUtils.isEmpty(req.getAuditDoctorSign()) && doctorDTO.getESignId() != null) {
+                    try {
+                        caSignature = redisClient.get(doctorDTO.getESignId() + "_signature");
+                    } catch (Exception e) {
+                        LOGGER.error("get caSignature error. doctorId={}", doctorDTO.getDoctorId(), e);
+                    }
+                    req.setAuditDoctorSign(StringUtils.isNotEmpty(caSignature) ? caSignature : "");
                 }
             }
 
@@ -511,7 +532,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         try {
             RecipeExtendService extendService = AppContextHolder.getBean("recipeExtendService", RecipeExtendService.class);
             invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
-            if (StringUtils.isBlank(invoiceNumber)){
+            if (StringUtils.isBlank(invoiceNumber)) {
                 EleInvoiceService invoiceService = AppContextHolder.getBean("eleInvoiceService", EleInvoiceService.class);
                 EleInvoiceDTO invoiceDTO = new EleInvoiceDTO();
                 invoiceDTO.setId(recipe.getRecipeId());
@@ -527,7 +548,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             invoiceNumber = extendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
         } catch (Exception e) {
-            LOGGER.error("上传监管平台获取发票号异常，recipeId={},", recipe.getRecipeId(),e);
+            LOGGER.error("上传监管平台获取发票号异常，recipeId={},", recipe.getRecipeId(), e);
         }
         return invoiceNumber;
     }

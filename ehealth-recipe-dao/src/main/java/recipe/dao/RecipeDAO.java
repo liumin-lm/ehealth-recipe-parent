@@ -2553,14 +2553,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tr.ordercode IS NOT NULL\n" +
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
-                        "AND o.status in (:orderStatus)\n" +
+                        "AND o.status in (" + orderStatus + ")\n" +
                         "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
-                q.setParameter("orderStatus", orderStatus);
                 if (StringUtils.isNotEmpty(doctorName)) {
                     q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
                 }
@@ -2637,7 +2636,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String startDate, String endDate, Integer order, Integer start, Integer limit) {
+    public List<PharmacyTopDTO> findDrugCountOrderByCountOrMoneyCountGroupByDrugId(Integer organId, Integer drugType, String orderStatus, String startDate, String endDate, Integer order, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<PharmacyTopDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2700,7 +2699,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t\tAND '"+endDate+"'\n" +
                         "\t\tAND ClinicOrgan = :organId\n" +
                         "\t\tAND rd.drugCost IS NOT NULL\n" +
-                        "\t\tAND co.`Status` IN (13, 4, 5)\n" +
+                        "\t\tAND co.`Status` IN (" + orderStatus + ")\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "\t) GROUP BY\n" +
                         "\tdrugId\n";
@@ -3304,6 +3303,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "select sum(totalMoney) from Recipe where clinicOrgan = :organId AND payFlag = 1 AND createDate BETWEEN :startDate AND :endDate AND bussSource = 2 AND depart in :deptIds")
     public abstract BigDecimal getRecipeIncome(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate, @DAOParam("deptIds") List<Integer> deptIds);
+
+    /**
+     * 通过复诊业务来源调用查询处方状态
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
+    public abstract List<Recipe> findRecipeStatusByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId);
+
+
+    /**
+     *
+     * @param bussSource
+     * @param clinicId
+     * @param Status
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status not in(13,14)")
+    public abstract List<Recipe> findRecipeStatusLoseByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId,@DAOParam("status") Integer Status);
 
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);

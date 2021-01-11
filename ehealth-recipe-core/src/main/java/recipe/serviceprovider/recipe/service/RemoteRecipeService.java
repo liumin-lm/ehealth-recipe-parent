@@ -91,7 +91,6 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1997,10 +1996,34 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<WorkLoadTopDTO> result = new ArrayList<>();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        List<WorkLoadTopDTO> recipeByOrderCodegroupByDis = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName);
+        //先获取 已发药 配送中 已完成
+        List<WorkLoadTopDTO> workLoadTopListWithSuccess = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName);
+        List<WorkLoadTopDTO> workLoadListWithFail = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14", start, limit, startDateStr, endDateStr, doctorName);
+        List<WorkLoadTopDTO> workLoadListWithRefuse = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "15", start, limit, startDateStr, endDateStr, doctorName);
+        //合并发药与未发药的
+        for (WorkLoadTopDTO loadTopListWithSuccess : workLoadTopListWithSuccess) {
+            //退药 2个工作量
+            WorkLoadTopDTO workLoadWithFail = getWorkLoadWithFail(workLoadListWithFail, loadTopListWithSuccess.getDispensingApothecaryName());
+            if (workLoadWithFail != null) {
+                //处理工作量
+                loadTopListWithSuccess.setRecipeCount(loadTopListWithSuccess.getRecipeCount() + 1);
+                //核减处方金额
+                loadTopListWithSuccess.setTotalMoney(loadTopListWithSuccess.getTotalMoney().subtract(workLoadWithFail.getTotalMoney()));
+            }
+        }
+
+        for (WorkLoadTopDTO loadTopListWithSuccess : workLoadTopListWithSuccess) {
+            //拒发药 1个工作量
+            WorkLoadTopDTO workLoadWithRefuse = getWorkLoadWithFail(workLoadListWithRefuse, loadTopListWithSuccess.getDispensingApothecaryName());
+            if (workLoadWithRefuse != null) {
+                loadTopListWithSuccess.setTotalMoney(loadTopListWithSuccess.getTotalMoney().subtract(workLoadWithRefuse.getTotalMoney()));
+            }
+        }
+
+
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
-        for (WorkLoadTopDTO workLoadTopDTO : recipeByOrderCodegroupByDis) {
+        for (WorkLoadTopDTO workLoadTopDTO : workLoadTopListWithSuccess) {
             //药师姓名存在
             if (StringUtils.isNotEmpty(workLoadTopDTO.getDispensingApothecaryName())) {
                 result.add(workLoadTopDTO);
@@ -2011,17 +2034,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 result.add(workLoadTopDTO);
             }
         }
-
-        //核减
-        List<WorkLoadTopDTO> reduce = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14,15", start, limit, startDateStr, endDateStr, doctorName);
-        for (WorkLoadTopDTO workLoadTopDTO : reduce) {
-            for (WorkLoadTopDTO loadTopDTO : result) {
-                if (workLoadTopDTO.getDispensingApothecaryName().equals(loadTopDTO.getDispensingApothecaryName())) {
-                    loadTopDTO.setTotalMoney(loadTopDTO.getTotalMoney().subtract(workLoadTopDTO.getTotalMoney()));
-                }
-            }
-
-        }
         Integer totalCount = 0;
         Double totalMoney = 0.0;
         for (WorkLoadTopDTO workLoadTopDTO : result) {
@@ -2030,7 +2042,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         //判断是否最后一页
         int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15", null, null, startDateStr, endDateStr, doctorName).size();
-        if (start + limit >= size && recipeByOrderCodegroupByDis.size() > 0) {
+        if (start + limit >= size && workLoadTopListWithSuccess.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
             workLoadTopDTO.setTotalMoney(new BigDecimal(totalMoney).setScale(2, BigDecimal.ROUND_HALF_UP));
@@ -2042,6 +2054,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         reports.put("data", result);
         LOGGER.info("pharmacyMonthlyReport response size is {}", result.size());
         return reports;
+    }
+
+    private WorkLoadTopDTO getWorkLoadWithFail(List<WorkLoadTopDTO> workLoadTopDTOList, String dispendingName) {
+        for (WorkLoadTopDTO workLoadTopDTO : workLoadTopDTOList) {
+            if (workLoadTopDTO.getDispensingApothecaryName().equals(dispendingName)) {
+                return workLoadTopDTO;
+            }
+        }
+        return null;
     }
 
     /**
@@ -2110,7 +2131,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      *发药排行
      * @param organId
-     * @param status  0：全部 1.xi药 2.退药 3.拒发
+     * @param orderStatus  0：全部 1.xi药 2.退药 3.拒发
      * @param startDate
      * @param endDate
      * @param order 排序方式
@@ -2118,13 +2139,23 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param limit
      */
     @Override
-    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
+    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
         LOGGER.info("pharmacyTop is {}", organId + drugType + startDate.toLocaleString() + endDate.toLocaleString() + order + start + limit + "");
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
-        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, start, limit);
+        String orderStatusStr = "4,5,13";
+        if (orderStatus == 1) {
+            orderStatusStr = "4";
+        }
+        if (orderStatus == 2) {
+            orderStatusStr = "5";
+        }
+        if (orderStatus == 3) {
+            orderStatusStr = "13";
+        }
+        List<PharmacyTopDTO> drugCountOrderByCountOrMoneyCountGroupByDrugId = recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, orderStatusStr, startDateStr, endDateStr, order, start, limit);
         Map<String, Object> reports = new HashMap<>();
-        reports.put("total", recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, startDateStr, endDateStr, order, null, null).size());
+        reports.put("total", recipeDAO.findDrugCountOrderByCountOrMoneyCountGroupByDrugId(organId, drugType, orderStatusStr, startDateStr, endDateStr, order, null, null).size());
         reports.put("data", drugCountOrderByCountOrMoneyCountGroupByDrugId);
         LOGGER.info("pharmacyTop response size is {}", drugCountOrderByCountOrMoneyCountGroupByDrugId.size());
         return reports;
@@ -2159,12 +2190,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
         String orderStatusStr = "4,5,13,14,15";
         if (orderStatus == 2) {
-            orderStatusStr = "4,5,13";
+            orderStatusStr = "4";
         }
         if (orderStatus == 3) {
-            orderStatusStr = "14";
+            orderStatusStr = "5";
         }
         if (orderStatus == 4) {
+            orderStatusStr = "13";
+        }
+        if (orderStatus == 5) {
+            orderStatusStr = "14";
+        }
+        if (orderStatus == 6) {
             orderStatusStr = "15";
         }
         List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
@@ -2205,5 +2242,46 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
         return recipeDrugDetialByRecipeId;
+    }
+
+    /**
+     * 复诊查询处方状态是否有效
+     * @param bussSource
+     * @param clinicId
+     * @param  statusCode
+     * @return
+     */
+    @RpcService
+    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
+        LOGGER.info("findRecipeStatusByBussSourceAndClinicId {}", JSONUtils.toString(clinicId));
+        //查询处方记录
+        List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
+        //没有复诊的记录,无复诊状态
+        if (recipeList==null||recipeList.size()==0){
+            return false;
+        }
+        for (Recipe recipe:recipeList){
+                //类型2：处方开成功了（回写his成功），且不包含已退费状态或者已失效状态， 就当有效处方
+                //0未支付，1已支付，2退款中，3退款成功，4支付失败'
+                if (recipe.getRecipeCode()!=null&&statusCode==2){
+                    //校验处方单是否已退费
+                    String orderCode = recipe.getOrderCode();
+                    //未支付，未失效
+                    if (orderCode==null){
+                        List<Recipe> recipeStatusLoseByBussSourceAndClinicId = recipeDAO.findRecipeStatusLoseByBussSourceAndClinicId(bussSource, clinicId, recipe.getStatus());
+                        return (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true;
+                    }
+                    //根据订单编号查找对应的订单
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+                    //判断处方订单是否已经退费
+                    return (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true;
+                }
+
+                //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
+                if (recipe.getRecipeCode()!=null&&statusCode==1){
+                    return true;
+                }
+        }
+        return false;
     }
 }

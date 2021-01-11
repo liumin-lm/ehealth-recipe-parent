@@ -44,6 +44,35 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias="机构代码")
     private Integer organId;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
+    @ItemProperty(alias = "常用方中的药品信息")
+    private String recipeDetailJsonConfig;
+
+    @ItemProperty(alias = "是否是长处方")
+    private String isLongRecipe;
+
+    @Column(name = "recipeDetailJsonConfig")
+    public String getRecipeDetailJsonConfig() {
+        return recipeDetailJsonConfig;
+    }
+
+    public void setRecipeDetailJsonConfig(String recipeDetailJsonConfig) {
+        this.recipeDetailJsonConfig = recipeDetailJsonConfig;
+    }
+
+    @Column(name = "isLongRecipe")
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
+    }
+
     @Column(name = "OrganId")
     public Integer getOrganId() {
         return organId;
@@ -121,15 +150,37 @@ public class CommonRecipe implements Serializable{
         this.recipeJsonConfig = recipeJsonConfig;
     }
 
+    @Column(name = "pharmacyId")
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    @Column(name = "pharmacyName")
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
     @Override
     public String toString() {
         return "CommonRecipe{" +
                 "doctorId=" + doctorId +
                 ", commonRecipeName='" + commonRecipeName + '\'' +
                 ", commonRecipeId=" + commonRecipeId +
-                ", recipeType='" + recipeType + '\'' +
+                ", recipeType=" + recipeType +
                 ", createDt=" + createDt +
                 ", lastModify=" + lastModify +
+                ", organId=" + organId +
+                ", pharmacyId=" + pharmacyId +
+                ", pharmacyName='" + pharmacyName + '\'' +
+                ", recipeJsonConfig='" + recipeJsonConfig + '\'' +
                 '}';
     }
 }

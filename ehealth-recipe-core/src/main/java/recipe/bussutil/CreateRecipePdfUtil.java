@@ -260,13 +260,47 @@ public class CreateRecipePdfUtil {
         reader.close();
     }
 
+
+    public static String generateDocSignImageInRecipePdf(String pdfId, String checker) throws IOException, DocumentException {
+        logger.info("generateReceiverInfoRecipePdf pdfId={}, checker={}", pdfId, checker);
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            @Cleanup OutputStream output = new FileOutputStream(file);
+            @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+            PdfReader reader = new PdfReader(input);
+            PdfStamper stamper = new PdfStamper(reader, output);
+            BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+            PdfContentByte page = stamper.getOverContent(1);
+            page.beginText();
+            page.setColorFill(BaseColor.BLACK);
+            page.setFontAndSize(bf, 10);
+            page.setTextMatrix(199f, 82f);
+            page.showText(checker);
+            page.endText();
+            stamper.close();
+            reader.close();
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            String fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+            return fileId;
+        }
+        return null;
+    }
+
+
     /**
      * 在处方pdf上手动挂上医生药师图片
-     * @param pdfBase64String pdf
+     *
+     * @param pdfBase64String   pdf
      * @param doctorSignImageId 医生的图片id
      */
     public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
-                                                         String pdfBase64String, String doctorSignImageId) throws Exception{
+                                                         String pdfBase64String, String doctorSignImageId) throws Exception {
         float xPoint;
         float yPoint;
         if (isDoctor) {

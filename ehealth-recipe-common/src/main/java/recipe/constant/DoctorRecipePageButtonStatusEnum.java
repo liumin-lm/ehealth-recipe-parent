@@ -8,16 +8,24 @@ import java.util.List;
  * 医生端处方详情页面按钮
  */
 public enum DoctorRecipePageButtonStatusEnum {
-    /**继续签名--在 [ 待审核、待处理 ] 的处方单详情页显示 [ 继续开方 ] 按钮*/
-    continueOpenRecipeFlag("continueOpenRecipeFlag", Arrays.asList(RecipeStatusConstant.READY_CHECK_YS,
-            RecipeStatusConstant.CHECK_PASS)),
-    /**重新签名--医生签名失败时*/
+    /**
+     * 继续签名--在 [ 待审核、待处理 ] 的处方单详情页显示 [ 继续开方 ] 按钮
+     */
+    continueOpenRecipeFlag("continueOpenRecipeFlag", Arrays.asList(RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.READY_CHECK_YS, RecipeStatusConstant.CHECK_PASS)),
+
+    /**
+     * 重新签名--医生签名失败时
+     */
     retrySignFlag("retrySignFlag", Arrays.asList(RecipeStatusConstant.SIGN_ERROR_CODE_DOC)),
-    /**重新开具--药师平台审核未通过 15*/
+    /**
+     * 重新开具--药师平台审核未通过 15
+     */
     recipeOpenRecipeFlag("recipeOpenRecipeFlag", Arrays.asList(RecipeStatusConstant.CHECK_NOT_PASS_YS)),
-    /**重试--HIS写入失败 11/处方医保上传失败 19*/
+    /**
+     * 重试--HIS写入失败 11/处方医保上传失败 19
+     */
     retryUploadRecipeFlag("retryUploadRecipeFlag", Arrays.asList(RecipeStatusConstant.HIS_FAIL,
-                                    RecipeStatusConstant.RECIPE_MEDICAL_FAIL)),
+            RecipeStatusConstant.RECIPE_MEDICAL_FAIL)),
     /**续方--
      * 已完成 6
      * 未处理  14

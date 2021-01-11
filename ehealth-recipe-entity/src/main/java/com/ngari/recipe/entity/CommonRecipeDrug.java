@@ -96,6 +96,32 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
 
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+
+    @Column(name = "usingRateId")
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Column(name = "usePathwaysId")
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
     @Column(name = "UseDoseUnit")
     public String getUseDoseUnit() {
         return useDoseUnit;
@@ -310,15 +336,20 @@ public class CommonRecipeDrug implements java.io.Serializable{
     public String toString() {
         return "CommonRecipeDrug{" +
                 "id=" + id +
+                ", drugStatus=" + drugStatus +
                 ", commonRecipeId=" + commonRecipeId +
-                ", drugId='" + drugId + '\'' +
+                ", drugId=" + drugId +
+                ", organDrugCode='" + organDrugCode + '\'' +
                 ", drugName='" + drugName + '\'' +
+                ", saleName='" + saleName + '\'' +
                 ", drugUnit='" + drugUnit + '\'' +
                 ", drugSpec='" + drugSpec + '\'' +
                 ", useTotalDose=" + useTotalDose +
                 ", useDose=" + useDose +
+                ", useDoseStr='" + useDoseStr + '\'' +
                 ", defaultUseDose=" + defaultUseDose +
                 ", salePrice=" + salePrice +
+                ", price1=" + price1 +
                 ", drugCost=" + drugCost +
                 ", memo='" + memo + '\'' +
                 ", createDt=" + createDt +
@@ -326,6 +357,11 @@ public class CommonRecipeDrug implements java.io.Serializable{
                 ", usingRate='" + usingRate + '\'' +
                 ", usePathways='" + usePathways + '\'' +
                 ", useDays=" + useDays +
+                ", useDoseUnit='" + useDoseUnit + '\'' +
+                ", pharmacyId=" + pharmacyId +
+                ", pharmacyName='" + pharmacyName + '\'' +
+                ", usingRateId='" + usingRateId + '\'' +
+                ", usePathwaysId='" + usePathwaysId + '\'' +
                 '}';
     }
 

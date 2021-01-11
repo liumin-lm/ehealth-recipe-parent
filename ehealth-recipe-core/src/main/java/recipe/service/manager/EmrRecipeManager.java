@@ -135,46 +135,50 @@ public class EmrRecipeManager {
     }
 
     /**
-     * 更新电子病例为已经使用状态
-     *
-     * @param docId 电子病例id
-     */
-    public void updateDocStatus(Integer recipeId, Integer docId) {
-        logger.info("EmrRecipeManager updateDocStatus docId={}", docId);
-        if (null == docId) {
-            return;
-        }
-        SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
-        saveEmrContractReq.setBussId(recipeId);
-        saveEmrContractReq.setDocIndexId(docId);
-        //处方状态 1
-        saveEmrContractReq.setBussType(1);
-        Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
-        logger.info("EmrRecipeManager updateDocStatus docId={} boo={}", docId, result);
-    }
-
-
-    /**
-     * 当医生开方成功后将药品信息写入病历
+     * 写入电子病例 药品信息
+     * 更新电子病例 为已经使用状态
+     * 更新处方 诊断信息
      *
      * @param recipeId 处方id
      * @param docId    病历索引id
      */
-    public void addDrugToDOC(Integer recipeId, Integer docId) {
+    public void upDocIndex(Integer recipeId, Integer docId) {
         logger.info("EmrRecipeManager addDrugToDOC recipeId={} docId={}", recipeId, docId);
+        if (null == docId || null == recipeId) {
+            return;
+        }
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
+        //写入电子病例 药品信息
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
-        //调用将药品信息写入病历的接口
         try {
             docIndexService.saveRpDetailRelation(docId, recipeId, recipe.getRecipeType(), rpDetailBean);
         } catch (Exception e) {
-            logger.error("saveRpDetailRelation error：{} ", e);
+            logger.error("saveRpDetailRelation error docId：{} ", docId, e);
         }
-
+        //更新电子病例 为已经使用状态
+        SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
+        saveEmrContractReq.setBussId(recipeId);
+        saveEmrContractReq.setDocIndexId(docId);
+        saveEmrContractReq.setBussType(1);
+        Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
+        // 更新 处方诊断信息
+        List<EmrDetailDTO> detail = getEmrDetailDTO(docId);
+        if (CollectionUtils.isEmpty(detail)) {
+            return;
+        }
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipeId);
+        detail.forEach(a -> {
+            if (RecipeEmrComment.DIAGNOSIS.equals(a.getKey())) {
+                getMultiSearch(a, recipeUpdate, null);
+            }
+        });
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        logger.info("EmrRecipeManager updateDocStatus docId={} boo={},recipeUpdate={}", docId, result, JSON.toJSONString(recipeUpdate));
     }
 
     public void deleteRecipeDetailsFromDoc(Integer recipeId) {
@@ -202,6 +206,7 @@ public class EmrRecipeManager {
         recipeBean.setOrganDiseaseId(recipe.getOrganDiseaseId());
     }
 
+
     /**
      * 查询电子病例，主要用于兼容老数据结构
      *
@@ -209,33 +214,11 @@ public class EmrRecipeManager {
      * @param recipeExtend
      */
     public static void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
-        if (null == recipeExtend || null == recipeExtend.getDocIndexId() || 0 == recipeExtend.getDocIndexId()) {
-            logger.info("EmrRecipeManager getMedicalInfo recipeExtend={}", JSONUtils.toString(recipeExtend));
+        if (null == recipeExtend) {
+            logger.info("EmrRecipeManager getMedicalInfo RecipeId={}", recipe.getRecipeId());
             return;
         }
-        IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
-        Map<String, Object> medicalInfoMap;
-        try {
-            medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-        } catch (Exception e) {
-            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", recipeExtend.getDocIndexId(), e.getMessage(), e);
-            return;
-        }
-        logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
-
-        if (CollectionUtils.isEmpty(medicalInfoMap)) {
-            return;
-        }
-        Object medicalDetail = medicalInfoMap.get("medicalDetailBean");
-        if (ObjectUtils.isEmpty(medicalDetail)) {
-            return;
-        }
-        MedicalDetailBean medicalDetailBean = JSON.parseObject(JSON.toJSONString(medicalDetail), MedicalDetailBean.class);
-
-        if (!recipeExtend.getDocIndexId().equals(medicalDetailBean.getDocIndexId())) {
-            return;
-        }
-        List<EmrDetailDTO> detail = JSON.parseArray(medicalDetailBean.getDetail(), EmrDetailDTO.class);
+        List<EmrDetailDTO> detail = getEmrDetailDTO(recipeExtend.getDocIndexId());
         if (CollectionUtils.isEmpty(detail)) {
             return;
         }
@@ -293,9 +276,47 @@ public class EmrRecipeManager {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
         }
-        logger.info("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
+        logger.debug("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
     }
 
+    /**
+     * 获取 电子病例明细对象
+     *
+     * @param docIndexId
+     * @return
+     */
+    private static List<EmrDetailDTO> getEmrDetailDTO(Integer docIndexId) {
+        if (null == docIndexId || 0 == docIndexId) {
+            return null;
+        }
+        IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
+        Map<String, Object> medicalInfoMap;
+        try {
+            medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(docIndexId);
+        } catch (Exception e) {
+            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", docIndexId, e.getMessage(), e);
+            return null;
+        }
+        logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
+
+        if (CollectionUtils.isEmpty(medicalInfoMap)) {
+            return null;
+        }
+        Object medicalDetail = medicalInfoMap.get("medicalDetailBean");
+        if (ObjectUtils.isEmpty(medicalDetail)) {
+            return null;
+        }
+        MedicalDetailBean medicalDetailBean = JSON.parseObject(JSON.toJSONString(medicalDetail), MedicalDetailBean.class);
+
+        if (!docIndexId.equals(medicalDetailBean.getDocIndexId())) {
+            return null;
+        }
+        List<EmrDetailDTO> detail = JSON.parseArray(medicalDetailBean.getDetail(), EmrDetailDTO.class);
+        if (CollectionUtils.isEmpty(detail)) {
+            return null;
+        }
+        return detail;
+    }
 
     /**
      * 新增电子病历 主要用于兼容老数据结构
