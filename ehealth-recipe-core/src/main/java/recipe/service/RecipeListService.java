@@ -666,6 +666,7 @@ public class RecipeListService extends RecipeBaseService {
         return instanceRecipesAndPatient3(recipes, patient);
     }
 
+
     /**
      * 获取返回对象
      * 废弃
@@ -673,7 +674,7 @@ public class RecipeListService extends RecipeBaseService {
      * @param patient
      * @return
      */
-    public List<Map<String, Object>> instanceRecipesAndPatient3(List<Recipe> recipes, PatientVO patient) {
+    public List<Map<String, Object>> instanceRecipesAndPatient3(List<Recipe> recipes, PatientVO patient ) {
         LOGGER.info("instanceRecipesAndPatient recipes:{} ,patient:{} ", JSONUtils.toString(recipes), JSONUtils.toString(patient));
         Long beginTime = new Date().getTime();
         List<Map<String, Object>> list = new ArrayList<>();
@@ -703,22 +704,28 @@ public class RecipeListService extends RecipeBaseService {
                     return oldValueList;
                 }));
             }
+
+            //获取处方对应的药品信息
+            Map<String, OrganDrugList> organDrugListMap = new HashMap<>();
+            LOGGER.info("instanceRecipesAndPatient recipeIds:{} ", JSONUtils.toString(recipeIds));
+            if (CollectionUtils.isNotEmpty(recipeIds)) {
+                List<OrganDrugList> organDrugLists=organDrugListDAO.findByDrugIdAndOrganId(recipeIds);
+                LOGGER.info("instanceRecipesAndPatient organDrugLists:{} ", JSONUtils.toString(organDrugLists));
+                organDrugListMap = organDrugLists.stream() .collect(Collectors.toMap(k->k.getOrganId()+"_"+k.getDrugId(), a -> a, (k1, k2) -> k1));
+            }
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称
-                //List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                //LOGGER.info("instanceRecipesAndPatient recipeid:{} ,recipedetails:{} ", recipe.getRecipeId(), JSONUtils.toString(recipedetails));
                 StringBuilder stringBuilder = new StringBuilder();
-
                 List<Recipedetail> recipedetails =recipeDetailMap.get(recipe.getRecipeId());
                 for (Recipedetail recipedetail : recipedetails) {
-                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-                    if (organDrugLists != null && organDrugLists.size() > 0) {
-                        stringBuilder.append(organDrugLists.get(0).getSaleName());
-                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
-                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                    OrganDrugList organDrugList=organDrugListMap.get(recipe.getClinicOrgan()+"_"+recipedetail.getDrugId());
+                    if(organDrugList!=null){
+                        stringBuilder.append(organDrugList.getSaleName());
+                        if (StringUtils.isNotEmpty(organDrugList.getDrugForm())) {
+                            stringBuilder.append(organDrugList.getDrugForm());
                         }
-                    } else {
+                    }else {
                         stringBuilder.append(recipedetail.getDrugName());
                     }
                     stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
@@ -750,76 +757,6 @@ public class RecipeListService extends RecipeBaseService {
         return list;
     }
 
-    /**
-     * 获取返回对象
-     * 废弃
-     * @param recipes
-     * @param patient
-     * @return
-     */
-    public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes, PatientVO patient) {
-        LOGGER.info("instanceRecipesAndPatient recipes:{} ,patient:{} ", JSONUtils.toString(recipes), JSONUtils.toString(patient));
-        Long beginTime = new Date().getTime();
-        List<Map<String, Object>> list = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(recipes)) {
-            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
-            //date 20200506
-            //获取处方对应的订单信息
-            Map<String, Integer> orderStatus = new HashMap<>();
-            List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getOrderCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(recipeCodes)) {
-                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
-                orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
-            }
-
-            for (Recipe recipe : recipes) {
-                Map<String, Object> map = Maps.newHashMap();
-                //设置处方具体药品名称
-                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                LOGGER.info("instanceRecipesAndPatient recipeid:{} ,recipedetails:{} ", recipe.getRecipeId(), JSONUtils.toString(recipedetails));
-                StringBuilder stringBuilder = new StringBuilder();
-
-                for (Recipedetail recipedetail : recipedetails) {
-                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-                    if (organDrugLists != null && organDrugLists.size() > 0) {
-                        stringBuilder.append(organDrugLists.get(0).getSaleName());
-                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
-                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
-                        }
-                    } else {
-                        stringBuilder.append(recipedetail.getDrugName());
-                    }
-                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
-                }
-                if (stringBuilder.lastIndexOf("、") != -1) {
-                    stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
-                }
-                recipe.setRecipeDrugName(stringBuilder.toString());
-                recipe.setRecipeShowTime(recipe.getCreateDate());
-                boolean effective = false;
-                //只有审核未通过的情况需要看订单状态
-//                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-//                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
-//                }
-                //添加订单的状态
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
-
-                recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-                map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
-                map.put("patient", patient);
-                LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
-                list.add(map);
-            }
-
-        }
-        LOGGER.info("instanceRecipesAndPatient response recipes:{} ,patient:{} ,list:{}", JSONUtils.toString(recipes), JSONUtils.toString(patient), JSONUtils.toString(list));
-        Long totalConsumedTime=new Date().getTime()-beginTime;
-        LOGGER.info("instanceRecipesAndPatient cost:{}",totalConsumedTime);
-        return list;
-    }
     /**
      * 获取返回对象
      *
