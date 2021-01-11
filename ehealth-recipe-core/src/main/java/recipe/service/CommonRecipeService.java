@@ -34,6 +34,7 @@ import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.serviceprovider.BaseService;
+import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -210,7 +211,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(organId, drugIdList);
         Map<Integer, List<Integer>> failureDrugIdAndCommonRecipeId = new HashMap<>();
         if (CollectionUtils.isEmpty(organDrugLists)) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "CommonRecipeService findCommonRecipeListExt : organDrugLists is null");
+            commonRecipeDTOList.stream().forEach(a -> a.setCommonRecipeStatus(1));
+            return commonRecipeDTOList;
         }
 
         Map<Integer, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
@@ -223,18 +225,16 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 OrganDrugList organDrugList = organDrugListMap.get(a.getDrugId());
                 if (null == organDrugList) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 if (StringUtils.isNotEmpty(organDrugList.getPharmacy()) &&
                         !organDrugList.getPharmacy().equals(a.getPharmacyId() + "")) {
                     drugIds.add(a.getDrugId());
                 }
-//                if (null != a.getPharmacyId() && !a.getPharmacyId().equals(null == organDrugList.getPharmacy() ? 0 : Integer.valueOf(organDrugList.getPharmacy()))) {
-//                    drugIds.add(a.getDrugId());
-//                }
                 if (null != a.getPharmacyId()) {
                     if (null == organDrugList.getPharmacy()) {
                         drugIds.add(a.getDrugId());
-                    } else if (!Arrays.asList(organDrugList.getPharmacy().split(",")).contains(a.getPharmacyId() + "")) {
+                    } else if (!Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(a.getPharmacyId() + "")) {
                         drugIds.add(a.getDrugId());
                     }
                 }
