@@ -4829,8 +4829,8 @@ public class RecipeService extends RecipeBaseService {
                     String pdfBase64Str = requestSealTO.getPdfBase64Str();
                     //将生成的处方pdf生成id
                     fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getChecker(), false, TCM_TEMPLATETYPE.equals(recipe.getRecipeType()), pdfBase64Str, signImageId);
-                } else if (StringUtils.isNotEmpty(recipe.getCheckerText1())) {
-                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipe.getSignFile(), recipe.getCheckerText1());
+                } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
+                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipe.getSignFile(), recipe.getCheckerText());
                 }
                 if (StringUtils.isNotEmpty(fileId)) {
                     RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, null, null, false, fileId);

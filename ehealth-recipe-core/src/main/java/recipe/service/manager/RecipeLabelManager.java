@@ -252,8 +252,8 @@ public class RecipeLabelManager {
         RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
         if (!StringUtils.isAnyEmpty(checkerSignImg, checkerSignImgToken)) {
             recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
-        } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText1())) {
-            recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText1());
+        } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText())) {
+            recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText());
         }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {

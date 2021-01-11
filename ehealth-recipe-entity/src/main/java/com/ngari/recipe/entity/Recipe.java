@@ -121,7 +121,6 @@ public class Recipe implements Serializable {
     private Date checkDate;
 
     @ItemProperty(alias = "审核人")
-    @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer checker;
 
     @ItemProperty(alias = "审核药师姓名")
@@ -778,11 +777,11 @@ public class Recipe implements Serializable {
     }
 
     @Column(name = "CheckerText")
-    public String getCheckerText1() {
+    public String getCheckerText() {
         return checkerText;
     }
 
-    public void setCheckerText1(String checkerText) {
+    public void setCheckerText(String checkerText) {
         this.checkerText = checkerText;
     }
 
