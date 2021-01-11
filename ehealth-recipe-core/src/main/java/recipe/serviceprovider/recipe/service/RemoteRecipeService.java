@@ -2269,7 +2269,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     //未支付，未失效
                     if (orderCode==null){
                         List<Recipe> recipeStatusLoseByBussSourceAndClinicId = recipeDAO.findRecipeStatusLoseByBussSourceAndClinicId(bussSource, clinicId, recipe.getStatus());
-                        return (recipeList==null||recipeList.size()==0)?false:true;
+                        return (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true;
                     }
                     //根据订单编号查找对应的订单
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
