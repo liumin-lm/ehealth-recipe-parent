@@ -231,7 +231,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         !organDrugList.getPharmacy().equals(a.getPharmacyId() + "")) {
                     drugIds.add(a.getDrugId());
                 }
-                if (-1 != a.getPharmacyId()) {
+                if (null != a.getPharmacyId()) {
                     if (null == organDrugList.getPharmacy()) {
                         drugIds.add(a.getDrugId());
                     } else if (!Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(a.getPharmacyId() + "")) {
