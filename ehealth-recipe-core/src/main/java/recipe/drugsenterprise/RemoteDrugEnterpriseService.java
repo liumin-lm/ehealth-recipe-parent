@@ -1,9 +1,8 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
@@ -670,10 +669,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     supportOnlineMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
                     if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToEnterprises")) {
-                        haveInventoryForOnlineList = new ArrayList<>();
                         //获取医院或者药企库存（看配置）
-                        compareGetHaveDrugInventoryForApp(drugsEnterprise, result, haveInventoryForOnlineList, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
-
+                        haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
+                        LOGGER.info("getDrugsEnterpriseInventory haveInventoryForOnlineList:{}.", JSONUtils.toString(haveInventoryForOnlineList));
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
                             supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
                             supportOnlineList.add(supportOnlineMap);
@@ -683,9 +681,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     supportSendToHosMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
                     if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToHos")) {
-                        haveInventoryForOnlineList = new ArrayList<>();
                         //获取医院或者药企库存（看配置）
-                        compareGetHaveDrugInventoryForApp(drugsEnterprise, result, haveInventoryForOnlineList, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
+                        haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
                             supportSendToHosMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
                             supportSendToHosList.add(supportSendToHosMap);
@@ -695,10 +692,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
                 toStoreMap = new LinkedHashMap<>();
                 if (payModeSupport(drugsEnterprise , 3) && configurations.containsKey("supportTFDS")) {
-                    haveInventoryForStoreList = new ArrayList<>();
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     //获取医院或者药企库存（看配置）
-                    compareGetHaveDrugInventoryForApp(drugsEnterprise, result, haveInventoryForStoreList, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 2);
+                    haveInventoryForStoreList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 2);
                     if (CollectionUtils.isNotEmpty(haveInventoryForStoreList)) {
                         toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
                         toStoreList.add(toStoreMap);
@@ -834,7 +830,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      * @param recipeEnterpriseService
      * @param flag                    是否有药店  1否 2是
      */
-    private void compareGetHaveDrugInventoryForApp(DrugsEnterprise drugsEnterprise, List result, List<String> haveInventoryList, DrugEnterpriseResult drugEnterpriseResult, DrugsDataBean drugsDataBean, IRecipeEnterpriseService recipeEnterpriseService, Integer flag) {
+    private List compareGetHaveDrugInventoryForApp(DrugsEnterprise drugsEnterprise, List result, DrugEnterpriseResult drugEnterpriseResult, DrugsDataBean drugsDataBean, IRecipeEnterpriseService recipeEnterpriseService, Integer flag) {
+        List haveInventoryList = Lists.newArrayList();
         //判断药企的配置是校验医院库存还是校验药企库存
         //校验医院库存
         if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag())) {
@@ -854,9 +851,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             } else {//通过平台调用
                 if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
                     haveInventoryList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, flag);
+                    LOGGER.info("compareGetHaveDrugInventoryForApp haveInventoryList:{}.", JSONUtils.toString(haveInventoryList));
                 }
             }
         }
+        return haveInventoryList;
     }
 
     /**

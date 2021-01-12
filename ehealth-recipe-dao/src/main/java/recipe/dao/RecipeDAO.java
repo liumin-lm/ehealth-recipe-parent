@@ -2764,13 +2764,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tcr.depart,\n" +
                         "\tcr.patientName,\n" +
                         "\tDATE_FORMAT(co.dispensingTime, '%Y-%m-%d %k:%i:%s') as sendDate,\n" +
-                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' ELSE '无' END AS STATUS,\n" +
+                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" +
                         "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
                         "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
                         "\t'' AS dispensingWindow,\n" +
                         "\tcr.doctorName,\n" +
                         "\tcr.totalMoney,\n" +
-                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' ELSE '中成药' END AS RecipeType,\n" +
+                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' WHEN 2 THEN '中成药' WHEN 3 THEN '中药' ELSE '膏方' END AS RecipeType,\n" +
                         "\tDATE_FORMAT(cr.CreateDate, '%Y-%m-%d %k:%i:%s') as CreateDate,\n" +
                         "\tDATE_FORMAT(co.PayTime, '%Y-%m-%d %k:%i:%s') as PayTime\n" +
                         "FROM\n" +
