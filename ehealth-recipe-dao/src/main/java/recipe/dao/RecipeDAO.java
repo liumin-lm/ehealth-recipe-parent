@@ -2770,7 +2770,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t'' AS dispensingWindow,\n" +
                         "\tcr.doctorName,\n" +
                         "\tcr.totalMoney,\n" +
-                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' ELSE '中成药' END AS RecipeType,\n" +
+                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' WHEN 2 THEN '中成药' WHEN 3 THEN '中药' ELSE '膏方' END AS RecipeType,\n" +
                         "\tDATE_FORMAT(cr.CreateDate, '%Y-%m-%d %k:%i:%s') as CreateDate,\n" +
                         "\tDATE_FORMAT(co.PayTime, '%Y-%m-%d %k:%i:%s') as PayTime\n" +
                         "FROM\n" +
