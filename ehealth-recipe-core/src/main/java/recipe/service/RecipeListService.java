@@ -718,17 +718,19 @@ public class RecipeListService extends RecipeBaseService {
                 //设置处方具体药品名称
                 StringBuilder stringBuilder = new StringBuilder();
                 List<Recipedetail> recipedetails =recipeDetailMap.get(recipe.getRecipeId());
-                for (Recipedetail recipedetail : recipedetails) {
-                    OrganDrugList organDrugList=organDrugListMap.get(recipe.getClinicOrgan()+"_"+recipedetail.getDrugId());
-                    if(organDrugList!=null){
-                        stringBuilder.append(organDrugList.getSaleName());
-                        if (StringUtils.isNotEmpty(organDrugList.getDrugForm())) {
-                            stringBuilder.append(organDrugList.getDrugForm());
+                if(CollectionUtils.isNotEmpty(recipedetails)) {
+                    for (Recipedetail recipedetail : recipedetails) {
+                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetail.getDrugId());
+                        if (organDrugList != null) {
+                            stringBuilder.append(organDrugList.getSaleName());
+                            if (StringUtils.isNotEmpty(organDrugList.getDrugForm())) {
+                                stringBuilder.append(organDrugList.getDrugForm());
+                            }
+                        } else {
+                            stringBuilder.append(recipedetail.getDrugName());
                         }
-                    }else {
-                        stringBuilder.append(recipedetail.getDrugName());
+                        stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
                     }
-                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
                 }
                 if (stringBuilder.lastIndexOf("、") != -1) {
                     stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
