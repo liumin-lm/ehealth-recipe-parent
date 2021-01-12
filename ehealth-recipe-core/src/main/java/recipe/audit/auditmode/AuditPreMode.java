@@ -42,7 +42,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
 
     @Override
-    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo){
+    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
         if (status == RecipeStatusConstant.CHECK_PASS) {
             //暂时去掉，没有用到
             /*//todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
@@ -70,13 +70,15 @@ public class AuditPreMode extends AbstractAuidtMode {
         //发送消息
         sendMsg(status, recipe, memo);
         Integer checkMode = recipe.getCheckMode();
-        if (new Integer(2).equals(checkMode)) {
-            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-            IRecipeAuditService recipeAuditService=    RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
-            RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
-            recipeAuditService.sendCheckRecipeInfo(recipeBean);
-        } else if (new Integer(3).equals(checkMode)) {
-                winningRecipeAudit(recipe);
+        if(!new Integer(1).equals(checkMode)) {
+            if (new Integer(2).equals(checkMode)) {
+                //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+                IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+                RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
+                recipeAuditService.sendCheckRecipeInfo(recipeBean);
+            } else {
+                recipeAudit(recipe);
+            }
         }
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
@@ -89,14 +91,14 @@ public class AuditPreMode extends AbstractAuidtMode {
             Integer checkMode = recipe.getCheckMode();
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(),recipe.getClinicOrgan());
-                //平台审方途径下才发消息  满足自动审方的不推送
-                if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) && !flag) {
-                    if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                        //增加药师首页待处理任务---创建任务
-                        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-                    }
+            boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+            //平台审方途径下才发消息  满足自动审方的不推送
+            if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) && !flag) {
+                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    //增加药师首页待处理任务---创建任务
+                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                }
             }
             //保存至电子病历
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -104,14 +106,14 @@ public class AuditPreMode extends AbstractAuidtMode {
         }
     }
 
-    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId){
-        LOGGER.info("judgeRecipeAutoCheck recipe={}",recipeId);
-        try{
+    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
+        try {
             IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean invokeRecipeAnalysis = (Boolean)iConfigService.getConfiguration(organId,"InvokeRecipeAnalysis");
-            Integer intellectJudicialFlag = (Integer)iConfigService.getConfiguration(organId,"intellectJudicialFlag");
-            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId,"autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String)iConfigService.getConfiguration(organId,"defaultRecipecheckDoctor");
+            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
             if (invokeRecipeAnalysis && intellectJudicialFlag == 1
                     && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
                 String[] levels = autoRecipecheckLevel.split(",");
@@ -120,7 +122,7 @@ public class AuditPreMode extends AbstractAuidtMode {
                 IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
                 Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
                 Integer dbMaxLevel = maxLevelMap.get(recipeId);
-                if(dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())){
+                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
                     LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
                     return true;
                 }
