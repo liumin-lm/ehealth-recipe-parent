@@ -226,16 +226,21 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 OrganDrugList organDrugList = organDrugListMap.get(a.getDrugId());
                 if (null == organDrugList) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 if (StringUtils.isNotEmpty(organDrugList.getPharmacy()) &&
                         !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
+
                 if (null != a.getPharmacyId()) {
                     if (null == organDrugList.getPharmacy()) {
                         drugIds.add(a.getDrugId());
+                        return;
                     } else if (!Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
                         drugIds.add(a.getDrugId());
+                        return;
                     }
                 }
                 //看看是commonRecipeDrug在organDrugList中否存在
@@ -244,21 +249,26 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         .collect(Collectors.toList());
                 if (CollectionUtils.isEmpty(organDrugLisFindByDrugIdAndOrganDrugCode)) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 //判断药品适量是否打开，如果处方药品中配置了适量但是运营平台关闭了适量则药品失效
                 if (null != a.getUseDose() && !isAppropriate) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
 
                 //判断药品用药频率和方式是否合理
                 if (null == a.getUsingRateId() || null == a.getUsePathwaysId()) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 if (null != a.getUsingRateId() && null == usingRateMap.get(Integer.parseInt(a.getUsingRateId()))) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 if (null != a.getUsePathwaysId() && null == pathwaysMap.get(Integer.parseInt(a.getUsePathwaysId()))) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
 
             });
