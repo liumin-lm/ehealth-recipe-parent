@@ -357,12 +357,15 @@ public class RecipeMsgService {
         }
 
         Integer clientId = null;
-        //处方审核通过添加clientId
+       /* //处方审核通过添加clientId
         if (bussType != null && bussType.equals(RECIPE_CHECK_PASS)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             clientId = recipe.getCurrentClient();
-        }
+        }*/
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Integer urt = recipe.getRequestUrt();
 
         SmsInfoBean info = new SmsInfoBean();
         // 业务表主键
@@ -371,6 +374,7 @@ public class RecipeMsgService {
         info.setBusType(bussType);
         info.setSmsType(bussType);
         info.setClientId(clientId);
+        info.setUrt(urt);
         info.setStatus(0);
         //0代表通用机构
         info.setOrganId(organId);
