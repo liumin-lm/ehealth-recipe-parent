@@ -712,6 +712,7 @@ public class RecipeListService extends RecipeBaseService {
                 List<OrganDrugList> organDrugLists=organDrugListDAO.findByDrugIdAndOrganId(recipeIds);
                 LOGGER.info("instanceRecipesAndPatient organDrugLists:{} ", JSONUtils.toString(organDrugLists));
                 organDrugListMap = organDrugLists.stream() .collect(Collectors.toMap(k->k.getOrganId()+"_"+k.getDrugId(), a -> a, (k1, k2) -> k1));
+                LOGGER.info("instanceRecipesAndPatient organDrugListMap:{} ", JSONUtils.toString(organDrugListMap));
             }
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
@@ -1739,7 +1740,7 @@ public class RecipeListService extends RecipeBaseService {
                     for (Recipedetail recipedetail : recipedetails) {
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
                         if (organDrugLists != null && 0 < organDrugLists.size()) {
-                            stringBuilder.append(organDrugLists.get(0).getSaleName());
+                            stringBuilder.append(StringUtils.isEmpty(organDrugLists.get(0).getSaleName()) ? "" : organDrugLists.get(0).getSaleName());
                             if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
                                 stringBuilder.append(organDrugLists.get(0).getDrugForm());
                             }

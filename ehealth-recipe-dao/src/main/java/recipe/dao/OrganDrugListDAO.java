@@ -223,6 +223,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     organDrugList.setOrganId((Integer) result.get(i)[1]);
                     organDrugList.setDrugForm((String) result.get(i)[2]);
                     organDrugList.setDrugName((String) result.get(i)[3]);
+                    organDrugList.setSaleName((String) result.get(i)[4]);
                     organDrugLists.add(organDrugList);
                 }
                 setResult(organDrugLists);
@@ -230,7 +231,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
 
             private StringBuilder generateRecipeOderHQLforStatisticsN( List<Integer> recipeIds) {
                 StringBuilder hql = new StringBuilder("select ");
-                hql.append("bo.drugId,bo.organId,bo.DrugForm,bo.drugName");
+                hql.append("bo.drugId,bo.organId,bo.DrugForm,bo.drugName,bo.saleName");
                 hql.append(" from cdr_recipe r  ");
                 hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID  ");
                 hql.append("LEFT JOIN base_organdruglist bo ON bo.drugId = d.drugId and bo.organId= r.clinicOrgan ");
