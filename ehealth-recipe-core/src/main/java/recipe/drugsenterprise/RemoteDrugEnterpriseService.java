@@ -673,7 +673,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         haveInventoryForOnlineList = new ArrayList<>();
                         //获取医院或者药企库存（看配置）
                         compareGetHaveDrugInventoryForApp(drugsEnterprise, result, haveInventoryForOnlineList, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
-
+                        LOGGER.info("getDrugsEnterpriseInventory haveInventoryForOnlineList:{}.", JSONUtils.toString(haveInventoryForOnlineList));
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
                             supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
                             supportOnlineList.add(supportOnlineMap);
@@ -854,6 +854,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             } else {//通过平台调用
                 if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
                     haveInventoryList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, flag);
+                    LOGGER.info("compareGetHaveDrugInventoryForApp haveInventoryList:{}.", JSONUtils.toString(haveInventoryList));
                 }
             }
         }
