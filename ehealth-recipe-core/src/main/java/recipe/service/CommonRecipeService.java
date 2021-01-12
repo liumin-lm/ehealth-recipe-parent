@@ -167,11 +167,11 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonRecipeDTO> commonRecipeDTOList;
         if (CollectionUtils.isNotEmpty(recipeType)) {
             //通过处方类型获取常用处方
-            List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(recipeType, doctorId, start, limit);
+            List<CommonRecipe> list = commonRecipeDAO.findByRecipeTypeAndOrganId(recipeType, doctorId, organId, start, limit);
             commonRecipeDTOList = getList(list, CommonRecipeDTO.class);
         } else {
             //通过医生id查询常用处方
-            List<CommonRecipe> list = commonRecipeDAO.findByDoctorId(doctorId, start, limit);
+            List<CommonRecipe> list = commonRecipeDAO.findByDoctorIdAndOrganId(doctorId, organId, start, limit);
             commonRecipeDTOList = getList(list, CommonRecipeDTO.class);
         }
 
