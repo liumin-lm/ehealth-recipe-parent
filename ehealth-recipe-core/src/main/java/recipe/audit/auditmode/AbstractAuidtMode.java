@@ -4,12 +4,14 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
@@ -51,7 +53,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuidtMode.class);
 
     @Override
-    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo)  {
+    public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //发送卡片
         RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
@@ -72,9 +74,9 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             //发送消息--待审核或者待处理消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             Integer checkMode = recipe.getCheckMode();
-            boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(),recipe.getClinicOrgan());
-            //卫宁审方环境不推送药师消息
-            if (!new Integer(3).equals(checkMode) && !flag) {
+            boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+            //线下审方不推送药师消息
+            if (new Integer(1).equals(checkMode) && !flag) {
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     if (status == RecipeStatusConstant.READY_CHECK_YS) {
@@ -89,14 +91,14 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         }
     }
 
-    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId){
-        LOGGER.info("judgeRecipeAutoCheck recipe={}",recipeId);
-        try{
+    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
+        try {
             IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean invokeRecipeAnalysis = (Boolean)iConfigService.getConfiguration(organId,"InvokeRecipeAnalysis");
-            Integer intellectJudicialFlag = (Integer)iConfigService.getConfiguration(organId,"intellectJudicialFlag");
-            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId,"autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String)iConfigService.getConfiguration(organId,"defaultRecipecheckDoctor");
+            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
             if (invokeRecipeAnalysis && intellectJudicialFlag == 1
                     && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
                 String[] levels = autoRecipecheckLevel.split(",");
@@ -105,7 +107,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
                 IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
                 Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
                 Integer dbMaxLevel = maxLevelMap.get(recipeId);
-                if(dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())){
+                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
                     LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
                     return true;
                 }
@@ -200,26 +202,36 @@ public abstract class AbstractAuidtMode implements IAuditMode {
     }
 
     /**
-     * 卫宁审方通知
+     * 线下审方
      *
      * @param recipe
      */
-    protected void winningRecipeAudit(Recipe recipe) {
+    protected void recipeAudit(Recipe recipe) {
         try {
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            Integer recipeId = recipe.getRecipeId();
+            //处方信息
+            IRecipeService iRecipeService = RecipeAPI.getService(IRecipeService.class);
+            RecipeBean recipeBean = iRecipeService.getByRecipeId(recipeId);
+            RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeBean, RecipeDTO.class);
+
             //查詢处方扩展 获取对应的挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-
-            RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
-            recipeBean.setRegisterId(recipeExtend.getRegisterID());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            recipeDTO.setRegisterId(recipeExtend.getRegisterID());
+            //处方信息详情
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<RecipeDetailDTO> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailDTO.class);
-            IRecipeAuditService recipeAuditService=    RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
 
-            recipeAuditService.winningRecipeAudit(recipeBean, recipeDetailBeans);
-        }catch (Exception e){
-            LOGGER.error("winningRecipeAudit-error",e);
+            IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+            if (recipeDTO.getCheckMode().equals(3)) {
+                recipeAuditService.winningRecipeAudit(recipeDTO, recipeDetailBeans);
+            } else {
+                recipeAuditService.offlineRecipeAudit(recipeDTO, recipeDetailBeans);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("recipeAudit.error", e);
         }
     }
 }
