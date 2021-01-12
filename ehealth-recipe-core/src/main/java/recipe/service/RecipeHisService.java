@@ -435,11 +435,11 @@ public class RecipeHisService extends RecipeBaseService {
                 LOGGER.error("doRecipeSettle recipeOrder is null ; recipeId={}",recipe.getRecipeId());
                 return false;
             }
-            //对卫宁收银台的订单不用再变更配送信息,走卫宁收银台已发送配送信息
             // 111 为卫宁支付---卫宁付不走前置机的his结算
             if ("111".equals(recipeOrder.getWxPayWay())) {
                 LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}",recipe.getRecipeId());
-                return false;
+                //汉中市中心医院对接了卫宁付但是需要用到后面的更新配送信息接口将物流单号传给前置机
+                return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
             IRecipeSettleService settleService = PreSettleFactory.getSettleService(recipeOrder.getOrganId(), recipeOrder.getOrderType());

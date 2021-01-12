@@ -1998,8 +1998,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
         //先获取 已发药 配送中 已完成
         List<WorkLoadTopDTO> workLoadTopListWithSuccess = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName);
-        List<WorkLoadTopDTO> workLoadListWithFail = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14", start, limit, startDateStr, endDateStr, doctorName);
-        List<WorkLoadTopDTO> workLoadListWithRefuse = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "15", start, limit, startDateStr, endDateStr, doctorName);
+        List<WorkLoadTopDTO> workLoadListWithFail = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "15", start, limit, startDateStr, endDateStr, doctorName);
+        List<WorkLoadTopDTO> workLoadListWithRefuse = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14", start, limit, startDateStr, endDateStr, doctorName);
         //合并发药与未发药的
         for (WorkLoadTopDTO loadTopListWithSuccess : workLoadTopListWithSuccess) {
             //退药 2个工作量
