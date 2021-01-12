@@ -218,6 +218,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         Map<Integer, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
         Map<Integer, List<CommonRecipeDrug>> groupMapByCommonRecipeId = commonRecipeDrugList.stream().collect(Collectors.groupingBy(CommonRecipeDrug::getCommonRecipeId));
         //判断药品是否在对应的药房下 k:commonRecipeId v:List<CommonRecipeDrug> a:CommonRecipeDrug
+        LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId={}", JSONUtils.toString(groupMapByCommonRecipeId));
         groupMapByCommonRecipeId.forEach((k, v) -> {
             List<Integer> drugIds = new LinkedList<>();
             v.forEach(a -> {
@@ -228,14 +229,18 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     return;
                 }
                 if (StringUtils.isNotEmpty(organDrugList.getPharmacy()) &&
-                        !organDrugList.getPharmacy().equals(a.getPharmacyId() + "")) {
+                        !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
+
                 if (null != a.getPharmacyId()) {
                     if (null == organDrugList.getPharmacy()) {
                         drugIds.add(a.getDrugId());
-                    } else if (!Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(a.getPharmacyId() + "")) {
+                        return;
+                    } else if (!Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
                         drugIds.add(a.getDrugId());
+                        return;
                     }
                 }
                 //看看是commonRecipeDrug在organDrugList中否存在
@@ -244,21 +249,26 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         .collect(Collectors.toList());
                 if (CollectionUtils.isEmpty(organDrugLisFindByDrugIdAndOrganDrugCode)) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 //判断药品适量是否打开，如果处方药品中配置了适量但是运营平台关闭了适量则药品失效
                 if (null != a.getUseDose() && !isAppropriate) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
 
                 //判断药品用药频率和方式是否合理
                 if (null == a.getUsingRateId() || null == a.getUsePathwaysId()) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 if (null != a.getUsingRateId() && null == usingRateMap.get(Integer.parseInt(a.getUsingRateId()))) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
                 if (null != a.getUsePathwaysId() && null == pathwaysMap.get(Integer.parseInt(a.getUsePathwaysId()))) {
                     drugIds.add(a.getDrugId());
+                    return;
                 }
 
             });
@@ -276,7 +286,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 a.setCommonRecipeStatus(0);
             }
         });
-
+        LOGGER.info(" getCommonRecipeListExt commonRecipeDTOList={}", JSONUtils.toString(commonRecipeDTOList));
         return commonRecipeDTOList;
     }
 
