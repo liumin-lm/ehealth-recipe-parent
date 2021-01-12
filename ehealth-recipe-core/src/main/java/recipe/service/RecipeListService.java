@@ -712,6 +712,7 @@ public class RecipeListService extends RecipeBaseService {
                 List<OrganDrugList> organDrugLists=organDrugListDAO.findByDrugIdAndOrganId(recipeIds);
                 LOGGER.info("instanceRecipesAndPatient organDrugLists:{} ", JSONUtils.toString(organDrugLists));
                 organDrugListMap = organDrugLists.stream() .collect(Collectors.toMap(k->k.getOrganId()+"_"+k.getDrugId(), a -> a, (k1, k2) -> k1));
+                LOGGER.info("instanceRecipesAndPatient organDrugListMap:{} ", JSONUtils.toString(organDrugListMap));
             }
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
