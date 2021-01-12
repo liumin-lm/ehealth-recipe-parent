@@ -24,7 +24,7 @@ public interface IEnterpriseAddressService extends IBaseService<EnterpriseAddres
     void deleteEnterpriseAddressById(List<Integer> ids);
 
     @RpcService(timeout = 60)
-    void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList);
+    void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList, Integer enterpriseId);
 
     @RpcService
     public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) ;
