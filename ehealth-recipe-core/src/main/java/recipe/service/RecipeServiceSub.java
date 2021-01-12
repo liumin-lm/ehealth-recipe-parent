@@ -1837,6 +1837,7 @@ public class RecipeServiceSub {
     public static Map<String,String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId){
         LOGGER.info("attachSealPic param clinicOrgan:{},doctorId:{},checker:{},recipeId:{}",clinicOrgan,doctorId,checker,recipeId);
         Map<String,String> map=new HashMap<>();
+        SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
         try{
             //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
             String sealDataFrom="platFormSeal";
@@ -1851,7 +1852,6 @@ public class RecipeServiceSub {
             }
             if("thirdSeal".equals(sealDataFrom)){
                 LOGGER.info("attachSealPic 使用第三方签名，recipeId:{}",recipeId);
-                SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
                 SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
                 SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
                 if (null != docInfo) {
@@ -1870,12 +1870,12 @@ public class RecipeServiceSub {
             //线下手签
             else if("offlineSeal".equals(sealDataFrom)){
                 LOGGER.info("attachSealPic 线下手签，clinicOrgan:{}",clinicOrgan);
-                String doctorSignImg=doctorExtendService.getCaSignPictureByDocId(doctorId);
+                String doctorSignImg=signRecipeInfoService.getOfflineCaPictureByDocId(doctorId);
                 if (StringUtils.isNotBlank(doctorSignImg)) {
                     map.put("doctorSignImg", doctorSignImg);
                 }
                 //线下处方没有药师审方 如果线上处方设置成线下手签
-                String checkerSignImg=doctorExtendService.getCaSignPictureByDocId(checker);
+                String checkerSignImg=signRecipeInfoService.getOfflineCaPictureByDocId(checker);
                 if (StringUtils.isNotBlank(checkerSignImg)) {
                     map.put("checkerSignImg", checkerSignImg);
                 }

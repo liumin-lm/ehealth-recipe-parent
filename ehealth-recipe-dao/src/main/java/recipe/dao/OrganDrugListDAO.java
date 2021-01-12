@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -207,6 +208,54 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where drugId=:drugId and organId=:organId ")
     public abstract List<OrganDrugList> findByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
 
+    public List<OrganDrugList> findByDrugIdAndOrganId( final List<Integer> recipeIds) {
+        HibernateStatelessResultAction <List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction <List<OrganDrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                final StringBuilder preparedHql = this.generateRecipeOderHQLforStatisticsN(recipeIds);
+                Query q = ss.createSQLQuery(preparedHql.toString());
+                List<Object[]> result = q.list();
+                List<OrganDrugList> organDrugLists=new ArrayList();
+                Map<String, Object> vo = new HashMap ();
+                for(int i=0;i<result.size();i++){
+                    OrganDrugList organDrugList=new OrganDrugList();
+                    organDrugList.setDrugId((Integer) result.get(i)[0]);
+                    organDrugList.setOrganId((Integer) result.get(i)[1]);
+                    organDrugList.setDrugForm((String) result.get(i)[2]);
+                    organDrugList.setDrugName((String) result.get(i)[3]);
+                    organDrugLists.add(organDrugList);
+                }
+                setResult(organDrugLists);
+            }
+
+            private StringBuilder generateRecipeOderHQLforStatisticsN( List<Integer> recipeIds) {
+                StringBuilder hql = new StringBuilder("select ");
+                hql.append("bo.drugId,bo.organId,bo.DrugForm,bo.drugName");
+                hql.append(" from cdr_recipe r  ");
+                hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID  ");
+                hql.append("LEFT JOIN base_organdruglist bo ON bo.drugId = d.drugId and bo.organId= r.clinicOrgan ");
+                hql.append(" where  1= 1 ");
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    boolean flag = true;
+                    for (Integer i : recipeIds) {
+                        if (i != null) {
+                            if (flag) {
+                                hql.append(" and r.recipeId in(");
+                                flag = false;
+                            }
+                            hql.append(i + ",");
+                        }
+                    }
+                    if (!flag) {
+                        hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
+                    }
+                }
+                return hql;
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return  action.getResult();
+    }
 
 
     /**
