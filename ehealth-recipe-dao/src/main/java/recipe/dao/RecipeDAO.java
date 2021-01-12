@@ -2667,15 +2667,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "GROUP BY\n" +
                         "\tdrugId,cr.recipeId\n";*/
                 String sql = "SELECT\n" +
-                        "\trd.drugId,\n" +
+                        "\trd.OrganDrugCode,\n" +
                         "\trd.drugName,\n" +
                         "\trd.drugSpec,\n" +
                         "\trd.drugUnit,\n" +
                         "\tcast(\n" +
                         "\t\tsum(rd.useTotalDose) AS SIGNED\n" +
                         "\t) AS count,\n" +
-                        "\trd.drugCost,\n" +
-                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\trd.saleprice,\n" +
+                        "\tSUM(rd.drugCost) AS countMoney,\n" +
                         "\tCASE bd.drugtype\n" +
                         "WHEN 1 THEN\n" +
                         "\t'西药'\n" +
