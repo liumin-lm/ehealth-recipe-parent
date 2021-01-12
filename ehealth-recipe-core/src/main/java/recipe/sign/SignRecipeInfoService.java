@@ -432,4 +432,24 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             return null;
         }
     }
+
+    /**
+     * 获取线下维护的CA签名
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public String getOfflineCaPictureByDocId(Integer doctorId){
+        logger.info("SignRecipeInfoService getOfflineCaPictureByDocId doctorId=[{}]",doctorId);
+        DoctorExtendDTO doctorExtend = doctorExtendService.getByDoctorId(doctorId);
+        if (doctorExtend == null)
+            return null;
+        String fileId = null;
+        if (StringUtils.isEmpty(doctorExtend.getPictureIdCA())) {
+            fileId = uploadPicture(doctorExtend.geteSignature());
+            doctorExtendService.updateCAPictureIdByDocId(fileId, doctorId);
+        } else
+            fileId = doctorExtend.getPictureIdCA();
+        return fileId;
+    }
 }

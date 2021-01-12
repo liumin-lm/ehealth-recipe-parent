@@ -2841,9 +2841,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.setPatientName(String.valueOf(objects[3]));
                         value.setSendDate(String.valueOf(objects[4]));
                         value.setStatus(String.valueOf(objects[5]));
-                        value.setSendApothecaryName(String.valueOf(objects[6]));
-                        value.setDispensingApothecaryName(String.valueOf(objects[7]));
-                        value.setDispensingWindow(String.valueOf(objects[8]));
+                        value.setSendApothecaryName(objects[6] == null ? "":String.valueOf(objects[6]));
+                        value.setDispensingApothecaryName(objects[7] == null ? "":String.valueOf(objects[7]));
+                        value.setDispensingWindow(objects[8] == null ? "":String.valueOf(objects[8]));
                         value.setDoctorName(String.valueOf(objects[9]));
                         value.setTotalMoney(Double.valueOf(String.valueOf(objects[10])));
                         value.setRecipeType(String.valueOf(objects[11]));
