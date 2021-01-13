@@ -573,11 +573,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             //通过机构Id查找对应药品库存列表
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
+            //List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
             DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
             if (null == response) {
                 return "有库存";
             } else {
+                //前置机返回0或者200
                 if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
                     if (CollectionUtils.isEmpty(response.getData())){
                         return "有库存";
@@ -590,6 +592,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                             return "有库存";
                         }
                     }
+                }else {
+                    return "无库存";
                 }
             }
         }
