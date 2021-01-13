@@ -67,7 +67,7 @@ public abstract class RecipeDetailDAO extends
      * @param recipeIds
      * @return
      */
-    @DAOMethod(sql = "from Recipedetail where recipeId in :recipeIds and status=1")
+    @DAOMethod(sql = "from Recipedetail where recipeId in :recipeIds and status=1", limit = 0)
     public abstract List<Recipedetail> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
