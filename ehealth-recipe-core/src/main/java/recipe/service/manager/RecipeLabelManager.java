@@ -57,7 +57,7 @@ public class RecipeLabelManager {
      * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
      *
      * @param organId 机构id
-     * @return Y坐标点位 （默认450 每个字段降低3px高度）
+     * @return Y坐标点位 （默认450）
      */
     public int getPdfReceiverHeight(Integer organId) {
         int height = 450;
@@ -68,20 +68,19 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(labelMap)) {
             return height;
         }
+        height = 440;
         List<Scratchable> list1 = (List<Scratchable>) labelMap.get("moduleOne");
-        int heightSize = 0;
-        if (!CollectionUtils.isEmpty(list1) && list1.size() > 3) {
-            heightSize = list1.size() - 3;
+        if (!CollectionUtils.isEmpty(list1)) {
+            height = 427;
+            if (list1.size() > 3) {
+                height = height - (((list1.size() - 3) / 3) + 1) * 10;
+            }
         }
         List<Scratchable> list2 = (List<Scratchable>) labelMap.get("moduleTwo");
-        if (!CollectionUtils.isEmpty(list2)) {
-            heightSize = heightSize + list2.size();
+        if (!CollectionUtils.isEmpty(list2) && list2.size() > 6) {
+            height = height - (((list2.size() - 6) / 3) + 1) * 10;
         }
-        if (heightSize == 0) {
-            return height;
-        } else {
-            return height - heightSize * 4;
-        }
+        return height;
     }
 
     /**
