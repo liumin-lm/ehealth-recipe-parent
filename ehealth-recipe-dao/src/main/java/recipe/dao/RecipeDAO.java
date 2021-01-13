@@ -2554,7 +2554,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
                         "AND o.status in (" + orderStatus + ")\n" +
-                        "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
+                        "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
