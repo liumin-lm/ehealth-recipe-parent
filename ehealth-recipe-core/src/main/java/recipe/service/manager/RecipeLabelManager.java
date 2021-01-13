@@ -68,8 +68,15 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(labelMap)) {
             return height;
         }
-        List<Scratchable> list = (List<Scratchable>) labelMap.get("moduleTwo");
-        int heightSize = list.size();
+        List<Scratchable> list1 = (List<Scratchable>) labelMap.get("moduleOne");
+        int heightSize = 0;
+        if (!CollectionUtils.isEmpty(list1) && list1.size() > 3) {
+            heightSize = list1.size() - 3;
+        }
+        List<Scratchable> list2 = (List<Scratchable>) labelMap.get("moduleTwo");
+        if (!CollectionUtils.isEmpty(list2)) {
+            heightSize = heightSize + list2.size();
+        }
         if (heightSize == 0) {
             return height;
         } else {
@@ -340,14 +347,14 @@ public class RecipeLabelManager {
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + ":" + dTotal));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
-        list.add(new RecipeLabelVO("天数", "tcmUseDay", StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()));
+        list.add(new RecipeLabelVO("天数", "tcmUseDay", (StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()) + "天"));
         try{
             list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
             list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
         }catch (Exception e){
             logger.error("用药途径 用药频率有误");
         }
-        list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum()));
+        list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
         if (null != extend) {
             list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()==null?"":extend.getDecoctionText()));
