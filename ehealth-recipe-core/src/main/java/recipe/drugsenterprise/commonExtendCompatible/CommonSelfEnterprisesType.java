@@ -271,38 +271,12 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<String> result = new ArrayList<>();
-        if(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType() == drugsEnterprise.getSendType()){
-            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsDataBean.getOrganId());
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
-                if (CollectionUtils.isNotEmpty(organDrugLists) && saleDrugList != null) {
-                    OrganDrugList organDrugList = organDrugLists.get(0);
-                    List<Recipedetail> recipedetails = new ArrayList<>();
-                    Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
-                    if (organDrugList != null) {
-                        recipedetail.setPack(organDrugList.getPack());
-                        recipedetail.setDrugUnit(organDrugList.getUnit());
-                        recipedetail.setProducerCode(organDrugList.getProducerCode());
-                        recipedetails.add(recipedetail);
-                        DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
-                        if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
-                            //表示有库存
-                            result.add(recipeDetailBean.getDrugName());
-                        }
-                    }
-                }
-            }
-        } else {
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
                 if (saleDrugList != null) {
                     result.add(recipeDetailBean.getDrugName());
                 }
             }
-        }
         return result;
     }
-
-
 }
