@@ -2702,7 +2702,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t\tAND co.`Status` IN (" + orderStatus + ")\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "\t) GROUP BY\n" +
-                        "\tdrugId\n";
+                        "\tOrganDrugCode\n";
                 if (order == 1) {
                     sql += "order by SUM(rd.saleprice) desc";
                 }
