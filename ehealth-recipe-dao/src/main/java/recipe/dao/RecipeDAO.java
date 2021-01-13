@@ -2785,7 +2785,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND (\n" +
                         "\tco. STATUS IN (" + orderStatus + ")\n" +
                         ")\n" +
-                        "AND co.dispensingTime BETWEEN '" + startDate + "'\n" +
+                        "AND co.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") +
                         (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName like :patientName" : "") +
                         (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :billNumber" : "") +
