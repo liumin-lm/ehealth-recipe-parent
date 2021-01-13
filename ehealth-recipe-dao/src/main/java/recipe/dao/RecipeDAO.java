@@ -2554,7 +2554,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
                         "AND o.status in (" + orderStatus + ")\n" +
-                        "AND o.dispensingTime BETWEEN '" + startDate + "'\n" +
+                        "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'\n" +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
@@ -2667,15 +2667,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "GROUP BY\n" +
                         "\tdrugId,cr.recipeId\n";*/
                 String sql = "SELECT\n" +
-                        "\trd.drugId,\n" +
+                        "\trd.OrganDrugCode,\n" +
                         "\trd.drugName,\n" +
                         "\trd.drugSpec,\n" +
                         "\trd.drugUnit,\n" +
                         "\tcast(\n" +
                         "\t\tsum(rd.useTotalDose) AS SIGNED\n" +
                         "\t) AS count,\n" +
-                        "\trd.drugCost,\n" +
-                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\trd.saleprice,\n" +
+                        "\tSUM(rd.drugCost) AS countMoney,\n" +
                         "\tCASE bd.drugtype\n" +
                         "WHEN 1 THEN\n" +
                         "\t'西药'\n" +
@@ -2702,7 +2702,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\t\tAND co.`Status` IN (" + orderStatus + ")\n" +
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "\t) GROUP BY\n" +
-                        "\tdrugId\n";
+                        "\tOrganDrugCode\n";
                 if (order == 1) {
                     sql += "order by SUM(rd.saleprice) desc";
                 }
@@ -2764,13 +2764,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tcr.depart,\n" +
                         "\tcr.patientName,\n" +
                         "\tDATE_FORMAT(co.dispensingTime, '%Y-%m-%d %k:%i:%s') as sendDate,\n" +
-                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" +
+                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已拒发' WHEN 15 THEN '已退药' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" +
                         "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
                         "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
                         "\t'' AS dispensingWindow,\n" +
                         "\tcr.doctorName,\n" +
                         "\tcr.totalMoney,\n" +
-                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' ELSE '中成药' END AS RecipeType,\n" +
+                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' WHEN 2 THEN '中成药' WHEN 3 THEN '中药' ELSE '膏方' END AS RecipeType,\n" +
                         "\tDATE_FORMAT(cr.CreateDate, '%Y-%m-%d %k:%i:%s') as CreateDate,\n" +
                         "\tDATE_FORMAT(co.PayTime, '%Y-%m-%d %k:%i:%s') as PayTime\n" +
                         "FROM\n" +
@@ -2785,7 +2785,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND (\n" +
                         "\tco. STATUS IN (" + orderStatus + ")\n" +
                         ")\n" +
-                        "AND co.dispensingTime BETWEEN '" + startDate + "'\n" +
+                        "AND co.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
                         "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") +
                         (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName like :patientName" : "") +
                         (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :billNumber" : "") +
@@ -2839,7 +2839,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.setRecipeId(Integer.valueOf(String.valueOf(objects[1])));
                         value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
                         value.setPatientName(String.valueOf(objects[3]));
-                        value.setSendDate(String.valueOf(objects[4]));
+                        value.setSendDate(objects[4] == null ? "":String.valueOf(objects[4]));
                         value.setStatus(String.valueOf(objects[5]));
                         value.setSendApothecaryName(objects[6] == null ? "":String.valueOf(objects[6]));
                         value.setDispensingApothecaryName(objects[7] == null ? "":String.valueOf(objects[7]));

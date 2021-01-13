@@ -1243,6 +1243,92 @@ public class RecipeServiceSub {
         return map;
     }
 
+    /**
+     * 状态文字提示（医生端）
+     *
+     * @param status
+     * @param recipe
+     * @param effective
+     * @param integer
+     * @return
+     */
+    public static Map<String, String> getTipsByStatusCopy2(int status, Recipe recipe, Boolean effective, Integer orderStatus,Integer recipeRefundId ) {
+        String tips = "";
+        String listTips = "";
+        //修改展示状态的方式，有订单的状态现优先展示订单的状态再展示处方的状态
+        if (null != orderStatus && RecipeOrderStatusEnum.DOCTOR_SHOW_ORDER_STATUS.contains(orderStatus)) {
+            if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
+                    && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
+                tips = "待下载";
+            } else if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
+                    || RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
+                tips = "待取药";
+            } else {
+                tips = RecipeOrderStatusEnum.getOrderStatus(orderStatus);
+            }
+        }
+        //判断当订单的状态不存在的时候用处方的状态
+        if (StringUtils.isEmpty(tips)) {
+            switch (status) {
+                case RecipeStatusConstant.REVOKE:
+                    if (recipeRefundId!=null) {
+                        tips = "已取消";
+                    } else {
+                        tips = "已撤销";
+                    }
+                    break;
+                case RecipeStatusConstant.HAVE_PAY:
+                    tips = "待取药";
+                    break;
+                case RecipeStatusConstant.CHECK_PASS_YS:
+                    if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                        tips = "医生再次确认处方";
+                    } else {
+                        tips = "审核通过";
+                    }
+                    listTips = "审核通过";
+                    break;
+                case RecipeStatusConstant.HIS_FAIL:
+                    tips = "已取消";
+                    break;
+                case RecipeStatusConstant.NO_DRUG:
+                    tips = "已取消";
+                    break;
+                case RecipeStatusConstant.NO_PAY:
+                    //修改文案
+                    tips = "已取消";
+                    break;
+                case RecipeStatusConstant.NO_OPERATOR:
+                    //修改文案
+                    tips = "已取消";
+                    break;
+                case RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN:
+                    tips = "已取消";
+                    break;
+                case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                    tips = "已取消";
+                    break;
+                case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
+                    tips = "处方签名失败";
+                    break;
+                case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
+                    tips = "审方签名失败";
+                    break;
+                case RecipeStatusConstant.SIGN_ING_CODE_PHA:
+                    tips = "审方签名中";
+                    break;
+                default:
+                    tips = RecipeStatusEnum.getRecipeStatus(status);
+            }
+        }
+        if (StringUtils.isEmpty(listTips)) {
+            listTips = tips;
+        }
+        Map<String, String> map = Maps.newHashMap();
+        map.put("listTips", listTips);
+        return map;
+    }
+
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
         try {
             IRelationPatientService iRelationPatientService = AppContextHolder.getBean("pm.remoteRelationPatientService", IRelationPatientService.class);

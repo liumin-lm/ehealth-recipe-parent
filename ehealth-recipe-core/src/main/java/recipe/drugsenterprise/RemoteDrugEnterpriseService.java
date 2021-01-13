@@ -573,11 +573,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             //通过机构Id查找对应药品库存列表
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
+            //List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
             DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
             if (null == response) {
                 return "有库存";
             } else {
+                //前置机返回0或者200
                 if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
                     if (CollectionUtils.isEmpty(response.getData())){
                         return "有库存";
@@ -590,6 +592,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                             return "有库存";
                         }
                     }
+                }else {
+                    return "无库存";
                 }
             }
         }
@@ -836,6 +840,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //校验医院库存
         if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag())) {
             getHosDrugInventory(drugsDataBean, haveInventoryList);
+        } else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
+            List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = drugsDataBean.getRecipeDetailBeans();
+            for (com.ngari.recipe.recipe.model.RecipeDetailBean drugresult:recipeDetailBeans){
+               haveInventoryList.add(drugresult.getDrugName());
+            }
+            return haveInventoryList;
         } else {
             //校验药企库存
             //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
