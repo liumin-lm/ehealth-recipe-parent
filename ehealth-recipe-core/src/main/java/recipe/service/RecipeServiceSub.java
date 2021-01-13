@@ -1422,7 +1422,7 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertRecipeForRAP(Recipe recipe) {
-        getMedicalInfo(recipe);
+        //getMedicalInfo(recipe);
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
