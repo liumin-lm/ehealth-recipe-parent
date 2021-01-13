@@ -85,7 +85,7 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "from RecipeRefund where busId = :recipeId and node = 9 order by applyTime desc, node desc")
     public abstract List<RecipeRefund> findRefundListByRecipeIdAndNode(@DAOParam("recipeId") Integer recipeId);
 
-    @DAOMethod(sql = "from RecipeRefund where busId in (:recipeId) and node = 9 order by applyTime desc, node desc")
+    @DAOMethod(sql = "from RecipeRefund where busId in (:recipeId) and node = 9 order by applyTime desc, node desc", limit = 0)
     public abstract List<RecipeRefund> findRefundListByRecipeIdsAndNode(@DAOParam("recipeId") List<Integer> recipeId);
 
     /**
