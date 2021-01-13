@@ -2883,7 +2883,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " crt.drugSpec,\n" +
                         " crt.useDose,\n" +
                         " crt.usingRate,\n" +
-                        " crt.usePathways,\n" +
+                        " crt.usePathwaysText,\n" +
                         " crt.drugCost,\n" +
                         " crt.drugName,\n" +
                         " crt.useTotalDose,\n" +
@@ -2912,7 +2912,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("billNumber", objects[0] == null ? "":objects[0]);
                         value.put("patientName", objects[1]);
                         value.put("patientType", objects[2]);
-                        value.put("CreateDate", objects[3]);
+                        value.put("createDate", objects[3]);
                         value.put("recipeId", objects[4]);
                         value.put("doctorName", objects[5]);
                         value.put("sendApothecaryName", objects[6] == null ? "":objects[6]);
@@ -2922,13 +2922,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("drugSpec", objects[10] == null ? "":objects[10]);
                         value.put("useDose", objects[11] == null ? "":objects[11]);
                         value.put("usingRate", objects[12] == null ? "":objects[12]);
-                        value.put("usePathways", objects[13] == null ? "":objects[13]);
+                        value.put("usePathwaysText", objects[13] == null ? "":objects[13]);
                         value.put("drugCost", objects[14] == null ? "":objects[14]);
                         value.put("drugName", objects[15] == null ? "":objects[15]);
                         value.put("sendNumber", objects[16] == null ? "":objects[16]);
                         value.put("dosageUnit", objects[17] == null ? "":objects[17]);
                         value.put("producer", objects[18] == null ? "":objects[18]);
-                        value.put("OrganDiseaseName", objects[19] == null ? "":objects[19]);
+                        value.put("organDiseaseName", objects[19] == null ? "":objects[19]);
                         value.put("MPIID", objects[20] == null ? "":objects[20]);
                         value.put("unit", objects[21] == null ? "":objects[21]);
                         vo.add(value);
