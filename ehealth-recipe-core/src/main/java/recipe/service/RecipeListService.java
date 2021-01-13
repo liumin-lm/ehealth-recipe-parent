@@ -708,6 +708,7 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.info("instanceRecipesAndPatient recipeIds:{} ", JSONUtils.toString(recipeIds));
             if (CollectionUtils.isNotEmpty(recipeIds)) {
                 List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIds(recipeIds);
+                LOGGER.info("instanceRecipesAndPatient recipedetails:{} ", JSONUtils.toString(recipedetails));
                 recipeDetailMap = recipedetails.stream().collect(Collectors.toMap(Recipedetail::getRecipeId, part ->
                         Lists.newArrayList(part),(List<Recipedetail> newValueList,List<Recipedetail> oldValueList)->
                 {oldValueList.addAll(newValueList);
