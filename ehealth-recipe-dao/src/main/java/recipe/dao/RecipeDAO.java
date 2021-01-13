@@ -2922,7 +2922,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("drugSpec", objects[10] == null ? "":objects[10]);
                         value.put("useDose", objects[11] == null ? "":objects[11]);
                         value.put("usingRate", objects[12] == null ? "":objects[12]);
-                        value.put("usePathways", objects[13] == null ? "":objects[13]);
+                        value.put("usePathwaysText", objects[13] == null ? "":objects[13]);
                         value.put("drugCost", objects[14] == null ? "":objects[14]);
                         value.put("drugName", objects[15] == null ? "":objects[15]);
                         value.put("sendNumber", objects[16] == null ? "":objects[16]);
