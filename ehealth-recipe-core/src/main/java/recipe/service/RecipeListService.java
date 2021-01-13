@@ -759,7 +759,7 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy2(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()),refundIdMap.get(recipe.getRecipeId()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-                map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
+                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe));
                 map.put("patient", patient);
                 //LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
