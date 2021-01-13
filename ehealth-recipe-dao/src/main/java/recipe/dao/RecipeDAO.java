@@ -2667,15 +2667,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "GROUP BY\n" +
                         "\tdrugId,cr.recipeId\n";*/
                 String sql = "SELECT\n" +
-                        "\trd.drugId,\n" +
+                        "\trd.OrganDrugCode,\n" +
                         "\trd.drugName,\n" +
                         "\trd.drugSpec,\n" +
                         "\trd.drugUnit,\n" +
                         "\tcast(\n" +
                         "\t\tsum(rd.useTotalDose) AS SIGNED\n" +
                         "\t) AS count,\n" +
-                        "\trd.drugCost,\n" +
-                        "\tSUM(rd.saleprice) AS countMoney,\n" +
+                        "\trd.saleprice,\n" +
+                        "\tSUM(rd.drugCost) AS countMoney,\n" +
                         "\tCASE bd.drugtype\n" +
                         "WHEN 1 THEN\n" +
                         "\t'西药'\n" +
@@ -2764,7 +2764,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "\tcr.depart,\n" +
                         "\tcr.patientName,\n" +
                         "\tDATE_FORMAT(co.dispensingTime, '%Y-%m-%d %k:%i:%s') as sendDate,\n" +
-                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已退药' WHEN 15 THEN '已拒发' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" +
+                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已拒发' WHEN 15 THEN '已退药' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" +
                         "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
                         "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
                         "\t'' AS dispensingWindow,\n" +
