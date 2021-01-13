@@ -840,6 +840,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //校验医院库存
         if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag())) {
             getHosDrugInventory(drugsDataBean, haveInventoryList);
+        } else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
+            List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = drugsDataBean.getRecipeDetailBeans();
+            for (com.ngari.recipe.recipe.model.RecipeDetailBean drugresult:recipeDetailBeans){
+               haveInventoryList.add(drugresult.getDrugName());
+            }
+            return haveInventoryList;
         } else {
             //校验药企库存
             //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品

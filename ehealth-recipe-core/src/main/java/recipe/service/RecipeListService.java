@@ -698,8 +698,8 @@ public class RecipeListService extends RecipeBaseService {
             //获取处方对应的退费信息
             Map<Integer, Integer> refundIdMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(recipeIds)) {
-                List<RecipeRefund> recipeOrders = recipeRefundDAO.findRefundListByRecipeIdsAndNode(recipeIds);
-                refundIdMap = recipeOrders.stream().collect(Collectors.toMap(RecipeRefund::getBusId, RecipeRefund::getId));
+                List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeIdsAndNode(recipeIds);
+                refundIdMap = recipeRefunds.stream().collect(Collectors.toMap(RecipeRefund::getBusId, RecipeRefund::getId,(k1, k2) -> k1));
             }
             LOGGER.info("instanceRecipesAndPatient refundIdMap:{} ", JSONUtils.toString(refundIdMap));
 
