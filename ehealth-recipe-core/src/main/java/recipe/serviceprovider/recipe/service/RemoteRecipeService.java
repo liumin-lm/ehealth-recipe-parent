@@ -2229,13 +2229,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<Map<String, Object>> findRecipeDrugDetialByRecipeId(Integer recipeId) {
         LOGGER.info("findRecipeDrugDetialByRecipeId {}", JSONUtils.toString(recipeId));
         List<Map<String, Object>> recipeDrugDetialByRecipeId = recipeDAO.findRecipeDrugDetialByRecipeId(recipeId);
-        try {
+        /*try {
             String text = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipeDrugDetialByRecipeId.get(0).get("usePathways"));
             recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", text);
         } catch (ControllerException e) {
             recipeDrugDetialByRecipeId.get(0).put("UsePathwaysText", "");
             LOGGER.error("给药方式字典获取失败", e);
-        }
+        }*/
         PatientDTO mpiid = patientService.getPatientByMpiId(String.valueOf(recipeDrugDetialByRecipeId.get(0).get("MPIID")));
         recipeDrugDetialByRecipeId.get(0).put("patientSex", mpiid.getPatientSex().equals("1")?"男":"女");
         recipeDrugDetialByRecipeId.get(0).put("mobile", mpiid.getMobile());

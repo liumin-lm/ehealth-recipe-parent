@@ -2883,7 +2883,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " crt.drugSpec,\n" +
                         " crt.useDose,\n" +
                         " crt.usingRate,\n" +
-                        " crt.usePathways,\n" +
+                        " crt.usePathwaysText,\n" +
                         " crt.drugCost,\n" +
                         " crt.drugName,\n" +
                         " crt.useTotalDose,\n" +
