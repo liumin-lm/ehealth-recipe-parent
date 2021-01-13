@@ -682,6 +682,7 @@ public class RecipeListService extends RecipeBaseService {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
 
             //date 20200506
             //获取处方对应的订单信息
@@ -691,10 +692,19 @@ public class RecipeListService extends RecipeBaseService {
                 List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
                 orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
             }
+            LOGGER.info("instanceRecipesAndPatient orderStatus:{} ", JSONUtils.toString(orderStatus));
+
+            List<Integer> recipeIds = recipes.stream().map(recipe -> recipe.getRecipeId()).collect(Collectors.toList());
+            //获取处方对应的退费信息
+            Map<Integer, Integer> refundIdMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(recipeIds)) {
+                List<RecipeRefund> recipeOrders = recipeRefundDAO.findRefundListByRecipeIdsAndNode(recipeIds);
+                refundIdMap = recipeOrders.stream().collect(Collectors.toMap(RecipeRefund::getBusId, RecipeRefund::getId));
+            }
+            LOGGER.info("instanceRecipesAndPatient refundIdMap:{} ", JSONUtils.toString(refundIdMap));
 
             //获取处方对应的处方详情
             Map<Integer, List<Recipedetail>> recipeDetailMap = new HashMap<>();
-            List<Integer> recipeIds = recipes.stream().map(recipe -> recipe.getRecipeId()).collect(Collectors.toList());
             LOGGER.info("instanceRecipesAndPatient recipeIds:{} ", JSONUtils.toString(recipeIds));
             if (CollectionUtils.isNotEmpty(recipeIds)) {
                 List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIds(recipeIds);
@@ -704,6 +714,7 @@ public class RecipeListService extends RecipeBaseService {
                     return oldValueList;
                 }));
             }
+            LOGGER.info("instanceRecipesAndPatient recipeDetailMap:{} ", JSONUtils.toString(recipeDetailMap));
 
             //获取处方对应的药品信息
             Map<String, OrganDrugList> organDrugListMap = new HashMap<>();
@@ -744,12 +755,12 @@ public class RecipeListService extends RecipeBaseService {
 //                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
 //                }
                 //添加订单的状态
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy2(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()),refundIdMap.get(recipe.getRecipeId()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
                 map.put("patient", patient);
-                LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
+                //LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
             }
 
