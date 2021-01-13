@@ -2240,8 +2240,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeDrugDetialByRecipeId.get(0).put("patientSex", mpiid.getPatientSex().equals("1")?"男":"女");
         recipeDrugDetialByRecipeId.get(0).put("mobile", mpiid.getMobile());
         recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
-        String useDoseStr = recipeDrugDetialByRecipeId.get(0).get("useDose") + String.valueOf(recipeDrugDetialByRecipeId.get(0).get("unit"));
-        recipeDrugDetialByRecipeId.get(0).put("useDoseStr", useDoseStr);
+
+        for (Map<String, Object> item : recipeDrugDetialByRecipeId) {
+            String useDoseStr = item.get("useDose") + String.valueOf(recipeDrugDetialByRecipeId.get(0).get("unit"));
+            item.put("useDoseStr", useDoseStr);
+        }
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
         return recipeDrugDetialByRecipeId;
     }
