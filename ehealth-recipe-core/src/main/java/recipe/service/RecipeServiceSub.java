@@ -73,6 +73,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -1847,7 +1848,10 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        //recipeBean.setCheckerText(recipeBean.getCheckerText1());
+        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+            String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
+            recipeBean.setCheckerText(checkerText);
+        }
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);
