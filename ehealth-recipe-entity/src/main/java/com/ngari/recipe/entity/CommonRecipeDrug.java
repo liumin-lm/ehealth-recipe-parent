@@ -104,6 +104,18 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
 
+    @ItemProperty(alias = "药品包装数量")
+    private Integer pack;
+
+    @Column(name = "pack")
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
+    }
+
     @Column(name = "usingRateId")
     public String getUsingRateId() {
         return usingRateId;
@@ -362,6 +374,7 @@ public class CommonRecipeDrug implements java.io.Serializable{
                 ", pharmacyName='" + pharmacyName + '\'' +
                 ", usingRateId='" + usingRateId + '\'' +
                 ", usePathwaysId='" + usePathwaysId + '\'' +
+                ", pack=" + pack +
                 '}';
     }
 
