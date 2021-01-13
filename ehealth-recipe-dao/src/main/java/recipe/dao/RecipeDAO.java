@@ -2881,16 +2881,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " '' AS memo,\n" +
                         " cre.cardNo,\n" +
                         " crt.drugSpec,\n" +
-                        " crt.useDoseStr,\n" +
+                        " crt.useDose,\n" +
                         " crt.usingRate,\n" +
                         " crt.usePathways,\n" +
                         " crt.drugCost,\n" +
                         " crt.drugName,\n" +
-                        " crt.sendNumber,\n" +
-                        " crt.dosageUnit,\n" +
+                        " crt.useTotalDose,\n" +
+                        " crt.drugunit,\n" +
                         " crt.producer,\n" +
                         " cr.OrganDiseaseName,\n" +
-                        " cr.MPIID\n" +
+                        " cr.MPIID,\n" +
+                        " crt.DosageUnit\n" +
                         "FROM\n" +
                         "\tcdr_recipe cr\n" +
                         "LEFT JOIN cdr_recipe_ext cre ON (cr.RecipeID = cre.recipeId)\n" +
@@ -2919,7 +2920,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("memo", objects[8] == null ? "":objects[8]);
                         value.put("cardNo", objects[9] == null ? "":objects[9]);
                         value.put("drugSpec", objects[10] == null ? "":objects[10]);
-                        value.put("useDoseStr", objects[11] == null ? "":objects[11]);
+                        value.put("useDose", objects[11] == null ? "":objects[11]);
                         value.put("usingRate", objects[12] == null ? "":objects[12]);
                         value.put("usePathways", objects[13] == null ? "":objects[13]);
                         value.put("drugCost", objects[14] == null ? "":objects[14]);
@@ -2929,6 +2930,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         value.put("producer", objects[18] == null ? "":objects[18]);
                         value.put("OrganDiseaseName", objects[19] == null ? "":objects[19]);
                         value.put("MPIID", objects[20] == null ? "":objects[20]);
+                        value.put("unit", objects[21] == null ? "":objects[21]);
                         vo.add(value);
                     }
                 }
