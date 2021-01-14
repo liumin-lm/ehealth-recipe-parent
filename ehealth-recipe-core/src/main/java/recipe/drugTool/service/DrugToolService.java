@@ -279,25 +279,22 @@ public class DrugToolService implements IDrugToolService {
         Integer updateNum = 0;
         Integer failNum = 0;
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
-            try {
-
-                LOGGER.info("readDrugExcel rowIndex  " + rowIndex);
-                //循环获得每个行
-                row = sheet.getRow(rowIndex);
-                // 判断是否是模板
-                if (rowIndex == 0) {
-                    String drugCode = getStrFromCell(row.getCell(0));
-                    String drugName = getStrFromCell(row.getCell(1));
-                    String retrievalCode = getStrFromCell(row.getCell(20));
-                    if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
-                        continue;
-                    } else {
-                        result.put("code", 609);
-                        result.put("msg", "模板有误，请确认！");
-                        return result;
-                    }
-
+            //循环获得每个行
+            row = sheet.getRow(rowIndex);
+            // 判断是否是模板
+            if (rowIndex == 0) {
+                String drugCode = getStrFromCell(row.getCell(0));
+                String drugName = getStrFromCell(row.getCell(1));
+                String retrievalCode = getStrFromCell(row.getCell(20));
+                if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
+                    continue;
+                } else {
+                    result.put("code", 609);
+                    result.put("msg", "模板有误，请确认！");
+                    return result;
                 }
+
+            }
                 drug = new DrugListMatch();
                 StringBuilder errMsg = new StringBuilder();
             /*try{*/
@@ -464,7 +461,7 @@ public class DrugToolService implements IDrugToolService {
                     StringBuilder ss = new StringBuilder();
                     String[] split = strFromCell.split(",");
                     for (int i = 0; i < split.length; i++) {
-                        Integer idByPharmacyName = pharmacyTcmDAO.getIdByPharmacyName(split[i]);
+                        Integer idByPharmacyName = pharmacyTcmDAO.getIdByPharmacyNameAndOrganId(split[i],organId);
                         if (idByPharmacyName == null) {
                             errMsg.append("药房名称有误").append(";");
                         } else {
@@ -518,9 +515,6 @@ public class DrugToolService implements IDrugToolService {
                         LOGGER.error("save or update drugListMatch error " + e.getMessage(), e);
                     }
                 }
-            }catch (Exception e){
-                LOGGER.error("readDrugExcel error " + e.getMessage(), e);
-            }
         }
 
         //导入药品记录

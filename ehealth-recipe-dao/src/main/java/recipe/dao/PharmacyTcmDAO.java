@@ -57,6 +57,15 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
     public abstract Integer getIdByPharmacyName(@DAOParam("pharmacyName") String pharmacyName);
 
     /**
+     * pharmacyName 查找相应药房ID
+     *
+     * @param pharmacyName
+     * @return
+     */
+    @DAOMethod(sql = "select pharmacyId from PharmacyTcm where pharmacyName=:pharmacyName and organId=:organId")
+    public abstract Integer getIdByPharmacyNameAndOrganId(@DAOParam("pharmacyName") String pharmacyName,@DAOParam("organId") Integer organId);
+
+    /**
      * 通过orgsnId获取
      *
      * @param organId
