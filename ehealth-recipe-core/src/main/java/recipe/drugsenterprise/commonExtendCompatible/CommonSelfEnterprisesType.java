@@ -87,9 +87,11 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             return DrugEnterpriseResult.getSuccess();
         }
         //配送主体类型 1医院配送 2 药企配送
+        //"校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存"
+        //根据配送主体校验库存已经被遗弃，根据药企配置来校验
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        if(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType() == drugsEnterprise.getSendType()){
-            //当前医院配送，调用医院库存
+        if(drugsEnterprise!=null&&drugsEnterprise.getCheckInventoryFlag()!=null&&drugsEnterprise.getCheckInventoryFlag()==3){
+            //当前医院配送，调用医院库存   配送主体是医院，库存校验医院库存
             //当前医院呢库存接口，前置机对接了，则按对接的算
             //前置机没对接算库存足够
             RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
@@ -238,7 +240,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         //自建药企查询医院库存
         //医院配送查医院库存
         //药企配送则默认有库存
-        if (new Integer(1).equals(drugsEnterprise.getSendType())){
+        if (new Integer(1).equals(drugsEnterprise.getSendType())&&drugsEnterprise.getCheckInventoryFlag()==3){
             DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));

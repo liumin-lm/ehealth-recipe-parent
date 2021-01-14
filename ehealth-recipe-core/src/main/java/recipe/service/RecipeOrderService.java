@@ -1271,6 +1271,27 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
+     * 审方后置根据处方单号取消订单
+     *
+     * @param recipeId
+     * @param status
+     * @return
+     */
+    public RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status, Boolean canCancelOrderCode) {
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        if (null == recipeId || null == status) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("缺少参数");
+        }
+
+        if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).getOrderByRecipeId(recipeId), status, canCancelOrderCode);
+        }
+
+        return result;
+    }
+
+    /**
      * @param orderId
      * @param status
      * @return
@@ -2227,6 +2248,8 @@ public class RecipeOrderService extends RecipeBaseService {
         orderDto.setAddresseeCity(getAddressDic(order.getAddress2()));
         // 收件镇/区
         orderDto.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+        // 收件人街道
+        orderDto.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
         // 收件详细地址
         orderDto.setAddresseeAddress(order.getAddress4());
         //寄托物名称

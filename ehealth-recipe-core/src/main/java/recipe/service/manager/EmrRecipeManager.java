@@ -92,10 +92,22 @@ public class EmrRecipeManager {
      * @param recipe
      * @param recipeExt
      */
-    public void saveDocList(RecipeBean recipe, RecipeExtend recipeExt) {
+    public void saveDocList(Recipe recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager saveDocList recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         try {
-            addMedicalInfo(recipe, recipeExt, DOC_STATUS_USE);
+            // 更新 处方诊断信息
+            List<EmrDetailDTO> detail = getEmrDetailDTO(recipeExt.getDocIndexId());
+            if (CollectionUtils.isEmpty(detail)) {
+                return;
+            }
+            Recipe recipeUpdate = new Recipe();
+            recipeUpdate.setRecipeId(recipe.getRecipeId());
+            detail.forEach(a -> {
+                if (RecipeEmrComment.DIAGNOSIS.equals(a.getKey())) {
+                    getMultiSearch(a, recipeUpdate, null);
+                }
+            });
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         } catch (Exception e) {
             logger.error("EmrRecipeManager saveDocList 电子病历保存失败", e);
         }

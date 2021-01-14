@@ -669,6 +669,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //查找非自建药企配送主体为药企的药企
         if (configurations.containsKey("showSendToEnterprises") || configurations.containsKey("supportTFDS") || configurations.containsKey("showSendToHos")) {
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                //药企配送
                 if (new Integer(2).equals(drugsEnterprise.getSendType())) {
                     supportOnlineMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
@@ -682,6 +683,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                         }
                     }
                 } else {
+                    //医院配送
                     supportSendToHosMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
                     if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToHos")) {
@@ -836,11 +838,13 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      */
     private List compareGetHaveDrugInventoryForApp(DrugsEnterprise drugsEnterprise, List result, DrugEnterpriseResult drugEnterpriseResult, DrugsDataBean drugsDataBean, IRecipeEnterpriseService recipeEnterpriseService, Integer flag) {
         List haveInventoryList = Lists.newArrayList();
-        //判断药企的配置是校验医院库存还是校验药企库存
+        //校验药品库存标志 0 不需要校验  1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
         //校验医院库存
         if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag())) {
             getHosDrugInventory(drugsDataBean, haveInventoryList);
-        } else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
+        }
+        //不需要校验库存
+        else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
             List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = drugsDataBean.getRecipeDetailBeans();
             for (com.ngari.recipe.recipe.model.RecipeDetailBean drugresult:recipeDetailBeans){
                haveInventoryList.add(drugresult.getDrugName());

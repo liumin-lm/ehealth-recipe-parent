@@ -57,10 +57,10 @@ public class RecipeLabelManager {
      * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
      *
      * @param organId 机构id
-     * @return Y坐标点位 （默认450 每个字段降低3px高度）
+     * @return Y坐标点位 （默认450）
      */
     public int getPdfReceiverHeight(Integer organId) {
-        int height = 450;
+        int height = 460;
         if (null == organId) {
             return height;
         }
@@ -68,20 +68,23 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(labelMap)) {
             return height;
         }
-        List<Scratchable> list1 = (List<Scratchable>) labelMap.get("moduleOne");
-        int heightSize = 0;
-        if (!CollectionUtils.isEmpty(list1) && list1.size() > 3) {
-            heightSize = list1.size() - 3;
-        }
-        List<Scratchable> list2 = (List<Scratchable>) labelMap.get("moduleTwo");
-        if (!CollectionUtils.isEmpty(list2)) {
-            heightSize = heightSize + list2.size();
-        }
-        if (heightSize == 0) {
+        List<Scratchable> moduleOne = (List<Scratchable>) labelMap.get("moduleOne");
+        List<Scratchable> moduleTwo = (List<Scratchable>) labelMap.get("moduleTwo");
+        if (CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
             return height;
-        } else {
-            return height - heightSize * 4;
         }
+        if (!CollectionUtils.isEmpty(moduleOne)) {
+            height = 426;
+            if (moduleOne.size() > 3) {
+                height = height - (((moduleOne.size() - 3) / 3) + 1) * 12;
+            }
+        } else {
+            height = 440;
+        }
+        if (!CollectionUtils.isEmpty(moduleTwo) && moduleTwo.size() > 6) {
+            height = height - (((moduleTwo.size() - 6) / 3) + 1) * 12;
+        }
+        return height;
     }
 
     /**
