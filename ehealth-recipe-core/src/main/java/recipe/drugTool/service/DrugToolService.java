@@ -456,12 +456,13 @@ public class DrugToolService implements IDrugToolService {
                 }
                 //设置无需判断的数据
                 drug.setDrugManfCode(getStrFromCell(row.getCell(10)));
+            try {
                 if (getStrFromCell(row.getCell(13)) != null) {
                     String strFromCell = getStrFromCell(row.getCell(13));
                     StringBuilder ss = new StringBuilder();
                     String[] split = strFromCell.split(",");
                     for (int i = 0; i < split.length; i++) {
-                        Integer idByPharmacyName = pharmacyTcmDAO.getIdByPharmacyNameAndOrganId(split[i],organId);
+                        Integer idByPharmacyName = pharmacyTcmDAO.getIdByPharmacyNameAndOrganId(split[i], organId);
                         if (idByPharmacyName == null) {
                             errMsg.append("药房名称有误").append(";");
                         } else {
@@ -474,6 +475,9 @@ public class DrugToolService implements IDrugToolService {
                     }
                     drug.setPharmacy(ss.toString());
                 }
+            }catch (Exception e){
+                LOGGER.error("药房名称有误 ," + e.getMessage(), e);
+            }
                 drug.setLicenseNumber(getStrFromCell(row.getCell(14)));
                 drug.setStandardCode(getStrFromCell(row.getCell(15)));
                 drug.setIndications(getStrFromCell(row.getCell(16)));
