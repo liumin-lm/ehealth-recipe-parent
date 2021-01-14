@@ -267,7 +267,7 @@ public class CreateRecipePdfUtil {
      * @param checker 药师id姓名
      */
     public static String generateDocSignImageInRecipePdf(String pdfId, String checker) throws IOException, DocumentException {
-        logger.info("generateReceiverInfoRecipePdf pdfId={}, checker={}", pdfId, checker);
+        logger.info("generateDocSignImageInRecipePdf pdfId={}, checker={}", pdfId, checker);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
