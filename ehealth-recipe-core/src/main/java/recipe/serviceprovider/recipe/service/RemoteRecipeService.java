@@ -2282,12 +2282,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
-        LOGGER.info("findRecipeStatusByBussSourceAndClinicId {}", JSONUtils.toString(clinicId));
+        LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
         //查询处方记录
         List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
         //没有复诊的记录,无复诊状态
         if (recipeList==null||recipeList.size()==0){
-            LOGGER.info("judgeRecipeStatus null is{}", false);
+            LOGGER.info("judgeRecipeStatus size null is{}", false);
             return false;
         }
         for (Recipe recipe:recipeList){
