@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -252,7 +253,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     drugIds.add(a.getDrugId());
                     return;
                 }
-
+                LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId OrganDrugList");
                 //判断是否在药房下
                 if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
                     drugIds.add(a.getDrugId());
@@ -268,17 +269,19 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     drugIds.add(a.getDrugId());
                     return;
                 }
-
+                LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId isAppropriate");
                 //判断药品用药频率和方式是否合理
                 if (null == a.getUsingRateId() || null == a.getUsePathwaysId()) {
                     drugIds.add(a.getDrugId());
                     return;
                 }
                 if (null != a.getUsingRateId() && null == usingRateMap.get(Integer.parseInt(a.getUsingRateId()))) {
+                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId usingRateMap {}", JSON.toJSONString(usingRateMap));
                     drugIds.add(a.getDrugId());
                     return;
                 }
                 if (null != a.getUsePathwaysId() && null == pathwaysMap.get(Integer.parseInt(a.getUsePathwaysId()))) {
+                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId pathwaysMap {} ", JSON.toJSONString(pathwaysMap));
                     drugIds.add(a.getDrugId());
                 }
 
@@ -299,6 +302,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         });
         LOGGER.info(" getCommonRecipeListExt commonRecipeDTOList={}", JSONUtils.toString(commonRecipeDTOList));
         return commonRecipeDTOList;
+    }
+
+    public static void main(String[] args) {
+        Integer a = 20;
+        if (null != a && StringUtils.isNotEmpty("20") && !Arrays.asList("20".split(ByteUtils.COMMA)).contains(String.valueOf(a))) {
+            System.out.println("1");
+            return;
+        }
     }
 
     /**
