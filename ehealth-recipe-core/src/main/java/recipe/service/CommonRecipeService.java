@@ -239,9 +239,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         groupMapByCommonRecipeId.forEach((k, v) -> {
             List<Integer> drugIds = new LinkedList<>();
             v.forEach(a -> {
-
-                OrganDrugList organDrugList = organDrugListMap.get(a.getDrugId());
-                if (null == organDrugList) {
+                if (null == organDrugListMap.get(a.getDrugId())) {
                     drugIds.add(a.getDrugId());
                     return;
                 }
@@ -253,7 +251,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     drugIds.add(a.getDrugId());
                     return;
                 }
-                LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId OrganDrugList");
+                OrganDrugList organDrugList = organDrugLisFindByDrugIdAndOrganDrugCode.get(0);
                 //判断是否在药房下
                 if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
                     drugIds.add(a.getDrugId());
