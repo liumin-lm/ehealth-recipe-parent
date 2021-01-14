@@ -2248,6 +2248,8 @@ public class RecipeOrderService extends RecipeBaseService {
         orderDto.setAddresseeCity(getAddressDic(order.getAddress2()));
         // 收件镇/区
         orderDto.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+        // 收件人街道
+        orderDto.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
         // 收件详细地址
         orderDto.setAddresseeAddress(order.getAddress4());
         //寄托物名称
