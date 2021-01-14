@@ -301,6 +301,7 @@ public class EleInvoiceService {
             invoiceDTO.setPayTime(recipeOrder.getPayTime());
             invoiceDTO.setFundAmount(recipeOrder.getFundAmount() == null ? 0D : recipeOrder.getFundAmount());
             invoiceDTO.setMedicalSettleCode(recipeOrder.getMedicalSettleCode());
+            //获取挂号费用
             invoiceItem.add(getInvoiceItemDTO(MedicalChargesEnum.REGISTRATION.getCode(), MedicalChargesEnum.REGISTRATION.getName()
                     , recipeOrder.getOrderCode(), MedicalChargesEnum.REGISTRATION.getName(), recipeOrder.getRegisterFee(), "", 1D));
             if (null != recipeOrder.getExpressFeePayWay() && recipeOrder.getExpressFeePayWay().equals(1)) {
@@ -310,9 +311,9 @@ public class EleInvoiceService {
         }
 
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        //获取处方药品明细费用
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getOrganDrugCode(),
-                    a.getDrugName(), a.getActualSalePrice(), a.getDrugUnit(), a.getUseTotalDose())));
+            recipeDetailList.forEach(a -> invoiceItem.add(getInvoiceItemDTO(recipe, a.getOrganDrugCode(), a.getDrugName(), a.getActualSalePrice() == null ? a.getSalePrice() : a.getActualSalePrice(), a.getDrugUnit(), a.getUseTotalDose())));
         }
         if (CollectionUtils.isNotEmpty(invoiceItem)) {
             List<InvoiceItemDTO> item = invoiceItem.stream().filter(Objects::nonNull).collect(Collectors.toList());
