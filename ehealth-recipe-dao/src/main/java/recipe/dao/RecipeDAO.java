@@ -26,7 +26,6 @@ import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -44,7 +43,6 @@ import recipe.util.LocalStringUtil;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -3570,7 +3568,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "select r from Recipe r, RecipeExtend o where r.recipeId=o.recipeId " + " and r.clinicOrgan =:organId and o.docIndexId is null ";
+                String hql = "select r from Recipe r, RecipeExtend o where r.recipeId=o.recipeId  and r.clinicOrgan =:organId and o.docIndexId is not null AND r.OrganDiseaseID is null";
                 Query q = ss.createQuery(hql);
                 q.setParameter("organId", organId);
                 setResult(q.list());

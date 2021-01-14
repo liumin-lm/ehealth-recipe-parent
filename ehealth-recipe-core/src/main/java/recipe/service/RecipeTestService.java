@@ -12,13 +12,11 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -282,14 +280,10 @@ public class RecipeTestService {
         for (Recipe recipe : recipes) {
             try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                if (null == recipeExtend) {
-                    recipeExtend = new RecipeExtend();
-                    recipeExtend.setRecipeId(recipe.getRecipeId());
+                if (null == recipeExtend || null == recipeExtend.getDocIndexId()) {
+                    return;
                 }
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copy(recipe, recipeBean);
-                emrRecipeManager.saveDocList(recipeBean, recipeExtend);
-                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                emrRecipeManager.saveDocList(recipe, recipeExtend);
             } catch (Exception e) {
                 LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
             }
