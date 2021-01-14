@@ -262,8 +262,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     return;
                 }
 
-                //运行平台是否适量关闭和药品中useDose为空则失效
-                if (StringUtils.isEmpty(a.getUseDoseStr()) && !isAppropriate) {
+                //运行平台是否适量关闭和药品中useDose不为空则失效
+                if (StringUtils.isNotEmpty(a.getUseDoseStr()) && !isAppropriate) {
                     drugIds.add(a.getDrugId());
                     return;
                 }
