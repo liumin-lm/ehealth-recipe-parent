@@ -2586,6 +2586,59 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
+     * 药房工作量 带退费的
+     * @param organId
+     * @return
+     */
+    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDisWithRefund(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
+        HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                String sql = "SELECT\n" +
+                        "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" +
+                        "\tcount(recipeId) AS recipeCount,\n" +
+                        "\tsum(0) totalMoney\n" +
+                        "FROM\n" +
+                        "\tcdr_recipe r\n" +
+                        "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" +
+                        "WHERE\n" +
+                        "\tr.ordercode IS NOT NULL\n" +
+                        "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
+                        "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
+                        "AND o.status in (" + orderStatus + ")\n" +
+                        "AND o.dispensingTime is not null\n" +
+                        "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
+                        "AND '" + endDate + "'\n" +
+                        "GROUP BY\n" +
+                        "\to.dispensingApothecaryName";
+                Query q = statelessSession.createSQLQuery(sql);
+                q.setParameter("organId", organId);
+                if (StringUtils.isNotEmpty(doctorName)) {
+                    q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
+                }
+                if (start != null && limit != null) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                List<Object[]> result = q.list();
+                List<WorkLoadTopDTO> vo = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)){
+                    for (Object[] objects : result) {
+                        WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
+                        workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
+                        workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
+                        workLoadTopDTO.setTotalMoney(new BigDecimal(String.valueOf(objects[2])).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        vo.add(workLoadTopDTO);
+                    }
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
      * 发药月报
      * @param organId
      * @return
@@ -2899,7 +2952,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "LEFT JOIN cdr_recipedetail crt ON crt.RecipeID = cre.recipeId\n" +
                         "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
                         "WHERE\n" +
-                        "\tcr.RecipeID = :recipeId";
+                        "\tcr.RecipeID = :recipeId AND crt.status = 1" ;
                 Query q = statelessSession.createSQLQuery(sql);
                 LOGGER.info("findRecipeDrugDetialByRecipeId sql : " + sql);
                 q.setParameter("recipeId", recipeId);

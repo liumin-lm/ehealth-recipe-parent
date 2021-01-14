@@ -2000,7 +2000,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<WorkLoadTopDTO> workLoadTopListWithSuccess = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName);
         List<WorkLoadTopDTO> workLoadListWithFail = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "15", start, limit, startDateStr, endDateStr, doctorName);
         List<WorkLoadTopDTO> workLoadListWithRefuse = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14", start, limit, startDateStr, endDateStr, doctorName);
-        //合并发药与未发药的
+        List<WorkLoadTopDTO> workLoadListWithRefund = recipeDAO.findRecipeByOrderCodegroupByDisWithRefund(organId, "7", start, limit, startDateStr, endDateStr, doctorName);
         for (WorkLoadTopDTO loadTopListWithSuccess : workLoadTopListWithSuccess) {
             //退药 2个工作量
             WorkLoadTopDTO workLoadWithFail = getWorkLoadWithFail(workLoadListWithFail, loadTopListWithSuccess.getDispensingApothecaryName());
@@ -2017,6 +2017,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             WorkLoadTopDTO workLoadWithRefuse = getWorkLoadWithFail(workLoadListWithRefuse, loadTopListWithSuccess.getDispensingApothecaryName());
             if (workLoadWithRefuse != null) {
                 loadTopListWithSuccess.setTotalMoney(loadTopListWithSuccess.getTotalMoney().subtract(workLoadWithRefuse.getTotalMoney()));
+            }
+        }
+
+        for (WorkLoadTopDTO workLoadTopDTO : workLoadListWithRefund) {
+            //退费存在 添加2个工作量 不存在则直接追加到success
+            if (!getWorkLoadWithRefundWorkLoad(workLoadTopListWithSuccess, workLoadTopDTO.getDispensingApothecaryName())) {
+                workLoadTopDTO.setRecipeCount(workLoadTopDTO.getRecipeCount() + 1);
+                workLoadTopListWithSuccess.add(workLoadTopDTO);
             }
         }
 
@@ -2042,6 +2050,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         //判断是否最后一页
         int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15", null, null, startDateStr, endDateStr, doctorName).size();
+        size = size + recipeDAO.findRecipeByOrderCodegroupByDisWithRefund(organId, "7", null, null, startDateStr, endDateStr, doctorName).size();
         if (start + limit >= size && workLoadTopListWithSuccess.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
@@ -2063,6 +2072,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
         return null;
+    }
+
+
+    private Boolean getWorkLoadWithRefundWorkLoad(List<WorkLoadTopDTO> workLoadTopDTOList, String dispendingName) {
+        for (WorkLoadTopDTO workLoadTopDTO : workLoadTopDTOList) {
+            if (workLoadTopDTO.getDispensingApothecaryName().equals(dispendingName)) {
+                workLoadTopDTO.setRecipeCount(workLoadTopDTO.getRecipeCount() + 2);
+                return true;
+            }
+        }
+        //不存在 则直接添加到success
+        return false;
     }
 
     /**
@@ -2242,7 +2263,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
 
         for (Map<String, Object> item : recipeDrugDetialByRecipeId) {
-            String useDoseStr = item.get("useDose") + String.valueOf(recipeDrugDetialByRecipeId.get(0).get("unit"));
+            BigDecimal useDose = new BigDecimal(String.valueOf(item.get("useDose"))).setScale((2), BigDecimal.ROUND_HALF_UP);
+            String useDoseStr = useDose + String.valueOf(recipeDrugDetialByRecipeId.get(0).get("unit"));
             item.put("useDoseStr", useDoseStr);
         }
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
