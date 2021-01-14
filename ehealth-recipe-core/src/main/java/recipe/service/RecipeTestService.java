@@ -280,8 +280,8 @@ public class RecipeTestService {
         for (Recipe recipe : recipes) {
             try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                if (null == recipeExtend || null == recipeExtend.getDocIndexId()) {
-                    return;
+                if (null == recipeExtend || null == recipeExtend.getDocIndexId() || 0 == recipeExtend.getDocIndexId()) {
+                    continue;
                 }
                 emrRecipeManager.saveDocList(recipe, recipeExtend);
             } catch (Exception e) {
