@@ -222,7 +222,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         groupMapByCommonRecipeId.forEach((k, v) -> {
             List<Integer> drugIds = new LinkedList<>();
             v.forEach(a -> {
-                
+
                 OrganDrugList organDrugList = organDrugListMap.get(a.getDrugId());
                 if (null == organDrugList) {
                     drugIds.add(a.getDrugId());
@@ -249,7 +249,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 }
 
                 //判断药品适量是否打开，如果处方药品中配置了适量但是运营平台关闭了适量则药品失效
-                if (null != a.getUseDose() && !isAppropriate) {
+                if (null == a.getUseDose() && !isAppropriate) {
                     drugIds.add(a.getDrugId());
                     return;
                 }
