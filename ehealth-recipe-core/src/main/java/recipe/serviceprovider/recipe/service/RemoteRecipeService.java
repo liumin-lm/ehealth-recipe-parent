@@ -92,6 +92,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
@@ -2283,6 +2284,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
+        try {
+            TimeUnit.MILLISECONDS.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //查询处方记录
         List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
         //没有复诊的记录,无复诊状态
