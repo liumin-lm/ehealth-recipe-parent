@@ -2263,7 +2263,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
 
         for (Map<String, Object> item : recipeDrugDetialByRecipeId) {
-            String useDoseStr = item.get("useDose") + String.valueOf(recipeDrugDetialByRecipeId.get(0).get("unit"));
+            BigDecimal useDose = new BigDecimal(String.valueOf(item.get("useDose"))).setScale((2), BigDecimal.ROUND_HALF_UP);
+            String useDoseStr = useDose + String.valueOf(recipeDrugDetialByRecipeId.get(0).get("unit"));
             item.put("useDoseStr", useDoseStr);
         }
         LOGGER.info("findRecipeDrugDetialByRecipeId response {}", JSONUtils.toString(recipeDrugDetialByRecipeId));
