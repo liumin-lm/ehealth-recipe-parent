@@ -235,7 +235,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         Map<Integer, List<CommonRecipeDrug>> groupMapByCommonRecipeId = commonRecipeDrugList.stream().collect(Collectors.groupingBy(CommonRecipeDrug::getCommonRecipeId));
         //判断药品是否在对应的药房下 k:commonRecipeId v:List<CommonRecipeDrug> a:CommonRecipeDrug
         List<OrganDrugList> finalOrganDrugLists = organDrugLists;
-        LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId={},organDrugLists:{}", JSONUtils.toString(groupMapByCommonRecipeId), JSON.toJSONString(organDrugLists));
+        LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId={}", JSONUtils.toString(groupMapByCommonRecipeId));
         groupMapByCommonRecipeId.forEach((k, v) -> {
             List<Integer> drugIds = new LinkedList<>();
             v.forEach(a -> {
@@ -255,12 +255,12 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId organDrugList :{}", JSON.toJSONString(organDrugList));
                 //判断是否在药房下
                 if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
-                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId getPharmacy");
+                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId getPharmacy1");
                     drugIds.add(a.getDrugId());
                     return;
                 }
                 if (null != a.getPharmacyId() && StringUtils.isEmpty(organDrugList.getPharmacy())) {
-                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId getPharmacy");
+                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId getPharmacy2");
                     drugIds.add(a.getDrugId());
                     return;
                 }
@@ -303,14 +303,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         });
         LOGGER.info(" getCommonRecipeListExt commonRecipeDTOList={}", JSONUtils.toString(commonRecipeDTOList));
         return commonRecipeDTOList;
-    }
-
-    public static void main(String[] args) {
-        Integer a = 20;
-        if (null != a && StringUtils.isNotEmpty("20") && !Arrays.asList("20".split(ByteUtils.COMMA)).contains(String.valueOf(a))) {
-            System.out.println("1");
-            return;
-        }
     }
 
     /**
