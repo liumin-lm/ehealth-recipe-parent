@@ -428,10 +428,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(commonDrugListDTO.getOrganId(), drugListBeans);
-
-        // 如果配置成实时查看库存，则查询医院库存、药企库存等
-        setInventoriesIfRealTime(commonDrugListDTO.getOrganId(), drugListBeans,
-                commonDrugListDTO.getPharmacyId());
         return drugListBeans;
     }
 
