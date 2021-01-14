@@ -137,6 +137,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         String recordStatusCode = getRecordInfo(recipe).get("recordStatusCode");
         // 按钮的展示类型
         Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "medicationGuideFlag");
+        LOGGER.info("AbstractGiveModeService.setOtherButton recordType:{},recordStatusCode:{},showUseDrugConfig:{}.", recordType, recordStatusCode, showUseDrugConfig);
         //已完成的处方单设置
         if ((LIST_TYPE_ORDER.equals(recordType) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(recordStatusCode))
                 || (LIST_TYPE_RECIPE.equals(recordType) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recordStatusCode))) {
