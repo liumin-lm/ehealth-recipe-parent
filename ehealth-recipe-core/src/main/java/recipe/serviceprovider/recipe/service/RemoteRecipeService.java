@@ -2284,16 +2284,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
-        try {
-            TimeUnit.MILLISECONDS.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         //查询处方记录
         List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
         //没有复诊的记录,无复诊状态
         if (recipeList==null||recipeList.size()==0){
-            LOGGER.info("judgeRecipeStatus size null is{}", false);
+            LOGGER.info("judgeRecipeStatus size null is {}", false);
             return false;
         }
         for (Recipe recipe:recipeList){
@@ -2305,23 +2300,23 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     //未支付，未失效
                     if (orderCode==null){
                         List<Recipe> recipeStatusLoseByBussSourceAndClinicId = recipeDAO.findRecipeStatusLoseByBussSourceAndClinicId(bussSource, clinicId, recipe.getStatus());
-                        LOGGER.info("judgeRecipeStatus orderCode null is{}", (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true);
+                        LOGGER.info("judgeRecipeStatus orderCode null is {}", (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true);
                         return (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true;
                     }
                     //根据订单编号查找对应的订单
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
                     //判断处方订单是否已经退费
-                    LOGGER.info("judgeRecipeStatus null is{}", (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true);
+                    LOGGER.info("judgeRecipeStatus null is {}", (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true);
                     return (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true;
                 }
 
                 //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
                 if (recipe.getRecipeCode()!=null&&statusCode==1){
-                    LOGGER.info("judgeRecipeStatus recipe.getRecipeCode()!=null&&statusCode is{}", true);
+                    LOGGER.info("judgeRecipeStatus recipe.getRecipeCode()!=null&&statusCode is {}", true);
                     return true;
                 }
         }
-        LOGGER.info("judgeRecipeStatus is{}", true);
+        LOGGER.info("judgeRecipeStatus is {}", true);
         return false;
     }
 }
