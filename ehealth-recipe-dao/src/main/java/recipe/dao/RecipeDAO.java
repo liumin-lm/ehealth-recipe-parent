@@ -3564,11 +3564,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(limit = 0)
     public abstract List<Recipe> findByClinicOrgan(Integer clinicOrgan);
 
+
     public List<Recipe> findRecipeForDoc(final Integer organId) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "select r from Recipe r, RecipeExtend o where r.recipeId=o.recipeId  and r.clinicOrgan =:organId and o.docIndexId is not null AND r.OrganDiseaseID is null";
+                String hql = "select r from Recipe r, RecipeExtend o where r.recipeId=o.recipeId  and r.clinicOrgan =:organId and o.docIndexId is not null AND r.organDiseaseId is null";
                 Query q = ss.createQuery(hql);
                 q.setParameter("organId", organId);
                 setResult(q.list());
