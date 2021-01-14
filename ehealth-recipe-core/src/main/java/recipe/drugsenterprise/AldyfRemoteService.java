@@ -118,6 +118,12 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 //            LOGGER.info("purchase 重新发起推送. recipeId={}", recipe.getRecipeId());
 //            PurchaseResponse subResponse = purchase(request);
         }
+        while (null == result.getObject()) {
+            result = queryPrescription(recipe.getRecipeCode(), true);
+            if (null != result.getObject()) {
+                break;
+            }
+        }
         AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
         AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
         if (null != rxPrescription) {
