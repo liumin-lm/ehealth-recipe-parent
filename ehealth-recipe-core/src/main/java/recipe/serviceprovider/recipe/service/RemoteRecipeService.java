@@ -1936,7 +1936,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 if (recipeExtend.getRegisterID() != null) {
                     map.put("ghxh", recipeExtend.getRegisterID());
                 }
-                map.put("patid", recipes.get(0).getPatientID());
+                if (recipes.get(0).getPatientID() != null) {
+                    map.put("patid", recipes.get(0).getPatientID());
+                }
                 if (CollectionUtils.isNotEmpty(recipes)) {
                     for (Recipe rec : recipes) {
                         stringBuilder.append(rec.getRecipeCode()).append(",");
