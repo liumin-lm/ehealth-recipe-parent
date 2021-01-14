@@ -1271,6 +1271,27 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
+     * 审方后置根据处方单号取消订单
+     *
+     * @param recipeId
+     * @param status
+     * @return
+     */
+    public RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status, Boolean canCancelOrderCode) {
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        if (null == recipeId || null == status) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("缺少参数");
+        }
+
+        if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).getOrderByRecipeId(recipeId), status, canCancelOrderCode);
+        }
+
+        return result;
+    }
+
+    /**
      * @param orderId
      * @param status
      * @return
