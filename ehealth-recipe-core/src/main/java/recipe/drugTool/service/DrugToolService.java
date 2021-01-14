@@ -240,15 +240,17 @@ public class DrugToolService implements IDrugToolService {
             result.put("msg", "超过7000条数据,请分批导入");
             return result;
         }
-        InputStream is = new ByteArrayInputStream(buf);
         //获得用户上传工作簿
         Workbook workbook = null;
         try {
+            InputStream is = new ByteArrayInputStream(buf);
             if (originalFilename.endsWith(SUFFIX_2003)) {
+                LOGGER.info("readDrugExcel SUFFIX_2003");
                 workbook = new HSSFWorkbook(is);
             } else if (originalFilename.endsWith(SUFFIX_2007)) {
                 //使用InputStream需要将所有内容缓冲到内存中，这会占用空间并占用时间
                 //当数据量过大时，这里会非常耗时
+                LOGGER.info("readDrugExcel SUFFIX_2007");
                 workbook = new XSSFWorkbook(is);
             } else {
                 result.put("code", 609);
@@ -256,10 +258,10 @@ public class DrugToolService implements IDrugToolService {
                 return result;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             LOGGER.error("readDrugExcel error ," + e.getMessage(),e);
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
+            //e.printStackTrace();
             return result;
         }
         Sheet sheet = workbook.getSheetAt(0);
@@ -277,6 +279,7 @@ public class DrugToolService implements IDrugToolService {
         Integer updateNum = 0;
         Integer failNum = 0;
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
+            LOGGER.info("readDrugExcel rowIndex  " + rowIndex);
             //循环获得每个行
             row = sheet.getRow(rowIndex);
             // 判断是否是模板
