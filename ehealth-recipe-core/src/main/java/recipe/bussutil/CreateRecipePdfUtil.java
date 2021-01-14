@@ -106,7 +106,7 @@ public class CreateRecipePdfUtil {
         page.setFontAndSize(bf, 10);
         page.setTextMatrix(10, height);
         page.showText("收货人姓名：" + receiver);
-        page.setTextMatrix(150, height);
+        page.setTextMatrix(149, height);
         page.showText("收货人电话：" + recMobile);
         page.setTextMatrix(10, height - 12);
         page.showText("收货人地址：" + completeAddress);

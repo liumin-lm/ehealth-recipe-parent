@@ -4791,6 +4791,7 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId) {
+        LOGGER.info("recipe pharmacyToRecipePDF", recipeId);
         //再触发药师签名的时候将pdf先生成，回调的时候再将CA的返回更新
         //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
         //date 202001013 修改非易签保流程下的pdf
