@@ -238,7 +238,11 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 }
 
                 //判断是否在药房下
-                if (null != organDrugList.getPharmacy() && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
+                if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
+                    drugIds.add(a.getDrugId());
+                    return;
+                }
+                if (null != a.getPharmacyId() && StringUtils.isEmpty(organDrugList.getPharmacy())) {
                     drugIds.add(a.getDrugId());
                     return;
                 }
