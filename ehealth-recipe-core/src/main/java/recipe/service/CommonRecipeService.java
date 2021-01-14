@@ -265,7 +265,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 }
                 if (null != a.getUsePathwaysId() && null == pathwaysMap.get(Integer.parseInt(a.getUsePathwaysId()))) {
                     drugIds.add(a.getDrugId());
-                    return;
                 }
 
             });
