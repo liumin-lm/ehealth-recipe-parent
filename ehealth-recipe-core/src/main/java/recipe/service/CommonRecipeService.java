@@ -72,6 +72,22 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             Integer commonRecipeId = commonRecipe.getCommonRecipeId();
             LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
             validateParam(commonRecipe, drugList);
+            List<Integer> drugIdList = drugListDTO.stream().map(CommonRecipeDrugDTO::getDrugId).distinct().collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(commonRecipe.getOrganId(), drugIdList);
+            if (CollectionUtils.isEmpty(organDrugLists)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
+            }
+            Map<String, OrganDrugList> organDrugMap = organDrugLists.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+            drugListDTO.forEach(a -> {
+                OrganDrugList organDrugList = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+                if (null == organDrugList) {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
+                }
+                if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy())
+                        && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品药房错误");
+                }
+            });
             try {
                 commonRecipe.setCommonRecipeId(null);
                 //如何查看对应的hql语句，
