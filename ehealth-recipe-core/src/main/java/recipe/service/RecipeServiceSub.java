@@ -73,6 +73,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -1422,7 +1423,24 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertRecipeForRAP(Recipe recipe) {
-        //getMedicalInfo(recipe);
+        getMedicalInfo(recipe);
+        RecipeBean r = new RecipeBean();
+        r.setRecipeId(recipe.getRecipeId());
+        r.setCreateDate(recipe.getCreateDate());
+        r.setRecipeType(recipe.getRecipeType());
+        r.setStatus(recipe.getStatus());
+        r.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        r.setRecipeDrugName(recipe.getRecipeDrugName());
+        r.setRecipeShowTime(recipe.getRecipeShowTime());
+        r.setShowTip(recipe.getShowTip());
+        r.setRecipeSourceType(recipe.getRecipeSourceType());
+        r.setRecipeCode(recipe.getRecipeCode());
+        r.setClinicOrgan(recipe.getClinicOrgan());
+        r.setPayFlag(recipe.getPayFlag());
+        return r;
+    }
+
+    public static RecipeBean convertRecipeForRAPNew(Recipe recipe) {
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1847,7 +1865,10 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        //recipeBean.setCheckerText(recipeBean.getCheckerText1());
+        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+            String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
+            recipeBean.setCheckerText(checkerText);
+        }
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);

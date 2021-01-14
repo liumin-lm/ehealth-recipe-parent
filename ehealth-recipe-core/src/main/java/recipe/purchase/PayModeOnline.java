@@ -8,9 +8,6 @@ import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.AddressDTO;
@@ -20,17 +17,13 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -64,8 +57,6 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -189,6 +180,7 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("抱歉，没有可选择的药企");
             return resultBean;
         }
+        //这里是为了同一个药企下能显示在线支付和货到付款
         subDepList = getAllSubDepList(subDepList);
         DepDetailBean depDetailBean;
         //这里是获取到可以支持的药企列表
@@ -202,8 +194,9 @@ public class PayModeOnline implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1) {
             depListBean.setSigle(true);
         }
-
-        depListBean.setList(depDetailList);
+        //去重---有可能getAllSubDepList接口返回两个相同的药企但是在北京互联网的模式过滤下会出现两个一模一样的药企
+        //暂时先放这去重
+        depListBean.setList(depDetailList.stream().distinct().collect(Collectors.toList()));
         resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;

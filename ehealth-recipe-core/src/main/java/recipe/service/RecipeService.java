@@ -50,6 +50,7 @@ import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -126,8 +127,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -2416,7 +2415,7 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //相应订单处理
-        orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS);
+        orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS, false);
 
         //根据付款方式提示不同消息
         //date 2019/10/14
@@ -4792,6 +4791,7 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId) {
+        LOGGER.info("recipe pharmacyToRecipePDF,recipeId={}", recipeId);
         //再触发药师签名的时候将pdf先生成，回调的时候再将CA的返回更新
         //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
         //date 202001013 修改非易签保流程下的pdf

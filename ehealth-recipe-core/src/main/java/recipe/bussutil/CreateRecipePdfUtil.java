@@ -106,9 +106,9 @@ public class CreateRecipePdfUtil {
         page.setFontAndSize(bf, 10);
         page.setTextMatrix(10, height);
         page.showText("收货人姓名：" + receiver);
-        page.setTextMatrix(150, height);
+        page.setTextMatrix(149, height);
         page.showText("收货人电话：" + recMobile);
-        page.setTextMatrix(10, height - 10);
+        page.setTextMatrix(10, height - 12);
         page.showText("收货人地址：" + completeAddress);
         page.endText();
         stamper.close();
@@ -267,7 +267,7 @@ public class CreateRecipePdfUtil {
      * @param checker 药师id姓名
      */
     public static String generateDocSignImageInRecipePdf(String pdfId, String checker) throws IOException, DocumentException {
-        logger.info("generateReceiverInfoRecipePdf pdfId={}, checker={}", pdfId, checker);
+        logger.info("generateDocSignImageInRecipePdf pdfId={}, checker={}", pdfId, checker);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);

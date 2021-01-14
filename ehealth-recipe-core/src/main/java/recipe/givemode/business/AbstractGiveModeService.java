@@ -147,6 +147,8 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
                 giveModeButton.setShowButtonName("用药指导");
                 giveModeButton.setShowButtonKey("supportMedicationGuide");
                 giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
+                //此时将ButtonType设置为4
+                giveModeShowButtonVO.setButtonType(4);
             }
         }
     }
