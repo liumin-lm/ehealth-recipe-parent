@@ -2952,7 +2952,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "LEFT JOIN cdr_recipedetail crt ON crt.RecipeID = cre.recipeId\n" +
                         "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
                         "WHERE\n" +
-                        "\tcr.RecipeID = :recipeId";
+                        "\tcr.RecipeID = :recipeId AND crt.status = 1" ;
                 Query q = statelessSession.createSQLQuery(sql);
                 LOGGER.info("findRecipeDrugDetialByRecipeId sql : " + sql);
                 q.setParameter("recipeId", recipeId);
