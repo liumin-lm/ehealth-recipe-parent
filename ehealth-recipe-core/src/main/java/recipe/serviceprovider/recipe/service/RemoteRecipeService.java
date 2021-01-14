@@ -2285,7 +2285,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
         try {
-            TimeUnit.MILLISECONDS.sleep(1000);
+            TimeUnit.MILLISECONDS.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
