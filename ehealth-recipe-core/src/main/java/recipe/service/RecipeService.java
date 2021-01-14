@@ -50,7 +50,6 @@ import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -127,6 +126,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -785,6 +786,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     private void doctorToRecipePDF(Integer recipeId, Recipe recipe) {
+        LOGGER.info("doctorToRecipePDF recipeId:{}", recipeId);
         //在触发医生签名的时候将pdf先生成，回调的时候再将CA的返回更新
         //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
         try {
@@ -1181,6 +1183,7 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存签名值、时间戳、电子签章文件
                     String pdfString = null;
+                    LOGGER.info("retryCaDoctorCallBackToRecipe usePlatform:{},CANewOldWay:{}", usePlatform, CANewOldWay);
                     if (!usePlatform) {
                         if (null == resultVo.getPdfBase64()) {
                             LOGGER.warn("当前处方{}使用CApdf返回CA图片为空！", recipeId);

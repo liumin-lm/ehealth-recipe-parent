@@ -306,6 +306,7 @@ public class CreateRecipePdfUtil {
      */
     public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
                                                          String pdfBase64String, String doctorSignImageId) throws Exception {
+        logger.info("generateDocSignImageInRecipePdf recipeId={}, doctorId={}", recipeId, doctorId);
         float xPoint;
         float yPoint;
         if (isDoctor) {
