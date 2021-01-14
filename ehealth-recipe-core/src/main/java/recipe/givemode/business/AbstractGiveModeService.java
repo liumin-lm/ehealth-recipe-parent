@@ -138,8 +138,8 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         // 按钮的展示类型
         Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "medicationGuideFlag");
         //已完成的处方单设置
-        if ((LIST_TYPE_ORDER.equals(recordType) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(recordStatusCode))
-                || (LIST_TYPE_RECIPE.equals(recordType) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recordStatusCode))) {
+        if ((LIST_TYPE_ORDER.equals(recordType) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().toString().equals(recordStatusCode))
+                || (LIST_TYPE_RECIPE.equals(recordType) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().toString().equals(recordStatusCode))) {
             //设置用药指导按钮
             if (showUseDrugConfig) {
                 GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
