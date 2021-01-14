@@ -75,6 +75,9 @@ public class RecipeLabelManager {
         }
         if (!CollectionUtils.isEmpty(moduleOne)) {
             height = 426;
+            if (CollectionUtils.isEmpty(moduleTwo)) {
+                height = 440;
+            }
             if (moduleOne.size() > 3) {
                 height = height - (((moduleOne.size() - 3) / 3) + 1) * 12;
             }
