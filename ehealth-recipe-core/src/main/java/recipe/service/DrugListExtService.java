@@ -675,9 +675,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //医生查询药品信息
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
                 req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
-
-        // 如果配置成实时查看库存，则查询医院库存、药企库存等
-        setInventoriesIfRealTime(req.getOrganId(), resultList, req.getPharmacyId());
         return resultList;
     }
 
