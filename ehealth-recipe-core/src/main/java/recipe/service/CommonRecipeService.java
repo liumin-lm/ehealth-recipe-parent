@@ -255,12 +255,13 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId organDrugList :{}", JSON.toJSONString(organDrugList));
                 //判断是否在药房下
                 if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
-                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId getPharmacy1");
+                    LOGGER.info("getCommonRecipeListExt 常用方药品药房变更 DrugId：[{}]",a.getDrugId());
                     drugIds.add(a.getDrugId());
                     return;
                 }
-                if (null != a.getPharmacyId() && StringUtils.isEmpty(organDrugList.getPharmacy())) {
-                    LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId getPharmacy2");
+                if ((null != a.getPharmacyId() && StringUtils.isEmpty(organDrugList.getPharmacy())) ||
+                        null == a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
+                    LOGGER.info("getCommonRecipeListExt 常用方药品药房新增或删除 DrugId：[{}]",a.getDrugId());
                     drugIds.add(a.getDrugId());
                     return;
                 }
