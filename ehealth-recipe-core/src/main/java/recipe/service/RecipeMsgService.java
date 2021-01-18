@@ -357,15 +357,18 @@ public class RecipeMsgService {
         }
 
         Integer clientId = null;
+        Integer urt = null;
        /* //处方审核通过添加clientId
         if (bussType != null && bussType.equals(RECIPE_CHECK_PASS)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             clientId = recipe.getCurrentClient();
         }*/
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Integer urt = recipe.getRequestUrt();
+        if (recipeId != null) {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            urt = recipe.getRequestUrt();
+        }
 
         SmsInfoBean info = new SmsInfoBean();
         // 业务表主键
