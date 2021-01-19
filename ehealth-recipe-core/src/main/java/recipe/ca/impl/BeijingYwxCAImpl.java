@@ -85,6 +85,7 @@ public class BeijingYwxCAImpl{
 
     /**
      * 获取开启自动签名的状态
+     *
      * @param organId
      * @param doctorId
      * @return
@@ -97,7 +98,7 @@ public class BeijingYwxCAImpl{
         requestTO.setOrganId(organId);
         requestTO.setBussType(0);
         requestTO.setOpenId(responseTO.getUserAccount());
-         CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
         if (result != null && "200".equals(result.getCode())) {
             return result.getAutoSign();
         }
@@ -107,8 +108,8 @@ public class BeijingYwxCAImpl{
 
     private CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
         DoctorBean doctorBean = doctorService.get(doctorId);
-        if (doctorBean == null){
-            throw new DAOException(609,"该医生不存在");
+        if (doctorBean == null) {
+            throw new DAOException(609, "该医生不存在");
         }
         CaAccountRequestTO requestTO = new CaAccountRequestTO();
         CaAccountResponseTO responseTO = new CaAccountResponseTO();
