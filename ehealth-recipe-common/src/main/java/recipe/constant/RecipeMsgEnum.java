@@ -146,6 +146,11 @@ public enum RecipeMsgEnum {
     EXPRESSINFO_REMIND(138, "ExpressInfoRemind"),
 
     /**
+     * 到院取药
+     */
+    RECIPE_HOS_TAKE_MEDICINE(139,"RecipeHosTakeMedicine"),
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");
