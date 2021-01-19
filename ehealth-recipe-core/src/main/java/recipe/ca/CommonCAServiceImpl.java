@@ -39,6 +39,25 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         }
         return false;
     }
+
+    @Override
+    public CaAccountResponseTO caUserBusinessNew(CaAccountRequestTO requestTO) {
+        CaAccountResponseTO response = new CaAccountResponseTO();
+        try {
+            LOGGER.info("CommonCAServiceImpl caUserBusinessNew requestTO=[{}]",JSONUtils.toString(requestTO));
+            HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(requestTO);
+            LOGGER.info("CommonCAServiceImpl caUserBusinessNew responseTO={}",JSONUtils.toString(responseTO));
+            if (CA_RESULT_CODE.equals(responseTO.getMsgCode())){
+                response = responseTO.getData();
+            }
+            response.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            response.setMsg(responseTO.getMsg());
+        } catch (Exception e) {
+            LOGGER.error("CommonCAServiceImpl caUserBusinessNew 调用前置机失败 errorInfo=[{}]",e);
+        }
+        return response;
+    }
+
     /**
      * CA证书接口
      * @param requestTO
@@ -242,10 +261,30 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
             caTokenResponseTo.setCode(Integer.valueOf(responseTO.getMsgCode()));
             caTokenResponseTo.setMsg(responseTO.getMsg());
         } catch (Exception e) {
-            LOGGER.error("CommonCAServiceImpl caPictureBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTo), e);
+            LOGGER.error("CommonCAServiceImpl caPictureBusiness 调用前置机失败 errorInfo={}", e);
             e.printStackTrace();
             return caTokenResponseTo;
         }
         return caTokenResponseTo;
+    }
+
+    @Override
+    public CaAutoSignResponseTO caAutoSignBusiness(CaAutoSignRequestTO requestTO) {
+        CaAutoSignResponseTO result = new CaAutoSignResponseTO();
+        try {
+            LOGGER.info("CommonCAServiceImpl CaAutoSignBusiness start request=[{}]",JSONUtils.toString(requestTO));
+            HisResponseTO<CaAutoSignResponseTO> response = iCaHisService.caAutoSignBusiness(requestTO);
+            LOGGER.info("CommonCAServiceImpl CaAutoSignBusiness start response=[{}]",JSONUtils.toString(response));
+
+            if (CA_RESULT_CODE.equals(response.getMsgCode())){
+                result=response.getData();
+            }
+            result.setCode(Integer.valueOf(response.getMsgCode()));
+            result.setMsg(response.getMsg());
+        } catch (NumberFormatException e) {
+            LOGGER.error("CommonCAServiceImpl caAutoSignBusiness 调用前置机失败 errorInfo={}", e);
+            e.printStackTrace();
+        }
+        return result;
     }
 }
