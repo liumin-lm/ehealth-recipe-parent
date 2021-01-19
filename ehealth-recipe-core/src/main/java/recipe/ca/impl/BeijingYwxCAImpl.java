@@ -7,7 +7,9 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.*;
 import com.ngari.his.ca.service.ICaHisService;
 import com.ngari.his.common.service.ICommonHisService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -32,7 +34,7 @@ public class BeijingYwxCAImpl{
     private static ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
     private Logger logger = LoggerFactory.getLogger(BeijingYwxCAImpl.class);
     private String AccessToken_KEY = "BjYCAToken";
-    private IDoctorService doctorService = BasicAPI.getService(IDoctorService.class);
+    private DoctorService doctorService = BasicAPI.getService(DoctorService.class);
 
 
     /**
@@ -85,6 +87,7 @@ public class BeijingYwxCAImpl{
 
     /**
      * 获取开启自动签名的状态
+     *
      * @param organId
      * @param doctorId
      * @return
@@ -97,7 +100,7 @@ public class BeijingYwxCAImpl{
         requestTO.setOrganId(organId);
         requestTO.setBussType(0);
         requestTO.setOpenId(responseTO.getUserAccount());
-         CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
         if (result != null && "200".equals(result.getCode())) {
             return result.getAutoSign();
         }
@@ -106,14 +109,14 @@ public class BeijingYwxCAImpl{
 
 
     private CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
-        DoctorBean doctorBean = doctorService.get(doctorId);
-        if (doctorBean == null){
-            throw new DAOException(609,"该医生不存在");
+        DoctorDTO doctorDTO = doctorService.get(doctorId);
+        if (doctorDTO == null) {
+            throw new DAOException(609, "该医生不存在");
         }
         CaAccountRequestTO requestTO = new CaAccountRequestTO();
         CaAccountResponseTO responseTO = new CaAccountResponseTO();
         requestTO.setIdNoType("SF");
-        requestTO.setIdCard(doctorBean.getIdNumber());
+        requestTO.setIdCard(doctorDTO.getIdNumber());
         requestTO.setUserName(CaTokenBussiness(organId));
         requestTO.setBusType(0);
         responseTO = iCommonCAServcie.caUserBusinessNew(requestTO);
