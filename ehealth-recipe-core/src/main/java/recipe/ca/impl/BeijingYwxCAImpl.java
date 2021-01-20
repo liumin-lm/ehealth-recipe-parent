@@ -102,6 +102,7 @@ public class BeijingYwxCAImpl{
         requestTO.setBussType(0);
         requestTO.setOpenId(responseTO.getUserAccount());
         CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        logger.info("getAutoSignStatus------[{}]",JSONUtils.toString(result));
         if (result != null && "200".equals(result.getCode())) {
             return result.getAutoSign();
         }
