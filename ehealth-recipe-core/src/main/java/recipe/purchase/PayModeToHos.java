@@ -156,8 +156,6 @@ public class PayModeToHos implements IPurchaseService{
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }
 
-        // 發送推送消息
-        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, dbRecipes.get(0));
         return result;
     }
 
