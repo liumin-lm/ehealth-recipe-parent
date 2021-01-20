@@ -48,7 +48,8 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
             HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(requestTO);
             LOGGER.info("CommonCAServiceImpl caUserBusinessNew responseTO={}",JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())){
-                response = responseTO.getData();
+                //response = responseTO.getData();
+               response.setUserAccount(responseTO.getData().getUserAccount());
             }
             response.setCode(Integer.valueOf(responseTO.getMsgCode()));
             response.setMsg(responseTO.getMsg());
@@ -277,7 +278,9 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
             LOGGER.info("CommonCAServiceImpl CaAutoSignBusiness start response=[{}]",JSONUtils.toString(response));
 
             if (CA_RESULT_CODE.equals(response.getMsgCode())){
-                result=response.getData();
+                //result=response.getData();
+                result.setAutoSign(response.getData().getAutoSign());
+                result.setAutoSignPicture(response.getData().getAutoSignPicture());
             }
             result.setCode(Integer.valueOf(response.getMsgCode()));
             result.setMsg(response.getMsg());
