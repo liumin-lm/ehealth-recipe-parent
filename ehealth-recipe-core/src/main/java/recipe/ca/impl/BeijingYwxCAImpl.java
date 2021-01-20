@@ -43,7 +43,7 @@ public class BeijingYwxCAImpl{
      * @return
      */
     @RpcService
-    public String CaTokenBussiness(Integer organId) {
+    public String caTokenBussiness(Integer organId) {
         String redisKey = AccessToken_KEY +"_"+ Integer.toString(organId);
         if (null == redisClient.get(redisKey)) {
             CaTokenRequestTo requestTO = new CaTokenRequestTo();
@@ -63,7 +63,7 @@ public class BeijingYwxCAImpl{
       CaAccountResponseTO responseTO = new CaAccountResponseTO();
       requestTO.setOrganId(organId);
       requestTO.setUserAccount(openId);
-      String token = CaTokenBussiness(organId);
+      String token = caTokenBussiness(organId);
       requestTO.setUserName(token);
       requestTO.setBusType(0);
 
@@ -96,7 +96,7 @@ public class BeijingYwxCAImpl{
     public Boolean getAutoSignStatus(Integer organId, Integer doctorId) {
         CaAccountResponseTO responseTO = getDocStatusForPC(organId, doctorId);
         CaAutoSignRequestTO requestTO = new CaAutoSignRequestTO();
-        requestTO.setToken(CaTokenBussiness(organId));
+        requestTO.setToken(caTokenBussiness(organId));
         requestTO.setOrganId(organId);
         requestTO.setBussType(0);
         requestTO.setOpenId(responseTO.getUserAccount());
@@ -117,7 +117,7 @@ public class BeijingYwxCAImpl{
         CaAccountResponseTO responseTO = new CaAccountResponseTO();
         requestTO.setIdNoType("SF");
         requestTO.setIdCard(doctorDTO.getIdNumber());
-        requestTO.setUserName(CaTokenBussiness(organId));
+        requestTO.setUserName(caTokenBussiness(organId));
         requestTO.setBusType(0);
         responseTO = iCommonCAServcie.caUserBusinessNew(requestTO);
         if (responseTO != null && "200".equals(responseTO.getCode())) {
@@ -126,5 +126,27 @@ public class BeijingYwxCAImpl{
             logger.info("前置机未返回数据");
         }
         return responseTO;
+    }
+
+    /**
+     * 授权开启自动签名
+     * @param openId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public Boolean openAutoSign(String openId, Integer organId) {
+        CaAutoSignRequestTO requestTO = new CaAutoSignRequestTO();
+        requestTO.setOpenId(openId);
+        requestTO.setToken(caTokenBussiness(organId));
+        requestTO.setOrganId(organId);
+        requestTO.setSessionTime(1);
+        requestTO.setBussType(1);
+        CaAutoSignResponseTO response = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        if (response != null && "200".equals(response.getCode())
+                && StringUtils.isNotEmpty(response.getAutoSignPicture())) {
+            return true;
+        }
+        return false;
     }
 }
