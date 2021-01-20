@@ -29,6 +29,11 @@ import recipe.util.RedisClient;
 
 import java.util.Date;
 
+/**
+ * CA新对接模式已迁移miscellany项目中 后期不将recipe维护
+ */
+
+@Deprecated
 @RpcBean("shenzhenCA")
 public class ShenzhenImp implements CAInterface {
 

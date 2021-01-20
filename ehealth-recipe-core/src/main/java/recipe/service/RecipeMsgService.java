@@ -8,6 +8,7 @@ import com.ngari.opbase.base.service.IDynamicLinkService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -22,6 +23,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
@@ -32,6 +34,7 @@ import recipe.util.RecipeMsgUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * company: ngarihealth
@@ -333,6 +336,16 @@ public class RecipeMsgService {
                     String url = getRecipeExpressFeeRemindNoPayUrl(recipe);
                     sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), url);
                     return;
+                case RECIPE_HOS_TAKE_MEDICINE:
+                    RecipeDetailDAO dao = DAOFactory.getDAO(RecipeDetailDAO.class);
+                    List<Recipedetail> recipedetails = dao.findByRecipeId(recipeId);
+                    if(CollectionUtils.isNotEmpty(recipedetails)) {
+                        Recipedetail recipedetail = recipedetails.get(0);
+                        if(Objects.nonNull(recipedetail) && Objects.nonNull(recipedetail.getPharmNo())) {
+                            extendValue.put("pharmNo", recipedetail.getPharmNo());
+                        }
+                    }
+                    break;
                 default:
 
             }

@@ -19,9 +19,11 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeMsgEnum;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.RecipeHisService;
+import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
@@ -153,6 +155,9 @@ public class PayModeToHos implements IPurchaseService{
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }
+
+        // 發送推送消息
+        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, dbRecipes.get(0));
         return result;
     }
 

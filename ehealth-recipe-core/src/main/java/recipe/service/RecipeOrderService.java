@@ -52,7 +52,9 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+
 import static ctd.persistence.DAOFactory.getDAO;
+
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -106,7 +108,7 @@ import java.util.stream.Collectors;
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
-@RpcBean("recipeOrderService")
+@RpcBean(value = "recipeOrderService")
 public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
@@ -382,6 +384,7 @@ public class RecipeOrderService extends RecipeBaseService {
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
     }
+
     //设置金额
     private double getFee(Object fee) {
         return null != fee ? Double.parseDouble(fee.toString()) : 0d;
@@ -1314,8 +1317,7 @@ public class RecipeOrderService extends RecipeBaseService {
     /**
      * 取消订单
      *
-     * @param order
-     * canCancelOrderCode 能否将处方里的OrderCode设置成null
+     * @param order canCancelOrderCode 能否将处方里的OrderCode设置成null
      * @return
      */
     public RecipeResultBean cancelOrder(RecipeOrder order, Integer status, Boolean canCancelOrderCode) {
@@ -1491,7 +1493,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignFile(recipe.getSignFile());
                     prb.setDoctorName(recipe.getDoctorName());
                     prb.setRecipeCode(recipe.getRecipeCode());
-                    RecipeBean recipeBean= ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
                     if (StringUtils.isNotEmpty(order.getGiveModeText())) {
                         recipeBean.setGiveModeText(order.getGiveModeText());
                     } else {
@@ -2217,7 +2219,7 @@ public class RecipeOrderService extends RecipeBaseService {
 //                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
 //                }
             }
-        } else if(null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT_HIS)){
+        } else if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT_HIS)) {
             //药企对接-无回写接口:将处方信息传给基础服务线
             ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
             WriteBackLogisticsOrderDto orderDto = getWriteBackLogisticsOrderDto(order, recipeS.get(0), enterprise);
@@ -2226,8 +2228,9 @@ public class RecipeOrderService extends RecipeBaseService {
             LOGGER.info("基础服务物流下单结果 res={}", res);
         }
     }
-    private WriteBackLogisticsOrderDto getWriteBackLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise){
-        WriteBackLogisticsOrderDto orderDto=new WriteBackLogisticsOrderDto();
+
+    private WriteBackLogisticsOrderDto getWriteBackLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
+        WriteBackLogisticsOrderDto orderDto = new WriteBackLogisticsOrderDto();
         // 机构id
         orderDto.setOrganId(recipe.getClinicOrgan());
         // 业务类型
@@ -2259,12 +2262,13 @@ public class RecipeOrderService extends RecipeBaseService {
         //运单费用
         orderDto.setWaybillFee(order.getExpressFee());
 
-        RecipeExtendDAO recipeExtendDAO=getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         //门诊号
         orderDto.setOutpatientNumber(recipeExtend.getRegisterID());
         return orderDto;
     }
+
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
         // 机构id
@@ -2311,14 +2315,14 @@ public class RecipeOrderService extends RecipeBaseService {
         try {
             IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            if (patientBean != null){
+            if (patientBean != null) {
                 // 就诊人名称
                 logisticsOrder.setPatientName(patientBean.getPatientName());
                 // 就诊人手机号
                 logisticsOrder.setPatientPhone(patientBean.getMobile());
                 // 就诊人身份证
                 String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
-                if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18){
+                if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18) {
                     cardNo = null;
                 }
                 logisticsOrder.setPatientIdentityCardNo(cardNo);
@@ -2410,6 +2414,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
     }
 
+
+
     /**
      * @param reviewType 审核方式
      * @param giveMode   购药方式
@@ -2483,6 +2489,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return "";
 
     }
+
     /**
      * 从微信模板消息跳转时 先获取一下是否需要跳转第三方地址
      * 或者处方审核成功后推送处方卡片消息时点击跳转(互联网)
