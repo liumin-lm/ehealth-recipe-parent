@@ -13,6 +13,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang.StringUtils;
@@ -144,6 +145,7 @@ public class BeijingYwxCAImpl{
         requestTO.setSessionTime(1);
         requestTO.setBussType(1);
         CaAutoSignResponseTO response = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        logger.info("openAutoSign-----response=[{}]",JSONUtils.toString(response));
         if (response != null && "200".equals(response.getCode())
                 && StringUtils.isNotEmpty(response.getAutoSignPicture())) {
             return true;
