@@ -14,6 +14,17 @@ public interface ICommonCAServcie {
     @RpcService
     boolean caUserBusiness(CaAccountRequestTO requestTO);
 
+
+    /**
+     * CA用户接口新
+     * @param requestTO
+     * @return
+     */
+    @RpcService
+    CaAccountResponseTO caUserBusinessNew(CaAccountRequestTO requestTO);
+
+
+
     /**
      * CA证书接口
      * @param requestTO
@@ -82,4 +93,7 @@ public interface ICommonCAServcie {
 
 
     CaTokenResponseTo newCaTokenBussiness(CaTokenRequestTo requestTo);
+
+    @RpcService
+    CaAutoSignResponseTO caAutoSignBusiness(CaAutoSignRequestTO requestTO);
 }

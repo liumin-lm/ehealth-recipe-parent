@@ -1,11 +1,17 @@
 package recipe.ca.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.doctor.model.DoctorBean;
+import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.*;
 import com.ngari.his.ca.service.ICaHisService;
 import com.ngari.his.common.service.ICommonHisService;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -18,6 +24,8 @@ import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.util.RedisClient;
 
+import javax.print.Doc;
+
 @RpcBean("BeijingYCA")
 public class BeijingYwxCAImpl{
 
@@ -26,6 +34,7 @@ public class BeijingYwxCAImpl{
     private static ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
     private Logger logger = LoggerFactory.getLogger(BeijingYwxCAImpl.class);
     private String AccessToken_KEY = "BjYCAToken";
+    private DoctorService doctorService = BasicAPI.getService(DoctorService.class);
 
 
     /**
@@ -34,7 +43,7 @@ public class BeijingYwxCAImpl{
      * @return
      */
     @RpcService
-    public String CaTokenBussiness(Integer organId) {
+    public String caTokenBussiness(Integer organId) {
         String redisKey = AccessToken_KEY +"_"+ Integer.toString(organId);
         if (null == redisClient.get(redisKey)) {
             CaTokenRequestTo requestTO = new CaTokenRequestTo();
@@ -54,7 +63,7 @@ public class BeijingYwxCAImpl{
       CaAccountResponseTO responseTO = new CaAccountResponseTO();
       requestTO.setOrganId(organId);
       requestTO.setUserAccount(openId);
-      String token = CaTokenBussiness(organId);
+      String token = caTokenBussiness(organId);
       requestTO.setUserName(token);
       requestTO.setBusType(0);
 
@@ -74,5 +83,71 @@ public class BeijingYwxCAImpl{
 
      return null;
 
+    }
+
+    /**
+     * 获取开启自动签名的状态
+     *
+     * @param organId
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public Boolean getAutoSignStatus(Integer organId, Integer doctorId) {
+        CaAccountResponseTO responseTO = getDocStatusForPC(organId, doctorId);
+        CaAutoSignRequestTO requestTO = new CaAutoSignRequestTO();
+        requestTO.setToken(caTokenBussiness(organId));
+        requestTO.setOrganId(organId);
+        requestTO.setBussType(0);
+        requestTO.setOpenId(responseTO.getUserAccount());
+        CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        if (result != null && "200".equals(result.getCode())) {
+            return result.getAutoSign();
+        }
+        return false;
+    }
+
+
+    private CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
+        DoctorDTO doctorDTO = doctorService.get(doctorId);
+        if (doctorDTO == null) {
+            throw new DAOException(609, "该医生不存在");
+        }
+        CaAccountRequestTO requestTO = new CaAccountRequestTO();
+        CaAccountResponseTO responseTO = new CaAccountResponseTO();
+        requestTO.setIdNoType("SF");
+        requestTO.setIdCard(doctorDTO.getIdNumber());
+        requestTO.setUserName(caTokenBussiness(organId));
+        requestTO.setBusType(0);
+        requestTO.setOrganId(organId);
+        responseTO = iCommonCAServcie.caUserBusinessNew(requestTO);
+        if (responseTO != null && "200".equals(responseTO.getCode())) {
+            return responseTO;
+        } else {
+            logger.info("前置机未返回数据");
+        }
+        return responseTO;
+    }
+
+    /**
+     * 授权开启自动签名
+     * @param openId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public Boolean openAutoSign(String openId, Integer organId) {
+        CaAutoSignRequestTO requestTO = new CaAutoSignRequestTO();
+        requestTO.setOpenId(openId);
+        requestTO.setToken(caTokenBussiness(organId));
+        requestTO.setOrganId(organId);
+        requestTO.setSessionTime(1);
+        requestTO.setBussType(1);
+        CaAutoSignResponseTO response = iCommonCAServcie.caAutoSignBusiness(requestTO);
+        if (response != null && "200".equals(response.getCode())
+                && StringUtils.isNotEmpty(response.getAutoSignPicture())) {
+            return true;
+        }
+        return false;
     }
 }

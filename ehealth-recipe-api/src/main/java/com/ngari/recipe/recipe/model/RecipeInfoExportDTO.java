@@ -42,6 +42,14 @@ public class RecipeInfoExportDTO implements Serializable{
     private  Integer sendType;
     private String outTradeNo;
 
+    @ItemProperty(alias = "结算方式（医保 自费）")
+    private Integer orderType;
+
+    @ItemProperty(alias = "医保金额")
+    private Double fundAmount;
+    @ItemProperty(alias = "自费金额")
+    private Double cashAmount;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     public Integer getRecipeId() {
@@ -178,5 +186,29 @@ public class RecipeInfoExportDTO implements Serializable{
 
     public void setOutTradeNo(String outTradeNo) {
         this.outTradeNo = outTradeNo;
+    }
+
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
     }
 }
