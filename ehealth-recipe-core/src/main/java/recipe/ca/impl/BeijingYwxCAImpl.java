@@ -119,6 +119,7 @@ public class BeijingYwxCAImpl{
         requestTO.setIdCard(doctorDTO.getIdNumber());
         requestTO.setUserName(caTokenBussiness(organId));
         requestTO.setBusType(0);
+        requestTO.setOrganId(organId);
         responseTO = iCommonCAServcie.caUserBusinessNew(requestTO);
         if (responseTO != null && "200".equals(responseTO.getCode())) {
             return responseTO;
