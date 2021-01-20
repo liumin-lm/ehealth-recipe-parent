@@ -5,6 +5,9 @@ import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.opbase.base.service.IDynamicLinkService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -342,13 +345,17 @@ public class RecipeMsgService {
                     if(CollectionUtils.isNotEmpty(recipedetails)) {
                         Recipedetail recipedetail = recipedetails.get(0);
                         if(Objects.nonNull(recipedetail) && Objects.nonNull(recipedetail.getPharmNo())) {
-                            extendValue.put("pharmNo", recipedetail.getPharmNo());
+                            OrganService organService = BasicAPI.getService(OrganService.class);
+                            OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+                            extendValue.put("pharmNo", organDTO.getName() + recipedetail.getPharmNo() + "取药窗口");
                         }
                     }
                     break;
                 default:
 
             }
+
+
 
             sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), JSONUtils.toString(extendValue));
         }
