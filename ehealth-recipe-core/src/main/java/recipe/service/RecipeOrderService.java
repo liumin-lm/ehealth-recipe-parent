@@ -2410,9 +2410,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, nowRecipe);
                 }
             }
-        }else if(RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())){
-            // 线上支付成功 到院取药 推送消息
-            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, nowRecipe);
         }
 
     }
