@@ -102,14 +102,21 @@ public class BeijingYwxCAImpl{
         requestTO.setBussType(0);
         requestTO.setOpenId(responseTO.getUserAccount());
         CaAutoSignResponseTO result = iCommonCAServcie.caAutoSignBusiness(requestTO);
-        if (result != null && "200".equals(result.getCode())) {
+        logger.info("getAutoSignStatus------[{}]",JSONUtils.toString(result));
+        if (result != null && result.getCode().equals(200)) {
             return result.getAutoSign();
         }
         return false;
     }
 
-
-    private CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
+    /**
+     * 根据医生身份证查询医生CA注册状态
+     * @param organId
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
         DoctorDTO doctorDTO = doctorService.get(doctorId);
         if (doctorDTO == null) {
             throw new DAOException(609, "该医生不存在");
@@ -122,7 +129,7 @@ public class BeijingYwxCAImpl{
         requestTO.setBusType(0);
         requestTO.setOrganId(organId);
         responseTO = iCommonCAServcie.caUserBusinessNew(requestTO);
-        if (responseTO != null && "200".equals(responseTO.getCode())) {
+        if (responseTO != null && responseTO.getCode().equals(200)) {
             return responseTO;
         } else {
             logger.info("前置机未返回数据");
@@ -146,7 +153,7 @@ public class BeijingYwxCAImpl{
         requestTO.setBussType(1);
         CaAutoSignResponseTO response = iCommonCAServcie.caAutoSignBusiness(requestTO);
         logger.info("openAutoSign-----response=[{}]",JSONUtils.toString(response));
-        if (response != null && "200".equals(response.getCode())
+        if (response != null && response.getCode().equals(200)
                 && StringUtils.isNotEmpty(response.getAutoSignPicture())) {
             return true;
         }

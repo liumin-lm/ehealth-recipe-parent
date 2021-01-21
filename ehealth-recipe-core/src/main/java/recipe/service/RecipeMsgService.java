@@ -344,11 +344,13 @@ public class RecipeMsgService {
                     List<Recipedetail> recipedetails = dao.findByRecipeId(recipeId);
                     if(CollectionUtils.isNotEmpty(recipedetails)) {
                         Recipedetail recipedetail = recipedetails.get(0);
-                        if(Objects.nonNull(recipedetail) && Objects.nonNull(recipedetail.getPharmNo())) {
-                            OrganService organService = BasicAPI.getService(OrganService.class);
-                            OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-                            extendValue.put("pharmNo", organDTO.getName() + recipedetail.getPharmNo() + "取药窗口");
+                        OrganService organService = BasicAPI.getService(OrganService.class);
+                        OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+                        String pharmNo = organDTO.getName() + "取药窗口";
+                        if(Objects.nonNull(recipedetail) && StringUtils.isNotEmpty(recipedetail.getPharmNo())) {
+                            pharmNo = organDTO.getName() + recipedetail.getPharmNo() + "取药窗口";
                         }
+                        extendValue.put("pharmNo", pharmNo);
                     }
                     break;
                 default:
