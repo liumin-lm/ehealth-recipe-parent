@@ -109,8 +109,14 @@ public class BeijingYwxCAImpl{
         return false;
     }
 
-
-    private CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
+    /**
+     * 根据医生身份证查询医生CA注册状态
+     * @param organId
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public CaAccountResponseTO getDocStatusForPC(Integer organId, Integer doctorId) {
         DoctorDTO doctorDTO = doctorService.get(doctorId);
         if (doctorDTO == null) {
             throw new DAOException(609, "该医生不存在");
