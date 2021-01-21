@@ -2507,19 +2507,10 @@ public class RecipeOrderService extends RecipeBaseService {
             return new SkipThirdBean();
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
 
         Recipe recipe = recipeDAO.get(recipeId);
-        if (null != recipe && recipe.getEnterpriseId() != null) {
-            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return getUrl(recipe);
-            }
-            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-            if (null == order) {
-                return skipThirdBean;
-            }
+        if (null != recipe) {
+           return getUrl(recipe);
         }
         return skipThirdBean;
     }
