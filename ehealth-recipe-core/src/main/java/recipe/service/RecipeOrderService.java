@@ -2388,7 +2388,7 @@ public class RecipeOrderService extends RecipeBaseService {
     //药店有库存或者无库存备货给患者推送消息
     private void sendTfdsMsg(Recipe nowRecipe, Integer payMode, String orderCode) {
         //药店取药推送
-        LOGGER.info("sendTfdsMsg nowRecipeId:{}.", JSONUtils.toString(nowRecipe.getRecipeId()));
+        LOGGER.info("sendTfdsMsg nowRecipeId:{}.payMode:{}.orderCode:{}.", JSONUtils.toString(nowRecipe.getRecipeId()),JSONUtils.toString(payMode),JSONUtils.toString(orderCode));
         if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode) && nowRecipe.getReviewType() != ReviewTypeConstant.Postposition_Check) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
@@ -2410,8 +2410,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, nowRecipe);
                 }
             }
-        } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())) {
-            // 支付成功 到院取药 推送消息
+        } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())
+                && !nowRecipe.getReviewType().equals(ReviewTypeConstant.Postposition_Check)
+        ) {
+            // 支付成功 到院取药 推送消息 审方前置
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, nowRecipe);
         }
 

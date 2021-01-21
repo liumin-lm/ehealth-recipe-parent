@@ -278,9 +278,9 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
             LOGGER.info("CommonCAServiceImpl CaAutoSignBusiness start response=[{}]",JSONUtils.toString(response));
 
             if (CA_RESULT_CODE.equals(response.getMsgCode())){
-                //result=response.getData();
-                result.setAutoSign(response.getData().getAutoSign());
-                result.setAutoSignPicture(response.getData().getAutoSignPicture());
+                result=response.getData();
+//                result.setAutoSign(response.getData().getAutoSign());
+//                result.setAutoSignPicture(response.getData().getAutoSignPicture());
             }
             result.setCode(Integer.valueOf(response.getMsgCode()));
             result.setMsg(response.getMsg());
