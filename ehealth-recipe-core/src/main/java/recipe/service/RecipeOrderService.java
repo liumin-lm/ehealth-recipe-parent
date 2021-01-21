@@ -2510,23 +2510,20 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
 
         Recipe recipe = recipeDAO.get(recipeId);
-        //TODO 先对黄河医院特殊处理
-        if (recipe.getClinicOrgan() == 1005329) {
-            if (null != recipe && recipe.getEnterpriseId() != null) {
-                DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
-                if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                    return getUrl(recipe);
-                }
-                RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-                if (null == order) {
-                    return skipThirdBean;
-                }
-            }
-        } else {
+        if (recipe.getClinicOrgan() == 1005683) {
             return getUrl(recipe);
         }
-
+        if (null != recipe && recipe.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
+            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+                return getUrl(recipe);
+            }
+            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
+            if (null == order) {
+                return skipThirdBean;
+            }
+        }
         return skipThirdBean;
     }
 
