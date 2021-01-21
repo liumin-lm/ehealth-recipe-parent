@@ -2362,6 +2362,13 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
 
+            // 到院取药 审方后置 消息推送
+            if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())
+                    && ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())) {
+                // 支付成功 到院取药 推送消息 审方后置
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, recipe);
+            }
+
         } else if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             Integer status = OrderStatusConstant.READY_SEND;
             if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
@@ -2396,6 +2403,7 @@ public class RecipeService extends RecipeBaseService {
 
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
+
 
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
