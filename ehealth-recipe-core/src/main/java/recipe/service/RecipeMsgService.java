@@ -346,8 +346,8 @@ public class RecipeMsgService {
                         Recipedetail recipedetail = recipedetails.get(0);
                         OrganService organService = BasicAPI.getService(OrganService.class);
                         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-                        String pharmNo = organDTO.getName() + recipedetail.getPharmNo() + "取药窗口";
-                        if(Objects.nonNull(recipedetail) && Objects.nonNull(recipedetail.getPharmNo())) {
+                        String pharmNo = organDTO.getName() + "取药窗口";
+                        if(Objects.nonNull(recipedetail) && StringUtils.isNotEmpty(recipedetail.getPharmNo())) {
                             pharmNo = organDTO.getName() + recipedetail.getPharmNo() + "取药窗口";
                         }
                         extendValue.put("pharmNo", pharmNo);
