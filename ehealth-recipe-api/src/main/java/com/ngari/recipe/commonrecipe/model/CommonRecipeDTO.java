@@ -52,6 +52,9 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "失效药品id列表")
     private List<Integer> drugIdList;
 
+    @ItemProperty(alias = "药品列表")
+    private List<CommonRecipeDrugDTO> commonDrugList;
+
     @ItemProperty(alias = "常用方的状态")
     private Integer commonRecipeStatus;
 
@@ -185,6 +188,14 @@ public class CommonRecipeDTO implements Serializable {
 
     public void setRecipeJsonConfig(String recipeJsonConfig) {
         this.recipeJsonConfig = recipeJsonConfig;
+    }
+
+    public List<CommonRecipeDrugDTO> getCommonDrugList() {
+        return commonDrugList;
+    }
+
+    public void setCommonDrugList(List<CommonRecipeDrugDTO> commonDrugList) {
+        this.commonDrugList = commonDrugList;
     }
 
     @Override
