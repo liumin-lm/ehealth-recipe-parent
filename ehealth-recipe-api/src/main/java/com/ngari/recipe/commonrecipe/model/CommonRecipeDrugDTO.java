@@ -115,6 +115,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药品包装数量")
     private Integer pack;
 
+    @ItemProperty(alias = "是否变动 true改变")
+    private Boolean variation;
+
     public Integer getPack() {
         return pack;
     }
@@ -364,5 +367,13 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+    public Boolean getVariation() {
+        return variation;
+    }
+
+    public void setVariation(Boolean variation) {
+        this.variation = variation;
     }
 }
