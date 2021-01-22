@@ -121,7 +121,10 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -1613,6 +1616,50 @@ public class RecipeService extends RecipeBaseService {
         rMap.put("errorFlag", false);
         rMap.put("canContinueFlag", "0");
         LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
+
+        // 处方失效时间处理
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
+            LOGGER.info("机构处方失效时间-查询配置结果，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
+            if (StringUtils.isNotBlank(invalidInfo)){
+                // 配置格式：签名当天后某天24点前=d2-天数;签名后大于24小时=d1-小时数;签名后小于一天=h-小时数
+                // 签名后小于一天用延迟队列取消处方，其余由定时任务取消
+                String[] invalidArr = invalidInfo.split("-");
+                Double invalidValue = Double.parseDouble(invalidArr[1]);
+                Calendar calendar  =   Calendar.getInstance();
+                calendar.setTime(recipeBean.getSignDate());
+                Date invalidDate = null;
+                switch (invalidArr[0]){
+                    case "d1":
+                        // 签名时间往后推invalidValue小时
+                        calendar.add(Calendar.HOUR, invalidValue.intValue());
+                        invalidDate = calendar.getTime();
+                        break;
+                    case "d2":
+                        // 签名时间往后推invalidValue天的最大时间
+                        calendar.add(Calendar.DATE, invalidValue.intValue());
+                        Date afterDate = calendar.getTime();
+                        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(afterDate.getTime()), ZoneId.systemDefault());;
+                        LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
+                        invalidDate = Date.from(endOfDay.atZone(ZoneId.systemDefault()).toInstant());
+                        break;
+                    case "h":
+                        // 签名时间往后推invalidValue*60 分钟
+                        int minute = (int)(invalidValue * 60);
+                        calendar.add(Calendar.MINUTE, minute);
+                        invalidDate = calendar.getTime();
+                        // TODO 延迟队列发送延迟消费消息
+                        break;
+                    default:
+                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
+                        break;
+                }
+                // 保存处方失效时间
+            }
+        } catch (Exception e) {
+            LOGGER.error("机构处方失效时间-处理异常,机构={}",recipeBean.getClinicOrgan(),e);
+        }
         return rMap;
     }
 
