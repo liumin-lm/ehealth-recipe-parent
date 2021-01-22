@@ -1343,6 +1343,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     sql.append(" And er.clinicOrgan in :organIdList");
                 }
+                if (null != request.getRefundFlag()) {
+                    sql.append(" And ero.refundFlag = :refundFlag");
+                }
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
                 query.setFirstResult(request.getStart());
                 query.setMaxResults(request.getLimit());
@@ -1360,6 +1363,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     query.setParameterList("organIdList", request.getOrganIdList());
                 }
+                if (null != request.getRefundFlag()) {
+                    query.setParameter("refundFlag", request.getRefundFlag());
+                }
 
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
@@ -1376,6 +1382,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     countQuery.setParameterList("organIdList", request.getOrganIdList());
+                }
+                if (null != request.getRefundFlag()) {
+                    countQuery.setParameter("refundFlag", request.getRefundFlag());
                 }
 
                 Long total = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
