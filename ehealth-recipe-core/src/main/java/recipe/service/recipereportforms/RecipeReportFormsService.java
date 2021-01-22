@@ -186,8 +186,28 @@ public class RecipeReportFormsService {
                     LOGGER.warn("recipeAccountCheckDetailList enterpriseId is null {}", a.getEnterpriseId());
                 }
             });
-            resultMap.put("total", responses.get(0).getTotal());
-            resultMap.put("data", responses);
+            LOGGER.info("====responses:{}", JSONUtils.toString(responses));
+            //根据订单退款标志进行筛选
+            List<RecipeAccountCheckDetailResponse> responseList = responses;
+            if (CollectionUtils.isNotEmpty(responses) && null != request.getRefundFlag()) {
+                responseList = responses.stream().filter(a -> request.getRefundFlag().equals(a.getRefundFlag())).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isEmpty(responseList)) {
+                resultMap.put("total", 0);
+                resultMap.put("data", responseList);
+            } else {
+                responseList.stream().forEach(a -> {
+                    if (0 == a.getRefundFlag()) {
+                        a.setRefundMessage("未退费");
+                    }
+                    if (1 == a.getRefundFlag()) {
+                        a.setRefundMessage("已退费");
+                    }
+                });
+                resultMap.put("total", responseList.get(0).getTotal());
+                resultMap.put("data", responseList);
+            }
+
         } catch (Exception e) {
             LOGGER.error("recipeAccountCheckDetailList error,request = {}", JSONUtils.toString(request), e);
             resultMap.put("data", Collections.emptyList());

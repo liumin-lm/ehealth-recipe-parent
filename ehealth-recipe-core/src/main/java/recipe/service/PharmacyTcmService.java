@@ -1,6 +1,8 @@
 package recipe.service;
 
+import com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.PharmacyTcmDTO;
 import com.ngari.recipe.recipe.service.IPharmacyTcmService;
@@ -14,9 +16,14 @@ import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,6 +37,9 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+
 
 
     /**
@@ -129,7 +139,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public void deletePharmacyTcmForId(Integer pharmacyTcmId) {
+    public void deletePharmacyTcmForId(Integer pharmacyTcmId,Integer organId) {
         if (null == pharmacyTcmId) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pharmacyTcmId is null");
         }
@@ -138,7 +148,45 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
         pharmacyTcmDAO.remove(pharmacyTcmId);
+        String pharmacyId="%"+pharmacyTcmId+"%";
+        List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndPharmacyId(organId, pharmacyId);
+        if (!ObjectUtils.isEmpty(byOrganIdAndPharmacyId)){
+            for (OrganDrugList organDrugList : byOrganIdAndPharmacyId) {
+                String pharmacy = organDrugList.getPharmacy();
+                if (pharmacy != null){
+                    String s = removeOne(pharmacy, pharmacyTcmId);
+                    organDrugList.setPharmacy(s);
+                }
+                organDrugListDAO.updateData(organDrugList);
+            }
+        }
     }
+
+    /**
+     * 移除指定药品 药房字符串中  此药房ID
+     * @param pharmacyIds
+     * @param pharmacyId
+     * @return
+     */
+    public static String removeOne(String pharmacyIds, Integer pharmacyId) {
+        // 返回结果
+        String result = "";
+        // 判断是否存在。如果存在，移除指定药房 ID；如果不存在，则直接返回空
+            // 拆分成数组
+            String[] userIdArray = pharmacyIds.split(",");
+            // 数组转集合
+            List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+            if(userIdList.indexOf(pharmacyId)==-1){
+            // 移除指定药房 ID
+            userIdList.remove(pharmacyId.toString());
+            // 把剩下的药房 ID 再拼接起来
+            result = StringUtils.join(userIdList, ",");
+            }
+        // 返回
+        return result;
+    }
+
+
 
     /**
      * 根据机构Id和查询条件查询药房
