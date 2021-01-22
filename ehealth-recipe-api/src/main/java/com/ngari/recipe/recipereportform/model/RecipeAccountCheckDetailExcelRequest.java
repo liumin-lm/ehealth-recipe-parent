@@ -3,7 +3,6 @@ package com.ngari.recipe.recipereportform.model;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -34,5 +33,10 @@ public class RecipeAccountCheckDetailExcelRequest implements Serializable{
     private String tradeNo;
 
     private String manageUnit;
+
+    /**
+     * 订单退款标识 0未退费 1已退费
+     */
+    private Integer refundFlag;
 
 }
