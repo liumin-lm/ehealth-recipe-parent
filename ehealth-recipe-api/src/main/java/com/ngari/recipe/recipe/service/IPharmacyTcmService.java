@@ -37,7 +37,7 @@ public interface IPharmacyTcmService {
      * @param pharmacyTcmId
      */
     @RpcService
-    void deletePharmacyTcmForId(Integer pharmacyTcmId);
+    void deletePharmacyTcmForId(Integer pharmacyTcmId,Integer organId);
     /**
      *根据机构ID和药房名称查询药房
      * @param organId
