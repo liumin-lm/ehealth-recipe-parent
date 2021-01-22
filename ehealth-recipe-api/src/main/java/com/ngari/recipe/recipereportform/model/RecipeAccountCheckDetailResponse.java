@@ -43,6 +43,16 @@ public class RecipeAccountCheckDetailResponse implements Serializable{
     private String mpiId; //用户mpiid
 
     private String recipeCode; //his处方单号
+    /**
+     * 订单退款标识 0未退费 1已退费
+     */
+    private Integer refundFlag;
+
+    /**
+     * 订单状态信息，当refundFlag=0时显示 未退费
+     * refundFlag=1时显示 已经退费
+     */
+    private String refundMessage;
 
     /**
      * 药企序号
