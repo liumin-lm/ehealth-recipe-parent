@@ -537,8 +537,8 @@ public class PurchaseService {
     /**
      * 检查处方是否已被处理
      *
-     * @param dbRecipe 处方
-     * @param result   结果
+     * @param recipes 处方
+     * @param result  结果
      * @return true 已被处理
      */
     private boolean checkRecipeIsDeal(List<Recipe> recipes, RecipeResultBean result, Map<String, String> extInfo) {
@@ -648,6 +648,9 @@ public class PurchaseService {
                 break;
             case RECIPE_STATUS_HIS_FAIL:
                 tips = "处方单同步his写入失败";
+                break;
+            case REVIEW_CODE_FAIL:
+                tips = "已取消";
                 break;
             case RECIPE_STATUS_DONE_DISPENSING:
                 tips = "药品已发药";
