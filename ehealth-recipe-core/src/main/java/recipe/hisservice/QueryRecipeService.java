@@ -663,16 +663,58 @@ public class QueryRecipeService implements IQueryRecipeService {
         return result;
     }
 
+
+    private List<String> check(OrganDrugChangeBean organDrugChange) {
+        List<String> list=Lists.newArrayList();
+        if (StringUtils.isEmpty(organDrugChange.getDrugId())){
+            list.add("DrugId");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getPack())){
+            list.add("Pack");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getUseDose())){
+            list.add("UseDose");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getSalePrice())){
+            list.add("SalePrice");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getBaseDrug())){
+            list.add("BaseDrug");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getOperationCode())){
+            list.add("OperationCode");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getMedicalDrugType())){
+            list.add("MedicalDrugType");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getDrugType())){
+            list.add("DrugType");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getDrugName())){
+            list.add("DrugName");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getSaleName())){
+            list.add("SaleName");
+        }
+        return list;
+    }
+
     private RecipeResultBean dealWithforHZInternet(OrganDrugChangeBean organDrugChange) {
         RecipeResultBean result = RecipeResultBean.getFail();
-        if(StringUtils.isEmpty(organDrugChange.getDrugId()) || StringUtils.isEmpty(organDrugChange.getPack()) ||
+        List<String> check = check(organDrugChange);
+        if (!ObjectUtils.isEmpty(check)){
+            LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
+            result.setMsg("当前新增药品信息,信息缺失(包括:"+check.toString()+"),无法操作!");
+            return result;
+        }
+       /* if(StringUtils.isEmpty(organDrugChange.getDrugId()) || StringUtils.isEmpty(organDrugChange.getPack()) ||
                 StringUtils.isEmpty(organDrugChange.getUseDose()) || StringUtils.isEmpty(organDrugChange.getSalePrice()) ||
                 StringUtils.isEmpty(organDrugChange.getBaseDrug()) || StringUtils.isEmpty(organDrugChange.getOperationCode()) ||
                 StringUtils.isEmpty(organDrugChange.getMedicalDrugType()) ||  StringUtils.isEmpty(organDrugChange.getDrugType())
                 || StringUtils.isEmpty(organDrugChange.getDrugName()) || StringUtils.isEmpty(organDrugChange.getSaleName())){
             result.setMsg("当前请求参数不全，有必填字段为空");
             return result;
-        }
+        }*/
         //his-api转换成recipe-bean
         com.ngari.recipe.common.OrganDrugChangeBean organDrugChangeBean = transFormOrganDrugChangeBean(organDrugChange);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
