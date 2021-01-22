@@ -2418,6 +2418,7 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipe) {
             return;
         }
+        LOGGER.info("afterCheckNotPassYs recipeId= {}", recipe.getRecipeId());
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
         //是否是有效订单
