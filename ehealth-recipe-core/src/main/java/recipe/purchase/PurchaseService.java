@@ -649,7 +649,7 @@ public class PurchaseService {
             case RECIPE_STATUS_HIS_FAIL:
                 tips = "处方单同步his写入失败";
                 break;
-            case REVIEW_CODE_FAIL:
+            case REVIEW_DRUG_FAIL:
                 tips = "已取消";
                 break;
             case RECIPE_STATUS_DONE_DISPENSING:
