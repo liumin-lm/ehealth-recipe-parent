@@ -48,4 +48,8 @@ public class RecipeReportFormsRequest implements Serializable{
      * 1配送到家 2医院取药 3药店取药
      */
     private Integer giveMode;
+    /**
+     * 订单退款标识 0未退费 1已退费
+     */
+    private Integer refundFlag;
 }
