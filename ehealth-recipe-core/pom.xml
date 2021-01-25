@@ -292,6 +292,18 @@
             <artifactId>guava-retrying</artifactId>
             <version>2.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-recipe-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-recipe-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-recipe-api</artifactId>
+        </dependency>
 
     </dependencies>
     <profiles>
