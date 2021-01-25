@@ -5,13 +5,12 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author yuyun
@@ -498,7 +497,7 @@ public class Recipe implements Serializable {
         this.memo = memo;
     }
 
-    @Column(name = "getInvalidTime")
+    @Column(name = "invalidTime")
     public Date getInvalidTime() {
         return invalidTime;
     }
