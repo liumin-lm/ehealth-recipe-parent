@@ -354,6 +354,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "调配人")
     private String dispensPeople;
 
+    @ItemProperty(alias = "失效时间")
+    private Date invalidTime;
+
     public Recipe() {
     }
 
@@ -493,6 +496,15 @@ public class Recipe implements Serializable {
         this.sendDate = sendDate;
         this.signDate = signDate;
         this.memo = memo;
+    }
+
+    @Column(name = "getInvalidTime")
+    public Date getInvalidTime() {
+        return invalidTime;
+    }
+
+    public void setInvalidTime(Date invalidTime) {
+        this.invalidTime = invalidTime;
     }
 
     @Column(name = "checkStatus")
