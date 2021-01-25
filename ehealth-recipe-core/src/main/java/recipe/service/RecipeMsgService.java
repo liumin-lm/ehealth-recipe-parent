@@ -282,7 +282,7 @@ public class RecipeMsgService {
     public static void sendRecipeMsg(RecipeMsgEnum em, Integer recipeId) {
         RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = dao.getByRecipeId(recipeId);
-        Assert.notNull(recipe,"recipe must not be null");
+        Assert.notNull(recipe, "recipe must not be null");
         switch (em) {
             case RECIPE_EXPRESSFEE_REMIND_NOPAY:
                 //获取配置动态链接
@@ -342,21 +342,17 @@ public class RecipeMsgService {
                 case RECIPE_HOS_TAKE_MEDICINE:
                     RecipeDetailDAO dao = DAOFactory.getDAO(RecipeDetailDAO.class);
                     List<Recipedetail> recipedetails = dao.findByRecipeId(recipeId);
-                    if(CollectionUtils.isNotEmpty(recipedetails)) {
-                        Recipedetail recipedetail = recipedetails.get(0);
-                        OrganService organService = BasicAPI.getService(OrganService.class);
-                        OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-                        String pharmNo = organDTO.getName() + recipedetail.getPharmNo() + "取药窗口";
-                        if(Objects.nonNull(recipedetail) && Objects.nonNull(recipedetail.getPharmNo())) {
-                            pharmNo = organDTO.getName() + recipedetail.getPharmNo() + "取药窗口";
-                        }
-                        extendValue.put("pharmNo", pharmNo);
+
+                    OrganService organService = BasicAPI.getService(OrganService.class);
+                    OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+
+                    if (CollectionUtils.isNotEmpty(recipedetails) && null != recipedetails.get(0).getPharmNo()) {
+                        extendValue.put("pharmNo", organDTO.getName() + recipedetails.get(0).getPharmNo() + "取药窗口");
                     }
                     break;
                 default:
 
             }
-
 
 
             sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), JSONUtils.toString(extendValue));

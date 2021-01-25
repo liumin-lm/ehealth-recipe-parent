@@ -2410,8 +2410,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, nowRecipe);
                 }
             }
-        } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())) {
-            // 支付成功 到院取药 推送消息
+        } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())
+                && !nowRecipe.getReviewType().equals(ReviewTypeConstant.Postposition_Check)
+        ) {
+            // 支付成功 到院取药 推送消息 审方前置
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, nowRecipe);
         }
 
@@ -2508,6 +2510,9 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
 
         Recipe recipe = recipeDAO.get(recipeId);
+        if (recipe.getClinicOrgan() == 1005683) {
+            return getUrl(recipe);
+        }
         if (null != recipe && recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
