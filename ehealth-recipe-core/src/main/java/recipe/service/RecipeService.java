@@ -36,6 +36,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
@@ -4907,4 +4908,54 @@ public class RecipeService extends RecipeBaseService {
         }
     }
 
+    @RpcService
+    public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO){
+        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}",requestVisitVO);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String openRecipeNumber = (String)configurationService.getConfiguration(requestVisitVO.getOrganId(), "openRecipeNumber");
+        Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
+        LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}",openRecipeNumber2);
+
+        if (requestVisitVO.getClinicId()!=null){
+            //复诊Id关联有效处方单
+            List<Recipe> recipeCount1=recipeDAO.getRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
+            LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount1.size()={}",recipeCount1.size());
+            if (recipeCount1.size()>openRecipeNumber2){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+            }
+        }else{
+            //从当前就诊中获取就诊人处方信息
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            //在线复诊服务
+            List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+            //当前就诊人正在咨询
+            Integer consultId=null;
+            Recipe recipe=null;
+            if (CollectionUtils.isNotEmpty(consultIds)) {
+                List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
+                recipe=recipes.get(0);
+                LOGGER.info(" 当前就诊人查询处方：recipe={}",recipe);
+                consultId = consultIds.get(0);
+                recipe.setBussSource(2);
+            }else {
+                //图文咨询
+                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
+                if (CollectionUtils.isNotEmpty(consultIds)) {
+                    List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
+                    recipe=recipes.get(0);
+                    consultId = consultIds.get(0);
+                    recipe.setBussSource(1);
+                }
+            }
+            //根据获取处方查询
+            List<Recipe> recipeCount2=recipeDAO.getRecipeCountByClinicIdAndValidStatus(recipe.getClinicId());
+            LOGGER.info(" 当前没有复诊Id的时候查询出有效的处方单数：recipeCount2.size()={}",recipeCount2.size());
+            if (recipeCount2.size()>openRecipeNumber2){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+            }
+        }
+        return true;
+    }
 }

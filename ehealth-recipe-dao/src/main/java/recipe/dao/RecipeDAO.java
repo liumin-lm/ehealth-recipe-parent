@@ -3728,4 +3728,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 复诊Id查询当前有效的处方单
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,13,14,16)")
+    public abstract List<Recipe> getRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId")Integer clinicId);
+
+    /**
+     * 查询出当前就诊人最近咨询的一条记录
+     * @param mpiid
+     * @param doctor
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where mpiid=:mpiid and doctor=:doctor")
+    public abstract List<Recipe> getRecipeByMpiidAndDoctor(@DAOParam("mpiid") String mpiid, @DAOParam("doctor") Integer doctor);
 }
