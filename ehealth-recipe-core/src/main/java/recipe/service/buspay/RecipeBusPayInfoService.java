@@ -48,11 +48,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -67,9 +67,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeBusPayInfoService.class);
 
-    @Resource
+    @Autowired
     private RemoteRecipeOrderService recipeOrderService;
-    @Resource
+    @Autowired
     private RemoteRecipeService recipeService;
 
 

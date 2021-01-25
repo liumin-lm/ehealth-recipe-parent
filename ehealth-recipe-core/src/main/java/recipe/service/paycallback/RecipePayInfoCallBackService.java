@@ -23,11 +23,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +39,9 @@ import java.util.Map;
 public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     private static final Logger logger = LoggerFactory.getLogger(RecipePayInfoCallBackService.class);
 
-    @Resource
+    @Autowired
     private RemoteRecipeOrderService recipeOrderService;
-    @Resource
+    @Autowired
     private RemoteRecipeLogService recipeLogService;
 
     @Override
