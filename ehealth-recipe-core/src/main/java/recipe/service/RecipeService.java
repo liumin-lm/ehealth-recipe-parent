@@ -1549,6 +1549,17 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RequestVisitVO requestVisitVO=null;
+            requestVisitVO.setDoctor(recipeBean.getDoctor());
+            requestVisitVO.setMpiid(recipeBean.getMpiid());
+            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
+            requestVisitVO.setClinicId(recipeBean.getClinicId());
+            LOGGER.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
+            //判定开处方单数是否超过限制
+            recipeService.isOpenRecipeNumber(requestVisitVO);
+
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
