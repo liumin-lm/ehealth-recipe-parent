@@ -9,6 +9,7 @@ import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
