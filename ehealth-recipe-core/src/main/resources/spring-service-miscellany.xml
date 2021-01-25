@@ -7,5 +7,6 @@
 						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <reference interface="com.ngari.ca.api.service.ICaRemoteService" id="mi.caRemoteService"/>
+    <reference id="mi.authExtraService" interface="com.ngari.auth.api.service.IAuthExtraService"/>
 
 </s:beans>

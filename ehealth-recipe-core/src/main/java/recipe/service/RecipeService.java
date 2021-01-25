@@ -1621,7 +1621,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
-            LOGGER.info("机构处方失效时间-查询配置结果，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
+            LOGGER.info("机构处方失效时间-查询配置结果，机构={},处方id={},配置={}",recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), invalidInfo);
             if (StringUtils.isNotBlank(invalidInfo)){
                 // 配置格式：签名当天后某天24点前=d2-天数;签名后大于24小时=d1-小时数;签名后小于一天=h-小时数
                 // 签名后小于一天用延迟队列取消处方，其余由定时任务取消
@@ -1650,15 +1650,20 @@ public class RecipeService extends RecipeBaseService {
                         calendar.add(Calendar.MINUTE, minute);
                         invalidDate = calendar.getTime();
                         // TODO 延迟队列发送延迟消费消息
+
                         break;
                     default:
                         LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
                         break;
                 }
-                // 保存处方失效时间
+                // 更新处方失效时间
+                RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                Map<String, Object> attMap = new HashMap<>();
+                attMap.put("invalidTime", invalidDate);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
         } catch (Exception e) {
-            LOGGER.error("机构处方失效时间-处理异常,机构={}",recipeBean.getClinicOrgan(),e);
+            LOGGER.error("机构处方失效时间-处理异常,机构id={},处方id={}",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),e);
         }
         return rMap;
     }
