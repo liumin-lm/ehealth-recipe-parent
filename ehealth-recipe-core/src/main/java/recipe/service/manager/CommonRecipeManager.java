@@ -18,11 +18,13 @@ import org.springframework.stereotype.Service;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.OrganDrugListDAO;
-import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -89,16 +91,12 @@ public class CommonRecipeManager {
         commonRecipeDrugList.forEach(a -> {
             CommonRecipeDrugDTO commonDrugDTO = new CommonRecipeDrugDTO();
             BeanUtils.copyProperties(a, commonDrugDTO);
-            commonDrugDTO.setVariation(false);
             OrganDrugList organDrug = organDrugMap.get(commonDrugDTO.getDrugId() + commonDrugDTO.getOrganDrugCode());
             if (null == organDrug) {
-                commonDrugDTO.setVariation(true);
                 commonDrugDTO.setDrugStatus(-1);
                 return;
             }
-            //判断药品药房是否变动
-            commonDrugDTO.setVariation(pharmacyVariation(a.getPharmacyId(), organDrug.getPharmacy()));
-
+            commonDrugDTO.setOrganPharmacyId(organDrug.getPharmacy());
             if (null != commonDrugDTO.getUseTotalDose()) {
                 commonDrugDTO.setDrugCost(organDrug.getSalePrice().multiply(new BigDecimal(commonDrugDTO.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
             }
@@ -129,26 +127,5 @@ public class CommonRecipeManager {
         });
         LOGGER.info("CommonRecipeManager commonDrugGroup commonDrugGroup={}", JSON.toJSONString(commonDrugGroup));
         return commonDrugGroup;
-    }
-
-    /**
-     * 判断药品药房是否变动
-     *
-     * @param commonPharmacyId 常用方药房id
-     * @param pharmacy         机构药房id
-     * @return true 变动
-     */
-    private boolean pharmacyVariation(Integer commonPharmacyId, String pharmacy) {
-        if (null == commonPharmacyId && StringUtils.isNotEmpty(pharmacy)) {
-            return true;
-        }
-        if (null != commonPharmacyId && StringUtils.isEmpty(pharmacy)) {
-            return true;
-        }
-        if (null != commonPharmacyId && StringUtils.isNotEmpty(pharmacy) &&
-                !Arrays.asList(pharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(commonPharmacyId))) {
-            return true;
-        }
-        return false;
     }
 }

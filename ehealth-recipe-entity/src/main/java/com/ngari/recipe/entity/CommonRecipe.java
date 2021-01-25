@@ -47,15 +47,18 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;
     @ItemProperty(alias = "药房名称")
+    @Deprecated
     private String pharmacyName;
 
     @ItemProperty(alias = "常用方中的药品信息")
+    @Deprecated
     private String recipeDetailJsonConfig;
 
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
 
     @ItemProperty(alias = "药房编码")
+    @Deprecated
     private String pharmacyCode;
 
 
