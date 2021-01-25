@@ -13,10 +13,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
-import com.ngari.recipe.entity.CommonRecipe;
-import com.ngari.recipe.entity.CommonRecipeDrug;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -31,10 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.ErrorCode;
-import recipe.dao.CommonRecipeDAO;
-import recipe.dao.CommonRecipeDrugDAO;
-import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
+import recipe.dao.*;
 import recipe.service.manager.CommonRecipeManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
@@ -57,6 +51,9 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
 
     @Autowired
     private CommonRecipeManager commonRecipeManager;
+
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     /**
      * 新增或更新常用方  选好药品后将药品加入到常用处方
@@ -175,6 +172,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      * @return
      */
     public List<CommonRecipeDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+        //获取常用方
         List<CommonRecipeDTO> commonRecipeList = commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
         if (CollectionUtils.isEmpty(commonRecipeList)) {
             return null;
@@ -185,13 +183,25 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         if (null == commonDrugGroup) {
             return commonRecipeList;
         }
+        //药房信息
+        List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
+        Map<Integer, PharmacyTcm> pharmacyMap = Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         //组织出参
-        //todo 药房信息
         commonRecipeList.forEach(a -> {
             List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(a.getCommonRecipeId());
             if (CollectionUtils.isNotEmpty(commonDrugList)) {
                 a.setCommonDrugList(commonDrugList);
             }
+            if (null == a.getPharmacyId()) {
+                return;
+            }
+            PharmacyTcm pharmacyTcm = pharmacyMap.get(a.getPharmacyId());
+            if (null == pharmacyTcm) {
+                return;
+            }
+            a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+            a.setPharmacyName(pharmacyTcm.getPharmacyName());
         });
         return commonRecipeList;
     }

@@ -45,7 +45,7 @@ public class CommonRecipeAtop extends BaseAtop {
             logger.info("CommonRecipeAtop commonRecipeList result = {}", JSON.toJSONString(result));
             return ResultBean.succeed(result);
         } catch (DAOException e1) {
-            logger.error("CommonRecipeAtop commonRecipeList error", e1);
+            logger.warn("CommonRecipeAtop commonRecipeList error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("CommonRecipeAtop commonRecipeList error", e);
