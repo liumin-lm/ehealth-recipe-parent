@@ -112,7 +112,7 @@ public class CommonRecipeManager {
                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
             }
             commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-            //commonDrugDTO.setPlatformSaleName(drug.getSaleName());
+            commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
             //commonDrugDTO.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             //commonDrugDTO.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
 
