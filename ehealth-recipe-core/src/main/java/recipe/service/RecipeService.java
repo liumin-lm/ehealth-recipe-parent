@@ -4952,10 +4952,11 @@ public class RecipeService extends RecipeBaseService {
 
         //查询当前复诊存在的有效处方单
         List<Recipe> recipeCount=recipeDAO.getRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
-        LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount.size()={}",recipeCount.size());
-
-        if (recipeCount.size()>openRecipeNumber2){
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+        if (CollectionUtils.isNotEmpty(recipeCount)) {
+            LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount.size()={}",recipeCount.size());
+            if (recipeCount.size()>openRecipeNumber2){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+            }
         }
         return true;
     }
