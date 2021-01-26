@@ -340,14 +340,14 @@ public class RecipeMsgService {
                     sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), url);
                     return;
                 case RECIPE_HOS_TAKE_MEDICINE:
-                    RecipeDetailDAO dao = DAOFactory.getDAO(RecipeDetailDAO.class);
-                    List<Recipedetail> recipedetails = dao.findByRecipeId(recipeId);
+                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
 
                     OrganService organService = BasicAPI.getService(OrganService.class);
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
 
-                    if (CollectionUtils.isNotEmpty(recipedetails) && null != recipedetails.get(0).getPharmNo()) {
-                        extendValue.put("pharmNo", organDTO.getName() + recipedetails.get(0).getPharmNo() + "取药窗口");
+                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+                        extendValue.put("pharmNo", organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
                     }
                     break;
                 default:

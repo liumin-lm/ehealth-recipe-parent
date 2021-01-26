@@ -15,6 +15,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -152,5 +153,48 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      */
     @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)")
     public abstract List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+
+    /**
+     * 新处方详情自定义字段 by recipeIds
+     *
+     * @param recipeIds
+     * @param changeAttr
+     * @return
+     */
+    public Boolean updateRecipeExtByRecipeIdS(List<Integer> recipeIds, Map<String, Object> changeAttr) {
+        return updateRecipeExtByKeyS("recipeId", recipeIds, changeAttr);
+    }
+
+    private Boolean updateRecipeExtByKeyS(final String keyName, final Object keyValue, final Map<String, Object> changeAttr) {
+        if (null == changeAttr || changeAttr.isEmpty()) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update RecipeExtend set ");
+                StringBuilder keyHql = new StringBuilder();
+                for (String key : changeAttr.keySet()) {
+                    keyHql.append("," + key + "=:" + key);
+                }
+                hql.append(keyHql.toString().substring(1)).append(" where " + keyName + " in (:" + keyName + ")");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameterList(keyName, (List<Object>)keyValue);
+                Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
+                while (it.hasNext()){
+                    Map.Entry<String, Object> m = it.next();
+                    q.setParameter(m.getKey(), m.getValue());
+                }
+
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
 }

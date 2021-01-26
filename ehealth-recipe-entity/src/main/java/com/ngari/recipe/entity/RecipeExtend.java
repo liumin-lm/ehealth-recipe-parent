@@ -145,6 +145,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "皮肤反应测验")
     private String skinTest;
 
+    @ItemProperty(alias="取药窗口")
+    private String pharmNo;
+
+    @Column(name = "pharmNo")
+    public String getPharmNo() {
+        return pharmNo;
+    }
+
+    public void setPharmNo(String pharmNo) {
+        this.pharmNo = pharmNo;
+    }
+
     public String getSymptomId() {
         return symptomId;
     }

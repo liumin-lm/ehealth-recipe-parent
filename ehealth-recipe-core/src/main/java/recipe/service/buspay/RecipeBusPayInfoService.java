@@ -193,8 +193,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             OrganService organService = BasicAPI.getService(OrganService.class);
             OrganDTO organDTO = organService.getByOrganId(organId);
             //取处方详情中的药品的取药窗口信息
-            if (CollectionUtils.isNotEmpty(details) && null != details.get(0).getPharmNo()) {
-                map.put("getDrugWindow", organDTO.getName() + details.get(0).getPharmNo() + "取药窗口");
+            // 取药窗口修改为从扩展表中获取
+            if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty( recipeExtend.getPharmNo())) {
+                map.put("getDrugWindow", organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
             }
 
             //设置支付提示信息，根据提示处方信息获取具体的支付提示文案

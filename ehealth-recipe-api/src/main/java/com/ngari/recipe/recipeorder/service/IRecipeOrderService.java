@@ -200,4 +200,15 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO);
+
+
+
+    /**
+     * 更新取药窗口(多个处方同时更新) ext表
+     *  @param recipeId 处方订单ID
+     * @param pharmNo 取药窗口
+     */
+    @RpcService
+    Boolean updateExtPharmNoS(List<Integer> recipeId, String pharmNo);
+
 }

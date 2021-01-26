@@ -4,8 +4,8 @@ package recipe.bean;
 
 
 
-import com.ngari.recipe.entity.Recipedetail;
 
+import com.ngari.recipe.entity.Recipedetail;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -60,6 +60,20 @@ public class RecipeCheckPassResult {
      * his处方付费序号合集
      */
     private String recipeCostNumber;
+
+    /**
+     * 取药窗口
+     */
+    private String pharmNo;
+
+    public String getPharmNo() {
+        return pharmNo;
+    }
+
+    public void setPharmNo(String pharmNo) {
+        this.pharmNo = pharmNo;
+    }
+
 
     public String getRecipeCostNumber() {
         return recipeCostNumber;

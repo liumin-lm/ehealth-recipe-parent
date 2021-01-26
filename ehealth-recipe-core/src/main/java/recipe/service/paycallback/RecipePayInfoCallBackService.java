@@ -211,7 +211,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             //更新窗口号
             if (StringUtils.isNotEmpty(pharmNo)) {
-                recipeOrderService.updatePharmNoS(recipeIdList, pharmNo);
+                recipeOrderService.updateExtPharmNoS(recipeIdList, pharmNo);
             }
         }
     }
