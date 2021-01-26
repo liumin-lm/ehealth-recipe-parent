@@ -23,7 +23,6 @@ import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.pay.service.IRecipeBusPayService;
 import com.ngari.recipe.recipe.constant.RecipePayTipEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.revisit.RevisitAPI;
@@ -44,7 +43,6 @@ import eh.entity.bus.pay.SimpleBusObject;
 import eh.entity.mpi.Patient;
 import eh.utils.MapValueUtil;
 import eh.wxpay.constant.PayConstant;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,12 +166,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         confirmOrder.setActualPrice(BigDecimal.valueOf(order.getActualPrice()).stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
         //设置confirmOrder的扩展信息ext----一些配置信息
-        confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo));
+        confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo, recipeExtend));
         log.info("obtainConfirmOrder recipeId:{} res ={}", recipeId, JSONUtils.toString(confirmOrder));
         return confirmOrder;
     }
 
-    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo) {
+    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend) {
         IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
         Map<String, String> map = Maps.newHashMap();
         //返回是否医保处方单
@@ -209,7 +207,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
 
             //获取展示窗口调试信息,取处方详情中的药品的取药窗口信息
-            List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
+            //List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
             OrganService organService = BasicAPI.getService(OrganService.class);
             OrganDTO organDTO = organService.getByOrganId(organId);
             //取处方详情中的药品的取药窗口信息
