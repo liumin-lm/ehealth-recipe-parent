@@ -717,6 +717,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         searchTO.setLimit(limit);
         LOGGER.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
         List<String> drugInfo = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(), searchTO.getDrugType(), pharmacyId, searchTO.getStart(), searchTO.getLimit());
+        LOGGER.info("searchDrugListWithES drugInfo={} ", JSON.toJSONString(drugInfo));
         //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次，分页可能有问题时间紧急后面再说
         Boolean isMergeRecipeType = null;
         try {
