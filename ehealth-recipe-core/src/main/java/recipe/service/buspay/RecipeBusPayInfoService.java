@@ -75,13 +75,23 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
+    /**
+     * 第一次创建订单时会调用到
+     * 第二次提交订单时也会调用到
+     *
+     * @param busType 业务类型
+     * @param busId   业务id  第一次创建订单时会调用到此时busId为-1，第二次为已经生成的订单id
+     * @param extInfo 扩展信息
+     * @return
+     */
     @Override
     @RpcService
     public ConfirmOrder obtainConfirmOrder(String busType, Integer busId, Map<String, String> extInfo) {
-        IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
         //先判断处方是否已创建订单
         RecipeOrderBean order = null;
         RecipeExtendBean recipeExtend = null;
+        Integer recipeId = null;
+        //创建订单时的调用
         if (busId == -1) {
             //合并支付改造--创建临时订单时获取处方id列表
             String recipeIds = MapValueUtil.getString(extInfo, "recipeId");
@@ -90,8 +100,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 List<Integer> recipeIdLists = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
                 busId = recipeIdLists.get(0);
                 order = recipeOrderService.getOrderByRecipeId(busId);
-                recipeExtend = recipeService.findRecipeExtendByRecipeId(busId);
                 if (null == order) {
+                    //这里为了组装创建订单时的一些订单数据--此时还未生成处方订单
                     RecipeBussResTO<RecipeOrderBean> resTO = recipeOrderService.createBlankOrder(recipeIdLists, extInfo);
                     if (null != resTO) {
                         order = resTO.getData();
@@ -102,43 +112,38 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
             }
         } else {
+            //提交订单后的调用获取订单信息
             order = recipeOrderService.get(busId);
-            if (order == null) {
-                log.info("RecipeBusPayService.obtainConfirmOrder order is null. busId={}", busId);
-                return null;
-            }
-            order.getRecipeIdList();
-            if (order.getRecipeIdList() != null) {
-                List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-                recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeIdList.get(0));
-            }
+        }
+        if (order == null) {
+            log.info("RecipeBusPayService.obtainConfirmOrder order is null. busId={}", busId);
+            return null;
+        }
+        //获取处方扩展信息
+        if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            recipeId = recipeIdList.get(0);
+            recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeId);
+        }
+        if (recipeId == null) {
+            log.info("RecipeBusPayService.obtainConfirmOrder recipeId is null. busId={}", busId);
+            return null;
         }
 
-        Map<String, String> map = new HashMap<String, String>();
-        //返回是否医保处方单
-        if (order != null && order.getRegisterNo() != null) {
-            map.put("medicalType", "1");
-        } else {
-            map.put("medicalType", "0");
-        }
-
+        //his管理的药企处理
         //如果扩展信息中有处方流转平台返回的药企则要以此优先
         if (recipeExtend != null && recipeExtend.getDeliveryCode() != null) {
             extInfo.put("depId", recipeExtend.getDeliveryCode());
         }
-
-
         //如果扩展信息中有处方流转平台返回的药企则要以此优先
         if (recipeExtend != null && recipeExtend.getDeliveryName() != null) {
             order.setEnterpriseName(recipeExtend.getDeliveryName());
         }
-
         //date 20200312
         //订单详情展示his推送信息
         //date  20200320
         //添加判断配送药企his信息只有配送方式才有
         if (StringUtils.isNotEmpty(extInfo.get("hisDepCode"))) {
-
             order.setEnterpriseName(extInfo.get("depName"));
         }
 
@@ -150,8 +155,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             confirmOrder.setBusTypeName(busTypeEnum.getDesc());
         }
         confirmOrder.setCouponId(order.getCouponId());
-        //计算优惠的金额
+        //计算优惠的金额=订单总金额-订单实际金额
         BigDecimal discountAmount = order.getTotalFee().subtract(BigDecimal.valueOf(order.getActualPrice()));
+        //配送到家并且运费线下支付的情况：优惠金额要再减去运费
         if (new Integer(2).equals(order.getExpressFeePayWay()) && new Integer(1).equals(MapValueUtil.getInteger(extInfo, "payMode"))) {
             if (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
                 discountAmount = discountAmount.subtract(order.getExpressFee());
@@ -161,12 +167,27 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         confirmOrder.setOrderAmount(order.getTotalFee().stripTrailingZeros().toPlainString());
         confirmOrder.setActualPrice(BigDecimal.valueOf(order.getActualPrice()).stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
-        if (order != null) {
-            Double fundAmount = order.getFundAmount() == null ? 0.00 : order.getFundAmount();
-            BigDecimal cashAmount = BigDecimal.valueOf(order.getActualPrice()).subtract(BigDecimal.valueOf(fundAmount));
-            map.put("fundAmount", fundAmount + "");
-            map.put("cashAmount", cashAmount + "");
+        //设置confirmOrder的扩展信息ext----一些配置信息
+        confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo));
+        log.info("obtainConfirmOrder recipeId:{} res ={}", recipeId, JSONUtils.toString(confirmOrder));
+        return confirmOrder;
+    }
+
+    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo) {
+        IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
+        Map<String, String> map = Maps.newHashMap();
+        //返回是否医保处方单
+        if (order != null && order.getRegisterNo() != null) {
+            map.put("medicalType", "1");
+        } else {
+            map.put("medicalType", "0");
         }
+        //医保金额
+        Double fundAmount = order.getFundAmount() == null ? 0.00 : order.getFundAmount();
+        //自费金额=实际金额-医保金额
+        BigDecimal cashAmount = BigDecimal.valueOf(order.getActualPrice()).subtract(BigDecimal.valueOf(fundAmount));
+        map.put("fundAmount", fundAmount + "");
+        map.put("cashAmount", cashAmount + "");
         // 加载确认订单页面的时候需要将页面属性字段做成可配置的
         Integer organId = order.getOrganId();
         if (null != organId) {
@@ -188,8 +209,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
 
             //获取展示窗口调试信息,取处方详情中的药品的取药窗口信息
-
-            List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(busId);
+            List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
             OrganService organService = BasicAPI.getService(OrganService.class);
             OrganDTO organDTO = organService.getByOrganId(organId);
             //取处方详情中的药品的取药窗口信息
@@ -199,7 +219,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
 
             //设置支付提示信息，根据提示处方信息获取具体的支付提示文案
-            RecipeBean nowRecipeBean = recipeService.getByRecipeId(busId);
+            RecipeBean nowRecipeBean = recipeService.getByRecipeId(recipeId);
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
             DrugsEnterpriseBean drugsEnterpriseBean = null;
@@ -209,11 +229,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             if (null != nowRecipeBean) {
                 Boolean notNeedCheckFee = (0 == nowRecipeBean.getReviewType() || 0 == order.getAuditFee().compareTo(BigDecimal.ZERO));
-                log.info("fromRecipeModeAndPayModeAndNotNeedCheckFee recipeid:{} recipeMode:{} payMode:{} notNeedCheckFee:{}", busId, nowRecipeBean.getRecipeMode(), payMode, notNeedCheckFee);
+                log.info("fromRecipeModeAndPayModeAndNotNeedCheckFee recipeId:{} recipeMode:{} payMode:{} notNeedCheckFee:{}", recipeId, nowRecipeBean.getRecipeMode(), payMode, notNeedCheckFee);
                 RecipePayTipEnum tipEnum = RecipePayTipEnum.fromRecipeModeAndPayModeAndNotNeedCheckFee(nowRecipeBean.getRecipeMode(), payMode, notNeedCheckFee);
-                //替换提示的审核金额
+                //支付提示信息
                 String payTip = tipEnum.getPayTip();
-                log.info("fromRecipeModeAndPayModeAndNotNeedCheckFee recipeid:{} payTip:{} ", busId, payTip);
+                log.info("fromRecipeModeAndPayModeAndNotNeedCheckFee recipeId:{} payTip:{} ", recipeId, payTip);
+                //替换支付提示信息中的¥为¥+具体审核费
                 payTip = null == payTip ? null : payTip.replace("¥", "¥" + order.getAuditFee().toString());
 
                 // 20201117 如果是到院取药，则药品费用支付提示使用配置文案提示
@@ -222,45 +243,30 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     payTip = tipEnum.getToHosPayTip(hisDrugPayTipCfg, order.getAuditFee());
                 }
 
-                if (drugsEnterpriseBean != null && drugsEnterpriseBean.getStorePayFlag() != null && drugsEnterpriseBean.getStorePayFlag() == 1) {
+                //这里应该是药店取药支付方式为1时不展示支付提示信息
+                if (drugsEnterpriseBean != null && Integer.valueOf(1).equals(drugsEnterpriseBean.getStorePayFlag())) {
                     map.put("payTip", "");
                     map.put("payNote", "");
                 } else {
                     map.put("payTip", payTip);
                     map.put("payNote", tipEnum.getPayNote());
                 }
-
                 //date 20200610
                 //判断当配置的药师审核金额为空时不展示
+                //不需要审方审核费默认为0否则就从运营平台配置从取审核费
                 String showAuditFee = 0 != nowRecipeBean.getReviewType() ? (null != utils.getConfiguration(nowRecipeBean.getClinicOrgan(), "auditFee") ? "1" : "0") : "0";
                 map.put("showAuditFee", showAuditFee);
-
                 //data 2019/10/17
-                //添加审核扭转方式
+                //处方审核方式 0不需要审方 1审方前置 2审方后置
                 map.put("reviewType", nowRecipeBean.getReviewType().toString());
             }
-
             //药店取药 支付方式
             if (new Integer(4).equals(payMode) && drugsEnterpriseBean != null) {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
                 map.put("storePayFlag", drugsEnterpriseBean.getStorePayFlag() == null ? null : drugsEnterpriseBean.getStorePayFlag().toString());
             }
-
-//            //返回是否医保处方单
-//            RecipeExtendBean recipeExtend = iRecipeService.findRecipeExtendByRecipeId(busId);
-//            if(recipeExtend != null && recipeExtend.getCardNo() != null){
-//                map.put("medicalType", "1");
-//            } else{
-//                map.put("medicalType", "0");
-//            }
-            //Integer depId =  MapValueUtil.getInteger(extInfo, "depId");
-
         }
-
-
-        confirmOrder.setExt(map);
-        log.info("obtainConfirmOrder recipeid:{} respon ={}", busId, JSONUtils.toString(confirmOrder));
-        return confirmOrder;
+        return map;
     }
 
     @Override
@@ -302,38 +308,17 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
-            //复诊
-            if (new Integer(2).equals(recipeBean.getBussSource())) {
-                IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
-                if (recipeBean.getClinicId() != null) {
-                    RevisitExDTO revisitExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
-                    if (revisitExDTO != null && revisitExDTO.getCardId() != null) {
-                        //就诊卡号
-                        simpleBusObject.setMrn(revisitExDTO.getCardId());
-                    }
-                }
-                //咨询
-            } else if (new Integer(1).equals(recipeBean.getBussSource())) {
-                IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
-                if (recipeBean.getClinicId() != null) {
-                    ConsultExDTO consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
-                    if (consultExDTO != null && consultExDTO.getCardId() != null) {
-                        //就诊卡号
-                        simpleBusObject.setMrn(consultExDTO.getCardId());
-                    }
-                }
-            }
+            //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
+            simpleBusObject.setMrn(getMrnForRecipe(recipeBean));
 
-            if (StringUtils.isEmpty(simpleBusObject.getMrn())) {
-                simpleBusObject.setMrn("-1");
-            }
-
+            //杭州互联网流程
             if (order.getRegisterNo() != null) {
                 //杭州市互联网医保支付
                 HealthCardService healthCardService = BasicAPI.getService(HealthCardService.class);
                 //杭州市互联网医院监管中心 管理单元eh3301
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByManageUnit("eh3301");
+                //获取市民卡
                 if (organDTO != null) {
                     String mrn = healthCardService.getMedicareCardId(order.getMpiId(), organDTO.getOrganId());
                     simpleBusObject.setMrn(mrn);
@@ -358,9 +343,51 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
 
         }
-
         log.info("结算simpleBusObject={}", JSONUtils.toString(simpleBusObject));
         return simpleBusObject;
+    }
+
+    /**
+     * 获取支付传给卫宁付用的就诊卡号
+     * 一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
+     *
+     * @param recipeBean
+     * @return //-1表示获取不到身份证，默认用身份证获取患者信息
+     */
+    private String getMrnForRecipe(RecipeBean recipeBean) {
+        RecipeExtendBean recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeBean.getRecipeId());
+        String mrn = null;
+        if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+            mrn = recipeExtend.getCardNo();
+        } else {
+            //复诊
+            if (new Integer(2).equals(recipeBean.getBussSource())) {
+                IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
+                if (recipeBean.getClinicId() != null) {
+                    RevisitExDTO revisitExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
+                    if (revisitExDTO != null && revisitExDTO.getCardId() != null) {
+                        //就诊卡号
+                        mrn = revisitExDTO.getCardId();
+                    }
+                }
+                //咨询
+            } else if (new Integer(1).equals(recipeBean.getBussSource())) {
+                IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
+                if (recipeBean.getClinicId() != null) {
+                    ConsultExDTO consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
+                    if (consultExDTO != null && consultExDTO.getCardId() != null) {
+                        //就诊卡号
+                        mrn = consultExDTO.getCardId();
+                    }
+                }
+            }
+        }
+
+        //-1表示获取不到身份证，默认用身份证获取患者信息
+        if (StringUtils.isEmpty(mrn)) {
+            mrn = "-1";
+        }
+        return mrn;
     }
 
     @Override
