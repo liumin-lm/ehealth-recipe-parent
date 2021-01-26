@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -8,8 +9,8 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
-import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.mode.PatientDiagnosisDTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
@@ -28,7 +29,6 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import es.api.DrugSearchService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.slf4j.Logger;
@@ -39,26 +39,21 @@ import recipe.ApplicationUtils;
 import recipe.bean.HisSearchDrugDTO;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.drugsenterprise.commonExtendCompatible.CommonSelfEnterprisesType;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static recipe.bussutil.RecipeUtil.getHospitalPrice;
-import recipe.thread.RecipeBusiThreadPool;
 
 /**
  * @author： 0184/yu_yun
@@ -742,6 +737,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             if (isMergeRecipeType) {
                 searchTO.setLimit((limit - drugInfo.size()) == 0 ? 1 : (limit - drugInfo.size()));
                 List<String> drugInfo2 = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(), searchTO.getDrugType(), pharmacyId, searchTO.getStart(), searchTO.getLimit());
+                LOGGER.info("searchDrugListWithES drugInfo2={} ", JSON.toJSONString(drugInfo2));
                 if (drugInfo != null && drugInfo2 != null && drugInfo2.size() != 0) {
                     drugInfo.addAll(drugInfo2);
                 }
