@@ -188,7 +188,7 @@ public class SignInfoService implements ISignInfoService {
         CaAccountResponseTO response = synBussData(recipeBean, detailBeanList, isDoctor);
         Map<String,Object> result = new HashMap<>();
         if (response != null){
-            result.put("code",response.getMsg());
+            result.put("uniqueId",response.getMsg());
             result.put("selfSignStatus",response.getUserAccount());
         }
         else {
