@@ -6,19 +6,21 @@ import com.ngari.recipe.vo.ResultBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import recipe.ApplicationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.service.CommonRecipeService;
 
 import java.util.List;
 
 /**
- * 处方订单服务入口类
+ * 常用方服务入口类
  *
  * @author fuzi
  */
 @RpcBean("commonRecipeAtop")
 public class CommonRecipeAtop extends BaseAtop {
+    @Autowired
+    private CommonRecipeService commonRecipeService;
 
     /**
      * 获取常用方列表
@@ -38,7 +40,6 @@ public class CommonRecipeAtop extends BaseAtop {
             return ResultBean.serviceError("入参错误");
         }
         try {
-            CommonRecipeService commonRecipeService = ApplicationUtils.getRecipeService(CommonRecipeService.class);
             List<CommonRecipeDTO> result = commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
             logger.info("CommonRecipeAtop commonRecipeList result = {}", JSON.toJSONString(result));
             return ResultBean.succeed(result);

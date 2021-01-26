@@ -2668,7 +2668,6 @@ public class RecipeService extends RecipeBaseService {
                                     }
                                 }
                                 addHisDrug(drug,organId);
-                                LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                             }else {
                                 startIndex++;
                                 continue;
@@ -2681,15 +2680,14 @@ public class RecipeService extends RecipeBaseService {
                                 }
                             }
                             addHisDrug(drug,organId);
-                            LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                         }
                         addNum++;
                         startIndex++;
                         continue;
                     }else if (null != organDrug && sync){
                         updateHisOrganDrug(drug, organDrug);
-                        updateNum++;
                         LOGGER.info("drugInfoSynMovementupdateNum"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
+                        updateNum++;
                         startIndex++;
                         continue;
                     }
@@ -3950,7 +3948,7 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setSourceOrgan(organId);
         }
         drugListMatch.setStatus(0);
-        LOGGER.info("updateHisDrug 手动同步新增药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
+        LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         drugListMatchDAO.save(drugListMatch);
         LOGGER.error("addHisDrug 成功", drugListMatch);
     }
@@ -4032,7 +4030,6 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
-        LOGGER.info("updateHisOrganDrug 手动同步更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
     }
 

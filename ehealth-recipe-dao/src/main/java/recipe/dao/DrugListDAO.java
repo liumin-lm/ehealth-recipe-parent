@@ -715,7 +715,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     hql.append("  and sourceOrgan is null    )   ");
                 }
                 if (input != null){
-                    hql.append(" and (  saleName like :input or drugId like:input or drugName like: input   )   ");
+                    hql.append(" and (  saleName like :input or drugId like:input or drugName like:input   )   ");
                 }
                 if (producer != null){
                     hql.append(" and producer like :producer   ");
