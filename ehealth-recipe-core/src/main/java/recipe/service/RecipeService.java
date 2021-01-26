@@ -36,6 +36,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
@@ -1548,6 +1549,17 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RequestVisitVO requestVisitVO=null;
+            requestVisitVO.setDoctor(recipeBean.getDoctor());
+            requestVisitVO.setMpiid(recipeBean.getMpiid());
+            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
+            requestVisitVO.setClinicId(recipeBean.getClinicId());
+            LOGGER.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
+            //判定开处方单数是否超过限制
+            recipeService.isOpenRecipeNumber(requestVisitVO);
+
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
@@ -1621,7 +1633,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
-            LOGGER.info("机构处方失效时间-查询配置结果，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
+            LOGGER.info("机构处方失效时间-查询配置结果，机构={},处方id={},配置={}",recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), invalidInfo);
             if (StringUtils.isNotBlank(invalidInfo)){
                 // 配置格式：签名当天后某天24点前=d2-天数;签名后大于24小时=d1-小时数;签名后小于一天=h-小时数
                 // 签名后小于一天用延迟队列取消处方，其余由定时任务取消
@@ -1650,15 +1662,20 @@ public class RecipeService extends RecipeBaseService {
                         calendar.add(Calendar.MINUTE, minute);
                         invalidDate = calendar.getTime();
                         // TODO 延迟队列发送延迟消费消息
+
                         break;
                     default:
                         LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
                         break;
                 }
-                // 保存处方失效时间
+                // 更新处方失效时间
+                RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                Map<String, Object> attMap = new HashMap<>();
+                attMap.put("invalidTime", invalidDate);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
         } catch (Exception e) {
-            LOGGER.error("机构处方失效时间-处理异常,机构={}",recipeBean.getClinicOrgan(),e);
+            LOGGER.error("机构处方失效时间-处理异常,机构id={},处方id={}",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),e);
         }
         return rMap;
     }
@@ -2621,6 +2638,9 @@ public class RecipeService extends RecipeBaseService {
         if (responseTO != null ){
             data = responseTO.getData();
         }
+        if (ObjectUtils.isEmpty(data)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
+        }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
@@ -2632,9 +2652,9 @@ public class RecipeService extends RecipeBaseService {
         if (sync || add){
         while (finishFlag) {
             if (!CollectionUtils.isEmpty(data)) {
-                LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
+                    LOGGER.info("drugInfoSynMovementaddHisDrug前期"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
                     if (null == organDrug && add ) {
                         String drugform = drug.getDrugform();
@@ -2666,18 +2686,18 @@ public class RecipeService extends RecipeBaseService {
                         continue;
                     }else if (null != organDrug && sync){
                         updateHisOrganDrug(drug, organDrug);
+                        LOGGER.info("drugInfoSynMovementupdateNum"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                         updateNum++;
                         startIndex++;
                         continue;
                     }
-                    LOGGER.info("drugInfoSynMovement organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     startIndex++;
                 }
             }else {
                 break;
             }
             if (startIndex >= total){
-                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
+                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，新增量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum,addNum);
                 finishFlag = false;
             }
         }
@@ -3928,7 +3948,7 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setSourceOrgan(organId);
         }
         drugListMatch.setStatus(0);
-        LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
+        LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         drugListMatchDAO.save(drugListMatch);
         LOGGER.error("addHisDrug 成功", drugListMatch);
     }
@@ -4010,7 +4030,6 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
-        LOGGER.info("updateHisOrganDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
     }
 
@@ -4902,4 +4921,56 @@ public class RecipeService extends RecipeBaseService {
         }
     }
 
+    @RpcService
+    public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO){
+        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}",requestVisitVO);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String openRecipeNumber = (String)configurationService.getConfiguration(requestVisitVO.getOrganId(), "openRecipeNumber");
+        Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
+        LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}",openRecipeNumber2);
+
+        if (requestVisitVO.getClinicId()!=null){
+            //复诊Id关联有效处方单
+            List<Recipe> recipeCount1=recipeDAO.getRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
+            LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount1.size()={}",recipeCount1.size());
+            if (recipeCount1.size()>openRecipeNumber2){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+            }
+        }else{
+            //从当前就诊中获取就诊人处方信息
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            //在线复诊服务
+            List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+            //当前就诊人正在咨询
+            Integer consultId=null;
+            Recipe recipe=null;
+            if (CollectionUtils.isNotEmpty(consultIds)) {
+                List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
+                recipe=recipes.get(0);
+                LOGGER.info(" 当前就诊人查询处方：recipe={}",recipe);
+                consultId = consultIds.get(0);
+                recipe.setBussSource(2);
+            }else {
+                //图文咨询服务
+                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
+                if (CollectionUtils.isNotEmpty(consultIds)) {
+                    List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
+                    recipe=recipes.get(0);
+                    consultId = consultIds.get(0);
+                    recipe.setBussSource(1);
+                }
+            }
+           if(recipe!=null){
+               //根据获取处方查询
+               List<Recipe> recipeCount2=recipeDAO.getRecipeCountByClinicIdAndValidStatus(recipe.getClinicId());
+               LOGGER.info(" 当前没有复诊Id的时候查询出有效的处方单数：recipeCount2.size()={}",recipeCount2.size());
+               if (recipeCount2.size()>openRecipeNumber2){
+                   throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+               }
+           }
+        }
+        return true;
+    }
 }

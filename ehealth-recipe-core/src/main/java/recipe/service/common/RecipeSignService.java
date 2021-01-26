@@ -9,10 +9,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.RecipeCommonBaseTO;
-import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.common.RecipeStandardReqTO;
-import com.ngari.recipe.common.RecipeStandardResTO;
+import com.ngari.recipe.common.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -36,6 +33,7 @@ import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.*;
+import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -371,10 +369,20 @@ public class RecipeSignService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            //判定开处方单数是否超过限制
+            RequestVisitVO requestVisitVO=null;
+            requestVisitVO.setDoctor(recipeBean.getDoctor());
+            requestVisitVO.setMpiid(recipeBean.getMpiid());
+            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
+            requestVisitVO.setClinicId(recipeBean.getClinicId());
+            LOG.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
+
+            recipeService.isOpenRecipeNumber(requestVisitVO);
             recipeBean.setDistributionFlag(continueFlag);
+
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
-
             //第二步预校验
             if(continueFlag == 0){
                 //his处方预检查
@@ -388,7 +396,6 @@ public class RecipeSignService {
             }
             //第三步校验库存
             if(continueFlag == 0 || continueFlag == 4){
-                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 rMap = recipeService.doSignRecipeCheck(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if(signResult != null && false == signResult){
@@ -494,7 +501,6 @@ public class RecipeSignService {
             recipeBean.setRecipeId(recipeId);
         }
         rMap.put("recipeId", recipeId);
-
     }
 
     /**

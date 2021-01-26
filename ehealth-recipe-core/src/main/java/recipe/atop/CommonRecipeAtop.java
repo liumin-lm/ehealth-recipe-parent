@@ -13,13 +13,12 @@ import recipe.service.CommonRecipeService;
 import java.util.List;
 
 /**
- * 处方订单服务入口类
+ * 常用方服务入口类
  *
  * @author fuzi
  */
 @RpcBean("commonRecipeAtop")
 public class CommonRecipeAtop extends BaseAtop {
-
     @Autowired
     private CommonRecipeService commonRecipeService;
 
@@ -45,7 +44,7 @@ public class CommonRecipeAtop extends BaseAtop {
             logger.info("CommonRecipeAtop commonRecipeList result = {}", JSON.toJSONString(result));
             return ResultBean.succeed(result);
         } catch (DAOException e1) {
-            logger.error("CommonRecipeAtop commonRecipeList error", e1);
+            logger.warn("CommonRecipeAtop commonRecipeList error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("CommonRecipeAtop commonRecipeList error", e);

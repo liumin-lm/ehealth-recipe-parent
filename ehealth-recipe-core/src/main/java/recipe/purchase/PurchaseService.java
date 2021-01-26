@@ -30,6 +30,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -602,10 +603,17 @@ public class PurchaseService {
                 }
                 break;
             case RECIPE_STATUS_CHECK_PASS:
+                String invalidTime = "3日";
+                if (null != recipe.getInvalidTime() && recipe.getSignDate() != null){
+                    int hour = DateConversion.hoursBetweenDateTime(recipe.getSignDate(), recipe.getInvalidTime()) % 24;
+                    int minute = DateConversion.minutesBetweenDateTime(recipe.getSignDate(), recipe.getInvalidTime()) % 60;
+                    invalidTime = hour > 0 ? hour + "小时" : "";
+                    invalidTime = minute > 0 ? invalidTime + minute + "分钟" : invalidTime + "";
+                }
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于收到处方的3日内完成购药，否则处方将失效";
+                    tips = "订单待支付，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的3日内完成购药，否则处方将失效";
+                    tips = "处方单待处理，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);

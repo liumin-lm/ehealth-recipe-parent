@@ -1,5 +1,6 @@
 package recipe.service.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
@@ -9,18 +10,23 @@ import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.OrganDrugList;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.OrganDrugListDAO;
-import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
 
 /**
  * 常用方通用层
@@ -29,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CommonRecipeManager {
-
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private CommonRecipeDAO commonRecipeDAO;
     @Autowired
@@ -48,6 +54,7 @@ public class CommonRecipeManager {
      * @return CommonRecipeDTO 常用方列表
      */
     public List<CommonRecipeDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+        LOGGER.info("CommonRecipeManager commonRecipeList organId={},doctorId={},recipeType={}", organId, doctorId, JSON.toJSONString(recipeType));
         if (CollectionUtils.isNotEmpty(recipeType)) {
             //通过处方类型获取常用处方
             List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByRecipeTypeAndOrganId(recipeType, doctorId, organId, start, limit);
@@ -55,6 +62,7 @@ public class CommonRecipeManager {
         }
         //通过医生id查询常用处方
         List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(doctorId, organId, start, limit);
+        LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}", JSON.toJSONString(commonRecipeList));
         return ObjectCopyUtils.convert(commonRecipeList, CommonRecipeDTO.class);
     }
 
@@ -66,31 +74,29 @@ public class CommonRecipeManager {
      * @return
      */
     public Map<Integer, List<CommonRecipeDrugDTO>> commonDrugGroup(Integer organId, List<Integer> commonRecipeIdList) {
+        LOGGER.info("CommonRecipeManager commonDrugGroup  organId={}, commonRecipeIdList={}", organId, JSON.toJSONString(commonRecipeIdList));
         if (CollectionUtils.isEmpty(commonRecipeIdList)) {
             return null;
         }
         List<CommonRecipeDrug> commonRecipeDrugList = commonRecipeDrugDAO.findByCommonRecipeIdList(commonRecipeIdList);
+        LOGGER.info("CommonRecipeManager commonDrugGroup  commonRecipeDrugList={},", JSON.toJSONString(commonRecipeDrugList));
         if (CollectionUtils.isEmpty(commonRecipeDrugList)) {
             return null;
         }
         List<Integer> drugIdList = commonRecipeDrugList.stream().map(CommonRecipeDrug::getDrugId).distinct().collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdList(organId, drugIdList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdWithoutStatus(organId, drugIdList);
         Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
 
         Map<Integer, List<CommonRecipeDrugDTO>> commonDrugGroup = new HashMap<>();
-
         commonRecipeDrugList.forEach(a -> {
             CommonRecipeDrugDTO commonDrugDTO = new CommonRecipeDrugDTO();
             BeanUtils.copyProperties(a, commonDrugDTO);
-            commonDrugDTO.setVariation(false);
             OrganDrugList organDrug = organDrugMap.get(commonDrugDTO.getDrugId() + commonDrugDTO.getOrganDrugCode());
             if (null == organDrug) {
-                commonDrugDTO.setVariation(true);
+                commonDrugDTO.setDrugStatus(-1);
                 return;
             }
-            //判断药品药房是否变动
-            commonDrugDTO.setVariation(variation(a.getPharmacyId(), organDrug.getPharmacy()));
-
+            commonDrugDTO.setOrganPharmacyId(organDrug.getPharmacy());
             if (null != commonDrugDTO.getUseTotalDose()) {
                 commonDrugDTO.setDrugCost(organDrug.getSalePrice().multiply(new BigDecimal(commonDrugDTO.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
             }
@@ -106,7 +112,7 @@ public class CommonRecipeManager {
                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
             }
             commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-            //commonDrugDTO.setPlatformSaleName(drug.getSaleName());
+            commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
             //commonDrugDTO.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             //commonDrugDTO.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
 
@@ -119,27 +125,7 @@ public class CommonRecipeManager {
                 commonDrugList.add(commonDrugDTO);
             }
         });
+        LOGGER.info("CommonRecipeManager commonDrugGroup commonDrugGroup={}", JSON.toJSONString(commonDrugGroup));
         return commonDrugGroup;
-    }
-
-    /**
-     * 判断药品药房是否变动
-     *
-     * @param commonPharmacyId 常用方药房id
-     * @param pharmacy         机构药房id
-     * @return true 变动
-     */
-    private boolean variation(Integer commonPharmacyId, String pharmacy) {
-        if (null == commonPharmacyId && StringUtils.isNotEmpty(pharmacy)) {
-            return true;
-        }
-        if (null != commonPharmacyId && StringUtils.isEmpty(pharmacy)) {
-            return true;
-        }
-        if (null != commonPharmacyId && StringUtils.isNotEmpty(pharmacy) &&
-                !Arrays.asList(pharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(commonPharmacyId))) {
-            return true;
-        }
-        return false;
     }
 }
