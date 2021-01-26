@@ -1,18 +1,22 @@
 package com.ngari.recipe.common;
 
+import ctd.schema.annotation.ItemProperty;
+
 import java.io.Serializable;
 
 public class RequestVisitVO implements Serializable {
 
+    @ItemProperty(alias = "机构Id")
     private Integer organId;
 
+    @ItemProperty(alias = "复诊Id")
     private Integer clinicId;
 
+    @ItemProperty(alias = "医生Id")
     private Integer doctor;
 
+    @ItemProperty(alias = "患者Id")
     private String mpiid;
-
-    private Integer status;
 
     public Integer getClinicId() {
         return clinicId;
@@ -20,14 +24,6 @@ public class RequestVisitVO implements Serializable {
 
     public void setClinicId(Integer clinicId) {
         this.clinicId = clinicId;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
     }
 
     public Integer getOrganId() {

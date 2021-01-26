@@ -1549,6 +1549,17 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RequestVisitVO requestVisitVO=null;
+            requestVisitVO.setDoctor(recipeBean.getDoctor());
+            requestVisitVO.setMpiid(recipeBean.getMpiid());
+            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
+            requestVisitVO.setClinicId(recipeBean.getClinicId());
+            LOGGER.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
+            //判定开处方单数是否超过限制
+            recipeService.isOpenRecipeNumber(requestVisitVO);
+
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
@@ -2627,6 +2638,9 @@ public class RecipeService extends RecipeBaseService {
         if (responseTO != null ){
             data = responseTO.getData();
         }
+        if (ObjectUtils.isEmpty(data)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
+        }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
@@ -2638,9 +2652,9 @@ public class RecipeService extends RecipeBaseService {
         if (sync || add){
         while (finishFlag) {
             if (!CollectionUtils.isEmpty(data)) {
-                LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
+                    LOGGER.info("drugInfoSynMovementaddHisDrug前期"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
                     if (null == organDrug && add ) {
                         String drugform = drug.getDrugform();
@@ -2654,6 +2668,7 @@ public class RecipeService extends RecipeBaseService {
                                     }
                                 }
                                 addHisDrug(drug,organId);
+                                LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                             }else {
                                 startIndex++;
                                 continue;
@@ -2666,6 +2681,7 @@ public class RecipeService extends RecipeBaseService {
                                 }
                             }
                             addHisDrug(drug,organId);
+                            LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                         }
                         addNum++;
                         startIndex++;
@@ -2673,17 +2689,17 @@ public class RecipeService extends RecipeBaseService {
                     }else if (null != organDrug && sync){
                         updateHisOrganDrug(drug, organDrug);
                         updateNum++;
+                        LOGGER.info("drugInfoSynMovementupdateNum"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                         startIndex++;
                         continue;
                     }
-                    LOGGER.info("drugInfoSynMovement organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     startIndex++;
                 }
             }else {
                 break;
             }
             if (startIndex >= total){
-                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
+                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，新增量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum,addNum);
                 finishFlag = false;
             }
         }
@@ -3934,7 +3950,7 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setSourceOrgan(organId);
         }
         drugListMatch.setStatus(0);
-        LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
+        LOGGER.info("updateHisDrug 手动同步新增药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
         drugListMatchDAO.save(drugListMatch);
         LOGGER.error("addHisDrug 成功", drugListMatch);
     }
@@ -4016,7 +4032,7 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
-        LOGGER.info("updateHisOrganDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
+        LOGGER.info("updateHisOrganDrug 手动同步更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
     }
 
@@ -4940,7 +4956,7 @@ public class RecipeService extends RecipeBaseService {
                 consultId = consultIds.get(0);
                 recipe.setBussSource(2);
             }else {
-                //图文咨询
+                //图文咨询服务
                 consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
                 if (CollectionUtils.isNotEmpty(consultIds)) {
                     List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
@@ -4949,12 +4965,14 @@ public class RecipeService extends RecipeBaseService {
                     recipe.setBussSource(1);
                 }
             }
-            //根据获取处方查询
-            List<Recipe> recipeCount2=recipeDAO.getRecipeCountByClinicIdAndValidStatus(recipe.getClinicId());
-            LOGGER.info(" 当前没有复诊Id的时候查询出有效的处方单数：recipeCount2.size()={}",recipeCount2.size());
-            if (recipeCount2.size()>openRecipeNumber2){
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
-            }
+           if(recipe!=null){
+               //根据获取处方查询
+               List<Recipe> recipeCount2=recipeDAO.getRecipeCountByClinicIdAndValidStatus(recipe.getClinicId());
+               LOGGER.info(" 当前没有复诊Id的时候查询出有效的处方单数：recipeCount2.size()={}",recipeCount2.size());
+               if (recipeCount2.size()>openRecipeNumber2){
+                   throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+               }
+           }
         }
         return true;
     }

@@ -698,6 +698,45 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
+    /**
+     * 商品名 药品名 编号 生产厂家 匹配药品 搜索专用
+     * @param input
+     * @param producer
+     * @return
+     */
+    public List<DrugList> findBySaleNameLikeSearch(final Integer organId,final String input,final String producer) {
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from DrugList where status = 1  ");
+                if (organId != null){
+                    hql.append(" and (  sourceOrgan is null or sourceOrgan =:organId   )   ");
+                }else {
+                    hql.append("  and sourceOrgan is null    )   ");
+                }
+                if (input != null){
+                    hql.append(" and (  saleName like :input or drugId like:input or drugName like: input   )   ");
+                }
+                if (producer != null){
+                    hql.append(" and producer like :producer   ");
+                }
+                Query q = ss.createQuery(hql.toString());
+                if (organId != null){
+                    q.setParameter("organId", organId);
+                }
+                if (input != null){
+                    q.setParameter("input", "%" + input + "%");
+                }
+                if (producer != null){
+                    q.setParameter("producer", "%" + producer + "%");
+                }
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     @DAOMethod
     public abstract List<DrugList> findByDrugName(String drugName);
 
