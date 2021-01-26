@@ -1674,6 +1674,7 @@ public class DrugToolService implements IDrugToolService {
 
     }
 
+
     /*根据匹配的药品销售名，获取相似名称的省平台药品   搜索专用*/
     private List<ProvinceDrugList> getProvinceDrugListsSearch(int organId, int start, int limit, String input, String producer) {
         List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
