@@ -98,7 +98,7 @@ public class RecipeToHisCallbackService {
                 detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
                 //取药窗口是否都是返回同一窗口
 //                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
-                if(StringUtils.isNotEmpty(pharmNo)) {
+                if(StringUtils.isNotEmpty(rep.getPharmNo())) {
                     pharmNo = LocalStringUtil.toString(rep.getPharmNo());
                 }
                 detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
