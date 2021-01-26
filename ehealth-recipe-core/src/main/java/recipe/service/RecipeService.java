@@ -1551,7 +1551,7 @@ public class RecipeService extends RecipeBaseService {
         try {
 
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            RequestVisitVO requestVisitVO=null;
+            RequestVisitVO requestVisitVO=new RequestVisitVO();
             requestVisitVO.setDoctor(recipeBean.getDoctor());
             requestVisitVO.setMpiid(recipeBean.getMpiid());
             requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
@@ -4945,7 +4945,7 @@ public class RecipeService extends RecipeBaseService {
             List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             //当前就诊人正在咨询
             Integer consultId=null;
-            Recipe recipe=null;
+            Recipe recipe=new Recipe();
             if (CollectionUtils.isNotEmpty(consultIds)) {
                 List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
                 recipe=recipes.get(0);

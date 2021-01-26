@@ -371,7 +371,7 @@ public class RecipeSignService {
         try {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             //判定开处方单数是否超过限制
-            RequestVisitVO requestVisitVO=null;
+            RequestVisitVO requestVisitVO=new RequestVisitVO();
             requestVisitVO.setDoctor(recipeBean.getDoctor());
             requestVisitVO.setMpiid(recipeBean.getMpiid());
             requestVisitVO.setOrganId(recipeBean.getClinicOrgan());

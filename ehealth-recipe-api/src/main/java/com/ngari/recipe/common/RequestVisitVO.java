@@ -18,6 +18,16 @@ public class RequestVisitVO implements Serializable {
     @ItemProperty(alias = "患者Id")
     private String mpiid;
 
+    public RequestVisitVO() {
+    }
+
+    public RequestVisitVO(Integer organId, Integer clinicId, Integer doctor, String mpiid) {
+        this.organId = organId;
+        this.clinicId = clinicId;
+        this.doctor = doctor;
+        this.mpiid = mpiid;
+    }
+
     public Integer getClinicId() {
         return clinicId;
     }
