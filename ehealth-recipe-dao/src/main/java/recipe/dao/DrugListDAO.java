@@ -710,7 +710,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from DrugList where status = 1  ");
                 if (organId != null){
-                    hql.append(" and (  and sourceOrgan is null or sourceOrgan =:organId   )   ");
+                    hql.append(" and (  sourceOrgan is null or sourceOrgan =:organId   )   ");
                 }else {
                     hql.append("  and sourceOrgan is null    )   ");
                 }
