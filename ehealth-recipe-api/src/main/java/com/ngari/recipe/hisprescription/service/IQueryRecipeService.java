@@ -60,4 +60,14 @@ public interface IQueryRecipeService {
 
     @RpcService
     RecipeOrderBillDTO getRecipeOrderBill(Integer recipeId);
+
+    /**
+     * 医院数据中心处方信息上传
+     * @param organId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public List<QueryRecipeInfoDTO> queryRecipeDataForHisDataCenter(Integer organId, Date startDate, Date endDate);
+
 }

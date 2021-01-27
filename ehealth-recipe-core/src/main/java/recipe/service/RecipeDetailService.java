@@ -151,6 +151,10 @@ public class RecipeDetailService {
             recipeDetail.setUseDays(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) > minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) < maxUseDay) {
+            recipeDetail.setUseDaysB(null);
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
     }
 
 
