@@ -93,7 +93,10 @@ public class RecipeInvalidMsgConsumer {
                         // 获取处方状态：未支付/未处理
                         Integer status = RecipeService.getStatus(recipeDAO, recipe, recipeId);
                         //变更处方状态
-                        recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                        //变更处方状态
+                        if (status != null){
+                            recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                        }
                         RecipeMsgService.batchSendMsg(recipe, status);
                         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                             //药师首页待处理任务---取消未结束任务
