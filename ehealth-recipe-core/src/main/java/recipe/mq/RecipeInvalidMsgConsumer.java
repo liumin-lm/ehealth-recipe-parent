@@ -75,7 +75,7 @@ public class RecipeInvalidMsgConsumer {
                             return;
                         }
                         //向药企推送处方过期的通知
-                        sendDrugEnterproseMsg(recipe);
+                        RecipeService.sendDrugEnterproseMsg(recipe);
                         StringBuilder memo = new StringBuilder();
                         memo.delete(0, memo.length());
                         int recipeId = recipe.getRecipeId();
@@ -91,7 +91,15 @@ public class RecipeInvalidMsgConsumer {
                             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
                         }
                         // 获取处方状态：未支付/未处理
-                        Integer status = getStatus(recipeDAO, recipe, recipeId);
+                        Integer status = RecipeService.getStatus(recipeDAO, recipe, recipeId);
+                        //变更处方状态
+                        recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                        RecipeMsgService.batchSendMsg(recipe, status);
+                        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                            //药师首页待处理任务---取消未结束任务
+                            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                        }
+
                         if (RecipeStatusConstant.NO_PAY == status) {
                             memo.append("已取消,超过失效时间未支付");
                         } else if (RecipeStatusConstant.NO_OPERATOR == status) {
@@ -126,63 +134,5 @@ public class RecipeInvalidMsgConsumer {
 
     }
 
-    //向药企推送处方过期的通知
-    private void sendDrugEnterproseMsg(Recipe recipe) {
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
-            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
-                    //向药企推送处方过期的通知
-                    RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                    try {
-                        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-                        DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
-                        LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                    } catch (Exception e) {
-                        LOGGER.info("向药企推送处方过期通知有问题{}", recipe.getRecipeId(), e);
-                    }
-                }
 
-            }
-        }
-    }
-
-    /**
-     * 获取处方状态：未支付/未操作状态
-     * @param recipeDAO
-     * @param recipe
-     * @param recipeId
-     * @return
-     */
-    private Integer getStatus(RecipeDAO recipeDAO, Recipe recipe, int recipeId) {
-        Integer fromFlag = recipe.getFromflag();
-        Integer dbStatus = recipe.getStatus();
-        Integer payFlag = recipe.getPayFlag();
-        Integer payMode = recipe.getPayMode();
-        String orderCode = recipe.getOrderCode();
-        //处方状态未支付： fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null
-        Integer status = null;
-        if ((fromFlag != null && (fromFlag == 1 || fromFlag == 2)) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payFlag != null && payFlag == 0 && payMode != null && StringUtils.isNotBlank(orderCode)){
-            status = RecipeStatusConstant.NO_PAY;
-        }
-        //处方状态未操作：fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1)
-        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payMode == null ){
-            status = RecipeStatusConstant.NO_OPERATOR;
-        }
-        if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
-            status = RecipeStatusConstant.NO_OPERATOR;
-        }
-        //变更处方状态
-        if (status != null){
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
-        }
-
-        RecipeMsgService.batchSendMsg(recipe, status);
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-            //药师首页待处理任务---取消未结束任务
-            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
-        }
-        return status;
-    }
 }
