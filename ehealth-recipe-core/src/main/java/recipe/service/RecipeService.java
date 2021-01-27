@@ -2951,7 +2951,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 定时任务:根据失效时间取消处方单
+     * 定时任务:根据失效时间取消处方单-每半个小时执行一次
      */
     @RpcService
     public void cancelRecipeTaskByInvalidTime() {
@@ -2990,7 +2990,9 @@ public class RecipeService extends RecipeBaseService {
                 }
                 Integer status = this.getStatus(recipeDAO, recipe, recipeId);
                 //变更处方状态
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                if (status != null){
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                }
                 RecipeMsgService.batchSendMsg(recipe, status);
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //药师首页待处理任务---取消未结束任务
@@ -3073,16 +3075,6 @@ public class RecipeService extends RecipeBaseService {
         }
         if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
             status = RecipeStatusConstant.NO_OPERATOR;
-        }
-        //变更处方状态
-        if (status != null){
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
-        }
-
-        RecipeMsgService.batchSendMsg(recipe, status);
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-            //药师首页待处理任务---取消未结束任务
-            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
         }
         return status;
     }

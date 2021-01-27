@@ -530,14 +530,25 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
 
         List<Integer> drugIdList = drugList.stream().map(CommonRecipeDrug::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(commonRecipe.getOrganId(), drugIdList);
+        LOGGER.info(" addCommonRecipe organDrugLists:{}", JSONUtils.toString(organDrugLists));
         if (CollectionUtils.isEmpty(organDrugLists)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
         }
-        Map<String, OrganDrugList> organDrugMap = organDrugLists.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        Map<Integer, List<OrganDrugList>> organDrugListsGroup = organDrugLists.stream().collect(Collectors.groupingBy(OrganDrugList::getDrugId));
 
         //常用方药品校验
         drugList.forEach(a -> {
-            OrganDrugList organDrugList = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            OrganDrugList organDrugList = null;
+            List<OrganDrugList> organDrugs = organDrugListsGroup.get(a.getDrugId());
+            if (CollectionUtils.isEmpty(organDrugs)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
+            }
+            for (OrganDrugList organDrug : organDrugs) {
+                if (organDrug.getOrganDrugCode().equals(a.getOrganDrugCode())) {
+                    organDrugList = organDrug;
+                    break;
+                }
+            }
             if (null == organDrugList) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
@@ -546,7 +557,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品药房错误");
             }
             if (StringUtils.isEmpty(a.getOrganDrugCode())) {
-                a.setOrganDrugCode(organDrugMap.get(a.getDrugId() + a.getOrganDrugCode()).getOrganDrugCode());
+                a.setOrganDrugCode(organDrugs.get(0).getOrganDrugCode());
             }
             if (RecipeUtil.isTcmType(recipeType)) {
                 a.setUsePathways(null);
