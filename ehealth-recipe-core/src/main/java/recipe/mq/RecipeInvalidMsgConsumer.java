@@ -93,7 +93,6 @@ public class RecipeInvalidMsgConsumer {
                         // 获取处方状态：未支付/未处理
                         Integer status = RecipeService.getStatus(recipeDAO, recipe, recipeId);
                         //变更处方状态
-                        //变更处方状态
                         if (status != null){
                             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
                         }

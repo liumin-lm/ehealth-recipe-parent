@@ -2990,7 +2990,6 @@ public class RecipeService extends RecipeBaseService {
                 }
                 Integer status = this.getStatus(recipeDAO, recipe, recipeId);
                 //变更处方状态
-                //变更处方状态
                 if (status != null){
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
                 }
