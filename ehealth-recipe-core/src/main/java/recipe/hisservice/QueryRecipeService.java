@@ -1005,6 +1005,7 @@ public class QueryRecipeService implements IQueryRecipeService {
      * @param endDate
      * @return   QueryRecipeInfoDTO
      */
+    @RpcService
     public List<QueryRecipeInfoDTO> queryRecipeDataForHisDataCenter(Integer organId, Date startDate, Date endDate){
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -1037,6 +1038,7 @@ public class QueryRecipeService implements IQueryRecipeService {
      * @param recipe
      * @return
      */
+    @RpcService
     private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe){
         QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
         try {
