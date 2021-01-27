@@ -78,6 +78,16 @@ public class OrderItemDTO implements Serializable {
     @ItemProperty(alias="医院药房名称")
     private String pharmacy;
 
+    @ItemProperty(alias="药品序号")
+    private Integer drugId;
+
+    public Integer getDrugId() {
+        return drugId;
+    }
+
+    public void setDrugId(Integer drugId) {
+        this.drugId = drugId;
+    }
 
     public OrderItemDTO(){}
 
