@@ -1023,7 +1023,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("queryDrugInventoriesByRealTime req:{}", JSONUtils.toString(req));
         Assert.notNull(req,"req is required");
         Assert.notNull(req.getOrganId(),"organId is required");
-        Assert.notNull(req.getDrugIds(),"drugIds is required");
+        Assert.notEmpty(req.getDrugIds(), "drugIds is required");
         List<DrugListBean> drugListBeans = new ArrayList<>(req.getDrugIds().size());
         req.getDrugIds().forEach(a-> drugListBeans.add(new DrugListBean(a)));
         //查询医院库存
