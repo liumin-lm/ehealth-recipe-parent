@@ -2951,7 +2951,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 定时任务:根据失效时间取消处方单
+     * 定时任务:根据失效时间取消处方单-每半个小时执行一次
      */
     @RpcService
     public void cancelRecipeTaskByInvalidTime() {
