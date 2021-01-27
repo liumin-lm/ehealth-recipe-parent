@@ -433,13 +433,15 @@ public class QueryRecipeService implements IQueryRecipeService {
         Double drugTotalNumber = new Double(0);
         BigDecimal drugTotalAmount= new BigDecimal(0);
         //拼接处方明细
-        if (null != details && !details.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(details)) {
             List<OrderItemDTO> orderList = new ArrayList<>();
             for (Recipedetail detail : details) {
                 OrderItemDTO orderItem = new OrderItemDTO();
+                //药品Id
+                orderItem.setDrugId(detail.getDrugId());
                 //处方明细id
                 orderItem.setOrderID(Integer.toString(detail.getRecipeDetailId()));
-                //医院药品代码
+                //医院药品编码  药品唯一标识
                 orderItem.setDrcode(detail.getOrganDrugCode());
                 //医院药品名
                 orderItem.setDrname(detail.getDrugName());
@@ -502,8 +504,6 @@ public class QueryRecipeService implements IQueryRecipeService {
                  * String dosageDay =
                  * df.format(getFrequency(detail.getUsingRate(
                  * ))*detail.getUseDose()
-                 *
-                 *
                  * );
                  */
                 // 开药数量
@@ -996,5 +996,127 @@ public class QueryRecipeService implements IQueryRecipeService {
         LOGGER.info("当前返回结果", JSONUtils.toString(drugList));
         return ObjectCopyUtils.convert(drugList, DrugListBean.class);
 
+    }
+
+    /**
+     * 处方数据上传医院数据中心 处方数据，处方明细数据
+     * @param organId
+     * @param startDate
+     * @param endDate
+     * @return   QueryRecipeInfoDTO
+     */
+    public List<QueryRecipeInfoDTO> queryRecipeDataForHisDataCenter(Integer organId, Date startDate, Date endDate){
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+
+        String start = DateConversion.formatDateTimeWithSec(startDate);
+        String end = DateConversion.formatDateTimeWithSec(endDate);
+        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={}{}{}", organId,startDate,endDate);
+
+        //通过机构Id和时间查询处方信息
+        List<Recipe> recipeList = recipeDAO.findRecipeListByOrganIdAndTime(organId, start, end);
+        List<QueryRecipeInfoDTO> list = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(recipeList)){
+            LOGGER.info("当前查询返回结果，recipeList.size()={}", recipeList.size());
+            for (Recipe r:recipeList){
+                QueryRecipeInfoDTO infoDTO=new QueryRecipeInfoDTO();
+                List<Recipedetail> details = recipeDetailDAO.findByRecipeId(r.getRecipeId());
+                infoDTO = splicingBackData(details, r);
+                list.add(infoDTO);
+            }
+            LOGGER.info("当前查询返回结果，list.size()={}", list.size());
+        }
+        return list;
+    }
+
+    /**
+     * 拼接医院数据中心需要处方业务
+     * @param details
+     * @param recipe
+     * @return
+     */
+    private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe){
+        QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
+        try {
+            //处方号 his返回
+            recipeDTO.setRecipeID(recipe.getRecipeCode());
+            //机构id
+            recipeDTO.setOrganId(String.valueOf(recipe.getClinicOrgan()));
+            //处方id 处方唯一标识 收费码
+            recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
+            //患者编号  门诊患者标识
+            recipeDTO.setPatientID(recipe.getPatientID());
+            //处方备注 医嘱正文
+            recipeDTO.setRecipeMemo(recipe.getRecipeMemo());
+            //开医嘱时间  开方时间
+            recipeDTO.setCreateDate(recipe.getCreateDate());
+            //诊断备注  医嘱备注
+            recipeDTO.setMemo(recipe.getMemo());
+            //处方状态
+            recipeDTO.setStatus(recipe.getStatus());
+            //支付状态  是否支付
+            recipeDTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe.getPayFlag()) : null);
+            //返回开方部门code
+            DepartmentService service = BasicAPI.getService(DepartmentService.class);
+            DepartmentDTO departmentDTO = service.getById(recipe.getDepart());
+            if (departmentDTO != null) {
+                recipeDTO.setDeptID(departmentDTO.getCode());
+                //科室名
+                recipeDTO.setDeptName(departmentDTO.getName());
+                AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+                AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                //开单挂号科室代号
+                recipeDTO.setDeptCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+            }
+            //处方类型
+            recipeDTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
+            //复诊id
+            recipeDTO.setClinicID((null != recipe.getClinicId()) ? Integer.toString(recipe.getClinicId()) : null);
+            //转换平台医生id为工号返回his
+            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+            if (recipe.getDoctor() != null) {
+                String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+                //医生工号
+                recipeDTO.setDoctorID(jobNumber);
+                //医生姓名
+                recipeDTO.setDoctorName(recipe.getDoctorName());
+                //医生身份证
+                DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+                if (doctorDTO != null) {
+                    recipeDTO.setDoctorIDCard(doctorDTO.getIdNumber());
+                }
+            }
+            //审核医生
+            if (recipe.getChecker() != null) {
+                String jobNumberChecker = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getChecker(), recipe.getClinicOrgan(), recipe.getDepart());
+                recipeDTO.setAuditDoctor(jobNumberChecker);
+                //审核状态
+                recipeDTO.setAuditCheckStatus("1");
+                //审方时间
+                recipeDTO.setCheckDate(recipe.getCheckDate());
+            } else {
+                recipeDTO.setAuditDoctor(recipeDTO.getDoctorID());
+                recipeDTO.setAuditCheckStatus("0");
+                //审方时间
+                recipeDTO.setCheckDate(new Date());
+            }
+            recipeDTO.setMedicalPayFlag(getMedicalType(recipe.getMpiid(), recipe.getClinicOrgan()));
+            //处方金额
+            recipeDTO.setRecipeFee(String.valueOf(recipe.getActualPrice()));
+            //获取医院诊断内码
+            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
+            //icd诊断码
+            recipeDTO.setIcdCode(getCode(recipe.getOrganDiseaseId()));
+            //icd诊断名称
+            recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
+            splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
+            LOGGER.info("数据中心获取处方业务信息 recipeDTO:{}", JSONUtils.toString(recipeDTO));
+        } catch (Exception e) {
+            LOGGER.error("数据中心获取处方业务信息 recipeDTO error", e);
+        }
+        return recipeDTO;
     }
 }
