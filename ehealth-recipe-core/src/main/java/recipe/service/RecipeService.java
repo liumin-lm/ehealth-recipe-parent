@@ -50,6 +50,7 @@ import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -71,6 +72,7 @@ import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
+import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -108,6 +110,7 @@ import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -116,6 +119,10 @@ import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
+import recipe.util.ChinaIDNumberUtil;
+import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
+import recipe.util.MapValueUtil;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
@@ -1630,6 +1637,16 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
 
         // 处方失效时间处理
+        handleRecipeInvalidTime(recipeBean);
+        return rMap;
+    }
+
+    /**
+     * 设置处方失效时间，非当天小于24小时的发送失效延迟消息
+     *
+     * @param recipeBean
+     */
+    private void handleRecipeInvalidTime(RecipeBean recipeBean) {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
@@ -1661,8 +1678,13 @@ public class RecipeService extends RecipeBaseService {
                         int minute = (int)(invalidValue * 60);
                         calendar.add(Calendar.MINUTE, minute);
                         invalidDate = calendar.getTime();
-                        // TODO 延迟队列发送延迟消费消息
-
+                        // 毫秒
+                        try {
+                            int millSecond = eh.utils.DateConversion.secondsBetweenDateTime(recipeBean.getSignDate(), invalidDate) * 1000;
+                            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeBean.getRecipeId()), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeBean.getRecipeId()), millSecond);
+                        } catch (Exception e) {
+                            LOGGER.error("机构处方失效时间-发送延迟消息异常，机构id={},处方id={}",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),e);
+                        }
                         break;
                     default:
                         LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
@@ -1677,7 +1699,6 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("机构处方失效时间-处理异常,机构id={},处方id={}",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),e);
         }
-        return rMap;
     }
 
 
@@ -2819,6 +2840,7 @@ public class RecipeService extends RecipeBaseService {
             orderService.updateHisRecieStatus(recipes);
         }
         for (Integer status : statusList) {
+            // 2021失效时间可以配置需求，原定时任务查询增加失效时间为空条件
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
             LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
             if (CollectionUtils.isNotEmpty(recipeList)) {
