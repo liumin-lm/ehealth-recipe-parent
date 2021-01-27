@@ -540,7 +540,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             OrganDrugList organDrugList = null;
             List<OrganDrugList> organDrugs = organDrugListsGroup.get(a.getDrugId());
             if (CollectionUtils.isNotEmpty(organDrugs)) {
-                return;
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
             for (OrganDrugList organDrug : organDrugs) {
                 if (organDrug.getOrganDrugCode().equals(a.getOrganDrugCode())) {
