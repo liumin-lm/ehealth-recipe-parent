@@ -206,6 +206,8 @@ public class RecipeDetailBean implements java.io.Serializable {
     private Integer pharmacyId;
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
 
     @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
     private Integer tcmContraindicationType;
@@ -215,6 +217,9 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "药企药品编码")
     private String saleDrugCode;
+
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
 
     public String getSaleDrugCode() {
         return saleDrugCode;
@@ -756,5 +761,21 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setSaleName(String saleName) {
         this.saleName = saleName;
+    }
+
+    public Integer getValidateStatus() {
+        return validateStatus;
+    }
+
+    public void setValidateStatus(Integer validateStatus) {
+        this.validateStatus = validateStatus;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
     }
 }
