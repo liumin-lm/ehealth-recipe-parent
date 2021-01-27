@@ -795,6 +795,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
+     * 根据失效时间查询失效处方列表
+     *
+     * @param startDt
+     * @param endDt
+     * @return
+     */
+    public List<Recipe> getInvalidRecipeListByInvalidTime(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
      * 处方失效前一天提醒
      *
      * @param cancelStatus
