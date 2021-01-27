@@ -6,7 +6,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.hisprescription.model.QueryRecipeDataDTO;
 import com.ngari.recipe.recipe.model.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
