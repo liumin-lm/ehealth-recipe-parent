@@ -3764,20 +3764,23 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param endDate
      * @return
      */
+
+
     public List<Recipe> findRecipeListByOrganIdAndTime(final Integer organId, final String startDate, final String endDate) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from cdr_recipe r where fromflag=1 and clinicOrgan =:organId and r.status>0" + " and ( (r.signDate between '" + startDate + "' and '" + endDate + "') ");
+                StringBuilder hql = new StringBuilder("SELECT * from cdr_recipe r where fromflag=1 and clinicOrgan ="+organId+" and r.status>0" + " and ( (r.signDate between '" + startDate + "' and '" + endDate + "') ");
                 hql.append(")");
-                Query query = ss.createQuery(hql.toString());
-                query.setParameter("organId", organId);
-                setResult(query.list());
+//                Query query = ss.createQuery(hql.toString());
+//                query.setParameter("organId", organId);
+//                setResult(query.list());
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
+                setResult(q.list());
             }
         };
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
-
 
 }

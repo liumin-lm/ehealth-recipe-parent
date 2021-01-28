@@ -128,16 +128,6 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "门诊患者编号")
     private String patientID;
 
-    @ItemProperty(alias = "门诊号")
-    private String outNo;
-
-    @ItemProperty(alias = "就诊次数")
-    private String visitId;
-
-    @ItemProperty(alias = "就诊类型,01/门诊")
-    private Integer visitType;
-
-
     @ItemProperty(alias = "父医嘱序号")
     private String parentOrderNo;
 
@@ -150,35 +140,12 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "诊断备注，医嘱备注")
     private String memo;
 
-    @ItemProperty(alias = "处方状态 1")
+    @ItemProperty(alias = "处方状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
     private Integer status;
 
     @ItemProperty(alias = "收费项目-处方（药品）")
     private  String charge;
-
-    @ItemProperty(alias = "收费类型")
-    private String chargeType;
-
-    @ItemProperty(alias = "费用类型")
-    private String bill_Item;
-
-
-    public String getBill_Item() {
-        return bill_Item;
-    }
-
-    public void setBill_Item(String bill_Item) {
-        this.bill_Item = bill_Item;
-    }
-
-    public String getChargeType() {
-        return chargeType;
-    }
-
-    public void setChargeType(String chargeType) {
-        this.chargeType = chargeType;
-    }
 
     public String getCharge() {
         return charge;
@@ -226,30 +193,6 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setParentOrderNo(String parentOrderNo) {
         this.parentOrderNo = parentOrderNo;
-    }
-
-    public Integer getVisitType() {
-        return visitType;
-    }
-
-    public void setVisitType(Integer visitType) {
-        this.visitType = visitType;
-    }
-
-    public String getVisitId() {
-        return visitId;
-    }
-
-    public void setVisitId(String visitId) {
-        this.visitId = visitId;
-    }
-
-    public String getOutNo() {
-        return outNo;
-    }
-
-    public void setOutNo(String outNo) {
-        this.outNo = outNo;
     }
 
     public String getPatientID() {
