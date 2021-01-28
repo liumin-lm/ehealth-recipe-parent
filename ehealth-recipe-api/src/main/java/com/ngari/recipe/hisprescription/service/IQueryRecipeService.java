@@ -68,6 +68,7 @@ public interface IQueryRecipeService {
      * @param endDate
      * @return
      */
+    @RpcService
     public List<QueryRecipeInfoDTO> queryRecipeDataForHisDataCenter(Integer organId, Date startDate, Date endDate);
 
 }

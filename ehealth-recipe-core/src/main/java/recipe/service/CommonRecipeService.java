@@ -530,6 +530,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
 
         List<Integer> drugIdList = drugList.stream().map(CommonRecipeDrug::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(commonRecipe.getOrganId(), drugIdList);
+        LOGGER.info(" addCommonRecipe organDrugLists:{}", JSONUtils.toString(organDrugLists));
         if (CollectionUtils.isEmpty(organDrugLists)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
         }
@@ -539,7 +540,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         drugList.forEach(a -> {
             OrganDrugList organDrugList = null;
             List<OrganDrugList> organDrugs = organDrugListsGroup.get(a.getDrugId());
-            if (CollectionUtils.isNotEmpty(organDrugs)) {
+            if (CollectionUtils.isEmpty(organDrugs)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
             for (OrganDrugList organDrug : organDrugs) {

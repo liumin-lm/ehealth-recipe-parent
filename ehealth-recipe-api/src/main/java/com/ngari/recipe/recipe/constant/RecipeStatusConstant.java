@@ -259,5 +259,10 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
 
+    /**
+     * 审方失败取消
+     */
+    public static final int REVIEW_DRUG_FAIL = 43;
+
 
 }
