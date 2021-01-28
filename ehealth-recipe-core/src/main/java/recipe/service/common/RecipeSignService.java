@@ -441,6 +441,7 @@ public class RecipeSignService {
         rMap.put("errorFlag", false);
         rMap.put("canContinueFlag", "0");
         LOG.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
+        RecipeService.handleRecipeInvalidTime(recipeBean);
         return rMap;
     }
 
