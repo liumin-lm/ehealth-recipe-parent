@@ -1637,7 +1637,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
 
         // 处方失效时间处理
-        handleRecipeInvalidTime(recipeBean);
+        this.handleRecipeInvalidTime(recipeBean);
         return rMap;
     }
 
@@ -1646,7 +1646,7 @@ public class RecipeService extends RecipeBaseService {
      *
      * @param recipeBean
      */
-    private void handleRecipeInvalidTime(RecipeBean recipeBean) {
+    public static void handleRecipeInvalidTime(RecipeBean recipeBean) {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
