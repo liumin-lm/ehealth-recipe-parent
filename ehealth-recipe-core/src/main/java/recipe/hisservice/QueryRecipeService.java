@@ -432,7 +432,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         Double drugTotalNumber = new Double(0);
         BigDecimal drugTotalAmount= new BigDecimal(0);
-        LOGGER.info("处方明细数据：JSONUtils.toString(details)={}",JSONUtils.toString(details));
+
         //拼接处方明细
         if (CollectionUtils.isNotEmpty(details)) {
             List<OrderItemDTO> orderList = new ArrayList<>();
@@ -531,6 +531,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
+                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}",JSONUtils.toString(orderList));
                 orderList.add(orderItem);
             }
             recipeDTO.setOrderList(orderList);
