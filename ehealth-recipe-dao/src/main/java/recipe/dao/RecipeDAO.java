@@ -3755,7 +3755,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      */
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,13,14,16)")
-    public abstract List<Recipe> getRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId")Integer clinicId);
+    public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId")Integer clinicId);
 
     /**
      * 处方数据  处方明细数据
