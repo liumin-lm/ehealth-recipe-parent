@@ -327,7 +327,7 @@ public class RecipeMsgService {
                 case RECIPE_CANCEL_4HIS:
                     getHosRecipeInfo(recipe, extendValue);
                     //设置 overtime 超时时间
-                    extendValue.put("overtime", expiredDays.toString());
+                    extendValue.put("overtime", "医院处方有效时间");
                     break;
                 case RECIPE_HOSSUPPORT_NOINVENTORY:
                 case RECIPE_HOSSUPPORT_INVENTORY:
