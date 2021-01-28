@@ -1230,6 +1230,10 @@ public class RecipeServiceSub {
                 case RecipeStatusConstant.SIGN_ING_CODE_PHA:
                     tips = "审方签名中";
                     break;
+                case RecipeStatusConstant.REVIEW_DRUG_FAIL:
+                    tips = "已取消";
+                    cancelReason = "由于审方平台接口异常，处方单已取消，请稍后重试";
+                    break;
                 default:
                     tips = RecipeStatusEnum.getRecipeStatus(status);
             }
