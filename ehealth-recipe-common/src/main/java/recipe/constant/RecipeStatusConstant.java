@@ -177,6 +177,10 @@ public class RecipeStatusConstant {
     public static final int SIGN_ING_CODE_DOC = 30;
 
     /**
+     * 由于审方平台接口异常，处方单已取消
+     */
+    public static final int REVIEW_DRUG_FAIL = 43;
+    /**
      * 签名中-药师
      */
     public static final int SIGN_ING_CODE_PHA = 31;

@@ -1,7 +1,6 @@
 package recipe.service.paycallback;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
 import com.ngari.recipe.pay.model.PayResultDTO;
@@ -9,6 +8,8 @@ import com.ngari.recipe.pay.service.IRecipePayCallBackService;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import coupon.api.service.ICouponBaseService;
+import ctd.util.AppContextHolder;
 import ctd.util.Base64;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -24,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.ApplicationUtils;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
@@ -57,30 +57,83 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             logger.info("doBusinessAfterOrderSuccess busObject not exists, busId[{}]", busId);
             return false;
         }
-
-        if (order.getPayFlag() != null && order.getPayFlag() == 1) {//已处理
+        //已处理-幂等判断
+        if (order.getPayFlag() != null && order.getPayFlag() == 1) {
             logger.info("doBusinessAfterOrderSuccess payflag has been set true, busId[{}]", busId);
+            return true;
+        }
+        //已取消不做更新
+        if (order.getStatus() == 8 || order.getStatus() == 7) {
+            logger.info("doBusinessAfterOrderSuccess effective is 0, busId[{}]", busId);
             return true;
         }
         HashMap<String, Object> attr = new HashMap<>();
         attr.put("tradeNo", tradeNo);
         attr.put("outTradeNo", outTradeNo);
         Map<String, String> notifyMap = payResult.getNotifyMap();
-        //取药窗口
+        //组装卫宁付返回参数并更新订单
+        assembleWeiningPayCallBackParamAndUpdate(busId, notifyMap, attr, order);
+
+        String orderCode = order.getOrderCode();
+        //保存电子票据
+        saveRecipeOrderBill(notifyMap, orderCode);
+
+        //业务支付回调
+        if (StringUtils.isNotEmpty(orderCode)) {
+            IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
+            RecipeBean recipeBean = recipeService.getRecipeByOrderCode(orderCode);
+            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, recipeBean.getPayMode());
+        } else {
+            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, RecipeConstant.PAYMODE_ONLINE);
+        }
+
+        //更新处方支付日志
+        String memo = "订单: 收到支付平台支付消息 商户订单号:" + outTradeNo + ",第三方流水号：" + tradeNo;
+        updateRecipePayLog(order, memo);
+        //存在优惠券的处理
+        if (ValidateUtil.notNullAndZeroInteger(order.getCouponId()) && order.getCouponId() != -1) {
+            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
+            couponService.useCouponById(order.getCouponId());
+        }
+        return true;
+    }
+
+    /**
+     * 更新处方支付日志
+     *
+     * @param order
+     */
+    private void updateRecipePayLog(RecipeOrderBean order, String memo) {
+        List<Integer> recipeIdList = null;
+        if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
+            recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        }
+        if (CollectionUtils.isNotEmpty(recipeIdList)) {
+            for (int i = 0; i < recipeIdList.size(); i++) {
+                recipeLogService.saveRecipeLog(recipeIdList.get(i), RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, memo);
+            }
+        }
+    }
+
+    /**
+     * 组装卫宁付返回参数并更新订单信息
+     *
+     * @param busId
+     * @param notifyMap
+     * @param attr
+     * @param order
+     */
+    private void assembleWeiningPayCallBackParamAndUpdate(Integer busId, Map<String, String> notifyMap, HashMap<String, Object> attr, RecipeOrderBean order) {
         String pharmNo = null;
         //卫宁付返回信息 保存到处方订单表中
         if (notifyMap != null && notifyMap.get("total_amount") != null) {
-            if (order.getStatus() == 8 || order.getStatus() == 7) {//已取消不做更新
-                logger.info("doBusinessAfterOrderSuccess effective is 0, busId[{}]", busId);
-                return true;
-            }
             //支付金额---自费金额
             Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
             //医保出参(base64编码后的需要解码)
             String medicalSettleInfo = StringUtils.defaultString(notifyMap.get("ybcc"), "");
             //医保代码
             String medicalSettleCode = StringUtils.defaultString(notifyMap.get("ybdm"), "");
-            //类型的确定    0是自费，1是医保
+            //医保类型的确定    0是自费，1是医保
             String med_type = StringUtils.defaultString(notifyMap.get("med_type"), "");
             //支付方式
             String wnPayWay = StringUtils.defaultString(notifyMap.get("zffs"), "");
@@ -88,10 +141,10 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String bodyString = StringUtils.defaultString(notifyMap.get("body"), "");
             Map<String, String> body = JSONUtils.parse(bodyString, Map.class);
 
-            //获取平台的ysbody
+            //获取平台的ysbody---卫宁付支付预算信息
             String ysbodyString = StringUtils.defaultString(notifyMap.get("ysbody"), "");
             Map<String, String> ysbody = JSONUtils.parse(ysbodyString, Map.class);
-
+            //一些信息先从body取，取不到再从ysbody取（兼容）
             if (body != null) {
                 //取药窗口
                 pharmNo = StringUtils.defaultString(body.get("fyyfjh"), "");
@@ -142,18 +195,34 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
             attr.put("medicalSettleCode", medicalSettleCode);
             attr.put("WnPayWay", wnPayWay);
+            //支付平台返回的医保类型0是自费，1是医保
             if (StringUtils.isNotEmpty(med_type)) {
                 Integer medType = ConversionUtils.convert(med_type, Integer.class);
-                if (medType == 1) {
-                    //类型存储  0是自费，1是医保
-                    if (order.getOrderType() == 0) {
-                        attr.put("orderType", 4);
-                    }
+                //只有处方订单是自费订单的时候才保存
+                if (medType == 1 && order.getOrderType() == 0) {
+                    //存储到处方是4-普通医保
+                    attr.put("orderType", 4);
                 }
             }
         }
+        //更新订单信息
         recipeOrderService.updateOrderInfo(order.getOrderCode(), attr);
-        String orderCode = order.getOrderCode();
+        if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            //更新窗口号
+            if (StringUtils.isNotEmpty(pharmNo)) {
+                recipeOrderService.updateExtPharmNoS(recipeIdList, pharmNo);
+            }
+        }
+    }
+
+    /**
+     * 保存订单电子票据
+     *
+     * @param notifyMap
+     * @param orderCode
+     */
+    private void saveRecipeOrderBill(Map<String, String> notifyMap, String orderCode) {
         try {
             if (notifyMap != null) {
                 String bodyString = StringUtils.defaultString(notifyMap.get("body"), "");
@@ -172,36 +241,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         } catch (Exception e) {
             logger.error("支付成功后保存订单电子票据异常，error=", e);
         }
-        if (StringUtils.isNotEmpty(orderCode)) {
-            IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
-            RecipeBean recipeBean = recipeService.getRecipeByOrderCode(orderCode);
-            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, recipeBean.getPayMode());
-        } else {
-            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, RecipeConstant.PAYMODE_ONLINE);
-        }
-
-        Integer bussId = order.getOrderId();
-        List<Integer> recipeIdList = null;
-        if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
-            recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-//            if (CollectionUtils.isNotEmpty(recipeIdList)) {
-//                bussId = recipeIdList.get(0);
-//            }
-        }
-        if (StringUtils.isNotEmpty(pharmNo)) {
-//            orderService.updatePharmNo(recipeIdList.get(0), pharmNo);
-            recipeOrderService.updatePharmNoS(recipeIdList, pharmNo);
-        }
-        if (CollectionUtils.isNotEmpty(recipeIdList)) {
-            for (int i = 0; i < recipeIdList.size(); i++) {
-                recipeLogService.saveRecipeLog(recipeIdList.get(i), RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "订单: 收到支付平台支付消息 商户订单号:" + outTradeNo + ",第三方流水号：" + tradeNo);
-            }
-        }
-        if (ValidateUtil.notNullAndZeroInteger(order.getCouponId()) && order.getCouponId() != -1) {
-            ICouponService couponService = ApplicationUtils.getBaseService(ICouponService.class);
-            couponService.useCouponById(order.getCouponId());
-        }
-        return true;
     }
 
     @Override
@@ -222,16 +261,16 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 memo.append("支付 未知状态，payflag:" + targetPayflag);
                 break;
         }
-        Integer bussId = recipeOrderBean.getOrderId();
         if (StringUtils.isNotEmpty(recipeOrderBean.getRecipeIdList())) {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrderBean.getRecipeIdList(), List.class);
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
-                bussId = recipeIdList.get(0);
+                Integer bussId = recipeIdList.get(0);
                 //调用回调处方退费
                 recipeOrderService.refundCallback(bussId, targetPayflag, null);
             }
         }
-        recipeLogService.saveRecipeLog(bussId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, memo.toString());
+        //更新处方日志
+        updateRecipePayLog(recipeOrderBean, memo.toString());
         return true;
     }
 }

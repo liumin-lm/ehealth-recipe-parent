@@ -2,7 +2,6 @@ package recipe.atop;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
-import com.ngari.recipe.vo.ResultBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -13,13 +12,12 @@ import recipe.service.CommonRecipeService;
 import java.util.List;
 
 /**
- * 处方订单服务入口类
+ * 常用方服务入口类
  *
  * @author fuzi
  */
 @RpcBean("commonRecipeAtop")
 public class CommonRecipeAtop extends BaseAtop {
-
     @Autowired
     private CommonRecipeService commonRecipeService;
 
@@ -34,22 +32,22 @@ public class CommonRecipeAtop extends BaseAtop {
      * @return ResultBean
      */
     @RpcService
-    public ResultBean commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+    public List<CommonRecipeDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
         logger.info("CommonRecipeAtop commonRecipeList organId = {},doctorId = {},recipeType = {},start = {},limit = {}"
                 , organId, doctorId, recipeType, start, limit);
         if (null == doctorId && null == organId) {
-            return ResultBean.serviceError("入参错误");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         try {
             List<CommonRecipeDTO> result = commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
             logger.info("CommonRecipeAtop commonRecipeList result = {}", JSON.toJSONString(result));
-            return ResultBean.succeed(result);
+            return result;
         } catch (DAOException e1) {
             logger.warn("CommonRecipeAtop commonRecipeList error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("CommonRecipeAtop commonRecipeList error", e);
-            return ResultBean.serviceError(e.getMessage(), null);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
 }

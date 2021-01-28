@@ -886,6 +886,31 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /**
+     * 药品匹配 搜索专用
+     */
+    @RpcService
+    public List<DrugListBean> drugMatchSearch(int drugId ,Integer organId ,final String input,final String producer) {
+        DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
+        //根据药品名取标准药品库查询相关药品
+        List<DrugList> drugLists = null;
+        List<DrugListBean> drugListBeans = null;
+        drugLists = drugListDAO.findBySaleNameLikeSearch(organId,input,producer);
+        //已匹配状态返回匹配药品id
+        if (CollectionUtils.isNotEmpty(drugLists)) {
+            drugListBeans = ObjectCopyUtils.convert(drugLists, DrugListBean.class);
+            if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
+                for (DrugListBean drugListBean : drugListBeans) {
+                    if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
+                        drugListBean.setIsMatched(true);
+                    }
+                }
+            }
+        }
+        return drugListBeans;
+
+    }
+
+    /**
      * 药品提交至organDrugList(将匹配完成的数据提交更新)人工提交
      */
     @RpcService
@@ -1620,6 +1645,49 @@ public class DrugToolService implements IDrugToolService {
         String likeDrugName = DrugMatchUtil.match(drugListMatch.getDrugName());
 
         List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
+        if (CollectionUtils.isNotEmpty(searchDrugs)) {
+            provinceDrugLists = searchDrugs;
+        }
+
+        return provinceDrugLists;
+    }
+
+    /**
+     * 省药品匹配 搜索专用
+     */
+    @RpcService
+    public List<ProvinceDrugListBean> provinceDrugMatchSearch(int drugId, int organId, int start, int limit,final String input,final String producer) {
+        DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
+
+        if (null == drugListMatch) {
+            LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构对照列表中", drugId);
+            return null;
+        }
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsSearch(organId, start, limit, input,producer);
+        if (null == provinceDrugLists) {
+            //如果没有省平台药品数据则为null
+            return null;
+        }
+        List<ProvinceDrugListBean> provinceDrugListBeans = getProvinceDrugListBean(drugListMatch, provinceDrugLists);
+
+        return provinceDrugListBeans;
+
+    }
+
+
+    /*根据匹配的药品销售名，获取相似名称的省平台药品   搜索专用*/
+    private List<ProvinceDrugList> getProvinceDrugListsSearch(int organId, int start, int limit, String input, String producer) {
+        List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
+        if (!checkOrganRegulation(organId)) return null;
+
+        //判断机构对应省平台下有没有药品，没有省平台返回null
+        String addrArea = checkOrganAddrArea(organId);
+        Long countByProvinceIdAndStatus = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
+        if (null == countByProvinceIdAndStatus || 0 >= countByProvinceIdAndStatus) {
+            return null;
+        }
+
+        List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLikeSearch( addrArea, start, limit, input,producer);
         if (CollectionUtils.isNotEmpty(searchDrugs)) {
             provinceDrugLists = searchDrugs;
         }

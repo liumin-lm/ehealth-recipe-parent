@@ -4,6 +4,7 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -174,6 +175,17 @@ public class RecipeExtendBean implements Serializable {
 
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
+
+    @ItemProperty(alias="取药窗口")
+    private String pharmNo;
+
+    public String getPharmNo() {
+        return pharmNo;
+    }
+
+    public void setPharmNo(String pharmNo) {
+        this.pharmNo = pharmNo;
+    }
 
     public String getPutOnRecordID() {
         return putOnRecordID;

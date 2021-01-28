@@ -89,6 +89,8 @@ public class HisCallBackService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Map<String, Object> extendMap = new HashedMap();
         extendMap.put("recipeCostNumber",result.getRecipeCostNumber());
+        // 将取药窗口更新到ext表
+        extendMap.put("pharmNo",result.getPharmNo());
         recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(result.getRecipeId()), extendMap);
         LOGGER.info("checkPassSuccess.updateRecipeCostNumber,recipeId={},recipeCostNumber={}",result.getRecipeId(),result.getRecipeCostNumber());
         //todo---写死上海六院---在患者选完取药方式之后推送处方 第二次调用无需任何处理
@@ -150,7 +152,7 @@ public class HisCallBackService {
                 detailAttrMap = Maps.newHashMap();
                 detailAttrMap.put("drugGroup", detail.getDrugGroup());
                 detailAttrMap.put("orderNo", detail.getOrderNo());
-                detailAttrMap.put("pharmNo", detail.getPharmNo());
+//                detailAttrMap.put("pharmNo", detail.getPharmNo());
                 
                 //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
                 Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
@@ -169,6 +171,9 @@ public class HisCallBackService {
                     }
                 }
                 detailDAO.updateRecipeDetailByRecipeDetailId(detail.getRecipeDetailId(), detailAttrMap);
+
+
+
                 /**更新药品最新的价格等*/
                 organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), detail);
             }

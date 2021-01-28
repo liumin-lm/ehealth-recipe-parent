@@ -50,6 +50,7 @@ import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -71,6 +72,7 @@ import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
+import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -108,6 +110,7 @@ import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -116,6 +119,10 @@ import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
+import recipe.util.ChinaIDNumberUtil;
+import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
+import recipe.util.MapValueUtil;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
@@ -1549,6 +1556,17 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RequestVisitVO requestVisitVO=new RequestVisitVO();
+            requestVisitVO.setDoctor(recipeBean.getDoctor());
+            requestVisitVO.setMpiid(recipeBean.getMpiid());
+            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
+            requestVisitVO.setClinicId(recipeBean.getClinicId());
+            LOGGER.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
+            //判定开处方单数是否超过限制
+            recipeService.isOpenRecipeNumber(requestVisitVO);
+
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
@@ -1619,6 +1637,16 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
 
         // 处方失效时间处理
+        this.handleRecipeInvalidTime(recipeBean);
+        return rMap;
+    }
+
+    /**
+     * 设置处方失效时间，非当天小于24小时的发送失效延迟消息
+     *
+     * @param recipeBean
+     */
+    public static void handleRecipeInvalidTime(RecipeBean recipeBean) {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
@@ -1650,8 +1678,14 @@ public class RecipeService extends RecipeBaseService {
                         int minute = (int)(invalidValue * 60);
                         calendar.add(Calendar.MINUTE, minute);
                         invalidDate = calendar.getTime();
-                        // TODO 延迟队列发送延迟消费消息
-
+                        // 毫秒
+                        try {
+                            int millSecond = eh.utils.DateConversion.secondsBetweenDateTime(recipeBean.getSignDate(), invalidDate) * 1000;
+                            LOGGER.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),millSecond);
+                            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeBean.getRecipeId()), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeBean.getRecipeId()), millSecond);
+                        } catch (Exception e) {
+                            LOGGER.error("机构处方失效时间-发送延迟消息异常，机构id={},处方id={}",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),e);
+                        }
                         break;
                     default:
                         LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
@@ -1666,7 +1700,6 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("机构处方失效时间-处理异常,机构id={},处方id={}",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),e);
         }
-        return rMap;
     }
 
 
@@ -2627,6 +2660,9 @@ public class RecipeService extends RecipeBaseService {
         if (responseTO != null ){
             data = responseTO.getData();
         }
+        if (ObjectUtils.isEmpty(data)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
+        }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
@@ -2638,9 +2674,9 @@ public class RecipeService extends RecipeBaseService {
         if (sync || add){
         while (finishFlag) {
             if (!CollectionUtils.isEmpty(data)) {
-                LOGGER.info("drugInfoSynMovement data=[{}]", data.size());
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
+                    LOGGER.info("drugInfoSynMovementaddHisDrug前期"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
                     if (null == organDrug && add ) {
                         String drugform = drug.getDrugform();
@@ -2672,18 +2708,18 @@ public class RecipeService extends RecipeBaseService {
                         continue;
                     }else if (null != organDrug && sync){
                         updateHisOrganDrug(drug, organDrug);
+                        LOGGER.info("drugInfoSynMovementupdateNum"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                         updateNum++;
                         startIndex++;
                         continue;
                     }
-                    LOGGER.info("drugInfoSynMovement organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     startIndex++;
                 }
             }else {
                 break;
             }
             if (startIndex >= total){
-                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum);
+                LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，新增量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum,addNum);
                 finishFlag = false;
             }
         }
@@ -2805,6 +2841,7 @@ public class RecipeService extends RecipeBaseService {
             orderService.updateHisRecieStatus(recipes);
         }
         for (Integer status : statusList) {
+            // 2021失效时间可以配置需求，原定时任务查询增加失效时间为空条件
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
             LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
             if (CollectionUtils.isNotEmpty(recipeList)) {
@@ -2813,25 +2850,7 @@ public class RecipeService extends RecipeBaseService {
                     if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
                         continue;
                     }
-                    if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
-                        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-                        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                            if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
-                                //向药企推送处方过期的通知
-                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                                try {
-                                    AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-                                    DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
-                                    LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                                } catch (Exception e) {
-                                    LOGGER.info("向药企推送处方过期通知有问题{}", recipe.getRecipeId(), e);
-                                }
-                            }
-
-
-                        }
-                    }
+                    this.sendDrugEnterproseMsg(recipe);
                     memo.delete(0, memo.length());
                     int recipeId = recipe.getRecipeId();
                     //相应订单处理
@@ -2929,6 +2948,135 @@ public class RecipeService extends RecipeBaseService {
                 //RecipeMsgService.batchSendMsg(recipeIds, status);
             }
         }
+    }
+
+    /**
+     * 定时任务:根据失效时间取消处方单-每半个小时执行一次
+     */
+    @RpcService
+    public void cancelRecipeTaskByInvalidTime() {
+        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+
+        StringBuilder memo = new StringBuilder();
+        RecipeOrder order;
+        //设置查询时间段：失效时间-当前时间往前推3天
+        String startTime = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3), DateConversion.DEFAULT_DATE_TIME);
+        String endTime = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
+
+        List<Recipe> recipeList = recipeDAO.getInvalidRecipeListByInvalidTime(startTime, endTime);
+        LOGGER.info("cancelRecipeTaskByInvalidTime 取消数量=[{}], 详情={}", recipeList.size(), JSONUtils.toString(recipeList));
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            for (Recipe recipe : recipeList) {
+                //过滤掉流转到扁鹊处方流转平台的处方
+                if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
+                    continue;
+                }
+                this.sendDrugEnterproseMsg(recipe);
+                memo.delete(0, memo.length());
+                int recipeId = recipe.getRecipeId();
+                //相应订单处理
+                order = orderDAO.getOrderByRecipeId(recipeId);
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
+                    if (null != order) {
+                        orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                    }
+                    //发送超时取消消息
+                    //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
+                }
+                Integer status = this.getStatus(recipeDAO, recipe, recipeId);
+                //变更处方状态
+                if (status != null){
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                }
+                RecipeMsgService.batchSendMsg(recipe, status);
+                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    //药师首页待处理任务---取消未结束任务
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                }
+                if (RecipeStatusConstant.NO_PAY == status) {
+                    memo.append("已取消,超过失效时间未支付");
+                } else if (RecipeStatusConstant.NO_OPERATOR == status) {
+                    memo.append("已取消,超过失效时间未操作");
+                } else {
+                    memo.append("未知状态:" + status);
+                }
+                if (RecipeStatusConstant.NO_PAY == status) {
+                    //未支付，三天后自动取消后，优惠券自动释放
+                    RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
+                    recipeCouponService.unuseCouponByRecipeId(recipeId);
+                }
+                //推送处方到监管平台
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                //HIS消息发送
+                boolean succFlag = hisService.recipeStatusUpdate(recipeId);
+                if (succFlag) {
+                    memo.append(",HIS推送成功");
+                } else {
+                    memo.append(",HIS推送失败");
+                }
+                //保存处方状态变更日志
+                RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo.toString());
+            }
+            //修改cdr_his_recipe status为已处理
+            orderService.updateHisRecieStatus(recipeList);
+        }
+
+
+    }
+
+    //向药企推送处方过期的通知
+    public static void sendDrugEnterproseMsg(Recipe recipe) {
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
+                    //向药企推送处方过期的通知
+                    RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                    try {
+                        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                        DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
+                        LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                    } catch (Exception e) {
+                        LOGGER.info("向药企推送处方过期通知有问题{}", recipe.getRecipeId(), e);
+                    }
+                }
+
+            }
+        }
+    }
+
+    /**
+     * 获取处方状态：未支付/未操作状态
+     * @param recipeDAO
+     * @param recipe
+     * @param recipeId
+     * @return
+     */
+    public static Integer getStatus(RecipeDAO recipeDAO, Recipe recipe, int recipeId) {
+        Integer fromFlag = recipe.getFromflag();
+        Integer dbStatus = recipe.getStatus();
+        Integer payFlag = recipe.getPayFlag();
+        Integer payMode = recipe.getPayMode();
+        String orderCode = recipe.getOrderCode();
+        //处方状态未支付： fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null
+        Integer status = null;
+        if ((fromFlag != null && (fromFlag == 1 || fromFlag == 2)) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payFlag != null && payFlag == 0 && payMode != null && StringUtils.isNotBlank(orderCode)){
+            status = RecipeStatusConstant.NO_PAY;
+        }
+        //处方状态未操作：fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1)
+        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payMode == null ){
+            status = RecipeStatusConstant.NO_OPERATOR;
+        }
+        if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
+            status = RecipeStatusConstant.NO_OPERATOR;
+        }
+        return status;
     }
 
     /**
@@ -3934,7 +4082,7 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setSourceOrgan(organId);
         }
         drugListMatch.setStatus(0);
-        LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(drugListMatch));
+        LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         drugListMatchDAO.save(drugListMatch);
         LOGGER.error("addHisDrug 成功", drugListMatch);
     }
@@ -4016,7 +4164,6 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
-        LOGGER.info("updateHisOrganDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         organDrugListDAO.update(organDrug);
     }
 
@@ -4917,42 +5064,31 @@ public class RecipeService extends RecipeBaseService {
         Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
         LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}",openRecipeNumber2);
 
-        if (requestVisitVO.getClinicId()!=null){
-            //复诊Id关联有效处方单
-            List<Recipe> recipeCount1=recipeDAO.getRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
-            LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount1.size()={}",recipeCount1.size());
-            if (recipeCount1.size()>openRecipeNumber2){
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
-            }
-        }else{
+        if (requestVisitVO.getClinicId()==null){
             //从当前就诊中获取就诊人处方信息
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
             IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
             //在线复诊服务
             List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             //当前就诊人正在咨询
-            Integer consultId=null;
-            Recipe recipe=null;
             if (CollectionUtils.isNotEmpty(consultIds)) {
-                List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
-                recipe=recipes.get(0);
-                LOGGER.info(" 当前就诊人查询处方：recipe={}",recipe);
-                consultId = consultIds.get(0);
-                recipe.setBussSource(2);
+                requestVisitVO.setClinicId(consultIds.get(0));
+                LOGGER.info(" 在线复诊服务复诊单号：requestVisitVO.getClinicId()={}",requestVisitVO.getClinicId());
             }else {
-                //图文咨询
+                //图文咨询服务
                 consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
                 if (CollectionUtils.isNotEmpty(consultIds)) {
-                    List<Recipe> recipes=recipeDAO.getRecipeByMpiidAndDoctor(requestVisitVO.getMpiid(),requestVisitVO.getDoctor());
-                    recipe=recipes.get(0);
-                    consultId = consultIds.get(0);
-                    recipe.setBussSource(1);
+                    requestVisitVO.setClinicId(consultIds.get(0));
+                    LOGGER.info(" 图文咨询服务复诊单号：requestVisitVO.getClinicId()={}",requestVisitVO.getClinicId());
                 }
             }
-            //根据获取处方查询
-            List<Recipe> recipeCount2=recipeDAO.getRecipeCountByClinicIdAndValidStatus(recipe.getClinicId());
-            LOGGER.info(" 当前没有复诊Id的时候查询出有效的处方单数：recipeCount2.size()={}",recipeCount2.size());
-            if (recipeCount2.size()>openRecipeNumber2){
+        }
+
+        //查询当前复诊存在的有效处方单
+        List<Recipe> recipeCount=recipeDAO.findRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
+        if (CollectionUtils.isNotEmpty(recipeCount)) {
+            LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount.size()={}",recipeCount.size());
+            if (recipeCount.size()>=openRecipeNumber2){
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
             }
         }
