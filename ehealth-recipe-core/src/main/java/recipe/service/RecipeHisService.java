@@ -1892,6 +1892,7 @@ public class RecipeHisService extends RecipeBaseService {
             detailBean.setUseDays(recipeDetailTO.getDays());
             detailBean.setUseTotalDose(recipeDetailTO.getAmount());
             detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+            detailBean.setPharmacyCode(recipeDetailTO.getPharmacyCode());
             recipeDetailTOs.add(detailBean);
         }
         return recipeDetailTOs;

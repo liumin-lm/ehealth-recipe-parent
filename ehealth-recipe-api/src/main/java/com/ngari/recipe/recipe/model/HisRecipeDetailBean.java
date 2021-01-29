@@ -1,6 +1,5 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -28,6 +27,8 @@ public class HisRecipeDetailBean implements Serializable {
     private String useDays;
     private String useDaysB;
     private String drugSpec;
+
+    private String pharmacyCode;
 
     public String getUseDaysB() {
         return useDaysB;
@@ -147,5 +148,13 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setRecipeDetailId(Integer recipeDetailId) {
         this.recipeDetailId = recipeDetailId;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
     }
 }
