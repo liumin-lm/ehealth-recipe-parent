@@ -738,7 +738,8 @@ public class RecipeService extends RecipeBaseService {
             String recipeFileId = MapValueUtil.getString(backMap, "fileId");
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("signFile", recipeFileId);
-            attrMap.put("signDate", DateTime.now().toDate());
+            // 会更新signRecipeNew方法保存的签名时间导致计算失效时间不准确
+            //attrMap.put("signDate", DateTime.now().toDate());
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
