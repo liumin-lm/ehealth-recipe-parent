@@ -779,6 +779,9 @@ public class HisRecipeService {
                 hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
+                if (queryHisRecipResTO.getTcmNum() != null) {
+                    hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum().toString());
+                }
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 if(new Integer(2).equals(queryHisRecipResTO.getMedicalType())){
                     hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
@@ -1151,7 +1154,12 @@ public class HisRecipeService {
         recipe.setTakeMedicine(0);
         recipe.setGiveFlag(0);
         recipe.setRecipeMode("ngarihealth");
-        recipe.setCopyNum(1);
+        if (hisRecipe.getTcmNum() != null) {
+            recipe.setCopyNum(Integer.parseInt(hisRecipe.getTcmNum()));
+        } else {
+            recipe.setCopyNum(1);
+        }
+
         recipe.setValueDays(3);
         recipe.setFromflag(1);
         recipe.setRecipeSourceType(2);
