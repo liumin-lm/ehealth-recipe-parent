@@ -2,6 +2,7 @@ package com.ngari.recipe.pay.service;
 
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.util.annotation.RpcService;
 import eh.entity.bus.Order;
 import eh.entity.bus.pay.ConfirmOrder;
 import eh.entity.bus.pay.SimpleBusObject;
@@ -22,6 +23,7 @@ public interface IRecipeBusPayService {
      * @param extInfo 扩展信息
      * @return
      */
+    @RpcService
     ConfirmOrder obtainConfirmOrder(String busType, Integer busId, Map<String, String> extInfo);
 
     /**
@@ -30,6 +32,7 @@ public interface IRecipeBusPayService {
      * @param busId
      * @return
      */
+    @RpcService
     SimpleBusObject getSimpleBusObject(Integer busId);
 
     /**
@@ -37,6 +40,7 @@ public interface IRecipeBusPayService {
      *
      * @param order 订单数据
      */
+    @RpcService
     void onOrder(Order order);
 
     /**
@@ -44,6 +48,7 @@ public interface IRecipeBusPayService {
      *
      * @param busId 业务id
      */
+    @RpcService
     boolean checkCanPay(Integer busId);
 
     /**
@@ -53,5 +58,6 @@ public interface IRecipeBusPayService {
      * @param patient
      * @return
      */
+    @RpcService
     WnExtBusCdrRecipeDTO newWnExtBusCdrRecipe(RecipeOrderBean recipeOrder, Patient patient);
 }
