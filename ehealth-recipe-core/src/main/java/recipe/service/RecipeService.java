@@ -1652,7 +1652,7 @@ public class RecipeService extends RecipeBaseService {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Object invalidInfoObject =  configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
             JSONArray jsonArray = JSON.parseArray(JSONObject.toJSONString(invalidInfoObject));
-            LOGGER.info("机构处方失效时间-查询配置结果，机构={},处方id={},配置={}",recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), invalidInfoObject);
+            LOGGER.info("机构处方失效时间-查询配置结果，机构={},处方id={},配置={}",recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), JSONObject.toJSONString(invalidInfoObject));
             if (CollectionUtils.isNotEmpty(jsonArray)){
                 // 配置格式：签名当天后某天24点前=d2-天数;签名后大于24小时=d1-小时数;签名后小于一天=h-小时数
                 // 签名后小于一天用延迟队列取消处方，其余由定时任务取消
@@ -1690,7 +1690,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                         break;
                     default:
-                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfoObject);
+                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), JSONObject.toJSONString(invalidInfoObject));
                         break;
                 }
                 // 更新处方失效时间
