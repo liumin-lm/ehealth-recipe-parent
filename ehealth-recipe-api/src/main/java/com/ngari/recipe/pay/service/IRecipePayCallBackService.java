@@ -1,6 +1,7 @@
 package com.ngari.recipe.pay.service;
 
 import com.ngari.recipe.pay.model.PayResultDTO;
+import ctd.util.annotation.RpcService;
 import eh.entity.bus.Order;
 
 import java.util.Map;
@@ -16,6 +17,7 @@ public interface IRecipePayCallBackService {
      * @param payResult
      * @return
      */
+    @RpcService
     boolean doHandleAfterPay(PayResultDTO payResult);
 
     /**
@@ -26,5 +28,6 @@ public interface IRecipePayCallBackService {
      * @param refundResult
      * @return
      */
+    @RpcService
     boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult);
 }
