@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.bussutil.RecipeUtil;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.service.client.DrugClient;
@@ -52,7 +53,7 @@ public class RecipeDetailService {
      * @param recipeDetails 处方明细
      * @return
      */
-    public List<RecipeDetailBean> validateDrug(Integer organId, List<RecipeDetailBean> recipeDetails) {
+    public List<RecipeDetailBean> validateDrug(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId);
         //药房信息
@@ -101,7 +102,11 @@ public class RecipeDetailService {
                 return;
             }
             //校验数据是否完善
-            validateDrug(a, recipeDay, organDrug);
+            if (RecipeUtil.isTcmType(recipeType)) {
+                validateDrug(a, recipeDay, organDrug);
+            } else {
+                validateChineDrug(a, recipeDay, organDrug);
+            }
         });
         return recipeDetails;
     }
@@ -141,7 +146,7 @@ public class RecipeDetailService {
 
 
     /**
-     * 校验数据是否完善
+     * 校验西药 数据是否完善
      * 错误数据设置为null
      *
      * @param recipeDetail 处方明细数据
@@ -176,6 +181,41 @@ public class RecipeDetailService {
         if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) > minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) < maxUseDay) {
             recipeDetail.setUseDaysB(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+    }
+
+    /**
+     * 校验中药 数据是否完善
+     * 错误数据设置为null
+     *
+     * @param recipeDetail 处方明细数据
+     * @param recipeDay    处方药物使用天数时间
+     * @param organDrug    机构药品
+     */
+    private void validateChineDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
+        if (null == recipeDetail.getUseDose()) {
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+        if (StringUtils.isEmpty(recipeDetail.getDosageUnit()) || (!recipeDetail.getDosageUnit().equals(organDrug.getUseDoseUnit())
+                && !recipeDetail.getDosageUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
+            recipeDetail.setDosageUnit(null);
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+        UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
+        if (null == usingRateDTO) {
+            recipeDetail.setUsingRate(null);
+        }
+        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organDrug.getOrganId(), recipeDetail.getUsePathways());
+        if (null == usePathwaysDTO) {
+            recipeDetail.setUsePathways(null);
+        }
+        Integer minUseDay = Integer.valueOf(recipeDay[0]);
+        Integer maxUseDay = Integer.valueOf(recipeDay[1]);
+        if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() > minUseDay || recipeDetail.getUseDays() < maxUseDay) {
+            recipeDetail.setUseDays(null);
+        }
+        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) > minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) < maxUseDay) {
+            recipeDetail.setUseDaysB(null);
         }
     }
 
