@@ -68,7 +68,7 @@ public class RecipeDetailService {
         //校验数据判断状态
         recipeDetails.forEach(a -> {
             a.setValidateStatus(VALIDATE_STATUS_YES);
-            //校验药品
+            //校验药品存在
             if (StringUtils.isEmpty(a.getOrganDrugCode())) {
                 a.setValidateStatus(VALIDATE_STATUS_FAILURE);
                 return;
@@ -78,6 +78,7 @@ public class RecipeDetailService {
                 a.setValidateStatus(VALIDATE_STATUS_FAILURE);
                 return;
             }
+            //校验比对药品
             OrganDrugList organDrug = null;
             if (null == a.getDrugId() && 1 == organDrugs.size()) {
                 organDrug = organDrugs.get(0);
