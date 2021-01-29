@@ -31,13 +31,13 @@ public class RecipeDetailAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<RecipeDetailBean> validateDetail(Integer organId, List<RecipeDetailBean> recipeDetails) {
-        logger.info("RecipeDetailAtop validateDetail recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
+    public List<RecipeDetailBean> validateDetail(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
+        logger.info("RecipeDetailAtop validateDetail recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
         if (null == organId || CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
         try {
-            List<RecipeDetailBean> result = recipeDetailService.validateDrug(organId, recipeDetails);
+            List<RecipeDetailBean> result = recipeDetailService.validateDrug(organId, recipeType, recipeDetails);
             logger.info("RecipeDetailAtop validateDetail result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
