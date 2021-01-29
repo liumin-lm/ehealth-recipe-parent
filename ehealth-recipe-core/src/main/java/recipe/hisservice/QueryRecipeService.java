@@ -1015,7 +1015,7 @@ public class QueryRecipeService implements IQueryRecipeService {
 
         String start = DateConversion.formatDateTimeWithSec(startDate);
         String end = DateConversion.formatDateTimeWithSec(endDate);
-        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={}{}{}", organId,startDate,endDate);
+        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={},{},{}", organId,startDate,endDate);
 
         //通过机构Id和时间查询处方信息
         List<Recipe> recipeList = recipeDAO.findRecipeListByOrganIdAndTime(organId, start, end);
@@ -1045,12 +1045,12 @@ public class QueryRecipeService implements IQueryRecipeService {
     private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe){
         QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
         try {
-            //处方号 处方唯一标识 收费码
-            recipeDTO.setRecipeID(String.valueOf(recipe.getRecipeId()));
+            //处方号 his返回
+            recipeDTO.setRecipeID(recipe.getRecipeCode());
             //机构id
             recipeDTO.setOrganId(String.valueOf(recipe.getClinicOrgan()));
-            //处方号  his返回
-            recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeCode()));
+            //处方号  处方唯一标识 收费码
+            recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
             //患者编号  门诊患者标识
             recipeDTO.setPatientID(recipe.getPatientID());
             //处方备注 医嘱正文
@@ -1118,7 +1118,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             //icd诊断名称
             recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
-            LOGGER.info("数据中心获取处方业务信息 recipeDTO:{}", JSONUtils.toString(recipeDTO));
+            LOGGER.info("数据中心获取处方业务信息 recipeDTO={}", JSONUtils.toString(recipeDTO));
         } catch (Exception e) {
             LOGGER.error("数据中心获取处方业务信息 recipeDTO error", e);
         }
