@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -1649,12 +1650,13 @@ public class RecipeService extends RecipeBaseService {
     public static void handleRecipeInvalidTime(RecipeBean recipeBean) {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            String invalidInfo = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
-            LOGGER.info("机构处方失效时间-查询配置结果，机构={},处方id={},配置={}",recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), invalidInfo);
-            if (StringUtils.isNotBlank(invalidInfo)){
+            Object invalidInfoObject =  configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeInvalidTime");
+            JSONArray jsonArray = JSON.parseArray(JSONObject.toJSONString(invalidInfoObject));
+            LOGGER.info("机构处方失效时间-查询配置结果，机构={},处方id={},配置={}",recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), invalidInfoObject);
+            if (CollectionUtils.isNotEmpty(jsonArray)){
                 // 配置格式：签名当天后某天24点前=d2-天数;签名后大于24小时=d1-小时数;签名后小于一天=h-小时数
                 // 签名后小于一天用延迟队列取消处方，其余由定时任务取消
-                String[] invalidArr = invalidInfo.split("-");
+                String[] invalidArr = jsonArray.getString(0).split("-");
                 Double invalidValue = Double.parseDouble(invalidArr[1]);
                 Calendar calendar  =   Calendar.getInstance();
                 calendar.setTime(recipeBean.getSignDate());
@@ -1688,7 +1690,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                         break;
                     default:
-                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfo);
+                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",recipeBean.getClinicOrgan(), invalidInfoObject);
                         break;
                 }
                 // 更新处方失效时间
