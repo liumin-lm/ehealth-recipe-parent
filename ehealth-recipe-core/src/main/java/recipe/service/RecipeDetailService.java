@@ -6,6 +6,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,13 +63,34 @@ public class RecipeDetailService {
         //查询机构药品
         List<String> organDrugCodeList = recipeDetails.stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
-        Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
         logger.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
+        Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         //校验数据判断状态
         recipeDetails.forEach(a -> {
             a.setValidateStatus(VALIDATE_STATUS_YES);
-            //校验药品
-            OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            //校验药品存在
+            if (StringUtils.isEmpty(a.getOrganDrugCode())) {
+                a.setValidateStatus(VALIDATE_STATUS_FAILURE);
+                return;
+            }
+            List<OrganDrugList> organDrugs = organDrugGroup.get(a.getOrganDrugCode());
+            if (CollectionUtils.isEmpty(organDrugs)) {
+                a.setValidateStatus(VALIDATE_STATUS_FAILURE);
+                return;
+            }
+            //校验比对药品
+            OrganDrugList organDrug = null;
+            if (null == a.getDrugId() && 1 == organDrugs.size()) {
+                organDrug = organDrugs.get(0);
+            }
+            if (null != a.getDrugId()) {
+                for (OrganDrugList drug : organDrugs) {
+                    if (drug.getDrugId().equals(a.getDrugId())) {
+                        organDrug = drug;
+                        break;
+                    }
+                }
+            }
             if (null == organDrug) {
                 a.setValidateStatus(VALIDATE_STATUS_FAILURE);
                 return;
