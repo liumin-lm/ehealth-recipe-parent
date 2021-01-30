@@ -157,9 +157,9 @@ public class RecipeDetailService {
         if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseDose() || 0 == recipeDetail.getUseTotalDose()) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-        if (StringUtils.isEmpty(recipeDetail.getDosageUnit()) || (!recipeDetail.getDosageUnit().equals(organDrug.getUseDoseUnit())
-                && !recipeDetail.getDosageUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
-            recipeDetail.setDosageUnit(null);
+        if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
+                && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
+            recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
         UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
@@ -196,9 +196,9 @@ public class RecipeDetailService {
         if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-        if (StringUtils.isEmpty(recipeDetail.getDosageUnit()) || (!recipeDetail.getDosageUnit().equals(organDrug.getUseDoseUnit())
-                && !recipeDetail.getDosageUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
-            recipeDetail.setDosageUnit(null);
+        if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
+                && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
+            recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
         UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
