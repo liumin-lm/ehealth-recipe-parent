@@ -103,9 +103,9 @@ public class RecipeDetailService {
             }
             //校验数据是否完善
             if (RecipeUtil.isTcmType(recipeType)) {
-                validateDrug(a, recipeDay, organDrug);
-            } else {
                 validateChineDrug(a, recipeDay, organDrug);
+            } else {
+                validateDrug(a, recipeDay, organDrug);
             }
         });
         return recipeDetails;
