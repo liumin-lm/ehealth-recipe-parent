@@ -154,7 +154,7 @@ public class RecipeDetailService {
      * @param organDrug    机构药品
      */
     private void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
-        if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose()) {
+        if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseDose() || 0 == recipeDetail.getUseTotalDose()) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
         if (StringUtils.isEmpty(recipeDetail.getDosageUnit()) || (!recipeDetail.getDosageUnit().equals(organDrug.getUseDoseUnit())
@@ -193,7 +193,7 @@ public class RecipeDetailService {
      * @param organDrug    机构药品
      */
     private void validateChineDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
-        if (null == recipeDetail.getUseDose()) {
+        if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
         if (StringUtils.isEmpty(recipeDetail.getDosageUnit()) || (!recipeDetail.getDosageUnit().equals(organDrug.getUseDoseUnit())
