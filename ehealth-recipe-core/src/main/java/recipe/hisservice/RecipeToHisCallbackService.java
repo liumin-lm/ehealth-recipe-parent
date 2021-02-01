@@ -80,6 +80,7 @@ public class RecipeToHisCallbackService {
             List<Recipedetail> list = Lists.newArrayList();
             boolean isDrugStock = true;
 
+            String pharmNo = null;
             for (OrderRepTO rep : repList) {
                 detail = new Recipedetail();
                 //是否有库存
@@ -96,7 +97,10 @@ public class RecipeToHisCallbackService {
                 detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
                 detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
                 //取药窗口是否都是返回同一窗口
-                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
+//                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
+                if(StringUtils.isNotEmpty(rep.getPharmNo())) {
+                    pharmNo = LocalStringUtil.toString(rep.getPharmNo());
+                }
                 detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
 
                 detail.setDrugSpec(rep.getDrugSpec());
@@ -104,6 +108,7 @@ public class RecipeToHisCallbackService {
                 detail.setPack(rep.getPack());
                 list.add(detail);
             }
+            result.setPharmNo(pharmNo);
             if (!StringUtils.isEmpty(amount)) {
                 BigDecimal total = new BigDecimal(amount);
                 result.setTotalMoney(total);

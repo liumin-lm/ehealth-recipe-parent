@@ -6,6 +6,8 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaAccountResponseTO;
+import com.ngari.his.ca.model.CaSignRequestTO;
+import com.ngari.his.ca.model.CaSignResponseTO;
 import com.ngari.his.ca.service.ICaHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DoctorDTO;
@@ -241,4 +243,29 @@ public class SignInfoService implements ISignInfoService {
         return response;
     }
 
+    /**
+     * 信步云根据签名id获取医生签名状态
+     * WAITING_USER_SIGN：任务尚未签署
+     * USER_SIGN_FINISH：任务签署完成，完成状态才能获取到签名结果
+     * TIMEOUT：任务超期，已经无法签署
+     * @param signId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public String getSignStatus(String signId, Integer organId) {
+        CaSignRequestTO request = new CaSignRequestTO();
+        request.setOrganId(organId);
+        request.setSignId(signId);
+        logger.info("getSignStatus request info=[{}]", JSONUtils.toString(request));
+        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService", ICaHisService.class);
+        HisResponseTO<CaSignResponseTO> response = iCaHisService.caSignBusiness(request);
+        logger.info("getSignStatus respose info=[{}]", JSONUtils.toString(response));
+        if (null != response && "200".equals(response.getMsgCode())) {
+            return response.getData().getSignStatus();
+        }
+        else {
+            throw new DAOException(609,response.getMsg());
+        }
+    }
 }

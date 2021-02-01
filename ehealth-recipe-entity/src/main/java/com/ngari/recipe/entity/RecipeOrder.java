@@ -281,7 +281,7 @@ public class RecipeOrder implements Serializable {
         this.hisEnterpriseName = hisEnterpriseName;
     }
 
-    @ItemProperty(alias = "订单退款标识")
+    @ItemProperty(alias = "订单退款标识 0未退费 1已退费")
     private Integer refundFlag;
 
     @ItemProperty(alias = "订单退款时间")

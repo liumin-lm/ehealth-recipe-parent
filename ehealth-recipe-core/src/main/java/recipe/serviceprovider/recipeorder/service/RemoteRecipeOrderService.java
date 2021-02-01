@@ -3,7 +3,6 @@ package recipe.serviceprovider.recipeorder.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.common.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
@@ -420,6 +419,13 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         LOGGER.info("保存处方订单电子票据信息={}",JSONObject.toJSONString(bill));
         orderBillDAO.save(bill);
         return true;
+    }
+
+    @Override
+    @RpcService
+    public Boolean updateExtPharmNoS(List<Integer> recipeId, String pharmNo) {
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        return recipeExtendDAO.updateRecipeExtByRecipeIdS(recipeId, ImmutableMap.of("pharmNo", pharmNo));
     }
 
 }

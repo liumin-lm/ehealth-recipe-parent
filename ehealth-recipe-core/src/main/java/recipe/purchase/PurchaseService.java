@@ -30,6 +30,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,10 +53,8 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.ParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -537,8 +536,8 @@ public class PurchaseService {
     /**
      * 检查处方是否已被处理
      *
-     * @param dbRecipe 处方
-     * @param result   结果
+     * @param recipes 处方
+     * @param result  结果
      * @return true 已被处理
      */
     private boolean checkRecipeIsDeal(List<Recipe> recipes, RecipeResultBean result, Map<String, String> extInfo) {
@@ -602,10 +601,33 @@ public class PurchaseService {
                 }
                 break;
             case RECIPE_STATUS_CHECK_PASS:
+                String invalidTime = "3日";
+                try {
+                    if (null != recipe.getInvalidTime()){
+                        Date now = new Date();
+                        long nd = 1000 * 24 * 60 * 60;
+                        long nh = 1000 * 60 * 60;
+                        long nm = 1000 * 60;
+                        long diff = recipe.getInvalidTime().getTime() - now.getTime();
+                        // 处方已到失效时间，失效定时任务未执行（每30分钟执行一次）
+                        if (diff <= 0){
+                            invalidTime = "30分钟";
+                        }else {
+                            long day = diff / nd;
+                            long hour = diff % nd / nh;
+                            long min = diff % nd % nh / nm;
+                            hour = hour + (day * 24);
+                            invalidTime = hour > 0 ? (hour + "小时") : "";
+                            invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
+                        }
+                    }
+                } catch (Exception e) {
+                    LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
+                }
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于收到处方的3日内完成购药，否则处方将失效";
+                    tips = "订单待支付，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的3日内完成购药，否则处方将失效";
+                    tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
@@ -648,6 +670,9 @@ public class PurchaseService {
                 break;
             case RECIPE_STATUS_HIS_FAIL:
                 tips = "处方单同步his写入失败";
+                break;
+            case REVIEW_DRUG_FAIL:
+                tips = "已取消";
                 break;
             case RECIPE_STATUS_DONE_DISPENSING:
                 tips = "药品已发药";

@@ -5,13 +5,12 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author yuyun
@@ -36,7 +35,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "就诊序号(对应来源的业务id)")
     private Integer clinicId;
 
-    @ItemProperty(alias = "主索引")
+    @ItemProperty(alias = "主索引（患者编号）")
     private String mpiid;
 
     @ItemProperty(alias = "患者医院病历号")
@@ -56,13 +55,13 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer originClinicOrgan;
 
-    @ItemProperty(alias = "处方号码")
+    @ItemProperty(alias = "处方号码，处方回写")
     private String recipeCode;
 
     @ItemProperty(alias = "处方来源源处方号")
     private String originRecipeCode;
 
-    @ItemProperty(alias = "处方类型")
+    @ItemProperty(alias = "处方类型 1 西药 2 中成药")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
@@ -73,7 +72,7 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
 
-    @ItemProperty(alias = "开方医生")
+    @ItemProperty(alias = "开方医生（医生Id）")
     @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer doctor;
 
@@ -296,7 +295,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
     private Integer takeMedicine;
 
-    @ItemProperty(alias = "处方发起者id")
+    @ItemProperty(alias = "处方发起者id,患者真实Id")
     private String requestMpiId;
 
     @ItemProperty(alias = "处方发起者urt")
@@ -353,6 +352,9 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "调配人")
     private String dispensPeople;
+
+    @ItemProperty(alias = "失效时间")
+    private Date invalidTime;
 
     public Recipe() {
     }
@@ -493,6 +495,15 @@ public class Recipe implements Serializable {
         this.sendDate = sendDate;
         this.signDate = signDate;
         this.memo = memo;
+    }
+
+    @Column(name = "invalidTime")
+    public Date getInvalidTime() {
+        return invalidTime;
+    }
+
+    public void setInvalidTime(Date invalidTime) {
+        this.invalidTime = invalidTime;
     }
 
     @Column(name = "checkStatus")

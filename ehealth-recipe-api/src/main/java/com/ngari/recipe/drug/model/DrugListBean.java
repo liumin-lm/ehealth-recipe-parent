@@ -161,6 +161,11 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "标志（浙江），1-是，0-否")
     private Integer isRegulation;
 
+
+    @ItemProperty(alias = "标志（审方），1-是，0-否")
+    private Integer isPrescriptions;
+
+
     @ItemProperty(alias = "医院库存、药企库存等列表信息")
     private List<DrugInventoryInfo> inventories;
 
@@ -566,6 +571,14 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
     public void setIsRegulation(Integer isRegulation) {
         this.isRegulation = isRegulation;
+    }
+
+    public Integer getIsPrescriptions() {
+        return isPrescriptions;
+    }
+
+    public void setIsPrescriptions(Integer isPrescriptions) {
+        this.isPrescriptions = isPrescriptions;
     }
 
     public List<DrugInventoryInfo> getInventories() {

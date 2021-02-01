@@ -115,6 +115,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药品包装数量")
     private Integer pack;
 
+    @ItemProperty(alias = "机构药品药房id")
+    private String organPharmacyId;
+
     public Integer getPack() {
         return pack;
     }
@@ -364,5 +367,13 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+    public String getOrganPharmacyId() {
+        return organPharmacyId;
+    }
+
+    public void setOrganPharmacyId(String organPharmacyId) {
+        this.organPharmacyId = organPharmacyId;
     }
 }

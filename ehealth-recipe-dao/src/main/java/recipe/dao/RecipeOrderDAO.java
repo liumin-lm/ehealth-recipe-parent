@@ -1327,7 +1327,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ,IFNULL(ero.fundAmount  ,0.00) ," +
                         "IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) - cast(IFNULL(ero.fundAmount  ,0.00) AS decimal(15,2)) ," +
                         "IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 )   ," +
-                        "IFNULL(ero.ActualPrice ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ),ero.outTradeNo,er.recipeCode,ero.EnterpriseId");
+                        "IFNULL(ero.ActualPrice ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ),ero.outTradeNo,er.recipeCode,ero.EnterpriseId,ero.refundFlag");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode " +
                         " WHERE ( ero.send_type = 1 or er.GiveMode = 2) and ero.payeeCode is not null AND ero.paytime BETWEEN :startTime AND :endTime");
@@ -1342,6 +1342,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     sql.append(" And er.clinicOrgan in :organIdList");
+                }
+                if (null != request.getRefundFlag()) {
+                    sql.append(" And ero.refundFlag = :refundFlag");
                 }
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
                 query.setFirstResult(request.getStart());
@@ -1360,6 +1363,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     query.setParameterList("organIdList", request.getOrganIdList());
                 }
+                if (null != request.getRefundFlag()) {
+                    query.setParameter("refundFlag", request.getRefundFlag());
+                }
 
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
@@ -1376,6 +1382,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     countQuery.setParameterList("organIdList", request.getOrganIdList());
+                }
+                if (null != request.getRefundFlag()) {
+                    countQuery.setParameter("refundFlag", request.getRefundFlag());
                 }
 
                 Long total = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
@@ -1403,6 +1412,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTradeNo(ConversionUtils.convert(item[14], String.class));
                         response.setRecipeCode(ConversionUtils.convert(item[15], String.class));
                         response.setEnterpriseId(ConversionUtils.convert(item[16], Integer.class));
+                        response.setRefundFlag(ConversionUtils.convert(item[17], Integer.class));
                         resultList.add(response);
                     }
                 }

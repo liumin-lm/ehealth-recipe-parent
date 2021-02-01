@@ -16,6 +16,15 @@ public class OnsConfig {
      */
     public static String emrRecipe;
 
+    /**
+     * 处方失效延迟消息topic
+     */
+    public static String recipeDelayTopic;
+
+
+    public void setRecipeDelayTopic(String recipeDelayTopic) {
+        OnsConfig.recipeDelayTopic = recipeDelayTopic;
+    }
 
     public void setBasicInfoTopic(String basicInfoTopic) {
         OnsConfig.basicInfoTopic = basicInfoTopic;

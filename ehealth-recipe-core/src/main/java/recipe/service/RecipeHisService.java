@@ -1533,9 +1533,6 @@ public class RecipeHisService extends RecipeBaseService {
     private List<RecipeDetailBean> offlineDrugs(Integer organId, List<OrganDrugList> organDrugs, List<RecipeDetailTO> detailData) {
         LOGGER.info("offlineDrugs organId = {},organDrugs={},detailData={}", organId, JSONUtils.toString(organDrugs), JSONUtils.toString(detailData));
         Map<String, OrganDrugList> organDrugMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
-        List<Integer> drugIds = organDrugs.stream().map(OrganDrugList::getDrugId).distinct().collect(Collectors.toList());
-        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
-        Map<Integer, DrugList> drugMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
 
         List<RecipeDetailBean> backDetailList = new ArrayList<>();
         StringBuilder msg = new StringBuilder();
@@ -1545,18 +1542,20 @@ public class RecipeHisService extends RecipeBaseService {
             if (null == organDrug) {
                 continue;
             }
-
             if (null == recipeDetail.getAmount() || StringUtils.isAnyEmpty(recipeDetail.getUsePathwaysCode(), recipeDetail.getUsingRateCode(), recipeDetail.getUseDose(), recipeDetail.getUseDoseUnit(), recipeDetail.getDays())) {
                 msg.append(recipeDetail.getDrugName()).append(",");
                 continue;
             }
+            RecipeDetailBean mapDetail = new RecipeDetailBean();
             StringBuilder str = new StringBuilder();
             UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, recipeDetail.getUsingRateCode());
             if (null == usingRateDTO) {
                 LOGGER.warn("validateOfflineDrug usingRateDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetail));
                 str.append("用药频次");
+            } else {
+                mapDetail.setUsingRate(usingRateDTO.getText());
+                mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             }
-
             UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), recipeDetail.getUsePathwaysCode());
             if (null == usePathwaysDTO) {
                 LOGGER.warn("validateOfflineDrug usePathwaysDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetail));
@@ -1564,7 +1563,11 @@ public class RecipeHisService extends RecipeBaseService {
                     str.append("、");
                 }
                 str.append("用药途径");
+            } else {
+                mapDetail.setUsePathways(usePathwaysDTO.getText());
+                mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
             }
+
             if (StringUtils.isNotEmpty(str)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + str.toString() + "未在线上做维护，无法正常续方。");
             }
@@ -1579,20 +1582,14 @@ public class RecipeHisService extends RecipeBaseService {
                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
             }
             //组织处方药品续方参数
-            RecipeDetailBean mapDetail = new RecipeDetailBean();
-            mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-            mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
             mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-
             mapDetail.setDrugForm(organDrug.getDrugForm());
             mapDetail.setStatus(organDrug.getStatus());
             mapDetail.setDrugId(organDrug.getDrugId());
-
-            DrugList drug = drugMap.get(organDrug.getDrugId());
-            if (null != drug) {
-                mapDetail.setDefaultUseDose(drug.getUseDose());
-                mapDetail.setUsingRate(drug.getUsingRate());
-                mapDetail.setUsePathways(drug.getUsePathways());
+            try {
+                mapDetail.setDefaultUseDose(Double.valueOf(recipeDetail.getUseDose()));
+            } catch (Exception e) {
+                LOGGER.warn("validateOfflineDrug usePathwaysDTO UseDose={} DrugName={}", recipeDetail.getUseDose(), recipeDetail.getDrugName());
             }
             mapDetail.setDrugCost(recipeDetail.getTotalPrice());
             mapDetail.setDrugName(recipeDetail.getDrugName());
@@ -1891,10 +1888,15 @@ public class RecipeHisService extends RecipeBaseService {
             HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
             detailBean.setDrugUnit(recipeDetailTO.getUnit());
             detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+            detailBean.setUsingRate(recipeDetailTO.getUsingRateCode());
             detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+            detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
+            detailBean.setUseDose(recipeDetailTO.getUseDose());
+            detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
             detailBean.setUseDays(recipeDetailTO.getDays());
             detailBean.setUseTotalDose(recipeDetailTO.getAmount());
             detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+            detailBean.setPharmacyCode(recipeDetailTO.getPharmacyCode());
             recipeDetailTOs.add(detailBean);
         }
         return recipeDetailTOs;

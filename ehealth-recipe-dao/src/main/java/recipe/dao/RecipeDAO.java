@@ -775,7 +775,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
+                StringBuilder hql = new StringBuilder("from Recipe where invalidTime is null and signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付，支付模式修改
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
@@ -790,6 +790,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             }
         };
 
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据失效时间查询失效处方列表
+     *
+     * @param startDt
+     * @param endDt
+     * @return
+     */
+    public List<Recipe> getInvalidRecipeListByInvalidTime(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
@@ -3728,4 +3748,40 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 复诊Id查询当前有效的处方单
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,13,14,16)")
+    public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId")Integer clinicId);
+
+    /**
+     * 处方数据  处方明细数据
+     * @param organId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+
+
+    public List<Recipe> findRecipeListByOrganIdAndTime(final Integer organId, final String startDate, final String endDate) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("SELECT * from cdr_recipe r where fromflag=1 and clinicOrgan =:organId and r.status>0" + " and ( (r.signDate between '" + startDate + "' and '" + endDate + "') ");
+                hql.append(")");
+//                Query query = ss.createQuery(hql.toString());
+//                setResult(query.list());
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("organId",organId);
+                ((SQLQuery) q).addEntity(Recipe.class);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
 }
