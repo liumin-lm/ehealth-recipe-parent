@@ -288,7 +288,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         } else if (new Integer(4).equals(recipe.getGiveMode())) {
             giveModeKey = "supportDownload";
         } else {
-            giveModeKey = "supportMedicalPayment";
+            giveModeKey = "";
         }
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         Map<String, String> result = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
