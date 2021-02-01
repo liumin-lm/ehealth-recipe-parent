@@ -8,6 +8,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.itextpdf.text.DocumentException;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -122,6 +123,7 @@ import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -2662,6 +2664,7 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
         }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
         Long updateNum = 0L;
@@ -3776,6 +3779,20 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         return result;
+    }
+
+    @RpcService
+    public String generateReceiverInfoRecipePdf(Integer organId, String pdfId) {
+        int height = recipeLabelManager.getPdfReceiverHeight(organId);
+        try {
+            return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "order.getReceiver()", "order.getRecMobile()", "commonRemoteService.getCompleteAddress(order)", height);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        }
+        //查询3个月以前的历史处方数据
+        return null;
     }
 
     /**
