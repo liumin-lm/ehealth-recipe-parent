@@ -370,15 +370,6 @@ public class RecipeSignService {
         rMap.put("signResult", true);
         try {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            //判定开处方单数是否超过限制
-            RequestVisitVO requestVisitVO=new RequestVisitVO();
-            requestVisitVO.setDoctor(recipeBean.getDoctor());
-            requestVisitVO.setMpiid(recipeBean.getMpiid());
-            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
-            requestVisitVO.setClinicId(recipeBean.getClinicId());
-            LOG.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
-
-            recipeService.isOpenRecipeNumber(requestVisitVO);
             recipeBean.setDistributionFlag(continueFlag);
 
             //第一步暂存处方（处方状态未签名）
@@ -490,6 +481,15 @@ public class RecipeSignService {
         if (recipeBean.getClinicId()==null){
             recipeService.getConsultIdForRecipeSource(recipeBean);
         }
+
+        RequestVisitVO requestVisitVO=new RequestVisitVO();
+        requestVisitVO.setDoctor(recipeBean.getDoctor());
+        requestVisitVO.setMpiid(recipeBean.getRequestMpiId());
+        requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
+        requestVisitVO.setClinicId(recipeBean.getClinicId());
+        LOG.info("当前前端入参：requestVisitVO={}", JSONUtils.toString(requestVisitVO));
+        recipeService.isOpenRecipeNumber(requestVisitVO);
+
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
