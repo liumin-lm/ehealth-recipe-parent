@@ -2664,6 +2664,7 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
         }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
         //查询起始下标
         Map<String,Long> map =Maps.newHashMap();
         Long updateNum = 0L;
