@@ -1017,18 +1017,20 @@ public class QueryRecipeService implements IQueryRecipeService {
         String end = DateConversion.formatDateTimeWithSec(endDate);
         LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={},{},{}", organId,startDate,endDate);
 
+        int daysBetween = DateConversion.getDaysBetween(startDate, endDate);
+        if (daysBetween>7){
+            throw new DAOException("当前仅支持查询最近一周内数据。");
+        }
+
         //通过机构Id和时间查询处方信息
         List<Recipe> recipeList = recipeDAO.findRecipeListByOrganIdAndTime(organId, start, end);
-        List<QueryRecipeInfoDTO> list = new ArrayList<>();
+        List<QueryRecipeInfoDTO> list = new ArrayList<>(recipeList.size());
 
         if (CollectionUtils.isNotEmpty(recipeList)){
             LOGGER.info("当前查询返回结果，recipeList.size()={}", recipeList.size());
             for (Recipe r:recipeList){
-                QueryRecipeInfoDTO infoDTO=new QueryRecipeInfoDTO();
                 List<Recipedetail> details = recipeDetailDAO.findByRecipeId(r.getRecipeId());
-                LOGGER.info("当前查询处方明细数据：details={}", details!=null?JSONUtils.toString(details):null);
-                infoDTO = splicingBackData(details, r);
-                list.add(infoDTO);
+                list.add(splicingBackData(details, r));
             }
             LOGGER.info("当前查询返回结果，list.size()={}", list.size());
         }
