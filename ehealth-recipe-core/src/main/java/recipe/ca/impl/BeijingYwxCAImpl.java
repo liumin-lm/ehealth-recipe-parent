@@ -149,7 +149,7 @@ public class BeijingYwxCAImpl{
         requestTO.setOpenId(openId);
         requestTO.setToken(caTokenBussiness(organId));
         requestTO.setOrganId(organId);
-        requestTO.setSessionTime(1);
+        requestTO.setSessionTime(16);
         requestTO.setBussType(1);
         CaAutoSignResponseTO response = iCommonCAServcie.caAutoSignBusiness(requestTO);
         logger.info("openAutoSign-----response=[{}]",JSONUtils.toString(response));

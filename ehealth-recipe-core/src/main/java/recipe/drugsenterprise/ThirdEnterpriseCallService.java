@@ -1932,8 +1932,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
                 drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
                 if (recipe.getRecipeType() == 3 || recipe.getRecipeType() == 4) {
-                    orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathways()));
-                    orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRate()));
+                    orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathwaysTextFromHis()));
+                    orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRateTextFromHis()));
                 } else {
                     orderDetailBean.setTcmUsePathways("");
                     orderDetailBean.setTcmUsingRate("");
