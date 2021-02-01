@@ -31,7 +31,7 @@ public class IConfigurationClient extends BaseClient {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "organId is null");
         }
         String[] recipeDay = null;
-
+        //中药
         if (RecipeUtil.isTcmType(recipeType)) {
             Object isLimitUseDays = configService.getConfiguration(organId, "isLimitUseDays");
             if (null != isLimitUseDays && (boolean) isLimitUseDays) {
@@ -42,6 +42,7 @@ public class IConfigurationClient extends BaseClient {
                 recipeDay = useDaysRange.toString().split(ByteUtils.COMMA);
             }
         } else {
+            //西药
             Object isCanOpenLongRecipe = configService.getConfiguration(organId, "isCanOpenLongRecipe");
             if (null == isCanOpenLongRecipe || (boolean) isCanOpenLongRecipe) {
                 Object yesLongRecipe = configService.getConfiguration(organId, "yesLongRecipe");

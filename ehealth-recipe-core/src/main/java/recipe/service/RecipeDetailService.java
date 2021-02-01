@@ -102,12 +102,6 @@ public class RecipeDetailService {
                 return;
             }
             //校验数据是否完善
-            //剂量单位是否与机构药品目录单位一致
-            if (StringUtils.isEmpty(a.getUseDoseUnit()) || (!a.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
-                    && !a.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
-                a.setUseDoseUnit(null);
-                a.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
             validateDrug(a, recipeDay, organDrug, recipeType);
         });
         return recipeDetails;
@@ -155,7 +149,13 @@ public class RecipeDetailService {
      * @param organDrug    机构药品
      */
     private void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType) {
-        //校验中药 数据是否完善
+        //剂量单位是否与机构药品目录单位一致
+        if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
+                && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
+            recipeDetail.setUseDoseUnit(null);
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+        /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量、开药总数是否为空
             if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
@@ -165,7 +165,7 @@ public class RecipeDetailService {
             us(organDrug.getOrganId(), recipeDetail);
             useDay(recipeDay, recipeDetail);
         } else {
-            //校验西药 数据是否完善
+            /**校验西药 数据是否完善*/
             //每次剂量、开药总数是否为空
             if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseDose() || 0 == recipeDetail.getUseTotalDose()) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
@@ -195,7 +195,11 @@ public class RecipeDetailService {
             recipeDetail.setUseDays(null);
             useDay = true;
         }
-        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay) {
+        if (StringUtils.isEmpty(recipeDetail.getUseDaysB())) {
+            recipeDetail.setUseDaysB(null);
+            useDay = true;
+        }
+        if (StringUtils.isNotEmpty(recipeDetail.getUseDaysB()) && (Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay)) {
             recipeDetail.setUseDaysB(null);
             useDay = true;
         }
