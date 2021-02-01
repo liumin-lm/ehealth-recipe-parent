@@ -262,7 +262,8 @@ public class RecipeServiceEsignExt {
                 if (!StringUtils.isEmpty(fileId)) {
                     attrMap.put("signFile", fileId);
                 }
-                attrMap.put("signDate", new Date());
+                // 会更新signRecipeNew方法保存的签名时间导致计算失效时间不准确
+                //attrMap.put("signDate", new Date());
             } else {
                 //药师签名时间戳
                 if (!StringUtils.isEmpty(signCADate)) {

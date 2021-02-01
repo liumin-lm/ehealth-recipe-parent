@@ -1888,10 +1888,15 @@ public class RecipeHisService extends RecipeBaseService {
             HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
             detailBean.setDrugUnit(recipeDetailTO.getUnit());
             detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+            detailBean.setUsingRate(recipeDetailTO.getUsingRateCode());
             detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+            detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
+            detailBean.setUseDose(recipeDetailTO.getUseDose());
+            detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
             detailBean.setUseDays(recipeDetailTO.getDays());
             detailBean.setUseTotalDose(recipeDetailTO.getAmount());
             detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+            detailBean.setPharmacyCode(recipeDetailTO.getPharmacyCode());
             recipeDetailTOs.add(detailBean);
         }
         return recipeDetailTOs;

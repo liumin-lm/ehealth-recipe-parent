@@ -31,7 +31,6 @@ import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
-import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -41,7 +40,6 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
-import lombok.val;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -305,6 +303,11 @@ public class RecipePreserveService {
                 detailBean.setUseDays(recipeDetailTO.getDays());
                 detailBean.setUseTotalDose(recipeDetailTO.getAmount());
                 detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+                detailBean.setPharmacyCode(recipeDetailTO.getPharmacyCode());
+                detailBean.setUsingRate(recipeDetailTO.getUsingRateCode());
+                detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
+                detailBean.setUseDose(recipeDetailTO.getUseDose());
+                detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);

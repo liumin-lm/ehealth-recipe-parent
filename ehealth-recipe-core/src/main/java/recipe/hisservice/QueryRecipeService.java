@@ -432,6 +432,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         Double drugTotalNumber = new Double(0);
         BigDecimal drugTotalAmount= new BigDecimal(0);
+
         //拼接处方明细
         if (CollectionUtils.isNotEmpty(details)) {
             List<OrderItemDTO> orderList = new ArrayList<>();
@@ -530,6 +531,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
+                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}",JSONUtils.toString(orderList));
                 orderList.add(orderItem);
             }
             recipeDTO.setOrderList(orderList);
@@ -1013,7 +1015,7 @@ public class QueryRecipeService implements IQueryRecipeService {
 
         String start = DateConversion.formatDateTimeWithSec(startDate);
         String end = DateConversion.formatDateTimeWithSec(endDate);
-        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={}{}{}", organId,startDate,endDate);
+        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={},{},{}", organId,startDate,endDate);
 
         //通过机构Id和时间查询处方信息
         List<Recipe> recipeList = recipeDAO.findRecipeListByOrganIdAndTime(organId, start, end);
@@ -1024,6 +1026,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             for (Recipe r:recipeList){
                 QueryRecipeInfoDTO infoDTO=new QueryRecipeInfoDTO();
                 List<Recipedetail> details = recipeDetailDAO.findByRecipeId(r.getRecipeId());
+                LOGGER.info("当前查询处方明细数据：details={}", details!=null?JSONUtils.toString(details):null);
                 infoDTO = splicingBackData(details, r);
                 list.add(infoDTO);
             }
@@ -1046,7 +1049,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setRecipeID(recipe.getRecipeCode());
             //机构id
             recipeDTO.setOrganId(String.valueOf(recipe.getClinicOrgan()));
-            //处方id 处方唯一标识 收费码
+            //处方号  处方唯一标识 收费码
             recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
             //患者编号  门诊患者标识
             recipeDTO.setPatientID(recipe.getPatientID());
@@ -1106,16 +1109,16 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setCheckDate(new Date());
             }
             recipeDTO.setMedicalPayFlag(getMedicalType(recipe.getMpiid(), recipe.getClinicOrgan()));
-            //处方金额
+            //处方总金额
             recipeDTO.setRecipeFee(String.valueOf(recipe.getActualPrice()));
-            //获取医院诊断内码
-            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
+            /*//获取医院诊断内码
+            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));*/
             //icd诊断码
             recipeDTO.setIcdCode(getCode(recipe.getOrganDiseaseId()));
             //icd诊断名称
             recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
-            LOGGER.info("数据中心获取处方业务信息 recipeDTO:{}", JSONUtils.toString(recipeDTO));
+            LOGGER.info("数据中心获取处方业务信息 recipeDTO={}", JSONUtils.toString(recipeDTO));
         } catch (Exception e) {
             LOGGER.error("数据中心获取处方业务信息 recipeDTO error", e);
         }

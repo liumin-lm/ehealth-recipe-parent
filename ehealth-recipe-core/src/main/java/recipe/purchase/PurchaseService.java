@@ -607,12 +607,16 @@ public class PurchaseService {
                 String invalidTime = "3日";
                 try {
                     if (null != recipe.getInvalidTime() && recipe.getSignDate() != null){
-                        int day = DateConversion.daysBetween(recipe.getSignDate(), recipe.getInvalidTime());
-                        int hour = DateConversion.hoursBetweenDateTime(recipe.getSignDate(), recipe.getInvalidTime()) % 24;
+                        long nd = 1000 * 24 * 60 * 60;
+                        long nh = 1000 * 60 * 60;
+                        long nm = 1000 * 60;
+                        long diff = recipe.getInvalidTime().getTime() - recipe.getSignDate().getTime();
+                        long day = diff / nd;
+                        long hour = diff % nd / nh;
+                        long min = diff % nd % nh / nm;
                         hour = hour + (day * 24);
-                        int minute = DateConversion.minutesBetweenDateTime(recipe.getSignDate(), recipe.getInvalidTime()) % 60;
-                        invalidTime = hour > 0 ? hour + "小时" : "";
-                        invalidTime = minute > 0 ? invalidTime + minute + "分钟" : invalidTime + "";
+                        invalidTime = hour > 0 ? (hour + "小时") : "";
+                        invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
                     }
                 } catch (Exception e) {
                     LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
