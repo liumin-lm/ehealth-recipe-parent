@@ -57,7 +57,7 @@ public class RecipeLabelManager {
      * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
      *
      * @param organId 机构id
-     * @return Y坐标点位 （默认450）
+     * @return Y坐标点位 （默认460）
      */
     public int getPdfReceiverHeight(Integer organId) {
         int height = 460;
@@ -73,20 +73,41 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
             return height;
         }
-        if (!CollectionUtils.isEmpty(moduleOne)) {
-            height = 426;
-            if (CollectionUtils.isEmpty(moduleTwo)) {
-                height = 460;
-            }
-            if (moduleOne.size() > 3) {
-                height = height - (((moduleOne.size() - 3) / 3) + 1) * 12;
-            }
-        } else {
-            height = 440;
+        if (!CollectionUtils.isEmpty(moduleOne) && !CollectionUtils.isEmpty(moduleTwo)) {
+            height = 429;
         }
-        if (!CollectionUtils.isEmpty(moduleTwo) && moduleTwo.size() > 6) {
-            height = height - (((moduleTwo.size() - 6) / 3) + 1) * 12;
+        if (!CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
+            height = 454;
         }
+        if (CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
+            height = 442;
+        }
+        height = getHeight(moduleOne, 3, height);
+        height = getHeight(moduleTwo, 6, height);
+        return height;
+    }
+
+    /**
+     * 根据 非标准配置值参数个数 与 标准参数配置计算浮动高度
+     *
+     * @param module     非标准配置值参数个数
+     * @param initialize 标准参数配置计算浮动高度
+     * @param height     高度
+     * @return
+     */
+    private int getHeight(List<Scratchable> module, int initialize, int height) {
+        if (CollectionUtils.isEmpty(module)) {
+            return height;
+        }
+        int size = module.size();
+        if (size <= initialize) {
+            return height;
+        }
+        int formatting = (size - initialize) / 3;
+        if (0 != (size - initialize) % 3) {
+            formatting++;
+        }
+        height = height - formatting * 12;
         return height;
     }
 
