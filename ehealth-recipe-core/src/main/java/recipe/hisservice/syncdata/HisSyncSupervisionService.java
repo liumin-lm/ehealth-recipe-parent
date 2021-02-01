@@ -390,7 +390,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         if (revisitBean != null) {
                             req.setMainDieaseDescribe(revisitBean.getLeaveMess());
                             //咨询开始时间
-                            req.setConsultStartDate(revisitBean.getStartDate());
+                            // bug=60819 不从复诊开处方时复诊开始时间为空导致前置机上传监管平台失败
+                            req.setConsultStartDate(revisitBean.getStartDate() != null ? revisitBean.getStartDate() : revisitBean.getRequestTime());
                         }
                         if (questionnaire != null) {
                             //过敏史标记 有无过敏史 0:无 1:有
@@ -409,7 +410,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         if (consultBean != null) {
                             req.setMainDieaseDescribe(consultBean.getLeaveMess());
                             //咨询开始时间
-                            req.setConsultStartDate(consultBean.getStartDate());
+                            // bug=60819 不从复诊开处方时复诊开始时间为空导致前置机上传监管平台失败
+                            req.setConsultStartDate(consultBean.getStartDate() != null ? consultBean.getStartDate() : consultBean.getRequestTime());
                         }
                         if (questionnaire != null) {
                             //过敏史标记 有无过敏史 0:无 1:有
