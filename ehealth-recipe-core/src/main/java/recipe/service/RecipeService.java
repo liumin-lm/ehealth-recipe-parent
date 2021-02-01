@@ -73,7 +73,6 @@ import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
-import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -120,10 +119,6 @@ import recipe.service.manager.RecipeLabelManager;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
-import recipe.util.ChinaIDNumberUtil;
-import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
-import recipe.util.MapValueUtil;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
@@ -4640,6 +4635,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     public void doAfterCheckNotPassYs(Recipe recipe) {
+        LOGGER.info("RecipeService doAfterCheckNotPassYs recipeId= {}，clinicOrgan={}", recipe.getRecipeId(), recipe.getClinicOrgan());
         boolean secondsignflag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());
         /*IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());*/
@@ -5064,9 +5060,12 @@ public class RecipeService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String openRecipeNumber = (String)configurationService.getConfiguration(requestVisitVO.getOrganId(), "openRecipeNumber");
+        //运营平台没有处方单数限制，默认可以无限进行开处方
+        if (StringUtils.isEmpty(openRecipeNumber)){
+            return true;
+        }
         Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
         LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}",openRecipeNumber2);
-
         if (requestVisitVO.getClinicId()==null){
             //从当前就诊中获取就诊人处方信息
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
@@ -5086,7 +5085,6 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
-
         //查询当前复诊存在的有效处方单
         List<Recipe> recipeCount=recipeDAO.findRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
         if (CollectionUtils.isNotEmpty(recipeCount)) {

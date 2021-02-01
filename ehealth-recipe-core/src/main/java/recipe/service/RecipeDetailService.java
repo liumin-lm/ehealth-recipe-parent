@@ -55,7 +55,7 @@ public class RecipeDetailService {
      */
     public List<RecipeDetailBean> validateDrug(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         //处方药物使用天数时间
-        String[] recipeDay = configurationClient.recipeDay(organId);
+        String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
         //药房信息
         List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
@@ -154,14 +154,17 @@ public class RecipeDetailService {
      * @param organDrug    机构药品
      */
     private void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
+        //每次剂量、开药总数是否为空
         if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseDose() || 0 == recipeDetail.getUseTotalDose()) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
                 && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        //用药频次，用药途径是否在机构字典范围内
         UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
         if (null == usingRateDTO) {
             recipeDetail.setUsingRate(null);
@@ -172,13 +175,14 @@ public class RecipeDetailService {
             recipeDetail.setUsePathways(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        //开药天数是否在当前机构配置项天数范围内
         Integer minUseDay = Integer.valueOf(recipeDay[0]);
         Integer maxUseDay = Integer.valueOf(recipeDay[1]);
-        if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() > minUseDay || recipeDetail.getUseDays() < maxUseDay) {
+        if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() < minUseDay || recipeDetail.getUseDays() > maxUseDay) {
             recipeDetail.setUseDays(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) > minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) < maxUseDay) {
+        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay) {
             recipeDetail.setUseDaysB(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
@@ -193,14 +197,17 @@ public class RecipeDetailService {
      * @param organDrug    机构药品
      */
     private void validateChineDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
+        //每次剂量、开药总数是否为空
         if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
                 && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        //用药频次，用药途径是否在机构字典范围内
         UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
         if (null == usingRateDTO) {
             recipeDetail.setUsingRate(null);
@@ -209,12 +216,13 @@ public class RecipeDetailService {
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
         }
+        //开药天数是否在当前机构配置项天数范围内
         Integer minUseDay = Integer.valueOf(recipeDay[0]);
         Integer maxUseDay = Integer.valueOf(recipeDay[1]);
-        if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() > minUseDay || recipeDetail.getUseDays() < maxUseDay) {
+        if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() < minUseDay || recipeDetail.getUseDays() > maxUseDay) {
             recipeDetail.setUseDays(null);
         }
-        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) > minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) < maxUseDay) {
+        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay) {
             recipeDetail.setUseDaysB(null);
         }
     }
