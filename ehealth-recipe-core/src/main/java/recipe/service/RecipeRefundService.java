@@ -75,12 +75,12 @@ public class RecipeRefundService extends RecipeBaseService{
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        //解决老版本的支付流水号错误回传,这里应该传收据号
-        String hisSettlementNo =StringUtils.isEmpty(recipeOrder.getHisSettlementNo())?recipeOrder.getTradeNo():recipeOrder.getHisSettlementNo();
         if(recipeOrder == null){
             LOGGER.error("applyForRecipeRefund-未获取到处方单信息. recipeId={}", recipeId.toString());
             throw new DAOException("未获取到处方订单信息！");
         }
+        //解决老版本的支付流水号错误回传,这里应该传收据号
+        String hisSettlementNo =StringUtils.isEmpty(recipeOrder.getHisSettlementNo())?recipeOrder.getTradeNo():recipeOrder.getHisSettlementNo();
         ApplicationForRefundVisitReqTO request = new ApplicationForRefundVisitReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setBusNo(hisSettlementNo);
