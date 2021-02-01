@@ -3781,18 +3781,18 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * 测试后门人口
+     *
+     * @param organId
+     * @param pdfId
+     * @return
+     */
     @RpcService
-    public String generateReceiverInfoRecipePdf(Integer organId, String pdfId) {
+    @Deprecated
+    public String recipePdfTest(Integer organId, String pdfId) throws IOException, DocumentException {
         int height = recipeLabelManager.getPdfReceiverHeight(organId);
-        try {
-            return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "order.getReceiver()", "order.getRecMobile()", "commonRemoteService.getCompleteAddress(order)", height);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        }
-        //查询3个月以前的历史处方数据
-        return null;
+        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", height);
     }
 
     /**
