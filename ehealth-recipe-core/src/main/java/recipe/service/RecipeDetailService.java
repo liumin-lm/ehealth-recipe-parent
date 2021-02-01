@@ -55,7 +55,7 @@ public class RecipeDetailService {
      */
     public List<RecipeDetailBean> validateDrug(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         //处方药物使用天数时间
-        String[] recipeDay = configurationClient.recipeDay(organId);
+        String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
         //药房信息
         List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
@@ -172,6 +172,9 @@ public class RecipeDetailService {
             recipeDetail.setUsePathways(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+        if (null == recipeDay) {
+            return;
+        }
         Integer minUseDay = Integer.valueOf(recipeDay[0]);
         Integer maxUseDay = Integer.valueOf(recipeDay[1]);
         if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() > minUseDay || recipeDetail.getUseDays() < maxUseDay) {
@@ -208,6 +211,9 @@ public class RecipeDetailService {
         UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organDrug.getOrganId(), recipeDetail.getUsePathways());
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
+        }
+        if (null == recipeDay) {
+            return;
         }
         Integer minUseDay = Integer.valueOf(recipeDay[0]);
         Integer maxUseDay = Integer.valueOf(recipeDay[1]);
