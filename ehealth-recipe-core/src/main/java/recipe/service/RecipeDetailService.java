@@ -195,7 +195,11 @@ public class RecipeDetailService {
             recipeDetail.setUseDays(null);
             useDay = true;
         }
-        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay) {
+        if (StringUtils.isEmpty(recipeDetail.getUseDaysB())) {
+            recipeDetail.setUseDaysB(null);
+            useDay = true;
+        }
+        if (StringUtils.isNotEmpty(recipeDetail.getUseDaysB()) && (Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay)) {
             recipeDetail.setUseDaysB(null);
             useDay = true;
         }
