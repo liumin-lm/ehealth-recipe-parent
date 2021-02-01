@@ -5,6 +5,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.bussutil.RecipeUtil;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 
@@ -24,27 +25,41 @@ public class IConfigurationClient extends BaseClient {
      * @param organId 机构id
      * @return
      */
-    public String[] recipeDay(Integer organId) {
-        logger.info("IConfigurationClient recipeDay organId= {}", organId);
+    public String[] recipeDay(Integer organId, Integer recipeType) {
+        logger.info("IConfigurationClient recipeDay organId= {},organId= {}", organId, recipeType);
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "organId is null");
         }
-        String[] recipeDay;
-        Object isCanOpenLongRecipe = configService.getConfiguration(organId, "isCanOpenLongRecipe");
-        if (null == isCanOpenLongRecipe || (boolean) isCanOpenLongRecipe) {
-            Object noLongRecipe = configService.getConfiguration(organId, "noLongRecipe");
-            if (null == noLongRecipe) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "noLongRecipe is null");
+        String[] recipeDay = null;
+        //中药
+        if (RecipeUtil.isTcmType(recipeType)) {
+            Object isLimitUseDays = configService.getConfiguration(organId, "isLimitUseDays");
+            if (null != isLimitUseDays && (boolean) isLimitUseDays) {
+                Object useDaysRange = configService.getConfiguration(organId, "useDaysRange");
+                if (null == useDaysRange) {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
+                }
+                recipeDay = useDaysRange.toString().split(ByteUtils.COMMA);
             }
-            recipeDay = noLongRecipe.toString().split(ByteUtils.COMMA);
         } else {
-            Object yesLongRecipe = configService.getConfiguration(organId, "yesLongRecipe");
-            if (null == yesLongRecipe) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
+            //西药
+            Object isCanOpenLongRecipe = configService.getConfiguration(organId, "isCanOpenLongRecipe");
+            if (null == isCanOpenLongRecipe || (boolean) isCanOpenLongRecipe) {
+                Object yesLongRecipe = configService.getConfiguration(organId, "yesLongRecipe");
+                if (null == yesLongRecipe) {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
+                }
+                recipeDay = yesLongRecipe.toString().split(ByteUtils.COMMA);
+            } else {
+                Object noLongRecipe = configService.getConfiguration(organId, "noLongRecipe");
+                if (null == noLongRecipe) {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "noLongRecipe is null");
+                }
+                recipeDay = noLongRecipe.toString().split(ByteUtils.COMMA);
             }
-            recipeDay = yesLongRecipe.toString().split(ByteUtils.COMMA);
         }
-        if (2 != recipeDay.length) {
+
+        if (null == recipeDay || 2 != recipeDay.length) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeDay is error");
         }
         logger.info("IConfigurationClient recipeDay recipeDay= {}", JSON.toJSONString(recipeDay));

@@ -304,6 +304,10 @@ public class RecipePreserveService {
                 detailBean.setUseTotalDose(recipeDetailTO.getAmount());
                 detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
                 detailBean.setPharmacyCode(recipeDetailTO.getPharmacyCode());
+                detailBean.setUsingRate(recipeDetailTO.getUsingRateCode());
+                detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
+                detailBean.setUseDose(recipeDetailTO.getUseDose());
+                detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
