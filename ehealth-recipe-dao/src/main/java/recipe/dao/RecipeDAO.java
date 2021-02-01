@@ -3677,7 +3677,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select new Recipe(recipeId,supplementaryMemo) from Recipe where clinicOrgan in(:organIds) and  recipeType in(:recipeTypes) and  checkMode<3");
+                StringBuilder hql = new StringBuilder("select new Recipe(recipeId,supplementaryMemo) from Recipe where clinicOrgan in(:organIds)  and  checkMode<3");
                 hql.append("  and status not in (9,31,32) and checkOrgan IS NOT NULL and createDate>:date");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("organIds", organIds);
