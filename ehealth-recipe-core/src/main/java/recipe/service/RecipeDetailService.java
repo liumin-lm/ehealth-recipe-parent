@@ -169,8 +169,7 @@ public class RecipeDetailService {
         } else {
             /**校验西药 数据是否完善*/
             //每次剂量
-            if ((null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose())
-                    && StringUtils.isNotEmpty(recipeDetail.getUseDoseStr()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
+            if ((null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //开药总数是否为空
@@ -186,7 +185,7 @@ public class RecipeDetailService {
             }
         }
     }
-
+    
     /**
      * 开药天数是否在当前机构配置项天数范围内
      *
