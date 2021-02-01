@@ -98,4 +98,6 @@ public class RecipeSystemConstant {
      */
     public static final String SPLIT_NAME_PLATFORM = "纳里平台";
 
+    public static final String RECIPE_INVALID_TOPIC_TAG = "recipe_invalid_tag";
+
 }

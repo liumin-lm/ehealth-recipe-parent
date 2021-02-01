@@ -38,7 +38,7 @@ public enum RecipeStatusEnum {
     RECIPE_STATUS_DONE_DISPENSING(40, "已发药", ""),
     RECIPE_STATUS_DECLINE(41, "已拒发", ""),
     RECIPE_STATUS_DRUG_WITHDRAWAL(42, "已退药", ""),
-    REVIEW_DRUG_FAIL(43, "已取消", "审方失败取消"),
+    REVIEW_DRUG_FAIL(43, "已取消", "由于审方平台接口异常，处方单已取消，请稍后重试"),
 
 
     NONE(-9, "未知", ""),

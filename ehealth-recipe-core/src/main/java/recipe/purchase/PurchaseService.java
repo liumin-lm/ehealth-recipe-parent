@@ -53,6 +53,7 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -604,11 +605,21 @@ public class PurchaseService {
                 break;
             case RECIPE_STATUS_CHECK_PASS:
                 String invalidTime = "3日";
-                if (null != recipe.getInvalidTime() && recipe.getSignDate() != null){
-                    int hour = DateConversion.hoursBetweenDateTime(recipe.getSignDate(), recipe.getInvalidTime()) % 24;
-                    int minute = DateConversion.minutesBetweenDateTime(recipe.getSignDate(), recipe.getInvalidTime()) % 60;
-                    invalidTime = hour > 0 ? hour + "小时" : "";
-                    invalidTime = minute > 0 ? invalidTime + minute + "分钟" : invalidTime + "";
+                try {
+                    if (null != recipe.getInvalidTime() && recipe.getSignDate() != null){
+                        long nd = 1000 * 24 * 60 * 60;
+                        long nh = 1000 * 60 * 60;
+                        long nm = 1000 * 60;
+                        long diff = recipe.getInvalidTime().getTime() - recipe.getSignDate().getTime();
+                        long day = diff / nd;
+                        long hour = diff % nd / nh;
+                        long min = diff % nd % nh / nm;
+                        hour = hour + (day * 24);
+                        invalidTime = hour > 0 ? (hour + "小时") : "";
+                        invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
+                    }
+                } catch (Exception e) {
+                    LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
                 }
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
                     tips = "订单待支付，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";

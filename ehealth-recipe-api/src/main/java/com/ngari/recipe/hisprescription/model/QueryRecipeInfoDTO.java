@@ -1,6 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -123,6 +124,84 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     @ItemProperty(alias = "就诊人信息")
     private UserInfoDTO userInfo;
+
+    @ItemProperty(alias = "门诊患者编号")
+    private String patientID;
+
+    @ItemProperty(alias = "父医嘱序号")
+    private String parentOrderNo;
+
+    @ItemProperty(alias = "处方备注，医嘱正文")
+    private String recipeMemo;
+
+    @ItemProperty(alias = "开方时间,开医嘱日期时间")
+    private Date createDate;
+
+    @ItemProperty(alias = "诊断备注，医嘱备注")
+    private String memo;
+
+    @ItemProperty(alias = "处方状态")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
+    private Integer status;
+
+    @ItemProperty(alias = "收费项目-处方（药品）")
+    private  String charge;
+
+    public String getCharge() {
+        return charge;
+    }
+
+    public void setCharge(String charge) {
+        this.charge = charge;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public String getRecipeMemo() {
+        return recipeMemo;
+    }
+
+    public void setRecipeMemo(String recipeMemo) {
+        this.recipeMemo = recipeMemo;
+    }
+
+    public String getParentOrderNo() {
+        return parentOrderNo;
+    }
+
+    public void setParentOrderNo(String parentOrderNo) {
+        this.parentOrderNo = parentOrderNo;
+    }
+
+    public String getPatientID() {
+        return patientID;
+    }
+
+    public void setPatientID(String patientID) {
+        this.patientID = patientID;
+    }
 
     public UserInfoDTO getUserInfo() {
         return userInfo;

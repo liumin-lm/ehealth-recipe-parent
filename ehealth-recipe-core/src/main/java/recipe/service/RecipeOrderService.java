@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -52,9 +53,6 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-
-import static ctd.persistence.DAOFactory.getDAO;
-
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -100,6 +98,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方订单管理
@@ -1321,6 +1321,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     public RecipeResultBean cancelOrder(RecipeOrder order, Integer status, Boolean canCancelOrderCode) {
+        LOGGER.info("RecipeOrderService cancelOrder  order= {}，order= {}，canCancelOrderCode= {}", JSON.toJSONString(order), status, canCancelOrderCode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == order || null == status) {
             result.setCode(RecipeResultBean.FAIL);
@@ -1537,8 +1538,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     OrganService organService = BasicAPI.getService(OrganService.class);
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
                     //取处方详情中的药品的取药窗口信息
-                    if (CollectionUtils.isNotEmpty(recipedetails) && null != recipedetails.get(0).getPharmNo()) {
-                        prb.setGetDrugWindow(organDTO.getName() + recipedetails.get(0).getPharmNo() + "取药窗口");
+                    // 更改为从处方扩展表中获取取药窗口信息
+                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty( recipeExtend.getPharmNo())) {
+                        prb.setGetDrugWindow(organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
                     }
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());

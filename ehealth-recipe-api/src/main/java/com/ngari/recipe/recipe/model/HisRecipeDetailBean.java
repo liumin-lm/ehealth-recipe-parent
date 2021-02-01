@@ -1,6 +1,5 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -18,16 +17,30 @@ public class HisRecipeDetailBean implements Serializable {
     private String drugCode;
     private String drugName;
     private BigDecimal price;
+    //开药总数
     private Double useTotalDose;
     private BigDecimal totalPrice;
+    //用药频次
+    private String usingRate;
+    //用药途径
+    private String usePathways;
+    //频次名称
     private String usingRateText;
+    //途径名称
     private String usePathwaysText;
+    //剂量单位
     private String useDoseUnit;
+    //每次剂量
     private String useDose;
+    //药品包装单位
     private String drugUnit;
+    //开药天数
     private String useDays;
     private String useDaysB;
+    //药品规格
     private String drugSpec;
+
+    private String pharmacyCode;
 
     public String getUseDaysB() {
         return useDaysB;
@@ -147,5 +160,29 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setRecipeDetailId(Integer recipeDetailId) {
         this.recipeDetailId = recipeDetailId;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    public String getUsingRate() {
+        return usingRate;
+    }
+
+    public void setUsingRate(String usingRate) {
+        this.usingRate = usingRate;
+    }
+
+    public String getUsePathways() {
+        return usePathways;
+    }
+
+    public void setUsePathways(String usePathways) {
+        this.usePathways = usePathways;
     }
 }

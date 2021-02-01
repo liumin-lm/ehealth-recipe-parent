@@ -70,18 +70,18 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         if (null == commonRecipeDTO || CollectionUtils.isEmpty(drugListDTO)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方数据不完整，请重试");
         }
-            CommonRecipe commonRecipe = ObjectCopyUtils.convert(commonRecipeDTO, CommonRecipe.class);
-            List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(drugListDTO, CommonRecipeDrug.class);
+        CommonRecipe commonRecipe = ObjectCopyUtils.convert(commonRecipeDTO, CommonRecipe.class);
+        List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(drugListDTO, CommonRecipeDrug.class);
 
-            Integer commonRecipeId = commonRecipe.getCommonRecipeId();
-            LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
+        Integer commonRecipeId = commonRecipe.getCommonRecipeId();
+        LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
 
         //常用方参数校验
         validateParam(commonRecipe, drugList);
 
         try {
-                commonRecipe.setCommonRecipeId(null);
-                commonRecipeDAO.save(commonRecipe);
+            commonRecipe.setCommonRecipeId(null);
+            commonRecipeDAO.save(commonRecipe);
 
             drugList.forEach(a -> {
                 a.setCommonRecipeId(commonRecipe.getCommonRecipeId());
@@ -90,14 +90,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
 
             // 添加失败删除常用方及药品
             if (null != commonRecipeId) {
-                    commonRecipeDAO.remove(commonRecipeId);
+                commonRecipeDAO.remove(commonRecipeId);
                 commonRecipeDrugDAO.remove(commonRecipeId);
-                }
-            } catch (DAOException e) {
-                LOGGER.error("addCommonRecipe add to db error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
-                        JSONUtils.toString(drugList), e);
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方添加出错");
             }
+        } catch (DAOException e) {
+            LOGGER.error("addCommonRecipe add to db error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
+                    JSONUtils.toString(drugList), e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方添加出错");
+        }
     }
 
 
@@ -283,13 +283,13 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 LOGGER.info("getCommonRecipeListExt groupMapByCommonRecipeId organDrugList :{}", JSON.toJSONString(organDrugList));
                 //判断是否在药房下
                 if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy()) && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
-                    LOGGER.info("getCommonRecipeListExt 常用方药品药房变更 DrugId：[{}]",a.getDrugId());
+                    LOGGER.info("getCommonRecipeListExt 常用方药品药房变更 DrugId：[{}]", a.getDrugId());
                     drugIds.add(a.getDrugId());
                     return;
                 }
                 if ((null != a.getPharmacyId() && StringUtils.isEmpty(organDrugList.getPharmacy())) ||
                         null == a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
-                    LOGGER.info("getCommonRecipeListExt 常用方药品药房新增或删除 DrugId：[{}]",a.getDrugId());
+                    LOGGER.info("getCommonRecipeListExt 常用方药品药房新增或删除 DrugId：[{}]", a.getDrugId());
                     drugIds.add(a.getDrugId());
                     return;
                 }
@@ -530,14 +530,25 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
 
         List<Integer> drugIdList = drugList.stream().map(CommonRecipeDrug::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(commonRecipe.getOrganId(), drugIdList);
+        LOGGER.info(" addCommonRecipe organDrugLists:{}", JSONUtils.toString(organDrugLists));
         if (CollectionUtils.isEmpty(organDrugLists)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
         }
-        Map<String, OrganDrugList> organDrugMap = organDrugLists.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        Map<Integer, List<OrganDrugList>> organDrugListsGroup = organDrugLists.stream().collect(Collectors.groupingBy(OrganDrugList::getDrugId));
 
         //常用方药品校验
         drugList.forEach(a -> {
-            OrganDrugList organDrugList = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            OrganDrugList organDrugList = null;
+            List<OrganDrugList> organDrugs = organDrugListsGroup.get(a.getDrugId());
+            if (CollectionUtils.isEmpty(organDrugs)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
+            }
+            for (OrganDrugList organDrug : organDrugs) {
+                if (organDrug.getOrganDrugCode().equals(a.getOrganDrugCode())) {
+                    organDrugList = organDrug;
+                    break;
+                }
+            }
             if (null == organDrugList) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
@@ -546,7 +557,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品药房错误");
             }
             if (StringUtils.isEmpty(a.getOrganDrugCode())) {
-                a.setOrganDrugCode(organDrugMap.get(a.getDrugId() + a.getOrganDrugCode()).getOrganDrugCode());
+                a.setOrganDrugCode(organDrugs.get(0).getOrganDrugCode());
             }
             if (RecipeUtil.isTcmType(recipeType)) {
                 a.setUsePathways(null);
