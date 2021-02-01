@@ -268,5 +268,4 @@ public class SignInfoService implements ISignInfoService {
             throw new DAOException(609,response.getMsg());
         }
     }
-
 }
