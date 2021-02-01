@@ -101,13 +101,7 @@ public class RecipeDetailService {
                 a.setValidateStatus(VALIDATE_STATUS_FAILURE);
                 return;
             }
-            /**校验数据是否完善*/
-            //剂量单位是否与机构药品目录单位一致
-            if (StringUtils.isEmpty(a.getUseDoseUnit()) || (!a.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
-                    && !a.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
-                a.setUseDoseUnit(null);
-                a.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
+            //校验数据是否完善
             validateDrug(a, recipeDay, organDrug, recipeType);
         });
         return recipeDetails;
@@ -155,6 +149,12 @@ public class RecipeDetailService {
      * @param organDrug    机构药品
      */
     private void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType) {
+        //剂量单位是否与机构药品目录单位一致
+        if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
+                && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
+            recipeDetail.setUseDoseUnit(null);
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量、开药总数是否为空
