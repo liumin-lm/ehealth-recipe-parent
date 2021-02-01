@@ -155,9 +155,11 @@ public class RecipeDetailService {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
+
+
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
-            //每次剂量、开药总数是否为空
+            //每次剂量
             if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
@@ -166,8 +168,13 @@ public class RecipeDetailService {
             useDay(recipeDay, recipeDetail);
         } else {
             /**校验西药 数据是否完善*/
-            //每次剂量、开药总数是否为空
-            if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseDose() || 0 == recipeDetail.getUseTotalDose()) {
+            //每次剂量
+            if ((null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose())
+                    && StringUtils.isNotEmpty(recipeDetail.getUseDoseStr()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
+            //开药总数是否为空
+            if (null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseTotalDose()) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内
