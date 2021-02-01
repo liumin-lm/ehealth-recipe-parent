@@ -625,9 +625,9 @@ public class PurchaseService {
                     LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
                 }
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";
+                    tips = "订单待支付，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";
+                    tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
