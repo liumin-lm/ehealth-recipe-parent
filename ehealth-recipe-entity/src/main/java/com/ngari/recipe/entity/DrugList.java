@@ -141,7 +141,7 @@ public class DrugList implements java.io.Serializable {
 
 
     @ItemProperty(alias = "标志（审方），1-是，0-否")
-    private Integer isPrescriptionsPlatform;
+    private Integer isPrescriptions;
 
 
     public DrugList() {
@@ -539,12 +539,12 @@ public class DrugList implements java.io.Serializable {
         this.isRegulation = isRegulation;
     }
 
-    @Column(name = "isPrescriptionsPlatform")
-    public Integer getIsPrescriptionsPlatform() {
-        return isPrescriptionsPlatform;
+    @Column(name = "isPrescriptions")
+    public Integer getIsPrescriptions() {
+        return isPrescriptions;
     }
 
-    public void setIsPrescriptionsPlatform(Integer isPrescriptionsPlatform) {
-        this.isPrescriptionsPlatform = isPrescriptionsPlatform;
+    public void setIsPrescriptions(Integer isPrescriptions) {
+        this.isPrescriptions = isPrescriptions;
     }
 }
