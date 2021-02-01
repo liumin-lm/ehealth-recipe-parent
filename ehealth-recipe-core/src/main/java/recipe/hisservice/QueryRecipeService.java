@@ -1018,8 +1018,8 @@ public class QueryRecipeService implements IQueryRecipeService {
         LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={},{},{}", organId,startDate,endDate);
 
         int daysBetween = DateConversion.getDaysBetween(startDate, endDate);
-        if (daysBetween>7){
-            throw new DAOException("当前仅支持查询最近一周内数据。");
+        if (daysBetween>30){
+            throw new DAOException("当前最多仅支持查询最近一个月内数据。");
         }
 
         //通过机构Id和时间查询处方信息
