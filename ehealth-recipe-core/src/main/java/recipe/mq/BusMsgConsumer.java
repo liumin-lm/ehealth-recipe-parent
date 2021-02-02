@@ -110,7 +110,7 @@ public class BusMsgConsumer {
 
         Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(msg));
         //过滤掉流转到扁鹊处方流转平台的处方
-        if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
+        if (recipe == null || RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
             return;
         }
         //向药企推送处方过期的通知
