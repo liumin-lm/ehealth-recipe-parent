@@ -3685,7 +3685,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("  and status not in (9,31,32) and checkOrgan IS NOT NULL and createDate>:date");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("organIds", organIds);
-                q.setParameterList("recipeTypes", recipeTypes);
                 q.setParameter("date", date);
                 setResult(q.list());
             }
