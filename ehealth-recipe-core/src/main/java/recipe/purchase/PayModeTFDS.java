@@ -123,18 +123,24 @@ public class PayModeTFDS implements IPurchaseService{
             depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
             depDetailList.addAll(depList);
         }
-
-        for (DepDetailBean depDetailBean : depDetailList) {
-            Integer depId = depDetailBean.getDepId();
-            //如果是价格自定义的药企，则需要设置单独价格
-            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            //重置药企处方价格
-            depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(depId, recipeIdList, null));
-            //设置距离的小数精度，保留小数点一位
-            if (depDetailBean.getDistance() != null) {
-                BigDecimal bd = new BigDecimal(depDetailBean.getDistance());
-                bd = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
-                depDetailBean.setDistance(bd.doubleValue());
+        if (CollectionUtils.isNotEmpty(depDetailList)) {
+            Iterator iterator = depDetailList.iterator();
+            while (iterator.hasNext()) {
+                DepDetailBean depDetailBean = (DepDetailBean)iterator.next();
+                Integer depId = depDetailBean.getDepId();
+                //如果是价格自定义的药企，则需要设置单独价格
+                RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                //重置药企处方价格
+                depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(depId, recipeIdList, null));
+                //设置距离的小数精度，保留小数点一位
+                if (depDetailBean.getDistance() != null) {
+                    BigDecimal bd = new BigDecimal(depDetailBean.getDistance());
+                    bd = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
+                    depDetailBean.setDistance(bd.doubleValue());
+                    if (Double.parseDouble(range) < bd.doubleValue()) {
+                        iterator.remove();
+                    }
+                }
             }
         }
 
