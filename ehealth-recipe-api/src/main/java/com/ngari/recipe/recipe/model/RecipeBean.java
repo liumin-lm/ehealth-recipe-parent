@@ -368,6 +368,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
 
+    @ItemProperty(alias = "是否被接方 0 未接方 1已接方")
+    private Integer grabOrderStatus;
+
     public String getRecipeCostNumber() {
         return recipeCostNumber;
     }
@@ -1359,5 +1362,13 @@ public class RecipeBean implements Serializable {
 
     public void setCheckerText(String checkerText) {
         this.checkerText = checkerText;
+    }
+
+    public Integer getGrabOrderStatus() {
+        return grabOrderStatus;
+    }
+
+    public void setGrabOrderStatus(Integer grabOrderStatus) {
+        this.grabOrderStatus = grabOrderStatus;
     }
 }
