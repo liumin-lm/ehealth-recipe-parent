@@ -805,7 +805,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "' ");
+                StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') or (status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -1260,7 +1260,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
                 if (flag == 0 || flag == all) {
-                    hql.append(" and  recipeType in(:recipeTypes) ");
+                    if(flag == 0 ){
+                        hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
+                    }else {
+                        hql.append(" and  recipeType in(:recipeTypes) ");
+                    }
                 }
                 hql.append("order by signDate desc");
                 Query q;
@@ -3677,11 +3681,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select new Recipe(recipeId,supplementaryMemo) from Recipe where clinicOrgan in(:organIds) and  recipeType in(:recipeTypes) and  checkMode<3");
+                StringBuilder hql = new StringBuilder("select new Recipe(recipeId,supplementaryMemo) from Recipe where clinicOrgan in(:organIds)  and  checkMode<3");
                 hql.append("  and status not in (9,31,32) and checkOrgan IS NOT NULL and createDate>:date");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("organIds", organIds);
-                q.setParameterList("recipeTypes", recipeTypes);
                 q.setParameter("date", date);
                 setResult(q.list());
             }
