@@ -1260,7 +1260,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
                 if (flag == 0 || flag == all) {
-                    hql.append(" and  recipeType in(:recipeTypes) ");
+                    if(flag == 0 ){
+                        hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
+                    }else {
+                        hql.append(" and  recipeType in(:recipeTypes) ");
+                    }
                 }
                 hql.append("order by signDate desc");
                 Query q;
@@ -3681,7 +3685,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("  and status not in (9,31,32) and checkOrgan IS NOT NULL and createDate>:date");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("organIds", organIds);
-                q.setParameterList("recipeTypes", recipeTypes);
                 q.setParameter("date", date);
                 setResult(q.list());
             }

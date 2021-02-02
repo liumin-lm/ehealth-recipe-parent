@@ -211,9 +211,24 @@ public class ValidateUtil {
         return !isStrictNumeric(value.trim());
     }
 
-    public static boolean isMobile(String mobile){
+    public static boolean isMobile(String mobile) {
 
         Matcher m = p.matcher(mobile);
         return m.matches();
+    }
+
+
+    public static boolean integerIsEmpty(Integer i) {
+        if (null == i || 0 == i) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean doubleIsEmpty(Double d) {
+        if (null == d || 0 == d) {
+            return true;
+        }
+        return false;
     }
 }
