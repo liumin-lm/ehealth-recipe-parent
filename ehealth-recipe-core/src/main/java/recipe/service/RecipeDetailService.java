@@ -104,6 +104,8 @@ public class RecipeDetailService {
             }
             //校验数据是否完善
             validateDrug(a, recipeDay, organDrug, recipeType);
+            a.setStatus(organDrug.getStatus());
+            a.setDrugId(organDrug.getDrugId());
         });
         return recipeDetails;
     }
