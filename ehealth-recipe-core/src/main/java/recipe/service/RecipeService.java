@@ -1671,7 +1671,7 @@ public class RecipeService extends RecipeBaseService {
                         invalidDate = calendar.getTime();
                         // 毫秒
                         try {
-                            int millSecond = eh.utils.DateConversion.secondsBetweenDateTime(recipeBean.getSignDate(), invalidDate) * 1000;
+                            long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(recipeBean.getSignDate(), invalidDate) * 1000;
                             LOGGER.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),millSecond);
                             MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeBean.getRecipeId()), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeBean.getRecipeId()), millSecond);
                         } catch (Exception e) {
