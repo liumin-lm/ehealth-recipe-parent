@@ -163,7 +163,7 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
 
     @ItemProperty(alias = "标志（审方），1-是，0-否")
-    private Integer isPrescriptionsPlatform;
+    private Integer isPrescriptions;
 
 
     @ItemProperty(alias = "医院库存、药企库存等列表信息")
@@ -573,12 +573,12 @@ public class DrugListBean implements IDrugInventory, Serializable {
         this.isRegulation = isRegulation;
     }
 
-    public Integer getIsPrescriptionsPlatform() {
-        return isPrescriptionsPlatform;
+    public Integer getIsPrescriptions() {
+        return isPrescriptions;
     }
 
-    public void setIsPrescriptionsPlatform(Integer isPrescriptionsPlatform) {
-        this.isPrescriptionsPlatform = isPrescriptionsPlatform;
+    public void setIsPrescriptions(Integer isPrescriptions) {
+        this.isPrescriptions = isPrescriptions;
     }
 
     public List<DrugInventoryInfo> getInventories() {

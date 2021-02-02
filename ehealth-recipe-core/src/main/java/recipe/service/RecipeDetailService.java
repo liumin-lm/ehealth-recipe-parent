@@ -102,11 +102,7 @@ public class RecipeDetailService {
                 return;
             }
             //校验数据是否完善
-            if (RecipeUtil.isTcmType(recipeType)) {
-                validateChineDrug(a, recipeDay, organDrug);
-            } else {
-                validateDrug(a, recipeDay, organDrug);
-            }
+            validateDrug(a, recipeDay, organDrug, recipeType);
         });
         return recipeDetails;
     }
@@ -130,7 +126,6 @@ public class RecipeDetailService {
             }
             commonPharmacyId = pharmacyTcm.getPharmacyId();
         }
-
         if (null == commonPharmacyId && StringUtils.isNotEmpty(pharmacy)) {
             return true;
         }
@@ -146,86 +141,101 @@ public class RecipeDetailService {
 
 
     /**
-     * 校验西药 数据是否完善
+     * 校验药 数据是否完善
      * 错误数据设置为null
      *
      * @param recipeDetail 处方明细数据
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    private void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
-        //每次剂量、开药总数是否为空
-        if (null == recipeDetail.getUseDose() || null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseDose() || 0 == recipeDetail.getUseTotalDose()) {
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-        }
+    private void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType) {
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
                 && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-        //用药频次，用药途径是否在机构字典范围内
-        UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
-        if (null == usingRateDTO) {
-            recipeDetail.setUsingRate(null);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+
+
+        /**校验中药 数据是否完善*/
+        if (RecipeUtil.isTcmType(recipeType)) {
+            //每次剂量
+            if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
+            //用药频次，用药途径是否在机构字典范围内
+            us(organDrug.getOrganId(), recipeDetail);
+            useDay(recipeDay, recipeDetail);
+        } else {
+            /**校验西药 数据是否完善*/
+            //每次剂量
+            if ((null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
+            //开药总数是否为空
+            if (null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseTotalDose()) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
+            //用药频次，用药途径是否在机构字典范围内
+            if (us(organDrug.getOrganId(), recipeDetail)) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
+            if (useDay(recipeDay, recipeDetail)) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
         }
-        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organDrug.getOrganId(), recipeDetail.getUsePathways());
-        if (null == usePathwaysDTO) {
-            recipeDetail.setUsePathways(null);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-        }
-        //开药天数是否在当前机构配置项天数范围内
+    }
+    
+    /**
+     * 开药天数是否在当前机构配置项天数范围内
+     *
+     * @param recipeDay    处方药物使用天数时间
+     * @param recipeDetail
+     * @return
+     */
+    private boolean useDay(String[] recipeDay, RecipeDetailBean recipeDetail) {
+        boolean useDay = false;
         Integer minUseDay = Integer.valueOf(recipeDay[0]);
         Integer maxUseDay = Integer.valueOf(recipeDay[1]);
         if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() < minUseDay || recipeDetail.getUseDays() > maxUseDay) {
             recipeDetail.setUseDays(null);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            useDay = true;
         }
-        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay) {
+        if (StringUtils.isEmpty(recipeDetail.getUseDaysB())) {
             recipeDetail.setUseDaysB(null);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            useDay = true;
         }
+        if (StringUtils.isNotEmpty(recipeDetail.getUseDaysB()) && (Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay)) {
+            recipeDetail.setUseDaysB(null);
+            useDay = true;
+        }
+        return useDay;
     }
 
     /**
-     * 校验中药 数据是否完善
-     * 错误数据设置为null
+     * 用药频次，用药途径是否在机构字典范围内
      *
-     * @param recipeDetail 处方明细数据
-     * @param recipeDay    处方药物使用天数时间
-     * @param organDrug    机构药品
+     * @param organId
+     * @param recipeDetail
+     * @return
      */
-    private void validateChineDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug) {
-        //每次剂量、开药总数是否为空
-        if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-        }
-        //剂量单位是否与机构药品目录单位一致
-        if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
-                && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
-            recipeDetail.setUseDoseUnit(null);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-        }
-        //用药频次，用药途径是否在机构字典范围内
-        UsingRateDTO usingRateDTO = drugClient.usingRate(organDrug.getOrganId(), recipeDetail.getUsingRate());
+    private boolean us(Integer organId, RecipeDetailBean recipeDetail) {
+        boolean us = false;
+        UsingRateDTO usingRateDTO = drugClient.usingRate(organId, recipeDetail.getUsingRate());
         if (null == usingRateDTO) {
             recipeDetail.setUsingRate(null);
+            recipeDetail.setUsingRateTextFromHis(null);
+            recipeDetail.setUsingRateId(null);
+            us = true;
         }
-        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organDrug.getOrganId(), recipeDetail.getUsePathways());
+        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organId, recipeDetail.getUsePathways());
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
+            recipeDetail.setUsePathwaysTextFromHis(null);
+            recipeDetail.setUsePathwaysId(null);
+            us = true;
         }
-        //开药天数是否在当前机构配置项天数范围内
-        Integer minUseDay = Integer.valueOf(recipeDay[0]);
-        Integer maxUseDay = Integer.valueOf(recipeDay[1]);
-        if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() < minUseDay || recipeDetail.getUseDays() > maxUseDay) {
-            recipeDetail.setUseDays(null);
-        }
-        if (null == recipeDetail.getUseDaysB() || Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay) {
-            recipeDetail.setUseDaysB(null);
-        }
+        return us;
     }
-
 
 }

@@ -8,6 +8,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.itextpdf.text.DocumentException;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -122,6 +123,7 @@ import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -1555,15 +1557,6 @@ public class RecipeService extends RecipeBaseService {
         try {
 
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            RequestVisitVO requestVisitVO=new RequestVisitVO();
-            requestVisitVO.setDoctor(recipeBean.getDoctor());
-            requestVisitVO.setMpiid(recipeBean.getMpiid());
-            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
-            requestVisitVO.setClinicId(recipeBean.getClinicId());
-            LOGGER.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
-            //判定开处方单数是否超过限制
-            recipeService.isOpenRecipeNumber(requestVisitVO);
-
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
@@ -1678,7 +1671,7 @@ public class RecipeService extends RecipeBaseService {
                         invalidDate = calendar.getTime();
                         // 毫秒
                         try {
-                            int millSecond = eh.utils.DateConversion.secondsBetweenDateTime(recipeBean.getSignDate(), invalidDate) * 1000;
+                            long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(recipeBean.getSignDate(), invalidDate) * 1000;
                             LOGGER.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒",recipeBean.getClinicOrgan(),recipeBean.getRecipeId(),millSecond);
                             MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeBean.getRecipeId()), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeBean.getRecipeId()), millSecond);
                         } catch (Exception e) {
@@ -1732,6 +1725,16 @@ public class RecipeService extends RecipeBaseService {
         if (recipe.getClinicId() == null) {
             getConsultIdForRecipeSource(recipe);
         }
+
+        RequestVisitVO requestVisitVO=new RequestVisitVO();
+        requestVisitVO.setDoctor(recipe.getDoctor());
+        requestVisitVO.setMpiid(recipe.getRequestMpiId());
+        requestVisitVO.setOrganId(recipe.getClinicOrgan());
+        requestVisitVO.setClinicId(recipe.getClinicId());
+        LOGGER.info("doSignRecipeSave前端入参:requestVisitVO={}", JSONUtils.toString(requestVisitVO));
+        //校验开处方单数限制
+        isOpenRecipeNumber(requestVisitVO);
+
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
@@ -3780,6 +3783,20 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+     * 测试后门人口
+     *
+     * @param organId
+     * @param pdfId
+     * @return
+     */
+    @RpcService
+    @Deprecated
+    public String recipePdfTest(Integer organId, String pdfId) throws IOException, DocumentException {
+        int height = recipeLabelManager.getPdfReceiverHeight(organId);
+        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", height);
+    }
+
+    /**
      * 查询单个处方在HIS中的状态
      *
      * @param recipeId
@@ -5057,7 +5074,11 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO){
-        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}",requestVisitVO);
+        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}",JSONUtils.toString(requestVisitVO));
+        if (requestVisitVO.getClinicId()==null){
+            return true;
+        }
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String openRecipeNumber = (String)configurationService.getConfiguration(requestVisitVO.getOrganId(), "openRecipeNumber");
@@ -5067,25 +5088,6 @@ public class RecipeService extends RecipeBaseService {
         }
         Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
         LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}",openRecipeNumber2);
-        if (requestVisitVO.getClinicId()==null){
-            //从当前就诊中获取就诊人处方信息
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
-            //在线复诊服务
-            List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            //当前就诊人正在咨询
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                requestVisitVO.setClinicId(consultIds.get(0));
-                LOGGER.info(" 在线复诊服务复诊单号：requestVisitVO.getClinicId()={}",requestVisitVO.getClinicId());
-            }else {
-                //图文咨询服务
-                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
-                if (CollectionUtils.isNotEmpty(consultIds)) {
-                    requestVisitVO.setClinicId(consultIds.get(0));
-                    LOGGER.info(" 图文咨询服务复诊单号：requestVisitVO.getClinicId()={}",requestVisitVO.getClinicId());
-                }
-            }
-        }
         //查询当前复诊存在的有效处方单
         List<Recipe> recipeCount=recipeDAO.findRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
         if (CollectionUtils.isNotEmpty(recipeCount)) {

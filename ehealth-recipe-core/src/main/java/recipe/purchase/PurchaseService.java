@@ -54,10 +54,7 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -604,27 +601,11 @@ public class PurchaseService {
                 }
                 break;
             case RECIPE_STATUS_CHECK_PASS:
-                String invalidTime = "3日";
-                try {
-                    if (null != recipe.getInvalidTime() && recipe.getSignDate() != null){
-                        long nd = 1000 * 24 * 60 * 60;
-                        long nh = 1000 * 60 * 60;
-                        long nm = 1000 * 60;
-                        long diff = recipe.getInvalidTime().getTime() - recipe.getSignDate().getTime();
-                        long day = diff / nd;
-                        long hour = diff % nd / nh;
-                        long min = diff % nd % nh / nm;
-                        hour = hour + (day * 24);
-                        invalidTime = hour > 0 ? (hour + "小时") : "";
-                        invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
-                    }
-                } catch (Exception e) {
-                    LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
-                }
+                String invalidTime = getInvalidTime(recipe);
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";
+                    tips = "订单待支付，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的" + invalidTime + "内完成购药，否则处方将失效";
+                    tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
@@ -695,6 +676,33 @@ public class PurchaseService {
                 }
         }
         return tips;
+    }
+
+    private String getInvalidTime(Recipe recipe) {
+        String invalidTime = "3日";
+        try {
+            if (null != recipe.getInvalidTime()){
+                Date now = new Date();
+                long nd = 1000 * 24 * 60 * 60;
+                long nh = 1000 * 60 * 60;
+                long nm = 1000 * 60;
+                long diff = recipe.getInvalidTime().getTime() - now.getTime();
+                // 处方已到失效时间，失效定时任务未执行（每30分钟执行一次）
+                if (diff <= 0){
+                    invalidTime = "30分钟";
+                }else {
+                    long day = diff / nd;
+                    long hour = diff % nd / nh;
+                    long min = diff % nd % nh / nm;
+                    hour = hour + (day * 24);
+                    invalidTime = hour > 0 ? (hour + "小时") : "";
+                    invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
+        }
+        return invalidTime;
     }
 
     /**
