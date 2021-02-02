@@ -130,6 +130,12 @@ public class PayModeTFDS implements IPurchaseService{
             RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             //重置药企处方价格
             depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(depId, recipeIdList, null));
+            //设置距离的小数精度，保留小数点一位
+            if (depDetailBean.getDistance() != null) {
+                BigDecimal bd = new BigDecimal(depDetailBean.getDistance());
+                bd = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
+                depDetailBean.setDistance(bd.doubleValue());
+            }
         }
 
         //对药店列表进行排序
