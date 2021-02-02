@@ -93,7 +93,7 @@ public class CommonRecipeManager {
             BeanUtils.copyProperties(a, commonDrugDTO);
             OrganDrugList organDrug = organDrugMap.get(commonDrugDTO.getDrugId() + commonDrugDTO.getOrganDrugCode());
             if (null == organDrug) {
-                commonDrugDTO.setDrugStatus(-1);
+                commonDrugDTO.setDrugStatus(0);
                 return;
             }
             commonDrugDTO.setOrganPharmacyId(organDrug.getPharmacy());
