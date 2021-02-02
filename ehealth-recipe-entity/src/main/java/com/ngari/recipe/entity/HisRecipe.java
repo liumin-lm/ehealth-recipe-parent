@@ -114,6 +114,18 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "是否缓存在平台")
     private Integer isCachePlatform;
 
+    //中药
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+    @ItemProperty(alias = "代煎费")
+    private BigDecimal decoctionFee;
+    @ItemProperty(alias = "his处方付费序号合集")
+    private String recipeCostNumber;
+    @ItemProperty(alias = "煎法编码")
+    private String decoctionCode;
+    @ItemProperty(alias = "煎法名称")
+    private String decoctionText;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "hisRecipeID", unique = true, nullable = false)
@@ -521,5 +533,45 @@ public class HisRecipe implements Serializable {
 
     public void setIsCachePlatform(Integer cachePlatform) {
         isCachePlatform = cachePlatform;
+    }
+
+    public BigDecimal getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
+    }
+
+    public BigDecimal getDecoctionFee() {
+        return decoctionFee;
+    }
+
+    public void setDecoctionFee(BigDecimal decoctionFee) {
+        this.decoctionFee = decoctionFee;
+    }
+
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
+
+    public String getDecoctionCode() {
+        return decoctionCode;
+    }
+
+    public void setDecoctionCode(String decoctionCode) {
+        this.decoctionCode = decoctionCode;
+    }
+
+    public String getDecoctionText() {
+        return decoctionText;
+    }
+
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
     }
 }
