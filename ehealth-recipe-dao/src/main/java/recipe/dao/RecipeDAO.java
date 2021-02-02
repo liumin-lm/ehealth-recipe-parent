@@ -1260,11 +1260,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
                 if (flag == 0 || flag == all) {
-                    if(flag == 0 ){
                         hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
-                    }else {
-                        hql.append(" and  recipeType in(:recipeTypes) ");
-                    }
                 }
                 hql.append("order by signDate desc");
                 Query q;
