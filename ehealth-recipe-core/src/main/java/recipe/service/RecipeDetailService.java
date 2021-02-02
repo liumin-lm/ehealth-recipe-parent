@@ -81,7 +81,7 @@ public class RecipeDetailService {
             }
             //校验比对药品
             OrganDrugList organDrug = null;
-            if (null == a.getDrugId() && 1 == organDrugs.size()) {
+            if ((null == a.getDrugId() || 0 == a.getDrugId()) && 1 == organDrugs.size()) {
                 organDrug = organDrugs.get(0);
             }
             if (null != a.getDrugId()) {
