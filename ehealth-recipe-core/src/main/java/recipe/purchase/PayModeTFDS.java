@@ -66,9 +66,11 @@ public class PayModeTFDS implements IPurchaseService{
         String longitude = MapValueUtil.getString(extInfo, "longitude");
         String latitude = MapValueUtil.getString(extInfo, "latitude");
         String sort = MapValueUtil.getString(extInfo, "sort");
+        if (StringUtils.isEmpty(range)) {
+            range = "10";
+        }
         String md5Key = longitude + "-" + latitude + "-" + range + "-" + sort;
         String key = recipeId + "-" + DigestUtils.md5DigestAsHex(md5Key.getBytes());
-
         List<DepDetailBean> depDetailBeans = redisClient.get(key);
         if (CollectionUtils.isNotEmpty(depDetailBeans)) {
             List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailBeans);
