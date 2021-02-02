@@ -356,6 +356,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "失效时间")
     private Date invalidTime;
 
+    @ItemProperty(alias = "是否被接方 0 未接方 1已接方")
+    private Integer grabOrderStatus;
+
     public Recipe() {
     }
 
@@ -1429,6 +1432,14 @@ public class Recipe implements Serializable {
 
     public void setDispensPeople(String dispensPeople) {
         this.dispensPeople = dispensPeople;
+    }
+
+    @Column(name = "grabOrderStatus")
+    public Integer getGrabOrderStatus() {
+        return grabOrderStatus;
+    }
+    public void setGrabOrderStatus(Integer grabOrderStatus) {
+        this.grabOrderStatus = grabOrderStatus;
     }
 
     public Recipe(Integer recipeId, String supplementaryMemo) {
