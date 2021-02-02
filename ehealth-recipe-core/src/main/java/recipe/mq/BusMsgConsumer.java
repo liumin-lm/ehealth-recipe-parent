@@ -130,7 +130,7 @@ public class BusMsgConsumer {
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
         }
         // 获取处方状态：未支付/未处理
-        Integer status = RecipeService.getStatus(recipeDAO, recipe, recipeId);
+        Integer status = RecipeService.getStatus(recipe);
         //变更处方状态
         if (status != null){
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
