@@ -1557,15 +1557,6 @@ public class RecipeService extends RecipeBaseService {
         try {
 
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            RequestVisitVO requestVisitVO=new RequestVisitVO();
-            requestVisitVO.setDoctor(recipeBean.getDoctor());
-            requestVisitVO.setMpiid(recipeBean.getMpiid());
-            requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
-            requestVisitVO.setClinicId(recipeBean.getClinicId());
-            LOGGER.info("RecipeSignService requestVisitVO:{}", requestVisitVO);
-            //判定开处方单数是否超过限制
-            recipeService.isOpenRecipeNumber(requestVisitVO);
-
             recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
@@ -1734,6 +1725,16 @@ public class RecipeService extends RecipeBaseService {
         if (recipe.getClinicId() == null) {
             getConsultIdForRecipeSource(recipe);
         }
+
+        RequestVisitVO requestVisitVO=new RequestVisitVO();
+        requestVisitVO.setDoctor(recipe.getDoctor());
+        requestVisitVO.setMpiid(recipe.getRequestMpiId());
+        requestVisitVO.setOrganId(recipe.getClinicOrgan());
+        requestVisitVO.setClinicId(recipe.getClinicId());
+        LOGGER.info("doSignRecipeSave前端入参:requestVisitVO={}", JSONUtils.toString(requestVisitVO));
+        //校验开处方单数限制
+        isOpenRecipeNumber(requestVisitVO);
+
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
@@ -3781,18 +3782,18 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * 测试后门人口
+     *
+     * @param organId
+     * @param pdfId
+     * @return
+     */
     @RpcService
-    public String generateReceiverInfoRecipePdf(Integer organId, String pdfId) {
+    @Deprecated
+    public String recipePdfTest(Integer organId, String pdfId) throws IOException, DocumentException {
         int height = recipeLabelManager.getPdfReceiverHeight(organId);
-        try {
-            return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "order.getReceiver()", "order.getRecMobile()", "commonRemoteService.getCompleteAddress(order)", height);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        }
-        //查询3个月以前的历史处方数据
-        return null;
+        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", height);
     }
 
     /**
@@ -5073,7 +5074,11 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO){
-        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}",requestVisitVO);
+        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}",JSONUtils.toString(requestVisitVO));
+        if (requestVisitVO.getClinicId()==null){
+            return true;
+        }
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String openRecipeNumber = (String)configurationService.getConfiguration(requestVisitVO.getOrganId(), "openRecipeNumber");
@@ -5083,25 +5088,6 @@ public class RecipeService extends RecipeBaseService {
         }
         Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
         LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}",openRecipeNumber2);
-        if (requestVisitVO.getClinicId()==null){
-            //从当前就诊中获取就诊人处方信息
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
-            //在线复诊服务
-            List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            //当前就诊人正在咨询
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                requestVisitVO.setClinicId(consultIds.get(0));
-                LOGGER.info(" 在线复诊服务复诊单号：requestVisitVO.getClinicId()={}",requestVisitVO.getClinicId());
-            }else {
-                //图文咨询服务
-                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestVisitVO.getMpiid(), requestVisitVO.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
-                if (CollectionUtils.isNotEmpty(consultIds)) {
-                    requestVisitVO.setClinicId(consultIds.get(0));
-                    LOGGER.info(" 图文咨询服务复诊单号：requestVisitVO.getClinicId()={}",requestVisitVO.getClinicId());
-                }
-            }
-        }
         //查询当前复诊存在的有效处方单
         List<Recipe> recipeCount=recipeDAO.findRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
         if (CollectionUtils.isNotEmpty(recipeCount)) {
