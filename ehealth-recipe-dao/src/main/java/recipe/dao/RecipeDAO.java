@@ -1263,7 +1263,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     if(flag == 0 ){
                         hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
                     }else {
-                        hql.append(" and  (recipeType in(:recipeTypes) ");
+                        hql.append(" and  recipeType in(:recipeTypes) ");
                     }
                 }
                 hql.append("order by signDate desc");
