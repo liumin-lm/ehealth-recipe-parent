@@ -93,28 +93,26 @@ public class CommonRecipeManager {
             BeanUtils.copyProperties(a, commonDrugDTO);
             OrganDrugList organDrug = organDrugMap.get(commonDrugDTO.getDrugId() + commonDrugDTO.getOrganDrugCode());
             if (null == organDrug) {
-                commonDrugDTO.setDrugStatus(-1);
-                return;
+                commonDrugDTO.setDrugStatus(0);
+            } else {
+                commonDrugDTO.setOrganPharmacyId(organDrug.getPharmacy());
+                if (null != commonDrugDTO.getUseTotalDose()) {
+                    commonDrugDTO.setDrugCost(organDrug.getSalePrice().multiply(new BigDecimal(commonDrugDTO.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                }
+                commonDrugDTO.setDrugStatus(organDrug.getStatus());
+                commonDrugDTO.setSalePrice(organDrug.getSalePrice());
+                commonDrugDTO.setPrice1(organDrug.getSalePrice().doubleValue());
+                commonDrugDTO.setDrugForm(organDrug.getDrugForm());
+                //用药单位不为空时才返回给前端
+                List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+                } else if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+                }
+                commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
             }
-            commonDrugDTO.setOrganPharmacyId(organDrug.getPharmacy());
-            if (null != commonDrugDTO.getUseTotalDose()) {
-                commonDrugDTO.setDrugCost(organDrug.getSalePrice().multiply(new BigDecimal(commonDrugDTO.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
-            }
-            commonDrugDTO.setDrugStatus(organDrug.getStatus());
-            commonDrugDTO.setSalePrice(organDrug.getSalePrice());
-            commonDrugDTO.setPrice1(organDrug.getSalePrice().doubleValue());
-            commonDrugDTO.setDrugForm(organDrug.getDrugForm());
-            //用药单位不为空时才返回给前端
-            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
-            if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-            } else if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
-            }
-            commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-            commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
-            //commonDrugDTO.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-            //commonDrugDTO.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
 
             List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(commonDrugDTO.getCommonRecipeId());
             if (CollectionUtils.isEmpty(commonDrugList)) {
