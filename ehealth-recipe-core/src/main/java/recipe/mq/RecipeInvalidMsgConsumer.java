@@ -30,7 +30,6 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author Created by liuxiaofeng on 2021/1/26 0026.
  *         处方失效时间非当天24点且小于24小时失效消息消费
  */
-@RpcBean
 public class RecipeInvalidMsgConsumer implements Observer<String> {
     private static final Logger logger = LoggerFactory.getLogger(RecipeInvalidMsgConsumer.class);
 
