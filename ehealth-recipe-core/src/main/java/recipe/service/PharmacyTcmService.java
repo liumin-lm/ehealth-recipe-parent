@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils;
+import com.google.common.collect.Lists;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -186,8 +187,12 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                         String result = "";
                         // 数组转集合
                         List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+                        List<String> userIdList2= Lists.newArrayList();
                         if (userIdList != null && userIdList.size() > 0){
                             for (String s : userIdList) {
+                                userIdList2.add(s);
+                            }
+                            for (String s : userIdList2) {
                                 if (byOrganId.indexOf(s) == -1){
                                     // 移除指定药房 ID
                                     userIdList.remove(s);
