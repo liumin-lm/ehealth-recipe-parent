@@ -183,11 +183,14 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (organIdBypharmacy != null){
             for (Integer p : organIdBypharmacy) {
                 List<Integer> byOrganId = pharmacyTcmDAO.findPharmacyByOrganId(p);
+                List<String> byOrganId2 =Lists.newArrayList();
+                for (Integer i : byOrganId) {
+                    byOrganId2.add(i.toString());
+                }
                 List<OrganDrugList> byOrganIdAndPharmacy = organDrugListDAO.findByOrganIdAndPharmacy(p);
-                if ( byOrganId!=null && byOrganId.size()>=0){
+                if ( byOrganId2!=null && byOrganId2.size()>=0){
                     if (byOrganIdAndPharmacy != null  && byOrganIdAndPharmacy.size()>0){
                         for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
-
                             String pharmacy = organDrugList.getPharmacy();
                             String[] userIdArray = pharmacy.split(",");
                             // 返回结果
@@ -200,7 +203,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                                     userIdList2.add(s);
                                 }
                                 for (String s : userIdList2) {
-                                    if (byOrganId.indexOf(s) == -1){
+                                    if (byOrganId2.indexOf(s) == -1){
                                         // 移除指定药房 ID
                                         userIdList.remove(s);
                                         // 把剩下的药房 ID 再拼接起来
