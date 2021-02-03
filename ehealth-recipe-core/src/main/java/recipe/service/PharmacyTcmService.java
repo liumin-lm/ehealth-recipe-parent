@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -30,6 +31,7 @@ import recipe.dao.PharmacyTcmDAO;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author renfuhao
@@ -174,47 +176,57 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public void deleteOrganDrugListPharmacy() {
+    public Map<Integer,String> deleteOrganDrugListPharmacy() {
+        Map<Integer,String> map= Maps.newHashMap();
+        String ss="";
         List<Integer> organIdBypharmacy = organDrugListDAO.findOrganIdByPharmacy();
         if (organIdBypharmacy != null){
             for (Integer p : organIdBypharmacy) {
                 List<Integer> byOrganId = pharmacyTcmDAO.findPharmacyByOrganId(p);
                 List<OrganDrugList> byOrganIdAndPharmacy = organDrugListDAO.findByOrganIdAndPharmacy(p);
-                if (byOrganIdAndPharmacy != null){
-                    for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
-                        if (byOrganId==null || byOrganId.size()==0){
-                            organDrugList.setPharmacy("");
-                            organDrugListDAO.update(organDrugList);
-                            continue;
-                        }
-                        String pharmacy = organDrugList.getPharmacy();
-                        String[] userIdArray = pharmacy.split(",");
-                        // 返回结果
-                        String result = "";
-                        // 数组转集合
-                        List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
-                        List<String> userIdList2= Lists.newArrayList();
-                        if (userIdList != null && userIdList.size() > 0){
-                            for (String s : userIdList) {
-                                userIdList2.add(s);
-                            }
-                            for (String s : userIdList2) {
-                                if (byOrganId.indexOf(s) == -1){
-                                    // 移除指定药房 ID
-                                    userIdList.remove(s);
-                                    // 把剩下的药房 ID 再拼接起来
-                                    result = StringUtils.join(userIdList, ",");
+                if ( byOrganId!=null && byOrganId.size()>=0){
+                    if (byOrganIdAndPharmacy != null  && byOrganIdAndPharmacy.size()>0){
+                        for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
+
+                            String pharmacy = organDrugList.getPharmacy();
+                            String[] userIdArray = pharmacy.split(",");
+                            // 返回结果
+                            String result = "";
+                            // 数组转集合
+                            List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+                            List<String> userIdList2= Lists.newArrayList();
+                            if (userIdList != null && userIdList.size() > 0){
+                                for (String s : userIdList) {
+                                    userIdList2.add(s);
                                 }
+                                for (String s : userIdList2) {
+                                    if (byOrganId.indexOf(s) == -1){
+                                        // 移除指定药房 ID
+                                        userIdList.remove(s);
+                                        // 把剩下的药房 ID 再拼接起来
+                                        result = StringUtils.join(userIdList, ",");
+                                    }
+                                }
+                                organDrugList.setPharmacy(result);
+                                organDrugListDAO.update(organDrugList);
                             }
-                            organDrugList.setPharmacy(result);
-                            organDrugListDAO.update(organDrugList);
                         }
                     }
+                    ss="移除药房";
+                }else {
+                    if (byOrganIdAndPharmacy != null  && byOrganIdAndPharmacy.size()>0){
+                        for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
+                                organDrugList.setPharmacy("");
+                                organDrugListDAO.update(organDrugList);
+                        }
+                    }
+                    ss="清空药房";
                 }
 
+                map.put(p,ss);
             }
         }
-
+        return map;
     }
 
     /**
