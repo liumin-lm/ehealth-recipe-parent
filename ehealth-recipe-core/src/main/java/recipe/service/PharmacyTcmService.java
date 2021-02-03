@@ -201,7 +201,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                                 }
                             }
                             organDrugList.setPharmacy(result);
-                            organDrugListDAO.updateData(organDrugList);
+                            organDrugListDAO.update(organDrugList);
                         }
                     }
                 }
