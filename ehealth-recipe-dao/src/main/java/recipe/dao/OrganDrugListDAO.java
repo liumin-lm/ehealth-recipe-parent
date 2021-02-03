@@ -85,8 +85,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      *
      * @return
      */
-    @DAOMethod(sql = "select distinct organId from OrganDrugList where pharmacy is not null ")
-    public abstract List<Integer> getOrganIdByPharmacy();
+    @DAOMethod(sql = "select distinct organId from OrganDrugList where pharmacy is not null ",limit = 0)
+    public abstract List<Integer> findOrganIdByPharmacy();
 
     /**
      * 查询机构药品药房不为空 的药品
@@ -94,7 +94,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from OrganDrugList where organId=:organId and pharmacy is not null ")
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and pharmacy is not null ",limit = 0)
     public abstract List<OrganDrugList> findByOrganIdAndPharmacy(@DAOParam("organId") int organId);
 
 

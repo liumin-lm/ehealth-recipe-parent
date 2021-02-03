@@ -168,12 +168,12 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
 
 
     /**
-     * 根据药房ID 删除药房数据
+     *  机构药品数据 药房脏数据处理
      * @return
      */
     @RpcService
-    public void deletePharmacyTcmForId() {
-        List<Integer> organIdBypharmacy = organDrugListDAO.getOrganIdByPharmacy();
+    public void deleteOrganDrugListPharmacy() {
+        List<Integer> organIdBypharmacy = organDrugListDAO.findOrganIdByPharmacy();
         if (organIdBypharmacy != null){
             for (Integer integer : organIdBypharmacy) {
                 List<PharmacyTcm> byOrganId = pharmacyTcmDAO.findByOrganId(integer);
