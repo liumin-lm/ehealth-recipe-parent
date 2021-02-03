@@ -79,6 +79,26 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @Deprecated
     public abstract OrganDrugList getByOrganIdAndDrugId(@DAOParam("organId") int organId, @DAOParam("drugId") int drugId);
 
+
+    /**
+     * 查询机构药品药房不为空 的机构
+     *
+     * @return
+     */
+    @DAOMethod(sql = "select distinct organId from OrganDrugList where pharmacy is not null ")
+    public abstract List<Integer> getOrganIdByPharmacy();
+
+    /**
+     * 查询机构药品药房不为空 的药品
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and pharmacy is not null ")
+    public abstract List<OrganDrugList> findByOrganIdAndPharmacy(@DAOParam("organId") int organId);
+
+
+
     /**
      * 通过药品id和机构id进行批量获取药品信息
      *
