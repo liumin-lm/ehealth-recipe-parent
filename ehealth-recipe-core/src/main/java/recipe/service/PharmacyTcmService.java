@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils;
+import com.google.common.collect.Lists;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -150,7 +151,6 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
-        pharmacyTcmDAO.remove(pharmacyTcmId);
         String pharmacyId="%"+pharmacyTcmId+"%";
         List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndPharmacyId(organId, pharmacyId);
         if (!ObjectUtils.isEmpty(byOrganIdAndPharmacyId)){
@@ -160,9 +160,10 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                     String s = removeOne(pharmacy, pharmacyTcmId);
                     organDrugList.setPharmacy(s);
                 }
-                organDrugListDAO.updateData(organDrugList);
+                organDrugListDAO.update(organDrugList);
             }
         }
+        pharmacyTcmDAO.remove(pharmacyTcmId);
     }
 
 
@@ -186,8 +187,12 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                         String result = "";
                         // 数组转集合
                         List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+                        List<String> userIdList2= Lists.newArrayList();
                         if (userIdList != null && userIdList.size() > 0){
                             for (String s : userIdList) {
+                                userIdList2.add(s);
+                            }
+                            for (String s : userIdList2) {
                                 if (byOrganId.indexOf(s) == -1){
                                     // 移除指定药房 ID
                                     userIdList.remove(s);
