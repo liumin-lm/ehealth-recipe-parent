@@ -2201,6 +2201,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select recipeId from Recipe where clinicOrgan in:organIds and status =8 and fromflag = 1")
     public abstract List<Integer> findReadyAuditRecipeIdsByOrganIds(@DAOParam("organIds") List<Integer> organIds);
 
+    @DAOMethod(sql = "from Recipe where recipeSourceType = 2 and orderCode = :orderCode", limit = 0)
+    public abstract List<Recipe> findRecipeByOrdercode(@DAOParam("orderCode") String orderCode);
+
+
     /**
      * 监管平台需要同步数据
      *
