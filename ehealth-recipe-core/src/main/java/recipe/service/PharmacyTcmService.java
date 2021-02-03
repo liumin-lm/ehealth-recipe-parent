@@ -186,16 +186,18 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                         String result = "";
                         // 数组转集合
                         List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
-                        for (String s : userIdList) {
-                            if (byOrganId.indexOf(s) == -1){
-                                // 移除指定药房 ID
-                                userIdList.remove(s);
-                                // 把剩下的药房 ID 再拼接起来
-                                result = StringUtils.join(userIdList, ",");
+                        if (userIdList != null && userIdList.size() > 0){
+                            for (String s : userIdList) {
+                                if (byOrganId.indexOf(s) == -1){
+                                    // 移除指定药房 ID
+                                    userIdList.remove(s);
+                                    // 把剩下的药房 ID 再拼接起来
+                                    result = StringUtils.join(userIdList, ",");
+                                }
                             }
+                            organDrugList.setPharmacy(result);
+                            organDrugListDAO.updateData(organDrugList);
                         }
-                        organDrugList.setPharmacy(result);
-                        organDrugListDAO.updateData(organDrugList);
                     }
                 }
 

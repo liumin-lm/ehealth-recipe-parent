@@ -2709,7 +2709,7 @@ public class RecipeService extends RecipeBaseService {
                         startIndex++;
                         continue;
                     }else if (null != organDrug && sync){
-                        updateHisOrganDrug(drug, organDrug);
+                        updateHisOrganDrug(drug, organDrug,organId);
                         LOGGER.info("drugInfoSynMovementupdateNum"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                         updateNum++;
                         startIndex++;
@@ -4086,9 +4086,13 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setHisFormCode(drug.getHisFormCode());
         }
 
-        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
-            drugListMatch.setPharmacy(drug.getPharmacyCode());
-        }
+        /*if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            String pharmacyCode = drug.getPharmacyCode();
+            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+            if (byPharmacyAndOrganId != null){
+                drugListMatch.setPharmacy(drug.getPharmacyCode());
+            }
+        }*/
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             drugListMatch.setRegulationDrugCode(drug.getRegulationDrugCode());
         }
@@ -4108,7 +4112,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organDrug
      */
-    private void updateHisOrganDrug(OrganDrugInfoTO drug, OrganDrugList organDrug) {
+    private void updateHisOrganDrug(OrganDrugInfoTO drug, OrganDrugList organDrug,Integer organId) {
         if (null == organDrug) {
             return;
         }
@@ -4154,10 +4158,14 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
             organDrug.setRetrievalCode(drug.getRetrievalCode());
         }
-        //药房编码
+       /* //药房编码
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
-            organDrug.setPharmacy(drug.getPharmacyCode());
-        }
+            String pharmacyCode = drug.getPharmacyCode();
+            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+            if (byPharmacyAndOrganId != null){
+                organDrug.setPharmacy(drug.getPharmacyCode());
+            }
+        }*/
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());

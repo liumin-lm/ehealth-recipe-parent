@@ -467,7 +467,13 @@ public class HisRecipeService {
         patientBaseInfo.setMobile(patientDTO.getMobile());
         patientBaseInfo.setMpi(patientDTO.getMpiId());
         patientBaseInfo.setCardID(patientDTO.getCardId());
-        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificate("230103198006264247");
+        //测试数据
+//        patientBaseInfo.setMpi("2c90820c76cceb7b0176fec2bee7688d");
+//        patientBaseInfo.setCertificate("230103198006264247");
+//        patientBaseInfo.setPatientName("刘魏娜");
+//        patientBaseInfo.setPatientSex("2");
+        //patientBaseInfo.setBirthday("1980-06-26 00:00:00");
 
         QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
         queryRecipeRequestTO.setPatientInfo(patientBaseInfo);
@@ -841,7 +847,7 @@ public class HisRecipeService {
                 hisRecipe.setDecoctionFee(queryHisRecipResTO.getDecoctionFee());
                 hisRecipe.setDecoctionCode(queryHisRecipResTO.getDecoctionCode());
                 hisRecipe.setDecoctionText(queryHisRecipResTO.getDecoctionText());
-                hisRecipe.setTcmFee(queryHisRecipResTO.getTcmFee());
+                hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum()==null?null:String.valueOf(queryHisRecipResTO.getTcmNum()));
                 try {
                     hisRecipe = hisRecipeDAO.save(hisRecipe);
                     LOGGER.info("saveHisRecipeInfo hisRecipe:{} 当前时间：{}",hisRecipe, System.currentTimeMillis());
