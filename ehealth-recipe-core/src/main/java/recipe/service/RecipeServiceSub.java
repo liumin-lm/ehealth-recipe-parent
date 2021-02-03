@@ -1873,6 +1873,19 @@ public class RecipeServiceSub {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+            //处理线下转线上的代煎费
+            if (new Integer(2).equals(recipe.getRecipeSourceType())) {
+                //表示为线下的处方
+                HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                //设置代煎费
+                if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
+                    //说明线下处方有代煎费
+                    recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
+                }
+            }
+        }
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);
