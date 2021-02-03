@@ -33,7 +33,7 @@ public class RecipeDetailAtop extends BaseAtop {
     @RpcService
     public List<RecipeDetailBean> validateDetail(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         logger.info("RecipeDetailAtop validateDetail recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
-        if (null == organId || CollectionUtils.isEmpty(recipeDetails)) {
+        if (null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
         try {

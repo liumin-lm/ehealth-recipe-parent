@@ -1493,6 +1493,7 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     @RpcService
+    @Deprecated
     public List<RecipeDetailBean> validateOfflineDrug(Integer organId, String mpiId, String recipeCode) {
         try {
             LOGGER.info("validateOfflineDrug organId={}, mpiId={},recipeCode={}", organId, mpiId, recipeCode);
@@ -1530,6 +1531,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param detailData 线下处方药品
      * @return
      */
+    @Deprecated
     private List<RecipeDetailBean> offlineDrugs(Integer organId, List<OrganDrugList> organDrugs, List<RecipeDetailTO> detailData) {
         LOGGER.info("offlineDrugs organId = {},organDrugs={},detailData={}", organId, JSONUtils.toString(organDrugs), JSONUtils.toString(detailData));
         Map<String, OrganDrugList> organDrugMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
@@ -1635,6 +1637,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param mpiId   患者id
      * @return
      */
+    @Deprecated
     private List<RecipeInfoTO> recipeListInfos(Integer organId, String mpiId) {
         if (StringUtils.isEmpty(mpiId)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "患者id为空");
