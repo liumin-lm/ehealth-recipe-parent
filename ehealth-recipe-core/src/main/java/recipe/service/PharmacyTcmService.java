@@ -151,7 +151,6 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
-        pharmacyTcmDAO.remove(pharmacyTcmId);
         String pharmacyId="%"+pharmacyTcmId+"%";
         List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndPharmacyId(organId, pharmacyId);
         if (!ObjectUtils.isEmpty(byOrganIdAndPharmacyId)){
@@ -164,6 +163,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                 organDrugListDAO.updateData(organDrugList);
             }
         }
+        pharmacyTcmDAO.remove(pharmacyTcmId);
     }
 
 
