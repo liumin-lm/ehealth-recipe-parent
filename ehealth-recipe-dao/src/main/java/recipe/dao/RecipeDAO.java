@@ -1260,11 +1260,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
                 if (flag == 0 || flag == all) {
-                    if(flag == 0 ){
                         hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
-                    }else {
-                        hql.append(" and  recipeType in(:recipeTypes) ");
-                    }
                 }
                 hql.append("order by signDate desc");
                 Query q;
@@ -2204,6 +2200,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "select recipeId from Recipe where clinicOrgan in:organIds and status =8 and fromflag = 1")
     public abstract List<Integer> findReadyAuditRecipeIdsByOrganIds(@DAOParam("organIds") List<Integer> organIds);
+
+    @DAOMethod(sql = "from Recipe where recipeSourceType = 2 and orderCode = :orderCode", limit = 0)
+    public abstract List<Recipe> findRecipeByOrdercode(@DAOParam("orderCode") String orderCode);
+
 
     /**
      * 监管平台需要同步数据

@@ -22,6 +22,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
@@ -135,6 +136,15 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeHisService recipeHisService;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+
+    @Autowired
+    private HisRecipeService hisRecipeService;
+
+    @Autowired
+    private HisRecipeDAO hisRecipeDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -1844,6 +1854,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (StringUtils.isEmpty(orderCode)) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
         }
+        checkGetOrderDetail(orderCode);
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
@@ -1852,6 +1863,57 @@ public class RecipeOrderService extends RecipeBaseService {
         } else {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
         }
+    }
+
+    /**
+     * 校验待支付订单数据是否发生变化
+     * @param orderCode
+     */
+    private void checkGetOrderDetail(String orderCode) {
+        try{
+            LOGGER.info("checkGetOrderDetail orderCode:{}", orderCode);
+            List<Recipe> recipes=recipeDAO.findRecipeByOrdercode(orderCode);
+            Recipe recipe=recipes.get(0);
+            if(recipe==null ||recipe.getRecipeSourceType()!=2){
+                return;
+            }
+            String cardId=patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId();
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
+            if (StringUtils.isNotEmpty(cardId)) {
+                patientDTO.setCardId(cardId);
+            } else {
+                patientDTO.setCardId("");
+            }
+            if (null == patientDTO) {
+                throw new DAOException(609, "患者信息不存在");
+            }
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1);
+            List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
+            if(CollectionUtils.isEmpty(hisRecipeTO)){
+                return;
+            }
+            Set<String> deleteSetRecipeCode = new HashSet<>();
+            hisRecipeTO.forEach(a -> {
+                if(StringUtils.isNotEmpty(a.getRecipeCode()) &&a.getRecipeCode().equals(recipe.getRecipeCode())){
+                    HisRecipe hisRecipe=hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(a.getClinicOrgan(),a.getRecipeCode());
+                    //中药判断tcmFee发生变化,删除数据
+                    BigDecimal tcmFee =  a.getTcmFee() ;
+                    if(tcmFee!=hisRecipe.getTcmFee()){
+                        deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+                    }
+                }
+            });
+            //删除
+            hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
+            if (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0) {
+                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            LOGGER.info("checkGetOrderDetail orderCode:{},error:{}", orderCode, e.getMessage());
+        }
+
     }
 
     /**

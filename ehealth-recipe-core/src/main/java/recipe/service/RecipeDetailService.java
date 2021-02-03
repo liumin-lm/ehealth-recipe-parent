@@ -18,6 +18,7 @@ import recipe.dao.PharmacyTcmDAO;
 import recipe.service.client.DrugClient;
 import recipe.service.client.IConfigurationClient;
 import recipe.util.ByteUtils;
+import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -81,7 +82,7 @@ public class RecipeDetailService {
             }
             //校验比对药品
             OrganDrugList organDrug = null;
-            if ((null == a.getDrugId() || 0 == a.getDrugId()) && 1 == organDrugs.size()) {
+            if (ValidateUtil.integerIsEmpty(a.getDrugId()) && 1 == organDrugs.size()) {
                 organDrug = organDrugs.get(0);
             }
             if (null != a.getDrugId()) {
@@ -103,6 +104,8 @@ public class RecipeDetailService {
             }
             //校验数据是否完善
             validateDrug(a, recipeDay, organDrug, recipeType);
+            a.setStatus(organDrug.getStatus());
+            a.setDrugId(organDrug.getDrugId());
         });
         return recipeDetails;
     }
@@ -111,22 +114,23 @@ public class RecipeDetailService {
     /**
      * 校验药品药房是否变动
      *
-     * @param commonPharmacyId 常用方药房id
+     * @param commonPharmacyId 续房药房id
+     * @param pharmacyCode     续方药房code
      * @param pharmacy         机构药房id
      * @return true 不一致
      */
     private boolean pharmacyVariation(Integer commonPharmacyId, String pharmacyCode, String pharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
-        if (null == commonPharmacyId && StringUtils.isEmpty(pharmacyCode) && StringUtils.isNotEmpty(pharmacy)) {
+        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isEmpty(pharmacyCode) && StringUtils.isNotEmpty(pharmacy)) {
             return true;
         }
-        if (null == commonPharmacyId && StringUtils.isNotEmpty(pharmacyCode)) {
+        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacyCode)) {
             PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(pharmacyCode);
             if (null == pharmacyTcm) {
                 return true;
             }
             commonPharmacyId = pharmacyTcm.getPharmacyId();
         }
-        if (null == commonPharmacyId && StringUtils.isNotEmpty(pharmacy)) {
+        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy)) {
             return true;
         }
         if (null != commonPharmacyId && StringUtils.isEmpty(pharmacy)) {
@@ -160,7 +164,7 @@ public class RecipeDetailService {
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
-            if (null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) {
+            if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内
@@ -169,11 +173,11 @@ public class RecipeDetailService {
         } else {
             /**校验西药 数据是否完善*/
             //每次剂量
-            if ((null == recipeDetail.getUseDose() || 0 == recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
+            if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //开药总数是否为空
-            if (null == recipeDetail.getUseTotalDose() || 0 == recipeDetail.getUseTotalDose()) {
+            if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseTotalDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内

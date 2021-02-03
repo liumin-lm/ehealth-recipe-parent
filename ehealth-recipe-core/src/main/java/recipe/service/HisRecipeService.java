@@ -480,17 +480,21 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
+        //TODO 注释
 //        if(responseTO!=null){
 //            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
 //            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
 //                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
-//                    if(1==queryHisRecipResTO.getStatus()){
-//                        queryHisRecipResTO.setRecipeCode("444");
-//                    }
-//                    if(2==queryHisRecipResTO.getStatus()){
-//                        queryHisRecipResTO.setRecipeCode("111");
-//                        queryHisRecipResTO.setStatus(1);
-//                    }
+////                    if(1==queryHisRecipResTO.getStatus()){
+////                        queryHisRecipResTO.setRecipeCode("444");
+////                    }
+////                    if(2==queryHisRecipResTO.getStatus()){
+////                        queryHisRecipResTO.setRecipeCode("111");
+////                        queryHisRecipResTO.setStatus(1);
+////                    }
+//                    queryHisRecipResTO.setRecipeCostNumber("111");
+//                    queryHisRecipResTO.setDecoctionFee(new BigDecimal(20));
+//                    queryHisRecipResTO.setTcmFee(new BigDecimal(19));
 //                }
 //            }
 //        }
@@ -827,6 +831,14 @@ public class HisRecipeService {
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
                 hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
+
+                //中药
+                hisRecipe.setRecipeCostNumber(queryHisRecipResTO.getRecipeCostNumber());
+                hisRecipe.setTcmFee(queryHisRecipResTO.getTcmFee());
+                hisRecipe.setDecoctionFee(queryHisRecipResTO.getDecoctionFee());
+                hisRecipe.setDecoctionCode(queryHisRecipResTO.getDecoctionCode());
+                hisRecipe.setDecoctionText(queryHisRecipResTO.getDecoctionText());
+                hisRecipe.setTcmFee(queryHisRecipResTO.getTcmFee());
                 try {
                     hisRecipe = hisRecipeDAO.save(hisRecipe);
                     LOGGER.info("saveHisRecipeInfo hisRecipe:{} 当前时间：{}",hisRecipe, System.currentTimeMillis());
@@ -1062,6 +1074,8 @@ public class HisRecipeService {
         } catch (Exception e) {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
         }
+        //中药
+        recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
         RecipeBean recipeBean = new RecipeBean();
         BeanUtils.copy(recipe, recipeBean);
         emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
@@ -1158,6 +1172,8 @@ public class HisRecipeService {
         recipe.setRecipeSource(hisRecipe.getRecipeSource());
         recipe.setGiveMode(hisRecipe.getGiveMode());
         recipe.setLastModify(new Date());
+        //中药
+        recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum())==true?null:Integer.parseInt(hisRecipe.getTcmNum()));
         return recipeDAO.saveRecipe(recipe);
 
     }
@@ -1455,6 +1471,7 @@ public class HisRecipeService {
         if (CollectionUtils.isEmpty(hisRecipeDetailList)) {
             return;
         }
+
         //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数
         Set<String> deleteSetRecipeCode = new HashSet<>();
         Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
@@ -1526,7 +1543,15 @@ public class HisRecipeService {
                     deleteSetRecipeCode.add(recipeCode);
                 }
             }
+            //中药判断tcmFee发生变化,删除数据
+            //BigDecimal tcmFee = null != a.getTcmFee() ? a.getTcmFee() : 0.00;
+            BigDecimal tcmFee =  a.getTcmFee() ;
+            if(tcmFee!=hisRecipe.getTcmFee()){
+                deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+            }
+
         });
+
         //删除
         deleteSetRecipeCode(clinicOrgan, deleteSetRecipeCode);
     }
@@ -1537,7 +1562,7 @@ public class HisRecipeService {
      * @param clinicOrgan         机构id
      * @param deleteSetRecipeCode 要删除的
      */
-    private void deleteSetRecipeCode(Integer clinicOrgan, Set<String> deleteSetRecipeCode) {
+    void deleteSetRecipeCode(Integer clinicOrgan, Set<String> deleteSetRecipeCode) {
         LOGGER.info("deleteSetRecipeCode clinicOrgan = {},deleteSetRecipeCode = {}", clinicOrgan, JSONUtils.toString(deleteSetRecipeCode));
         if (CollectionUtils.isEmpty(deleteSetRecipeCode)) {
             return;
