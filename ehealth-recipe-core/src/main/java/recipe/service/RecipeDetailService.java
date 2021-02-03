@@ -3,6 +3,7 @@ package recipe.service;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -104,8 +105,19 @@ public class RecipeDetailService {
             }
             //校验数据是否完善
             validateDrug(a, recipeDay, organDrug, recipeType);
+            /**返回前端必须字段*/
             a.setStatus(organDrug.getStatus());
             a.setDrugId(organDrug.getDrugId());
+            if (CollectionUtils.isEmpty(a.getUseDoseAndUnitRelation())) {
+                List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+                }
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+                }
+                a.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            }
         });
         return recipeDetails;
     }
