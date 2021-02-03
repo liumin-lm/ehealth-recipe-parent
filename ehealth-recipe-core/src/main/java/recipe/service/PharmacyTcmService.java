@@ -160,7 +160,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                     String s = removeOne(pharmacy, pharmacyTcmId);
                     organDrugList.setPharmacy(s);
                 }
-                organDrugListDAO.updateData(organDrugList);
+                organDrugListDAO.update(organDrugList);
             }
         }
         pharmacyTcmDAO.remove(pharmacyTcmId);
