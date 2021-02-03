@@ -16,6 +16,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.omg.CORBA.INTERNAL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,16 +177,12 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
     public void deleteOrganDrugListPharmacy() {
         List<Integer> organIdBypharmacy = organDrugListDAO.findOrganIdByPharmacy();
         if (organIdBypharmacy != null){
-            for (Integer integer : organIdBypharmacy) {
-                List<PharmacyTcm> byOrganId = pharmacyTcmDAO.findByOrganId(integer);
-                List<String> pharmacyIds=Lists.newArrayList();
-                for (PharmacyTcm pharmacyTcm : byOrganId) {
-                    pharmacyIds.add(pharmacyTcm.getPharmacyId().toString());
-                }
-                List<OrganDrugList> byOrganIdAndPharmacy = organDrugListDAO.findByOrganIdAndPharmacy(integer);
+            for (Integer p : organIdBypharmacy) {
+                List<Integer> byOrganId = pharmacyTcmDAO.findPharmacyByOrganId(p);
+                List<OrganDrugList> byOrganIdAndPharmacy = organDrugListDAO.findByOrganIdAndPharmacy(p);
                 if (byOrganIdAndPharmacy != null){
                     for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
-                        if (pharmacyIds==null || pharmacyIds.size()==0){
+                        if (byOrganId==null || byOrganId.size()==0){
                             organDrugList.setPharmacy("");
                             organDrugListDAO.update(organDrugList);
                             continue;
@@ -202,7 +199,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                                 userIdList2.add(s);
                             }
                             for (String s : userIdList2) {
-                                if (pharmacyIds.indexOf(s) != -1){
+                                if (byOrganId.indexOf(s) == -1){
                                     // 移除指定药房 ID
                                     userIdList.remove(s);
                                     // 把剩下的药房 ID 再拼接起来
