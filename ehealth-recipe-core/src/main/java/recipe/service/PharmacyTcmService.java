@@ -225,7 +225,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
             String[] userIdArray = pharmacyIds.split(",");
             // 数组转集合
             List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
-            if(userIdList.indexOf(pharmacyId)==-1){
+            if(userIdList.indexOf(pharmacyId)!=-1){
             // 移除指定药房 ID
             userIdList.remove(pharmacyId.toString());
             // 把剩下的药房 ID 再拼接起来
