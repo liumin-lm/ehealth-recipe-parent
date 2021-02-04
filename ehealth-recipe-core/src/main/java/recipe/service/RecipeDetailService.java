@@ -238,19 +238,27 @@ public class RecipeDetailService {
      */
     private boolean medicationsValidate(Integer organId, RecipeDetailBean recipeDetail) {
         boolean us = false;
-        UsingRateDTO usingRateDTO = drugClient.usingRate(organId, recipeDetail.getUsingRate());
+        UsingRateDTO usingRateDTO = drugClient.usingRate(organId, recipeDetail.getOrganUsingRate());
         if (null == usingRateDTO) {
             recipeDetail.setUsingRate(null);
             recipeDetail.setUsingRateTextFromHis(null);
             recipeDetail.setUsingRateId(null);
+            recipeDetail.setOrganUsingRate(null);
             us = true;
+        } else {
+            recipeDetail.setUsingRate(usingRateDTO.getUsingRateKey());
+            recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
         }
-        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organId, recipeDetail.getUsePathways());
+        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organId, recipeDetail.getOrganUsePathways());
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
             recipeDetail.setUsePathwaysTextFromHis(null);
             recipeDetail.setUsePathwaysId(null);
+            recipeDetail.setOrganUsePathways(null);
             us = true;
+        } else {
+            recipeDetail.setUsePathways(usePathwaysDTO.getPathwaysKey());
+            recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
         }
         return us;
     }
