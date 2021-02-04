@@ -371,6 +371,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "是否被接方 0 未接方 1已接方")
     private Integer grabOrderStatus;
 
+    @ItemProperty(alias = "his中药处方代煎费")
+    private BigDecimal decoctionFee;
+
     public String getRecipeCostNumber() {
         return recipeCostNumber;
     }
@@ -1370,5 +1373,13 @@ public class RecipeBean implements Serializable {
 
     public void setGrabOrderStatus(Integer grabOrderStatus) {
         this.grabOrderStatus = grabOrderStatus;
+    }
+
+    public BigDecimal getDecoctionFee() {
+        return decoctionFee;
+    }
+
+    public void setDecoctionFee(BigDecimal decoctionFee) {
+        this.decoctionFee = decoctionFee;
     }
 }
