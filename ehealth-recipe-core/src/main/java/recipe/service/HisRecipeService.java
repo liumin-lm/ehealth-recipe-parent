@@ -477,7 +477,7 @@ public class HisRecipeService {
 
         QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
         queryRecipeRequestTO.setPatientInfo(patientBaseInfo);
-        queryRecipeRequestTO.setStartDate(tranDateByFlagNew(timeQuantum.toString()));
+        //queryRecipeRequestTO.setStartDate(new Date());
         queryRecipeRequestTO.setEndDate(new Date());
         queryRecipeRequestTO.setOrgan(organId);
         queryRecipeRequestTO.setQueryType(flag);
