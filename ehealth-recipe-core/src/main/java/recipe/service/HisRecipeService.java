@@ -467,7 +467,7 @@ public class HisRecipeService {
         patientBaseInfo.setMobile(patientDTO.getMobile());
         patientBaseInfo.setMpi(patientDTO.getMpiId());
         patientBaseInfo.setCardID(patientDTO.getCardId());
-        patientBaseInfo.setCertificate("230103198006264247");
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
         //测试数据
 //        patientBaseInfo.setMpi("2c90820c76cceb7b0176fec2bee7688d");
 //        patientBaseInfo.setCertificate("230103198006264247");
