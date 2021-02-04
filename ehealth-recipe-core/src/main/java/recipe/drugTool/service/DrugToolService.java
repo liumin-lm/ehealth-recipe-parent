@@ -1663,12 +1663,13 @@ public class DrugToolService implements IDrugToolService {
             LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构对照列表中", drugId);
             return null;
         }
-        List<ProvinceDrugList> provinceDrugLists =null;
+       /* List<ProvinceDrugList> provinceDrugLists =null;
         if (input != null){
             provinceDrugLists = getProvinceDrugLists(organId,drugListMatch, start, limit, input);
         }else {
             provinceDrugLists = getProvinceDrugLists(organId,drugListMatch, start, limit, producer);
-        }
+        }*/
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsSearch(organId, start, limit, input,producer);
         if (null == provinceDrugLists) {
             //如果没有省平台药品数据则为null
             return null;
@@ -1681,7 +1682,7 @@ public class DrugToolService implements IDrugToolService {
 
 
   /*根据匹配的药品销售名，获取相似名称的省平台药品   搜索专用*/
-  /*  private List<ProvinceDrugList> getProvinceDrugListsSearch(int organId, int start, int limit, String input, String producer) {
+    private List<ProvinceDrugList> getProvinceDrugListsSearch(int organId, int start, int limit, String input, String producer) {
         List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
         if (!checkOrganRegulation(organId)) return null;
 
@@ -1698,7 +1699,7 @@ public class DrugToolService implements IDrugToolService {
         }
 
         return provinceDrugLists;
-    }*/
+    }
 
     /*判断当前机构下的建挂壁平台有没有配置，没有配置判断为没有省平台药品*/
     @RpcService
