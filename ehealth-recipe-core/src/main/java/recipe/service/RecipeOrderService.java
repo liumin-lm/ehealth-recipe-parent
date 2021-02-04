@@ -1936,11 +1936,13 @@ public class RecipeOrderService extends RecipeBaseService {
                         LOGGER.info("checkGetOrderDetail hisRecipe==null orderCode:{}", orderCode);
                         throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
                     }
-                    //中药判断tcmFee发生变化,删除数据
-                    BigDecimal tcmFee =  a.getTcmFee() ;
-                    if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
-                        LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
-                        deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+                    if(hisRecipe.getStatus()!=2){
+                        //中药判断tcmFee发生变化,删除数据
+                        BigDecimal tcmFee =  a.getTcmFee() ;
+                        if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
+                            LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
+                            deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+                        }
                     }
                 }
             });
