@@ -23,16 +23,16 @@ public class DrugClient extends BaseClient {
     /**
      * 获取机构 药物使用频率
      *
-     * @param organId   机构id
-     * @param usingRate 药物使用频率代码
+     * @param organId        机构id
+     * @param organUsingRate 机构药物使用频率代码
      * @return
      */
-    public UsingRateDTO usingRate(Integer organId, String usingRate) {
-        if (null == organId || StringUtils.isEmpty(usingRate)) {
+    public UsingRateDTO usingRate(Integer organId, String organUsingRate) {
+        if (null == organId || StringUtils.isEmpty(organUsingRate)) {
             return null;
         }
         try {
-            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, usingRate);
+            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, organUsingRate);
             if (null == usingRateDTO) {
                 return null;
             }
@@ -46,16 +46,16 @@ public class DrugClient extends BaseClient {
     /**
      * 获取机构 药物使用途径
      *
-     * @param organId     机构id
-     * @param usePathways 药物使用途径代码
+     * @param organId          机构id
+     * @param organUsePathways 机构药物使用途径代码
      * @return
      */
-    public UsePathwaysDTO usePathways(Integer organId, String usePathways) {
-        if (null == organId || StringUtils.isEmpty(usePathways)) {
+    public UsePathwaysDTO usePathways(Integer organId, String organUsePathways) {
+        if (null == organId || StringUtils.isEmpty(organUsePathways)) {
             return null;
         }
         try {
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, usePathways);
+            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, organUsePathways);
             if (null == usePathwaysDTO) {
                 return null;
             }
