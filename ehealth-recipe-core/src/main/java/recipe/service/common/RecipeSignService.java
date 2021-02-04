@@ -432,7 +432,8 @@ public class RecipeSignService {
         rMap.put("errorFlag", false);
         rMap.put("canContinueFlag", "0");
         LOG.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
-        RecipeService.handleRecipeInvalidTime(recipeBean);
+        // 互联网环境没有延迟topic，不设置失效时间，走定时任务根据签名时间失效
+        // RecipeService.handleRecipeInvalidTime(recipeBean);
         return rMap;
     }
 
