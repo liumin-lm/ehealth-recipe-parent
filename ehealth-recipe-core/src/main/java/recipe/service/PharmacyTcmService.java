@@ -216,7 +216,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                             userIdList2.add(s);
                         }
                         for (String s : userIdList2) {
-                            if (byOrganId2.indexOf(s) != -1){
+                            if (byOrganId2.indexOf(s) == -1){
                                 // 移除指定药房 ID
                                 userIdList.remove(s);
                                 // 把剩下的药房 ID 再拼接起来
