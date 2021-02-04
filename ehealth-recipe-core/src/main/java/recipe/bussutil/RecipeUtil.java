@@ -375,6 +375,9 @@ public class RecipeUtil {
             recipe.setCheckStatus(0);
         }
 
+        //设置抢单的默认状态
+        recipe.setGrabOrderStatus(0);
+
     }
 
     //将；用|代替
