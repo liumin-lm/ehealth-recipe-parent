@@ -337,7 +337,11 @@ public class HisCallBackService {
             attrMap.put("patientInvoiceNo", detail.getPatientInvoiceNo());
             attrMap.put("patientInvoiceDate", new DateTime().toDate());
             if (StringUtils.isNotEmpty(detail.getPharmNo())) {
-                attrMap.put("pharmNo", detail.getPharmNo());
+                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                Map<String, Object> extendMap = new HashedMap();
+                // 将取药窗口更新到ext表
+                extendMap.put("pharmNo",detail.getPharmNo());
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(detail.getRecipeId()), extendMap);
             }
 
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);

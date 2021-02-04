@@ -2,12 +2,10 @@ package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -30,6 +28,7 @@ import recipe.util.MapValueUtil;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -83,14 +82,19 @@ public class PayModeToHos implements IPurchaseService{
             return resultBean;
         }
 
-        if(CollectionUtils.isNotEmpty(detailList)){
-            String pharmNo = detailList.get(0).getPharmNo();
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
+
+        if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+            String pharmNo = recipeExtend.getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){
                 sb.append("选择到院自取后需去医院取药窗口取药：["+ organDTO.getName() + pharmNo + "取药窗口]");
             }else {
                 sb.append("选择到院自取后，需去医院取药窗口取药");
             }
         }
+
         resultBean.setMsg(sb.toString());
         return resultBean;
     }

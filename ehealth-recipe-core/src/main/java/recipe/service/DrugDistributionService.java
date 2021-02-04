@@ -56,6 +56,7 @@ import recipe.util.RedisClient;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author： 0184/yu_yun
@@ -376,15 +377,28 @@ public class DrugDistributionService {
                 tips = "请到医院支付取药，医院取药窗口：";
             }
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-            List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
-            if(CollectionUtils.isNotEmpty(detailList)){
-                String pharmNo = detailList.get(0).getPharmNo();
+
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+
+
+            if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+                String pharmNo = recipeExtend.getPharmNo();
                 if(StringUtils.isNotEmpty(pharmNo)){
                     tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]";
                 }else {
                     tips += "["+ organDTO.getName() + "取药窗口]";
                 }
             }
+//            List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
+//            if(CollectionUtils.isNotEmpty(detailList)){
+//                String pharmNo = detailList.get(0).getPharmNo();
+//                if(StringUtils.isNotEmpty(pharmNo)){
+//                    tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]";
+//                }else {
+//                    tips += "["+ organDTO.getName() + "取药窗口]";
+//                }
+//            }
             response.setMsg(tips);
             response.setCode(CommonConstant.SUCCESS);
         }
