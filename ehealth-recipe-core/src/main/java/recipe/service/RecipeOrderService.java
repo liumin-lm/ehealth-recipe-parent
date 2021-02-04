@@ -750,6 +750,9 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setRecMobile(hisRecipe.getReceiverTel());
                         order.setAddressCanSend(true);
                         order.setAddress4(hisRecipe.getSendAddr());
+                    }else {
+                        //运费在这里面设置
+                        setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                     }
                 }
             } else {
