@@ -223,7 +223,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                                 result = StringUtils.join(userIdList, ",");
                             }
                         }
-                        if (result!="-1"){
+                        if ( !"-1".equals(result)){
                             organDrugList.setPharmacy(result);
                             organDrugListDAO.update(organDrugList);
                         }
