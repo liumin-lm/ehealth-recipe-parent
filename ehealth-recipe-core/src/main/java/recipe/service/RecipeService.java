@@ -2782,7 +2782,7 @@ public class RecipeService extends RecipeBaseService {
                         if (null == organDrug) {
                             continue;
                         }
-                        updateHisDrug(drug, organDrug);
+                        updateHisDrug(drug, organDrug,oid);
                         updateNum++;
                         LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
                     }
@@ -3987,7 +3987,7 @@ public class RecipeService extends RecipeBaseService {
 
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(oid, drug.getDrcode());
         LOGGER.info("updateHisDrug 更新药品金额,更新前药品信息：{}", JSONUtils.toString(organDrug));
-        updateHisDrug(drug, organDrug);
+        updateHisDrug(drug, organDrug,oid);
     }
 
     /**
@@ -4195,7 +4195,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organDrug
      */
-    private void updateHisDrug(DrugInfoTO drug, OrganDrugList organDrug) {
+    private void updateHisDrug(DrugInfoTO drug, OrganDrugList organDrug,Integer organId) {
         if (null == organDrug) {
             return;
         }
@@ -4286,7 +4286,11 @@ public class RecipeService extends RecipeBaseService {
         }
         //药房
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
-            organDrug.setPharmacy(drug.getPharmacyCode());
+            String pharmacyCode = drug.getPharmacyCode();
+            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+            if (byPharmacyAndOrganId != null){
+                organDrug.setPharmacy(drug.getPharmacyCode());
+            }
         }
         //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
