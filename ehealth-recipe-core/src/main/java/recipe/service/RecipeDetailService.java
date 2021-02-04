@@ -146,10 +146,10 @@ public class RecipeDetailService {
         if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy)) {
             return true;
         }
-        if (null != commonPharmacyId && StringUtils.isEmpty(pharmacy)) {
+        if (!ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isEmpty(pharmacy)) {
             return true;
         }
-        if (null != commonPharmacyId && StringUtils.isNotEmpty(pharmacy) &&
+        if (!ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy) &&
                 !Arrays.asList(pharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(commonPharmacyId))) {
             return true;
         }
