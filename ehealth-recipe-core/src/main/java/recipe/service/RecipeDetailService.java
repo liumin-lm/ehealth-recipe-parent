@@ -212,8 +212,8 @@ public class RecipeDetailService {
      */
     private boolean useDayValidate(String[] recipeDay, RecipeDetailBean recipeDetail) {
         boolean useDay = false;
-        Integer minUseDay = Integer.valueOf(recipeDay[0]);
-        Integer maxUseDay = Integer.valueOf(recipeDay[1]);
+        Double minUseDay = Double.valueOf(recipeDay[0]);
+        Double maxUseDay = Double.valueOf(recipeDay[1]);
         if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() < minUseDay || recipeDetail.getUseDays() > maxUseDay) {
             recipeDetail.setUseDays(null);
             useDay = true;
