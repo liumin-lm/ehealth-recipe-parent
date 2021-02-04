@@ -955,7 +955,7 @@ public class HisRecipeService {
             hisRecipeDetailVO.setPack(recipedetail.getPack());
             hisRecipeDetailVO.setDrugForm(recipedetail.getDrugForm());
             hisRecipeDetailVO.setUseTotalDose(new BigDecimal(recipedetail.getUseTotalDose()));
-            hisRecipeDetailVO.setUseDose(recipedetail.getUseTotalDose()==null?"":recipedetail.getUseTotalDose().toString());
+            hisRecipeDetailVO.setUseDose(recipedetail.getUseDose()==null?"":recipedetail.getUseDose().toString());
             hisRecipeDetailVO.setDrugUnit(recipedetail.getDrugUnit());
             recipeDetailVOS.add(hisRecipeDetailVO);
         }
@@ -1566,7 +1566,7 @@ public class HisRecipeService {
             }
             //中药判断tcmFee发生变化,删除数据
             BigDecimal tcmFee =  a.getTcmFee() ;
-            if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
+            if((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee())!= 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)){
                 LOGGER.info("deleteSetRecipeCode cause tcmFee recipeCode:{}",recipeCode);
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }

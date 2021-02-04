@@ -1149,6 +1149,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             //1.先判断机构下面存不存在药企，如果存在获取机构下关联的药企
             List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
             List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(deps)) {
+                return Lists.newArrayList();
+            }
             //2.找到每一个药能支持的药企关系
             List<Integer> drugIds = drugListBeans.stream().map(IHisDrugInventoryCondition::getDrugId).collect(Collectors.toList());
             // 2.1药品1:药企A,药企B

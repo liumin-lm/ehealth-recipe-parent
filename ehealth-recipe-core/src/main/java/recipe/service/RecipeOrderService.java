@@ -657,10 +657,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     //表示为线下的处方
                     HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                    tcmFlag = false;
                     //设置中医辨证论证费
                     if (hisRecipe != null && hisRecipe.getTcmFee() != null) {
                         tcmFee = hisRecipe.getTcmFee();
-                        tcmFlag = false;
                     }
                     if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
                         //说明线下处方有代煎费
@@ -673,8 +673,8 @@ public class RecipeOrderService extends RecipeBaseService {
                             //如果是合并处方-多张处方下得累加
                             decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                         }
-                        i++;
                     }
+                    i++;
                 } else {
                     totalCopyNum = totalCopyNum + recipe.getCopyNum();
                     if (needCalDecFee) {
@@ -750,6 +750,9 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setRecMobile(hisRecipe.getReceiverTel());
                         order.setAddressCanSend(true);
                         order.setAddress4(hisRecipe.getSendAddr());
+                    }else {
+                        //运费在这里面设置
+                        setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                     }
                 }
             } else {
@@ -1939,7 +1942,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if(hisRecipe.getStatus()!=2){
                         //中药判断tcmFee发生变化,删除数据
                         BigDecimal tcmFee =  a.getTcmFee() ;
-                        if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
+                        if((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee())!= 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)){
                             LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
                             deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
                         }
