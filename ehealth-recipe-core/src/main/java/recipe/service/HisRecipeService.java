@@ -1563,9 +1563,8 @@ public class HisRecipeService {
                 }
             }
             //中药判断tcmFee发生变化,删除数据
-            //BigDecimal tcmFee = null != a.getTcmFee() ? a.getTcmFee() : 0.00;
             BigDecimal tcmFee =  a.getTcmFee() ;
-            if(tcmFee!=hisRecipe.getTcmFee()){
+            if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
                 LOGGER.info("deleteSetRecipeCode cause tcmFee recipeCode:{}",recipeCode);
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }

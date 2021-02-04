@@ -1938,7 +1938,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     //中药判断tcmFee发生变化,删除数据
                     BigDecimal tcmFee =  a.getTcmFee() ;
-                    if(tcmFee!=hisRecipe.getTcmFee()){
+                    if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
+                        LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
                         deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
                     }
                 }
