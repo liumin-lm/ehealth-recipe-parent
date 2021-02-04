@@ -955,6 +955,8 @@ public class HisRecipeService {
             hisRecipeDetailVO.setPack(recipedetail.getPack());
             hisRecipeDetailVO.setDrugForm(recipedetail.getDrugForm());
             hisRecipeDetailVO.setUseTotalDose(new BigDecimal(recipedetail.getUseTotalDose()));
+            hisRecipeDetailVO.setUseDose(recipedetail.getUseTotalDose()==null?"":recipedetail.getUseTotalDose().toString());
+            hisRecipeDetailVO.setDrugUnit(recipedetail.getDrugUnit());
             recipeDetailVOS.add(hisRecipeDetailVO);
         }
         return recipeDetailVOS;
