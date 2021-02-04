@@ -4086,13 +4086,13 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setHisFormCode(drug.getHisFormCode());
         }
 
-        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+       /* if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
             PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
             if (byPharmacyAndOrganId != null){
                 drugListMatch.setPharmacy(drug.getPharmacyCode());
             }
-        }
+        }*/
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             drugListMatch.setRegulationDrugCode(drug.getRegulationDrugCode());
         }
@@ -4158,14 +4158,14 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
             organDrug.setRetrievalCode(drug.getRetrievalCode());
         }
-        //药房编码
+       /* //药房编码
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
             PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
             if (byPharmacyAndOrganId != null){
                 organDrug.setPharmacy(drug.getPharmacyCode());
             }
-        }
+        }*/
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
@@ -4284,18 +4284,18 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
             organDrug.setRetrievalCode(drug.getRetrievalCode());
         }
-        //药房
+       /* //药房
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
             PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
             if (byPharmacyAndOrganId != null){
-                organDrug.setPharmacy(drug.getPharmacyCode());
+                organDrug.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
             }
-        }
-        //医院药房名字
+        }*/
+       /* //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
             organDrug.setPharmacyName(drug.getPharmacy());
-        }
+        }*/
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
