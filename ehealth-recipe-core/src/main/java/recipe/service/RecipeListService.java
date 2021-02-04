@@ -840,8 +840,8 @@ public class RecipeListService extends RecipeBaseService {
                 map.put("memo", recipe.getMemo());
                 switch (recipe.getStatus()) {
                     case RecipeStatusConstant.CHECK_PASS:
-                        if (StringUtils.isNotEmpty(recipedetails.get(0).getPharmNo())) {
-                            map.put("statusText", "药师审核处方通过，请去医院取药窗口取药:[" + recipedetails.get(0).getPharmNo() + "]");
+                        if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+                            map.put("statusText", "药师审核处方通过，请去医院取药窗口取药:[" + recipeExtend.getPharmNo() + "]");
                         } else {
                             map.put("statusText", "药师审核处方通过，请去医院取药窗口取药");
                         }
