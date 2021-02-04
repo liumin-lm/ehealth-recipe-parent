@@ -86,7 +86,7 @@ public class RecipeDetailService {
             if (ValidateUtil.integerIsEmpty(a.getDrugId()) && 1 == organDrugs.size()) {
                 organDrug = organDrugs.get(0);
             }
-            if (null != a.getDrugId()) {
+            if (!ValidateUtil.integerIsEmpty(a.getDrugId())) {
                 for (OrganDrugList drug : organDrugs) {
                     if (drug.getDrugId().equals(a.getDrugId())) {
                         organDrug = drug;

@@ -137,15 +137,18 @@ public class AuditPostMode extends AbstractAuidtMode {
 
         super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
 
-        Integer checkMode = dbRecipe.getCheckMode();
-        if(!new Integer(1).equals(checkMode)) {
-            if (new Integer(2).equals(checkMode)) {
-                //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-                IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-                RecipeDTO recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeDTO.class);
-                recipeAuditService.sendCheckRecipeInfo(recipeBean);
-            } else {
-                recipeAudit(dbRecipe);
+        if (saveFlag) {
+            //支付后调用
+            Integer checkMode = dbRecipe.getCheckMode();
+            if (!new Integer(1).equals(checkMode)) {
+                if (new Integer(2).equals(checkMode)) {
+                    //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+                    IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+                    RecipeDTO recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeDTO.class);
+                    recipeAuditService.sendCheckRecipeInfo(recipeBean);
+                } else {
+                    recipeAudit(dbRecipe);
+                }
             }
         }
 

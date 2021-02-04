@@ -1,6 +1,8 @@
 package recipe.service;
 
 import com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -15,6 +17,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.omg.CORBA.INTERNAL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,7 @@ import recipe.dao.PharmacyTcmDAO;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author renfuhao
@@ -150,7 +154,6 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
-        pharmacyTcmDAO.remove(pharmacyTcmId);
         String pharmacyId="%"+pharmacyTcmId+"%";
         List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndPharmacyId(organId, pharmacyId);
         if (!ObjectUtils.isEmpty(byOrganIdAndPharmacyId)){
@@ -160,9 +163,10 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                     String s = removeOne(pharmacy, pharmacyTcmId);
                     organDrugList.setPharmacy(s);
                 }
-                organDrugListDAO.updateData(organDrugList);
+                organDrugListDAO.update(organDrugList);
             }
         }
+        pharmacyTcmDAO.remove(pharmacyTcmId);
     }
 
 
@@ -172,38 +176,72 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public void deleteOrganDrugListPharmacy() {
+    public Map<Integer,String> deleteOrganDrugListPharmacy() {
+        Map<Integer,String> map= Maps.newHashMap();
         List<Integer> organIdBypharmacy = organDrugListDAO.findOrganIdByPharmacy();
         if (organIdBypharmacy != null){
-            for (Integer integer : organIdBypharmacy) {
-                List<PharmacyTcm> byOrganId = pharmacyTcmDAO.findByOrganId(integer);
-                List<OrganDrugList> byOrganIdAndPharmacy = organDrugListDAO.findByOrganIdAndPharmacy(integer);
-                if (byOrganIdAndPharmacy != null){
-                    for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
-                        String pharmacy = organDrugList.getPharmacy();
-                        String[] userIdArray = pharmacy.split(",");
-                        // 返回结果
-                        String result = "";
-                        // 数组转集合
-                        List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
-                        if (userIdList != null && userIdList.size() > 0){
-                            for (String s : userIdList) {
-                                if (byOrganId.indexOf(s) == -1){
-                                    // 移除指定药房 ID
-                                    userIdList.remove(s);
-                                    // 把剩下的药房 ID 再拼接起来
-                                    result = StringUtils.join(userIdList, ",");
-                                }
+            for (Integer p : organIdBypharmacy) {
+                String ss = deletePharmacy(p);
+                map.put(p,ss);
+            }
+        }
+        return map;
+    }
+    /**
+     *  机构药品数据 药房脏数据处理  单个机构处理
+     * @return
+     */
+    @RpcService
+    public String deletePharmacy(Integer p) {
+
+        String ss="";
+        List<Integer> byOrganId = pharmacyTcmDAO.findPharmacyByOrganId(p);
+        List<String> byOrganId2 =Lists.newArrayList();
+        for (Integer i : byOrganId) {
+            byOrganId2.add(i.toString());
+        }
+        List<OrganDrugList> byOrganIdAndPharmacy = organDrugListDAO.findByOrganIdAndPharmacy(p);
+        if ( byOrganId2!=null && byOrganId2.size()>=0){
+            if (byOrganIdAndPharmacy != null  && byOrganIdAndPharmacy.size()>0){
+                for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
+                    String pharmacy = organDrugList.getPharmacy();
+                    String[] userIdArray = pharmacy.split(",");
+                    // 返回结果
+                    String result = "-1";
+                    // 数组转集合
+                    List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+                    List<String> userIdList2= Lists.newArrayList();
+                    if (userIdList != null && userIdList.size() > 0){
+                        for (String s : userIdList) {
+                            userIdList2.add(s);
+                        }
+                        for (String s : userIdList2) {
+                            if (byOrganId2.indexOf(s) == -1){
+                                // 移除指定药房 ID
+                                userIdList.remove(s);
+                                // 把剩下的药房 ID 再拼接起来
+                                result = StringUtils.join(userIdList, ",");
                             }
+                        }
+                        if ( !"-1".equals(result)){
                             organDrugList.setPharmacy(result);
-                            organDrugListDAO.updateData(organDrugList);
+                            organDrugListDAO.update(organDrugList);
                         }
                     }
                 }
-
             }
+            ss="移除药房";
+        }else {
+            if (byOrganIdAndPharmacy != null  && byOrganIdAndPharmacy.size()>0){
+                for (OrganDrugList organDrugList : byOrganIdAndPharmacy) {
+                    organDrugList.setPharmacy("");
+                    organDrugListDAO.update(organDrugList);
+                }
+            }
+            ss="清空药房";
         }
 
+        return ss;
     }
 
     /**
