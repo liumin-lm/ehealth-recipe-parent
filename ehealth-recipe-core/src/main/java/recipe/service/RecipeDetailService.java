@@ -129,6 +129,7 @@ public class RecipeDetailService {
      * @param commonPharmacyId 续房药房id
      * @param pharmacyCode     续方药房code
      * @param pharmacy         机构药房id
+     * @param pharmacyCodeMap  药房表信息
      * @return true 不一致
      */
     private boolean pharmacyVariation(Integer commonPharmacyId, String pharmacyCode, String pharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
@@ -180,8 +181,8 @@ public class RecipeDetailService {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内
-            us(organDrug.getOrganId(), recipeDetail);
-            useDay(recipeDay, recipeDetail);
+            medicationsValidate(organDrug.getOrganId(), recipeDetail);
+            useDayValidate(recipeDay, recipeDetail);
         } else {
             /**校验西药 数据是否完善*/
             //每次剂量
@@ -193,15 +194,15 @@ public class RecipeDetailService {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内
-            if (us(organDrug.getOrganId(), recipeDetail)) {
+            if (medicationsValidate(organDrug.getOrganId(), recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
-            if (useDay(recipeDay, recipeDetail)) {
+            if (useDayValidate(recipeDay, recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
         }
     }
-    
+
     /**
      * 开药天数是否在当前机构配置项天数范围内
      *
@@ -209,7 +210,7 @@ public class RecipeDetailService {
      * @param recipeDetail
      * @return
      */
-    private boolean useDay(String[] recipeDay, RecipeDetailBean recipeDetail) {
+    private boolean useDayValidate(String[] recipeDay, RecipeDetailBean recipeDetail) {
         boolean useDay = false;
         Integer minUseDay = Integer.valueOf(recipeDay[0]);
         Integer maxUseDay = Integer.valueOf(recipeDay[1]);
@@ -235,7 +236,7 @@ public class RecipeDetailService {
      * @param recipeDetail
      * @return
      */
-    private boolean us(Integer organId, RecipeDetailBean recipeDetail) {
+    private boolean medicationsValidate(Integer organId, RecipeDetailBean recipeDetail) {
         boolean us = false;
         UsingRateDTO usingRateDTO = drugClient.usingRate(organId, recipeDetail.getUsingRate());
         if (null == usingRateDTO) {
