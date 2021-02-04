@@ -2845,7 +2845,7 @@ public class RecipeService extends RecipeBaseService {
         for (Integer status : statusList) {
             // 2021失效时间可以配置需求，原定时任务查询增加失效时间为空条件
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
-            LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
+            LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量 = [{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 for (Recipe recipe : recipeList) {
                     //过滤掉流转到扁鹊处方流转平台的处方
