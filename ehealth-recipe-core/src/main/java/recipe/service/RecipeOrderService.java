@@ -98,6 +98,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -1902,6 +1903,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private void checkGetOrderDetail(String orderCode) {
         try{
             LOGGER.info("checkGetOrderDetail orderCode:{}", orderCode);
+            //线下处方目前一个订单只会对应一个处方
             List<Recipe> recipes=recipeDAO.findRecipeByOrdercode(orderCode);
             Recipe recipe=recipes.get(0);
             if(recipe==null ||recipe.getRecipeSourceType()!=2){
@@ -1921,23 +1923,35 @@ public class RecipeOrderService extends RecipeBaseService {
             HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1);
             List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
             if(CollectionUtils.isEmpty(hisRecipeTO)){
-                return;
+                LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
+                throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
             Set<String> deleteSetRecipeCode = new HashSet<>();
+            AtomicReference<Boolean> existThisRecipeCode= new AtomicReference<>(false);
             hisRecipeTO.forEach(a -> {
                 if(StringUtils.isNotEmpty(a.getRecipeCode()) &&a.getRecipeCode().equals(recipe.getRecipeCode())){
+                    existThisRecipeCode.set(true);
                     HisRecipe hisRecipe=hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(a.getClinicOrgan(),a.getRecipeCode());
-                    //中药判断tcmFee发生变化,删除数据
-                    BigDecimal tcmFee =  a.getTcmFee() ;
-                    if(tcmFee!=hisRecipe.getTcmFee()){
-                        deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+                    if(hisRecipe==null){
+                        LOGGER.info("checkGetOrderDetail hisRecipe==null orderCode:{}", orderCode);
+                        throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
+                    }
+                    if(hisRecipe.getStatus()!=2){
+                        //中药判断tcmFee发生变化,删除数据
+                        BigDecimal tcmFee =  a.getTcmFee() ;
+                        if(tcmFee.compareTo(hisRecipe.getTcmFee())!= 0){
+                            LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
+                            deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+                        }
                     }
                 }
             });
             //删除
             hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
-            if (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0) {
-                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+            if (existThisRecipeCode.get()==false ||
+                    (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
+                LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);
+                throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
         }catch (Exception e){
             e.printStackTrace();

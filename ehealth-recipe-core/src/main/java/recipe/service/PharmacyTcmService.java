@@ -207,7 +207,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                     String pharmacy = organDrugList.getPharmacy();
                     String[] userIdArray = pharmacy.split(",");
                     // 返回结果
-                    String result = "";
+                    String result = "-1";
                     // 数组转集合
                     List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
                     List<String> userIdList2= Lists.newArrayList();
@@ -223,8 +223,10 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
                                 result = StringUtils.join(userIdList, ",");
                             }
                         }
-                        organDrugList.setPharmacy(result);
-                        organDrugListDAO.update(organDrugList);
+                        if ( !"-1".equals(result)){
+                            organDrugList.setPharmacy(result);
+                            organDrugListDAO.update(organDrugList);
+                        }
                     }
                 }
             }
