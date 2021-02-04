@@ -975,7 +975,7 @@ public class HisRecipeService {
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         if (hisRecipe == null) {
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
+            throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
         }
         LOGGER.info("getHisRecipeDetail hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         //待处理
@@ -1497,16 +1497,20 @@ public class HisRecipeService {
             } else {
                 if (!hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}",recipeCode);
                     return;
                 }
             }
             List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
             if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
                 deleteSetRecipeCode.add(recipeCode);
+                LOGGER.info("deleteSetRecipeCode cause drugList empty recipeCode:{}",recipeCode);
+
                 return;
             }
             if (a.getDrugList().size() != hisDetailList.size()) {
                 deleteSetRecipeCode.add(recipeCode);
+                LOGGER.info("deleteSetRecipeCode cause drugList size no equal recipeCode:{}",recipeCode);
                 return;
             }
             Map<String, HisRecipeDetail> recipeDetailMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, b -> b, (k1, k2) -> k1));
@@ -1514,46 +1518,55 @@ public class HisRecipeService {
                 HisRecipeDetail hisRecipeDetail = recipeDetailMap.get(recipeDetailTO.getDrugCode());
                 if (null == hisRecipeDetail) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause hisRecipeDetail is null recipeCode:{}",recipeCode);
                     continue;
                 }
                 BigDecimal useTotalDose = hisRecipeDetail.getUseTotalDose();
                 if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useTotalDose recipeCode:{}",recipeCode);
                     continue;
                 }
                 String useDose = hisRecipeDetail.getUseDose();
                 if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDose recipeCode:{}",recipeCode);
                     continue;
                 }
                 String useDoseStr = hisRecipeDetail.getUseDoseStr();
                 if ((StringUtils.isEmpty(useDoseStr) && StringUtils.isNotEmpty(recipeDetailTO.getUseDoseStr())) || (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}",recipeCode);
                     continue;
                 }
                 Integer useDays = hisRecipeDetail.getUseDays();
                 if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}",recipeCode);
                     continue;
                 }
                 String usingRate = hisRecipeDetail.getUsingRate();
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause usingRate recipeCode:{}",recipeCode);
                     continue;
                 }
 
                 String usingRateText = hisRecipeDetail.getUsingRateText();
                 if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause usingRateText recipeCode:{}",recipeCode);
                     continue;
                 }
                 String usePathways = hisRecipeDetail.getUsePathways();
                 if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause usePathWays recipeCode:{}",recipeCode);
                     continue;
                 }
                 String usePathwaysText = hisRecipeDetail.getUsePathwaysText();
                 if ((StringUtils.isEmpty(usePathwaysText) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathwaysText())) || (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText()))) {
+                    LOGGER.info("deleteSetRecipeCode cause usePathwaysText recipeCode:{}",recipeCode);
                     deleteSetRecipeCode.add(recipeCode);
                 }
             }
@@ -1561,6 +1574,7 @@ public class HisRecipeService {
             //BigDecimal tcmFee = null != a.getTcmFee() ? a.getTcmFee() : 0.00;
             BigDecimal tcmFee =  a.getTcmFee() ;
             if(tcmFee!=hisRecipe.getTcmFee()){
+                LOGGER.info("deleteSetRecipeCode cause tcmFee recipeCode:{}",recipeCode);
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }
 
