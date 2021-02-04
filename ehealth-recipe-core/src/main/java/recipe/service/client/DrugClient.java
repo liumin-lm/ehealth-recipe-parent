@@ -55,7 +55,7 @@ public class DrugClient extends BaseClient {
             return null;
         }
         try {
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(organId, usePathways);
+            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, usePathways);
             if (null == usePathwaysDTO) {
                 return null;
             }
