@@ -2994,7 +2994,7 @@ public class RecipeService extends RecipeBaseService {
                     //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
                 }
-                Integer status = this.getStatus(recipe);
+                //Integer status = this.getStatus(recipe);
                 //变更处方状态
                 if (status != null){
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
