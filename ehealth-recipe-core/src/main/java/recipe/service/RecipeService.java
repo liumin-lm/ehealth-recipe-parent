@@ -2976,6 +2976,10 @@ public class RecipeService extends RecipeBaseService {
                 if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
                     continue;
                 }
+                Integer status = RecipeService.getStatus(recipe);
+                if (status == null || (RecipeStatusConstant.NO_PAY != status && RecipeStatusConstant.NO_OPERATOR != status)) {
+                    continue;
+                }
                 this.sendDrugEnterproseMsg(recipe);
                 memo.delete(0, memo.length());
                 int recipeId = recipe.getRecipeId();

@@ -805,7 +805,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') or (status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
+                StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
+                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
+                        " or (fromflag = 1 and payMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
