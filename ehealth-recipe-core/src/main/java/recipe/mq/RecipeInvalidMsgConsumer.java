@@ -46,6 +46,11 @@ public class RecipeInvalidMsgConsumer implements Observer<String> {
         if (recipe == null || RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
             return;
         }
+        // 获取处方状态：未支付/未处理
+        Integer status = RecipeService.getStatus(recipe);
+        if (status == null || (RecipeStatusConstant.NO_PAY != status && RecipeStatusConstant.NO_OPERATOR != status)) {
+            return;
+        }
         //向药企推送处方过期的通知
         RecipeService.sendDrugEnterproseMsg(recipe);
         StringBuilder memo = new StringBuilder();
@@ -63,7 +68,7 @@ public class RecipeInvalidMsgConsumer implements Observer<String> {
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
         }
         // 获取处方状态：未支付/未处理
-        Integer status = RecipeService.getStatus(recipe);
+        //Integer status = RecipeService.getStatus(recipe);
         //变更处方状态
         if (status != null) {
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
