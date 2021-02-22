@@ -148,6 +148,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias="取药窗口")
     private String pharmNo;
 
+    @ItemProperty(alias = "是否是加急审核处方 0否 1是")
+    private Integer canUrgentAuditRecipe;
+
     @Column(name = "pharmNo")
     public String getPharmNo() {
         return pharmNo;
@@ -725,5 +728,13 @@ public class RecipeExtend implements Serializable {
 
     public void setRefundNodeStatus(Integer refundNodeStatus) {
         this.refundNodeStatus = refundNodeStatus;
+    }
+
+    public Integer getCanUrgentAuditRecipe() {
+        return canUrgentAuditRecipe;
+    }
+
+    public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
+        this.canUrgentAuditRecipe = canUrgentAuditRecipe;
     }
 }
