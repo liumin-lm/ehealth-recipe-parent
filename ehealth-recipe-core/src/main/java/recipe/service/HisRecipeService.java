@@ -1050,6 +1050,8 @@ public class HisRecipeService {
         }
         Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
         if (recipe != null) {
+            // 线下转线上失效时间处理--仅平台线下转线上需处理（目前互联网环境没有线下转线上，不判断平台还是互联网）
+            RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(),recipe.getRecipeId(),recipe.getSignDate());
             saveRecipeExt(recipe, hisRecipe);
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
