@@ -47,6 +47,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariRefundService;
@@ -1753,6 +1754,11 @@ public class RecipeService extends RecipeBaseService {
         if (recipe.getClinicId() == null) {
             getConsultIdForRecipeSource(recipe);
         }
+        boolean optimize = openRecipOptimize(recipe);
+        //配置开启，根据有效的挂号序号进行判断
+        if (!optimize){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
+        }
 
         RequestVisitVO requestVisitVO=new RequestVisitVO();
         requestVisitVO.setDoctor(recipe.getDoctor());
@@ -2116,15 +2122,31 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public void getConsultIdForRecipeSource(RecipeBean recipe) {
+
+        //获取运营平台配置
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
         //根据申请人mpiid，requestMode 获取当前咨询单consultId
         //如果没有进行中的复诊就取进行中的咨询否则没有
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+
+        ValidRevisitRequest revisitRequest=new ValidRevisitRequest();
+        revisitRequest.setMpiId(recipe.getMpiid());
+        revisitRequest.setDoctorID(recipe.getDoctor());
+        revisitRequest.setRequestMode(RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        revisitRequest.setRegisterNo(openRecipe);
+        LOGGER.info(" validRevisit={}",JSONUtils.toString(revisitRequest));
+
         //获取在线复诊
-        List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        List<Integer> consultIds=new ArrayList<>();
         Integer consultId = null;
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
+        Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
+
+        if (revisitId!=null) {
+            consultId = revisitId;
             recipe.setBussSource(2);
         } else {
             //图文咨询
@@ -5147,5 +5169,23 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         return true;
+    }
+
+    /**
+     * 复诊结束后医生不能开出处方规则优化
+     * @param recipeBean
+     * @return
+     */
+    public boolean openRecipOptimize(RecipeBean recipeBean){
+
+        //获取运营平台配置
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+        //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
+        if (!openRecipe){
+            return true;
+        }
+        return recipeBean.getClinicId()==null?false:true;
     }
 }
