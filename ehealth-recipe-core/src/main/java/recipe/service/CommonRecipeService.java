@@ -91,7 +91,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             // 添加失败删除常用方及药品
             if (null != commonRecipeId) {
                 commonRecipeDAO.remove(commonRecipeId);
-                commonRecipeDrugDAO.remove(commonRecipeId);
+                commonRecipeDrugDAO.deleteByCommonRecipeId(commonRecipeId);
             }
         } catch (DAOException e) {
             LOGGER.error("addCommonRecipe add to db error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
