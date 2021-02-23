@@ -792,10 +792,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @Author dxx
      */
     @RpcService
-    public Map<String, Object> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, Integer start, Integer limit);
+    public Map<String, Object> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, String recipeType, Integer start, Integer limit);
 
     @RpcService
-    public Map<String, Object> pharmacyMonthlyReport(Integer organId, String depart, Date startDate, Date endDate, Integer start, Integer limit);
+    public Map<String, Object> pharmacyMonthlyReport(Integer organId, String depart, String recipeType, Date startDate, Date endDate, Integer start, Integer limit);
 
     @RpcService
     public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate, Integer order, Integer start, Integer limit);
