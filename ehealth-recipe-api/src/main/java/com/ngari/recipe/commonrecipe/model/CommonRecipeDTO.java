@@ -66,6 +66,8 @@ public class CommonRecipeDTO implements Serializable {
 
     @ItemProperty(alias = "药房编码")
     private String pharmacyCode;
+    @ItemProperty(alias = "常用方扩展信息")
+    private CommonRecipeExtDTO commonRecipeExt;
 
     public String getPharmacyCode() {
         return pharmacyCode;
@@ -196,6 +198,14 @@ public class CommonRecipeDTO implements Serializable {
 
     public void setCommonDrugList(List<CommonRecipeDrugDTO> commonDrugList) {
         this.commonDrugList = commonDrugList;
+    }
+
+    public CommonRecipeExtDTO getCommonRecipeExt() {
+        return commonRecipeExt;
+    }
+
+    public void setCommonRecipeExt(CommonRecipeExtDTO commonRecipeExt) {
+        this.commonRecipeExt = commonRecipeExt;
     }
 
     @Override

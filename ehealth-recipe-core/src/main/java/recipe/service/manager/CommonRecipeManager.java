@@ -4,9 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
+import com.ngari.recipe.entity.CommonRecipeExt;
 import com.ngari.recipe.entity.OrganDrugList;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
+import recipe.dao.CommonRecipeExtDAO;
 import recipe.dao.OrganDrugListDAO;
 
 import java.math.BigDecimal;
@@ -39,9 +42,66 @@ public class CommonRecipeManager {
     @Autowired
     private CommonRecipeDAO commonRecipeDAO;
     @Autowired
+    private CommonRecipeExtDAO commonRecipeExtDAO;
+    @Autowired
     private CommonRecipeDrugDAO commonRecipeDrugDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+
+    /**
+     * 新增常用方信息
+     *
+     * @param commonRecipe       常用方
+     * @param commonRecipeExtDTO 常用方扩展
+     * @param commonDrugList     常用方药品
+     */
+    public void saveCommonRecipe(CommonRecipe commonRecipe, CommonRecipeExtDTO commonRecipeExtDTO, List<CommonRecipeDrug> commonDrugList) {
+        commonRecipe.setCommonRecipeId(null);
+        commonRecipeDAO.save(commonRecipe);
+        if (null != commonRecipeExtDTO) {
+            CommonRecipeExt commonRecipeExt = ObjectCopyUtils.convert(commonRecipeExtDTO, CommonRecipeExt.class);
+            commonRecipeExt.setCommonRecipeId(commonRecipe.getCommonRecipeId());
+            commonRecipeExt.setStatus(0);
+            commonRecipeExtDAO.save(commonRecipeExt);
+        }
+
+        commonDrugList.forEach(a -> {
+            a.setCommonRecipeId(commonRecipe.getCommonRecipeId());
+            commonRecipeDrugDAO.save(a);
+        });
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe.getCommonRecipeId={}", commonRecipe.getCommonRecipeId());
+    }
+
+    /**
+     * 删除常用方信息
+     *
+     * @param commonRecipeId 常用方id
+     */
+    public void removeCommonRecipe(Integer commonRecipeId) {
+        if (null == commonRecipeId || 0 == commonRecipeId) {
+            return;
+        }
+        commonRecipeDAO.remove(commonRecipeId);
+        commonRecipeDrugDAO.deleteByCommonRecipeId(commonRecipeId);
+        commonRecipeExtDAO.deleteByCommonRecipeId(commonRecipeId);
+        LOGGER.info("CommonRecipeManager removeCommonRecipe commonRecipeId={}", commonRecipeId);
+    }
+
+    /**
+     * 查询常用方扩展数据
+     *
+     * @param commonRecipeIdList
+     * @return
+     */
+    public Map<Integer, CommonRecipeExtDTO> commonRecipeExtDTOMap(List<Integer> commonRecipeIdList) {
+        List<CommonRecipeExt> list = commonRecipeExtDAO.findByCommonRecipeIds(commonRecipeIdList);
+        LOGGER.info("CommonRecipeManager commonRecipeExtDTOMap list={},commonRecipeIdList={}", JSON.toJSONString(list), JSON.toJSONString(commonRecipeIdList));
+        if (CollectionUtils.isEmpty(list)) {
+            return new HashMap<>();
+        }
+        List<CommonRecipeExtDTO> commonRecipeExtList = ObjectCopyUtils.convert(list, CommonRecipeExtDTO.class);
+        return commonRecipeExtList.stream().collect(Collectors.toMap(CommonRecipeExtDTO::getCommonRecipeId, a -> a, (k1, k2) -> k1));
+    }
 
     /**
      * 查询常用方列表
