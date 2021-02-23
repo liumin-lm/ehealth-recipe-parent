@@ -879,6 +879,17 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         recipeMap.put("YBTYPE", "1");
                     }
                 }
+                if (recipe.getClinicOrgan() == 1004539) {
+                    //重庆大学城医院复诊为个性化暂没做字典对照
+                    if ("1".equals(consultExDTO.getInsureTypeCode())) {
+                        //表示自费
+                        recipeMap.put("YIBAOBILL", "1");
+                    } else {
+                        //表示普通医保
+                        recipeMap.put("YIBAOBILL", "0");
+                        recipeMap.put("YBTYPE", "0");
+                    }
+                }
             }
 
             //周岁处理
