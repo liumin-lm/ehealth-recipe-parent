@@ -483,6 +483,12 @@ public class RecipeSignService {
             recipeService.getConsultIdForRecipeSource(recipeBean);
         }
 
+        boolean optimize = openRecipOptimize(recipeBean);
+        //配置开启，根据有效的挂号序号进行判断
+        if (!optimize){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
+        }
+
         RequestVisitVO requestVisitVO=new RequestVisitVO();
         requestVisitVO.setDoctor(recipeBean.getDoctor());
         requestVisitVO.setMpiid(recipeBean.getRequestMpiId());
@@ -746,4 +752,21 @@ public class RecipeSignService {
         return flag;
     }
 
+    /**
+     * 复诊结束后医生不能开出处方规则优化
+     * @param recipeBean
+     * @return
+     */
+    public boolean openRecipOptimize(RecipeBean recipeBean){
+
+        //获取运营平台配置
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+        //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
+        if (!openRecipe){
+            return true;
+        }
+        return recipeBean.getClinicId()==null?false:true;
+    }
 }
