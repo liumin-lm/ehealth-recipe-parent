@@ -1,8 +1,10 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.patient.service.BasicAPI;
@@ -17,8 +19,10 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import eh.entity.base.Scratchable;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,8 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -40,7 +45,6 @@ import recipe.service.RecipeServiceSub;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -231,6 +235,56 @@ public abstract class AbstractCaProcessType {
         }
     }
 
+    /**
+     * 新版本前置CA his回调之后给处方pdf添加处方号和患者病历号
+     * @param recipeId
+     */
+    public static void addRecipeCodeAndPatientForRecipePdf(Integer recipeId){
+        try {
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Recipe recipe=recipeDAO.getByRecipeId(recipeId);
+            if(recipe==null){
+                return;
+            }
+            String newPfd = null;
+            String key = "SignFile";
+            String recipeCode=null;
 
+            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Object recipeNumber = configService.getConfiguration(recipe.getClinicOrgan(), "recipeNumber");
+            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},recipeNumber={}", recipeId, recipeNumber);
+            if (null == recipeNumber ||StringUtils.isEmpty(recipeNumber.toString())) {
+                return;
+            }
+            //{ "id": 1, "text": "平台处方单号" , "locked": true},{ "id": 2, "text": "his处方单号" }
+            if(Integer.parseInt(recipeNumber.toString()) ==1){
+                recipeCode=recipeId.toString();
+            }else{
+                recipeCode=recipe.getRecipeCode();
+            }
+            //获取model one 配置，根据配置判断是否配置了字段（暂时按固定格式）
+            IScratchableService scratchableService  = AppContextHolder.getBean("eh.scratchableService", IScratchableService.class);
+            Map<String, Object> labelMap = scratchableService.findRecipeListDetail(recipe.getClinicOrgan().toString());
+            if (org.springframework.util.CollectionUtils.isEmpty(labelMap)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
+            }
+            List<Scratchable> moduleOne = (List<Scratchable>) labelMap.get("moduleOne");
+            if (org.springframework.util.CollectionUtils.isEmpty(moduleOne) ) {
+                return ;
+            }
+//            for(Scratchable scratchable:moduleOne){
+//                if(scratchable.getBoxLink().trim())
+//            }
+//            moduleOne.get()
+
+            newPfd= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipe.getPatientID());
+            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPfd={}", recipeId, newPfd);
+            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
+            }
+        } catch (Exception e) {
+            LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={},e={}", recipeId, e);
+        }
+    }
 
 }

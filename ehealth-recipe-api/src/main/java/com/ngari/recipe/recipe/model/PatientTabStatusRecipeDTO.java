@@ -135,6 +135,16 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     private String recipeCode;
 
+    private String recipeNumber;
+
+    public String getRecipeNumber() {
+        return recipeNumber;
+    }
+
+    public void setRecipeNumber(String recipeNumber) {
+        this.recipeNumber = recipeNumber;
+    }
+
     public Integer getLogisticsType() {
         return logisticsType;
     }

@@ -98,6 +98,36 @@ public class CreateRecipePdfUtil {
         return fileId;
     }
 
+
+    /**
+     * 处方pdf添加处方号和患者病历号
+     * @param pdfId
+     * @return
+     * @throws IOException
+     * @throws DocumentException
+     */
+    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId,String recipeCode ,String patientId) throws IOException, DocumentException {
+        logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, recipeCode={} ,patientId={} ", pdfId, recipeCode, patientId);
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            OutputStream output = new FileOutputStream(file);
+            //处方pdf添加处方号和患者病历号
+            addRecipeCodeAndPatientIdForRecipePdf(input, output, recipeCode,patientId);
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+        }
+        return fileId;
+    }
+
+
     /**
      * 处方签pdf添加收货人信息
      *
@@ -132,6 +162,25 @@ public class CreateRecipePdfUtil {
         output.close();
     }
 
+    private static void addRecipeCodeAndPatientIdForRecipePdf(InputStream input, OutputStream output, String recipeCode, String patientId) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
+        //将文字贴入pdf
+        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 10);
+        page.setTextMatrix(90, 721);
+        page.showText( recipeCode);
+        page.setTextMatrix(320, 721);
+        page.showText( patientId);
+        page.endText();
+        stamper.close();
+        reader.close();
+        input.close();
+        output.close();
+    }
 
     private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);

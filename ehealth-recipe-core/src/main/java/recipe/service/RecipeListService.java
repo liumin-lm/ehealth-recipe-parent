@@ -1095,6 +1095,15 @@ public class RecipeListService extends RecipeBaseService {
             PatientTabStatusRecipeDTO patientRecipe = new PatientTabStatusRecipeDTO();
             patientRecipe.setRecipeId(recipe.getRecipeId());
             patientRecipe.setOrganId(recipe.getClinicOrgan());
+            try{
+                Object recipeNumber = configService.getConfiguration(recipe.getClinicOrgan(), "recipeNumber");
+                LOGGER.info("processTabListDataNew  recipeId={},recipeNumber={}", recipe.getRecipeId(), recipeNumber);
+                if (null != recipeNumber &&StringUtils.isNotEmpty(recipeNumber.toString())) {
+                    patientRecipe.setRecipeNumber(recipeNumber.toString());
+                }
+            }catch(Exception e){
+                LOGGER.error("processTabListDataNew error recipeId={}", recipe.getRecipeId());
+            }
             patientRecipe.setMpiId(recipe.getMpiid());
             patientRecipe.setPatientName(recipe.getPatientName());
             //能否购药进行设置，默认可购药
