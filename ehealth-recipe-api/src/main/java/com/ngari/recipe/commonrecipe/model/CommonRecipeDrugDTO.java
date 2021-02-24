@@ -83,6 +83,8 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "使用频率id")
     @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
     private String usingRateId;
+    @ItemProperty(alias = "用药频次英文名称")
+    private String usingRateEnglishNames;
 
     @ItemProperty(alias = "药物使用途径代码")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
@@ -91,6 +93,8 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "用药途径id")
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
+    @ItemProperty(alias = "用药途径英文名称")
+    private String usePathwaysEnglishNames;
 
     @ItemProperty(alias = "药物使用天数")
     private Integer useDays;
@@ -397,5 +401,21 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setTcmContraindicationCause(String tcmContraindicationCause) {
         this.tcmContraindicationCause = tcmContraindicationCause;
+    }
+
+    public String getUsingRateEnglishNames() {
+        return usingRateEnglishNames;
+    }
+
+    public void setUsingRateEnglishNames(String usingRateEnglishNames) {
+        this.usingRateEnglishNames = usingRateEnglishNames;
+    }
+
+    public String getUsePathwaysEnglishNames() {
+        return usePathwaysEnglishNames;
+    }
+
+    public void setUsePathwaysEnglishNames(String usePathwaysEnglishNames) {
+        this.usePathwaysEnglishNames = usePathwaysEnglishNames;
     }
 }

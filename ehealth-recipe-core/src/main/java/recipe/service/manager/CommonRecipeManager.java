@@ -10,6 +10,8 @@ import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.CommonRecipeExt;
 import com.ngari.recipe.entity.OrganDrugList;
+import eh.entity.base.UsePathways;
+import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.client.DrugClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -47,6 +50,8 @@ public class CommonRecipeManager {
     private CommonRecipeDrugDAO commonRecipeDrugDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private DrugClient drugClient;
 
     /**
      * 新增常用方信息
@@ -146,6 +151,9 @@ public class CommonRecipeManager {
         List<Integer> drugIdList = commonRecipeDrugList.stream().map(CommonRecipeDrug::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdWithoutStatus(organId, drugIdList);
         Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        //用药途径 用药频次
+        Map<Integer, UsePathways> usePathwaysMap = drugClient.usePathwaysMap(organId);
+        Map<Integer, UsingRate> usingRateMap = drugClient.usingRateMap(organId);
 
         Map<Integer, List<CommonRecipeDrugDTO>> commonDrugGroup = new HashMap<>();
         commonRecipeDrugList.forEach(a -> {
@@ -172,6 +180,18 @@ public class CommonRecipeManager {
                 }
                 commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
+            }
+            if (StringUtils.isNotEmpty(commonDrugDTO.getUsingRateId())) {
+                UsingRate usingRate = usingRateMap.get(Integer.valueOf(commonDrugDTO.getUsingRateId()));
+                if (null != usingRate) {
+                    commonDrugDTO.setUsingRateEnglishNames(usingRate.getEnglishNames());
+                }
+            }
+            if (StringUtils.isNotEmpty(commonDrugDTO.getUsePathwaysId())) {
+                UsePathways usePathways = usePathwaysMap.get(Integer.valueOf(commonDrugDTO.getUsePathwaysId()));
+                if (null != usePathways) {
+                    commonDrugDTO.setUsePathwaysEnglishNames(usePathways.getEnglishNames());
+                }
             }
 
             List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(commonDrugDTO.getCommonRecipeId());
