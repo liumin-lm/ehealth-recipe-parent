@@ -55,13 +55,12 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     /**
      * 新增或更新常用方  选好药品后将药品加入到常用处方
      *
-     * @param commonRecipeExtDTO 常用方扩展
-     * @param commonRecipeDTO    常用方
-     * @param drugListDTO        常用方药品
+     * @param commonRecipeDTO 常用方
+     * @param drugListDTO     常用方药品
      */
     @RpcService
-    public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO, CommonRecipeExtDTO commonRecipeExtDTO) {
-        LOGGER.info("CommonRecipeService addCommonRecipe commonRecipe:{},drugList:{},commonRecipeExtDTO={}", JSONUtils.toString(commonRecipeDTO), JSONUtils.toString(drugListDTO), JSONUtils.toString(drugListDTO));
+    public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO) {
+        LOGGER.info("CommonRecipeService addCommonRecipe commonRecipe:{},drugList:{}", JSONUtils.toString(commonRecipeDTO), JSONUtils.toString(drugListDTO));
         if (null == commonRecipeDTO || CollectionUtils.isEmpty(drugListDTO)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方数据不完整，请重试");
         }
@@ -72,7 +71,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(drugListDTO, CommonRecipeDrug.class);
         validateParam(commonRecipe, drugList);
         try {
-            commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExtDTO, drugList);
+            commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeDTO.getCommonRecipeExt(), drugList);
             commonRecipeManager.removeCommonRecipe(commonRecipeId);
         } catch (DAOException e) {
             LOGGER.error("addCommonRecipe error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe), JSONUtils.toString(drugList), e);
