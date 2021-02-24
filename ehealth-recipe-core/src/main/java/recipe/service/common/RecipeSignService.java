@@ -477,13 +477,18 @@ public class RecipeSignService {
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
             recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
-        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
+      /*  //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
         if (recipeBean.getClinicId()==null){
-            recipeService.getConsultIdForRecipeSource(recipeBean);
-        }
+            recipeService.getConsultIdForRecipeSource(recipeBean,openRecipe);
+        }*/
 
-        boolean optimize = openRecipOptimize(recipeBean);
+        boolean optimize =recipeService.openRecipOptimize(recipeBean,openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
@@ -551,10 +556,15 @@ public class RecipeSignService {
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
             recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
+
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
         //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
         if (recipeBean.getClinicId()==null){
-            recipeService.getConsultIdForRecipeSource(recipeBean);
+            recipeService.getConsultIdForRecipeSource(recipeBean,openRecipe);
         }
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
@@ -750,23 +760,5 @@ public class RecipeSignService {
                 flag = true;
         }
         return flag;
-    }
-
-    /**
-     * 复诊结束后医生不能开出处方规则优化
-     * @param recipeBean
-     * @return
-     */
-    public boolean openRecipOptimize(RecipeBean recipeBean){
-
-        //获取运营平台配置
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
-        //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
-        if (!openRecipe){
-            return true;
-        }
-        return recipeBean.getClinicId()==null?false:true;
     }
 }

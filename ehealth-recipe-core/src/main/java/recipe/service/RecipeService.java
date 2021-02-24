@@ -1749,12 +1749,17 @@ public class RecipeService extends RecipeBaseService {
                 recipe.setRequestUrt(requestPatient.getUrt());
             }
         }
-        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+        //获取运营平台是否复诊开处方单有效判断配置
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
+   /*     //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
         if (recipe.getClinicId() == null) {
-            getConsultIdForRecipeSource(recipe);
-        }
-        boolean optimize = openRecipOptimize(recipe);
+            getConsultIdForRecipeSource(recipe,openRecipe);
+        }*/
+        boolean optimize = openRecipOptimize(recipe,openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
@@ -1987,10 +1992,15 @@ public class RecipeService extends RecipeBaseService {
                 recipe.setRequestUrt(requestPatient.getUrt());
             }
         }
+
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
         //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
         if (recipe.getClinicId() == null) {
-            getConsultIdForRecipeSource(recipe);
+            getConsultIdForRecipeSource(recipe,openRecipe);
         }
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
@@ -2121,13 +2131,7 @@ public class RecipeService extends RecipeBaseService {
 
 
     @RpcService
-    public void getConsultIdForRecipeSource(RecipeBean recipe) {
-
-        //获取运营平台配置
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
-
+    public void getConsultIdForRecipeSource(RecipeBean recipe,Boolean registerNo) {
         //根据申请人mpiid，requestMode 获取当前咨询单consultId
         //如果没有进行中的复诊就取进行中的咨询否则没有
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
@@ -2137,8 +2141,8 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setMpiId(recipe.getMpiid());
         revisitRequest.setDoctorID(recipe.getDoctor());
         revisitRequest.setRequestMode(RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        revisitRequest.setRegisterNo(openRecipe);
-        LOGGER.info(" validRevisit={}",JSONUtils.toString(revisitRequest));
+        revisitRequest.setRegisterNo(registerNo);
+        LOGGER.info(" 处方查询复诊入参revisitRequest={}",JSONUtils.toString(revisitRequest));
 
         //获取在线复诊
         List<Integer> consultIds=new ArrayList<>();
@@ -5174,19 +5178,31 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 复诊结束后医生不能开出处方规则优化
-     * @param recipeBean
+     * @param recipe
+     * @param registerNo
      * @return
      */
-    public boolean openRecipOptimize(RecipeBean recipeBean){
-
-        //获取运营平台配置
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+    public boolean openRecipOptimize(RecipeBean recipe,Boolean registerNo){
         //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
-        if (!openRecipe){
+        //进行新老逻辑的整合，如果开关开了，直接走新逻辑，如果开关没开的话，还是直接走老的逻辑
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+
+        ValidRevisitRequest revisitRequest=new ValidRevisitRequest();
+        revisitRequest.setMpiId(recipe.getMpiid());
+        revisitRequest.setDoctorID(recipe.getDoctor());
+        revisitRequest.setRequestMode(RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        revisitRequest.setRegisterNo(registerNo);
+
+        LOGGER.info(" validRevisit={}",JSONUtils.toString(revisitRequest));
+        if (!registerNo){
+            if (recipe.getClinicId()==null){
+                getConsultIdForRecipeSource(recipe,registerNo);
+            }
             return true;
         }
-        return recipeBean.getClinicId()==null?false:true;
+
+        Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
+        LOGGER.info(" 复诊查询当前就诊单 revisitId={}",revisitId);
+        return revisitId==null?false:true;
     }
 }
