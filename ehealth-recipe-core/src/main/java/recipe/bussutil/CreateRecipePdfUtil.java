@@ -536,7 +536,7 @@ public class CreateRecipePdfUtil {
         page.saveState();
         page.setColorFill(BaseColor.WHITE);
         //设中药文字在页面中的坐标 date20200910
-        page.rectangle(300, 20, 100, 20);
+        page.rectangle(300, 80, 100, 20);
         page.fill();
         page.restoreState();
         //添加文本块
@@ -544,7 +544,7 @@ public class CreateRecipePdfUtil {
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
         //设中药文字在页面中的坐标 date20200910
-        page.setTextMatrix(300, 20);
+        page.setTextMatrix(300, 80);
         page.showText("药品金额 ：" + total + "元");
         page.endText();
     }
