@@ -495,28 +495,29 @@ public class CreateRecipePdfUtil {
             Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
             logger.info("addTextForRecipePdf recipeId:{} ,canShowDrugCost:{} ", recipeId, canShowDrugCost);
             //配置单个药品金额总额在pdf显示
-            if ((boolean) canShowDrugCost) {
-                Integer giveMode = recipe.getGiveMode();
-                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                logger.info("addTextForRecipePdf recipeOrder:{} ", JSONUtils.toString(recipeOrder));
-                Integer enterpriseId = recipeOrder.getEnterpriseId();
-                Integer settlementMode = null;
-                if (null != enterpriseId) {
-                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                    DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(enterpriseId);
-                    if (null != enterprise) {
-                        settlementMode = enterprise.getSettlementMode();
-                    }
+            if (!(boolean) canShowDrugCost) {
+                return;
+            }
+            Integer giveMode = recipe.getGiveMode();
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            logger.info("addTextForRecipePdf recipeOrder:{} ", JSONUtils.toString(recipeOrder));
+            Integer enterpriseId = recipeOrder.getEnterpriseId();
+            Integer settlementMode = null;
+            if (null != enterpriseId) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(enterpriseId);
+                if (null != enterprise) {
+                    settlementMode = enterprise.getSettlementMode();
                 }
-                //药企配送或药店取药
-                if ((new Integer("1").equals(giveMode) && new Integer("0").equals(settlementMode)) || new Integer("3").equals(giveMode)) {
-                    //更新单个药品金额总额
-                    List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                    logger.info("addTextForRecipePdf recipeId:{} ,recipeDetails:{} ", recipeId, JSONUtils.toString(recipeDetails));
-                    if (CollectionUtils.isNotEmpty(recipeDetails)) {
-                        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
-                        addTotalFee(page, bf, total);
-                    }
+            }
+            //药企配送或药店取药
+            if ((new Integer("1").equals(giveMode) && new Integer("0").equals(settlementMode)) || new Integer("3").equals(giveMode)) {
+                //更新单个药品金额总额
+                List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                logger.info("addTextForRecipePdf recipeId:{} ,recipeDetails:{} ", recipeId, JSONUtils.toString(recipeDetails));
+                if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                    BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+                    addTotalFee(page, bf, total);
                 }
             }
         } catch (Exception e) {
