@@ -190,7 +190,7 @@ public class CommonRecipeManager {
             if (StringUtils.isNotEmpty(commonDrugDTO.getUsePathwaysId())) {
                 UsePathways usePathways = usePathwaysMap.get(Integer.valueOf(commonDrugDTO.getUsePathwaysId()));
                 if (null != usePathways) {
-                    commonDrugDTO.setUsePathwaysEnglishNames(usePathways.getEnglishNames());
+                    commonDrugDTO.setUsePathEnglishNames(usePathways.getEnglishNames());
                 }
             }
 

@@ -1,5 +1,6 @@
 package recipe.service.client;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -86,8 +87,8 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        logger.warn("usingRateMap usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
         if (CollectionUtils.isEmpty(usingRates)) {
-            logger.warn("usingRateMap usingRates is null organId:{}", organId);
             return new HashMap<>(1);
         }
         return usingRates.stream().collect(Collectors.toMap(UsingRate::getId, a -> a, (k1, k2) -> k1));
@@ -104,8 +105,8 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+        logger.warn("usingRateMap usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
         if (CollectionUtils.isEmpty(usePathways)) {
-            logger.warn("usingRateMap usePathways is null organId:{}", organId);
             return new HashMap<>(1);
         }
         return usePathways.stream().collect(Collectors.toMap(UsePathways::getId, a -> a, (k1, k2) -> k1));

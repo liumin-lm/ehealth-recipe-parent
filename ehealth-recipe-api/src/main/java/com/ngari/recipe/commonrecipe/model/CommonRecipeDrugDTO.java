@@ -94,7 +94,7 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
     @ItemProperty(alias = "用药途径英文名称")
-    private String usePathwaysEnglishNames;
+    private String usePathEnglishNames;
 
     @ItemProperty(alias = "药物使用天数")
     private Integer useDays;
@@ -411,11 +411,11 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
         this.usingRateEnglishNames = usingRateEnglishNames;
     }
 
-    public String getUsePathwaysEnglishNames() {
-        return usePathwaysEnglishNames;
+    public String getUsePathEnglishNames() {
+        return usePathEnglishNames;
     }
 
-    public void setUsePathwaysEnglishNames(String usePathwaysEnglishNames) {
-        this.usePathwaysEnglishNames = usePathwaysEnglishNames;
+    public void setUsePathEnglishNames(String usePathEnglishNames) {
+        this.usePathEnglishNames = usePathEnglishNames;
     }
 }
