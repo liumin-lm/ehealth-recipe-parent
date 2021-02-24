@@ -17,6 +17,8 @@ import java.io.Serializable;
 @Getter
 @Schema
 public class CommonRecipeExtDTO implements Serializable {
+
+    private static final long serialVersionUID = 2099193306225724304L;
     @ItemProperty(alias = "常用方Id")
     private Integer commonRecipeId;
     @ItemProperty(alias = "制法")
