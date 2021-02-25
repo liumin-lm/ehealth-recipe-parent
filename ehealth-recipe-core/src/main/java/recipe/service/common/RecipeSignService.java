@@ -33,6 +33,7 @@ import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.*;
+import recipe.service.recipeexception.RevisitException;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
@@ -421,7 +422,12 @@ public class RecipeSignService {
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
 
-        } catch (Exception e) {
+        }
+        catch(RevisitException e){
+            LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM,e);
+            throw new RevisitException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+        }
+        catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
@@ -491,7 +497,8 @@ public class RecipeSignService {
         boolean optimize =recipeService.openRecipOptimize(recipeBean,openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+            LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM);
+            throw new RevisitException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
         }
 
         RequestVisitVO requestVisitVO=new RequestVisitVO();

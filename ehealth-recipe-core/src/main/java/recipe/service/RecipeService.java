@@ -119,6 +119,7 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
+import recipe.service.recipeexception.RevisitException;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
@@ -1616,7 +1617,12 @@ public class RecipeService extends RecipeBaseService {
                 caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
 
-        } catch (Exception e) {
+        }
+        catch(RevisitException e){
+            LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", ErrorCode.SERVICE_ERROR_CONFIRM,e);
+            throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+        }
+        catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
@@ -1763,7 +1769,7 @@ public class RecipeService extends RecipeBaseService {
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
             LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", ErrorCode.SERVICE_ERROR_CONFIRM);
-            throw new DAOException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+            throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
         }
 
         RequestVisitVO requestVisitVO=new RequestVisitVO();
