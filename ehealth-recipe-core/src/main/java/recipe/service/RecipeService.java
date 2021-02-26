@@ -3893,6 +3893,17 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+     * 测试后门人口
+     *
+     * @return
+     */
+    @RpcService
+    @Deprecated
+    public void recipePdfTestRecipeCodeAndPatientId(Integer recipeId) throws IOException, DocumentException {
+        AbstractCaProcessType.addRecipeCodeAndPatientForRecipePdf(recipeId);
+    }
+
+    /**
      * 查询单个处方在HIS中的状态
      *
      * @param recipeId

@@ -248,20 +248,24 @@ public abstract class AbstractCaProcessType {
             }
             String newPfd = null;
             String key = "SignFile";
-            String recipeCode=null;
+            String recipeCode="";
+            //模块一的总大小
+            int moduleOneSize=0;
+            //根据模块一的大小和每个字段的位置，计算字段的坐标
+            Map<String,String> positionMap=new HashMap<>();
 
-            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Object recipeNumber = configService.getConfiguration(recipe.getClinicOrgan(), "recipeNumber");
-            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},recipeNumber={}", recipeId, recipeNumber);
-            if (null == recipeNumber ||StringUtils.isEmpty(recipeNumber.toString())) {
-                return;
-            }
+//            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+//            Object recipeNumber = configService.getConfiguration(recipe.getClinicOrgan(), "recipeNumber");
+//            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},recipeNumber={}", recipeId, recipeNumber);
+//            if (null == recipeNumber ||StringUtils.isEmpty(recipeNumber.toString())) {
+//                return;
+//            }
             //{ "id": 1, "text": "平台处方单号" , "locked": true},{ "id": 2, "text": "his处方单号" }
-            if(Integer.parseInt(recipeNumber.toString()) ==1){
-                recipeCode=recipeId.toString();
-            }else{
-                recipeCode=recipe.getRecipeCode();
-            }
+//            if(Integer.parseInt(recipeNumber.toString()) ==1){
+//                recipeCode=recipeId.toString();
+//            }else{
+//                recipeCode=recipe.getRecipeCode();
+//            }
             //获取model one 配置，根据配置判断是否配置了字段（暂时按固定格式）
             IScratchableService scratchableService  = AppContextHolder.getBean("eh.scratchableService", IScratchableService.class);
             Map<String, Object> labelMap = scratchableService.findRecipeListDetail(recipe.getClinicOrgan().toString());
@@ -272,12 +276,30 @@ public abstract class AbstractCaProcessType {
             if (org.springframework.util.CollectionUtils.isEmpty(moduleOne) ) {
                 return ;
             }
-//            for(Scratchable scratchable:moduleOne){
-//                if(scratchable.getBoxLink().trim())
-//            }
-//            moduleOne.get()
-
-            newPfd= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipe.getPatientID());
+            moduleOneSize=moduleOne.size();
+            int i=0;
+            for(Scratchable scratchable:moduleOne){
+                i++;
+                //position**   字段存在模块一的位置（用于计算替换的位置）
+                if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())){
+                    recipeCode=recipe.getRecipeCode();
+                    positionMap.put("recipeCodeName",scratchable.getBoxTxt().trim());
+                    positionMap.put("positionRecipeCode",String.valueOf(i));
+                    continue;
+                }
+                if("recipe.recipeId".equals(scratchable.getBoxLink().trim())){
+                    positionMap.put("recipeIdName",scratchable.getBoxTxt().trim());
+                    positionMap.put("positionRecipeId",String.valueOf(i));
+                    continue;
+                }
+                if("recipe.patientID".equals(scratchable.getBoxLink().trim())){
+                    positionMap.put("patientIdName",scratchable.getBoxTxt().trim());
+                    positionMap.put("positionPatientId",String.valueOf(i));
+                    continue;
+                }
+            }
+            positionMap.put("moduleOneSize",String.valueOf(moduleOneSize));
+            newPfd= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipeId,recipe.getPatientID(),positionMap);
             LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPfd={}", recipeId, newPfd);
             if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
