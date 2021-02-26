@@ -305,6 +305,13 @@ public class RecipeOrderService extends RecipeBaseService {
 
         order.setRecipeMode(recipeList.get(0).getRecipeMode());
         order.setGiveMode(recipeList.get(0).getGiveMode());
+
+        // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
+        Integer payModeNew = payMode;
+        if(!payMode.equals(1)){
+            payModeNew = 2;
+        }
+        order.setPayMode(payModeNew);
         payModeSupport = setPayModeSupport(order, payMode);
         //校验处方列表是否都能进行配送
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
@@ -485,7 +492,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             //查询是否存在已在其他订单里的处方
-            boolean flag = orderDAO.isEffectiveOrder(recipe.getOrderCode(), payMode);
+            boolean flag = orderDAO.isEffectiveOrder(recipe.getOrderCode());
             if (flag) {
                 if (payModeSupport.isSupportMedicalInsureance()) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "已经发送给医保。");
@@ -851,8 +858,8 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
             //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
-            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, recipe.getPayMode()));
-            if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, getPayMode(recipe,order)));
+            if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
                     totalFee = totalFee.subtract(order.getExpressFee());
                 }
@@ -862,6 +869,29 @@ public class RecipeOrderService extends RecipeBaseService {
             orderInfo.put("TotalFee", new BigDecimal(map.get("preSettleTotalAmount")).add(priceTemp).doubleValue());
         }
         return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderInfo);
+    }
+
+    private Integer getPayMode(Recipe recipe,RecipeOrder order){
+        // paymode 转老一套
+        Integer payMode = null;
+        switch (recipe.getGiveMode()){
+            case 1:
+                if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
+                    payMode = RecipeBussConstant.PAYMODE_ONLINE;
+                }else {
+                    payMode = RecipeBussConstant.PAYMODE_COD;
+                }
+                break;
+            case 2:
+                payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                break;
+            case 3:
+                payMode = RecipeBussConstant.PAYMODE_TFDS;
+                break;
+            default:
+                break;
+        }
+        return payMode;
     }
 
     private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {
@@ -1531,7 +1561,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignDate(recipe.getSignDate());
                     prb.setPatientName(patientService.getNameByMpiId(recipe.getMpiid()));
                     prb.setStatusCode(recipe.getStatus());
-                    prb.setPayMode(recipe.getPayMode());
+//                    prb.setPayMode(recipe.getPayMode());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setRecipeMode(recipe.getRecipeMode());
                     prb.setChemistSignFile(recipe.getChemistSignFile());
@@ -1688,7 +1718,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 //订单详情展示his推送信息
                 //date  20200320
                 //添加判断配送药企his信息只有配送方式才有
-                if ((RecipeBussConstant.PAYMODE_ONLINE.equals(recipeList.get(0).getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipeList.get(0).getPayMode())) && StringUtils.isNotEmpty(order.getHisEnterpriseName())) {
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipeList.get(0).getGiveMode()) && StringUtils.isNotEmpty(order.getHisEnterpriseName())) {
 
                     orderBean.setEnterpriseName(order.getHisEnterpriseName());
                 }
@@ -2490,7 +2520,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private void useCoupon(Recipe nowRecipe, Integer payMode) {
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
-        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE && isUsefulCoupon(order.getCouponId())) {
+        if (RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode()) && isUsefulCoupon(order.getCouponId())) {
             ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
             couponService.useCouponById(order.getCouponId());
         }
@@ -2566,22 +2596,23 @@ public class RecipeOrderService extends RecipeBaseService {
      * 完成订单
      *
      * @param orderCode
-     * @param payMode
+     * @param
      * @return
      */
     @RpcService
-    public RecipeResultBean finishOrder(String orderCode, Integer payMode, Map<String, Object> orderAttr) {
+    public RecipeResultBean finishOrder(String orderCode, Map<String, Object> orderAttr) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (StringUtils.isEmpty(orderCode)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("缺少参数");
         }
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("effective", 1);
             attrMap.put("payFlag", PayConstant.PAY_FLAG_PAY_SUCCESS);
-            if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+            if (RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
                 attrMap.put("payTime", Calendar.getInstance().getTime());
             }
             attrMap.put("finishTime", Calendar.getInstance().getTime());

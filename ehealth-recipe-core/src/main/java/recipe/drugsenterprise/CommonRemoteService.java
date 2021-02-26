@@ -239,7 +239,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("address", getCompleteAddress(order));
             recipeMap.put("transvalue", order.getExpressFee().doubleValue());
 
-            recipeMap.put("paymode", recipe.getPayMode());
+            recipeMap.put("paymode", order.getPayMode());
             //医院(药店)信息
             recipeMap.put("cstid", recipe.getClinicOrgan());
             recipeMap.put("cstname", organ.getName());

@@ -146,7 +146,7 @@ public class PayModeDownload implements IPurchaseService{
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        recipeOrder.setRecipePayWay(0);
+        recipeOrder.setPayMode(2);
         recipeOrderDAO.update(recipeOrder);
     }
 }

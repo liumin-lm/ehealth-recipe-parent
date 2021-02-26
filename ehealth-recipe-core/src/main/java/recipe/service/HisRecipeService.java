@@ -1364,7 +1364,7 @@ public class HisRecipeService {
      */
     public static String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         Integer status = recipe.getStatus();
-        Integer payMode = recipe.getPayMode();
+        Integer payMode = order.getPayMode();
         Integer payFlag = recipe.getPayFlag();
         Integer giveMode = recipe.getGiveMode();
         Integer orderStatus = order.getStatus();
@@ -1382,7 +1382,7 @@ public class HisRecipeService {
             case RecipeStatusConstant.CHECK_PASS:
                 if (null == payMode || null == giveMode) {
                     tips = "待处理";
-                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
+                } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                     if (new Integer(1).equals(recipe.getRecipePayType()) && payFlag == 1) {
                         tips = "已支付";
                     } else if (payFlag == 0){

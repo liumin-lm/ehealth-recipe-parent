@@ -47,6 +47,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariRefundService;
@@ -118,6 +119,7 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
+import recipe.service.recipeexception.RevisitException;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
@@ -203,6 +205,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Resource
     private CaAfterProcessType caAfterProcessType;
+
+    @Resource
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 药师审核不通过
@@ -872,7 +877,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
             if (!recipe.canMedicalPay()) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
                 if (null != recipe.getOrderCode() && !effective) {
                     LOGGER.warn("当前处方{}已失效");
                     return;
@@ -885,7 +890,7 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!recipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-            boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+            boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
             if (null != recipe.getOrderCode() && !effective) {
                 LOGGER.warn("当前处方{}已失效");
                 return;
@@ -1615,7 +1620,12 @@ public class RecipeService extends RecipeBaseService {
                 caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
 
-        } catch (Exception e) {
+        }
+        catch(RevisitException e){
+            LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", ErrorCode.SERVICE_ERROR_CONFIRM,e);
+            throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+        }
+        catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
@@ -1748,10 +1758,21 @@ public class RecipeService extends RecipeBaseService {
                 recipe.setRequestUrt(requestPatient.getUrt());
             }
         }
-        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+        //获取运营平台是否复诊开处方单有效判断配置
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
+   /*     //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
         if (recipe.getClinicId() == null) {
-            getConsultIdForRecipeSource(recipe);
+            getConsultIdForRecipeSource(recipe,openRecipe);
+        }*/
+        boolean optimize = openRecipOptimize(recipe,openRecipe);
+        //配置开启，根据有效的挂号序号进行判断
+        if (!optimize){
+            LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", ErrorCode.SERVICE_ERROR_CONFIRM);
+            throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
         }
 
         RequestVisitVO requestVisitVO=new RequestVisitVO();
@@ -1981,10 +2002,15 @@ public class RecipeService extends RecipeBaseService {
                 recipe.setRequestUrt(requestPatient.getUrt());
             }
         }
+
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+
         //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
         if (recipe.getClinicId() == null) {
-            getConsultIdForRecipeSource(recipe);
+            getConsultIdForRecipeSource(recipe,openRecipe);
         }
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
@@ -2115,16 +2141,26 @@ public class RecipeService extends RecipeBaseService {
 
 
     @RpcService
-    public void getConsultIdForRecipeSource(RecipeBean recipe) {
+    public void getConsultIdForRecipeSource(RecipeBean recipe,Boolean registerNo) {
         //根据申请人mpiid，requestMode 获取当前咨询单consultId
         //如果没有进行中的复诊就取进行中的咨询否则没有
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+
+        ValidRevisitRequest revisitRequest=new ValidRevisitRequest();
+        revisitRequest.setMpiId(recipe.getMpiid());
+        revisitRequest.setDoctorID(recipe.getDoctor());
+        revisitRequest.setRequestMode(RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        revisitRequest.setRegisterNo(registerNo);
+        LOGGER.info(" 处方查询复诊入参revisitRequest={}",JSONUtils.toString(revisitRequest));
+
         //获取在线复诊
-        List<Integer> consultIds = iRevisitService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(), recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        List<Integer> consultIds=new ArrayList<>();
         Integer consultId = null;
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
+        Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
+
+        if (revisitId!=null) {
+            consultId = revisitId;
             recipe.setBussSource(2);
         } else {
             //图文咨询
@@ -2366,7 +2402,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Postposition_Check == dbRecipe.getReviewType()) {
             if (!dbRecipe.canMedicalPay()) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
+                boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode());
                 if (null != recipe.getOrderCode() && !effective) {
                     resultBean.setCode(RecipeResultBean.FAIL);
                     resultBean.setMsg("该处方已失效");
@@ -2380,7 +2416,7 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!dbRecipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-            boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
+            boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode());
             if (null != recipe.getOrderCode() && !effective) {
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setMsg("该处方已失效");
@@ -2431,6 +2467,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Integer recipeId = recipe.getRecipeId();
 
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
@@ -2478,7 +2515,7 @@ public class RecipeService extends RecipeBaseService {
             }
 
             // 到院取药 审方后置 消息推送
-            if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())
+            if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())
                     && ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())) {
                 // 支付成功 到院取药 推送消息 审方后置
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, recipe);
@@ -2486,20 +2523,20 @@ public class RecipeService extends RecipeBaseService {
 
         } else if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             Integer status = OrderStatusConstant.READY_SEND;
-            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 status = OrderStatusConstant.READY_GET_DRUG;
                 // HOS处方发送药企处方信息
                 service.pushSingleRecipeInfo(recipeId);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，请于${expireDate}前到${pharmacyName}取药，地址：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4TFDS, recipe);
-            } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+            } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 // HOS处方发送药企处方信息
                 service.pushSingleRecipeInfo(recipeId);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4STH, recipe);
-            } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
+            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
                 status = OrderStatusConstant.READY_GET_DRUG;
             } else {
                 status = OrderStatusConstant.READY_GET_DRUG;
@@ -2535,7 +2572,7 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("afterCheckNotPassYs recipeId= {}", recipe.getRecipeId());
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-        boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+        boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
         //是否是有效订单
         if (!effective) {
             return;
@@ -3102,15 +3139,15 @@ public class RecipeService extends RecipeBaseService {
         Integer fromFlag = recipe.getFromflag();
         Integer dbStatus = recipe.getStatus();
         Integer payFlag = recipe.getPayFlag();
-        Integer payMode = recipe.getPayMode();
+//        Integer payMode = recipe.getPayMode();
         String orderCode = recipe.getOrderCode();
         //处方状态未支付： fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null
         Integer status = null;
-        if ((fromFlag != null && (fromFlag == 1 || fromFlag == 2)) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payFlag != null && payFlag == 0 && payMode != null && StringUtils.isNotBlank(orderCode)){
+        if ((fromFlag != null && (fromFlag == 1 || fromFlag == 2)) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payFlag != null && payFlag == 0 && StringUtils.isNotBlank(orderCode)){
             status = RecipeStatusConstant.NO_PAY;
         }
         //处方状态未操作：fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1)
-        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payMode == null ){
+        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && StringUtils.isNotBlank(orderCode) ){
             status = RecipeStatusConstant.NO_OPERATOR;
         }
         if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
@@ -3291,7 +3328,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public int getRecipePayMode(int recipeId, int flag) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
         if (null == dbRecipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe not exist!");
         }
@@ -3299,10 +3338,28 @@ public class RecipeService extends RecipeBaseService {
         //进行判断该处方单是否已处理，已处理则返回具体购药方式
         if (1 == dbRecipe.getChooseFlag()) {
             //如果之前选择的是到院取药且未支付 则可以进行转在线支付的方式
-            if (1 == flag && RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getPayMode()) && 0 == dbRecipe.getPayFlag()) {
+            if (1 == flag && RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && 0 == dbRecipe.getPayFlag()) {
                 return 0;
             }
-            return dbRecipe.getPayMode();
+            Integer payMode = null;
+            switch (dbRecipe.getGiveMode()){
+                case 1:
+                    if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
+                        payMode = RecipeBussConstant.PAYMODE_ONLINE;
+                    }else {
+                        payMode = RecipeBussConstant.PAYMODE_COD;
+                    }
+                    break;
+                case 2:
+                    payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                    break;
+                case 3:
+                    payMode = RecipeBussConstant.PAYMODE_TFDS;
+                    break;
+                default:
+                    break;
+            }
+            return payMode;
         } else {
             return 0;
         }
@@ -3804,6 +3861,7 @@ public class RecipeService extends RecipeBaseService {
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
+                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);
@@ -3990,7 +4048,7 @@ public class RecipeService extends RecipeBaseService {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
-                    orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), null);
+                    orderService.finishOrder(recipe.getOrderCode(), null);
                     LOGGER.info("changeDownLoadToFinishTask: 订单{}设置为已完成！", recipe.getOrderCode());
                     //记录日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.RECIPE_DOWNLOADED, RecipeStatusConstant.FINISH, "下载处方订单完成");
@@ -5147,5 +5205,35 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         return true;
+    }
+
+    /**
+     * 复诊结束后医生不能开出处方规则优化
+     * @param recipe
+     * @param registerNo
+     * @return
+     */
+    public boolean openRecipOptimize(RecipeBean recipe,Boolean registerNo){
+        //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
+        //进行新老逻辑的整合，如果开关开了，直接走新逻辑，如果开关没开的话，还是直接走老的逻辑
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+
+        ValidRevisitRequest revisitRequest=new ValidRevisitRequest();
+        revisitRequest.setMpiId(recipe.getMpiid());
+        revisitRequest.setDoctorID(recipe.getDoctor());
+        revisitRequest.setRequestMode(RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        revisitRequest.setRegisterNo(registerNo);
+
+        LOGGER.info(" validRevisit={}",JSONUtils.toString(revisitRequest));
+        if (!registerNo){
+            if (recipe.getClinicId()==null){
+                getConsultIdForRecipeSource(recipe,registerNo);
+            }
+            return true;
+        }
+
+        Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
+        LOGGER.info(" 复诊查询当前就诊单 revisitId={}",revisitId);
+        return revisitId==null?false:true;
     }
 }

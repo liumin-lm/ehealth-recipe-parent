@@ -704,10 +704,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap = Maps.newHashMap();
             if (sendRecipe) {
                 //取药方式
-                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                     //1：自提；0：送货上门
                     recipeMap.put("METHOD", "0");
-                } else if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                     recipeMap.put("METHOD", "1");
                 } else {
                     //支持所有方式
@@ -716,7 +716,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             } else {
                 recipeMap.put("METHOD", "");
             }
-            if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                 order = orderDAO.getByOrderCode(recipe.getOrderCode());
                 if (order != null ) {
                     //配送到家的方式
@@ -811,14 +811,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             if (StringUtils.isNotEmpty(recipe.getRecipeMemo())) {
                 recipeMap.put("DCTTIPS", recipe.getRecipeMemo());
             }
-            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 order = orderDAO.getByOrderCode(recipe.getOrderCode());
                 if (order != null ) {
                     recipeMap.put("STORECODE", order.getDrugStoreCode());
                 }
             }
 
-            if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
                 recipeMap.put("ISPAYMENT", "0");
             }
 

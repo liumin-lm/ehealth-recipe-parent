@@ -295,7 +295,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
     private Integer takeMedicine;
 
-    @ItemProperty(alias = "处方发起者id,患者真实Id")
+    @ItemProperty(alias = "处方发起者id,用户标识")
     private String requestMpiId;
 
     @ItemProperty(alias = "处方发起者urt")

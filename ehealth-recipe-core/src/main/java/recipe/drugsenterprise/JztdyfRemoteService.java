@@ -335,7 +335,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         jztRecipe.setExpressFee("");   //配送费
         jztRecipe.setOrderTotalFee(converToString(dbRecipe.getOrderAmount()));
         jztRecipe.setStatus(converToString(dbRecipe.getStatus()));
-        jztRecipe.setPayMode(converToString(dbRecipe.getPayMode()));
+//        jztRecipe.setPayMode(converToString(dbRecipe.getPayMode()));
         jztRecipe.setPayFlag(converToString(dbRecipe.getPayFlag()));
         jztRecipe.setGiveMode(converToString(dbRecipe.getGiveMode()));
         jztRecipe.setGiveUser(converToString(dbRecipe.getGiveUser()));

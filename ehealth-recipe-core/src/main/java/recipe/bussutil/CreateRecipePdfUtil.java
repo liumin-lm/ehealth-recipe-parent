@@ -7,20 +7,34 @@ import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
+import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import lombok.Cleanup;
+import org.apache.commons.collections4.CollectionUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
 
 import java.io.*;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 
 /**
  * created by shiyuping on 2019/10/18
@@ -50,6 +64,7 @@ public class CreateRecipePdfUtil {
         }
         return fileId;
     }
+
     /**
      * 处方签pdf添加收货人信息
      *
@@ -82,6 +97,36 @@ public class CreateRecipePdfUtil {
         }
         return fileId;
     }
+
+
+    /**
+     * 处方pdf添加处方号和患者病历号
+     * @param pdfId
+     * @return
+     * @throws IOException
+     * @throws DocumentException
+     */
+    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId,String recipeCode ,String patientId) throws IOException, DocumentException {
+        logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, recipeCode={} ,patientId={} ", pdfId, recipeCode, patientId);
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            OutputStream output = new FileOutputStream(file);
+            //处方pdf添加处方号和患者病历号
+            addRecipeCodeAndPatientIdForRecipePdf(input, output, recipeCode,patientId);
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+        }
+        return fileId;
+    }
+
 
     /**
      * 处方签pdf添加收货人信息
@@ -117,6 +162,25 @@ public class CreateRecipePdfUtil {
         output.close();
     }
 
+    private static void addRecipeCodeAndPatientIdForRecipePdf(InputStream input, OutputStream output, String recipeCode, String patientId) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
+        //将文字贴入pdf
+        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 10);
+        page.setTextMatrix(90, 721);
+        page.showText( recipeCode);
+        page.setTextMatrix(320, 721);
+        page.showText( patientId);
+        page.endText();
+        stamper.close();
+        reader.close();
+        input.close();
+        output.close();
+    }
 
     private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
@@ -424,7 +488,113 @@ public class CreateRecipePdfUtil {
             byte[] bytes = CreateRecipePdfUtilByLowagie.addWaterPrintForRecipePdf(fileDownloadService.downloadAsByte(pdfId), waterPrintText);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
         }
-        logger.info("generateWaterPrintRecipePdf newFileId:{}",fileId);
+        logger.info("generateWaterPrintRecipePdf newFileId:{}", fileId);
         return fileId;
+    }
+
+    /**
+     * pdf写入 药品价格
+     */
+    public static String generateTotalRecipePdf(String pdfId, String total, Integer type, Integer recipeId) throws IOException, DocumentException {
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            OutputStream output = new FileOutputStream(file);
+            //添加价格
+            addTextForRecipePdf(input, output, total, type, recipeId);
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+        }
+        return fileId;
+    }
+
+    /**
+     * pdf写入 药品价格
+     *
+     * @param input
+     * @param output
+     * @param total
+     * @throws IOException
+     * @throws DocumentException
+     */
+    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total, Integer type, Integer recipeId) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
+//        Case(配送方式)
+//        配送到家(药店配送)：读取pdf单个药品合计金额跟recipeDetail表drugCost比较，不等则替换，或不比较直接替换。
+//        药店取药：读取pdf单个药品合计金额跟SgList.aleDruprice*药品数量比较，不等则替换，或不比较直接替换。
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.get(recipeId);
+            logger.info("addTextForRecipePdf recipeId:{} ,recipe:{} ", recipeId, JSONUtils.toString(recipe));
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            if (recipe == null || StringUtil.isBlank(recipe.getOrderCode())) {
+                return;
+            }
+            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
+            logger.info("addTextForRecipePdf recipeId:{} ,canShowDrugCost:{} ", recipeId, canShowDrugCost);
+            //配置单个药品金额总额在pdf显示
+            if (!(boolean) canShowDrugCost) {
+                return;
+            }
+            Integer giveMode = recipe.getGiveMode();
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            logger.info("addTextForRecipePdf recipeOrder:{} ", JSONUtils.toString(recipeOrder));
+            Integer enterpriseId = recipeOrder.getEnterpriseId();
+            Integer settlementMode = null;
+            if (null != enterpriseId) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(enterpriseId);
+                if (null != enterprise) {
+                    settlementMode = enterprise.getSettlementMode();
+                }
+            }
+            //药企配送或药店取药
+            if ((new Integer("1").equals(giveMode) && new Integer("0").equals(settlementMode)) || new Integer("3").equals(giveMode)) {
+                //更新单个药品金额总额
+                List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                logger.info("addTextForRecipePdf recipeId:{} ,recipeDetails:{} ", recipeId, JSONUtils.toString(recipeDetails));
+                if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                    BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+                    addTotalFee(page, bf, total);
+                }
+            }
+        } catch (Exception e) {
+            logger.info("addTextForRecipePdf :{}", e);
+        } finally {
+            stamper.close();
+            reader.close();
+            input.close();
+            output.close();
+        }
+    }
+
+    public static void addTotalFee(PdfContentByte page, BaseFont bf, String total) {
+        logger.info("addTotalFee total:{}", total);
+        //添加覆盖
+        page.saveState();
+        page.setColorFill(BaseColor.WHITE);
+        //设中药文字在页面中的坐标 date20200910
+        page.rectangle(300, 80, 100, 20);
+        page.fill();
+        page.restoreState();
+        //添加文本块
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 10);
+        //设中药文字在页面中的坐标 date20200910
+        page.setTextMatrix(300, 80);
+        page.showText("药品金额 ：" + total + "元");
+        page.endText();
     }
 }

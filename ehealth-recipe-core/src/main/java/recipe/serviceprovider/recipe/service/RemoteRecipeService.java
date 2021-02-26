@@ -1037,7 +1037,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             if (recipe != null) {
                 //货到付款不走卫宁付。。。药店取药可以走卫宁付了
-                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())) {
                     return map;
                 }
             }

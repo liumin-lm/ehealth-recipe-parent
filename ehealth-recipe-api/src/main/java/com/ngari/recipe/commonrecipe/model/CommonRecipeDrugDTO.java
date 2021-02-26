@@ -80,17 +80,21 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+    @ItemProperty(alias = "用药频次英文名称")
+    private String usingRateEnglishNames;
+
     @ItemProperty(alias = "药物使用途径代码")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
-    @ItemProperty(alias = "使用频率id")
-    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
-    private String usingRateId;
-
     @ItemProperty(alias = "用药途径id")
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
+    @ItemProperty(alias = "用药途径英文名称")
+    private String usePathEnglishNames;
 
     @ItemProperty(alias = "药物使用天数")
     private Integer useDays;
@@ -117,6 +121,12 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "机构药品药房id")
     private String organPharmacyId;
+
+    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+    private Integer tcmContraindicationType;
+
+    @ItemProperty(alias = "中药禁忌原因")
+    private String tcmContraindicationCause;
 
     public Integer getPack() {
         return pack;
@@ -375,5 +385,37 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setOrganPharmacyId(String organPharmacyId) {
         this.organPharmacyId = organPharmacyId;
+    }
+
+    public Integer getTcmContraindicationType() {
+        return tcmContraindicationType;
+    }
+
+    public void setTcmContraindicationType(Integer tcmContraindicationType) {
+        this.tcmContraindicationType = tcmContraindicationType;
+    }
+
+    public String getTcmContraindicationCause() {
+        return tcmContraindicationCause;
+    }
+
+    public void setTcmContraindicationCause(String tcmContraindicationCause) {
+        this.tcmContraindicationCause = tcmContraindicationCause;
+    }
+
+    public String getUsingRateEnglishNames() {
+        return usingRateEnglishNames;
+    }
+
+    public void setUsingRateEnglishNames(String usingRateEnglishNames) {
+        this.usingRateEnglishNames = usingRateEnglishNames;
+    }
+
+    public String getUsePathEnglishNames() {
+        return usePathEnglishNames;
+    }
+
+    public void setUsePathEnglishNames(String usePathEnglishNames) {
+        this.usePathEnglishNames = usePathEnglishNames;
     }
 }

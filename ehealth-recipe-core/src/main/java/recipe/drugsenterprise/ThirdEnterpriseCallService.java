@@ -105,6 +105,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     static ThreadLocal<Map> drugInventoryRequestMap = new ThreadLocal<>();
 
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
     /**
      * 待配送状态
      *
@@ -542,7 +545,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         attrMap.put("giveFlag", 1);
         attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
-        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
             attrMap.put("payFlag", 1);
             attrMap.put("payDate", new Date());
         }
@@ -560,7 +564,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
             updateRecipeDetainInfo(recipe, paramMap);
             Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
-            orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
+            orderService.finishOrder(recipe.getOrderCode(),  orderAttr);
             //保存至电子病历
 //            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //            recipeService.saveRecipeDocIndex(recipe);
@@ -898,7 +902,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 updateRecipeDetainInfo(recipe, paramMap);
                 Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
                 //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
-                orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
+                orderService.finishOrder(recipe.getOrderCode(),orderAttr);
                 //保存至电子病历
 //                recipeService.saveRecipeDocIndex(recipe);
                 //记录日志
@@ -1249,7 +1253,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private Map getOrderInfoMap(Recipe recipe, Map<String, Object> paramMap) {
         Map<String, Object> attrMap = Maps.newHashMap();
         // 由于只有钥世圈在用，所以实际支付价格跟总价一致，无需考虑优惠券
-        if (!RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) && !RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+        if (!RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) &&
+                !RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
             return attrMap;
         }
         String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
@@ -1774,8 +1779,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
 
-            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && new Integer(1).equals(recipe.getPayMode())) {
-                //表示不是医保患者并且没有优惠券并且还不是药店取药的,那他一定要支付钱
+            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
+                    && new Integer(1).equals(recipeOrder.getPayMode())) {
+                //表示不是医保患者并且没有优惠券并且是线上支付的,那他一定要支付钱
                 if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
                     continue;
                 }
@@ -1825,7 +1831,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             } else {
                 orderDetailBean.setTcmNum("");
             }
-            if (recipe.getPayMode() == 1) {
+            if (recipeOrder.getPayMode() == 1) {
                 orderDetailBean.setDistributionFlag("1");
             } else {
                 orderDetailBean.setDistributionFlag("0");
@@ -1901,7 +1907,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setRecAddress(convertParame(recipeOrder.getAddress4()));
             orderDetailBean.setOutTradeNo(convertParame(recipeOrder.getOutTradeNo()));
             orderDetailBean.setTradeNo(convertParame(recipeOrder.getTradeNo()));
-            orderDetailBean.setPayMode(convertParame(convertParame(recipe.getPayMode())));
+            orderDetailBean.setPayMode(convertParame(convertParame(recipeOrder.getPayMode())));
             orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
             orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));

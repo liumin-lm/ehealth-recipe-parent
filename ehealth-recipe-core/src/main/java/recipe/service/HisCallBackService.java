@@ -507,7 +507,7 @@ public class HisCallBackService {
                         if (rs) {
                             //线下支付完成后结束订单
                             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                            orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), null);
+                            orderService.finishOrder(recipe.getOrderCode(), null);
                             //保存至电子病历
 //                            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //                            recipeService.saveRecipeDocIndex(recipe);
