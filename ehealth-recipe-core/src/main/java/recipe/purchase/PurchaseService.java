@@ -420,7 +420,26 @@ public class PurchaseService {
         }
 
         try {
-            IPurchaseService purchaseService = getService(payMode);
+            // 根据paymode 换算givemode
+            Integer giveMode = null;
+            switch (payMode){
+                case 1:
+                    giveMode = 1;
+                    break;
+                case 2:
+                    giveMode = 1;
+                    break;
+                case 3:
+                    giveMode = 2;
+                    break;
+                case 4:
+                    giveMode = 3;
+                    break;
+                default:
+                    break;
+
+            }
+            IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);
         } catch (Exception e) {
             LOG.error("order error", e);
@@ -669,7 +688,7 @@ public class PurchaseService {
                     break;
                 }
             default:
-                IPurchaseService purchaseService = getService(order.getPayMode());
+                IPurchaseService purchaseService = getService(recipe.getGiveMode());
                 if (null == purchaseService) {
                     tips = "";
                 } else {
