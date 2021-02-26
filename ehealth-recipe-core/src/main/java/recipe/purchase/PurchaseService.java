@@ -131,7 +131,7 @@ public class PurchaseService {
     /**
      * 根据对应的购药方式展示对应药企
      *
-     * @param recipeId 处方ID
+     * @param recipeIds 处方ID
      * @param payModes 购药方式
      */
     @RpcService
@@ -555,13 +555,13 @@ public class PurchaseService {
                 result.setMsg("处方单已被处理");
                 //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
                 if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                    if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_TFDS == payMode) {
+                    if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && RecipeBussConstant.PAYMODE_TFDS == payMode) {
                         result.setCode(2);
                         result.setMsg("您已到院自取药品，无法提交药店取药");
-                    } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_ONLINE == payMode) {
+                    } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && RecipeBussConstant.PAYMODE_ONLINE == payMode) {
                         result.setCode(3);
                         result.setMsg("您已到院自取药品，无法进行配送");
-                    } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                    } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())) {
                         result.setCode(4);
                         result.setMsg(dbRecipe.getOrderCode());
                     }
@@ -582,13 +582,14 @@ public class PurchaseService {
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         Integer status = recipe.getStatus();
-        Integer payMode = recipe.getPayMode();
+
         Integer payFlag = recipe.getPayFlag();
         String orderCode = recipe.getOrderCode();
         if (order == null) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             order = recipeOrderDAO.getByOrderCode(orderCode);
         }
+
         String tips;
         switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
             case RECIPE_STATUS_READY_CHECK_YS:
@@ -607,7 +608,7 @@ public class PurchaseService {
                 } else if (StringUtils.isEmpty(orderCode)) {
                     tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
-                    IPurchaseService purchaseService = getService(payMode);
+                    IPurchaseService purchaseService = getService(recipe.getGiveMode());
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
                 }
                 break;
@@ -668,7 +669,7 @@ public class PurchaseService {
                     break;
                 }
             default:
-                IPurchaseService purchaseService = getService(payMode);
+                IPurchaseService purchaseService = getService(order.getPayMode());
                 if (null == purchaseService) {
                     tips = "";
                 } else {
@@ -721,7 +722,7 @@ public class PurchaseService {
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
             return OrderStatusConstant.READY_SEND;
         } else {
-            IPurchaseService purchaseService = getService(recipe.getPayMode());
+            IPurchaseService purchaseService = getService(recipe.getGiveMode());
             return purchaseService.getOrderStatus(recipe);
         }
     }
@@ -747,7 +748,7 @@ public class PurchaseService {
             result.setMsg("处方单已被处理");
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
             if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())) {
+                if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
                     result.setMsg("您已到院自取药品，无法选择其他购药方式");
                 }
             }
@@ -879,16 +880,17 @@ public class PurchaseService {
 
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         try {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
+//            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            IPurchaseService purchaseService = getService(recipe.getPayMode());
+//            IPurchaseService purchaseService = getService(recipe.getPayMode());
             if ("111".equals(recipeOrder.getWxPayWay())){
-                recipeOrder.setRecipePayWay(1);
+                recipeOrder.setPayMode(1);
                 recipeOrderDAO.update(recipeOrder);
-            } else {
-                purchaseService.setRecipePayWay(recipeOrder);
             }
+//            else {
+//                purchaseService.setRecipePayWay(recipeOrder);
+//            }
         } catch (Exception e) {
             LOG.info("setRecipePayWay error msg:{}.", e.getMessage());
         }

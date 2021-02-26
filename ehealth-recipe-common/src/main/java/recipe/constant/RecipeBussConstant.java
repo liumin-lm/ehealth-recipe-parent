@@ -39,6 +39,11 @@ public class RecipeBussConstant {
     public static Integer PAYMODE_ONLINE = 1;
 
     /**
+     * 线下支付
+     */
+    public static Integer PAYMODE_OFFLINE = 2;
+
+    /**
      * 货到付款
      */
     public static Integer PAYMODE_COD = 2;

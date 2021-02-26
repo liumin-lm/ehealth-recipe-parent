@@ -381,9 +381,9 @@ public class PayModeTFDS implements IPurchaseService{
         DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
         if (new Integer(1).equals(drugsEnterprise.getStorePayFlag())) {
             //药品费用线上支付
-            recipeOrder.setRecipePayWay(1);
+            recipeOrder.setPayMode(1);
         } else {
-            recipeOrder.setRecipePayWay(0);
+            recipeOrder.setPayMode(2);
         }
         recipeOrderDAO.update(recipeOrder);
     }

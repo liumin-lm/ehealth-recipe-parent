@@ -611,13 +611,13 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        if (new Integer(2).equals(recipe.getPayMode())) {
-            recipeOrder.setRecipePayWay(0);
+        if (new Integer(2).equals(recipeOrder.getPayMode())) {
+            recipeOrder.setPayMode(0);
         } else {
-            recipeOrder.setRecipePayWay(1);
+            recipeOrder.setPayMode(1);
         }
         recipeOrderDAO.update(recipeOrder);
     }

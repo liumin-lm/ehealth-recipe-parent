@@ -107,6 +107,13 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias = "药品包装数量")
     private Integer pack;
 
+
+    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+    private Integer tcmContraindicationType;
+
+    @ItemProperty(alias = "中药禁忌原因")
+    private String tcmContraindicationCause;
+
     @Column(name = "pack")
     public Integer getPack() {
         return pack;
@@ -344,6 +351,24 @@ public class CommonRecipeDrug implements java.io.Serializable{
         this.useDoseStr = useDoseStr;
     }
 
+    @Column(name = "tcm_contraindication_type")
+    public Integer getTcmContraindicationType() {
+        return tcmContraindicationType;
+    }
+
+    public void setTcmContraindicationType(Integer tcmContraindicationType) {
+        this.tcmContraindicationType = tcmContraindicationType;
+    }
+
+    @Column(name = "tcm_contraindication_cause")
+    public String getTcmContraindicationCause() {
+        return tcmContraindicationCause;
+    }
+
+    public void setTcmContraindicationCause(String tcmContraindicationCause) {
+        this.tcmContraindicationCause = tcmContraindicationCause;
+    }
+
     @Override
     public String toString() {
         return "CommonRecipeDrug{" +
@@ -393,4 +418,5 @@ public class CommonRecipeDrug implements java.io.Serializable{
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
     }
+
 }

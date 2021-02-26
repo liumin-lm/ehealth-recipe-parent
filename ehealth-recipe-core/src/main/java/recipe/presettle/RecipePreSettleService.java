@@ -74,7 +74,7 @@ public class RecipePreSettleService {
             result.put("msg", "查不到该处方扩展信息");
             return result;
         }
-        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(recipeOrder.getPayMode())) {
             LOGGER.info("unifyRecipePreSettle no support. recipeId={}", JSONUtils.toString(recipeId));
             result.put("code", "200");
             return result;
@@ -86,7 +86,7 @@ public class RecipePreSettleService {
         param.put("depId", depId);
         param.put("insuredArea", insuredArea);
         param.put("recipeNoS", JSONUtils.toString(recipeNoS));
-        param.put("payMode", recipe.getPayMode());
+        param.put("payMode", recipeOrder.getPayMode());
         //获取对应预结算服务
         IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipe.getClinicOrgan(),orderType);
         if (preSettleService != null){

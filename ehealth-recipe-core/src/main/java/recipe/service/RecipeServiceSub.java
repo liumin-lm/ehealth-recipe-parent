@@ -542,7 +542,7 @@ public class RecipeServiceSub {
                             if (usingRateDTO != null) {
                                 detail.setUsingRateTextFromHis(usingRateDTO.getText());
                                 detail.setOrganUsingRate(usingRateDTO.getUsingRateKey());
-                                if(usingRateDTO.getRelatedPlatformKey() != null){
+                                if (usingRateDTO.getRelatedPlatformKey() != null) {
                                     detail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
                                 } else {
                                     detail.setUsingRate(usingRateDTO.getUsingRateKey());
@@ -556,7 +556,7 @@ public class RecipeServiceSub {
                             if (usePathwaysDTO != null) {
                                 detail.setUsePathwaysTextFromHis(usePathwaysDTO.getText());
                                 detail.setOrganUsePathways(usePathwaysDTO.getPathwaysKey());
-                                if(usePathwaysDTO.getRelatedPlatformKey() != null){
+                                if (usePathwaysDTO.getRelatedPlatformKey() != null) {
                                     detail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
                                 } else {
                                     detail.setUsePathways(usePathwaysDTO.getPathwaysKey());
@@ -658,9 +658,9 @@ public class RecipeServiceSub {
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
         try {
             //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
-            if(new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))){
+            if (new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))) {
                 return resultBean;
-            }else{
+            } else {
                 //处方药品能否配送以及能否开具同一张处方上
                 canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
             }
@@ -755,7 +755,7 @@ public class RecipeServiceSub {
      *
      * @param recipe  处方对象
      * @param details 处方详情
-     * @return Map<String   ,       Object>
+     * @return Map<String, Object>
      */
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
         Map<String, Object> paramMap = Maps.newHashMap();
@@ -779,11 +779,11 @@ public class RecipeServiceSub {
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
             //date 20200908 添加体重字段，住院病历号，就诊卡号
-            if(StringUtils.isNotEmpty(p.getWeight())){
+            if (StringUtils.isNotEmpty(p.getWeight())) {
                 paramMap.put("pWeight", p.getWeight() + "kg");
             }
             paramMap.put("pHisID", recipe.getPatientID());
-            if(null != extend){
+            if (null != extend) {
                 paramMap.put("pCardNo", extend.getCardNo());
             }
 
@@ -834,13 +834,13 @@ public class RecipeServiceSub {
                     paramMap.put("dMemo" + i, "备注:" + d.getMemo());
                 }
                 Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
-                LOGGER.info("createParamMap recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
-                if((boolean)canShowDrugCost){
-                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
+                LOGGER.info("createParamMap recipeId:{} canShowDrugCost:{}", recipe.getRecipeId(), canShowDrugCost);
+                if ((boolean) canShowDrugCost) {
+                    paramMap.put("drugCost" + i, d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP) + "元");
                 }
                 i++;
             }
-            paramMap.put("recipeFee", recipe.getTotalMoney()+"元" );
+            paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
 
             //水印
@@ -886,14 +886,14 @@ public class RecipeServiceSub {
             paramMap.put("pGender", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(p.getPatientSex()));
             paramMap.put("pAge", DateConversion.getAge(p.getBirthday()) + "岁");
             //date 20200908 添加体重字段，住院病历号，就诊卡号
-            if(StringUtils.isNotEmpty(p.getWeight())) {
+            if (StringUtils.isNotEmpty(p.getWeight())) {
                 paramMap.put("pWeight", p.getWeight() + "kg");
             }
             paramMap.put("pHisID", recipe.getPatientID());
             //date 20200909 添加字段，嘱托,煎法,制法,次量,每付取汁,天数
             paramMap.put("tcmRecipeMemo", recipe.getRecipeMemo());
 
-            if(null != extend){
+            if (null != extend) {
                 paramMap.put("pCardNo", extend.getCardNo());
                 paramMap.put("tcmDecoction", extend.getDecoctionText());
                 paramMap.put("tcmJuice", extend.getJuice() + extend.getJuiceUnit());
@@ -942,14 +942,14 @@ public class RecipeServiceSub {
                     dTotal = dTotal + "*" + d.getMemo();
                 }
                 paramMap.put("drugInfo" + i, dName + "：" + dTotal);
-                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))){
+                if (StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()))) {
                     paramMap.put("tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(d.getUsePathways()));
-                }else{
+                } else {
                     paramMap.put("tcmUsePathways", d.getUsePathways());
                 }
-                if(StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))){
+                if (StringUtils.isNotEmpty(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()))) {
                     paramMap.put("tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(d.getUsingRate()));
-                }else{
+                } else {
                     paramMap.put("tcmUsingRate", d.getUsingRate());
                 }
 
@@ -961,7 +961,7 @@ public class RecipeServiceSub {
 //                }
                 i++;
             }
-            paramMap.put("recipeFee", recipe.getTotalMoney()+"元" );
+            paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
 
             //水印
@@ -1059,7 +1059,7 @@ public class RecipeServiceSub {
             boolean effective = false;
             //只有审核未通过的情况需要看订单状态
             if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
             }
             Map<String, String> tipMap = getTipsByStatusCopy(recipe.getStatus(), recipe, effective, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
             recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
@@ -1257,7 +1257,7 @@ public class RecipeServiceSub {
      * @param integer
      * @return
      */
-    public static Map<String, String> getTipsByStatusCopy2(int status, Recipe recipe, Boolean effective, Integer orderStatus,Integer recipeRefundId ) {
+    public static Map<String, String> getTipsByStatusCopy2(int status, Recipe recipe, Boolean effective, Integer orderStatus, Integer recipeRefundId) {
         String tips = "";
         String listTips = "";
         //修改展示状态的方式，有订单的状态现优先展示订单的状态再展示处方的状态
@@ -1276,7 +1276,7 @@ public class RecipeServiceSub {
         if (StringUtils.isEmpty(tips)) {
             switch (status) {
                 case RecipeStatusConstant.REVOKE:
-                    if (recipeRefundId!=null) {
+                    if (recipeRefundId != null) {
                         tips = "已取消";
                     } else {
                         tips = "已撤销";
@@ -1475,7 +1475,7 @@ public class RecipeServiceSub {
         r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
 //        r.setRecipeId(recipe.ge);
-        if (StringUtils.isNotEmpty(recipe.getSignDate())){
+        if (StringUtils.isNotEmpty(recipe.getSignDate())) {
             r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
         }
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
@@ -1486,12 +1486,12 @@ public class RecipeServiceSub {
             stringBuilder.append(recipedetail.getDrugName());
             stringBuilder.append(" ").append((recipedetail.getDrugSpec()) == null ? "" : recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit() == null ? "" : recipedetail.getDrugUnit()).append("、");
         }
-        if(stringBuilder.length()>0){
+        if (stringBuilder.length() > 0) {
             stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
         }
         r.setRecipeDrugName(stringBuilder.toString());
 
-        if (StringUtils.isNotEmpty(recipe.getSignDate())){
+        if (StringUtils.isNotEmpty(recipe.getSignDate())) {
             r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
         }
 //        r.setShowTip(recipe.getShowTip());
@@ -1515,7 +1515,7 @@ public class RecipeServiceSub {
      * @param isDoctor true:医生端  false:健康端
      * @return
      */
-    public static Map<String, Object>  getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
+    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1728,7 +1728,7 @@ public class RecipeServiceSub {
             recipe.setActualPrice(actualPrice);
 
             //无法配送时间文案提示
-            map.put("unSendTitle", getUnSendTitleForPatient(recipe));
+            map.put("unSendTitle", getUnSendTitleForPatient(recipe,order));
             //患者处方取药方式提示
             map.put("recipeGetModeTip", getRecipeGetModeTip(recipe));
 
@@ -1739,7 +1739,7 @@ public class RecipeServiceSub {
             //返回前端是否能合并支付的按钮--提示可以合并支付----可能患者从消息进去到处方详情时
             Boolean mergeRecipeFlag = false;
             try {
-                if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
+                if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
                     List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
@@ -1756,7 +1756,7 @@ public class RecipeServiceSub {
                         }
                     }
                     if (mergeRecipeFlag) {
-                        String mergeRecipeWay = (String)configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
+                        String mergeRecipeWay = (String) configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
                         Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipe.getMpiid(), recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
                         //获取能合并处方的单数大于1的时候才能跳转列表页
                         if (numCanMergeRecipe <= 1) {
@@ -1788,7 +1788,7 @@ public class RecipeServiceSub {
             patientRecipeInfoButtonShowNew(map, recipe, order);
             patientRecipeInfoBottonShow(map, recipe, order);
         }
-        
+
 
         //设置失效时间
         if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
@@ -1823,8 +1823,8 @@ public class RecipeServiceSub {
             map.put("recipeOrder", recipeOrder);
         }
         //设置签名图片
-        Map<String,String> signInfo=attachSealPic(recipe.getClinicOrgan(),recipe.getDoctor(),recipe.getChecker(),recipeId);
-        if (StringUtils.isNotEmpty(signInfo.get("doctorSignImg"))){
+        Map<String, String> signInfo = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+        if (StringUtils.isNotEmpty(signInfo.get("doctorSignImg"))) {
             map.put("doctorSignImg", signInfo.get("doctorSignImg"));
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
@@ -1944,7 +1944,7 @@ public class RecipeServiceSub {
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-            if(drugsEnterprise != null && drugsEnterprise.getSendType() != null) {
+            if (drugsEnterprise != null && drugsEnterprise.getSendType() != null) {
                 map.put("sendType", drugsEnterprise.getSendType());
             }
         }
@@ -1954,28 +1954,29 @@ public class RecipeServiceSub {
 
     /**
      * 根据配置项sealDataFrom获取签章图片
+     *
      * @param doctorId
      * @param
      * @Author liumin
      */
-    public static Map<String,String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId){
-        LOGGER.info("attachSealPic param clinicOrgan:{},doctorId:{},checker:{},recipeId:{}",clinicOrgan,doctorId,checker,recipeId);
-        Map<String,String> map=new HashMap<>();
+    public static Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
+        LOGGER.info("attachSealPic param clinicOrgan:{},doctorId:{},checker:{},recipeId:{}", clinicOrgan, doctorId, checker, recipeId);
+        Map<String, String> map = new HashMap<>();
         SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
-        try{
+        try {
             //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
-            String sealDataFrom="platFormSeal";
+            String sealDataFrom = "platFormSeal";
             try {
                 sealDataFrom = (String) configService.getConfiguration(clinicOrgan, "sealDataFrom");
-            }catch (Exception e){
-                if(recipeId!=null){
+            } catch (Exception e) {
+                if (recipeId != null) {
                     LOGGER.error("attachSealPic 获取签章使用方配置error, recipeId:{}", recipeId, e);
-                }else{
+                } else {
                     LOGGER.error("attachSealPic 获取签章使用方配置error, clinicOrgan:{}", clinicOrgan, e);
                 }
             }
-            if("thirdSeal".equals(sealDataFrom)){
-                LOGGER.info("attachSealPic 使用第三方签名，recipeId:{}",recipeId);
+            if ("thirdSeal".equals(sealDataFrom)) {
+                LOGGER.info("attachSealPic 使用第三方签名，recipeId:{}", recipeId);
                 SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
                 SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
                 if (null != docInfo) {
@@ -1985,21 +1986,21 @@ public class RecipeServiceSub {
                     }
                 }
                 //药师图片
-                if(null != phaInfo){
+                if (null != phaInfo) {
                     if (StringUtils.isNotEmpty(phaInfo.getSignPictureDoc())) {
                         map.put("checkerSignImg", phaInfo.getSignPictureDoc());
                     }
                 }
             }
             //线下手签
-            else if("offlineSeal".equals(sealDataFrom)){
-                LOGGER.info("attachSealPic 线下手签，clinicOrgan:{}",clinicOrgan);
-                String doctorSignImg=signRecipeInfoService.getOfflineCaPictureByDocId(doctorId);
+            else if ("offlineSeal".equals(sealDataFrom)) {
+                LOGGER.info("attachSealPic 线下手签，clinicOrgan:{}", clinicOrgan);
+                String doctorSignImg = signRecipeInfoService.getOfflineCaPictureByDocId(doctorId);
                 if (StringUtils.isNotBlank(doctorSignImg)) {
                     map.put("doctorSignImg", doctorSignImg);
                 }
                 //线下处方没有药师审方 如果线上处方设置成线下手签
-                String checkerSignImg=signRecipeInfoService.getOfflineCaPictureByDocId(checker);
+                String checkerSignImg = signRecipeInfoService.getOfflineCaPictureByDocId(checker);
                 if (StringUtils.isNotBlank(checkerSignImg)) {
                     map.put("checkerSignImg", checkerSignImg);
                 }
@@ -2016,7 +2017,7 @@ public class RecipeServiceSub {
                     map.put("checkerSignImg", auditDTO.getSignImage());
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.error("attachSealPic clinicOrgan:{} error:{}", clinicOrgan, e);
         }
         return map;
@@ -2025,9 +2026,9 @@ public class RecipeServiceSub {
     private static void doctorRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe) {
         //按钮枚举
         for (DoctorRecipePageButtonStatusEnum e : DoctorRecipePageButtonStatusEnum.values()) {
-            map.put(e.getButtonName(),e.getStatusList().contains(recipe.getStatus()));
-            if ("continueOpenRecipeFlag".equals(e.getButtonName()) && e.getStatusList().contains(recipe.getStatus())){
-                map.put("continueOpenRecipeFlag",canShowContinueSignFlag(recipe));
+            map.put(e.getButtonName(), e.getStatusList().contains(recipe.getStatus()));
+            if ("continueOpenRecipeFlag".equals(e.getButtonName()) && e.getStatusList().contains(recipe.getStatus())) {
+                map.put("continueOpenRecipeFlag", canShowContinueSignFlag(recipe));
             }
         }
     }
@@ -2037,10 +2038,10 @@ public class RecipeServiceSub {
         return (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "continueOpenRecipeFlag") && StringUtils.isEmpty(recipe.getOrderCode());
     }
 
-    private static void patientRecipeInfoButtonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order){
+    private static void patientRecipeInfoButtonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
         //是否可以下载处方签
         map.put("isDownload", getDownConfig(recipe, order));
-        GiveModeShowButtonVO giveModeShowButtonVO ;
+        GiveModeShowButtonVO giveModeShowButtonVO;
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
         try {
@@ -2176,9 +2177,9 @@ public class RecipeServiceSub {
             }
         }
         //临沭县人民医院医保支付按钮--点击跳转到东软h5页面
-        if (recipe.getClinicOrgan() == 1002753){
+        if (recipe.getClinicOrgan() == 1002753) {
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-            if (purchaseService.isMedicarePatient(1002753,recipe.getMpiid())){
+            if (purchaseService.isMedicarePatient(1002753, recipe.getMpiid())) {
                 map.put("supportMedicalPayment", 1);
             }
         }
@@ -2242,9 +2243,9 @@ public class RecipeServiceSub {
     private static String getCancelReasonForPatient(int recipeId) {
         String cancelReason = "";
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
-        if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))){
+        if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
             cancelReason = "由于患者申请退费成功，该处方已取消。";
-        }else{
+        } else {
             RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
             List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
             if (CollectionUtils.isNotEmpty(recipeLogs)) {
@@ -2422,7 +2423,7 @@ public class RecipeServiceSub {
      */
     public static String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         Integer status = recipe.getStatus();
-        Integer payMode = recipe.getPayMode();
+        Integer payMode = order.getPayMode();
         Integer payFlag = recipe.getPayFlag();
         Integer giveMode = recipe.getGiveMode();
         String orderCode = recipe.getOrderCode();
@@ -2450,7 +2451,7 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.CHECK_PASS:
                 if (null == payMode || null == giveMode) {
                     tips = "";
-                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && 0 == payFlag) {
+                } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode) && RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode) && 0 == payFlag) {
                     tips = "您已选择到院支付，请及时缴费并取药.";
                 }
 
@@ -2460,12 +2461,8 @@ public class RecipeServiceSub {
 
                 break;
             case RecipeStatusConstant.READY_CHECK_YS:
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-                    //在线支付
-                    tips = "您已支付，药品将尽快为您配送.";
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                    tips = "处方正在审核中.";
-                }
+                tips = "处方正在审核中.";
+
                 if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
                     String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
                     if (StringUtils.isNotEmpty(reason)) {
@@ -2474,21 +2471,23 @@ public class RecipeServiceSub {
                 }
                 break;
             case RecipeStatusConstant.CHECK_PASS_YS:
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //在线支付
                     tips = "您已支付，药品将尽快为您配送.";
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode) && RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
                     //货到付款
                     tips = "药品将尽快为您配送.";
-                } else if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+                } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                     tips = "请尽快前往药店取药.";
+                } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+                    tips = "请尽快前往医院取药.";
                 }
                 break;
             case RecipeStatusConstant.IN_SEND:
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //在线支付
                     tips = "您已支付，药品正在配送中，请保持手机畅通.";
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode) && RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
                     //货到付款
                     tips = "药品正在配送中，请保持手机畅通.";
                 }
@@ -2496,20 +2495,16 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 tips = "由于未通过审核，该处方单已失效，请联系医生.";
                 if (StringUtils.isNotEmpty(orderCode) && null != order && 1 == order.getEffective()) {
-                    if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-                        //在线支付
-                        tips = "您已支付，药品将尽快为您配送.";
-                    } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                        tips = "处方正在审核中.";
-                    }
+                    tips = "处方正在审核中.";
                 }
 
                 break;
             case RecipeStatusConstant.REVOKE:
-                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))){
+                if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))) {
                     tips = "由于患者申请退费成功，该处方已取消。";
-                }else{
-                    tips = "由于医生已撤销，该处方单已失效，请联系医生.";}
+                } else {
+                    tips = "由于医生已撤销，该处方单已失效，请联系医生.";
+                }
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:
@@ -2526,15 +2521,16 @@ public class RecipeServiceSub {
      * 无法配送时间段文案提示
      * 处方单详情（待处理，待支付,药师未审核，状态为待配送,药师已审核，状态为待配送）
      */
-    public static String getUnSendTitleForPatient(Recipe recipe) {
+    public static String getUnSendTitleForPatient(Recipe recipe,RecipeOrder order) {
         String unSendTitle = "";
         switch (recipe.getStatus()) {
             case RecipeStatusConstant.READY_CHECK_YS:
-                if (!RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode()) && !RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                if (!RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
+                        && !(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode()))) {
                     unSendTitle = cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP);
                 }
                 //患者选择药店取药但是未点击下一步而返回处方单详情，此时payMode会变成4，增加判断条件
-                if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode()) && 0 == recipe.getChooseFlag()) {
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode()) && 0 == recipe.getChooseFlag()) {
                     unSendTitle = cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP);
                 }
                 break;
@@ -2667,9 +2663,9 @@ public class RecipeServiceSub {
                 LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
                 if (RecipeBussConstant.BUSS_SOURCE_WLZX.equals(bussSource)) {
                     iNetworkclinicMsgService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
-                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)){
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)) {
                     iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
-                } else if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)){
+                } else if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)) {
                     IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
                     revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, recipe.getDoctor());
                 }
@@ -2807,9 +2803,9 @@ public class RecipeServiceSub {
         }
 
         //判断第三方处方能否取消,若不能则获取不能取消的原因----只有推送药企成功后才判断能否撤销
-        if (new Integer(1).equals(recipe.getPushFlag())){
+        if (new Integer(1).equals(recipe.getPushFlag())) {
             HisResponseTO res = recipeCancelService.canCancelRecipe(recipe);
-            if (!res.isSuccess()){
+            if (!res.isSuccess()) {
                 msg = res.getMsg();
             }
         }
@@ -2990,7 +2986,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static boolean isBQEnterpriseBydepId(Integer depId) {
-        if (depId != null){
+        if (depId != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(depId);
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
@@ -3028,22 +3024,23 @@ public class RecipeServiceSub {
 
     /**
      * //根据平台机构id获取民科机构登记号
+     *
      * @param organid
      * @return
      */
-    public static String getMinkeOrganCodeByOrganId(Integer organid){
+    public static String getMinkeOrganCodeByOrganId(Integer organid) {
         try {
-            if (organid !=null){
+            if (organid != null) {
                 //获取民科机构登记号
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByOrganId(organid);
-                if (organDTO!=null&&StringUtils.isNotEmpty(organDTO.getMinkeUnitID())){
+                if (organDTO != null && StringUtils.isNotEmpty(organDTO.getMinkeUnitID())) {
                     IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
                     return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("getMinkeOrganCodeByOrganId error",e);
+            LOGGER.error("getMinkeOrganCodeByOrganId error", e);
         }
         return null;
     }
@@ -3083,19 +3080,19 @@ public class RecipeServiceSub {
     }
 
     public static void pushRecipeForThird(Recipe recipe) {
-        try{
+        try {
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
             List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
             for (DrugsEnterprise drugsEnterprise : retList) {
-                if (new Integer(1).equals(drugsEnterprise.getOperationType())){
-                    if ("bqEnterprise".equals(drugsEnterprise.getAccount())){
+                if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
+                    if ("bqEnterprise".equals(drugsEnterprise.getAccount())) {
                         drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
                     }
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
     }
@@ -3134,7 +3131,7 @@ public class RecipeServiceSub {
         return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
     }
 
-    public static Integer getOrganEnterprisesDockType(Integer organId){
+    public static Integer getOrganEnterprisesDockType(Integer organId) {
         Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
         return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
     }

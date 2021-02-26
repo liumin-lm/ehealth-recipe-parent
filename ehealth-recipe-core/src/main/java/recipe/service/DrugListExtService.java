@@ -9,8 +9,8 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
-import com.ngari.his.recipe.mode.PatientDiagnosisDTO;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.mode.PatientDiagnosisDTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
@@ -1170,7 +1170,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 if (drugListBean instanceof DrugListBean){
                     drugInventoryInfos = ((DrugListBean) drugListBean).getInventories();
                 }
-                if (drugInventoryInfos == null){
+                if (drugInventoryInfos == null) {
                     drugInventoryInfos = Lists.newArrayList();
                 }
                 // 3.1 获取药品关联的药企列表
@@ -1184,6 +1184,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         //如果配置了不需要校验库存默认显示有
                         if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
                             inventory = "有";
+                        } else if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag()) && CollectionUtils.isNotEmpty(drugInventoryInfos)) {
+                            inventory = drugInventoryInfos.get(0).getPharmacyInventories().get(0).getAmount();
                         }else {
                             inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
                         }
