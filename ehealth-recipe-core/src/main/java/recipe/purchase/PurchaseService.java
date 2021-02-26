@@ -131,7 +131,7 @@ public class PurchaseService {
     /**
      * 根据对应的购药方式展示对应药企
      *
-     * @param recipeId 处方ID
+     * @param recipeIds 处方ID
      * @param payModes 购药方式
      */
     @RpcService
@@ -582,13 +582,14 @@ public class PurchaseService {
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         Integer status = recipe.getStatus();
-        Integer payMode = order.getPayMode();
+
         Integer payFlag = recipe.getPayFlag();
         String orderCode = recipe.getOrderCode();
         if (order == null) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             order = recipeOrderDAO.getByOrderCode(orderCode);
         }
+
         String tips;
         switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
             case RECIPE_STATUS_READY_CHECK_YS:
@@ -668,7 +669,7 @@ public class PurchaseService {
                     break;
                 }
             default:
-                IPurchaseService purchaseService = getService(payMode);
+                IPurchaseService purchaseService = getService(order.getPayMode());
                 if (null == purchaseService) {
                     tips = "";
                 } else {
