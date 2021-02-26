@@ -83,6 +83,12 @@ public class PayModeDownload implements IPurchaseService{
 
         //设置为有效订单
         order.setEffective(1);
+        // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
+        Integer payModeNew = payMode;
+        if(!payMode.equals(1)){
+            payModeNew = 2;
+        }
+        order.setPayMode(payModeNew);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
