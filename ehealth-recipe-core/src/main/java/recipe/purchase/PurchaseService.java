@@ -420,7 +420,7 @@ public class PurchaseService {
         }
 
         try {
-            IPurchaseService purchaseService = getService(payMode);
+            IPurchaseService purchaseService = getService(dbRecipe.getGiveMode());
             result = purchaseService.order(recipeList, extInfo);
         } catch (Exception e) {
             LOG.error("order error", e);
@@ -669,7 +669,7 @@ public class PurchaseService {
                     break;
                 }
             default:
-                IPurchaseService purchaseService = getService(order.getPayMode());
+                IPurchaseService purchaseService = getService(recipe.getGiveMode());
                 if (null == purchaseService) {
                     tips = "";
                 } else {
