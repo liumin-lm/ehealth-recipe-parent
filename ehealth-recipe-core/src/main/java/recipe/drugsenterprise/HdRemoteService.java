@@ -92,7 +92,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     private static final String payFlagDefault = "1";
 
-    private static final String payModeDefault = "4";
+    private static final String payModeDefault = "2";
 
     private static final String recipeTypeDefault = "1";
 
@@ -560,13 +560,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         //sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
 
         sendHdRecipe.setGiveUser(nowRecipe.getGiveUser());
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
         //sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
-        sendHdRecipe.setPayMode(null == nowRecipe.getPayMode() ? payModeDefault : nowRecipe.getPayMode().toString());
+        sendHdRecipe.setPayMode(null == order.getPayMode() ? payModeDefault : order.getPayMode().toString());
         sendHdRecipe.setRecipeType(null == nowRecipe.getRecipeType() ? recipeTypeDefault : nowRecipe.getRecipeType().toString());
         sendHdRecipe.setRecipeId(null == nowRecipe.getRecipeId() ? recipeIdDefault : nowRecipe.getRecipeId().toString());
         sendHdRecipe.setPatientNumber(nowRecipe.getPatientID());
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+
         //添加医保金额
         if (order != null && order.getOrderType() == 1) {
             if (order.getFundAmount() != null) {
@@ -592,10 +593,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             sendHdRecipe.setGiveMode("3");
             sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
         }
-        if (nowRecipe.getPayMode() == 1 && order != null) {
+        if (order.getPayMode() == 1 && order != null) {
             sendHdRecipe.setPayFlag(order.getPayFlag().toString());
         }
-        if (nowRecipe.getPayMode() == 2 || nowRecipe.getPayMode() == 4) {
+        if (order.getPayMode() == 2 ) {
             sendHdRecipe.setPayFlag("0");
         }
         //对浙四进行个性化处理,推送到指定药店配送

@@ -35,7 +35,7 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setPayFlag(PayConstant.PAY_FLAG_PAY_SUCCESS);
         recipeOrder.setFinishTime(date);
         //如果是货到付款还要更新付款时间和付款状态
-        if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())) {
             recipeOrder.setPayTime(date);
             recipe.setPayFlag(1);
             recipe.setPayDate(date);

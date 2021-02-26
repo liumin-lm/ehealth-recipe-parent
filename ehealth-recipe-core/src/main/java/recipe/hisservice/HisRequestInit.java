@@ -576,7 +576,7 @@ public class HisRequestInit {
                 requestTO.setPatientName(patient.getPatientName());
             }
             requestTO.setPatId(recipe.getPatientID());
-            requestTO.setPayMode(recipe.getPayMode());
+            requestTO.setPayMode(recipe.getGiveMode());
 
             if (null != card) {
                 requestTO.setCardType(card.getCardType());
@@ -722,11 +722,11 @@ public class HisRequestInit {
             }
 
             //此处就行改造
-            if (null != recipe.getPayMode()) {
-                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
+            if (null != recipe.getGiveMode()) {
+                if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
                     requestTO.setTakeDrugsType("0");
                 }
-                if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                     if (order != null) {
                         Integer depId = order.getEnterpriseId();
                         if (depId != null) {
@@ -742,7 +742,7 @@ public class HisRequestInit {
                         }
                     }
                 }
-                if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                     requestTO.setTakeDrugsType("3");
                 }
             }

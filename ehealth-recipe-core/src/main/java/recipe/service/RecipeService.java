@@ -206,6 +206,9 @@ public class RecipeService extends RecipeBaseService {
     @Resource
     private CaAfterProcessType caAfterProcessType;
 
+    @Resource
+    private RecipeOrderDAO recipeOrderDAO;
+
     /**
      * 药师审核不通过
      */
@@ -874,7 +877,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
             if (!recipe.canMedicalPay()) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
                 if (null != recipe.getOrderCode() && !effective) {
                     LOGGER.warn("当前处方{}已失效");
                     return;
@@ -887,7 +890,7 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!recipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-            boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+            boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
             if (null != recipe.getOrderCode() && !effective) {
                 LOGGER.warn("当前处方{}已失效");
                 return;
@@ -2399,7 +2402,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Postposition_Check == dbRecipe.getReviewType()) {
             if (!dbRecipe.canMedicalPay()) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
+                boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode());
                 if (null != recipe.getOrderCode() && !effective) {
                     resultBean.setCode(RecipeResultBean.FAIL);
                     resultBean.setMsg("该处方已失效");
@@ -2413,7 +2416,7 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!dbRecipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-            boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
+            boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode());
             if (null != recipe.getOrderCode() && !effective) {
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setMsg("该处方已失效");
@@ -2464,6 +2467,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Integer recipeId = recipe.getRecipeId();
 
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
@@ -2511,7 +2515,7 @@ public class RecipeService extends RecipeBaseService {
             }
 
             // 到院取药 审方后置 消息推送
-            if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())
+            if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())
                     && ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())) {
                 // 支付成功 到院取药 推送消息 审方后置
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, recipe);
@@ -2519,20 +2523,20 @@ public class RecipeService extends RecipeBaseService {
 
         } else if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             Integer status = OrderStatusConstant.READY_SEND;
-            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 status = OrderStatusConstant.READY_GET_DRUG;
                 // HOS处方发送药企处方信息
                 service.pushSingleRecipeInfo(recipeId);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，请于${expireDate}前到${pharmacyName}取药，地址：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4TFDS, recipe);
-            } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+            } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 // HOS处方发送药企处方信息
                 service.pushSingleRecipeInfo(recipeId);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4STH, recipe);
-            } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
+            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
                 status = OrderStatusConstant.READY_GET_DRUG;
             } else {
                 status = OrderStatusConstant.READY_GET_DRUG;
@@ -2568,7 +2572,7 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("afterCheckNotPassYs recipeId= {}", recipe.getRecipeId());
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-        boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+        boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
         //是否是有效订单
         if (!effective) {
             return;
@@ -3135,15 +3139,15 @@ public class RecipeService extends RecipeBaseService {
         Integer fromFlag = recipe.getFromflag();
         Integer dbStatus = recipe.getStatus();
         Integer payFlag = recipe.getPayFlag();
-        Integer payMode = recipe.getPayMode();
+//        Integer payMode = recipe.getPayMode();
         String orderCode = recipe.getOrderCode();
         //处方状态未支付： fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null
         Integer status = null;
-        if ((fromFlag != null && (fromFlag == 1 || fromFlag == 2)) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payFlag != null && payFlag == 0 && payMode != null && StringUtils.isNotBlank(orderCode)){
+        if ((fromFlag != null && (fromFlag == 1 || fromFlag == 2)) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payFlag != null && payFlag == 0 && StringUtils.isNotBlank(orderCode)){
             status = RecipeStatusConstant.NO_PAY;
         }
         //处方状态未操作：fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1)
-        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && payMode == null ){
+        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && StringUtils.isNotBlank(orderCode) ){
             status = RecipeStatusConstant.NO_OPERATOR;
         }
         if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
@@ -3324,7 +3328,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public int getRecipePayMode(int recipeId, int flag) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
         if (null == dbRecipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe not exist!");
         }
@@ -3332,10 +3338,28 @@ public class RecipeService extends RecipeBaseService {
         //进行判断该处方单是否已处理，已处理则返回具体购药方式
         if (1 == dbRecipe.getChooseFlag()) {
             //如果之前选择的是到院取药且未支付 则可以进行转在线支付的方式
-            if (1 == flag && RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getPayMode()) && 0 == dbRecipe.getPayFlag()) {
+            if (1 == flag && RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && 0 == dbRecipe.getPayFlag()) {
                 return 0;
             }
-            return dbRecipe.getPayMode();
+            Integer payMode = null;
+            switch (dbRecipe.getGiveMode()){
+                case 1:
+                    if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
+                        payMode = RecipeBussConstant.PAYMODE_ONLINE;
+                    }else {
+                        payMode = RecipeBussConstant.PAYMODE_COD;
+                    }
+                    break;
+                case 2:
+                    payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                    break;
+                case 3:
+                    payMode = RecipeBussConstant.PAYMODE_TFDS;
+                    break;
+                default:
+                    break;
+            }
+            return payMode;
         } else {
             return 0;
         }
@@ -4024,7 +4048,7 @@ public class RecipeService extends RecipeBaseService {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
-                    orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), null);
+                    orderService.finishOrder(recipe.getOrderCode(), null);
                     LOGGER.info("changeDownLoadToFinishTask: 订单{}设置为已完成！", recipe.getOrderCode());
                     //记录日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.RECIPE_DOWNLOADED, RecipeStatusConstant.FINISH, "下载处方订单完成");

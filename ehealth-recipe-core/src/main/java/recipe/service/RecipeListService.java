@@ -181,7 +181,7 @@ public class RecipeListService extends RecipeBaseService {
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
                 }
                 //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 //date 20190929
@@ -1354,7 +1354,7 @@ public class RecipeListService extends RecipeBaseService {
                     }
                 } else {
                     LOGGER.info("isReturnRecipeDetail  order ！=null");
-                    if (recipe.getPayMode() == 1 || "111".equals(order.getWxPayWay())) {// 线上支付（包括卫宁付）
+                    if (order.getPayMode() == 1 || "111".equals(order.getWxPayWay())) {// 线上支付（包括卫宁付）
                         if ((order.getPayFlag() != 1)) {
                             isReturnRecipeDetail = false;//不返回详情
                         }
@@ -1709,7 +1709,7 @@ public class RecipeListService extends RecipeBaseService {
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
                 }
                 //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 //date 20190929
@@ -1830,7 +1830,7 @@ public class RecipeListService extends RecipeBaseService {
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
                 }
                 //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 //date 20190929

@@ -323,8 +323,8 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "配送时间说明文案")
     private String sendDateText;
 
-    @ItemProperty(alias = "处方费用支付方式 0 线上支付 1 线下支付")
-    private Integer recipePayWay;
+    @ItemProperty(alias = "处方费用支付方式 1 线上支付 2 线下支付")
+    private Integer payMode;
 
     @ItemProperty(alias = "发药标示：0:无需发药，1：已发药，2:已退药")
     private Integer dispensingFlag;
@@ -1109,13 +1109,13 @@ public class RecipeOrder implements Serializable {
         this.sendDateText = sendDateText;
     }
 
-    @Column(name = "recipePayWay")
-    public Integer getRecipePayWay() {
-        return recipePayWay;
+    @Column(name = "payMode")
+    public Integer getPayMode() {
+        return payMode;
     }
 
-    public void setRecipePayWay(Integer recipePayWay) {
-        this.recipePayWay = recipePayWay;
+    public void setPayMode(Integer payMode) {
+        this.payMode = payMode;
     }
 
     @Column(name = "dispensing_flag")

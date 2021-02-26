@@ -352,7 +352,7 @@ public class StandardEnterpriseCallService {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
                     //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
-                    orderService.finishOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode(), null);
+                    orderService.finishOrder(dbRecipe.getOrderCode(),  null);
                     //记录日志
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(),
                             RecipeStatusConstant.FINISH, "处方单配送完成,配送人：" + finishDTO.getSender());
