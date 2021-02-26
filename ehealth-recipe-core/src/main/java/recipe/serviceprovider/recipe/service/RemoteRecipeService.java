@@ -290,15 +290,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         for(Map record:records){
             Recipe recipe=recipeDAO.getByRecipeId((int)record.get("recipeId"));
             record.put("giveModeText",GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-            RecipeOrder orderByRecipeIdWithoutCheck = recipeOrderDAO.getOrderByRecipeIdWithoutCheck(recipeId);
+            RecipeOrder recipeOrder = (RecipeOrder)record.get("recipeOrder");
             //若没有发药药师
-            if (!StringUtils.isNotEmpty(orderByRecipeIdWithoutCheck.getDispensingApothecaryName())) {
+            if (!StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryName())) {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                String doctorId = (String) configurationService.getConfiguration(organId, "oragnDefaultDispensingApothecary");
+                String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
                 //默认发药药师存在
                 if (doctorId != null) {
-                    RecipeOrder recipeOrder = (RecipeOrder)record.get("recipeOrder");
-                    recipeOrder.setDispensingApothecaryName(doctorId);
+                    DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                    recipeOrder.setDispensingApothecaryName(dispensingApothecary.getName());
                 }
             }
         }
