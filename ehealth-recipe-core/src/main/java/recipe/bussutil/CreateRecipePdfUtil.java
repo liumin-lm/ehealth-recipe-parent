@@ -3,10 +3,7 @@ package recipe.bussutil;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.*;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -24,6 +21,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -34,7 +32,9 @@ import sun.misc.BASE64Decoder;
 import java.io.*;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * created by shiyuping on 2019/10/18
@@ -102,11 +102,13 @@ public class CreateRecipePdfUtil {
     /**
      * 处方pdf添加处方号和患者病历号
      * @param pdfId
+     * @param recipeId
+     * @param positionMap
      * @return
      * @throws IOException
      * @throws DocumentException
      */
-    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId,String recipeCode ,String patientId) throws IOException, DocumentException {
+    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId, String recipeCode, Integer recipeId, String patientId, Map<String, String> positionMap) throws IOException, DocumentException {
         logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, recipeCode={} ,patientId={} ", pdfId, recipeCode, patientId);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
@@ -117,7 +119,7 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //处方pdf添加处方号和患者病历号
-            addRecipeCodeAndPatientIdForRecipePdf(input, output, recipeCode,patientId);
+            addRecipeCodeAndPatientIdForRecipePdf(input, output, recipeCode,recipeId,patientId,positionMap);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -162,24 +164,119 @@ public class CreateRecipePdfUtil {
         output.close();
     }
 
-    private static void addRecipeCodeAndPatientIdForRecipePdf(InputStream input, OutputStream output, String recipeCode, String patientId) throws IOException, DocumentException {
+    /**
+     * 修改处方单号和患者病历号
+     * @param input
+     * @param output
+     * @param recipeCode
+     * @param recipeId
+     * @param patientId
+     * @param positionMap
+     * @throws IOException
+     * @throws DocumentException
+     */
+    private static void addRecipeCodeAndPatientIdForRecipePdf(InputStream input, OutputStream output, String recipeCode, Integer recipeId, String patientId, Map<String, String> positionMap) throws IOException, DocumentException {
+        logger.info("addRecipeCodeAndPatientIdForRecipePdf recipeId:{} recipeCode:{} patientId:{} positionMap:{} ",recipeId,recipeCode,patientId,JSONUtils.toString(positionMap));
+        Map<String,Integer> map=new HashMap<>();
+        map=getPosition(positionMap);
+        logger.info("addRecipeCodeAndPatientIdForRecipePdf recipeId:{} map:{}",recipeId,JSONUtils.toString(map));
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
-        //将文字贴入pdf
+
+        //添加覆盖层
+        page.saveState();
+        page.setColorFill(BaseColor.WHITE);
+        if(StringUtil.isNotBlank(positionMap.get("positionRecipeCode"))){
+            page.rectangle(Float.parseFloat(map.get("positionRecipeCodeX").toString()), Float.parseFloat(map.get("positionRecipeCodeY").toString())-1, 138, 12);
+        }
+        if(StringUtil.isNotBlank(positionMap.get("positionRecipeId"))){
+            page.rectangle(Float.parseFloat(map.get("positionRecipeIdX").toString()), Float.parseFloat(map.get("positionRecipeIdY").toString())-1, 138, 12);
+        }
+        if(StringUtil.isNotBlank(positionMap.get("positionPatientId")) ){
+            page.rectangle(Float.parseFloat(map.get("positionPatientIdX").toString()), Float.parseFloat(map.get("positionPatientIdY").toString())-1, 138, 12);
+        }
+        page.fill();
+        page.restoreState();
+
+        //添加文本块
         BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        page.setTextMatrix(90, 721);
-        page.showText( recipeCode);
-        page.setTextMatrix(320, 721);
-        page.showText( patientId);
+        //坐标测试 字段起始坐标计算 别删
+//        page.setTextMatrix(10, 486);
+//        page.showText( "处方号号："+recipeCode);
+//        page.setTextMatrix(148, 486);
+//        page.showText( "病历号号："+patientId);
+//        page.setTextMatrix(286, 470);
+//        page.showText( "年龄号");
+
+        if(StringUtil.isNotBlank(positionMap.get("positionRecipeCode")) ){
+            page.setTextMatrix(Float.parseFloat(map.get("positionRecipeCodeX").toString()), Float.parseFloat(map.get("positionRecipeCodeY").toString()));
+            page.showText( positionMap.get("recipeCodeName")+":"+recipeCode);
+        }
+        if(StringUtil.isNotBlank(positionMap.get("positionRecipeId")) ){
+            page.setTextMatrix(Float.parseFloat(map.get("positionRecipeIdX").toString()), Float.parseFloat(map.get("positionRecipeIdY").toString()));
+            page.showText( positionMap.get("recipeIdName")+":"+recipeId);
+        }
+        if(StringUtil.isNotBlank(positionMap.get("positionPatientId"))){
+            page.setTextMatrix(Float.parseFloat(map.get("positionPatientIdX").toString()), Float.parseFloat(map.get("positionPatientIdY").toString()));
+            page.showText( positionMap.get("patientIdName")+":"+patientId);
+        }
+
         page.endText();
         stamper.close();
         reader.close();
         input.close();
         output.close();
+    }
+
+    /**
+     * @param positionMap
+     * @return
+     * @author liumin
+     * @Description
+     * 模块一 每行三列数据  坐标起始点在坐下
+     * x每列起始坐标 10 148 286 （间距138） 每行依次递增138
+     * Y起始坐标 486 行高12 每行依次递减12
+     */
+    private static Map<String, Integer> getPosition(Map<String, String> positionMap) {
+        Map<String,Integer> map=new HashMap<>();
+        int x=10;
+        int incrementX=138;
+        int y=486;
+        int incrementY=-12;
+
+        if(StringUtil.isNotBlank(positionMap.get("positionRecipeCode"))){
+            int yTemp = (Integer.parseInt(positionMap.get("positionRecipeCode") )) / 3;
+            int xTemp = (Integer.parseInt(positionMap.get("positionRecipeCode") )) % 3;
+            map.put("positionRecipeCodeY",y+yTemp*incrementY);
+            if(xTemp==0) {
+                xTemp = 3;
+            }
+            map.put("positionRecipeCodeX",x+(xTemp-1)*incrementX);
+        }
+        if(StringUtil.isNotBlank(positionMap.get("positionRecipeId")) ){
+            int yTemp = (Integer.parseInt(positionMap.get("positionRecipeId") )) / 3;
+            int xTemp = (Integer.parseInt(positionMap.get("positionRecipeId") )) % 3;
+            map.put("positionRecipeIdY",y+yTemp*incrementY);
+            if(xTemp==0) {
+                xTemp = 3;
+            }
+            map.put("positionRecipeIdX",x+(xTemp-1)*incrementX);
+        }
+        if(StringUtil.isNotBlank(positionMap.get("positionPatientId")) ){
+            int yTemp = (Integer.parseInt(positionMap.get("positionPatientId") )) / 3;
+            int xTemp = (Integer.parseInt(positionMap.get("positionPatientId") )) % 3;
+            map.put("positionPatientIdY",y+yTemp*incrementY);
+            if(xTemp==0) {
+                xTemp = 3;
+            }
+            map.put("positionPatientIdX",x+(xTemp-1)*incrementX);
+        }
+        logger.info("getPosition map:{}",JSONUtils.toString(map));
+        return map;
     }
 
     private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
