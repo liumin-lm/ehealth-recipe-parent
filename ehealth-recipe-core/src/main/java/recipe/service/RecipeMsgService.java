@@ -206,7 +206,7 @@ public class RecipeMsgService {
                 }
             } else if (RecipeStatusConstant.CHECK_PASS_YS == afterStatus) {
                 String drugStoreName = "";
-                if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getGiveMode())) {
                     drugStoreName = getDrugStoreName(recipeId);
                 }
                 sendMsgInfo(recipeId, RECIPE_CHECK_PASS_YS, organId, drugStoreName);
@@ -218,7 +218,7 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_REMIND_NO_PAY, organId);
             } else if (RecipeStatusConstant.PATIENT_NODRUG_REMIND == afterStatus) {
                 String drugStoreName = "";
-                if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                     drugStoreName = getDrugStoreName(recipeId);
                 }
                 sendMsgInfo(recipeId, RECIPE_REMIND_NO_DRUG, organId, drugStoreName);

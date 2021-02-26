@@ -2562,7 +2562,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
+    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName, String recipeType) {
         HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2579,13 +2579,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
                         "AND o.status in (" + orderStatus + ")\n" +
                         "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
-                        "AND '" + endDate + "'\n" +
+                        "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType)?
+                        "AND r.recipeType in (:recipeType)\n" : "") +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
                     q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
+                }
+                if (StringUtils.isNotEmpty(recipeType)) {
+                    q.setParameter("recipeType", recipeType);
                 }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
@@ -2614,7 +2618,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDisWithRefund(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName) {
+    public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDisWithRefund(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName, String recipeType) {
         HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2632,13 +2636,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "AND o.status in (" + orderStatus + ")\n" +
                         "AND o.dispensingTime is not null\n" +
                         "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
-                        "AND '" + endDate + "'\n" +
+                        "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType)?
+                        "AND r.recipeType in (:recipeType)\n" : "") +
                         "GROUP BY\n" +
                         "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
                     q.setParameter("dispensingApothecaryName", "%" + doctorName + "%");
+                }
+                if (StringUtils.isNotEmpty(recipeType)) {
+                    q.setParameter("recipeType", recipeType);
                 }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
@@ -2667,12 +2675,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param organId
      * @return
      */
-    public List<PharmacyMonthlyReportDTO> findRecipeDetialCountgroupByDepart(Integer organId, String depart, String startDate, String endDate, Boolean isAll, Integer start, Integer limit) {
+    public List<PharmacyMonthlyReportDTO> findRecipeDetialCountgroupByDepart(Integer organId, String depart, String recipeType, String startDate, String endDate, Boolean isAll, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
                 String sql = "select cr.depart, sum(cr.totalMoney) as totalMoney, count(cr.RECIPEID) as count,sum(cr.totalMoney)/count(cr.RECIPEID) AS avgMoney from cdr_recipe cr LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)  where co.dispensingTime BETWEEN '" + startDate + "'\n" +
-                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null AND co.STATUS IN (4,5,13)";
+                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null AND co.STATUS IN (4,5,13)" + (StringUtils.isNotEmpty(recipeType)?
+                        " AND cr.recipeType in (:recipeType)\n" : "");
                 if (StringUtils.isNotEmpty(depart)) {
                     sql += " and depart='" + depart + "'";
                 }
@@ -2681,6 +2690,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
+                if (StringUtils.isNotEmpty(recipeType)) {
+                    q.setParameter("recipeType", recipeType);
+                }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
                     q.setMaxResults(limit);

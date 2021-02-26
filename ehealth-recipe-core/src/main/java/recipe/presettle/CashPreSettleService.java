@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -53,10 +54,10 @@ public class CashPreSettleService implements IRecipePreSettleService {
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
             RecipeCashPreSettleReqTO request = new RecipeCashPreSettleReqTO();
             //购药方式
-            if (PurchaseEnum.PAYMODE_ONLINE.getPayMode().equals(payMode)) {
+            if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                 //配送到家
                 request.setDeliveryType("1");
-            } else if (PurchaseEnum.PAYMODE_TO_HOS.getPayMode().equals(payMode)) {
+            } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
                 //到院取药
                 request.setDeliveryType("0");
             }

@@ -35,6 +35,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.common.CommonConstant;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.service.RecipeLogService;
@@ -528,15 +529,16 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 sendYtRecipe.setProvince(province);
                 sendYtRecipe.setCity(city);
                 sendYtRecipe.setDistrict(district);
+                // 线上支付为已支付,线下支付为未支付
+                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipeOrder.getPayMode())) {
+                    sendYtRecipe.setIfPay(ytIfPay);
+                } else {
+                    sendYtRecipe.setIfPay(0);
+                }
             }
         }
 
-        //如果是药店取药的则没有进行支付
-        if (nowRecipe.getPayMode() == 1) {
-            sendYtRecipe.setIfPay(ytIfPay);
-        } else {
-            sendYtRecipe.setIfPay(0);
-        }
+
 
         sendYtRecipe.setSource(ytSource);
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());

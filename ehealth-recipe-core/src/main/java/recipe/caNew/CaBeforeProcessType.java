@@ -7,7 +7,6 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 
@@ -49,6 +48,7 @@ public class CaBeforeProcessType extends AbstractCaProcessType{
         recipeResultBean.setCode(RecipeResultBean.SUCCESS);
         //将返回的CA结果给处方，设置处方流转
         LOGGER.info("Before---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
+        addRecipeCodeAndPatientForRecipePdf(recipeId);
         return recipeResultBean;
     }
 

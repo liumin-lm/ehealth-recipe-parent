@@ -4,7 +4,6 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -178,6 +177,9 @@ public class RecipeExtendBean implements Serializable {
 
     @ItemProperty(alias="取药窗口")
     private String pharmNo;
+
+    @ItemProperty(alias = "是否是加急审核处方 0否 1是")
+    private Integer canUrgentAuditRecipe;
 
     public String getPharmNo() {
         return pharmNo;
@@ -653,5 +655,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setCardType(String cardType) {
         this.cardType = cardType;
+    }
+
+    public Integer getCanUrgentAuditRecipe() {
+        return canUrgentAuditRecipe;
+    }
+
+    public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
+        this.canUrgentAuditRecipe = canUrgentAuditRecipe;
     }
 }

@@ -169,7 +169,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param orderCode
      * @return
      */
-    public boolean isEffectiveOrder(final String orderCode, final Integer payMode) {
+    public boolean isEffectiveOrder(final String orderCode) {
         if (StringUtils.isEmpty(orderCode)) {
             return false;
         }
@@ -179,9 +179,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("select count(1) from RecipeOrder where orderCode=:orderCode ");
                 //医保支付会生成一个无效的临时订单，但是医快付不允许重复发送同一个处方的信息
-                if (null == payMode || !RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
-                    hql.append(" and effective=1 ");
-                }
+//                if (null == payMode || !RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
+//                    hql.append(" and effective=1 ");
+//                }
+                hql.append(" and effective=1 ");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("orderCode", orderCode);
 

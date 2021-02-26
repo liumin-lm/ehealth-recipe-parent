@@ -187,7 +187,7 @@ public class RecipeUtil {
         if (order.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipeList.get(0).getPayMode())){
+            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipeList.get(0).getGiveMode())){
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
                 map.put("storePayFlag",drugsEnterprise.getStorePayFlag());
             }

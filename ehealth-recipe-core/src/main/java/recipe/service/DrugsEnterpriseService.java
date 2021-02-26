@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
@@ -459,8 +460,30 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         //推送流转处方至医院指定取药药企
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(recipe.getPayMode());
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        // paymode 转老一套
+        Integer payMode = null;
+        switch (recipe.getGiveMode()){
+            case 1:
+                if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
+                    payMode = RecipeBussConstant.PAYMODE_ONLINE;
+                }else {
+                    payMode = RecipeBussConstant.PAYMODE_COD;
+                }
+                break;
+            case 2:
+                payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                break;
+            case 3:
+                payMode = RecipeBussConstant.PAYMODE_TFDS;
+                break;
+            default:
+                break;
+        }
+
+        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(payMode);
         List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId,payModeSupport);
         if(CollectionUtils.isNotEmpty(enterpriseList)){
             RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
