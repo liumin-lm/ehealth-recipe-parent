@@ -1320,6 +1320,15 @@ public class RecipeListService extends RecipeBaseService {
                     a.setDrugSpec(null);
                 });
             }
+            try{
+                Object recipeNumber = configService.getConfiguration(recipe.getClinicOrgan(), "recipeNumber");
+                LOGGER.info("processTabListDate  recipeId={},recipeNumber={}", recipe.getRecipeId(), recipeNumber);
+                if (null != recipeNumber &&StringUtils.isNotEmpty(recipeNumber.toString())) {
+                    record.setRecipeNumber(recipeNumber.toString());
+                }
+            }catch(Exception e){
+                LOGGER.error("processTabListDate error recipeId={}", recipe.getRecipeId());
+            }
         }
 
         return backList;

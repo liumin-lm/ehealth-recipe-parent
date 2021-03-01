@@ -1243,7 +1243,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 //0是待药师审核
                 if (flag == 0) {
-                    hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<3 and status = " + RecipeStatusConstant.READY_CHECK_YS);
+                    hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<2 and status = " + RecipeStatusConstant.READY_CHECK_YS);
                 }
                 //1是审核通过  2是审核未通过
                 else if (flag == 1 || flag == notPass) {
