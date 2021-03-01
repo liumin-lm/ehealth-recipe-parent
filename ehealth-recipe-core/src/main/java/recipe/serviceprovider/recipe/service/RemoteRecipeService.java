@@ -296,7 +296,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
                 //默认发药药师存在
-                if (doctorId != null) {
+                if (doctorId != null && recipeOrder.getDispensingTime() != null) {
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                     recipeOrder.setDispensingApothecaryName(dispensingApothecary.getName());
                 }
