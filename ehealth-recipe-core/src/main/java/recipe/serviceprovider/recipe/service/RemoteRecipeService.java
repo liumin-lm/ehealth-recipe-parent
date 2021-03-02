@@ -296,7 +296,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
                 //默认发药药师存在
-                if (doctorId != null) {
+                if (doctorId != null && recipeOrder.getDispensingTime() != null) {
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                     recipeOrder.setDispensingApothecaryName(dispensingApothecary.getName());
                 }
@@ -1827,7 +1827,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
-            Map<Integer, String> map = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, RecipeExtend::getRegisterID));
+            Map<Integer, String> map = recipeExtends.stream().filter(recipeExtend -> StringUtils.isNotBlank(recipeExtend.getRegisterID())).
+                    collect(Collectors.toMap(RecipeExtend::getRecipeId, RecipeExtend::getRegisterID));
             for (RecipeBean recipeBean : recipeBeans) {
                 Integer recipeId = recipeBean.getRecipeId();
                 recipeBean.setRegisterId(map.get(recipeId));

@@ -245,7 +245,7 @@ public class CreateRecipePdfUtil {
         Map<String,Integer> map=new HashMap<>();
         int x=10;
         int incrementX=138;
-        int y=486;
+        int y=478;
         int incrementY=-12;
 
         if(StringUtil.isNotBlank(positionMap.get("positionRecipeCode"))){
