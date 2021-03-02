@@ -3341,25 +3341,7 @@ public class RecipeService extends RecipeBaseService {
             if (1 == flag && RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && 0 == dbRecipe.getPayFlag()) {
                 return 0;
             }
-            Integer payMode = null;
-            switch (dbRecipe.getGiveMode()){
-                case 1:
-                    if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
-                        payMode = RecipeBussConstant.PAYMODE_ONLINE;
-                    }else {
-                        payMode = RecipeBussConstant.PAYMODE_COD;
-                    }
-                    break;
-                case 2:
-                    payMode = RecipeBussConstant.PAYMODE_TO_HOS;
-                    break;
-                case 3:
-                    payMode = RecipeBussConstant.PAYMODE_TFDS;
-                    break;
-                default:
-                    break;
-            }
-            return payMode;
+            return PayModeGiveModeUtil.getPayMode(order.getPayMode(),dbRecipe.getGiveMode());
         } else {
             return 0;
         }
