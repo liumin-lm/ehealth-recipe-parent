@@ -858,7 +858,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
             //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
-            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, getPayMode(recipe,order)));
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(),recipe.getGiveMode())));
             if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
                     totalFee = totalFee.subtract(order.getExpressFee());
@@ -871,28 +871,6 @@ public class RecipeOrderService extends RecipeBaseService {
         return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderInfo);
     }
 
-    private Integer getPayMode(Recipe recipe,RecipeOrder order){
-        // paymode 转老一套
-        Integer payMode = null;
-        switch (recipe.getGiveMode()){
-            case 1:
-                if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
-                    payMode = RecipeBussConstant.PAYMODE_ONLINE;
-                }else {
-                    payMode = RecipeBussConstant.PAYMODE_COD;
-                }
-                break;
-            case 2:
-                payMode = RecipeBussConstant.PAYMODE_TO_HOS;
-                break;
-            case 3:
-                payMode = RecipeBussConstant.PAYMODE_TFDS;
-                break;
-            default:
-                break;
-        }
-        return payMode;
-    }
 
     private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {
         if (null != address) {
@@ -1561,7 +1539,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignDate(recipe.getSignDate());
                     prb.setPatientName(patientService.getNameByMpiId(recipe.getMpiid()));
                     prb.setStatusCode(recipe.getStatus());
-//                    prb.setPayMode(recipe.getPayMode());
+
+                    Integer payModeNew = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
+                    prb.setPayMode(payModeNew);
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setRecipeMode(recipe.getRecipeMode());
                     prb.setChemistSignFile(recipe.getChemistSignFile());
