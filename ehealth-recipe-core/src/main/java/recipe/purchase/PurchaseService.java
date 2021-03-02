@@ -43,10 +43,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeListService;
-import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
+import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -173,7 +170,10 @@ public class PurchaseService {
                     //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
                     resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
                 }*/
-                IPurchaseService purchaseService = getService(payModes.get(0));
+                // 根据paymode 替换givemode
+                Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
+
+                IPurchaseService purchaseService = getService(giveMode);
                 resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
                 //有一个不成功就返回
                 if (!RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
@@ -420,7 +420,10 @@ public class PurchaseService {
         }
 
         try {
-            IPurchaseService purchaseService = getService(payMode);
+            // 根据paymode 换算givemode
+
+            Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+            IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);
         } catch (Exception e) {
             LOG.error("order error", e);
@@ -669,7 +672,7 @@ public class PurchaseService {
                     break;
                 }
             default:
-                IPurchaseService purchaseService = getService(order.getPayMode());
+                IPurchaseService purchaseService = getService(recipe.getGiveMode());
                 if (null == purchaseService) {
                     tips = "";
                 } else {

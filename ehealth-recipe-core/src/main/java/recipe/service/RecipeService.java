@@ -3147,7 +3147,7 @@ public class RecipeService extends RecipeBaseService {
             status = RecipeStatusConstant.NO_PAY;
         }
         //处方状态未操作：fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1)
-        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && StringUtils.isNotBlank(orderCode) ){
+        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && StringUtils.isBlank(orderCode) ){
             status = RecipeStatusConstant.NO_OPERATOR;
         }
         if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
@@ -3341,25 +3341,7 @@ public class RecipeService extends RecipeBaseService {
             if (1 == flag && RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode()) && 0 == dbRecipe.getPayFlag()) {
                 return 0;
             }
-            Integer payMode = null;
-            switch (dbRecipe.getGiveMode()){
-                case 1:
-                    if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
-                        payMode = RecipeBussConstant.PAYMODE_ONLINE;
-                    }else {
-                        payMode = RecipeBussConstant.PAYMODE_COD;
-                    }
-                    break;
-                case 2:
-                    payMode = RecipeBussConstant.PAYMODE_TO_HOS;
-                    break;
-                case 3:
-                    payMode = RecipeBussConstant.PAYMODE_TFDS;
-                    break;
-                default:
-                    break;
-            }
-            return payMode;
+            return PayModeGiveModeUtil.getPayMode(order.getPayMode(),dbRecipe.getGiveMode());
         } else {
             return 0;
         }
@@ -5236,10 +5218,10 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}",JSONUtils.toString(revisitRequest));
+        if (recipe.getClinicId()==null){
+            getConsultIdForRecipeSource(recipe,registerNo);
+        }
         if (!registerNo){
-            if (recipe.getClinicId()==null){
-                getConsultIdForRecipeSource(recipe,registerNo);
-            }
             return true;
         }
 
