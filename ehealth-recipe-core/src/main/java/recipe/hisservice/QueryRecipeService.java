@@ -49,15 +49,15 @@ import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -67,6 +67,9 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 public class QueryRecipeService implements IQueryRecipeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryRecipeService.class);
+
+    @Resource
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -206,7 +209,6 @@ public class QueryRecipeService implements IQueryRecipeService {
         QueryRecipeInfoDTO recipeDTO = null;
         try {
             Integer recipeId = recipe.getRecipeId();
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             getMedicalInfo(recipe, recipeExtend);
             recipeDTO = new QueryRecipeInfoDTO();
@@ -328,10 +330,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                 // 患者年龄
                 recipeDTO.setPatinetAge(getAge(patient.getBirthday()));
                 // 就诊人手机号
-                if (StringUtils.isNotBlank(patient.getLoginId())){
+                if (StringUtils.isNotBlank(patient.getLoginId())) {
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     List<PatientDTO> patientList = patientService.findOwnPatient(patient.getLoginId());
-                    if (null != patientList && patientList.size() > 0){
+                    if (null != patientList && patientList.size() > 0) {
                         PatientDTO userInfo = patientList.get(0);
                         UserInfoDTO infoDTO = new UserInfoDTO();
                         infoDTO.setUserMobile(userInfo.getMobile());
@@ -390,9 +392,9 @@ public class QueryRecipeService implements IQueryRecipeService {
         return recipeDTO;
     }
 
-    private  int getAge(Date birthDay){
+    private int getAge(Date birthDay) {
         int age = 0;
-        if (null == birthDay){
+        if (null == birthDay) {
             return age;
         }
         try {
@@ -413,15 +415,15 @@ public class QueryRecipeService implements IQueryRecipeService {
 
             if (monthNow <= monthBirth) {
                 if (monthNow == monthBirth) {
-                    if (dayOfMonthNow < dayOfMonthBirth){
+                    if (dayOfMonthNow < dayOfMonthBirth) {
                         age--;
                     }
-                }else{
+                } else {
                     age--;
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("根据出生日期或者年龄异常,birthday={}",birthDay,e);
+            LOGGER.error("根据出生日期或者年龄异常,birthday={}", birthDay, e);
         }
         return age;
     }
@@ -431,7 +433,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         Double drugTotalNumber = new Double(0);
-        BigDecimal drugTotalAmount= new BigDecimal(0);
+        BigDecimal drugTotalAmount = new BigDecimal(0);
 
         //拼接处方明细
         if (CollectionUtils.isNotEmpty(details)) {
@@ -489,7 +491,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         BigDecimal totalPrice = num.multiply(price);
                         drugTotalAmount = drugTotalAmount.add(totalPrice);
                     } catch (Exception e) {
-                        LOGGER.error("计算处方订单药品总价异常=",e);
+                        LOGGER.error("计算处方订单药品总价异常=", e);
                     }
                     //医保对应代码
                     orderItem.setMedicalDrcode(organDrugList.getMedicalDrugCode());
@@ -524,14 +526,14 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //频次名称
                 orderItem.setFrequencyName(detail.getUsingRateTextFromHis());
                 //药房
-                if (detail.getPharmacyId() != null){
+                if (detail.getPharmacyId() != null) {
                     PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
-                    if (pharmacyTcm != null){
+                    if (pharmacyTcm != null) {
                         orderItem.setPharmacyCode(pharmacyTcm.getPharmacyCode());
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
-                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}",JSONUtils.toString(orderList));
+                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}", JSONUtils.toString(orderList));
                 orderList.add(orderItem);
             }
             recipeDTO.setOrderList(orderList);
@@ -582,7 +584,9 @@ public class QueryRecipeService implements IQueryRecipeService {
         Set<String> emptyNames = new HashSet<String>();
         for (java.beans.PropertyDescriptor pd : pds) {
             Object srcValue = src.getPropertyValue(pd.getName());
-            if (srcValue == null) emptyNames.add(pd.getName());
+            if (srcValue == null) {
+                emptyNames.add(pd.getName());
+            }
         }
         String[] result = new String[emptyNames.size()];
         return emptyNames.toArray(result);
@@ -592,10 +596,10 @@ public class QueryRecipeService implements IQueryRecipeService {
     @RpcService
     public RecipeResultBean updateOrSaveOrganDrug(OrganDrugChangeBean organDrugChange) {
         LOGGER.info("updateOrSaveOrganDrug 更新药品信息入参{}", JSONUtils.toString(organDrugChange));
-        if (organDrugChange.getOnlyOrganDrug()){
+        if (organDrugChange.getOnlyOrganDrug()) {
             //his药品同步更新平台机构药品库处理
             return dealWithforOnlyOrganDrug(organDrugChange);
-        }else {
+        } else {
             //杭州互联网his药品同步处理
             return dealWithforHZInternet(organDrugChange);
         }
@@ -605,10 +609,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     @RpcService
     public Boolean updateSuperviseRecipecodeToRecipe(Integer recipeId, String superviseRecipecode) {
         LOGGER.info("更新电子处方监管平台流水号入参：recipeId：{}，superviseRecipecode：{}", recipeId, superviseRecipecode);
-        if(null == recipeId){
+        if (null == recipeId) {
             return false;
         }
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Boolean result = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("superviseRecipecode", superviseRecipecode));
         LOGGER.info("更新电子处方监管平台流水号结果：{}", result);
         return result;
@@ -620,14 +623,14 @@ public class QueryRecipeService implements IQueryRecipeService {
         RecipeOrderBillDTO billDTO = new RecipeOrderBillDTO();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe){
-            LOGGER.error("查询订单电子票据，根据处方号查询处方信息为空，recipeId={}",recipeId);
+        if (null == recipe) {
+            LOGGER.error("查询订单电子票据，根据处方号查询处方信息为空，recipeId={}", recipeId);
             return billDTO;
         }
         RecipeOrderBillDAO orderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
         RecipeOrderBill orderBill = orderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        if (null == orderBill){
-            LOGGER.error("查询订单电子票据，根据订单号查询票据信息为空，orderCode={}",recipe.getOrderCode());
+        if (null == orderBill) {
+            LOGGER.error("查询订单电子票据，根据订单号查询票据信息为空，orderCode={}", recipe.getOrderCode());
             return billDTO;
         }
         billDTO.setBillBathCode(orderBill.getBillBathCode());
@@ -641,17 +644,17 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     private RecipeResultBean dealWithforOnlyOrganDrug(OrganDrugChangeBean organDrugChange) {
         RecipeResultBean result = RecipeResultBean.getFail();
-        if(StringUtils.isEmpty(organDrugChange.getOrganDrugCode())){
+        if (StringUtils.isEmpty(organDrugChange.getOrganDrugCode())) {
             result.setMsg("his药品唯一编码不能为空");
             return result;
         }
-        if(organDrugChange.getOrganId() == null){
+        if (organDrugChange.getOrganId() == null) {
             result.setMsg("机构id不能为空");
             return result;
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(organDrugChange.getOrganId(), organDrugChange.getOrganDrugCode());
-        if (organDrug != null){
+        if (organDrug != null) {
             Date now = DateTime.now().toDate();
             com.ngari.recipe.common.OrganDrugChangeBean organDrugChangeBean = transFormOrganDrugChangeBean(organDrugChange);
             BeanUtils.copyProperties(organDrugChangeBean, organDrug, getNullPropertyNames(organDrugChangeBean));
@@ -659,7 +662,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrug);
             LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息成功{}", JSONUtils.toString(nowOrganDrugList));
             result = RecipeResultBean.getSuccess();
-        }else{
+        } else {
             LOGGER.info("updateOrSaveOrganDrug 当前OrganDrugCode:{}当前机构id:{}药品不存在!", organDrugChange.getOrganDrugCode(), organDrugChange.getOrganId());
         }
         return result;
@@ -667,35 +670,35 @@ public class QueryRecipeService implements IQueryRecipeService {
 
 
     private List<String> check(OrganDrugChangeBean organDrugChange) {
-        List<String> list=Lists.newArrayList();
-        if (StringUtils.isEmpty(organDrugChange.getDrugId())){
+        List<String> list = Lists.newArrayList();
+        if (StringUtils.isEmpty(organDrugChange.getDrugId())) {
             list.add("DrugId");
         }
-        if (StringUtils.isEmpty(organDrugChange.getPack())){
+        if (StringUtils.isEmpty(organDrugChange.getPack())) {
             list.add("Pack");
         }
-        if (StringUtils.isEmpty(organDrugChange.getUseDose())){
+        if (StringUtils.isEmpty(organDrugChange.getUseDose())) {
             list.add("UseDose");
         }
-        if (StringUtils.isEmpty(organDrugChange.getSalePrice())){
+        if (StringUtils.isEmpty(organDrugChange.getSalePrice())) {
             list.add("SalePrice");
         }
-        if (StringUtils.isEmpty(organDrugChange.getBaseDrug())){
+        if (StringUtils.isEmpty(organDrugChange.getBaseDrug())) {
             list.add("BaseDrug");
         }
-        if (StringUtils.isEmpty(organDrugChange.getOperationCode())){
+        if (StringUtils.isEmpty(organDrugChange.getOperationCode())) {
             list.add("OperationCode");
         }
-        if (StringUtils.isEmpty(organDrugChange.getMedicalDrugType())){
+        if (StringUtils.isEmpty(organDrugChange.getMedicalDrugType())) {
             list.add("MedicalDrugType");
         }
-        if (StringUtils.isEmpty(organDrugChange.getDrugType())){
+        if (StringUtils.isEmpty(organDrugChange.getDrugType())) {
             list.add("DrugType");
         }
-        if (StringUtils.isEmpty(organDrugChange.getDrugName())){
+        if (StringUtils.isEmpty(organDrugChange.getDrugName())) {
             list.add("DrugName");
         }
-        if (StringUtils.isEmpty(organDrugChange.getSaleName())){
+        if (StringUtils.isEmpty(organDrugChange.getSaleName())) {
             list.add("SaleName");
         }
         return list;
@@ -704,9 +707,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     private RecipeResultBean dealWithforHZInternet(OrganDrugChangeBean organDrugChange) {
         RecipeResultBean result = RecipeResultBean.getFail();
         List<String> check = check(organDrugChange);
-        if (!ObjectUtils.isEmpty(check)){
+        if (!ObjectUtils.isEmpty(check)) {
             LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
-            result.setMsg("当前新增药品信息,信息缺失(包括:"+check.toString()+"),无法操作!");
+            result.setMsg("当前新增药品信息,信息缺失(包括:" + check.toString() + "),无法操作!");
             return result;
         }
        /* if(StringUtils.isEmpty(organDrugChange.getDrugId()) || StringUtils.isEmpty(organDrugChange.getPack()) ||
@@ -785,7 +788,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     organDrugList.setCreateDt(now);
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
-                    OrganDrugListService organDrugListService= AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
+                    OrganDrugListService organDrugListService = AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
                     //同步药品到监管备案
                     RecipeBusiThreadPool.submit(() -> {
                         organDrugListService.uploadDrugToRegulation(organDrugList);
@@ -916,7 +919,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setUnit(organDrugChangeBean.getUnit());
             //截取数字部分
             StringBuilder builder = new StringBuilder();
-            if(StringUtils.isNotEmpty(organDrugChangeBean.getUseDose())){
+            if (StringUtils.isNotEmpty(organDrugChangeBean.getUseDose())) {
                 m = p.matcher(organDrugChangeBean.getUseDose());
                 if (m.find()) {//当符合正则表达式定义的条件时
                     builder.append(m.group());
@@ -1002,23 +1005,25 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     /**
      * 处方数据上传医院数据中心 处方数据，处方明细数据
+     *
      * @param organId
      * @param startDate
      * @param endDate
-     * @return   QueryRecipeInfoDTO
+     * @return QueryRecipeInfoDTO
      */
+    @Override
     @RpcService
-    public List<QueryRecipeInfoDTO> queryRecipeDataForHisDataCenter(Integer organId, Date startDate, Date endDate){
+    public List<QueryRecipeInfoDTO> queryRecipeDataForHisDataCenter(Integer organId, Date startDate, Date endDate) {
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
         String start = DateConversion.formatDateTimeWithSec(startDate);
         String end = DateConversion.formatDateTimeWithSec(endDate);
-        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={},{},{}", organId,startDate,endDate);
+        LOGGER.info("处方数据上传医院数据中心入参:organId,startDate,endDate={},{},{}", organId, startDate, endDate);
 
         int daysBetween = DateConversion.getDaysBetween(startDate, endDate);
-        if (daysBetween>30){
+        if (daysBetween > 30) {
             throw new DAOException("当前最多仅支持查询最近一个月内数据。");
         }
 
@@ -1026,9 +1031,9 @@ public class QueryRecipeService implements IQueryRecipeService {
         List<Recipe> recipeList = recipeDAO.findRecipeListByOrganIdAndTime(organId, start, end);
         List<QueryRecipeInfoDTO> list = new ArrayList<>(recipeList.size());
 
-        if (CollectionUtils.isNotEmpty(recipeList)){
+        if (CollectionUtils.isNotEmpty(recipeList)) {
             LOGGER.info("当前查询返回结果，recipeList.size()={}", recipeList.size());
-            for (Recipe r:recipeList){
+            for (Recipe r : recipeList) {
                 List<Recipedetail> details = recipeDetailDAO.findByRecipeId(r.getRecipeId());
                 list.add(splicingBackData(details, r));
             }
@@ -1039,12 +1044,13 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     /**
      * 拼接医院数据中心需要处方业务
+     *
      * @param details
      * @param recipe
      * @return
      */
     @RpcService
-    private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe){
+    private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe) {
         QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
         try {
             //处方号 his返回
@@ -1081,6 +1087,10 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
             //复诊id
             recipeDTO.setClinicID((null != recipe.getClinicId()) ? Integer.toString(recipe.getClinicId()) : null);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null) {
+                recipeDTO.setRegisterId(recipeExtend.getRegisterID());
+            }
             //转换平台医生id为工号返回his
             EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
             if (recipe.getDoctor() != null) {

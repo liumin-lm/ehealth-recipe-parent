@@ -5236,10 +5236,10 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}",JSONUtils.toString(revisitRequest));
+        if (recipe.getClinicId()==null){
+            getConsultIdForRecipeSource(recipe,registerNo);
+        }
         if (!registerNo){
-            if (recipe.getClinicId()==null){
-                getConsultIdForRecipeSource(recipe,registerNo);
-            }
             return true;
         }
 
