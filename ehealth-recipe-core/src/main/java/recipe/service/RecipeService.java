@@ -3147,7 +3147,7 @@ public class RecipeService extends RecipeBaseService {
             status = RecipeStatusConstant.NO_PAY;
         }
         //处方状态未操作：fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1)
-        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && StringUtils.isNotBlank(orderCode) ){
+        if ((fromFlag != null && fromFlag == 1 ) && dbStatus != null && dbStatus == RecipeStatusConstant.CHECK_PASS && StringUtils.isBlank(orderCode) ){
             status = RecipeStatusConstant.NO_OPERATOR;
         }
         if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
