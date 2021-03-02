@@ -5242,6 +5242,7 @@ public class RecipeService extends RecipeBaseService {
         if (!registerNo){
             return true;
         }
+
         Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
         LOGGER.info(" 复诊查询当前就诊单 revisitId={}",revisitId);
         return revisitId==null?false:true;
