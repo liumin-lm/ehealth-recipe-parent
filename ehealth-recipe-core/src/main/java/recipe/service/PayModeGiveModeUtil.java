@@ -31,6 +31,9 @@ public class PayModeGiveModeUtil {
             case 3:
                 payModeNew = 4;
                 break;
+            case 5:
+                payModeNew = 6;
+                break;
             default:
                 break;
         }
@@ -55,6 +58,7 @@ public class PayModeGiveModeUtil {
             case 4:
                 giveMode = 3;
                 break;
+            case 5:
             case 6:
                 giveMode = 6;
                 break;

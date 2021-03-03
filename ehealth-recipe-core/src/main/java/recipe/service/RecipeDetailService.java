@@ -96,11 +96,13 @@ public class RecipeDetailService {
             }
             if (null == organDrug) {
                 a.setValidateStatus(VALIDATE_STATUS_FAILURE);
+                logger.info("RecipeDetailService validateDrug organDrug is null OrganDrugCode ：  {}", a.getOrganDrugCode());
                 return;
             }
             //校验药品药房是否变动
             if (pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
                 a.setValidateStatus(VALIDATE_STATUS_FAILURE);
+                logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
             }
             //校验数据是否完善
