@@ -725,7 +725,9 @@ public class PurchaseService {
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
             return OrderStatusConstant.READY_SEND;
         } else {
-            IPurchaseService purchaseService = getService(recipe.getGiveMode());
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
+            IPurchaseService purchaseService = getService(payMode);
             return purchaseService.getOrderStatus(recipe);
         }
     }
