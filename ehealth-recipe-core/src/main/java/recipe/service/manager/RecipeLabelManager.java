@@ -1,6 +1,7 @@
 package recipe.service.manager;
 
 import com.ngari.base.esign.model.ESignDTO;
+import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
@@ -172,8 +173,9 @@ public class RecipeLabelManager {
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         map.put("rp", String.valueOf(rpTorx));
         map.put("paramMap", result);
-        logger.info("RecipeLabelManager queryPdfRecipeLabelById map={}", JSONUtils.toString(map));
-        return esignService.createSignRecipePDF(map);
+        SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSONUtils.toString(map), JSONUtils.toString(signRecipePdfVO));
+        return signRecipePdfVO.getDataStr();
     }
 
     /**
