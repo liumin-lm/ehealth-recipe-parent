@@ -18,6 +18,7 @@ import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -419,8 +420,12 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @Override
     public SignDoctorRecipeInfoDTO getSignRecipeInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType) {
-        //SignDoctorRecipeInfo signDoctorRecipeInfo =
-        return ObjectCopyUtils.convert(getSignInfoByRecipeIdAndServerType(recipeId, serverType), SignDoctorRecipeInfoDTO.class);
+         SignDoctorRecipeInfoDTO signDoctorRecipeInfoDTO = new SignDoctorRecipeInfoDTO();
+         SignDoctorRecipeInfo signDoctorRecipeInfo = getSignInfoByRecipeIdAndServerType(recipeId, serverType);
+         if (signDoctorRecipeInfo != null){
+             BeanUtils.copy(signDoctorRecipeInfo, signDoctorRecipeInfoDTO);
+         }
+        return signDoctorRecipeInfoDTO;
     }
 
     @RpcService
