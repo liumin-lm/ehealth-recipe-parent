@@ -1422,6 +1422,9 @@ public class HisRecipeService {
                     tips = "已完成";
                 }
                 break;
+            case RecipeStatusConstant.REVOKE :
+                tips  = "已撤销";
+                break;
             default:
                 tips = "待取药";
         }
