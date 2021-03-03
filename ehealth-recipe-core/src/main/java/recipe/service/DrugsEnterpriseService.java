@@ -464,24 +464,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         // paymode 转老一套
-        Integer payMode = null;
-        switch (recipe.getGiveMode()){
-            case 1:
-                if(RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())){
-                    payMode = RecipeBussConstant.PAYMODE_ONLINE;
-                }else {
-                    payMode = RecipeBussConstant.PAYMODE_COD;
-                }
-                break;
-            case 2:
-                payMode = RecipeBussConstant.PAYMODE_TO_HOS;
-                break;
-            case 3:
-                payMode = RecipeBussConstant.PAYMODE_TFDS;
-                break;
-            default:
-                break;
-        }
+
+        Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
 
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(payMode);
         List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId,payModeSupport);
