@@ -19,6 +19,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -140,8 +141,9 @@ public class HisRecipeService {
                         &&!StringUtils.isEmpty(patientDTO.getMpiId())
                         &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
                     //修改处方患者信息
-                    haveRecipe.setMpiid(patientDTO.getMpiId());
-                    haveRecipe.setRequestMpiId(patientDTO.getMpiId());
+                    //haveRecipe.setMpiid(patientDTO.getMpiId());
+                    UserRoleToken userRoleToken = UserRoleToken.getCurrent();
+                    haveRecipe.setRequestMpiId(userRoleToken.getOwnMpiId());
                     haveRecipe.setPatientName(patientDTO.getPatientName());
                     haveRecipe.setPatientID(noPayFeeHisRecipeVOHisRecipeVO.getPatientNumber());
                     recipeDAO.update(haveRecipe);
@@ -1100,6 +1102,7 @@ public class HisRecipeService {
         LOGGER.info("saveRecipeFromHisRecipe hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         Recipe haveRecipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
         LOGGER.info("saveRecipeFromHisRecipe haveRecipe:{}.", JSONUtils.toString(haveRecipe));
+        UserRoleToken userRoleToken = UserRoleToken.getCurrent();
         if (haveRecipe != null) {
             //TODO 在表存在 更新除recipeId外所有数据 这里删掉 因为在校验的时候会判断如果不是由本人生成的待缴费处方会更新全部信息
             //如果处方已经转到cdr_recipe表并且支付状态为待支付并且非本人转储到cdr_recipe，则替换用户信息
@@ -1107,8 +1110,8 @@ public class HisRecipeService {
                     &&!StringUtils.isEmpty(hisRecipe.getMpiId())
                     &&!hisRecipe.getMpiId().equals(haveRecipe.getMpiid())){
                 //修改处方患者信息
-                haveRecipe.setMpiid(hisRecipe.getMpiId());
-                haveRecipe.setRequestMpiId(hisRecipe.getMpiId());
+                //haveRecipe.setMpiid(hisRecipe.getMpiId());
+                haveRecipe.setRequestMpiId(userRoleToken.getOwnMpiId());
                 haveRecipe.setPatientName(hisRecipe.getPatientName());
                 haveRecipe.setPatientID(hisRecipe.getPatientNumber());
                 recipeDAO.update(haveRecipe);
@@ -1188,7 +1191,7 @@ public class HisRecipeService {
         recipe.setFromflag(1);
         recipe.setRecipeSourceType(2);
         recipe.setRecipePayType(hisRecipe.getRecipePayType());
-        recipe.setRequestMpiId(hisRecipe.getMpiId());
+        recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
         recipe.setRecipeSource(hisRecipe.getRecipeSource());
         recipe.setGiveMode(hisRecipe.getGiveMode());
         recipe.setLastModify(new Date());

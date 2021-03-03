@@ -73,7 +73,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         try {
             commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeDTO.getCommonRecipeExt(), drugList);
             commonRecipeManager.removeCommonRecipe(commonRecipeId);
-            
         } catch (DAOException e) {
             LOGGER.error("addCommonRecipe error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe), JSONUtils.toString(drugList), e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方添加出错");
