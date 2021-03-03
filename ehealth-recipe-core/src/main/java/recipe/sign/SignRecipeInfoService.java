@@ -419,8 +419,8 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @Override
     public SignDoctorRecipeInfoDTO getSignRecipeInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType) {
-        SignDoctorRecipeInfo signDoctorRecipeInfo = getSignInfoByRecipeIdAndServerType(recipeId, serverType);
-        return ObjectCopyUtils.convert(signDoctorRecipeInfo, SignDoctorRecipeInfoDTO.class);
+        //SignDoctorRecipeInfo signDoctorRecipeInfo =
+        return ObjectCopyUtils.convert(getSignInfoByRecipeIdAndServerType(recipeId, serverType), SignDoctorRecipeInfoDTO.class);
     }
 
     @RpcService
