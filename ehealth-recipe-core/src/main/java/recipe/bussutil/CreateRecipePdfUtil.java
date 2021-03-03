@@ -3,7 +3,10 @@ package recipe.bussutil;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -21,7 +24,6 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -682,7 +684,7 @@ public class CreateRecipePdfUtil {
         page.saveState();
         page.setColorFill(BaseColor.WHITE);
         //设中药文字在页面中的坐标 date20200910
-        page.rectangle(300, 80, 100, 20);
+        page.rectangle(300, 75, 100, 20);
         page.fill();
         page.restoreState();
         //添加文本块
@@ -690,7 +692,7 @@ public class CreateRecipePdfUtil {
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
         //设中药文字在页面中的坐标 date20200910
-        page.setTextMatrix(300, 80);
+        page.setTextMatrix(300, 75);
         page.showText("药品金额 ：" + total + "元");
         page.endText();
     }
