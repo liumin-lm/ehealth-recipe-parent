@@ -141,6 +141,7 @@ public class HisRecipeService {
                         &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
                     //修改处方患者信息
                     haveRecipe.setMpiid(patientDTO.getMpiId());
+                    haveRecipe.setRequestMpiId(patientDTO.getMpiId());
                     haveRecipe.setPatientName(patientDTO.getPatientName());
                     haveRecipe.setPatientID(noPayFeeHisRecipeVOHisRecipeVO.getPatientNumber());
                     recipeDAO.update(haveRecipe);
@@ -1107,6 +1108,7 @@ public class HisRecipeService {
                     &&!hisRecipe.getMpiId().equals(haveRecipe.getMpiid())){
                 //修改处方患者信息
                 haveRecipe.setMpiid(hisRecipe.getMpiId());
+                haveRecipe.setRequestMpiId(hisRecipe.getMpiId());
                 haveRecipe.setPatientName(hisRecipe.getPatientName());
                 haveRecipe.setPatientID(hisRecipe.getPatientNumber());
                 recipeDAO.update(haveRecipe);

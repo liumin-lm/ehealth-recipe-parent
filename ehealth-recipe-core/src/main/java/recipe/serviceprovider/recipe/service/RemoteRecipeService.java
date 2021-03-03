@@ -300,6 +300,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                     recipeOrder.setDispensingApothecaryName(dispensingApothecary.getName());
                 }
+            } else if (recipeOrder.getDispensingTime() == null) {
+                //如果发药时间是空的 则不显示运营平台填写的发药药师
+                recipeOrder.setDispensingApothecaryName("");
             }
         }
         return result;
