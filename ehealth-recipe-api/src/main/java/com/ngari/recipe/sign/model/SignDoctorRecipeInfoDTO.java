@@ -77,6 +77,8 @@ public class SignDoctorRecipeInfoDTO implements Serializable{
     @FileToken
     private String signPicturePha;
 
+    private String signPictureDocToken;
+
     private String uniqueId;
 
 }
