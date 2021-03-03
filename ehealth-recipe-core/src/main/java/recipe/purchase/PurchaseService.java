@@ -43,10 +43,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeListService;
-import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
+import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -174,22 +171,7 @@ public class PurchaseService {
                     resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
                 }*/
                 // 根据paymode 替换givemode
-                Integer giveMode = null;
-                switch(payModes.get(0)){
-                    case 1:
-                    case 2:
-                        giveMode = 1;
-                        break;
-                    case 3:
-                        giveMode = 2;
-                        break;
-                    case 4:
-                        giveMode = 3;
-                        break;
-                    default:
-                        break;
-
-                }
+                Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
 
                 IPurchaseService purchaseService = getService(giveMode);
                 resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
@@ -439,24 +421,8 @@ public class PurchaseService {
 
         try {
             // 根据paymode 换算givemode
-            Integer giveMode = null;
-            switch (payMode){
-                case 1:
-                    giveMode = 1;
-                    break;
-                case 2:
-                    giveMode = 1;
-                    break;
-                case 3:
-                    giveMode = 2;
-                    break;
-                case 4:
-                    giveMode = 3;
-                    break;
-                default:
-                    break;
 
-            }
+            Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);
         } catch (Exception e) {
