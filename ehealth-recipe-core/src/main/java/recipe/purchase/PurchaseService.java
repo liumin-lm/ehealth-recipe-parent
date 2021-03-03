@@ -611,7 +611,11 @@ public class PurchaseService {
                 } else if (StringUtils.isEmpty(orderCode)) {
                     tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
-                    IPurchaseService purchaseService = getService(recipe.getGiveMode());
+                    Integer giveMode = recipe.getGiveMode();
+                    if(giveMode.equals(5)){
+                        giveMode = PayModeGiveModeUtil.getGiveMode(giveMode);
+                    }
+                    IPurchaseService purchaseService = getService(giveMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
                 }
                 break;
