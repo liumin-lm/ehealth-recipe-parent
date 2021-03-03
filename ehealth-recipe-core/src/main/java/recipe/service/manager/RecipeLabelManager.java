@@ -326,7 +326,7 @@ public class RecipeLabelManager {
             Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
             if ((boolean) canShowDrugCost) {
                 BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP);
-                stringBuilder.append(drugCost).append("元");
+                stringBuilder.append("   ").append(drugCost).append("元");
             }
             stringBuilder.append(" \n ");
             //每次剂量+剂量单位

@@ -106,7 +106,6 @@ public class RecipeCAService {
             caRequest.setBussId(recipeId);
             caRequest.setBusstype(isDoctor? CARecipeTypeConstant.CA_RECIPE_DOC : CARecipeTypeConstant.CA_RECIPE_PHA);
             //2.首先组装易签保用的签名签章数据
-            //esignService.signForRecipe(false, checker, dataMap);原先调用的e签宝的接口，调用移动到了CA实现，但是CA还没有拆分
             esignMap.put("isDoctor", isDoctor);
             esignMap.put("checker", doctorId);
 

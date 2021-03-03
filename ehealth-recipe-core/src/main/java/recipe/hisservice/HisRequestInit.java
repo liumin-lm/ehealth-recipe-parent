@@ -327,8 +327,8 @@ public class HisRequestInit {
                     Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
                     requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
                 }
-            }catch(Exception e){
-                LOGGER.error("initRecipeSendRequestTO recipeid:{} error :{}",recipe.getRecipeId(),e );
+            } catch (Exception e) {
+                LOGGER.error("initRecipeSendRequestTO recipeid:{} error :{}", recipe.getRecipeId(), e);
             }
         }
         // 从复诊获取患者渠道id
@@ -343,7 +343,7 @@ public class HisRequestInit {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("queryPatientChannelId error:",e);
+            LOGGER.error("queryPatientChannelId error:", e);
         }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null) {
@@ -501,9 +501,9 @@ public class HisRequestInit {
                     //药品数量
                     orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));
                     //药房
-                    if (detail.getPharmacyId() != null){
+                    if (detail.getPharmacyId() != null) {
                         PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(detail.getPharmacyId());
-                        if (pharmacyTcm != null){
+                        if (pharmacyTcm != null) {
                             orderItem.setPharmacyCode(pharmacyTcm.getPharmacyCode());
                             orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                         }
@@ -526,7 +526,8 @@ public class HisRequestInit {
                 }
             } catch (Exception e) {
                 LOGGER.error("initRecipeSendRequestTO error ", e);
-            } requestTO.setOrderList(orderList);
+            }
+            requestTO.setOrderList(orderList);
         } else {
             requestTO.setOrderList(null);
         }
@@ -665,7 +666,7 @@ public class HisRequestInit {
             }
 
         } catch (Exception e) {
-            LOGGER.error("initPayNotifyReqTO error  recipeId={}", recipe.getRecipeId(),e);
+            LOGGER.error("initPayNotifyReqTO error  recipeId={}", recipe.getRecipeId(), e);
         }
         return requestTO;
     }
@@ -795,6 +796,22 @@ public class HisRequestInit {
         //如果平台状态是 13-未支付 14-未操作 15-药师审核未通过 则武昌医院状态置为 9-作废
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
             requestTO.setRecipeStatus("9");
+        }
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+            //科室代码
+            AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+            AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+            requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+            //科室名称
+            requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        } else {
+            //互联网环境下没有挂号科室 取department表
+            DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+            DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+            //科室编码
+            requestTO.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
+            //科室名称
+            requestTO.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
         }
         return requestTO;
 
