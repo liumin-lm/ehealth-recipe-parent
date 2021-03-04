@@ -1,5 +1,7 @@
 package recipe.service.manager;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
@@ -25,6 +27,7 @@ import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -52,6 +55,8 @@ public class RecipeLabelManager {
     private IConfigurationCenterUtilsService configService;
     @Resource
     private IESignBaseService esignService;
+    @Autowired
+    private RedisClient redisClient;
 
     /**
      * 因为pdf动态配置无法得知再次写入时所需高度，故计算
@@ -60,7 +65,17 @@ public class RecipeLabelManager {
      * @param organId 机构id
      * @return Y坐标点位 （默认460）
      */
-    public int getPdfReceiverHeight(Integer organId) {
+    public int getPdfReceiverHeight(Integer recipeId, Integer organId) {
+        List<CoOrdinateVO> coOrdinateList = redisClient.getList(recipeId.toString());
+        logger.info("RecipeLabelManager getPdfReceiverHeight coOrdinateList={}", JSONUtils.toString(coOrdinateList));
+        if (!CollectionUtils.isEmpty(coOrdinateList)) {
+            for (CoOrdinateVO coOrdinate : coOrdinateList) {
+                if ("receiverPlaceholder".equals(coOrdinate.getName()) && null != coOrdinate.getY()) {
+                    return 595 - 50 - coOrdinate.getY();
+                }
+            }
+        }
+
         int height = 460;
         if (null == organId) {
             return height;
@@ -145,7 +160,11 @@ public class RecipeLabelManager {
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         eSignDTO.setRp(String.valueOf(rpTorx));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
-        logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
+        ObjectMapper objectMapper = new ObjectMapper();
+        SignRecipePdfVO signRecipePdfVO = objectMapper.convertValue(backMap.get("coOrdinateList"), SignRecipePdfVO.class);
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={},signRecipePdfVO={}"
+                , JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO), JSONUtils.toString(signRecipePdfVO));
+        coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
         return backMap;
     }
 
@@ -175,8 +194,10 @@ public class RecipeLabelManager {
         map.put("paramMap", result);
         SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
         logger.info("RecipeLabelManager queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSONUtils.toString(map), JSONUtils.toString(signRecipePdfVO));
+        coOrdinate(recipe.getRecipeId(), signRecipePdfVO.getCoOrdinateList());
         return signRecipePdfVO.getDataStr();
     }
+
 
     /**
      * 获取处方签 配置 给前端展示。
@@ -214,6 +235,16 @@ public class RecipeLabelManager {
         });
         logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toString(resultMap));
         return resultMap;
+    }
+
+    /**
+     * 特殊字段坐标记录
+     *
+     * @param recipeId
+     * @param coOrdinateList
+     */
+    private void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
+        redisClient.addList(recipeId.toString(), coOrdinateList);
     }
 
     /**
