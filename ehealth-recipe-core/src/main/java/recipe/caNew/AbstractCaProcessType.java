@@ -321,7 +321,8 @@ public abstract class AbstractCaProcessType {
             }
             newPdf= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipeId,recipe.getPatientID(),positionMap);
             LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
-            newPdf=CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipe.getSignFile(),positionMap);
+            newPdf=CreateRecipePdfUtil.generateBarCodeInRecipePdf(newPdf,positionMap);
+            LOGGER.info("addRecipeCodeAndPatientForRecipePdf 条形码 recipeId={},newPdf={}", recipeId, newPdf);
             if (StringUtils.isNotEmpty(newPdf) && StringUtils.isNotEmpty(key)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPdf));
             }
