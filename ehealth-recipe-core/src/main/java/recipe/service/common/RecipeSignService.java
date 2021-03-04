@@ -497,7 +497,7 @@ public class RecipeSignService {
         boolean optimize =recipeService.openRecipOptimize(recipeBean,openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
-            LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM);
+            LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", ErrorCode.SERVICE_ERROR);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 

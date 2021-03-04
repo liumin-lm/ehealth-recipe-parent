@@ -1771,7 +1771,7 @@ public class RecipeService extends RecipeBaseService {
         boolean optimize = openRecipOptimize(recipe,openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
-            LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR_CONFIRM);
+            LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
