@@ -42,6 +42,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.manager.EmrRecipeManager;
 
 import java.math.BigDecimal;
@@ -1375,17 +1376,17 @@ public class HisRecipeService {
         Integer giveMode = recipe.getGiveMode();
         Integer orderStatus = order.getStatus();
         String tips = "";
-        switch (status) {
-            case RecipeStatusConstant.HIS_FAIL:
+        switch (RecipeStatusEnum.getRecipeStatusEnum(status)) {
+            case RECIPE_STATUS_HIS_FAIL:
                 tips = "已取消";
                 break;
-            case RecipeStatusConstant.FINISH:
+            case RECIPE_STATUS_FINISH:
                 tips = "已完成";
                 break;
-            case RecipeStatusConstant.IN_SEND:
+            case RECIPE_STATUS_IN_SEND:
                 tips = "配送中";
                 break;
-            case RecipeStatusConstant.CHECK_PASS:
+            case RECIPE_STATUS_CHECK_PASS:
                 if (null == payMode || null == giveMode) {
                     tips = "待处理";
                 } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
@@ -1425,7 +1426,7 @@ public class HisRecipeService {
                     tips = RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getName();
                 }
                 break;
-            case RecipeStatusConstant.REVOKE :
+            case RECIPE_STATUS_REVOKE :
                 if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(orderStatus)) {
                     tips = RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getName();
                 } else if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(orderStatus)) {
@@ -1433,6 +1434,18 @@ public class HisRecipeService {
                 } else {
                     tips  = "已取消";
                 }
+                break;
+            case RECIPE_STATUS_DONE_DISPENSING :
+                tips = RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getName();
+                break;
+            case RECIPE_STATUS_DECLINE :
+                tips = RecipeStatusEnum.RECIPE_STATUS_DECLINE.getName();
+                break;
+            case RECIPE_STATUS_DRUG_WITHDRAWAL :
+                tips = RecipeStatusEnum.RECIPE_STATUS_DRUG_WITHDRAWAL.getName();
+                break;
+            case REVIEW_DRUG_FAIL :
+                tips = RecipeStatusEnum.REVIEW_DRUG_FAIL.getName();
                 break;
             default:
                 tips = "待取药";
