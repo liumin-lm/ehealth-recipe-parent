@@ -1,12 +1,14 @@
 package com.ngari.recipe.sign.model;
 
 import ctd.schema.annotation.FileToken;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@Schema
 public class SignDoctorRecipeInfoDTO implements Serializable{
     private static final long serialVersionUID = 4059321523544138843L;
     private Integer id;
