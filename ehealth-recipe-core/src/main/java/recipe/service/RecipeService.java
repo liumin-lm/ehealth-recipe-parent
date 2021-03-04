@@ -1621,10 +1621,10 @@ public class RecipeService extends RecipeBaseService {
             }
 
         }
-        catch(RevisitException e){
+        /*catch(RevisitException e){
             LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", ErrorCode.SERVICE_ERROR_CONFIRM,e);
             throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
-        }
+        }*/
         catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -1771,8 +1771,8 @@ public class RecipeService extends RecipeBaseService {
         boolean optimize = openRecipOptimize(recipe,openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
-            LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", ErrorCode.SERVICE_ERROR_CONFIRM);
-            throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+            LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
         RequestVisitVO requestVisitVO=new RequestVisitVO();
