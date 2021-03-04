@@ -1603,12 +1603,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 Recipe recipe = recipeDAO.getByRecipeIdAndEnterpriseId(drugsEnterprise.getId(), recipeId);
                 if (recipe != null) {
                     recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), Arrays.asList(recipeId));
-                    if (recipe.getPushFlag() == 1) {
-                        //说明已经下载成功
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
-                    } else {
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"未获取到处方");
-                    }
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
                 }
             }
         }
