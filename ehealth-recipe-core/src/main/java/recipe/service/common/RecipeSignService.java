@@ -423,10 +423,10 @@ public class RecipeSignService {
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
 
         }
-        catch(RevisitException e){
+       /* catch(RevisitException e){
             LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM,e);
             throw new RevisitException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
-        }
+        }*/
         catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -498,7 +498,7 @@ public class RecipeSignService {
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize){
             LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM);
-            throw new RevisitException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
         RequestVisitVO requestVisitVO=new RequestVisitVO();
