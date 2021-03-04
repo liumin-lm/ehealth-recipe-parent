@@ -837,7 +837,7 @@ public class RecipeService extends RecipeBaseService {
 
             }
         } catch (Exception e) {
-            LOGGER.warn("当前处方{}是使用平台医生部分pdf的,生成失败！", recipe.getRecipeId());
+            LOGGER.warn("当前处方是使用平台医生部分pdf的,生成失败！{}", recipe.getRecipeId(), e);
             //日志记录
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
         }
