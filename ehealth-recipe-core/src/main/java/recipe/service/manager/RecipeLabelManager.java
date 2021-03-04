@@ -70,7 +70,7 @@ public class RecipeLabelManager {
         if (!CollectionUtils.isEmpty(coOrdinateList)) {
             for (CoOrdinateVO coOrdinate : coOrdinateList) {
                 if ("receiverPlaceholder".equals(coOrdinate.getName()) && null != coOrdinate.getY()) {
-                    return 595 - 50 - coOrdinate.getY();
+                    return 595 - 60 - coOrdinate.getY();
                 }
             }
         }
