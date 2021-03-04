@@ -67,7 +67,7 @@ public class RecipeLabelManager {
      */
     public int getPdfReceiverHeight(Integer recipeId, Integer organId) {
         List<CoOrdinateVO> coOrdinateList = redisClient.getList(recipeId.toString());
-        logger.info("RecipeLabelManager getPdfReceiverHeight coOrdinateList={}", JSONUtils.toString(coOrdinateList));
+        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
         if (!CollectionUtils.isEmpty(coOrdinateList)) {
             for (CoOrdinateVO coOrdinate : coOrdinateList) {
                 if ("receiverPlaceholder".equals(coOrdinate.getName()) && null != coOrdinate.getY()) {
