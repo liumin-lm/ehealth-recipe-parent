@@ -3869,8 +3869,8 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     @Deprecated
-    public String recipePdfTest(Integer organId, String pdfId) throws IOException, DocumentException {
-        int height = recipeLabelManager.getPdfReceiverHeight(organId);
+    public String recipePdfTest(Integer recipeId, Integer organId, String pdfId) throws IOException, DocumentException {
+        int height = recipeLabelManager.getPdfReceiverHeight(recipeId, organId);
         return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", height);
     }
 
