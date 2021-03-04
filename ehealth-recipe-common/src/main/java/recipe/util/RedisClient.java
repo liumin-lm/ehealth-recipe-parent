@@ -14,10 +14,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * created by shiyuping on 2018/9/3
@@ -476,6 +473,16 @@ public class RedisClient {
                 return connection.sRem(key_, rawValues);
             }
         });
+    }
+
+    public <T> void addList(String key, List<T> list) {
+        redisTemplate.opsForList().rightPushAll(key, list);
+    }
+
+    public <T> List<T> getList(String key) {
+        //取出如果结束位是-1， 则表示取所有的值
+        List<T> list = redisTemplate.opsForList().range(key, 0, -1);
+        return list;
     }
 
     @SuppressWarnings("unchecked")

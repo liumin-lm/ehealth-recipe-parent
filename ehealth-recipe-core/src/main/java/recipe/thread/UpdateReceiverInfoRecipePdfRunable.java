@@ -53,7 +53,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             //存在收货人信息
             if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order)))){
                 logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);
-                int height = recipeLabelManager.getPdfReceiverHeight(recipe.getClinicOrgan());
+                int height = recipeLabelManager.getPdfReceiverHeight(recipe.getRecipeId(), recipe.getClinicOrgan());
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                     newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), height);
                     key = "ChemistSignFile";

@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
@@ -232,6 +233,64 @@ public class CreateRecipePdfUtil {
         reader.close();
         input.close();
         output.close();
+    }
+
+    public static String generateBarCodeInRecipePdf(String pdfId, Map<String, String> positionMap)  {
+          try{
+            if(StringUtil.isNotBlank(positionMap.get("positionBarCode"))){
+                if (!ObjectUtils.isEmpty(positionMap.get("barCodeValue"))) {
+                    pdfId=generateBarCodeInRecipePdf(pdfId,positionMap.get("barCodeValue"));
+                    logger.info("addRecipeCodeAndPatientIdForRecipePdf 生成条形码后pdfId:{} ",pdfId);
+                }
+            }
+        }catch (Exception e){
+            logger.info("addRecipeCodeAndPatientIdForRecipePdf pdfId:{} 条形码生成失败 原因是：error:{} ",pdfId,e);
+        }
+        return pdfId;
+    }
+
+    /**
+     * 为处方pdf文件生成条形码
+     * @param pdfId
+     * @param code
+     */
+    public static String generateBarCodeInRecipePdf(String pdfId,String code) throws Exception{
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null){
+            File file = new File(fileMetaRecord.getFileName());
+            OutputStream output = new FileOutputStream(file);
+            File barCodeFile = BarCodeUtil.generateFile(code, "barcode.png");
+            //获取图片url
+            URL url = barCodeFile.toURI().toURL();
+            //添加图片
+            addBarCodeImgForRecipePdf(input,output,url);
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes,fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+            barCodeFile.delete();
+        }
+        return fileId;
+
+    }
+
+    private static void addBarCodeImgForRecipePdf(InputStream input, OutputStream output, URL url) throws Exception{
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
+        //将图片贴入pdf
+        Image image = Image.getInstance(url);
+        image.setAbsolutePosition(10, 560);
+        image.scaleToFit(110,20);
+        page.addImage(image);
+        stamper.close();
+        reader.close();
+        input.close();
     }
 
     /**
