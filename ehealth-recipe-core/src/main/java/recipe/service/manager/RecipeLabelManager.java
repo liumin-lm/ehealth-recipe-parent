@@ -1,6 +1,5 @@
 package recipe.service.manager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
@@ -160,11 +159,9 @@ public class RecipeLabelManager {
         Object rpTorx = configService.getConfiguration(recipe.getClinicOrgan(), "rptorx");
         eSignDTO.setRp(String.valueOf(rpTorx));
         Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
-        ObjectMapper objectMapper = new ObjectMapper();
-        SignRecipePdfVO signRecipePdfVO = objectMapper.convertValue(backMap.get("coOrdinateList"), SignRecipePdfVO.class);
-        logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={},signRecipePdfVO={}"
-                , JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO), JSONUtils.toString(signRecipePdfVO));
-        coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
+        logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
+        List<CoOrdinateVO> coOrdinateVO = MapValueUtil.getList(backMap, "coOrdinateList");
+        coOrdinate(recipeId, coOrdinateVO);
         return backMap;
     }
 
@@ -244,6 +241,9 @@ public class RecipeLabelManager {
      * @param coOrdinateList
      */
     private void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
+        if (CollectionUtils.isEmpty(coOrdinateList) || null == recipeId) {
+            return;
+        }
         redisClient.addList(recipeId.toString(), coOrdinateList);
     }
 
