@@ -41,6 +41,7 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.service.manager.EmrRecipeManager;
 
 import java.math.BigDecimal;
@@ -1420,10 +1421,18 @@ public class HisRecipeService {
                     }
                 } else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)) {
                     tips = "已完成";
+                } else if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(orderStatus)) {
+                    tips = RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getName();
                 }
                 break;
             case RecipeStatusConstant.REVOKE :
-                tips  = "已撤销";
+                if (RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getType().equals(orderStatus)) {
+                    tips = RecipeOrderStatusEnum.ORDER_STATUS_DRUG_WITHDRAWAL.getName();
+                } else if (RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getType().equals(orderStatus)) {
+                    tips = RecipeOrderStatusEnum.ORDER_STATUS_DECLINE.getName();
+                } else {
+                    tips  = "已取消";
+                }
                 break;
             default:
                 tips = "待取药";
