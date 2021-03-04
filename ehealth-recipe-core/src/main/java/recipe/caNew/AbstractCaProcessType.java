@@ -246,7 +246,7 @@ public abstract class AbstractCaProcessType {
             if(recipe==null){
                 return;
             }
-            String newPfd = null;
+            String newPdf = null;
             String key = "SignFile";
             String recipeCode="";
             //模块一的总大小
@@ -273,36 +273,57 @@ public abstract class AbstractCaProcessType {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
             }
             List<Scratchable> moduleOne = (List<Scratchable>) labelMap.get("moduleOne");
-            if (org.springframework.util.CollectionUtils.isEmpty(moduleOne) ) {
-                return ;
+            if (!org.springframework.util.CollectionUtils.isEmpty(moduleOne) ) {
+                moduleOneSize=moduleOne.size();
+                int i=0;
+                for(Scratchable scratchable:moduleOne){
+                    i++;
+                    //position**   字段存在模块一的位置（用于计算替换的位置）
+                    if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())&&"处方单号".equals(scratchable.getBoxTxt().trim())){
+                        recipeCode=recipe.getRecipeCode();
+                        positionMap.put("recipeCodeName",scratchable.getBoxTxt().trim());
+                        positionMap.put("positionRecipeCode",String.valueOf(i));
+                        continue;
+                    }
+                    if("recipe.recipeId".equals(scratchable.getBoxLink().trim())&&"处方单号".equals(scratchable.getBoxTxt().trim())){
+                        positionMap.put("recipeIdName",scratchable.getBoxTxt().trim());
+                        positionMap.put("positionRecipeId",String.valueOf(i));
+                        continue;
+                    }
+                    if("recipe.patientID".equals(scratchable.getBoxLink().trim())&&"病历号".equals(scratchable.getBoxTxt().trim())){
+                        positionMap.put("patientIdName",scratchable.getBoxTxt().trim());
+                        positionMap.put("positionPatientId",String.valueOf(i));
+                        continue;
+                    }
+
+                }
+                positionMap.put("moduleOneSize",String.valueOf(moduleOneSize));
             }
-            moduleOneSize=moduleOne.size();
-            int i=0;
-            for(Scratchable scratchable:moduleOne){
-                i++;
-                //position**   字段存在模块一的位置（用于计算替换的位置）
-                if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())){
-                    recipeCode=recipe.getRecipeCode();
-                    positionMap.put("recipeCodeName",scratchable.getBoxTxt().trim());
-                    positionMap.put("positionRecipeCode",String.valueOf(i));
-                    continue;
-                }
-                if("recipe.recipeId".equals(scratchable.getBoxLink().trim())){
-                    positionMap.put("recipeIdName",scratchable.getBoxTxt().trim());
-                    positionMap.put("positionRecipeId",String.valueOf(i));
-                    continue;
-                }
-                if("recipe.patientID".equals(scratchable.getBoxLink().trim())){
-                    positionMap.put("patientIdName",scratchable.getBoxTxt().trim());
-                    positionMap.put("positionPatientId",String.valueOf(i));
-                    continue;
+
+            //获取抬头配置
+            List<Scratchable> moduleFive = (List<Scratchable>) labelMap.get("moduleFive");
+            if (!org.springframework.util.CollectionUtils.isEmpty(moduleFive) ) {
+                for(Scratchable scratchable:moduleFive){
+                    //获取条形码配置的值
+                    if("条形码".equals(scratchable.getBoxTxt().trim())){
+                        positionMap.put("positionBarCode","1");
+                        //如果条形码配置成病历
+                        if("recipe.patientID".equals(scratchable.getBoxLink().trim())){
+                            positionMap.put("barCodeValue",recipe.getPatientID().trim());
+                        }else if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())){
+                            positionMap.put("barCodeValue",recipe.getRecipeCode());
+                        }else{
+                            positionMap.put("barCodeValue","");
+                        }
+                    }
+                    break;
                 }
             }
-            positionMap.put("moduleOneSize",String.valueOf(moduleOneSize));
-            newPfd= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipeId,recipe.getPatientID(),positionMap);
-            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPfd={}", recipeId, newPfd);
-            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
+            newPdf= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipeId,recipe.getPatientID(),positionMap);
+            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
+            newPdf=CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipe.getSignFile(),positionMap);
+            if (StringUtils.isNotEmpty(newPdf) && StringUtils.isNotEmpty(key)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPdf));
             }
         } catch (Exception e) {
             LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={},e={}", recipeId, e);
