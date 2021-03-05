@@ -865,18 +865,30 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
             if (recipe.getClinicId() != null) {
                 RevisitExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
-                if (StringUtils.isNotEmpty(consultExDTO.getInsureTypeCode())) {
-                    if ("0".equals(consultExDTO.getInsureTypeCode())) {
+                if (recipe.getClinicOrgan() == 1004539) {
+                    //重庆大学城医院复诊为个性化暂没做字典对照
+                    if ("1".equals(consultExDTO.getInsureTypeCode())) {
                         //表示自费
                         recipeMap.put("YIBAOBILL", "1");
-                    } else if ("1".equals(consultExDTO.getInsureTypeCode())) {
+                    } else {
                         //表示普通医保
                         recipeMap.put("YIBAOBILL", "0");
                         recipeMap.put("YBTYPE", "0");
-                    } else if ("2".equals(consultExDTO.getInsureTypeCode())) {
-                        //表示门特
-                        recipeMap.put("YIBAOBILL", "0");
-                        recipeMap.put("YBTYPE", "1");
+                    }
+                } else {
+                    if (StringUtils.isNotEmpty(consultExDTO.getInsureTypeCode())) {
+                        if ("0".equals(consultExDTO.getInsureTypeCode())) {
+                            //表示自费
+                            recipeMap.put("YIBAOBILL", "1");
+                        } else if ("1".equals(consultExDTO.getInsureTypeCode())) {
+                            //表示普通医保
+                            recipeMap.put("YIBAOBILL", "0");
+                            recipeMap.put("YBTYPE", "0");
+                        } else if ("2".equals(consultExDTO.getInsureTypeCode())) {
+                            //表示门特
+                            recipeMap.put("YIBAOBILL", "0");
+                            recipeMap.put("YBTYPE", "1");
+                        }
                     }
                 }
             }
