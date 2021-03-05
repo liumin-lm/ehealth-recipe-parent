@@ -227,7 +227,7 @@ public class RecipeLabelManager {
                 List<RecipeLabelVO> list = getValue(value, recipeMap, organId);
                 resultMap.put(k, list);
             } catch (Exception e) {
-                logger.error("RecipeLabelManager queryRecipeLabelById error ", e);
+                logger.error("RecipeLabelManager queryRecipeLabelById error  value ={} recipeMap={}", JSONUtils.toString(value), JSONUtils.toString(recipeMap), e);
             }
         });
         logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toString(resultMap));
@@ -242,6 +242,7 @@ public class RecipeLabelManager {
      */
     private void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
         if (CollectionUtils.isEmpty(coOrdinateList) || null == recipeId) {
+            logger.error("RecipeLabelManager coOrdinate error ");
             return;
         }
         redisClient.addList(recipeId.toString(), coOrdinateList);
@@ -256,7 +257,6 @@ public class RecipeLabelManager {
      * @return
      */
     private List<RecipeLabelVO> getValue(List<Scratchable> scratchableList, Map<String, Object> recipeMap, Integer organId) {
-        logger.info("RecipeLabelManager getValue scratchableList ={} recipeMap={}", JSONUtils.toString(scratchableList), JSONUtils.toString(recipeMap));
         List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
         scratchableList.forEach(a -> {
             if (StringUtils.isEmpty(a.getBoxLink())) {
