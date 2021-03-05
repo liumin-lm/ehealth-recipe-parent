@@ -55,6 +55,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -119,7 +120,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
-import recipe.service.recipeexception.RevisitException;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
@@ -138,8 +138,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -1669,7 +1667,7 @@ public class RecipeService extends RecipeBaseService {
                     if ("h".equals(invalidDTO.getInvalidType())){
                         try {
                             // 毫秒
-                            long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(signDate, invalidDTO.getInvalidDate()) * 1000;
+                            long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(nowDate, invalidDTO.getInvalidDate()) * 1000;
                             LOGGER.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒",clinicOrgan, recipeId,millSecond);
                             MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
                         } catch (Exception e) {
