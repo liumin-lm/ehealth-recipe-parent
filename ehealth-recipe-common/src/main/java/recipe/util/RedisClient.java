@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -475,14 +476,34 @@ public class RedisClient {
         });
     }
 
-    public <T> void addList(String key, List<T> list) {
+    /**
+     * redis 存储list数据
+     *
+     * @param key     键
+     * @param list    值
+     * @param timeout 过期时间
+     * @param <T>
+     */
+    public <T> void addList(String key, List<T> list, Long timeout) {
+        if (CollectionUtils.isEmpty(list) || null == key) {
+            return;
+        }
         redisTemplate.opsForList().rightPushAll(key, list);
+        if (null != timeout) {
+            setex(key, timeout);
+        }
     }
 
+    /**
+     * redis 获取list数据
+     *
+     * @param key 键
+     * @param <T>
+     * @return
+     */
     public <T> List<T> getList(String key) {
         //取出如果结束位是-1， 则表示取所有的值
-        List<T> list = redisTemplate.opsForList().range(key, 0, -1);
-        return list;
+        return redisTemplate.opsForList().range(key, 0, -1);
     }
 
     @SuppressWarnings("unchecked")

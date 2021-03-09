@@ -132,4 +132,6 @@ public class CacheConstant {
      * 醫保結算申請key
      */
     public static final String KEY_MEDIC_INSURSETTLE_APPlY = "MEDIC_INSURSETTLE_APPlY_";
+
+    public static final String KEY_RECIPE_LABEL = "KEY_RECIPE_LABEL_";
 }
