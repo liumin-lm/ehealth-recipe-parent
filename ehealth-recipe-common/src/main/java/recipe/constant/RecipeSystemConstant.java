@@ -100,4 +100,8 @@ public class RecipeSystemConstant {
 
     public static final String RECIPE_INVALID_TOPIC_TAG = "recipe_invalid_tag";
 
+    public static final String RECIPE_INVALID_LOCK_KEY = "recipe_invalid_lock_redis_";
+
+    public static final Long RECIPE_INVALID_LOCK_TIMEOUT = 10L;
+
 }

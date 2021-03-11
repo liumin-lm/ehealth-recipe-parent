@@ -12,6 +12,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
+import redis.clients.jedis.Protocol;
+import redis.clients.util.SafeEncoder;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -356,6 +358,48 @@ public class RedisClient {
             }
         });
     }
+    /**
+     * key不存在才设值并设值失效时间-单位秒
+     * @param key
+     * @param value
+     * @param expire 单位秒
+     * @param <T>
+     * @return
+     */
+    public <T>boolean setIfAbsentAndExpire(final String key, final T value, final long expire) {
+        return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
+            public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+                // set:set命令，NX:set命令操作类型为setNX，EX:有效时间单位-秒
+                Object obj = connection.execute("set", keySerializer.serialize(key), valueSerializer.serialize(value),
+                        SafeEncoder.encode("NX"), SafeEncoder.encode("EX"), Protocol.toByteArray(expire));
+                return obj != null;
+            }
+        });
+    }
+
+    /**
+     * setNX、expire两个操作不能保证原子性
+     * @param key
+     * @param val
+     * @param expire
+     * @param <T>
+     * @return
+     */
+    public <T>boolean setNxAndExpire(final String key, final T val, final long expire) {
+        return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
+            public Boolean doInRedis(RedisConnection connection)
+                    throws DataAccessException {
+                byte[] key_ = keySerializer.serialize(key);
+                byte[] value_ = valueSerializer.serialize(val);
+                if (connection.setNX(key_, value_) && connection.expire(key_, expire)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+    }
+
 
 
     /**
