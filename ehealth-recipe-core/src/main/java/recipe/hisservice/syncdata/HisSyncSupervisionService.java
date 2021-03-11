@@ -1364,8 +1364,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @author zhangx
      * @create 2020-10-13 20:00
      **/
-    @RpcService
-    public RegulationSendMedicineReq pakRegulationSendMedicineReq(Integer recipeId) {
+    private RegulationSendMedicineReq pakRegulationSendMedicineReq(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
