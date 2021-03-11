@@ -3801,4 +3801,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    /**
+     * 查询所有待审核平台审方
+     * @return
+     */
+    @DAOMethod(sql = "select new Recipe(recipeId,clinicOrgan) from Recipe where  checkMode<2 and status =8",limit = 0)
+    public abstract List<Recipe>  findToAuditPlatformRecipe();
+
 }

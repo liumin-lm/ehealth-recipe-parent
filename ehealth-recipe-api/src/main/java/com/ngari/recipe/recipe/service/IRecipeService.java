@@ -809,5 +809,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode);
+
+
+    List<RecipeBean> findToAuditPlatformRecipe();
 }
 

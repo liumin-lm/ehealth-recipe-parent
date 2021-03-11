@@ -1446,5 +1446,10 @@ public class Recipe implements Serializable {
         this.recipeId = recipeId;
         this.supplementaryMemo = supplementaryMemo;
     }
+
+    public Recipe(Integer recipeId, Integer clinicOrgan) {
+        this.recipeId = recipeId;
+        this.clinicOrgan = clinicOrgan;
+    }
 }
 

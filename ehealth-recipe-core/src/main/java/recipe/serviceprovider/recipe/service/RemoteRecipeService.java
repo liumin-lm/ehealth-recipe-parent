@@ -2340,4 +2340,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("judgeRecipeStatus is {}", true);
         return false;
     }
+
+    @Override
+    public List<RecipeBean> findToAuditPlatformRecipe() {
+        List<Recipe> toAuditPlatformRecipe = recipeDAO.findToAuditPlatformRecipe();
+        return ObjectCopyUtils.convert(toAuditPlatformRecipe, RecipeBean.class);
+    }
 }
