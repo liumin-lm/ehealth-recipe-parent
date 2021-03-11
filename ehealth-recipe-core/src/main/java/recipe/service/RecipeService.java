@@ -101,6 +101,7 @@ import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CARecipeTypeEnum;
 import recipe.caNew.CaAfterProcessType;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
@@ -3887,20 +3888,10 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     @Deprecated
-    public String recipePdfTest(Integer recipeId, Integer organId, String pdfId) throws IOException, DocumentException {
+    public String recipePdfTest(Integer recipeId, String pdfId) throws IOException, DocumentException {
+        CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipeId, "receiverPlaceholder");
         return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", coOrdinateVO.getY());
-    }
-
-    /**
-     * 测试后门人口
-     *
-     * @return
-     */
-    @RpcService
-    @Deprecated
-    public void recipePdfTestRecipeCodeAndPatientId(Integer recipeId) throws IOException, DocumentException {
-        // AbstractCaProcessType.addRecipeCodeAndPatientForRecipePdf(recipeId);
     }
 
     /**

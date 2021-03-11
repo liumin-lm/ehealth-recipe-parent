@@ -9,6 +9,7 @@ import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.DictionaryController;
@@ -58,6 +59,21 @@ public class RecipeLabelManager {
     private IESignBaseService esignService;
     @Autowired
     private RedisClient redisClient;
+
+    /**
+     * 获取电子病例模块
+     *
+     * @param organId    机构id
+     * @param moduleName 模块名称
+     * @return
+     */
+    public List<Scratchable> scratchableList(Integer organId, String moduleName) {
+        Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
+        if (CollectionUtils.isEmpty(labelMap)) {
+            return new LinkedList<>();
+        }
+        return (List<Scratchable>) labelMap.get(moduleName);
+    }
 
     /**
      * 获取pdf 特殊字段坐标
@@ -300,6 +316,11 @@ public class RecipeLabelManager {
                     recipeBean.setOrganName(boxDesc);
                 }
             }
+        }
+        //药品金额
+        RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
+        if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
+            recipeBean.setActualPrice(recipeOrder.getRecipeFee());
         }
     }
 
