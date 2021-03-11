@@ -221,6 +221,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
     private Integer validateStatus;
 
+    @ItemProperty(alias = "前端展示的药品拼接名")
+    private String drugDisplaySplicedName;
+
     public String getSaleDrugCode() {
         return saleDrugCode;
     }
@@ -777,5 +780,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setPharmacyCode(String pharmacyCode) {
         this.pharmacyCode = pharmacyCode;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
     }
 }

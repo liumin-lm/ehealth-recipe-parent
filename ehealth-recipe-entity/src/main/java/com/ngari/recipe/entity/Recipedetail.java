@@ -3,13 +3,12 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author yuyun
@@ -236,6 +235,9 @@ public class Recipedetail implements java.io.Serializable {
 
 	@ItemProperty(alias = "中药禁忌原因")
 	private String tcmContraindicationCause;
+
+    @ItemProperty(alias = "前端展示的药品拼接名")
+    private String drugDisplaySplicedName;
 
 	public void setUseDaysB(String useDaysB) {
 		this.useDaysB = useDaysB;
@@ -897,4 +899,12 @@ public class Recipedetail implements java.io.Serializable {
 	public String getSaleName() {
 		return saleName;
 	}
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
 }
