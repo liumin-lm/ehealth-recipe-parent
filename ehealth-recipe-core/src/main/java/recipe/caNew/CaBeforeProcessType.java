@@ -47,8 +47,8 @@ public class CaBeforeProcessType extends AbstractCaProcessType{
         RecipeResultBean recipeResultBean = new RecipeResultBean();
         recipeResultBean.setCode(RecipeResultBean.SUCCESS);
         //将返回的CA结果给处方，设置处方流转
-        LOGGER.info("Before---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
         addRecipeCodeAndPatientForRecipePdf(recipeId);
+        LOGGER.info("Before---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
 
