@@ -39,7 +39,7 @@ public class RecipeInvalidMsgConsumer implements Observer<String> {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(Integer.parseInt(msg));
         //过滤掉流转到扁鹊处方流转平台的处方
-        if (recipe == null || RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
+        if (recipe == null) {
             return;
         }
         List<Recipe> recipeList = new ArrayList<>();
