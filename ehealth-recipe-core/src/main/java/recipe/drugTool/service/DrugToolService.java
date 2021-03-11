@@ -1551,18 +1551,13 @@ public class DrugToolService implements IDrugToolService {
             drugList.setLastModify(new Date());
             //来源机构
             drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
-            try {
-                DrugList save = drugListDAO.save(drugList);
-                UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
-                bean.setDrugId(drugListMatch.getDrugId());
-                bean.setMatchDrugId(save.getDrugId());
-                bean.setHaveProvinceDrug(false);
-                bean.setOperator(urt.getUserName());
-                status = updateMatchStatusCurrent(bean);
-                busActionLogService.recordBusinessLogRpcNew("通用药品管理","","DrugList","(药品小工具)新增通用药品【"+save.getDrugId()+"-"+save.getDrugName()+"】","平台");
-            } catch (Exception e) {
-                LOGGER.error("DrugToolService.updateMatchAutomatic fail,", e);
-            }
+            DrugList save = drugListDAO.save(drugList);
+            UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
+            bean.setDrugId(drugListMatch.getDrugId());
+            bean.setMatchDrugId(save.getDrugId());
+            bean.setHaveProvinceDrug(false);
+            bean.setOperator(urt.getUserName());
+            status = updateMatchStatusCurrent(bean);
         }
         return status;
     }
