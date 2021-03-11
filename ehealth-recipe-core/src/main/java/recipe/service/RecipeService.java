@@ -107,6 +107,7 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.givemode.business.GiveModeFactory;
@@ -200,6 +201,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RecipeDAO recipeDAO;
+
+    @Autowired
+    private DrugToolService drugToolService;
 
     @Resource
     private CaAfterProcessType caAfterProcessType;
@@ -4189,7 +4193,12 @@ public class RecipeService extends RecipeBaseService {
         }
         drugListMatch.setStatus(0);
         LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
-        drugListMatchDAO.save(drugListMatch);
+        DrugListMatch save = drugListMatchDAO.save(drugListMatch);
+        try {
+            drugToolService.automaticDrugMatch(save);
+        } catch (Exception e) {
+            LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
+        }
         LOGGER.error("addHisDrug 成功", drugListMatch);
     }
 

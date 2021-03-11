@@ -340,6 +340,64 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
+    public void check(final String drugName, final String drugSpec, final String unit, final String drugForm, final  String producer){
+        if (StringUtils.isEmpty(drugSpec)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugSpec不能为空!");
+        }
+        if (StringUtils.isEmpty(drugName)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugName不能为空!");
+        }
+        if (StringUtils.isEmpty(unit)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "unit不能为空!");
+        }
+        if (StringUtils.isEmpty(drugForm)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugForm不能为空!");
+        }
+        if (StringUtils.isEmpty(producer)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "producer不能为空!");
+        }
+    }
+
+    /**
+     * 自动匹配搜索
+     * renfuhao
+     *
+     * @return
+     */
+    public List<DrugList> findDrugMatchAutomatic(final String drugName, final String saleName, final String drugSpec, final String unit, final String drugForm, final  String producer) {
+        check(drugName,drugSpec, unit, drugForm, producer);
+        //查询出所有有效药品 根据药品分类drugClass进行分组
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select d From DrugList d where "
+                        + "d.status=1  ");
+
+                if (!StringUtils.isEmpty(saleName)) {
+                    hql.append("and d.drugName =:drugName and d.saleName =:saleName ");
+                }else {
+
+                }hql.append("and d.drugName =:drugName ");
+
+                hql.append("and d.drugSpec=:drugSpec  and d.unit=:unit and d.drugForm=:drugForm and d.producer=:producer ");
+                Query q = ss.createQuery(hql.toString());
+                if (!StringUtils.isEmpty(saleName)) {
+                    q.setParameter("saleName", saleName );
+                }
+                q.setParameter("drugName", drugName );
+                q.setParameter("drugSpec", drugSpec);
+                q.setParameter("unit", unit);
+                q.setParameter("drugForm", drugForm);
+                q.setParameter("producer", producer);
+                List<DrugList> drugListList = q.list();
+                setResult(drugListList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
 
     /**
      * 供 employmentdao-findEffEmpWithDrug 调用
