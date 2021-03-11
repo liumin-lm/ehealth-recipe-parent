@@ -13,6 +13,7 @@ import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
@@ -30,6 +31,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
+import recipe.dao.DrugSourcesDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
@@ -351,6 +353,24 @@ public class DrugListService extends BaseService<DrugListBean> {
     }
 
     /**
+     * 药品来源渠道查询
+     * @param name
+     * @return
+     */
+    @RpcService
+    public  List<DrugSources>  findDrugSources(String name){
+        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+
+        if (StringUtils.isEmpty(name)){
+            List<DrugSources> all = dao.findAll();
+            return all;
+        }
+         String name2="%"+name+"%";
+        List<DrugSources> byInput = dao.findByInput(name2);
+        return byInput;
+    }
+
+    /**
      * 运营平台 药品查询服务
      *
      * @param drugClass 药品分类
@@ -363,10 +383,10 @@ public class DrugListService extends BaseService<DrugListBean> {
      */
     @RpcService
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status,
+                                                                              final Integer status,final Integer drugSourcesId,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, start, limit);
+        QueryResult result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status,drugSourcesId, start, limit);
         List<DrugListBean> list = getList(result.getItems(), DrugListBean.class);
         result.setItems(list);
         return result;

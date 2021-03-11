@@ -143,6 +143,10 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "标志（审方），1-是，0-否")
     private Integer isPrescriptions;
 
+    @ItemProperty(alias = "来源渠道名称")
+    private String sourceOrganText;
+
+
 
     public DrugList() {
     }
@@ -546,5 +550,14 @@ public class DrugList implements java.io.Serializable {
 
     public void setIsPrescriptions(Integer isPrescriptions) {
         this.isPrescriptions = isPrescriptions;
+    }
+
+    @Transient
+    public String getSourceOrganText() {
+        return sourceOrganText;
+    }
+
+    public void setSourceOrganText(String sourceOrganText) {
+        this.sourceOrganText = sourceOrganText;
     }
 }
