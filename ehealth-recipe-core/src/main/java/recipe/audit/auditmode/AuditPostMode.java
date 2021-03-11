@@ -90,7 +90,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                         status = RecipeStatusConstant.CHECK_PASS_YS;
                         memo = "医保支付成功，发送药企处方";
                     }
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
+                } else if (RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
 //                    //收到userConfirm通知
 //                    status = RecipeStatusConstant.READY_CHECK_YS;
 //                    memo = "配送到家-货到付款成功";
