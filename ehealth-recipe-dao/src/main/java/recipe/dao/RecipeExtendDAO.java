@@ -46,6 +46,9 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
 
     public void saveRecipeExtend(RecipeExtend recipeExtend) {
         LOGGER.info("处方扩展表保存：" + JSONUtils.toString(recipeExtend));
+        if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+            recipeExtend.setCanUrgentAuditRecipe(0);
+        }
         super.save(recipeExtend);
     }
 
@@ -75,7 +78,11 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         if(null == recipeExtend.getRecipeId()){
             return;
         }
+
         if (ObjectUtils.isEmpty(getByRecipeId(recipeExtend.getRecipeId()))) {
+            if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+                recipeExtend.setCanUrgentAuditRecipe(0);
+            }
             save(recipeExtend);
         } else {
             update(recipeExtend);
