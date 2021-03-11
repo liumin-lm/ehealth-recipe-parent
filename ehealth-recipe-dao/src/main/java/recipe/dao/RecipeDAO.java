@@ -299,7 +299,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (!new Integer(2).equals(recipe.getRecipeSource())) {
                     hql.append(" giveMode = null, ");
                 }
-                hql.append(" orderCode=null ,chooseFlag=0, status = 2, payMode = null where orderCode=:orderCode");
+                hql.append(" orderCode=null ,chooseFlag=0, status = 2 where orderCode=:orderCode");
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("orderCode", orderCode);
@@ -779,11 +779,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付，支付模式修改
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null ");
+                    hql.append(" and fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and giveMode is not null and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作,添加前置未操作的判断 后置待处理或者前置待审核和医保上传确认中
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
+                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and giveMode is null or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -806,8 +806,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag = 1 and payMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
+                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and giveMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
+                        " or (fromflag = 1 and giveMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -832,10 +832,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS + " and remindFlag=0 and chooseFlag=0 ");
                 } else if (cancelStatus == RecipeStatusConstant.PATIENT_NO_PAY) {
                     //选择了医院取药-到院支付
-                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS + " and payMode=" + RecipeBussConstant.PAYMODE_TO_HOS + " and remindFlag=0 and chooseFlag=1 and payFlag=0 ");
+                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS + " and giveMode=" + RecipeBussConstant.GIVEMODE_TO_HOS + " and remindFlag=0 and chooseFlag=1 and payFlag=0 ");
                 } else if (cancelStatus == RecipeStatusConstant.PATIENT_NODRUG_REMIND) {
                     //选择了到店取药
-                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS_YS + " and payMode=" + RecipeBussConstant.PAYMODE_TFDS + " and remindFlag=0 and chooseFlag=1 ");
+                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS_YS + " and giveMode=" + RecipeBussConstant.GIVEMODE_TFDS + " and remindFlag=0 and chooseFlag=1 ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -1048,7 +1048,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select r from Recipe r where r.payMode=" + RecipeBussConstant.PAYMODE_COD + " and r.sendDate between '" + startDt + "' and '" + endDt + "' and r.status=" + RecipeStatusConstant.IN_SEND);
+                hql.append("select r from Recipe r where r.giveMode=" + RecipeBussConstant.GIVEMODE_SEND_TO_HOME + " and r.sendDate between '" + startDt + "' and '" + endDt + "' and r.status=" + RecipeStatusConstant.IN_SEND);
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -2307,7 +2307,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where  status in (7,8) and giveMode = 3 and payMode = 4 ");
+                StringBuilder hql = new StringBuilder("from Recipe where  status in (7,8) and giveMode = 3 ");
                 if (CollectionUtils.isNotEmpty(orderCodes)) {
                     hql.append(" and orderCode in (");
                     for (String orderCode : orderCodes) {
