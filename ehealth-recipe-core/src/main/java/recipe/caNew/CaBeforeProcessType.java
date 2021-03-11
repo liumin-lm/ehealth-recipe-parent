@@ -1,12 +1,16 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.JSONUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 
@@ -52,4 +56,29 @@ public class CaBeforeProcessType extends AbstractCaProcessType{
         return recipeResultBean;
     }
 
+
+    /**
+     * 新版本前置CA his回调之后给处方pdf添加处方号和患者病历号
+     *
+     * @param recipeId
+     */
+    private void addRecipeCodeAndPatientForRecipePdf(Integer recipeId) {
+        try {
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            if (recipe == null) {
+                return;
+            }
+
+            String newPdf = CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), recipe.getRecipeCode(), recipe.getPatientID(), null);
+            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
+            // newPdf = CreateRecipePdfUtil.generateBarCodeInRecipePdf(newPdf, positionMap);
+            LOGGER.info("addRecipeCodeAndPatientForRecipePdf 条形码 recipeId={},newPdf={}", recipeId, newPdf);
+            if (StringUtils.isNotEmpty(newPdf)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPdf));
+            }
+        } catch (Exception e) {
+            LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={},e={}", recipeId, e);
+        }
+    }
 }

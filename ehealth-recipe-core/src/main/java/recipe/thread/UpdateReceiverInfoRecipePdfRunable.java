@@ -1,6 +1,7 @@
 package recipe.thread;
 
 import com.google.common.collect.ImmutableMap;
+import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
@@ -48,22 +49,29 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             String key = null;
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
+            if (null == order) {
+                logger.warn("UpdateReceiverInfoRecipePdfRunable order is null  recipeId={}", recipeId);
+                return;
+            }
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
-            if(order!=null&&(StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order)))){
+            if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order))) {
                 logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);
-                int height = recipeLabelManager.getPdfReceiverHeight(recipe.getRecipeId(), recipe.getClinicOrgan());
+                CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
+                if (null == coOrdinateVO) {
+                    return;
+                }
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), height);
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY());
                     key = "ChemistSignFile";
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), height);
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY());
                     key = "SignFile";
                 } else {
                     logger.warn("UpdateReceiverInfoRecipePdfRunable file is null  recipeId={}", recipeId);
                 }
-                logger.info("UpdateReceiverInfoRecipePdfRunable file recipeid:{},newPfd ={},key ={}",recipeId, newPfd, key);
+                logger.info("UpdateReceiverInfoRecipePdfRunable file recipeid:{},newPfd ={},key ={}", recipeId, newPfd, key);
                 if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
                 }

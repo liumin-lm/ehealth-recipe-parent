@@ -1,10 +1,8 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.patient.service.BasicAPI;
@@ -19,10 +17,8 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import eh.entity.base.Scratchable;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,8 +27,6 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -234,101 +228,4 @@ public abstract class AbstractCaProcessType {
             }
         }
     }
-
-    /**
-     * 新版本前置CA his回调之后给处方pdf添加处方号和患者病历号
-     * @param recipeId
-     */
-    public static void addRecipeCodeAndPatientForRecipePdf(Integer recipeId){
-        try {
-            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-            Recipe recipe=recipeDAO.getByRecipeId(recipeId);
-            if(recipe==null){
-                return;
-            }
-            String newPdf = null;
-          //  String key = "SignFile";
-            String recipeCode="";
-            //模块一的总大小
-            int moduleOneSize=0;
-            //根据模块一的大小和每个字段的位置，计算字段的坐标
-            Map<String,String> positionMap=new HashMap<>();
-
-//            IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-//            Object recipeNumber = configService.getConfiguration(recipe.getClinicOrgan(), "recipeNumber");
-//            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},recipeNumber={}", recipeId, recipeNumber);
-//            if (null == recipeNumber ||StringUtils.isEmpty(recipeNumber.toString())) {
-//                return;
-//            }
-            //{ "id": 1, "text": "平台处方单号" , "locked": true},{ "id": 2, "text": "his处方单号" }
-//            if(Integer.parseInt(recipeNumber.toString()) ==1){
-//                recipeCode=recipeId.toString();
-//            }else{
-//                recipeCode=recipe.getRecipeCode();
-//            }
-            //获取model one 配置，根据配置判断是否配置了字段（暂时按固定格式）
-            IScratchableService scratchableService  = AppContextHolder.getBean("eh.scratchableService", IScratchableService.class);
-            Map<String, Object> labelMap = scratchableService.findRecipeListDetail(recipe.getClinicOrgan().toString());
-            if (org.springframework.util.CollectionUtils.isEmpty(labelMap)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
-            }
-            List<Scratchable> moduleOne = (List<Scratchable>) labelMap.get("moduleOne");
-            if (!org.springframework.util.CollectionUtils.isEmpty(moduleOne) ) {
-                moduleOneSize=moduleOne.size();
-                int i=0;
-                for(Scratchable scratchable:moduleOne){
-                    i++;
-                    //position**   字段存在模块一的位置（用于计算替换的位置）
-                    if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())&&"处方单号".equals(scratchable.getBoxTxt().trim())){
-                        recipeCode=recipe.getRecipeCode();
-                        positionMap.put("recipeCodeName",scratchable.getBoxTxt().trim());
-                        positionMap.put("positionRecipeCode",String.valueOf(i));
-                        continue;
-                    }
-                    if("recipe.recipeId".equals(scratchable.getBoxLink().trim())&&"处方单号".equals(scratchable.getBoxTxt().trim())){
-                        positionMap.put("recipeIdName",scratchable.getBoxTxt().trim());
-                        positionMap.put("positionRecipeId",String.valueOf(i));
-                        continue;
-                    }
-                    if("recipe.patientID".equals(scratchable.getBoxLink().trim())&&"病历号".equals(scratchable.getBoxTxt().trim())){
-                        positionMap.put("patientIdName",scratchable.getBoxTxt().trim());
-                        positionMap.put("positionPatientId",String.valueOf(i));
-                        continue;
-                    }
-
-                }
-                positionMap.put("moduleOneSize",String.valueOf(moduleOneSize));
-            }
-
-            //获取抬头配置
-            List<Scratchable> moduleFive = (List<Scratchable>) labelMap.get("moduleFive");
-            if (!org.springframework.util.CollectionUtils.isEmpty(moduleFive) ) {
-                for(Scratchable scratchable:moduleFive){
-                    //获取条形码配置的值
-                    if("条形码".equals(scratchable.getBoxTxt().trim())){
-                        positionMap.put("positionBarCode","1");
-                        //如果条形码配置成病历
-                        if("recipe.patientID".equals(scratchable.getBoxLink().trim())){
-                            positionMap.put("barCodeValue",recipe.getPatientID().trim());
-                        }else if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())){
-                            positionMap.put("barCodeValue",recipe.getRecipeCode());
-                        }else{
-                            positionMap.put("barCodeValue", "");
-                        }
-                    }
-                    break;
-                }
-            }
-            newPdf = CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), recipeCode, recipeId, recipe.getPatientID(), positionMap);
-            LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
-            newPdf = CreateRecipePdfUtil.generateBarCodeInRecipePdf(newPdf, positionMap);
-            LOGGER.info("addRecipeCodeAndPatientForRecipePdf 条形码 recipeId={},newPdf={}", recipeId, newPdf);
-            if (StringUtils.isNotEmpty(newPdf)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPdf));
-            }
-        } catch (Exception e) {
-            LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={},e={}", recipeId, e);
-        }
-    }
-
 }

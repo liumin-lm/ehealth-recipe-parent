@@ -28,6 +28,7 @@ import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -59,73 +60,35 @@ public class RecipeLabelManager {
     private RedisClient redisClient;
 
     /**
-     * 因为pdf动态配置无法得知再次写入时所需高度，故计算
-     * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
+     * 获取pdf 特殊字段坐标
      *
-     * @param organId 机构id
-     * @return Y坐标点位 （默认460）
-     */
-    public int getPdfReceiverHeight(Integer recipeId, Integer organId) {
-        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
-        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
-        if (!CollectionUtils.isEmpty(coOrdinateList)) {
-            for (CoOrdinateVO coOrdinate : coOrdinateList) {
-                if ("receiverPlaceholder".equals(coOrdinate.getName()) && null != coOrdinate.getY()) {
-                    return 595 - 60 - coOrdinate.getY();
-                }
-            }
-        }
-
-        int height = 460;
-        if (null == organId) {
-            return height;
-        }
-        Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
-        if (CollectionUtils.isEmpty(labelMap)) {
-            return height;
-        }
-        List<Scratchable> moduleOne = (List<Scratchable>) labelMap.get("moduleOne");
-        List<Scratchable> moduleTwo = (List<Scratchable>) labelMap.get("moduleTwo");
-        if (CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
-            return height;
-        }
-        if (!CollectionUtils.isEmpty(moduleOne) && !CollectionUtils.isEmpty(moduleTwo)) {
-            height = 429;
-        }
-        if (!CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
-            height = 454;
-        }
-        if (CollectionUtils.isEmpty(moduleOne) && !CollectionUtils.isEmpty(moduleTwo)) {
-            height = 442;
-        }
-        height = getHeight(moduleOne, 3, height);
-        height = getHeight(moduleTwo, 6, height);
-        return height;
-    }
-
-    /**
-     * 根据 非标准配置值参数个数 与 标准参数配置计算浮动高度
-     *
-     * @param module     非标准配置值参数个数
-     * @param initialize 标准参数配置计算浮动高度
-     * @param height     高度
+     * @param recipeId   处方id
+     * @param coordsName 特殊字段名称
      * @return
      */
-    private int getHeight(List<Scratchable> module, int initialize, int height) {
-        if (CollectionUtils.isEmpty(module)) {
-            return height;
+    public CoOrdinateVO getPdfCoordsHeight(Integer recipeId, String coordsName) {
+        if (ValidateUtil.integerIsEmpty(recipeId) || StringUtils.isEmpty(coordsName)) {
+            return null;
         }
-        int size = module.size();
-        if (size <= initialize) {
-            return height;
+        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
+        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
+
+        if (CollectionUtils.isEmpty(coOrdinateList)) {
+            logger.error("RecipeLabelManager getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId为空");
         }
-        int formatting = (size - initialize) / 3;
-        if (0 != (size - initialize) % 3) {
-            formatting++;
+
+        for (CoOrdinateVO coOrdinate : coOrdinateList) {
+            if (coordsName.equals(coOrdinate.getName())) {
+                coOrdinate.setY(595 - 60 - coOrdinate.getY());
+                //coOrdinate.setY(595 - 50 - 115 - coOrdinate.getY());
+                coOrdinate.setX(420 - 5 - coOrdinate.getX());
+                return coOrdinate;
+            }
         }
-        height = height - formatting * 12;
-        return height;
+        return null;
     }
+
 
     /**
      * 获取pdf oss id

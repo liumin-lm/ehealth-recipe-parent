@@ -7,6 +7,7 @@ import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
@@ -16,7 +17,6 @@ import lombok.Cleanup;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
@@ -25,6 +25,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -92,6 +93,7 @@ public class CreateRecipePdfUtil {
 
     /**
      * 处方pdf添加处方号和患者病历号
+     *
      * @param pdfId
      * @param recipeId
      * @param positionMap
@@ -99,7 +101,7 @@ public class CreateRecipePdfUtil {
      * @throws IOException
      * @throws DocumentException
      */
-    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId, String recipeCode, Integer recipeId, String patientId, Map<String, String> positionMap) throws IOException, DocumentException {
+    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId, String recipeCode, String patientId, List<CoOrdinateVO> coOrdinateList) throws IOException, DocumentException {
         logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, recipeCode={} ,patientId={} ", pdfId, recipeCode, patientId);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
@@ -110,7 +112,7 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //处方pdf添加处方号和患者病历号
-            addRecipeCodeAndPatientIdForRecipePdf(input, output, recipeCode,recipeId,patientId,positionMap);
+            //addRecipeCodeAndPatientIdForRecipePdf(input, output, recipeCode,recipeId,patientId,positionMap);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -195,13 +197,6 @@ public class CreateRecipePdfUtil {
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        //坐标测试 字段起始坐标计算 别删
-//        page.setTextMatrix(10, 486);
-//        page.showText( "处方号号："+recipeCode);
-//        page.setTextMatrix(148, 486);
-//        page.showText( "病历号号："+patientId);
-//        page.setTextMatrix(286, 470);
-//        page.showText( "年龄号");
 
         if(StringUtil.isNotBlank(positionMap.get("positionRecipeCode")) ){
             page.setTextMatrix(Float.parseFloat(map.get("positionRecipeCodeX").toString()), Float.parseFloat(map.get("positionRecipeCodeY").toString()));
@@ -221,20 +216,6 @@ public class CreateRecipePdfUtil {
         reader.close();
         input.close();
         output.close();
-    }
-
-    public static String generateBarCodeInRecipePdf(String pdfId, Map<String, String> positionMap)  {
-          try{
-            if(StringUtil.isNotBlank(positionMap.get("positionBarCode"))){
-                if (!ObjectUtils.isEmpty(positionMap.get("barCodeValue"))) {
-                    pdfId=generateBarCodeInRecipePdf(pdfId,positionMap.get("barCodeValue"));
-                    logger.info("addRecipeCodeAndPatientIdForRecipePdf 生成条形码后pdfId:{} ",pdfId);
-                }
-            }
-        }catch (Exception e){
-            logger.info("addRecipeCodeAndPatientIdForRecipePdf pdfId:{} 条形码生成失败 原因是：error:{} ",pdfId,e);
-        }
-        return pdfId;
     }
 
     /**
@@ -639,7 +620,7 @@ public class CreateRecipePdfUtil {
     /**
      * pdf写入 药品价格
      */
-    public static String generateTotalRecipePdf(String pdfId, String total) {
+    public static String generateTotalRecipePdf(String pdfId, String total) throws Exception {
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));

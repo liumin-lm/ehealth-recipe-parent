@@ -11,6 +11,7 @@ import com.google.common.collect.Maps;
 import com.itextpdf.text.DocumentException;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
+import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
@@ -55,7 +56,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -139,6 +139,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -3886,8 +3888,8 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public String recipePdfTest(Integer recipeId, Integer organId, String pdfId) throws IOException, DocumentException {
-        int height = recipeLabelManager.getPdfReceiverHeight(recipeId, organId);
-        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", height);
+        CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipeId, "receiverPlaceholder");
+        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", coOrdinateVO.getY());
     }
 
     /**
@@ -3898,7 +3900,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public void recipePdfTestRecipeCodeAndPatientId(Integer recipeId) throws IOException, DocumentException {
-        AbstractCaProcessType.addRecipeCodeAndPatientForRecipePdf(recipeId);
+        // AbstractCaProcessType.addRecipeCodeAndPatientForRecipePdf(recipeId);
     }
 
     /**
