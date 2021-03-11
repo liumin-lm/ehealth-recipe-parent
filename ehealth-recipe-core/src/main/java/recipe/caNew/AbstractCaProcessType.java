@@ -247,7 +247,7 @@ public abstract class AbstractCaProcessType {
                 return;
             }
             String newPdf = null;
-            String key = "SignFile";
+          //  String key = "SignFile";
             String recipeCode="";
             //模块一的总大小
             int moduleOneSize=0;
@@ -313,18 +313,18 @@ public abstract class AbstractCaProcessType {
                         }else if("recipe.recipeCode".equals(scratchable.getBoxLink().trim())){
                             positionMap.put("barCodeValue",recipe.getRecipeCode());
                         }else{
-                            positionMap.put("barCodeValue","");
+                            positionMap.put("barCodeValue", "");
                         }
                     }
                     break;
                 }
             }
-            newPdf= CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(),recipeCode,recipeId,recipe.getPatientID(),positionMap);
+            newPdf = CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), recipeCode, recipeId, recipe.getPatientID(), positionMap);
             LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
-            newPdf=CreateRecipePdfUtil.generateBarCodeInRecipePdf(newPdf,positionMap);
+            newPdf = CreateRecipePdfUtil.generateBarCodeInRecipePdf(newPdf, positionMap);
             LOGGER.info("addRecipeCodeAndPatientForRecipePdf 条形码 recipeId={},newPdf={}", recipeId, newPdf);
-            if (StringUtils.isNotEmpty(newPdf) && StringUtils.isNotEmpty(key)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPdf));
+            if (StringUtils.isNotEmpty(newPdf)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPdf));
             }
         } catch (Exception e) {
             LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={},e={}", recipeId, e);

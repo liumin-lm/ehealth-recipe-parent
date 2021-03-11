@@ -488,7 +488,7 @@ public class CreateRecipePdfUtil {
             PdfReader reader = new PdfReader(input);
             PdfStamper stamper = new PdfStamper(reader, output);
             try {
-                addTextForRecipePdf(stamper, 199f, 82f, checker);
+                addTextForPdf(stamper, 199f, 82f, checker);
             } catch (Exception e) {
                 logger.error("generateDocSignImageInRecipePdf error", e);
             } finally {
@@ -649,10 +649,13 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             try {
                 @Cleanup OutputStream output = new FileOutputStream(file);
-                //添加价格
-                addTotalFee(input, output, total);
+                PdfReader reader = new PdfReader(input);
+                PdfStamper stamper = new PdfStamper(reader, output);
+                addTextForPdf(stamper, 295f, 80f, "药品金额 ：" + total + "元");
+                stamper.close();
+                reader.close();
             } catch (Exception e) {
-                logger.info("addTextForRecipePdf :{}", e);
+                logger.error("generateTotalRecipePdf error", e);
             }
             //上传pdf文件
             byte[] bytes = File2byte(file);
@@ -664,35 +667,21 @@ public class CreateRecipePdfUtil {
     }
 
     /**
-     * pdf写入 药品价格
+     * 根据 x，y坐标写入text文本内容
      *
-     * @param input
-     * @param output
-     * @param total
-     * @throws IOException
-     * @throws DocumentException
+     * @param stamper
+     * @param x       坐标
+     * @param y       坐标
+     * @param text    写入内容
+     * @throws Exception
      */
-    private static void addTotalFee(InputStream input, OutputStream output, String total) throws IOException, DocumentException {
-        PdfReader reader = new PdfReader(input);
-        PdfStamper stamper = new PdfStamper(reader, output);
-        try {
-            addTextForRecipePdf(stamper, 295f, 80f, "药品金额 ：" + total + "元");
-        } catch (Exception e) {
-            logger.error("addTotalFee error", e);
-        } finally {
-            stamper.close();
-            reader.close();
-        }
-    }
-
-    private static void addTextForRecipePdf(PdfStamper stamper, float x, float y, String text) throws Exception {
+    private static void addTextForPdf(PdfStamper stamper, float x, float y, String text) throws Exception {
         logger.info("addTextForRecipePdf text:{}", text);
         PdfContentByte page = stamper.getOverContent(1);
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
-        //添加覆盖
+        //添加空白覆盖
         page.saveState();
         page.setColorFill(BaseColor.WHITE);
-        //设中药文字在页面中的坐标 date20200910
         page.rectangle(x, y, 100, 20);
         page.fill();
         page.restoreState();
@@ -700,10 +689,8 @@ public class CreateRecipePdfUtil {
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        //设中药文字在页面中的坐标 date20200910
         page.setTextMatrix(x, y);
         page.showText(text);
         page.endText();
-
     }
 }
