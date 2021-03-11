@@ -2342,6 +2342,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return false;
     }
 
+    @RpcService
     @Override
     public List<RecipeBean> findToAuditPlatformRecipe() {
         List<Recipe> toAuditPlatformRecipe = recipeDAO.findToAuditPlatformRecipe();
