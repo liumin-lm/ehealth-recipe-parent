@@ -23,6 +23,7 @@ import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.patient.utils.UrtUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
@@ -31,9 +32,11 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
+import ctd.mvc.controller.util.UserRoleTokenUtils;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -510,9 +513,24 @@ public class DrugToolService implements IDrugToolService {
                         boolean isSuccess = drugListMatchDAO.updateData(drug);
                         if (!isSuccess) {
                             //自动匹配功能暂无法提供
-                            drugListMatchDAO.save(drug);
+                            DrugListMatch save = drugListMatchDAO.save(drug);
+                            try {
+                                automaticDrugMatch(save);
+                            } catch (Exception e) {
+                                LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
+                            }
                             addNum++;
                         } else {
+                            List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCodenew(drug.getOrganDrugCode(), drug.getSourceOrgan());
+                            if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
+                                for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
+                                    try {
+                                        automaticDrugMatch(drugListMatch);
+                                    } catch (Exception e) {
+                                        LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
+                                    }
+                                }
+                            }
                             updateNum++;
                         }
                     } catch (Exception e) {
@@ -1485,6 +1503,75 @@ public class DrugToolService implements IDrugToolService {
         return addrArea.substring(0, 2);
     }
 
+    /**
+     * 药品自动匹配
+     * @param drugListMatch
+     * @return
+     */
+    @RpcService
+    public Integer automaticDrugMatch(DrugListMatch drugListMatch) {
+        List<DrugList> drugLists = drugListDAO.findDrugMatchAutomatic(drugListMatch.getDrugName(), drugListMatch.getSaleName(), drugListMatch.getDrugSpec(),
+                drugListMatch.getUnit(), drugListMatch.getDrugForm(), drugListMatch.getProducer());
+        Integer status = 0;
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        if (drugListMatch.getStatus() != DrugMatchConstant.ALREADY_MATCH && drugListMatch.getStatus() != DrugMatchConstant.SUBMITED){
+            if (drugLists != null && drugLists.size() > 0){
+                UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
+                bean.setDrugId(drugListMatch.getDrugId());
+                bean.setMatchDrugId(drugLists.get(0).getDrugId());
+                bean.setHaveProvinceDrug(false);
+                bean.setOperator(urt.getUserName());
+                status = updateMatchStatusCurrent(bean);
+            }else {
+                //如果是已匹配的取消匹配
+                if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
+                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", urt.getUserName()));
+                }
+                IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("isNew", 1, "status", DrugMatchConstant.MARKED, "operator", urt.getUserName()));
+                //updata by maoly on 2020/03/16 自动同步至平台药品库
+                DrugList drugList = new DrugList();
+                //药品名
+                drugList.setDrugName(drugListMatch.getDrugName());
+                //商品名
+                drugList.setSaleName(drugListMatch.getSaleName());
+                //一次剂量
+                drugList.setUseDose(drugListMatch.getUseDose());
+                //剂量单位
+                drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
+                //规格
+                drugList.setDrugSpec(drugListMatch.getDrugSpec());
+                //药品包装数量---默认1
+                drugList.setPack(drugListMatch.getPack()==null?1:drugListMatch.getPack());
+                //药品单位
+                drugList.setUnit(drugListMatch.getUnit());
+                //药品类型
+                drugList.setDrugType(drugListMatch.getDrugType());
+                //剂型
+                drugList.setDrugForm(drugListMatch.getDrugForm());
+                drugList.setPrice1(drugListMatch.getPrice().doubleValue());
+                drugList.setPrice2(drugListMatch.getPrice().doubleValue());
+                //厂家
+                drugList.setProducer(drugListMatch.getProducer());
+                //其他
+                drugList.setDrugClass("1901");
+                drugList.setAllPyCode("");
+                drugList.setStatus(1);
+                drugList.setCreateDt(new Date());
+                drugList.setLastModify(new Date());
+                //来源机构
+                drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+                DrugList save = drugListDAO.save(drugList);
+                UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
+                bean.setDrugId(drugListMatch.getDrugId());
+                bean.setMatchDrugId(save.getDrugId());
+                bean.setHaveProvinceDrug(false);
+                bean.setOperator(urt.getUserName());
+                status = updateMatchStatusCurrent(bean);
+            }
+        }
+        return status;
+    }
     /**
      * @param updateMatchStatusFormBean 属性值
      *                                  drugId 更新的药品id

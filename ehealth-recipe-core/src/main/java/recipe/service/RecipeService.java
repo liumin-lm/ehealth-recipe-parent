@@ -107,6 +107,7 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.givemode.business.GiveModeFactory;
@@ -200,6 +201,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RecipeDAO recipeDAO;
+
+    @Autowired
+    private DrugToolService drugToolService;
 
     @Resource
     private CaAfterProcessType caAfterProcessType;
@@ -3032,7 +3036,7 @@ public class RecipeService extends RecipeBaseService {
 
     }
 
-    private static void doRecipeCancelByInvalidTime(List<Recipe> recipeList) {
+    public static void doRecipeCancelByInvalidTime(List<Recipe> recipeList) {
         if (CollectionUtils.isNotEmpty(recipeList)) {
             try {
                 RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -3042,12 +3046,17 @@ public class RecipeService extends RecipeBaseService {
                 StringBuilder memo = new StringBuilder();
                 RecipeOrder order;
                 for (Recipe recipe : recipeList) {
+                    Boolean lock = RedisClient.instance().setIfAbsentAndExpire(RecipeSystemConstant.RECIPE_INVALID_LOCK_KEY + recipe.getRecipeId(), recipe.getRecipeId(), RecipeSystemConstant.RECIPE_INVALID_LOCK_TIMEOUT);
+                    LOGGER.info("处方失效获取redis锁结果-lock={},recipeId={}",lock, recipe.getRecipeId());
+                    if (!lock){
+                        continue;
+                    }
                     //过滤掉流转到扁鹊处方流转平台的处方
                     if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
                         continue;
                     }
                     Integer status = RecipeService.getStatus(recipe);
-                    if (status == null || (RecipeStatusConstant.NO_PAY != status && RecipeStatusConstant.NO_OPERATOR != status)) {
+                    if (status == null || (RecipeStatusConstant.NO_PAY != status && RecipeStatusConstant.NO_OPERATOR != status && RecipeStatusConstant.RECIPE_ORDER_CACEL != status)) {
                         continue;
                     }
                     sendDrugEnterproseMsg(recipe);
@@ -3064,10 +3073,10 @@ public class RecipeService extends RecipeBaseService {
                         //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
                     }
-                    //变更处方状态
-                    if (status != null){
-                        recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
-                    }
+                    //变更处方状态 RECIPE_ORDER_CACEL按NO_OPERATOR处理
+                    Integer updateStatus = status == RecipeStatusConstant.RECIPE_ORDER_CACEL ? RecipeStatusConstant.NO_OPERATOR : status;
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateStatus, ImmutableMap.of("chooseFlag", 1));
+
                     RecipeMsgService.batchSendMsg(recipe, status);
                     if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                         //药师首页待处理任务---取消未结束任务
@@ -3075,7 +3084,7 @@ public class RecipeService extends RecipeBaseService {
                     }
                     if (RecipeStatusConstant.NO_PAY == status) {
                         memo.append("已取消,超过失效时间未支付");
-                    } else if (RecipeStatusConstant.NO_OPERATOR == status) {
+                    } else if (RecipeStatusConstant.NO_OPERATOR == status || RecipeStatusConstant.RECIPE_ORDER_CACEL == status) {
                         memo.append("已取消,超过失效时间未操作");
                     } else {
                         memo.append("未知状态:" + status);
@@ -3095,7 +3104,7 @@ public class RecipeService extends RecipeBaseService {
                         memo.append(",HIS推送失败");
                     }
                     //保存处方状态变更日志
-                    RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo.toString());
+                    RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, updateStatus, memo.toString());
                 }
                 //修改cdr_his_recipe status为已处理
                 orderService.updateHisRecieStatus(recipeList);
@@ -3149,6 +3158,16 @@ public class RecipeService extends RecipeBaseService {
         }
         if (recipe.getReviewType() != null && recipe.getReviewType() == 1 && (dbStatus != null && (dbStatus  ==  8 || dbStatus == 24))){
             status = RecipeStatusConstant.NO_OPERATOR;
+        }
+        // 到店取药且到店支付:status in (7,8) and giveMode = 3 and payMode = 4
+        if ((dbStatus != null && (dbStatus ==7 || dbStatus == 8)) && (recipe.getGiveMode() != null && recipe.getGiveMode() == 3) && StringUtils.isNotBlank(orderCode)){
+            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getByOrderCode(orderCode);
+            // status not in (6,7,8) and drugStoreCode is not null
+            if (order != null && StringUtils.isNotBlank(order.getDrugStoreCode()) && (order.getPayMode() != null && order.getPayMode() == 4)
+                    && (order.getStatus() != null && order.getStatus() != 6 && order.getStatus() != 7 && order.getStatus() != 8 )){
+                status = RecipeStatusConstant.RECIPE_ORDER_CACEL;
+            }
         }
         return status;
     }
@@ -4189,7 +4208,12 @@ public class RecipeService extends RecipeBaseService {
         }
         drugListMatch.setStatus(0);
         LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
-        drugListMatchDAO.save(drugListMatch);
+        DrugListMatch save = drugListMatchDAO.save(drugListMatch);
+        try {
+            drugToolService.automaticDrugMatch(save);
+        } catch (Exception e) {
+            LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
+        }
         LOGGER.error("addHisDrug 成功", drugListMatch);
     }
 
