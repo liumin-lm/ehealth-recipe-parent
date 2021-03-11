@@ -6,6 +6,7 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
 
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -174,6 +175,10 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
     @ItemProperty(alias = "his药品是否商保标识")
     private Integer hisciIsClaim;
+
+    @ItemProperty(alias = "来源渠道名称")
+    private String sourceOrganText;
+
 
     public DrugListBean() {
     }
@@ -588,5 +593,14 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @Override
     public void setInventories(List<DrugInventoryInfo> inventories) {
         this.inventories = inventories;
+    }
+
+    @Transient
+    public String getSourceOrganText() {
+        return sourceOrganText;
+    }
+
+    public void setSourceOrganText(String sourceOrganText) {
+        this.sourceOrganText = sourceOrganText;
     }
 }

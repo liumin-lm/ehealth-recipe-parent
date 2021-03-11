@@ -705,6 +705,18 @@ public class DrugToolService implements IDrugToolService {
         drugList.setLastModify(new Date());
         //来源机构
         drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+        if (drugListMatch.getSourceOrgan() != null){
+            DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+            DrugSources drugSources = dao.get(drugListMatch.getSourceOrgan());
+            if (drugSources == null){
+                DrugSources drugSources1=new DrugSources();
+                OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+                OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
+                drugSources1.setDrugSourcesId(byOrganId.getOrganId());
+                drugSources1.setDrugSourcesName(byOrganId.getName());
+                dao.save(drugSources1);
+            }
+        }
         Integer status = drugListMatch.getStatus();
         try {
             DrugList save = drugListDAO.save(drugList);
@@ -1561,6 +1573,18 @@ public class DrugToolService implements IDrugToolService {
                 drugList.setLastModify(new Date());
                 //来源机构
                 drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+                if (drugListMatch.getSourceOrgan() != null){
+                    DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+                    DrugSources drugSources = dao.get(drugListMatch.getSourceOrgan());
+                    if (drugSources == null){
+                        DrugSources drugSources1=new DrugSources();
+                        OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+                        OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
+                        drugSources1.setDrugSourcesId(byOrganId.getOrganId());
+                        drugSources1.setDrugSourcesName(byOrganId.getName());
+                        dao.save(drugSources1);
+                    }
+                }
                 DrugList save = drugListDAO.save(drugList);
                 UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
                 bean.setDrugId(drugListMatch.getDrugId());
