@@ -1,7 +1,6 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -13,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
@@ -29,6 +29,9 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaBeforeProcessType.class);
     @Autowired
     private RecipeLabelManager recipeLabelManager;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
     //我们将开方的流程拆开：
     //前置CA操作：1.保存处方（公共操作）=》2.触发CA结果=》3.成功后将处方推送到his，推送相关操作
 
@@ -73,25 +76,25 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
      * @param recipeId
      */
     private void addRecipeCodeAndPatientForRecipePdf(Integer recipeId) throws Exception {
-
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             return;
         }
         String barcode = "";
         List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFive");
-        for (Scratchable scratchable : scratchableList) {
-            if (!"条形码".equals(scratchable.getBoxTxt())) {
-                continue;
-            }
-            if ("recipe.patientID".equals(scratchable.getBoxLink())) {
-                barcode = recipe.getPatientID();
-                break;
-            }
-            if ("recipe.recipeCode".equals(scratchable.getBoxLink())) {
-                barcode = recipe.getRecipeCode();
-                break;
+        if (!CollectionUtils.isEmpty(scratchableList)) {
+            for (Scratchable scratchable : scratchableList) {
+                if (!"条形码".equals(scratchable.getBoxTxt())) {
+                    continue;
+                }
+                if ("recipe.patientID".equals(scratchable.getBoxLink())) {
+                    barcode = recipe.getPatientID();
+                    break;
+                }
+                if ("recipe.recipeCode".equals(scratchable.getBoxLink())) {
+                    barcode = recipe.getRecipeCode();
+                    break;
+                }
             }
         }
 
@@ -107,10 +110,12 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
             coOrdinateList.add(recipeCode);
         }
         String newPdf = CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, barcode);
-        LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
         if (StringUtils.isNotEmpty(newPdf)) {
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPdf));
+            Recipe recipeUpdate = new Recipe();
+            recipeUpdate.setRecipeId(recipeId);
+            recipeUpdate.setSignFile(newPdf);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         }
-
+        LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
     }
 }
