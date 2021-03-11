@@ -78,11 +78,10 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         if(null == recipeExtend.getRecipeId()){
             return;
         }
-
+        if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+            recipeExtend.setCanUrgentAuditRecipe(0);
+        }
         if (ObjectUtils.isEmpty(getByRecipeId(recipeExtend.getRecipeId()))) {
-            if (recipeExtend.getCanUrgentAuditRecipe() == null) {
-                recipeExtend.setCanUrgentAuditRecipe(0);
-            }
             save(recipeExtend);
         } else {
             update(recipeExtend);
