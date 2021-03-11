@@ -1327,19 +1327,19 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
             costDetailReq.setDetailId(item.getRecipeDetailId());
 
-            //              usingRate  用药频次
-            //	 			 usePathways  用药途径
-            //	 			 useDose  用药剂量（每次使用数量）
-            //	 			 dosageUnit  药物剂量单位 每次使用数量的单位
-            //	 			 useDoseUnit  配药单位   药物使用规格单位
-            //	 			 pack  费用明细药品单位   药品包装数量
-            //	 			 usingRateTextFromHis 用药频度名称
-            costDetailReq.setUsingRate(item.getUsingRate());
-            costDetailReq.setUsePathways(item.getUsePathways());
+            //用药频次
+            costDetailReq.setUsingRate(item.getOrganUsingRate());
+            //用药途径
+            costDetailReq.setUsePathways(item.getOrganUsePathways());
+            //用药剂量
             costDetailReq.setUseDose(item.getUseDose());
+            //剂量单位1
             costDetailReq.setDosageUnit(item.getDosageUnit());
+            //剂量单位2
             costDetailReq.setUseDoseUnit(item.getUseDoseUnit());
-            costDetailReq.setPack(item.getPack());
+            //包装单位
+            costDetailReq.setPack(item.getDrugUnit());
+            //用药途径名
             costDetailReq.setUsingRateTextFromHis(item.getUsingRateTextFromHis());
 
             //医保编码
@@ -1414,7 +1414,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //门诊号
                 req.setPatientID(recipe.getPatientID());
                 //计费时间
-                req.setPayDate(recipe.getPayDate());
+                req.setPayDate(order.getPayTime());
 
                 //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
