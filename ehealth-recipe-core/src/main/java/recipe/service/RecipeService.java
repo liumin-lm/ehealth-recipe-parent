@@ -8,7 +8,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.itextpdf.text.DocumentException;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.esign.model.CoOrdinateVO;
@@ -128,7 +127,6 @@ import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -3889,10 +3887,11 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     @Deprecated
-    public String recipePdfTest(Integer recipeId, String pdfId) throws IOException, DocumentException {
+    public String recipePdfTest(Integer recipeId, String pdfId) throws Exception {
         CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipeId, "receiverPlaceholder");
-        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", coOrdinateVO.getY());
+        CoOrdinateVO coOrdinate = recipeLabelManager.getPdfCoordsHeight(recipeId, "tcmDecoction");
+        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", coOrdinateVO.getY(), coOrdinate);
     }
 
     /**

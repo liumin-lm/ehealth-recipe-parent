@@ -2,16 +2,20 @@ package recipe.thread;
 
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.manager.RecipeLabelManager;
@@ -45,41 +49,68 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             return;
         }
         try {
-            String newPfd = null;
-            String key = null;
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
             if (null == order) {
                 logger.warn("UpdateReceiverInfoRecipePdfRunable order is null  recipeId={}", recipeId);
                 return;
             }
+            String newPfd = null;
+            String key = null;
+            //decoctionDeploy 煎法
+            CoOrdinateVO decoction = validateDecoction(recipe.getRecipeId(), recipe.getClinicOrgan());
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
             if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order))) {
-                logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{} 添加收货人信息", recipeId);
                 CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
                 if (null == coOrdinateVO) {
                     return;
                 }
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY());
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY(), decoction);
                     key = "ChemistSignFile";
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY());
+                    newPfd = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY(), decoction);
                     key = "SignFile";
-                } else {
-                    logger.warn("UpdateReceiverInfoRecipePdfRunable file is null  recipeId={}", recipeId);
                 }
-                logger.info("UpdateReceiverInfoRecipePdfRunable file recipeid:{},newPfd ={},key ={}", recipeId, newPfd, key);
-                if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
+            } else if (null != decoction) {
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    newPfd = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), decoction);
+                    key = "SignFile";
+                } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                    newPfd = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), decoction);
+                    key = "SignFile";
                 }
             }
+            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
+            }
+            logger.info("UpdateReceiverInfoRecipePdfRunable file recipeid:{},newPfd ={},key ={}", recipeId, newPfd, key);
         } catch (Exception e) {
-            logger.error("UpdateReceiverInfoRecipePdfRunable error recipeId={},e=", recipeId, e);
+            logger.error("UpdateReceiverInfoRecipePdfRunable error recipeId={}", recipeId, e);
         }
     }
 
+    //decoctionDeploy 煎法
+    private CoOrdinateVO validateDecoction(Integer recipeId, Integer organId) {
+        IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Object configOrderType = iConfigService.getConfiguration(organId, "decoctionDeploy");
+        if (null == configOrderType) {
+            return null;
+        }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null == recipeExtend || StringUtils.isEmpty(recipeExtend.getDecoctionText())) {
+            return null;
+        }
+        //
+        CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipeId, "tcmDecoction");
+        if (null == coOrdinateVO) {
+            return null;
+        }
+        coOrdinateVO.setValue(recipeExtend.getDecoctionText());
+        return coOrdinateVO;
+    }
 
 }

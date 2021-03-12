@@ -66,23 +66,31 @@ public class CreateRecipePdfUtil {
      * @throws IOException
      * @throws DocumentException
      */
-    public static String generateReceiverInfoRecipePdf(String pdfId, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
+    public static String generateReceiverInfoRecipePdf(String pdfId, String receiver, String recMobile, String completeAddress, Integer height, CoOrdinateVO decoction) throws Exception {
         logger.info("generateReceiverInfoRecipePdf pdfId={}, receiver={} ,recMobile={} ,completeAddress={}", pdfId, receiver, recMobile, completeAddress);
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
         String fileId = null;
         if (fileMetaRecord != null) {
             File file = new File(fileMetaRecord.getFileName());
-            OutputStream output = new FileOutputStream(file);
+            @Cleanup OutputStream output = new FileOutputStream(file);
+            PdfReader reader = new PdfReader(input);
+            PdfStamper stamper = new PdfStamper(reader, output);
+            //煎法
+            if (null != decoction) {
+                addTextForPdf(stamper, decoction.getX(), decoction.getY(), decoction.getValue());
+            }
             //添加接收人信息
-            addReceiverInfoRecipePdf(input, output, receiver, recMobile, completeAddress, height);
+            addReceiverInfoRecipePdf(stamper, receiver, recMobile, completeAddress, height);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
             //删除本地文件
             file.delete();
+            stamper.close();
+            reader.close();
         }
         return fileId;
     }
@@ -130,8 +138,7 @@ public class CreateRecipePdfUtil {
     /**
      * 处方签pdf添加收货人信息
      *
-     * @param input
-     * @param output
+     * @param stamper
      * @param receiver
      * @param recMobile
      * @param completeAddress
@@ -139,9 +146,7 @@ public class CreateRecipePdfUtil {
      * @throws IOException
      * @throws DocumentException
      */
-    private static void addReceiverInfoRecipePdf(InputStream input, OutputStream output, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
-        PdfReader reader = new PdfReader(input);
-        PdfStamper stamper = new PdfStamper(reader, output);
+    private static void addReceiverInfoRecipePdf(PdfStamper stamper, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
         PdfContentByte page = stamper.getOverContent(1);
         //将文字贴入pdf
         BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
@@ -155,10 +160,6 @@ public class CreateRecipePdfUtil {
         page.setTextMatrix(10, height - 12);
         page.showText("收货人地址：" + completeAddress);
         page.endText();
-        stamper.close();
-        reader.close();
-        input.close();
-        output.close();
     }
 
     /**
@@ -182,6 +183,71 @@ public class CreateRecipePdfUtil {
         });
         stamper.close();
         reader.close();
+    }
+
+    /**
+     * pdf写入 药品价格
+     */
+    public static String generateTotalRecipePdf(String pdfId, String total) throws Exception {
+        logger.info("generateTotalRecipePdf pdfId={}, total={}", pdfId, total);
+        CoOrdinateVO coords = new CoOrdinateVO();
+        coords.setValue("药品金额 ：" + total + "元");
+        coords.setX(295);
+        coords.setY(80);
+        return generateCoOrdinatePdf(pdfId, coords);
+    }
+
+    /**
+     * 在处方pdf上手动挂上药师姓名
+     *
+     * @param pdfId   pdfId
+     * @param checker 药师id姓名
+     */
+    public static String generateDocSignImageInRecipePdf(String pdfId, String checker) throws IOException, DocumentException {
+        logger.info("generateDocSignImageInRecipePdf pdfId={}, checker={}", pdfId, checker);
+        CoOrdinateVO coords = new CoOrdinateVO();
+        coords.setValue(checker);
+        coords.setX(199);
+        coords.setY(82);
+        return generateCoOrdinatePdf(pdfId, coords);
+    }
+
+    /**
+     * 写入特殊节点信息
+     *
+     * @param pdfId     pdfId
+     * @param decoction 特殊节点写入
+     */
+    public static String generateCoOrdinatePdf(String pdfId, CoOrdinateVO decoction) throws IOException, DocumentException {
+        logger.info("generateCoOrdinatePdf pdfId={}, decoction={}", pdfId, decoction);
+        if (StringUtils.isEmpty(pdfId) || null == decoction) {
+            return null;
+        }
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            @Cleanup OutputStream output = new FileOutputStream(file);
+            @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+            PdfReader reader = new PdfReader(input);
+            PdfStamper stamper = new PdfStamper(reader, output);
+            try {
+                addTextForPdf(stamper, decoction.getX(), decoction.getY(), decoction.getValue());
+            } catch (Exception e) {
+                logger.error("generateCoOrdinatePdf error", e);
+            } finally {
+                stamper.close();
+                reader.close();
+            }
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            String fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+            return fileId;
+        }
+        return null;
     }
 
 
@@ -350,40 +416,6 @@ public class CreateRecipePdfUtil {
         reader.close();
     }
 
-    /**
-     * 在处方pdf上手动挂上药师姓名
-     *
-     * @param pdfId   pdfId
-     * @param checker 药师id姓名
-     */
-    public static String generateDocSignImageInRecipePdf(String pdfId, String checker) throws IOException, DocumentException {
-        logger.info("generateDocSignImageInRecipePdf pdfId={}, checker={}", pdfId, checker);
-        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-        if (fileMetaRecord != null) {
-            File file = new File(fileMetaRecord.getFileName());
-            @Cleanup OutputStream output = new FileOutputStream(file);
-            @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-            PdfReader reader = new PdfReader(input);
-            PdfStamper stamper = new PdfStamper(reader, output);
-            try {
-                addTextForPdf(stamper, 199f, 82f, checker);
-            } catch (Exception e) {
-                logger.error("generateDocSignImageInRecipePdf error", e);
-            } finally {
-                stamper.close();
-                reader.close();
-            }
-            //上传pdf文件
-            byte[] bytes = File2byte(file);
-            String fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
-            //删除本地文件
-            file.delete();
-            return fileId;
-        }
-        return null;
-    }
 
 
     /**
@@ -516,35 +548,6 @@ public class CreateRecipePdfUtil {
         return fileId;
     }
 
-    /**
-     * pdf写入 药品价格
-     */
-    public static String generateTotalRecipePdf(String pdfId, String total) throws Exception {
-        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-        String fileId = null;
-        if (fileMetaRecord != null) {
-            File file = new File(fileMetaRecord.getFileName());
-            try {
-                @Cleanup OutputStream output = new FileOutputStream(file);
-                PdfReader reader = new PdfReader(input);
-                PdfStamper stamper = new PdfStamper(reader, output);
-                addTextForPdf(stamper, 295f, 80f, "药品金额 ：" + total + "元");
-                stamper.close();
-                reader.close();
-            } catch (Exception e) {
-                logger.error("generateTotalRecipePdf error", e);
-            }
-            //上传pdf文件
-            byte[] bytes = File2byte(file);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
-            //删除本地文件
-            file.delete();
-        }
-        return fileId;
-    }
 
     /**
      * 根据 x，y坐标写入text文本内容
