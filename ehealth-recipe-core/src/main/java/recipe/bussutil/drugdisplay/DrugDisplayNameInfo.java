@@ -3,7 +3,6 @@ package recipe.bussutil.drugdisplay;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -11,7 +10,6 @@ import java.util.Map;
  * created by shiyuping on 2021/3/10
  */
 @Data
-@NoArgsConstructor
 @Builder
 public class DrugDisplayNameInfo {
 
