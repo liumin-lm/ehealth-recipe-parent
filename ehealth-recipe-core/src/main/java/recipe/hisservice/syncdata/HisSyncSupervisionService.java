@@ -1416,6 +1416,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //计费时间
                 req.setPayDate(order.getPayTime());
 
+                //患者Id
+                req.setMpiid(recipe.getMpiid());
+                //开方时间
+                req.setCreateDate(recipe.getCreateDate());
+
                 //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
