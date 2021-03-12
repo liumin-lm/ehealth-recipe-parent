@@ -3812,7 +3812,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * 查询所有待审核平台审方
      * @return
      */
-    @DAOMethod(sql = "select new Recipe(recipeId,clinicOrgan) from Recipe where  checkMode<2 and status =8 and  createDate>:date",limit = 0)
+    @DAOMethod(sql = "select new Recipe(recipeId,clinicOrgan,recipeType) from Recipe where  checkMode<2 and status =8 and  createDate>:date",limit = 0)
     public abstract List<Recipe>  findToAuditPlatformRecipe(@DAOParam("date") Date date);
 
 }
