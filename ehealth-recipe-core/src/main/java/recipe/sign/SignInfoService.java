@@ -267,6 +267,7 @@ public class SignInfoService implements ISignInfoService {
             SealRequestBean sealRequestBean= new SealRequestBean();
             sealRequestBean.setSignId(signId);
             commonSignRequest.setOrganId(organId);
+            commonSignRequest.setSealRequestBean(sealRequestBean);
             CaSignResultBean caSignResultBean = caRemoteService.commonCaSignAndSeal(commonSignRequest);
             if (caSignResultBean != null && StringUtils.isNotBlank(caSignResultBean.getSignCode())){
                 return "USER_SIGN_FINISH";
