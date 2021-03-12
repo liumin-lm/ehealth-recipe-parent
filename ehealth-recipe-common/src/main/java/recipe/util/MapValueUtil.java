@@ -267,6 +267,9 @@ public class MapValueUtil {
      * @return
      */
     public static Map<String, Integer> strArraytoMap(String[] strArray) {
+        if (strArray == null) {
+            return null;
+        }
         Map<String, Integer> map = new HashMap<>(strArray.length);
         for (int i = 0; i < strArray.length; i++) {
             map.put(strArray[i], i);

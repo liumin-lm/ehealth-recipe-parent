@@ -179,6 +179,11 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "来源渠道名称")
     private String sourceOrganText;
 
+    @ItemProperty(alias = "前端展示的药品名拼接名")
+    private String drugDisplaySplicedName;
+    @ItemProperty(alias = "前端展示的药品商品名拼接名")
+    private String drugDisplaySplicedSaleName;
+
 
     public DrugListBean() {
     }
@@ -602,5 +607,21 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
     public void setSourceOrganText(String sourceOrganText) {
         this.sourceOrganText = sourceOrganText;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 }
