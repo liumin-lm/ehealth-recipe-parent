@@ -1341,6 +1341,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             costDetailReq.setPack(item.getDrugUnit());
             //用药途径名
             costDetailReq.setUsingRateTextFromHis(item.getUsingRateTextFromHis());
+            //给药途径名称
+            costDetailReq.setUsingRateText(item.getUsePathwaysTextFromHis());
 
             //医保编码
             OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
@@ -1370,7 +1372,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
         RegulationSendMedicineReq req = null;
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+
+        EmploymentService employmentService = AppContextHolder.getBean("basic.employmentService",EmploymentService.class);
+        //EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
 
 
         if (ValidateUtil.nullOrZeroInteger(recipeId)) {
@@ -1435,7 +1439,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
 
                 //获取发药药师工号
-                EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                EmploymentDTO employment=employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
                 if(employment!=null){
                     req.setDispensingCheckerId(employment.getJobNumber());
                 }
