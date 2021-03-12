@@ -162,6 +162,11 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     @ItemProperty(alias = "his药品是否商保标识")
     private Integer hisciIsClaim;
 
+    @ItemProperty(alias = "前端展示的药品名拼接名")
+    private String drugDisplaySplicedName;
+    @ItemProperty(alias = "前端展示的药品商品名拼接名")
+    private String drugDisplaySplicedSaleName;
+
     public String getHisciReimburseRate() {
         return hisciReimburseRate;
     }
@@ -523,5 +528,21 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     @Override
     public void setInventories(List<DrugInventoryInfo> inventories) {
         this.inventories = inventories;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 }

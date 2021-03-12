@@ -10,11 +10,14 @@ import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -22,7 +25,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
-import recipe.service.RecipeOrderService;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,8 +33,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 电子处方工具类
@@ -104,6 +105,10 @@ public class RecipeUtil {
 
         OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugList = dao.findByOrganIdAndDrugIds(organId, drugIds);
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, dList.get(0).getDrugType()));
+        //药品商品名拼接配置
+        Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, dList.get(0).getDrugType()));
         // 设置医院价格
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
         for (DrugListBean drugList : dList) {
@@ -144,6 +149,10 @@ public class RecipeUtil {
                         useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(),drugList.getUseDoseSmallestUnit(),drugList.getSmallestUnitUseDose()));
                     }
                     drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                    //前端展示的药品拼接名处理
+                    drugList.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
+                    //前端展示的药品商品名拼接名处理
+                    drugList.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(drugList, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(drugList.getDrugType())));
                     break;
                 }
             }

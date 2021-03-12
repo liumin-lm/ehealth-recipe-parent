@@ -37,9 +37,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bean.HisSearchDrugDTO;
+import static recipe.bussutil.RecipeUtil.getHospitalPrice;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
+import recipe.util.MapValueUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -52,8 +56,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static recipe.bussutil.RecipeUtil.getHospitalPrice;
 
 /**
  * @author： 0184/yu_yun
@@ -265,12 +267,20 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             Map<String, SearchDrugDetailDTO> detailMap = searchList.stream().collect(Collectors.toMap(SearchDrugDetailDTO::getOrganDrugCode, (drugdetail -> drugdetail)));
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<DrugDetailTO> hisDrugList = hisDrug.getData().getDetails();
+            //药品名拼接配置
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(searchDrug.getOrganId(), searchDrug.getDrugType()));
+            //药品商品名拼接配置
+            Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(searchDrug.getOrganId(), searchDrug.getDrugType()));
             for (DrugDetailTO drug : hisDrugList){
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(searchDrug.getOrganId(),drug.getOrganDrugCode());
                 if (null != organDrug && null != detailMap.get(drug.getOrganDrugCode())){
                     SearchDrugDetailDTO drugListBean = detailMap.get(drug.getOrganDrugCode());
                     drugListBean.setHisciIsClaim(drug.getIsClaim());
                     drugListBean.setHisciReimburseRate(drug.getReimburse());
+                    //前端展示的药品拼接名处理
+                    drugListBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(organDrug, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(searchDrug.getDrugType())));
+                    //前端展示的药品商品名拼接名处理
+                    drugListBean.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(organDrug, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(searchDrug.getDrugType())));
                     drugList.add(drugListBean);
                 }
             }
@@ -750,29 +760,15 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(drugInfo)) {
             SearchDrugDetailDTO drugList = null;
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-            //OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            //获取药品展示拼接配置
+            //药品名拼接配置---这里处理防止每次循环还得处理一遍
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, drugType));
+            //药品商品名拼接配置
+            Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, drugType));
             DrugList drugListNow;
             boolean drugInventoryFlag;
             List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
             for (String s : drugInfo) {
-               /* try {
-                    drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
-                    //考虑到在es做过滤有可能会导致老版本搜索出多个重复药品
-                    //(如果X药品有AB两个药房，要同步两次到es，如果不根据药房id搜索就会出现两个重复药品),so过滤药房暂时先放这
-                    if (organId != null && pharmacyId != null){
-                        canAddDrug = false;
-                        OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, drugList.getOrganDrugCode(), drugList.getDrugId());
-                        if (organDrugList !=null && StringUtils.isNotEmpty(organDrugList.getPharmacy())){
-                            //过滤掉不在此药房内的药
-                            List<String> pharmacyIds = Splitter.on(",").splitToList(organDrugList.getPharmacy());
-                            if (pharmacyIds.contains(String.valueOf(pharmacyId))){
-                                canAddDrug = true;
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("searchDrugListWithES parse error.  String=" + s,e);
-                }*/
                 drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
                 drugList.setHospitalPrice(drugList.getSalePrice());
                 //该高亮字段给微信端使用:highlightedField
@@ -818,6 +814,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(), drugList.getUseDoseSmallestUnit(), drugList.getSmallestUnitUseDose()));
                 }
                 drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                //前端展示的药品拼接名处理
+                drugList.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugType)));
+                //前端展示的药品商品名拼接名处理
+                drugList.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(drugList, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(drugType)));
                 dList.add(drugList);
             }
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
