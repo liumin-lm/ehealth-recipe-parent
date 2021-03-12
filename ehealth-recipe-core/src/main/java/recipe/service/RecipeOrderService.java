@@ -1149,7 +1149,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     public boolean saveOrderToDB(RecipeOrder order, List<Recipe> recipeList, Integer payMode, OrderCreateResult result, RecipeDAO recipeDAO, RecipeOrderDAO orderDAO) {
-
+        LOGGER.info("recipeOrder saveOrderToDB recipeList={}", JSON.toJSONString(recipeList));
         List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         //订单类型设置默认值
         if (null == order.getOrderType()) {
@@ -3035,6 +3035,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     private RecipeResultBean updateRecipeInfo(boolean saveFlag, RecipeResultBean result, List<Integer> recipeIds, Map<String, Object> recipeInfo, BigDecimal recipeFee) {
+        LOGGER.info("recipeOrder updateRecipeInfo recipeIds={}", JSON.toJSONString(recipeIds));
         if (null == result) {
             result = RecipeResultBean.getSuccess();
         }

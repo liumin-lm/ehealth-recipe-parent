@@ -3828,6 +3828,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public RecipeResultBean updateRecipePayResultImplForOrder(boolean saveFlag, Integer recipeId, Integer payFlag, Map<String, Object> info, BigDecimal recipeFee) {
+        LOGGER.info("recipe updateRecipePayResultImplForOrder recipeIds={},payFlag={}", recipeId, payFlag);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
             result.setCode(RecipeResultBean.FAIL);
