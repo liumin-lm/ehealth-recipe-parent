@@ -1438,10 +1438,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
 
                 //获取发药药师工号
-                EmploymentDTO employment=employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
-                if(employment!=null){
-                    req.setDispensingCheckerId(employment.getJobNumber());
-                }
+               if (recipe.getChecker()!=null){
+                   EmploymentDTO employment=employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                   if(employment!=null){
+                       req.setDispensingCheckerId(employment.getJobNumber());
+                   }
+               }
 
                 //获取发药时间  订单表中进行获取
                 req.setDispensingTime(order.getDispensingTime());
