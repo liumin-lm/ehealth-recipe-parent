@@ -1353,7 +1353,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             items.add(costDetailReq);
         }
-
         return items;
     }
 
