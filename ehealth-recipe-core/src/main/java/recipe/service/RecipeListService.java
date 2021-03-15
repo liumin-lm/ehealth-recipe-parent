@@ -1695,7 +1695,7 @@ public class RecipeListService extends RecipeBaseService {
                     } else {
                         //历史数据处理
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());
-                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetails.get(0)));
+                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetails.get(0), recipe.getRecipeType()));
                     }
                 }
 

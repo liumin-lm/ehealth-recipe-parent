@@ -573,23 +573,16 @@ public class RecipeServiceSub {
                                 detail.setUsingRate(recipe.getTcmUsingRate());
                             }
 
-                            //date 20200526
-                            //构建处方初始化处方药品详情的时候用recipe的剂数
-//                            if(null != recipe.getCopyNum()){
-//                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
-//                            }
                             if (detail.getUseDays() == null) {
                                 detail.setUseDays(recipe.getCopyNum());
                             }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
+                            //中药药品显示名称处理---固定
+                            detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail, RecipeBussConstant.RECIPETYPE_TCM));
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
-                            //date 20200526
-                            //构建处方初始化处方药品详情的时候用recipe的剂数
-//                            if(null != recipe.getCopyNum()){
-//                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
-//                            }
+
                             if (detail.getUseDays() == null) {
                                 detail.setUseDays(recipe.getCopyNum());
                             }
@@ -1566,7 +1559,7 @@ public class RecipeServiceSub {
                 }
                 //药品名历史数据处理
                 if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
-                    recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail));
+                    recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
                 }
             }
         } catch (Exception e) {

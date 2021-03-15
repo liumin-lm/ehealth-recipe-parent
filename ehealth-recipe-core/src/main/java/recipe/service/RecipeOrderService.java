@@ -1570,7 +1570,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         //药品名历史数据处理
                         if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
-                            recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail));
+                            recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
                         }
                     }
                     //获取处方详情
