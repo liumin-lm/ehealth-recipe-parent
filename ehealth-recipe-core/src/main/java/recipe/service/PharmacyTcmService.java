@@ -106,9 +106,6 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         if (pharmacyTcm.getOrganId() == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构ID不能为空！");
         }
-        if (pharmacyTcm.getType() == null){
-            throw new DAOException(DAOException.VALUE_NEEDED, "药房分类不能为空！");
-        }
 
     }
 
@@ -304,5 +301,20 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         List<PharmacyTcm> symptomQueryResult = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("查询药房服务[querPharmacyTcmByOrganId]:" + JSONUtils.toString(symptomQueryResult));
         return  ObjectCopyUtils.convert(symptomQueryResult, PharmacyTcmDTO.class);
+    }
+
+    /**
+     * 根据机构Id查询药房
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public PharmacyTcm querPharmacyTcmByOrganIdAndName(Integer organId ,String name) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+        PharmacyTcm symptomQueryResult = pharmacyTcmDAO.getByOrganIdAndName(organId,name);
+        return  symptomQueryResult;
     }
 }
