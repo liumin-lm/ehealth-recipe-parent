@@ -730,6 +730,11 @@ public class RecipeExtend implements Serializable {
         this.refundNodeStatus = refundNodeStatus;
     }
 
+    /**
+     * 加急处方
+     * @return
+     */
+    @Column(name = "canUrgentAuditRecipe")
     public Integer getCanUrgentAuditRecipe() {
         return canUrgentAuditRecipe;
     }

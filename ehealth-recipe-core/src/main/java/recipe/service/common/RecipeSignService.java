@@ -127,6 +127,7 @@ public class RecipeSignService {
         String patientAddress = MapValueUtil.getString(conditions, "patientAddress");
         String patientTel = MapValueUtil.getString(conditions, "patientTel");
         Integer payMode = null;
+        Integer newPayMode = null;
         if (null != giveMode) {
             if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 //药店取药
@@ -135,6 +136,7 @@ public class RecipeSignService {
                     return response;
                 }
                 payMode = RecipeBussConstant.PAYMODE_TFDS;
+                newPayMode = RecipeBussConstant.PAYMODE_OFFLINE;
             } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
                 //配送到家
                 if (StringUtils.isEmpty(patientAddress) || StringUtils.isEmpty(patientTel)) {
@@ -151,13 +153,16 @@ public class RecipeSignService {
                     return response;
                 }
                 payMode = RecipeBussConstant.PAYMODE_ONLINE;
+                newPayMode = RecipeBussConstant.PAYMODE_ONLINE;
             } else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
                 //患者自由选择
                 depId = null;
                 payMode = RecipeBussConstant.PAYMODE_COMPLEX;
+                newPayMode = RecipeBussConstant.PAYMODE_OFFLINE;
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
                 //到院取药----走九州通补充库存模式----这里直接推送--不需要审核
                 payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                newPayMode = RecipeBussConstant.PAYMODE_OFFLINE;
                 //武昌模式到院取药推送处方到九州通
                 //没有库存就推送九州通
                 drugsEnterpriseService.pushHosInteriorSupport(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
@@ -229,6 +234,7 @@ public class RecipeSignService {
             orderAttr.put("recMobile", patientTel);
             orderAttr.put("drugStoreName", depName);
             orderAttr.put("drugStoreAddr", pharmacyAddress);
+            orderAttr.put("payMode", newPayMode);
             RecipeResultBean resultBean = orderService.updateOrderInfo(dbRecipe.getOrderCode(), orderAttr, null);
             if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                 LOG.info("sign 订单更新成功 recipeId={}, orderCode={}", recipeId, dbRecipe.getOrderCode());
