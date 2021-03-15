@@ -21,7 +21,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.manager.RecipeLabelManager;
 
 /**
- * 支付成功后修改pdf 添加收货人信息
+ * 支付成功后修改pdf 添加收货人信息/煎法
  *
  * @author liumin
  */
@@ -58,7 +58,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             String newPfd = null;
             String key = null;
             //decoctionDeploy 煎法
-            CoOrdinateVO decoction = validateDecoction(recipe.getRecipeId(), recipe.getClinicOrgan());
+            CoOrdinateVO decoction = validateDecoction(recipe);
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
@@ -77,7 +77,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             } else if (null != decoction) {
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                     newPfd = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), decoction);
-                    key = "SignFile";
+                    key = "ChemistSignFile";
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
                     newPfd = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), decoction);
                     key = "SignFile";
@@ -92,20 +92,25 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
         }
     }
 
-    //decoctionDeploy 煎法
-    private CoOrdinateVO validateDecoction(Integer recipeId, Integer organId) {
+    /**
+     * 校验煎法
+     *
+     * @param recipe
+     * @return
+     */
+    private CoOrdinateVO validateDecoction(Recipe recipe) {
         IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Object configOrderType = iConfigService.getConfiguration(organId, "decoctionDeploy");
+        Object configOrderType = iConfigService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy");
         if (null == configOrderType) {
             return null;
         }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (null == recipeExtend || StringUtils.isEmpty(recipeExtend.getDecoctionText())) {
             return null;
         }
-        //
-        CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipeId, "tcmDecoction");
+        //decoctionDeploy 煎法
+        CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipe.getRecipeId(), "tcmDecoction");
         if (null == coOrdinateVO) {
             return null;
         }

@@ -87,7 +87,7 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
-        logger.warn("usingRateMap usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
+        logger.info("usingRateMap usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
         if (CollectionUtils.isEmpty(usingRates)) {
             return new HashMap<>(1);
         }
@@ -105,7 +105,7 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-        logger.warn("usingRateMap usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
+        logger.info("usingRateMap usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
         if (CollectionUtils.isEmpty(usePathways)) {
             return new HashMap<>(1);
         }
