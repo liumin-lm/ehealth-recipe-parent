@@ -73,6 +73,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -1563,9 +1564,13 @@ public class RecipeServiceSub {
 
         try {
             for (Recipedetail recipedetail : recipedetails) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                }
+                //药品名历史数据处理
+                if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
+                    recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail));
                 }
             }
         } catch (Exception e) {
@@ -2686,50 +2691,8 @@ public class RecipeServiceSub {
         //获取诊断疾病名称
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
-        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-            String useDose;
-            for (Recipedetail r : details) {
-                if (StringUtils.isNotEmpty(r.getUseDoseStr())) {
-                    useDose = r.getUseDoseStr();
-                } else {
-                    useDose = r.getUseDose() == null ? r.getUseDoseStr() : String.valueOf(r.getUseDose());
-                }
-                drugNames.add(r.getDrugName() + " * " + useDose + r.getUseDoseUnit());
-            }
-        } else {
-            //组装药品名称   药品名+商品名+规格
-            List<Integer> drugIds = Lists.newArrayList();
-            for (Recipedetail r : details) {
-                drugIds.add(r.getDrugId());
-            }
-            List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            for (Recipedetail recipedetail : details) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    //判断非空
-                    String drugName = StringUtils.isEmpty(organDrugLists.get(0).getDrugName()) ? "" : organDrugLists.get(0).getDrugName();
-                    String saleName = StringUtils.isEmpty(organDrugLists.get(0).getSaleName()) ? "" : organDrugLists.get(0).getSaleName();
-                    String drugSpec = StringUtils.isEmpty(organDrugLists.get(0).getDrugSpec()) ? "" : organDrugLists.get(0).getDrugSpec();
-                    String drugForm = StringUtils.isEmpty(organDrugLists.get(0).getDrugForm()) ? "" : organDrugLists.get(0).getDrugForm();
-                    String drugUnit = StringUtils.isEmpty(organDrugLists.get(0).getUnit()) ? "" : organDrugLists.get(0).getUnit();
-                    //数据库中saleName字段可能包含与drugName相同的字符串,增加判断条件，将这些相同的名字过滤掉
-                    StringBuilder drugAndSale = new StringBuilder("");
-                    if (StringUtils.isNotEmpty(saleName)) {
-                        String[] strArray = saleName.split("\\s+");
-                        for (String saleName1 : strArray) {
-                            if (!saleName1.equals(drugName)) {
-                                drugAndSale.append(saleName1);
-                            }
-                        }
-                    }
-                    drugAndSale.append(drugName);
-
-                    //拼装
-                    drugNames.add(drugAndSale + drugForm + " " + drugSpec + "/" + drugUnit);
-                }
-            }
-        }
+        //取第一个药的药品显示拼接名
+        drugNames.add(details.get(0).getDrugDisplaySplicedName());
 
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setDiseaseName(diseaseName);
