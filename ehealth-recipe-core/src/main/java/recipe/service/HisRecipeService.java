@@ -1676,6 +1676,8 @@ public class HisRecipeService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
+                recipeBean.setOrganDiseaseName(diseaseName);
+                recipeBean.setOrganDiseaseId(disease);
                 emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             }

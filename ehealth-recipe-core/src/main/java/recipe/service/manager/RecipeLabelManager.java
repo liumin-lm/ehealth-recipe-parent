@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
+import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -65,7 +66,7 @@ public class RecipeLabelManager {
      * @return Y坐标点位 （默认460）
      */
     public int getPdfReceiverHeight(Integer recipeId, Integer organId) {
-        List<CoOrdinateVO> coOrdinateList = redisClient.getList(recipeId.toString());
+        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
         logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
         if (!CollectionUtils.isEmpty(coOrdinateList)) {
             for (CoOrdinateVO coOrdinate : coOrdinateList) {
@@ -245,7 +246,8 @@ public class RecipeLabelManager {
             logger.error("RecipeLabelManager coOrdinate error ");
             return;
         }
-        redisClient.addList(recipeId.toString(), coOrdinateList);
+        redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
+        
     }
 
     /**
