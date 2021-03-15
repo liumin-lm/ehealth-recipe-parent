@@ -96,9 +96,8 @@ public class RecipeLabelManager {
 
         for (CoOrdinateVO coOrdinate : coOrdinateList) {
             if (coordsName.equals(coOrdinate.getName())) {
-                coOrdinate.setY(595 - 60 - coOrdinate.getY());
-                //coOrdinate.setY(595 - 50 - 115 - coOrdinate.getY());
-                coOrdinate.setX(420 - 5 - coOrdinate.getX());
+                coOrdinate.setY(498 - coOrdinate.getY());
+                coOrdinate.setX(coOrdinate.getX() + 5);
                 return coOrdinate;
             }
         }
