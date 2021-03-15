@@ -1483,13 +1483,9 @@ public class RecipeServiceSub {
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         StringBuilder stringBuilder = new StringBuilder();
-        for (HisRecipeDetailBean recipedetail : recipe.getDetailData()) {
-            stringBuilder.append(recipedetail.getDrugName());
-            stringBuilder.append(" ").append((recipedetail.getDrugSpec()) == null ? "" : recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit() == null ? "" : recipedetail.getDrugUnit()).append("、");
-        }
-        if (stringBuilder.length() > 0) {
-            stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
-        }
+        stringBuilder.append(recipe.getDetailData().get(0).getDrugName());
+        stringBuilder.append(" ").append((recipe.getDetailData().get(0).getDrugSpec()) == null ? "" : recipe.getDetailData().get(0).getDrugSpec()).append("/").append(recipe.getDetailData().get(0).getDrugUnit() == null ? "" : recipe.getDetailData().get(0).getDrugUnit()).append("、");
+        //统一显示第一个药品信息
         r.setRecipeDrugName(stringBuilder.toString());
 
         if (StringUtils.isNotEmpty(recipe.getSignDate())) {
