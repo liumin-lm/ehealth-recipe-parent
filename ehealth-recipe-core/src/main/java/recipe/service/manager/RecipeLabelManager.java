@@ -339,8 +339,14 @@ public class RecipeLabelManager {
             RecipeDetailBean d = recipeDetailList.get(i);
             //名称+规格+药品单位+开药总量+药品单位
             StringBuilder stringBuilder = new StringBuilder(i + 1);
-            stringBuilder.append(i + 1).append("、").append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit())
-                    .append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
+            stringBuilder.append(i + 1).append("、");
+            //药品显示名处理
+            if (StringUtils.isNotEmpty(d.getDrugDisplaySplicedName())) {
+                stringBuilder.append(d.getDrugDisplaySplicedName());
+            } else {
+                stringBuilder.append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
+            }
+            stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
             Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
             if ((boolean) canShowDrugCost) {
                 BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP);
@@ -378,6 +384,7 @@ public class RecipeLabelManager {
             return;
         }
         List<RecipeDetailBean> recipeDetailList = (List<RecipeDetailBean>) list.get(0).getValue();
+        String drugShowName;
         for (int i = 0; i < recipeDetailList.size(); i++) {
             RecipeDetailBean detail = recipeDetailList.get(i);
             String dTotal;
@@ -389,7 +396,12 @@ public class RecipeLabelManager {
             if (!StringUtils.isEmpty(detail.getMemo())) {
                 dTotal = dTotal + "*" + detail.getMemo();
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + ":" + dTotal));
+            if (StringUtils.isNotEmpty(detail.getDrugDisplaySplicedName())) {
+                drugShowName = detail.getDrugDisplaySplicedName();
+            } else {
+                drugShowName = detail.getSaleName() + ":" + dTotal;
+            }
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", (StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()) + "天"));

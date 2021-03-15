@@ -73,6 +73,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -572,23 +573,16 @@ public class RecipeServiceSub {
                                 detail.setUsingRate(recipe.getTcmUsingRate());
                             }
 
-                            //date 20200526
-                            //构建处方初始化处方药品详情的时候用recipe的剂数
-//                            if(null != recipe.getCopyNum()){
-//                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
-//                            }
                             if (detail.getUseDays() == null) {
                                 detail.setUseDays(recipe.getCopyNum());
                             }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
+                            //中药药品显示名称处理---固定
+                            detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail, RecipeBussConstant.RECIPETYPE_TCM));
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
-                            //date 20200526
-                            //构建处方初始化处方药品详情的时候用recipe的剂数
-//                            if(null != recipe.getCopyNum()){
-//                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
-//                            }
+
                             if (detail.getUseDays() == null) {
                                 detail.setUseDays(recipe.getCopyNum());
                             }
@@ -1482,13 +1476,9 @@ public class RecipeServiceSub {
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         StringBuilder stringBuilder = new StringBuilder();
-        for (HisRecipeDetailBean recipedetail : recipe.getDetailData()) {
-            stringBuilder.append(recipedetail.getDrugName());
-            stringBuilder.append(" ").append((recipedetail.getDrugSpec()) == null ? "" : recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit() == null ? "" : recipedetail.getDrugUnit()).append("、");
-        }
-        if (stringBuilder.length() > 0) {
-            stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
-        }
+        stringBuilder.append(recipe.getDetailData().get(0).getDrugName());
+        stringBuilder.append(" ").append((recipe.getDetailData().get(0).getDrugSpec()) == null ? "" : recipe.getDetailData().get(0).getDrugSpec()).append("/").append(recipe.getDetailData().get(0).getDrugUnit() == null ? "" : recipe.getDetailData().get(0).getDrugUnit()).append("、");
+        //统一显示第一个药品信息
         r.setRecipeDrugName(stringBuilder.toString());
 
         if (StringUtils.isNotEmpty(recipe.getSignDate())) {
@@ -1563,9 +1553,13 @@ public class RecipeServiceSub {
 
         try {
             for (Recipedetail recipedetail : recipedetails) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                }
+                //药品名历史数据处理
+                if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
+                    recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
                 }
             }
         } catch (Exception e) {
@@ -2686,50 +2680,8 @@ public class RecipeServiceSub {
         //获取诊断疾病名称
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
-        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-            String useDose;
-            for (Recipedetail r : details) {
-                if (StringUtils.isNotEmpty(r.getUseDoseStr())) {
-                    useDose = r.getUseDoseStr();
-                } else {
-                    useDose = r.getUseDose() == null ? r.getUseDoseStr() : String.valueOf(r.getUseDose());
-                }
-                drugNames.add(r.getDrugName() + " * " + useDose + r.getUseDoseUnit());
-            }
-        } else {
-            //组装药品名称   药品名+商品名+规格
-            List<Integer> drugIds = Lists.newArrayList();
-            for (Recipedetail r : details) {
-                drugIds.add(r.getDrugId());
-            }
-            List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            for (Recipedetail recipedetail : details) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    //判断非空
-                    String drugName = StringUtils.isEmpty(organDrugLists.get(0).getDrugName()) ? "" : organDrugLists.get(0).getDrugName();
-                    String saleName = StringUtils.isEmpty(organDrugLists.get(0).getSaleName()) ? "" : organDrugLists.get(0).getSaleName();
-                    String drugSpec = StringUtils.isEmpty(organDrugLists.get(0).getDrugSpec()) ? "" : organDrugLists.get(0).getDrugSpec();
-                    String drugForm = StringUtils.isEmpty(organDrugLists.get(0).getDrugForm()) ? "" : organDrugLists.get(0).getDrugForm();
-                    String drugUnit = StringUtils.isEmpty(organDrugLists.get(0).getUnit()) ? "" : organDrugLists.get(0).getUnit();
-                    //数据库中saleName字段可能包含与drugName相同的字符串,增加判断条件，将这些相同的名字过滤掉
-                    StringBuilder drugAndSale = new StringBuilder("");
-                    if (StringUtils.isNotEmpty(saleName)) {
-                        String[] strArray = saleName.split("\\s+");
-                        for (String saleName1 : strArray) {
-                            if (!saleName1.equals(drugName)) {
-                                drugAndSale.append(saleName1);
-                            }
-                        }
-                    }
-                    drugAndSale.append(drugName);
-
-                    //拼装
-                    drugNames.add(drugAndSale + drugForm + " " + drugSpec + "/" + drugUnit);
-                }
-            }
-        }
+        //取第一个药的药品显示拼接名
+        drugNames.add(details.get(0).getDrugDisplaySplicedName());
 
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setDiseaseName(diseaseName);

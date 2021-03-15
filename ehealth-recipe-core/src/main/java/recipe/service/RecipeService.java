@@ -8,6 +8,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.itextpdf.text.DocumentException;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -19,6 +20,7 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
@@ -27,6 +29,7 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -35,9 +38,11 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
@@ -126,6 +131,7 @@ import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -1869,13 +1875,16 @@ public class RecipeService extends RecipeBaseService {
         switch (checkFlag) {
             case 1:
                 //只校验医院库存医院库存不校验药企，如无库存不允许开，直接弹出提示
-                //HIS消息发送
                 RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
                 if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                     rMap.put("signResult", false);
                     rMap.put("errorFlag", true);
                     List<String> nameList = (List<String>) scanResult.getObject();
-                    rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                    String nameStr="";
+                    if (CollectionUtils.isNotEmpty(nameList)){
+                        nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+                    }
+                    rMap.put("msg", "该处方单上的" + nameStr + "药品门诊药房库存不足，请更换其他药品后再试。");
                     rMap.put("canContinueFlag", "-1");
                     LOGGER.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
                     return rMap;
@@ -1897,12 +1906,17 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //药企库存实时查询判断药企库存
                     RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
-                    RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                    RecipeResultBean recipeResultBean = recipePatientService.findUnSupportDepList(recipeId);
                     if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
                         rMap.put("signResult", false);
                         rMap.put("errorFlag", true);
                         rMap.put("canContinueFlag", "-1");
-                        rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                        List<String> nameList = (List<String>) recipeResultBean.getObject();
+                        String nameStr="";
+                        if (CollectionUtils.isNotEmpty(nameList)){
+                            nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+                        }
+                        rMap.put("msg", "由于该处方单上的" + nameStr + "药品库存不足，请更换其他药品后再试。");
                         //药品医院有库存的情况
                         LOGGER.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
                         return rMap;
@@ -1911,22 +1925,28 @@ public class RecipeService extends RecipeBaseService {
                 break;
             case 3:
                 //药企和医院库存都要校验
-                //HIS消息发送
+                //医院库存校验
                 RecipeResultBean scanResult3 = hisService.scanDrugStockByRecipeId(recipeId);
+                List<String> hospitalDrugName = (List<String>)scanResult3.getObject();
+                // 是否需要校验药企库存
                 boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
+                // 药企无库存药品名称list
+                List<String> enterpriseDrugName = null;
                 int errFlag = 0;
                 if (checkEnterprise3) {
                     //his管理的药企不要验证库存和配送药品，有his【预校验】校验库存
                     if (new Integer(0).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))) {
+                        // 药品能否一起配送
                         RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
                         if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())) {
                             errFlag = 1;
                             rMap.put("msg", recipeResult3.getError());
                         } else {
-                            //药企库存实时查询判断药企库存
+                            //药企库存校验
                             RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
-                            RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                            RecipeResultBean recipeResultBean = recipePatientService.findUnSupportDepList(recipeId);
                             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                                enterpriseDrugName = (List<String>) recipeResultBean.getObject();
                                 errFlag = 1;
                                 rMap.put("msg", recipeResultBean.getError());
                             }
@@ -1938,34 +1958,50 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("signResult", false);
                     rMap.put("errorFlag", true);
                     if (recipe.getClinicOrgan() == 1000899) {
-                        List<String> nameList = (List<String>) scanResult3.getObject();
-                        rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                        String nameStr="";
+                        if (CollectionUtils.isNotEmpty(hospitalDrugName)){
+                            nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                        }
+                        rMap.put("msg", "该处方单上的" + nameStr + "药品门诊药房库存不足，请更换其他药品后再试。");
                     } else {
-                        rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                        String nameStr="";
+                        if (CollectionUtils.isNotEmpty(hospitalDrugName) && CollectionUtils.isNotEmpty(enterpriseDrugName)){
+                            hospitalDrugName.retainAll(enterpriseDrugName);
+                            if (CollectionUtils.isNotEmpty(hospitalDrugName));
+                            nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                        }
+                        rMap.put("msg", "由于该处方单上的" + nameStr + "药品库存不足，请更换其他药品后再试。");
                     }
                     rMap.put("canContinueFlag", "-1");
                     LOGGER.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
                     return rMap;
                 } else if (RecipeResultBean.FAIL.equals(scanResult3.getCode()) && errFlag == 0) {
-                    //医院有库存药企无库存
+                    //医院无库存药企有库存
                     rMap.put("signResult", false);
                     rMap.put("errorFlag", true);
+                    String nameStr="";
+                    if (CollectionUtils.isNotEmpty(hospitalDrugName)){
+                        nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                    }
                     if (recipe.getClinicOrgan() == 1000899) {
                         rMap.put("canContinueFlag", "-1");
-                        List<String> nameList = (List<String>) scanResult3.getObject();
-                        rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                        rMap.put("msg", "该处方单上的" + nameStr + "药品门诊药房库存不足，请更换其他药品后再试。");
                     } else {
                         rMap.put("canContinueFlag", "1");
-                        rMap.put("msg", "由于该处方单上的药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
+                        rMap.put("msg", "由于该处方单上的"+ nameStr +"药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
                     }
                     LOGGER.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
                     return rMap;
                 } else if (RecipeResultBean.SUCCESS.equals(scanResult3.getCode()) && errFlag == 1) {
-                    //医院无库存药企有库存
+                    //医院有库存药企无库存
+                    String nameStr="";
+                    if (CollectionUtils.isNotEmpty(enterpriseDrugName)){
+                        nameStr = "【" + Joiner.on("、").join(enterpriseDrugName) + "】";
+                    }
                     rMap.put("signResult", false);
                     rMap.put("errorFlag", true);
                     rMap.put("canContinueFlag", "2");
-                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+                    rMap.put("msg", "由于该处方单上的"+ nameStr +"药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
                     LOGGER.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
                     return rMap;
                 }
@@ -3052,14 +3088,14 @@ public class RecipeService extends RecipeBaseService {
 
     public static void doRecipeCancelByInvalidTime(List<Recipe> recipeList) {
         if (CollectionUtils.isNotEmpty(recipeList)) {
-            try {
-                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-                RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-                StringBuilder memo = new StringBuilder();
-                RecipeOrder order;
-                for (Recipe recipe : recipeList) {
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            StringBuilder memo = new StringBuilder();
+            RecipeOrder order;
+            for (Recipe recipe : recipeList) {
+                try {
                     Boolean lock = RedisClient.instance().setIfAbsentAndExpire(RecipeSystemConstant.RECIPE_INVALID_LOCK_KEY + recipe.getRecipeId(), recipe.getRecipeId(), RecipeSystemConstant.RECIPE_INVALID_LOCK_TIMEOUT);
                     LOGGER.info("处方失效获取redis锁结果-lock={},recipeId={}",lock, recipe.getRecipeId());
                     if (!lock){
@@ -3119,12 +3155,14 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, updateStatus, memo.toString());
+                }  catch (Exception e) {
+                   LOGGER.error("根据失效时间处理到期处方异常，处方={}",JSONObject.toJSONString(recipeList), e);
+                } finally {
+                    RedisClient.instance().del(RecipeSystemConstant.RECIPE_INVALID_LOCK_KEY + recipe.getRecipeId());
                 }
-                //修改cdr_his_recipe status为已处理
-                orderService.updateHisRecieStatus(recipeList);
-            } catch (Exception e) {
-                LOGGER.error("根据失效时间处理到期处方异常，处方={}",JSONObject.toJSONString(recipeList), e);
             }
+            //修改cdr_his_recipe status为已处理
+            orderService.updateHisRecieStatus(recipeList);
         }
     }
 
@@ -3623,6 +3661,196 @@ public class RecipeService extends RecipeBaseService {
 
         return backList;
     }
+
+    public List<DrugEnterpriseResult> findUnSupportDepList(Integer recipeId, int organId) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+        SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
+
+        List<DrugEnterpriseResult> backList = new ArrayList<>();
+        //线上支付能力判断
+        boolean hisStatus = iHisConfigService.isHisEnable(organId);
+        boolean onlinePay = hisStatus ? true : false;
+
+        //检测配送的药品是否按照完整的包装开的药，如 1*20支，开了10支，则不进行选择，数据库里主要是useTotalDose不为小数
+        List<Double> totalDoses = recipeDetailDAO.findUseTotalDoseByRecipeId(recipeId);
+        if (null != totalDoses && !totalDoses.isEmpty()) {
+            for (Double totalDose : totalDoses) {
+                if (null != totalDose) {
+                    int itotalDose = (int) totalDose.doubleValue();
+                    if (itotalDose != totalDose.doubleValue()) {
+                        LOGGER.error("findUnSupportDepList 不支持非完整包装的计量药品配送. recipeId=[{}], totalDose=[{}]", recipeId, totalDose);
+                        break;
+                    }
+                } else {
+                    LOGGER.error("findUnSupportDepList 药品计量为null. recipeId=[{}]", recipeId);
+                    break;
+                }
+            }
+        } else {
+            LOGGER.error("findUnSupportDepList 所有药品计量为null. recipeId=[{}]", recipeId);
+            return backList;
+        }
+
+        List<Integer> drugIds = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
+        if (CollectionUtils.isEmpty(drugIds)) {
+            LOGGER.error("findUnSupportDepList 处方[{}]没有任何药品！", recipeId);
+            return backList;
+        }
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(organId);
+        for (DrugsEnterprise dep : drugsEnterpriseList) {
+            //根据药企是否能满足所有配送的药品优先
+            Integer depId = dep.getId();
+            //不支持在线支付跳过该药企
+            if (Integer.valueOf(1).equals(dep.getPayModeSupport()) && !onlinePay) {
+                continue;
+            }
+            //药品匹配成功标识
+            boolean succFlag = false;
+            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
+            if (new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(organId))) {
+                succFlag = true;
+            } else {
+                Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
+                if (null != count && count > 0) {
+                    if (count == drugIds.size()) {
+                        succFlag = true;
+                    }
+                }
+            }
+            if (!succFlag) {
+                LOGGER.error("findUnSupportDepList 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
+                continue;
+            } else {
+                //通过查询该药企库存，最终确定能否配送
+                DrugEnterpriseResult result = findUnSupportDrugEnterprise(recipeId, dep);
+                succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
+                if (succFlag || dep.getCheckInventoryFlag() == 2) {
+                    LOGGER.info("findUnSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
+                } else {
+                    backList.add(result);
+                    LOGGER.error("findUnSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]", dep.getName(), recipeId, depId);
+                }
+            }
+        }
+        return backList;
+    }
+
+    /**
+     * 查询药企无库存药品信息 DrugEnterpriseResult.Object=List<DrugName>
+     * @param recipeId
+     * @param drugsEnterprise
+     * @return
+     */
+    public DrugEnterpriseResult findUnSupportDrugEnterprise(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("findUnSupportDrugEnterprise recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 0) {
+            result.setCode(DrugEnterpriseResult.SUCCESS);
+            return result;
+        }
+        //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
+        //根据处方查询医院库存
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            RecipeResultBean recipeResultBean = hisService.scanDrugStockByRecipeId(recipeId);
+            LOGGER.info("findUnSupportDrugEnterprise 医院库存查询结果={}", JSONObject.toJSONString(recipeResultBean));
+            if (recipeResultBean.getCode() == RecipeResultBean.SUCCESS){
+                result.setCode(DrugEnterpriseResult.SUCCESS);
+            }else {
+                result.setCode(DrugEnterpriseResult.FAIL);
+                result.setObject(recipeResultBean.getObject());
+            }
+            return result;
+        }
+        //通过前置机调用
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            ScanRequestBean scanRequestBean = RemoteDrugEnterpriseService.getScanRequestBean(recipe, drugsEnterprise);
+            LOGGER.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+            HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+            LOGGER.info("findUnSupportDrugEnterprise 前置机调用查询结果={}", JSONObject.toJSONString(responseTO));
+            if (responseTO != null && responseTO.isSuccess()) {
+                result.setCode(DrugEnterpriseResult.SUCCESS);
+            } else {
+                result.setCode(DrugEnterpriseResult.FAIL);
+            }
+            return result;
+        }
+        // 通过平台调用，获取调用实现
+        AccessDrugEnterpriseService drugEnterpriseService = null;
+        if (null == drugsEnterprise) {
+            //药企对象为空，则通过处方id获取相应药企实现
+            DrugEnterpriseResult result1 = RemoteDrugEnterpriseService.getServiceByRecipeId(recipeId);
+            if (DrugEnterpriseResult.SUCCESS.equals(result1.getCode())) {
+                drugEnterpriseService = result1.getAccessDrugEnterpriseService();
+                drugsEnterprise = result1.getDrugsEnterprise();
+            }
+        } else {
+            drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+        }
+        LOGGER.info("findUnSupportDrugEnterprise 平台调用查询方法={}", JSONObject.toJSONString(drugEnterpriseService.getClass().getName()));
+        if (null != drugEnterpriseService) {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            DrugsDataBean drugsDataBean = new DrugsDataBean();
+            drugsDataBean.setOrganId(recipe.getClinicOrgan());
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+            drugsDataBean.setRecipeDetailBeans(recipeDetailBeans);
+            List<String> drugNameList = recipeDetailBeans.stream().map(RecipeDetailBean -> RecipeDetailBean.getDrugName()).collect(Collectors.toList());
+            LOGGER.info("findUnSupportDrugEnterprise 平台调用所有药品名称={}", JSONObject.toJSONString(drugNameList));
+            int flag = getFlag(drugsEnterprise, recipe);
+            // 获得有库存的药品名称集合 drugName list
+            List<String> haveDrugList = drugEnterpriseService.getDrugInventoryForApp(drugsDataBean, drugsEnterprise,flag);
+            LOGGER.info("findUnSupportDrugEnterprise 平台调用查询结果={}", JSONObject.toJSONString(haveDrugList));
+            if (haveDrugList == null){
+                // 返回null说明未对接查询库存接口，所有药品有库存
+                result.setCode(DrugEnterpriseResult.SUCCESS);
+            }else {
+                drugNameList.removeAll(haveDrugList);
+                // 存在无库存药品
+                if (CollectionUtils.isNotEmpty(drugNameList)){
+                    result.setCode(DrugEnterpriseResult.FAIL);
+                    result.setObject(drugNameList);
+                }else {
+                    // 所有药品都有库存
+                    result.setCode(DrugEnterpriseResult.SUCCESS);
+                }
+            }
+        }
+        LOGGER.info("findUnSupportDrugEnterprise recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        return result;
+    }
+
+    private int getFlag(DrugsEnterprise drugsEnterprise, Recipe recipe) {
+        int flag = -1;
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
+        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        if (configurations.containsKey("showSendToEnterprises") || configurations.containsKey("supportTFDS") || configurations.containsKey("showSendToHos")) {
+            //药企配送
+            if (new Integer(2).equals(drugsEnterprise.getSendType())) {
+                if (RemoteDrugEnterpriseService.payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToEnterprises")) {
+                    flag = 1;
+                }
+            } else {
+                //医院配送
+                if (RemoteDrugEnterpriseService.payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToHos")) {
+                    flag = 1;
+                }
+            }
+            if (RemoteDrugEnterpriseService.payModeSupport(drugsEnterprise , 3) && configurations.containsKey("supportTFDS")) {
+                flag = 2;
+            }
+        }
+        return flag;
+    }
+
 
     /**
      * 手动进行处方退款服务

@@ -7,7 +7,6 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.SaleDrugList;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -213,6 +212,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode and drugId=:drugId and status = 1")
     public abstract OrganDrugList getByOrganIdAndOrganDrugCodeAndDrugId(@DAOParam("organId") int organId, @DAOParam("organDrugCode") String organDrugCode,@DAOParam("drugId") Integer drugId);
 
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode and drugId=:drugId ")
+    public abstract List<OrganDrugList> findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(@DAOParam("organId") int organId, @DAOParam("organDrugCode") String organDrugCode, @DAOParam("drugId") Integer drugId);
 
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and producerCode=:producerCode and status = 1")
     public abstract OrganDrugList getByOrganIdAndProducerCode(@DAOParam("organId") int organId, @DAOParam("producerCode") String producerCode);
@@ -226,6 +227,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @return
      */
     @DAOMethod(sql = "from OrganDrugList where drugId=:drugId and organId=:organId ")
+    @Deprecated
     public abstract OrganDrugList getByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
 
 

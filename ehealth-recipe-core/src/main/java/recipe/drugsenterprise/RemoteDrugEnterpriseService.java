@@ -536,7 +536,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         return null;
     }
 
-    private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
+    public static ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
         ScanRequestBean scanRequestBean = new ScanRequestBean();
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -878,7 +878,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      * @param type             支持类型
      * @return  是否支持
      */
-    private static boolean payModeSupport(DrugsEnterprise drugsEnterprise, Integer type){
+    public static boolean payModeSupport(DrugsEnterprise drugsEnterprise, Integer type){
         Integer[] online_pay = {RecipeBussConstant.DEP_SUPPORT_ONLINE,RecipeBussConstant.DEP_SUPPORT_COD,RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS,
                 RecipeBussConstant.DEP_SUPPORT_COD_TFDS,RecipeBussConstant.DEP_SUPPORT_COD,RecipeBussConstant.DEP_SUPPORT_ALL};
         List<Integer> online_pay_list = Arrays.asList(online_pay);
@@ -1110,7 +1110,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      * @param recipeId
      * @return
      */
-    public DrugEnterpriseResult getServiceByRecipeId(Integer recipeId) {
+    public static DrugEnterpriseResult getServiceByRecipeId(Integer recipeId) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (null == recipeId) {
             result.setCode(DrugEnterpriseResult.FAIL);
@@ -1129,7 +1129,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             if (null != depId) {
                 DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
                 if (null != dep) {
-                    result.setAccessDrugEnterpriseService(this.getServiceByDep(dep));
+                    result.setAccessDrugEnterpriseService(getServiceByDep(dep));
                     result.setDrugsEnterprise(dep);
                 } else {
                     result.setCode(DrugEnterpriseResult.FAIL);
@@ -1151,7 +1151,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
      * @param drugsEnterprise
      * @return
      */
-    public AccessDrugEnterpriseService getServiceByDep(DrugsEnterprise drugsEnterprise) {
+    public static AccessDrugEnterpriseService getServiceByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             return ApplicationUtils.getService(RemoteDrugEnterpriseService.class, "remoteDrugEnterpriseService");
