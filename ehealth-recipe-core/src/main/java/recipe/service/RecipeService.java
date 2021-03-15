@@ -2746,6 +2746,7 @@ public class RecipeService extends RecipeBaseService {
             if (!CollectionUtils.isEmpty(data)) {
                 //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
                 for (OrganDrugInfoTO drug : data) {
+                    Integer status =drug.getStatus();
                     LOGGER.info("drugInfoSynMovementaddHisDrug前期"+drug.getDrugName()+" organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                     OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
                     if (null == organDrug && add ) {
@@ -2753,6 +2754,11 @@ public class RecipeService extends RecipeBaseService {
                         if (drugForms!= null && drugForms.size()>0){
                             int i = drugForms.indexOf(drugform);
                             if (-1 != i){
+                                if (status !=null){
+                                    if (status == 0){
+                                        continue;
+                                    }
+                                }
                                 List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(),organId);
                                 if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
                                     for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
@@ -2765,6 +2771,11 @@ public class RecipeService extends RecipeBaseService {
                                 continue;
                             }
                         }else {
+                            if (status !=null){
+                                if (status == 0){
+                                    continue;
+                                }
+                            }
                             List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(),organId);
                             if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
                                 for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
@@ -4290,6 +4301,10 @@ public class RecipeService extends RecipeBaseService {
         //医保剂型编码
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
+        }
+        //使用状态 0 无效 1 有效
+        if (!ObjectUtils.isEmpty(drug.getStatus())) {
+            organDrug.setStatus(drug.getStatus());
         }
         organDrugListDAO.update(organDrug);
     }
