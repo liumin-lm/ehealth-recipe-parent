@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
-import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
@@ -3892,17 +3891,15 @@ public class RecipeService extends RecipeBaseService {
     /**
      * 测试后门人口
      *
-     * @param organId
-     * @param pdfId
+     * @param recipeId
      * @return
      */
     @RpcService
     @Deprecated
-    public String recipePdfTest(Integer recipeId, String pdfId) throws Exception {
+    public String recipePdfTest(Integer recipeId) throws Exception {
         CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
-        CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipeId, "receiverPlaceholder");
-        CoOrdinateVO coOrdinate = recipeLabelManager.getPdfCoordsHeight(recipeId, "tcmDecoction");
-        return CreateRecipePdfUtil.generateReceiverInfoRecipePdf(pdfId, "123", "123xxxxxxxx123", "1111111111", coOrdinateVO.getY(), coOrdinate);
+        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
+        return null;
     }
 
     /**
