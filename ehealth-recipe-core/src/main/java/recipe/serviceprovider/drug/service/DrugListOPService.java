@@ -7,6 +7,7 @@ import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.service.IDrugListService;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.dictionary.DictionaryItem;
@@ -17,6 +18,7 @@ import org.springframework.beans.BeanUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
+import recipe.dao.DrugSourcesDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.service.DrugListExtService;
 
@@ -37,6 +39,13 @@ public class DrugListOPService implements IDrugListService {
         if (null != dispensatory) {
             DispensatoryDTO dispensatoryDTO = ObjectCopyUtils.convert(dispensatory, DispensatoryDTO.class);
             drugListBean.setDispensatory(dispensatoryDTO);
+        }
+        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+        if (drugListBean.getSourceOrgan() != null){
+            DrugSources drugSources = dao.get(drugListBean.getSourceOrgan());
+            if (drugSources != null){
+                drugListBean.setSourceOrganText(drugSources.getDrugSourcesName());
+            }
         }
 
         return drugListBean;

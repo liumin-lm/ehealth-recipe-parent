@@ -615,6 +615,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);
                 }
+                if (!ObjectUtils.isEmpty(sourceOrgan)) {
+                    query.setParameter("sourceOrgan", sourceOrgan);
+                }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
                 }
