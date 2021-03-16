@@ -12,6 +12,8 @@ import java.util.Map;
  */
 public class DrugDisplayNameProducer {
 
+    public static final String ENGLISH_REG = "[a-zA-Z]+";
+
     /*public static String getDrugName(DrugDisplayNameInfo drugDisplayNameInfo) {
         return getDrugName(drugDisplayNameInfo, drugDisplayNameInfo.getKeyMap(), drugDisplayNameInfo.getConfigKey());
     }*/
@@ -34,20 +36,22 @@ public class DrugDisplayNameProducer {
         String value;
         //依次拼接
         for (String name : sortConfigList) {
-            //排序中有空格要添加空格
-            if (StringUtils.SPACE.equals(name)) {
-                splicedName.append(StringUtils.SPACE);
-            } else if ("/".equals(name)) {
-                splicedName.append("/");
-            } else {
+            //是否是字段名
+            if (matchEnglishName(name)) {
                 //通过字段名取值
                 value = MapValueUtil.getFieldValueByName(name, drugInfoObject);
                 if (StringUtils.isNotEmpty(value)) {
                     splicedName.append(value);
                 }
+            } else {
+                //排序中有空格要添加空格 有/添加/
+                splicedName.append(name);
             }
-
         }
         return splicedName.toString();
+    }
+
+    public static boolean matchEnglishName(String name) {
+        return name.matches(ENGLISH_REG);
     }
 }
