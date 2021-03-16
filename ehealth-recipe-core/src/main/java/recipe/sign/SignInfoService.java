@@ -272,7 +272,7 @@ public class SignInfoService implements ISignInfoService {
             if (caSignResultBean != null && StringUtils.isNotBlank(caSignResultBean.getSignCode())){
                 return "USER_SIGN_FINISH";
             }else {
-                return "USER_SIGN_FINISH";
+                return "WAITING_USER_SIGN";
             }
         }else {
 
