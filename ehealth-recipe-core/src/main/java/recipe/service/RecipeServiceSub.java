@@ -1561,6 +1561,9 @@ public class RecipeServiceSub {
                 if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
                     recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
                 }
+                if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedSaleName())) {
+                    recipedetail.setDrugDisplaySplicedSaleName(DrugNameDisplayUtil.dealwithRecipedetailSaleName(organDrugLists, recipedetail));
+                }
             }
         } catch (Exception e) {
             LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage(), e);
