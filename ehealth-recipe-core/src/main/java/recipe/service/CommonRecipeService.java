@@ -24,6 +24,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.service.manager.CommonRecipeManager;
@@ -150,6 +151,15 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         commonRecipeList.forEach(a -> {
             List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(a.getCommonRecipeId());
             if (CollectionUtils.isNotEmpty(commonDrugList)) {
+                commonDrugList.forEach(item -> {
+                    //药品名历史数据处理
+                    if (StringUtils.isEmpty(item.getDrugDisplaySplicedName())) {
+                        item.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithCommonDrugName(item, a.getRecipeType()));
+                    }
+                    if (StringUtils.isEmpty(item.getDrugDisplaySplicedSaleName())) {
+                        item.setDrugDisplaySplicedSaleName(DrugNameDisplayUtil.dealwithCommonDrugSaleName(item, a.getRecipeType()));
+                    }
+                });
                 a.setCommonDrugList(commonDrugList);
             }
             CommonRecipeExtDTO commonRecipeExt = commonRecipeExtMap.get(a.getCommonRecipeId());

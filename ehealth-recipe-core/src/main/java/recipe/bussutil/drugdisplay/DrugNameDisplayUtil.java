@@ -1,6 +1,7 @@
 package recipe.bussutil.drugdisplay;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
@@ -122,6 +123,47 @@ public class DrugNameDisplayUtil {
             stringBuilder.append(StringUtils.isEmpty(recipedetail.getSaleName()) ? organDrugLists.get(0).getSaleName() : recipedetail.getSaleName());
             if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
                 stringBuilder.append(organDrugLists.get(0).getDrugForm());
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    public static String dealwithCommonDrugName(CommonRecipeDrugDTO item, Integer drugType) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
+            //所有页面中药药品显示统一“药品名称”和“剂量单位”以空格间隔
+            stringBuilder.append(item.getDrugName()).append(StringUtils.SPACE);
+            if (StringUtils.isNotEmpty(item.getUseDoseStr())) {
+                stringBuilder.append(item.getUseDoseStr());
+            } else {
+                stringBuilder.append(item.getUseDose());
+            }
+            stringBuilder.append(item.getUseDoseUnit());
+            if (StringUtils.isNotEmpty(item.getMemo())) {
+                stringBuilder.append("(").append(item.getMemo()).append(")");
+            }
+        } else {
+            //机构药品名称、剂型、药品规格、单位
+            stringBuilder.append(item.getDrugName());
+            if (StringUtils.isNotEmpty(item.getDrugForm())) {
+                stringBuilder.append(item.getDrugForm());
+            }
+            //【"机构药品名称”、“机构商品名称”、“剂型”】与【“药品规格”、“单位”】中间要加空格
+            stringBuilder.append(StringUtils.SPACE);
+            stringBuilder.append(item.getDrugSpec()).append("/").append(item.getDrugUnit());
+        }
+        return stringBuilder.toString();
+    }
+
+    public static String dealwithCommonDrugSaleName(CommonRecipeDrugDTO item, Integer drugType) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
+            stringBuilder.append("/");
+        } else {
+            //机构药品名称、剂型、药品规格、单位
+            stringBuilder.append(StringUtils.isEmpty(item.getSaleName()) ? "/" : item.getSaleName());
+            if (StringUtils.isNotEmpty(item.getDrugForm())) {
+                stringBuilder.append(item.getDrugForm());
             }
         }
         return stringBuilder.toString();
