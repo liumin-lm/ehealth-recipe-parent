@@ -29,13 +29,14 @@ public class CommonDrugNameDisplay implements IDrugNameDisplay {
         if (keyMap.containsKey(DRUG_SPEC)) {
             sortList.add(DRUG_SPEC);
         }
-        if (keyMap.containsKey(UNIT)) {
-            sortList.add(UNIT);
-        }
         //【“药品规格”、“单位”】中间要加/
         if (keyMap.containsKey(DRUG_SPEC) && keyMap.containsKey(UNIT)) {
             sortList.add("/");
         }
+        if (keyMap.containsKey(UNIT)) {
+            sortList.add(UNIT);
+        }
+
         return sortList;
     }
 
