@@ -12,8 +12,7 @@ public enum RecipeMsgEnum {
      */
     RECIPE_CHECK_NOT_PASS(-1, "RecipeCheckNotPass"),
     RECIPE_CHECK_PASS(2, "RecipeCheckPass"),
-    RECIPE_HAVE_PAY(3, "RecipeHavePay")
-    ,
+    RECIPE_HAVE_PAY(3, "RecipeHavePay"),
     RECIPE_IN_SEND(4, "RecipeInSend"),
     RECIPE_CHECK_PASS_YS(7, "RecipeCheckPassYs"),
     RECIPE_READY_CHECK_YS(8, "RecipeReadyCheckYs"),
