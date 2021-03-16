@@ -299,7 +299,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (!new Integer(2).equals(recipe.getRecipeSource())) {
                     hql.append(" giveMode = null, ");
                 }
-                hql.append(" orderCode=null ,chooseFlag=0, status = 2, payMode = null where orderCode=:orderCode");
+                hql.append(" orderCode=null ,chooseFlag=0, status = 2 where orderCode=:orderCode");
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("orderCode", orderCode);
@@ -779,11 +779,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付，支付模式修改
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null ");
+                    hql.append(" and fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and giveMode is not null and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作,添加前置未操作的判断 后置待处理或者前置待审核和医保上传确认中
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
+                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and giveMode is null or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -806,8 +806,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag = 1 and payMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
+                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and giveMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
+                        " or (fromflag = 1 and giveMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -832,10 +832,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS + " and remindFlag=0 and chooseFlag=0 ");
                 } else if (cancelStatus == RecipeStatusConstant.PATIENT_NO_PAY) {
                     //选择了医院取药-到院支付
-                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS + " and payMode=" + RecipeBussConstant.PAYMODE_TO_HOS + " and remindFlag=0 and chooseFlag=1 and payFlag=0 ");
+                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS + " and giveMode=" + RecipeBussConstant.GIVEMODE_TO_HOS + " and remindFlag=0 and chooseFlag=1 and payFlag=0 ");
                 } else if (cancelStatus == RecipeStatusConstant.PATIENT_NODRUG_REMIND) {
                     //选择了到店取药
-                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS_YS + " and payMode=" + RecipeBussConstant.PAYMODE_TFDS + " and remindFlag=0 and chooseFlag=1 ");
+                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS_YS + " and giveMode=" + RecipeBussConstant.GIVEMODE_TFDS + " and remindFlag=0 and chooseFlag=1 ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -1048,7 +1048,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select r from Recipe r where r.payMode=" + RecipeBussConstant.PAYMODE_COD + " and r.sendDate between '" + startDt + "' and '" + endDt + "' and r.status=" + RecipeStatusConstant.IN_SEND);
+                hql.append("select r from Recipe r where r.giveMode=" + RecipeBussConstant.GIVEMODE_SEND_TO_HOME + " and r.sendDate between '" + startDt + "' and '" + endDt + "' and r.status=" + RecipeStatusConstant.IN_SEND);
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -1243,30 +1243,37 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 //0是待药师审核
                 if (flag == 0) {
-                    hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<2 and status = " + RecipeStatusConstant.READY_CHECK_YS);
+                    //hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<2 and status = " + RecipeStatusConstant.READY_CHECK_YS + " and  (recipeType in(:recipeTypes) or grabOrderStatus=1)");
+                    hql.append("SELECT\n" +
+                            "\tr.*\n" +
+                            "FROM\n" +
+                            "\tcdr_recipe r\n" +
+                            "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.status = 8 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
+                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
                 }
                 //1是审核通过  2是审核未通过
                 else if (flag == 1 || flag == notPass) {
                     hql.append("from Recipe where clinicOrgan in (:organ) and ");
-                    hql.append(getSqlIn(recipeIds, 300, "recipeId") + " ");
+                    hql.append(getSqlIn(recipeIds, 300, "recipeId") + " order by signDate desc");
                 }
                 //4是未签名
                 else if (flag == 4) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA);
+                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + "order by signDate desc");
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2)))  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) order by signDate desc");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
-                if (flag == 0 || flag == all) {
+                /*if (flag == 0 || flag == all) {
                         hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
-                }
-                hql.append("order by signDate desc");
+                }*/
+                //hql.append("order by signDate desc");
                 Query q;
-                if (flag == all) {
+                if (flag == all || flag == 0) {
                     q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
                 } else {
                     q = ss.createQuery(hql.toString());
@@ -2300,7 +2307,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where  status in (7,8) and giveMode = 3 and payMode = 4 ");
+                StringBuilder hql = new StringBuilder("from Recipe where  status in (7,8) and giveMode = 3 ");
                 if (CollectionUtils.isNotEmpty(orderCodes)) {
                     hql.append(" and orderCode in (");
                     for (String orderCode : orderCodes) {
@@ -3800,5 +3807,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
+
+    /**
+     * 查询所有待审核平台审方
+     * @return
+     */
+    @DAOMethod(sql = "select new Recipe(recipeId,clinicOrgan,recipeType) from Recipe where  checkMode<2 and status =8 and  createDate>:date",limit = 0)
+    public abstract List<Recipe>  findToAuditPlatformRecipe(@DAOParam("date") Date date);
 
 }

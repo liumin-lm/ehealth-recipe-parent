@@ -1083,6 +1083,21 @@ public class HisRecipeService {
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
+        //设置煎法
+        if (StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())) {
+            //查询平台的煎发
+            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(hisRecipe.getClinicOrgan(), hisRecipe.getDecoctionCode());
+            if (decoctionWay == null) {
+                LOGGER.error("线下处方转线上诊断没有对照.");
+                recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
+            } else {
+                recipeExtend.setDecoctionId(decoctionWay.getDecoctionId().toString());
+                recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
+            }
+        } else {
+            recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
+        }
         try {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
             RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
@@ -1676,8 +1691,13 @@ public class HisRecipeService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
+                recipeBean.setOrganDiseaseName(diseaseName);
+                recipeBean.setOrganDiseaseId(disease);
                 emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                recipe.setOrganDiseaseId(disease);
+                recipe.setOrganDiseaseName(diseaseName);
+                recipeDAO.update(recipe);
             }
         });
         return hisRecipeMap;

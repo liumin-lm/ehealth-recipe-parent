@@ -797,22 +797,6 @@ public class HisRequestInit {
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
             requestTO.setRecipeStatus("9");
         }
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-            //科室代码
-            AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-            AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
-            requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
-            //科室名称
-            requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
-        } else {
-            //互联网环境下没有挂号科室 取department表
-            DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
-            DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
-            //科室编码
-            requestTO.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
-            //科室名称
-            requestTO.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
-        }
         return requestTO;
 
     }
