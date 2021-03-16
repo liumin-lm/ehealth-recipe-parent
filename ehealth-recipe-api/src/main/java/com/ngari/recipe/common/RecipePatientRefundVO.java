@@ -38,6 +38,16 @@ public class RecipePatientRefundVO implements java.io.Serializable {
      * 患者姓名
      */
     private String patientName;
+
+    /**
+     * 患者头像
+     */
+    private String photo;
+
+    /**
+     * 患者性别
+     */
+    private String patientSex;
     /**
      * 患者姓名mpiid
      */
@@ -113,6 +123,22 @@ public class RecipePatientRefundVO implements java.io.Serializable {
 
     public void setPatientName(String patientName) {
         this.patientName = patientName;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    public String getPatientSex() {
+        return patientSex;
+    }
+
+    public void setPatientSex(String patientSex) {
+        this.patientSex = patientSex;
     }
 
     public String getPatientMpiid() {
