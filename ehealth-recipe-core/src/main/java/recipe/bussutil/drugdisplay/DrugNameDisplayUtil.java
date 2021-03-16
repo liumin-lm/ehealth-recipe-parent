@@ -113,18 +113,22 @@ public class DrugNameDisplayUtil {
         return stringBuilder.toString();
     }
 
-    public static String dealwithRecipedetailSaleName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail) {
+    public static String dealwithRecipedetailSaleName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail, Integer drugType) {
         StringBuilder stringBuilder = new StringBuilder();
-
-        if (CollectionUtils.isEmpty(organDrugLists)) {
-            stringBuilder.append(StringUtils.isEmpty(recipedetail.getSaleName()) ? "/" : recipedetail.getSaleName());
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
+            stringBuilder.append("/");
         } else {
-            //机构药品名称、剂型、药品规格、单位
-            stringBuilder.append(StringUtils.isEmpty(recipedetail.getSaleName()) ? organDrugLists.get(0).getSaleName() : recipedetail.getSaleName());
-            if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
-                stringBuilder.append(organDrugLists.get(0).getDrugForm());
+            if (CollectionUtils.isEmpty(organDrugLists)) {
+                stringBuilder.append(StringUtils.isEmpty(recipedetail.getSaleName()) ? "/" : recipedetail.getSaleName());
+            } else {
+                //机构药品名称、剂型、药品规格、单位
+                stringBuilder.append(StringUtils.isEmpty(recipedetail.getSaleName()) ? organDrugLists.get(0).getSaleName() : recipedetail.getSaleName());
+                if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                    stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                }
             }
         }
+
         return stringBuilder.toString();
     }
 
