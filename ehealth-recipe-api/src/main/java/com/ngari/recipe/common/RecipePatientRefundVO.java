@@ -48,6 +48,11 @@ public class RecipePatientRefundVO implements java.io.Serializable {
      * 患者性别
      */
     private String patientSex;
+
+    /**
+     * 患者年龄
+     */
+    private Integer patientAge;
     /**
      * 患者姓名mpiid
      */
@@ -139,6 +144,14 @@ public class RecipePatientRefundVO implements java.io.Serializable {
 
     public void setPatientSex(String patientSex) {
         this.patientSex = patientSex;
+    }
+
+    public Integer getPatientAge() {
+        return patientAge;
+    }
+
+    public void setPatientAge(Integer patientAge) {
+        this.patientAge = patientAge;
     }
 
     public String getPatientMpiid() {

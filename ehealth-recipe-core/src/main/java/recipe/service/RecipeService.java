@@ -103,6 +103,7 @@ import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CARecipeTypeEnum;
 import recipe.caNew.CaAfterProcessType;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
@@ -4125,9 +4126,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public String recipePdfTest(Integer recipeId) throws Exception {
-        //CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
+        CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
-        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, new BigDecimal(512.23)));
+        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, BigDecimal.valueOf(521.20)));
         return null;
     }
 
@@ -4559,7 +4560,13 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
             organDrug.setStatus(drug.getStatus());
         }
-        organDrugListDAO.update(organDrug);
+        OrganDrugList update = organDrugListDAO.update(organDrug);
+        try {
+            drugToolService.organDrugSync(update);
+        } catch (Exception e) {
+            LOGGER.info("机构药品手动同步修改同步对应药企"+e);
+
+        }
     }
 
     /**
@@ -4657,18 +4664,32 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
             organDrug.setRetrievalCode(drug.getRetrievalCode());
         }
-       /* //药房
+        //药房
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
             PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
             if (byPharmacyAndOrganId != null){
                 organDrug.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
+            }else {
+                if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
+                    PharmacyTcm pharmacyTcm=new PharmacyTcm();
+                    pharmacyTcm.setOrganId(organId);
+                    pharmacyTcm.setPharmacyCode(drug.getPharmacyCode());
+                    pharmacyTcm.setPharmacyName(drug.getPharmacy());
+                    pharmacyTcm.setWhDefault(false);
+                    pharmacyTcm.setSort(1000);
+                    boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
+                    if (b){
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacy());
+                        organDrug.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
+                    }
+                }
             }
-        }*/
-       /* //医院药房名字
+        }
+        //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
             organDrug.setPharmacyName(drug.getPharmacy());
-        }*/
+        }
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
@@ -4699,7 +4720,13 @@ public class RecipeService extends RecipeBaseService {
         }
 
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
-        organDrugListDAO.update(organDrug);
+        OrganDrugList update = organDrugListDAO.update(organDrug);
+        try {
+            drugToolService.organDrugSync(update);
+        } catch (Exception e) {
+            LOGGER.info("机构药品定时同步修改同步对应药企"+e);
+
+        }
     }
 
     private boolean checkDrugInfo(DrugInfoTO drug) {
