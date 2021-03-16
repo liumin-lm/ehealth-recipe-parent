@@ -1,5 +1,6 @@
 package recipe.bussutil;
 
+import com.alibaba.fastjson.JSON;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
@@ -81,7 +82,7 @@ public class CreateRecipePdfUtil {
             PdfStamper stamper = new PdfStamper(reader, output);
             //煎法
             if (null != decoction) {
-                addTextForPdf(stamper, decoction.getX(), decoction.getY(), decoction.getValue());
+                addTextForPdf(stamper, decoction);
             }
             //添加接收人信息
             addReceiverInfoRecipePdf(stamper, receiver, recMobile, completeAddress, height);
@@ -187,7 +188,7 @@ public class CreateRecipePdfUtil {
         }
         coOrdinateList.forEach(a -> {
             try {
-                addTextForPdf(stamper, a.getX(), a.getY(), a.getValue());
+                addTextForPdf(stamper, a);
             } catch (Exception e) {
                 logger.error("addRecipeCodeAndPatientIdForRecipePdf error", e);
             }
@@ -201,8 +202,9 @@ public class CreateRecipePdfUtil {
         logger.info("generateTotalRecipePdf pdfId={}, total={}", pdfId, total);
         CoOrdinateVO coords = new CoOrdinateVO();
         coords.setValue("药品金额 ：" + total + "元");
-        coords.setX(295);
-        coords.setY(80);
+        coords.setX(285);
+        coords.setY(81);
+        coords.setRepeatWrite(true);
         return generateCoOrdinatePdf(pdfId, coords);
     }
 
@@ -242,7 +244,7 @@ public class CreateRecipePdfUtil {
             PdfReader reader = new PdfReader(input);
             PdfStamper stamper = new PdfStamper(reader, output);
             try {
-                addTextForPdf(stamper, decoction.getX(), decoction.getY(), decoction.getValue());
+                addTextForPdf(stamper, decoction);
             } catch (Exception e) {
                 logger.error("generateCoOrdinatePdf error", e);
             } finally {
@@ -261,7 +263,7 @@ public class CreateRecipePdfUtil {
 
 
     /**
-     * 条形码
+     * 条形码 处方号和患者病历号
      *
      * @param input
      * @param output
@@ -277,6 +279,7 @@ public class CreateRecipePdfUtil {
         image.setAbsolutePosition(10, 560);
         image.scaleToFit(110, 20);
         page.addImage(image);
+        //处方pdf添加处方号和患者病历号
         addRecipeCodeAndPatientIdForRecipePdf(coOrdinateList, stamper);
         stamper.close();
         reader.close();
@@ -563,27 +566,27 @@ public class CreateRecipePdfUtil {
      * 根据 x，y坐标写入text文本内容
      *
      * @param stamper
-     * @param x       坐标
-     * @param y       坐标
-     * @param text    写入内容
+     * @param decoction 坐标
      * @throws Exception
      */
-    private static void addTextForPdf(PdfStamper stamper, float x, float y, String text) throws Exception {
-        logger.info("addTextForRecipePdf text:{}", text);
+    private static void addTextForPdf(PdfStamper stamper, CoOrdinateVO decoction) throws Exception {
+        logger.info("addTextForRecipePdf text:{}", JSON.toJSONString(decoction));
         PdfContentByte page = stamper.getOverContent(1);
         BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
-        //添加空白覆盖
-        page.saveState();
-        page.setColorFill(BaseColor.WHITE);
-        page.rectangle(x, y, 100, 12);
-        page.fill();
-        page.restoreState();
+        if (null != decoction.getRepeatWrite() && decoction.getRepeatWrite()) {
+            //添加空白覆盖
+            page.saveState();
+            page.setColorFill(BaseColor.WHITE);
+            page.rectangle(decoction.getX(), decoction.getY(), 100, 14);
+            page.fill();
+            page.restoreState();
+        }
         //添加文本块
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 10);
-        page.setTextMatrix(x, y);
-        page.showText(text);
+        page.setTextMatrix(decoction.getX(), decoction.getY());
+        page.showText(decoction.getValue());
         page.endText();
     }
 }

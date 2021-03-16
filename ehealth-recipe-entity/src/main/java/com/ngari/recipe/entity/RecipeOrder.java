@@ -335,6 +335,18 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "发药状态修改时间")
     private Date dispensingStatusAlterTime;
 
+    @ItemProperty(alias = "医保支付内容")
+    private String healthInsurancePayContent;
+
+    @Column(name = "healthInsurancePayContent")
+    public String getHealthInsurancePayContent() {
+        return healthInsurancePayContent;
+    }
+
+    public void setHealthInsurancePayContent(String healthInsurancePayContent) {
+        this.healthInsurancePayContent = healthInsurancePayContent;
+    }
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;

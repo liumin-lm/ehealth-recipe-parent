@@ -97,12 +97,12 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
         }
 
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
-        CoOrdinateVO patientId = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.patientID1");
+        CoOrdinateVO patientId = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
         if (null != patientId) {
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
         }
-        CoOrdinateVO recipeCode = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.recipeCode1");
+        CoOrdinateVO recipeCode = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.recipeCode");
         if (null != recipeCode) {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
@@ -112,7 +112,7 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipeId);
             recipeUpdate.setSignFile(newPdf);
-            //recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         }
         LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
     }
