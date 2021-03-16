@@ -224,6 +224,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "前端展示的药品拼接名")
     private String drugDisplaySplicedName;
 
+    @ItemProperty(alias = "前端展示的商品拼接名")
+    private String drugDisplaySplicedSaleName;
+
     public String getSaleDrugCode() {
         return saleDrugCode;
     }
@@ -788,5 +791,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
         this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 }
