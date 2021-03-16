@@ -202,8 +202,8 @@ public class CreateRecipePdfUtil {
         logger.info("generateTotalRecipePdf pdfId={}, total={}", pdfId, total);
         CoOrdinateVO coords = new CoOrdinateVO();
         coords.setValue("药品金额 ：" + total + "元");
-        coords.setX(295);
-        coords.setY(80);
+        coords.setX(285);
+        coords.setY(81);
         coords.setRepeatWrite(true);
         return generateCoOrdinatePdf(pdfId, coords);
     }
@@ -577,7 +577,7 @@ public class CreateRecipePdfUtil {
             //添加空白覆盖
             page.saveState();
             page.setColorFill(BaseColor.WHITE);
-            page.rectangle(decoction.getX(), decoction.getY(), 100, 12);
+            page.rectangle(decoction.getX(), decoction.getY(), 100, 14);
             page.fill();
             page.restoreState();
         }

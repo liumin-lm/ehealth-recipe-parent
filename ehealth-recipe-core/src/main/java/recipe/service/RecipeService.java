@@ -103,6 +103,7 @@ import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CARecipeTypeEnum;
 import recipe.caNew.CaAfterProcessType;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
@@ -4125,9 +4126,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public String recipePdfTest(Integer recipeId) throws Exception {
-        //CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
+        CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
-        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, new BigDecimal(512.23)));
+        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, BigDecimal.valueOf(521.20)));
         return null;
     }
 
