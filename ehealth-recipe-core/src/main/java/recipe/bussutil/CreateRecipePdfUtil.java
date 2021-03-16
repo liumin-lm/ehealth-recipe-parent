@@ -16,6 +16,7 @@ import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
@@ -84,13 +85,13 @@ public class CreateRecipePdfUtil {
             }
             //添加接收人信息
             addReceiverInfoRecipePdf(stamper, receiver, recMobile, completeAddress, height);
+            stamper.close();
+            reader.close();
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
             //删除本地文件
             file.delete();
-            stamper.close();
-            reader.close();
         }
         return fileId;
     }
@@ -120,11 +121,12 @@ public class CreateRecipePdfUtil {
                 //获取图片url
                 URL url = barCodeFile.toURI().toURL();
                 //添加图片
-                addBarCodeImgForRecipePdf(input, output, url);
+                addBarCodeImgForRecipePdf(input, output, url, coOrdinateList);
                 barCodeFile.delete();
+            } else {
+                //处方pdf添加处方号和患者病历号
+                addRecipeCodeAndPatientIdForRecipePdf(input, output, coOrdinateList);
             }
-            //处方pdf添加处方号和患者病历号
-            addRecipeCodeAndPatientIdForRecipePdf(input, output, coOrdinateList);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -174,6 +176,15 @@ public class CreateRecipePdfUtil {
     private static void addRecipeCodeAndPatientIdForRecipePdf(InputStream input, OutputStream output, List<CoOrdinateVO> coOrdinateList) throws Exception {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
+        addRecipeCodeAndPatientIdForRecipePdf(coOrdinateList, stamper);
+        stamper.close();
+        reader.close();
+    }
+
+    private static void addRecipeCodeAndPatientIdForRecipePdf(List<CoOrdinateVO> coOrdinateList, PdfStamper stamper) {
+        if (CollectionUtils.isEmpty(coOrdinateList)) {
+            return;
+        }
         coOrdinateList.forEach(a -> {
             try {
                 addTextForPdf(stamper, a.getX(), a.getY(), a.getValue());
@@ -181,8 +192,6 @@ public class CreateRecipePdfUtil {
                 logger.error("addRecipeCodeAndPatientIdForRecipePdf error", e);
             }
         });
-        stamper.close();
-        reader.close();
     }
 
     /**
@@ -259,15 +268,16 @@ public class CreateRecipePdfUtil {
      * @param url
      * @throws Exception
      */
-    private static void addBarCodeImgForRecipePdf(InputStream input, OutputStream output, URL url) throws Exception{
+    private static void addBarCodeImgForRecipePdf(InputStream input, OutputStream output, URL url, List<CoOrdinateVO> coOrdinateList) throws Exception {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将图片贴入pdf
         Image image = Image.getInstance(url);
         image.setAbsolutePosition(10, 560);
-        image.scaleToFit(110,20);
+        image.scaleToFit(110, 20);
         page.addImage(image);
+        addRecipeCodeAndPatientIdForRecipePdf(coOrdinateList, stamper);
         stamper.close();
         reader.close();
     }
@@ -565,7 +575,7 @@ public class CreateRecipePdfUtil {
         //添加空白覆盖
         page.saveState();
         page.setColorFill(BaseColor.WHITE);
-        page.rectangle(x, y, 100, 20);
+        page.rectangle(x, y, 100, 12);
         page.fill();
         page.restoreState();
         //添加文本块

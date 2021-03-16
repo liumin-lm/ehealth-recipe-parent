@@ -6,12 +6,12 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.RecipeStatusConstant;
@@ -27,11 +27,6 @@ import static ctd.persistence.DAOFactory.getDAO;
 //前置处方签名实现
 public class CaBeforeProcessType extends AbstractCaProcessType {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaBeforeProcessType.class);
-    @Autowired
-    private RecipeLabelManager recipeLabelManager;
-
-    @Autowired
-    private RecipeDAO recipeDAO;
     //我们将开方的流程拆开：
     //前置CA操作：1.保存处方（公共操作）=》2.触发CA结果=》3.成功后将处方推送到his，推送相关操作
 
@@ -76,11 +71,14 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
      * @param recipeId
      */
     private void addRecipeCodeAndPatientForRecipePdf(Integer recipeId) throws Exception {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             return;
         }
         String barcode = "";
+
+        RecipeLabelManager recipeLabelManager = AppContextHolder.getBean("recipeLabelManager", RecipeLabelManager.class);
         List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFive");
         if (!CollectionUtils.isEmpty(scratchableList)) {
             for (Scratchable scratchable : scratchableList) {
@@ -99,12 +97,12 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
         }
 
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
-        CoOrdinateVO patientId = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
+        CoOrdinateVO patientId = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.patientID1");
         if (null != patientId) {
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
         }
-        CoOrdinateVO recipeCode = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.recipeCode");
+        CoOrdinateVO recipeCode = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.recipeCode1");
         if (null != recipeCode) {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
@@ -114,7 +112,7 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipeId);
             recipeUpdate.setSignFile(newPdf);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            //recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         }
         LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
     }

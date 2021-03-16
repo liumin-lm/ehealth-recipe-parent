@@ -62,7 +62,7 @@ public class UpdateReceiverInfoRecipePdfRunable implements Runnable {
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
-            if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile()) || StringUtils.isNotEmpty(commonRemoteService.getCompleteAddress(order))) {
+            if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile())) {
                 CoOrdinateVO coOrdinateVO = recipeLabelManager.getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
                 if (null == coOrdinateVO) {
                     return;

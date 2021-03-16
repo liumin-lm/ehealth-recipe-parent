@@ -42,7 +42,7 @@ public class HyRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
-        return new ArrayList<>();
+        return null;
     }
 
     @Override
