@@ -11,9 +11,8 @@ import com.ngari.his.visit.service.IVisitService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.entity.*;
@@ -532,7 +531,15 @@ public class RecipeRefundService extends RecipeBaseService{
     public List<RecipePatientRefundVO> findPatientRefundRecipesByDoctorId(Integer doctorId, Integer refundType, int start, int limit) {
         //获取当前医生的退费处方列表，根据当前处方的开方医生审核列表获取当前退费最新的一条记录
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
-        return recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
+        //患者信息处理
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        List<RecipePatientRefundVO> recipePatientRefundVOS = recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
+        recipePatientRefundVOS.forEach(a->{
+            PatientDTO patient = patientService.get(a.getPatientMpiid());
+            a.setPhoto(patient.getPhoto());
+            a.setPatientSex(patient.getPatientSex());
+        });
+        return recipePatientRefundVOS;
     }
 
     private void initRecipeRefundVo(List<Integer> noteList, Recipe recipe, RecipeOrder recipeOrder, Integer recipeId, RecipePatientRefundVO recipePatientRefundVO) {
