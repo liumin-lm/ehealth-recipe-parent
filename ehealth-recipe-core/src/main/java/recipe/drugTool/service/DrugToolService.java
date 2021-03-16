@@ -1555,8 +1555,6 @@ public class DrugToolService implements IDrugToolService {
                 if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
                     drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", urt.getUserName()));
                 }
-                IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("isNew", 1, "status", DrugMatchConstant.MARKED, "operator", urt.getUserName()));
                 //updata by maoly on 2020/03/16 自动同步至平台药品库
                 DrugList drugList = new DrugList();
                 //药品名
