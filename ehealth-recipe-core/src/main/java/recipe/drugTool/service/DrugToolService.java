@@ -1548,6 +1548,7 @@ public class DrugToolService implements IDrugToolService {
                 bean.setMatchDrugId(drugLists.get(0).getDrugId());
                 bean.setHaveProvinceDrug(false);
                 bean.setOperator(urt.getUserName());
+                bean.setMakeType(0);
                 status = updateMatchStatusCurrent(bean);
             }else {
                 //如果是已匹配的取消匹配
@@ -1606,6 +1607,7 @@ public class DrugToolService implements IDrugToolService {
                 bean.setMatchDrugId(save.getDrugId());
                 bean.setHaveProvinceDrug(false);
                 bean.setOperator(urt.getUserName());
+                bean.setMakeType(0);
                 status = updateMatchStatusCurrent(bean);
             }
         }
