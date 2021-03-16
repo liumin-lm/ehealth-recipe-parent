@@ -1593,7 +1593,7 @@ public class HisRecipeService {
                     continue;
                 }
                 String usePathways = hisRecipeDetail.getUsePathways();
-                if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usingRateText.equals(recipeDetailTO.getUsePathWays()))) {
+                if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usePathways.equals(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usePathWays recipeCode:{}",recipeCode);
                     continue;
