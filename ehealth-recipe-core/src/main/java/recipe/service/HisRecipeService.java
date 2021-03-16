@@ -1090,10 +1090,13 @@ public class HisRecipeService {
             DecoctionWay decoctionWay = drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(hisRecipe.getClinicOrgan(), hisRecipe.getDecoctionCode());
             if (decoctionWay == null) {
                 LOGGER.error("线下处方转线上诊断没有对照.");
+                recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
             } else {
                 recipeExtend.setDecoctionId(decoctionWay.getDecoctionId().toString());
                 recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
             }
+        } else {
+            recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
         }
         try {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
