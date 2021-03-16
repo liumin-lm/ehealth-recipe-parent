@@ -28,6 +28,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ChinaIDNumberUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -573,7 +574,20 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public RecipePatientRefundVO getPatientRefundRecipeByRecipeId(Integer busId) {
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
-        return recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
+        RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
+        //患者信息处理
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patient = patientService.get(recipePatientRefundVO.getPatientMpiid());
+        recipePatientRefundVO.setPhoto(patient.getPhoto());
+        recipePatientRefundVO.setPatientSex(patient.getPatientSex());
+        try{
+            Integer age = ChinaIDNumberUtil.getAgeFromIDNumber(patient.getIdcard());
+            recipePatientRefundVO.setPatientAge(age);
+        }catch (Exception e){
+            LOGGER.error("getPatientRefundRecipeByRecipeId 设置患者年龄转换出错 {}.", patient.getMpiId());
+        }
+
+        return recipePatientRefundVO;
     }
 
     //用户提交退费申请给医生
