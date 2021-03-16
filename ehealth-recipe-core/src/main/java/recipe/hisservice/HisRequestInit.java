@@ -871,6 +871,26 @@ public class HisRequestInit {
                 request.setAuditDoctorName(doctor.getName());
             }
         }
+        //添加科室代码、医生姓名、科室名称
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+            //科室代码
+            AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+            AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+            request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+            //科室名称
+            request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        } else {
+            //互联网环境下没有挂号科室 取department表
+            DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+            DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+            //科室编码
+            request.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
+            //科室名称
+            request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+        }
+        String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+        request.setDoctorNumber(jobNumber);
+        request.setDoctorName(recipe.getDoctorName());
         request.setResult(resutlBean.getCheckResult().toString());
         request.setCheckMark(resutlBean.getCheckFailMemo());
         List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();
