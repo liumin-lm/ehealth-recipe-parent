@@ -37,12 +37,16 @@ public class DrugDisplayNameProducer {
             //排序中有空格要添加空格
             if (StringUtils.SPACE.equals(name)) {
                 splicedName.append(StringUtils.SPACE);
+            } else if ("/".equals(name)) {
+                splicedName.append("/");
+            } else {
+                //通过字段名取值
+                value = MapValueUtil.getFieldValueByName(name, drugInfoObject);
+                if (StringUtils.isNotEmpty(value)) {
+                    splicedName.append(value);
+                }
             }
-            //通过字段名取值
-            value = MapValueUtil.getFieldValueByName(name, drugInfoObject);
-            if (StringUtils.isNotEmpty(value)) {
-                splicedName.append(value);
-            }
+
         }
         return splicedName.toString();
     }
