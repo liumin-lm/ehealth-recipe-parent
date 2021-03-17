@@ -23,10 +23,6 @@ public abstract class DrugSourcesDAO extends HibernateSupportDelegateDAO<DrugSou
     @DAOMethod(sql = "from DrugSources where 1=1 ",limit=0)
     public abstract List<DrugSources> findAll();
 
-    @DAOMethod(sql = "INSERT INTO `base_drugsources` (`drugSourcesId`, `drugSourcesName`) VALUES (':drugSourcesId', ':drugSourcesName') ")
-    public abstract DrugSources  saveDrugSources(@DAOParam("drugSourcesId") Integer drugSourcesId,@DAOParam("drugSourcesName") String drugSourcesName);
-
-
     @DAOMethod(sql = "from DrugSources where drugSourcesName like:drugSourcesName ",limit=0)
     public abstract List<DrugSources> findByInput(@DAOParam("drugSourcesName") String drugSourcesName);
 

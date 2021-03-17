@@ -711,7 +711,10 @@ public class DrugToolService implements IDrugToolService {
             if (drugSources == null){
                 OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                 OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
-                dao.saveDrugSources(byOrganId.getOrganId(),byOrganId.getName());
+                DrugSources saveData = new DrugSources();
+                saveData.setDrugSourcesId(byOrganId.getOrganId());
+                saveData.setDrugSourcesName(byOrganId.getName());
+                dao.save(saveData);
             }
         }
         Integer status = drugListMatch.getStatus();
@@ -1590,7 +1593,10 @@ public class DrugToolService implements IDrugToolService {
                     if (drugSources == null){
                         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                         OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
-                        dao.saveDrugSources(byOrganId.getOrganId(),byOrganId.getName());
+                        DrugSources saveData = new DrugSources();
+                        saveData.setDrugSourcesId(byOrganId.getOrganId());
+                        saveData.setDrugSourcesName(byOrganId.getName());
+                        dao.save(saveData);
                     }
                 }
                 DrugList save = drugListDAO.save(drugList);
@@ -2290,7 +2296,10 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public DrugSources saveDrugSources(Integer drugSourcesId,String drugSourcesName){
         DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
-        return dao.saveDrugSources(drugSourcesId,drugSourcesName);
+        DrugSources saveData = new DrugSources();
+        saveData.setDrugSourcesId(drugSourcesId);
+        saveData.setDrugSourcesName(drugSourcesName);
+        return dao.save(saveData);
     }
 
 }
