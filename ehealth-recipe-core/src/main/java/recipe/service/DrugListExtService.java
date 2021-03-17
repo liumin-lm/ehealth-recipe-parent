@@ -1084,7 +1084,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     }
                 }
             }
-            if (!inventoryFlag && drugListBean != null) {
+            if (inventoryFlag && drugListBean != null) {
                 drugListBean.setInventoriesFlag(inventoryFlag);
             }
         }
