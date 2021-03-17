@@ -143,7 +143,7 @@ public class HisRecipeService {
                         &&!StringUtils.isEmpty(patientDTO.getMpiId())
                         &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
                     //修改处方患者信息
-                    //haveRecipe.setMpiid(patientDTO.getMpiId());
+                    haveRecipe.setMpiid(patientDTO.getMpiId());
                     UserRoleToken userRoleToken = UserRoleToken.getCurrent();
                     haveRecipe.setRequestMpiId(userRoleToken.getOwnMpiId());
                     haveRecipe.setPatientName(patientDTO.getPatientName());
@@ -302,18 +302,15 @@ public class HisRecipeService {
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(recipe.getStatus()));
                     if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                         hisRecipeVO.setFromFlag(1);
-                        hisRecipeVO.setJumpPageType(0);
-                        result.add(hisRecipeVO);
-
                     } else {
                         hisRecipeVO.setFromFlag(0);
-                        hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
-                        hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
-                        List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
-                        hisRecipeVO.setRecipeDetail(recipeDetailVOS);
-                        hisRecipeVO.setJumpPageType(0);
-                        result.add(hisRecipeVO);
                     }
+                    hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
+                    hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+                    List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+                    hisRecipeVO.setRecipeDetail(recipeDetailVOS);
+                    hisRecipeVO.setJumpPageType(0);
+                    result.add(hisRecipeVO);
                 } else {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
@@ -1112,7 +1109,7 @@ public class HisRecipeService {
                     &&!StringUtils.isEmpty(hisRecipe.getMpiId())
                     &&!hisRecipe.getMpiId().equals(haveRecipe.getMpiid())){
                 //修改处方患者信息
-                //haveRecipe.setMpiid(hisRecipe.getMpiId());
+                haveRecipe.setMpiid(hisRecipe.getMpiId());
                 haveRecipe.setRequestMpiId(userRoleToken.getOwnMpiId());
                 haveRecipe.setPatientName(hisRecipe.getPatientName());
                 haveRecipe.setPatientID(hisRecipe.getPatientNumber());
