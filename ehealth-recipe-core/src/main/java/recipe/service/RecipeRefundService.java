@@ -8,6 +8,8 @@ import com.ngari.his.visit.mode.CheckForRefundVisitReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordResponseTO;
 import com.ngari.his.visit.service.IVisitService;
+import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -16,6 +18,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
@@ -39,10 +42,7 @@ import recipe.dao.*;
 import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -106,6 +106,11 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setApplyNo(hisResult.getData());
                 recipeRefund.setReason(applyReason);
                 recipeReFundSave(recipe, recipeRefund);
+                //增加药师首页待处理任务---创建任务
+                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                Map<String, Object> otherInfo = new HashMap<>();
+                otherInfo.put("busType", "1");
+                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, eh.base.constant.BussTypeConstant.RECIPE, otherInfo));
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {
                 LOGGER.error("applyForRecipeRefund-applicationForRefundVisit处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
