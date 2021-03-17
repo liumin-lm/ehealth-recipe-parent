@@ -1081,7 +1081,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }
             if (!inventoryFlag && drugListBean != null) {
-                drugListBean.setInventoriesTip("无库存");
+                drugListBean.setInventoriesFlag(inventoryFlag);
             }
         }
         return result;

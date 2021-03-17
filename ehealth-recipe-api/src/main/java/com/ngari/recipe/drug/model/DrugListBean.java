@@ -184,8 +184,8 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "前端展示的药品商品名拼接名")
     private String drugDisplaySplicedSaleName;
 
-    @ItemProperty(alias = "库存有无提示")
-    private String inventoriesTip;
+    @ItemProperty(alias = "库存有无")
+    private boolean inventoriesFlag;
 
 
     public DrugListBean() {
@@ -628,11 +628,11 @@ public class DrugListBean implements IDrugInventory, Serializable {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 
-    public String getInventoriesTip() {
-        return inventoriesTip;
+    public boolean isInventoriesFlag() {
+        return inventoriesFlag;
     }
 
-    public void setInventoriesTip(String inventoriesTip) {
-        this.inventoriesTip = inventoriesTip;
+    public void setInventoriesFlag(boolean inventoriesFlag) {
+        this.inventoriesFlag = inventoriesFlag;
     }
 }
