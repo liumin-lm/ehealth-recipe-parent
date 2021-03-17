@@ -1317,7 +1317,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 else if (flag == 1 || flag == notPass) {
                     hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and ");
                     hql.append(getSqlIn(recipeIds, 300, "recipeId") + " order by signDate desc");
-                    System.out.println(hql);
                 }
                 //4是未签名
                 else if (flag == 4) {
