@@ -17,6 +17,8 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -40,17 +42,17 @@ import recipe.bean.HisSearchDrugDTO;
 import static recipe.bussutil.RecipeUtil.getHospitalPrice;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -70,6 +72,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugListExtService.class);
+
+    private static final String SUPPORT_TO_HOS = "supportToHos";
+    private static final String SUPPORT_SEND_TO_ENTERPRISES = "showSendToEnterprises";
+    private static final String SUPPORT_SEND_TO_HOS = "showSendToHos";
+    private static final String SUPPORT_TFDS = "supportTFDS";
 
     private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
 
@@ -512,6 +519,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
             // 改成字符串返回
             pharmacyInventory.setAmount(amount);
+            //设置到院取药的类型
+            pharmacyInventory.setType(3);
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
@@ -1030,7 +1039,63 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
         //查询药企库存----若超过5s还未返回库存, 则不展示对应药企库存字段;
         setDrugsEnterpriseInventoriesByFiveSeconds(req.getOrganId(),drugListBeans);
-        return drugListBeans;
+        //按照机构配置的购药方式进行数据过滤
+        return filterInventoriesData(req.getOrganId(), drugListBeans);
+    }
+
+    private List<DrugListBean> filterInventoriesData(Integer organId, List<DrugListBean> drugListBeans){
+        List<DrugListBean> result = new ArrayList<>();
+        Iterator iterator = drugListBeans.iterator();
+        boolean inventoryFlag = false;
+        while (iterator.hasNext()) {
+            DrugListBean drugListBean = (DrugListBean)iterator.next();
+            if (drugListBean != null) {
+                List<DrugInventoryInfo> drugInventoryInfos = drugListBean.getInventories();
+                if (CollectionUtils.isNotEmpty(drugInventoryInfos)) {
+                    inventoryFlag = true;
+                }
+                Iterator drugIterator = drugInventoryInfos.iterator();
+                while (drugIterator.hasNext()) {
+                    DrugInventoryInfo drugInventoryInfo = (DrugInventoryInfo)drugIterator.next();
+                    List<DrugPharmacyInventoryInfo> drugPharmacyInventoryInfos = drugInventoryInfo.getPharmacyInventories();
+                    Iterator drugPharmacyIterator = drugPharmacyInventoryInfos.iterator();
+                    while (drugPharmacyIterator.hasNext()) {
+                        DrugPharmacyInventoryInfo drugPharmacyInventoryInfo = (DrugPharmacyInventoryInfo)drugPharmacyIterator.next();
+                        if (getOrganGiveMode(organId, "SUPPORT_TO_HOS") && "3".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置到院取药
+                            drugPharmacyIterator.remove();
+                        }
+                        if (getOrganGiveMode(organId, "SUPPORT_SEND_TO_ENTERPRISES") && "2".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置药企配送
+                            drugPharmacyIterator.remove();
+                        }
+                        if (getOrganGiveMode(organId, "SUPPORT_SEND_TO_HOS") && "1".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置医院配送
+                            drugPharmacyIterator.remove();
+                        }
+                        if (getOrganGiveMode(organId, "SUPPORT_TFDS") && "4".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置药店取药
+                            drugPharmacyIterator.remove();
+                        }
+                    }
+                }
+            }
+            if (!inventoryFlag && drugListBean != null) {
+                drugListBean.setInventoriesTip("无库存");
+            }
+        }
+        return result;
+    }
+
+    private boolean getOrganGiveMode(Integer organId, String giveModeText){
+        //获取机构支持的购药方式
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
+        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        if (!configurations.containsKey(giveModeText)) {
+            return true;
+        }
+        return false;
     }
 
     private void setHosInventories(Integer organId, List<Integer> drugIds, List<DrugListBean> drugListBeans,@Nullable Integer pharmacyId) {
@@ -1106,7 +1171,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugInventoryInfos = new ArrayList<>(1);
                 drugInventory = DrugInventoryInfo.builder()
                         .type("his")
-                        .pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)))
+                        .pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount, 3)))
                         .remoteQueryStatus("0")
                         .build();
                 drugInventoryInfos.add(drugInventory);
@@ -1198,6 +1263,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         pharmacyInventory.setPharmacyName(drugsEnterprise.getName());
                         //库存数量or有无库存
                         pharmacyInventory.setAmount(inventory);
+                        //设置药企类型
+                        setPharmacyInventoryType(drugsEnterprise, pharmacyInventory);
                         pharmacyInventories.add(pharmacyInventory);
                     }
                     drugInventory = DrugInventoryInfo.builder()
@@ -1213,5 +1280,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             LOGGER.error("查询药企药品实时查询库存错误setDrugsEnterpriseInventories ", e);
         }
         return drugListBeans;
+    }
+
+    private void setPharmacyInventoryType(DrugsEnterprise drugsEnterprise, DrugPharmacyInventoryInfo pharmacyInventory){
+        if (new Integer(1).equals(drugsEnterprise.getSendType())) {
+            pharmacyInventory.setType(1);
+        } else {
+            //需要根据药企支持的配送类型设置药企配送或者药店取药或者两个都支持
+            if (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(2);
+            } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(4);
+            } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(drugsEnterprise.getPayModeSupport())
+                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(5);
+            }
+        }
     }
 }
