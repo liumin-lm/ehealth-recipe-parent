@@ -1527,6 +1527,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeBeans;
     }
 
+    @RpcService
+    @Override
+    public Long findRecipeCountByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        LOGGER.info("findRecipeByFlag request=[{}]", JSONUtils.toString(organ) + "," + JSONUtils.toString(recipeIds) + "," + JSONUtils.toString(recipeTypes) + "," + flag + "," + limit);
+        Long recipeCount = recipeDAO.findRecipeCountByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
+        return recipeCount;
+    }
+
 
     @Override
     public void doAfterCheckNotPassYs(RecipeBean recipeBean) {

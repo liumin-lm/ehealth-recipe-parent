@@ -43,6 +43,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1259,7 +1260,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //4是未签名
                 else if (flag == 4) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + "order by signDate desc");
+                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + " order by signDate desc");
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
@@ -1290,6 +1291,64 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 查询药师审核的总数
+     */
+    public Long findRecipeCountByFlag(final List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, final int flag, final int start, final int limit) {
+        final int notPass = 2;
+        final int all = 3;
+        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                //0是待药师审核
+                if (flag == 0) {
+                    //hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<2 and status = " + RecipeStatusConstant.READY_CHECK_YS + " and  (recipeType in(:recipeTypes) or grabOrderStatus=1)");
+                    hql.append("SELECT\n" +
+                            "\tcount(r.recipeid)\n" +
+                            "FROM\n" +
+                            "\tcdr_recipe r\n" +
+                            "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.status = 8 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
+                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
+                }
+                //1是审核通过  2是审核未通过
+                else if (flag == 1 || flag == notPass) {
+                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and ");
+                    hql.append(getSqlIn(recipeIds, 300, "recipeId") + " order by signDate desc");
+                }
+                //4是未签名
+                else if (flag == 4) {
+                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + " order by signDate desc");
+                }
+
+                //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
+                else if (flag == all) {
+                    hql.append("select count(r.recipeid) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2)))  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) order by signDate desc");
+                } else {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
+                }
+
+                Query q;
+                /*if (flag == all || flag == 0) {
+
+                } else {
+                    q = ss.createQuery(hql.toString());
+                }*/
+                q = ss.createSQLQuery(hql.toString());
+                q.setParameterList("organ", organ);
+                if (flag == 0 || flag == all) {
+                    q.setParameterList("recipeTypes", recipeTypes);
+                }
+                BigInteger count = (BigInteger) q.uniqueResult();
+                setResult(count.longValue());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     /**
      * 查询处方列表
