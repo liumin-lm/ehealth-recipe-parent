@@ -1084,18 +1084,7 @@ public class HisRecipeService {
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         //设置煎法
-        if (StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())) {
-            //查询平台的煎发
-            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-            DecoctionWay decoctionWay = drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(hisRecipe.getClinicOrgan(), hisRecipe.getDecoctionCode());
-            if (decoctionWay == null) {
-                LOGGER.error("线下处方转线上诊断没有对照.");
-                recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
-            } else {
-                recipeExtend.setDecoctionId(decoctionWay.getDecoctionId().toString());
-                recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
-            }
-        } else {
+        if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
         }
         try {
