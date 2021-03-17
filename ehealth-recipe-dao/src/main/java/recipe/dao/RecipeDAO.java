@@ -1234,7 +1234,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 //        HibernateSessionTemplate.instance().execute(action);
 //        return action.getResult();
 //    }
-    public List<Recipe> findRecipeByFlag(final List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, final int flag, final int start, final int limit) {
+    public List<Recipe> findRecipeByFlag(final List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, final int flag, final Integer start, final Integer limit) {
         final int notPass = 2;
         final int all = 3;
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
@@ -1282,8 +1282,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (flag == 0 || flag == all) {
                     q.setParameterList("recipeTypes", recipeTypes);
                 }
-                q.setFirstResult(start);
-                q.setMaxResults(limit);
+                if (start != null) {
+                    q.setFirstResult(start);
+                }
+                if (limit != null) {
+                    q.setMaxResults(limit);
+                }
                 setResult(q.list());
             }
         };
