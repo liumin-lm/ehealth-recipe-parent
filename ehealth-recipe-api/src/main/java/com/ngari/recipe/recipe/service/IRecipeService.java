@@ -592,7 +592,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, Integer start, Integer limit);
+    List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit);
 
     /**
      * 审核不通过后处理
