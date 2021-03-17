@@ -143,7 +143,7 @@ public class HisRecipeService {
                         &&!StringUtils.isEmpty(patientDTO.getMpiId())
                         &&!patientDTO.getMpiId().equals(haveRecipe.getMpiid())){
                     //修改处方患者信息
-                    //haveRecipe.setMpiid(patientDTO.getMpiId());
+                    haveRecipe.setMpiid(patientDTO.getMpiId());
                     UserRoleToken userRoleToken = UserRoleToken.getCurrent();
                     haveRecipe.setRequestMpiId(userRoleToken.getOwnMpiId());
                     haveRecipe.setPatientName(patientDTO.getPatientName());
@@ -1127,7 +1127,7 @@ public class HisRecipeService {
                     &&!StringUtils.isEmpty(hisRecipe.getMpiId())
                     &&!hisRecipe.getMpiId().equals(haveRecipe.getMpiid())){
                 //修改处方患者信息
-                //haveRecipe.setMpiid(hisRecipe.getMpiId());
+                haveRecipe.setMpiid(hisRecipe.getMpiId());
                 haveRecipe.setRequestMpiId(userRoleToken.getOwnMpiId());
                 haveRecipe.setPatientName(hisRecipe.getPatientName());
                 haveRecipe.setPatientID(hisRecipe.getPatientNumber());
