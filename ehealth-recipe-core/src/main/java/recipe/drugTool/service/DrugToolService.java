@@ -709,12 +709,9 @@ public class DrugToolService implements IDrugToolService {
             DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
             DrugSources drugSources = dao.get(drugListMatch.getSourceOrgan());
             if (drugSources == null){
-                DrugSources drugSources1=new DrugSources();
                 OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                 OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
-                drugSources1.setDrugSourcesId(byOrganId.getOrganId());
-                drugSources1.setDrugSourcesName(byOrganId.getName());
-                dao.save(drugSources1);
+                dao.saveDrugSources(byOrganId.getOrganId(),byOrganId.getName());
             }
         }
         Integer status = drugListMatch.getStatus();
@@ -1591,12 +1588,9 @@ public class DrugToolService implements IDrugToolService {
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     DrugSources drugSources = dao.get(drugListMatch.getSourceOrgan());
                     if (drugSources == null){
-                        DrugSources drugSources1=new DrugSources();
                         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                         OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
-                        drugSources1.setDrugSourcesId(byOrganId.getOrganId());
-                        drugSources1.setDrugSourcesName(byOrganId.getName());
-                        dao.save(drugSources1);
+                        dao.saveDrugSources(byOrganId.getOrganId(),byOrganId.getName());
                     }
                 }
                 DrugList save = drugListDAO.save(drugList);
@@ -2281,6 +2275,22 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
         }
+    }
+    /**
+     * 中间表药品搜索
+     * @param drugListMatchId
+     */
+    @RpcService
+    public DrugListMatch getDrugListMatch(Integer drugListMatchId){
+         return drugListMatchDAO.get(drugListMatchId);
+    }
+
+
+
+    @RpcService
+    public DrugSources saveDrugSources(Integer drugSourcesId,String drugSourcesName){
+        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+        return dao.saveDrugSources(drugSourcesId,drugSourcesName);
     }
 
 }
