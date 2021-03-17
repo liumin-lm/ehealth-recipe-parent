@@ -1045,7 +1045,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     private List<DrugListBean> filterInventoriesData(Integer organId, List<DrugListBean> drugListBeans){
         LOGGER.info("filterInventoriesData drugListBeans:{}", JSONUtils.toString(drugListBeans));
-        List<DrugListBean> result = new ArrayList<>();
         Iterator iterator = drugListBeans.iterator();
         boolean inventoryFlag = false;
         while (iterator.hasNext()) {
@@ -1089,7 +1088,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugListBean.setInventoriesFlag(inventoryFlag);
             }
         }
-        return result;
+        return drugListBeans;
     }
 
     private boolean getOrganGiveMode(Integer organId, String giveModeText){
