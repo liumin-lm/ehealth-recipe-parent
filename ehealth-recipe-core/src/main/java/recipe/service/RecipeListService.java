@@ -723,29 +723,22 @@ public class RecipeListService extends RecipeBaseService {
                 organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(k -> k.getOrganId() + "_" + k.getDrugId(), a -> a, (k1, k2) -> k1));
                 LOGGER.info("instanceRecipesAndPatient organDrugListMap:{} ", JSONUtils.toString(organDrugListMap));
             }
+            int index;
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
-                //设置处方具体药品名称
-                StringBuilder stringBuilder = new StringBuilder();
+                //设置处方具体药品名称---取第一个药
                 List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
-                if (CollectionUtils.isNotEmpty(recipedetails)) {
-                    for (Recipedetail recipedetail : recipedetails) {
-                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetail.getDrugId());
-                        if (organDrugList != null) {
-                            stringBuilder.append(organDrugList.getSaleName());
-                            if (StringUtils.isNotEmpty(organDrugList.getDrugForm())) {
-                                stringBuilder.append(organDrugList.getDrugForm());
-                            }
-                        } else {
-                            stringBuilder.append(recipedetail.getDrugName());
-                        }
-                        stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                if (null != recipedetails && recipedetails.size() > 0) {
+                    //这里反向取一下要，前面跌倒了
+                    index = recipedetails.size() - 1;
+                    if (StringUtils.isNotEmpty(recipedetails.get(index).getDrugDisplaySplicedName())) {
+                        recipe.setRecipeDrugName(recipedetails.get(index).getDrugDisplaySplicedName());
+                    } else {
+                        //历史数据处理
+                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetails.get(index).getDrugId());
+                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrugList), recipedetails.get(index), recipe.getRecipeType()));
                     }
                 }
-                if (stringBuilder.lastIndexOf("、") != -1) {
-                    stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
-                }
-                recipe.setRecipeDrugName(stringBuilder.toString());
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态

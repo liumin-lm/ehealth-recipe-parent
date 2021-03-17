@@ -2,6 +2,7 @@ package com.ngari.recipe.recipe.service;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.IBaseService;
@@ -9,7 +10,6 @@ import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
@@ -809,5 +809,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode);
+
+    /**
+     * ca组装参数 供casign调用
+     * @param recipeBean
+     * @param detailBeanList
+     * @return
+     */
+    @RpcService
+    public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
 }
 

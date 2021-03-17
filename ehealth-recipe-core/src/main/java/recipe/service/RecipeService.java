@@ -1868,7 +1868,7 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
             return rMap;
         }
-
+        LOGGER.info("doSignRecipeCheck recipeId={}, checkFlag={}", recipeId, checkFlag);
         rMap.put("recipeId", recipeId);
         switch (checkFlag) {
             case 1:
