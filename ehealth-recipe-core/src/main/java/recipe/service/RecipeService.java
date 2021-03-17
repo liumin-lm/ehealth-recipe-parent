@@ -3792,34 +3792,8 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("findUnSupportDrugEnterprise 平台调用查询方法={}", JSONObject.toJSONString(drugEnterpriseService.getClass().getName()));
         if (null != drugEnterpriseService) {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            DrugsDataBean drugsDataBean = new DrugsDataBean();
-            drugsDataBean.setOrganId(recipe.getClinicOrgan());
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
-            drugsDataBean.setRecipeDetailBeans(recipeDetailBeans);
-            List<String> drugNameList = recipeDetailBeans.stream().map(RecipeDetailBean -> RecipeDetailBean.getDrugName()).collect(Collectors.toList());
-            LOGGER.info("findUnSupportDrugEnterprise 平台调用所有药品名称={}", JSONObject.toJSONString(drugNameList));
-            int flag = getFlag(drugsEnterprise, recipe);
-            // 获得有库存的药品名称集合 drugName list
-            List<String> haveDrugList = drugEnterpriseService.getDrugInventoryForApp(drugsDataBean, drugsEnterprise,flag);
-            LOGGER.info("findUnSupportDrugEnterprise 平台调用查询结果={}", JSONObject.toJSONString(haveDrugList));
-            if (haveDrugList == null){
-                // 返回null说明未对接查询库存接口，所有药品有库存
-                result.setCode(DrugEnterpriseResult.SUCCESS);
-            }else {
-                drugNameList.removeAll(haveDrugList);
-                // 存在无库存药品
-                if (CollectionUtils.isNotEmpty(drugNameList)){
-                    result.setCode(DrugEnterpriseResult.FAIL);
-                    result.setObject(drugNameList);
-                }else {
-                    // 所有药品都有库存
-                    result.setCode(DrugEnterpriseResult.SUCCESS);
-                }
-            }
+            result = drugEnterpriseService.scanStock(recipeId, drugsEnterprise);
+            LOGGER.info("findUnSupportDrugEnterprise 平台调用查询结果={}", JSONObject.toJSONString(result));
         }
         LOGGER.info("findUnSupportDrugEnterprise recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
