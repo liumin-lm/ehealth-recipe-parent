@@ -723,17 +723,20 @@ public class RecipeListService extends RecipeBaseService {
                 organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(k -> k.getOrganId() + "_" + k.getDrugId(), a -> a, (k1, k2) -> k1));
                 LOGGER.info("instanceRecipesAndPatient organDrugListMap:{} ", JSONUtils.toString(organDrugListMap));
             }
+            int index;
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
-                //设置处方具体药品名称
+                //设置处方具体药品名称---取第一个药
                 List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
                 if (null != recipedetails && recipedetails.size() > 0) {
-                    if (StringUtils.isNotEmpty(recipedetails.get(0).getDrugDisplaySplicedName())) {
-                        recipe.setRecipeDrugName(recipedetails.get(0).getDrugDisplaySplicedName());
+                    //这里反向取一下要，前面跌倒了
+                    index = recipedetails.size() - 1;
+                    if (StringUtils.isNotEmpty(recipedetails.get(index).getDrugDisplaySplicedName())) {
+                        recipe.setRecipeDrugName(recipedetails.get(index).getDrugDisplaySplicedName());
                     } else {
                         //历史数据处理
-                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetails.get(0).getDrugId());
-                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrugList), recipedetails.get(0), recipe.getRecipeType()));
+                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetails.get(index).getDrugId());
+                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrugList), recipedetails.get(index), recipe.getRecipeType()));
                     }
                 }
                 recipe.setRecipeShowTime(recipe.getCreateDate());
