@@ -128,6 +128,12 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "中药禁忌原因")
     private String tcmContraindicationCause;
 
+    @ItemProperty(alias = "前端展示的药品拼接名")
+    private String drugDisplaySplicedName;
+
+    @ItemProperty(alias = "前端展示的商品拼接名")
+    private String drugDisplaySplicedSaleName;
+
     public Integer getPack() {
         return pack;
     }
@@ -417,5 +423,21 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setUsePathEnglishNames(String usePathEnglishNames) {
         this.usePathEnglishNames = usePathEnglishNames;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 }

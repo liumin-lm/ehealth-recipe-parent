@@ -1549,22 +1549,6 @@ public class RecipeServiceSub {
 
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
-        try {
-            for (Recipedetail recipedetail : recipedetails) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
-                }
-                //药品名历史数据处理
-                if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
-                    recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage(), e);
-        }
 
         //中药处方处理
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {

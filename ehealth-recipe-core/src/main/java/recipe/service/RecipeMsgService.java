@@ -362,6 +362,7 @@ public class RecipeMsgService {
     }
 
     private static void setRemarkFlag(Recipe recipe, Map<String, String> extendValue){
+        String remarkFlag = "remarkflag=0";
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
@@ -372,7 +373,7 @@ public class RecipeMsgService {
                 String healthInsurancePayContent = order.getHealthInsurancePayContent();
                 Map<String, String> healthInsurancePayContentMap = JSONUtils.parse(healthInsurancePayContent, Map.class);
                 if (Objects.nonNull(healthInsurancePayContentMap)) {
-                    extendValue.put("remarkflag", "remarkflag=1");
+                    remarkFlag = "remarkflag=1";
                     // 总金额
                     Double preSettletotalAmount = order.getPreSettletotalAmount();
                     // 现金支付
@@ -405,10 +406,9 @@ public class RecipeMsgService {
                     extendValue.put("dnzhye", dnzhye);
                     extendValue.put("lnzhye", lnzhye);
                 }
-            }else {
-                extendValue.put("remarkflag", "remarkflag=0");
             }
         }
+        extendValue.put("remarkflag",remarkFlag);
     }
     private static String getRecipeExpressFeeRemindNoPayUrl(Recipe recipe) {
         //获取配置动态链接
