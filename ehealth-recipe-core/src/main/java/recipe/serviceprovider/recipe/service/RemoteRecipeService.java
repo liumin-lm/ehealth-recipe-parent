@@ -11,7 +11,6 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
@@ -19,6 +18,7 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -43,8 +43,6 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
-import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -55,7 +53,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.base.constant.ErrorCode;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -75,7 +72,6 @@ import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -97,7 +93,6 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
@@ -2339,5 +2334,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         LOGGER.info("judgeRecipeStatus is {}", true);
         return false;
+    }
+
+    @Override
+    public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
+        return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
     }
 }
