@@ -479,6 +479,57 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
+     * 根据开方时间查询处方订单药品表
+     *
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    public List<RecipeOrderFeeVO> findRecipeByOrganIdAndCreateTimeAnddepart(Integer organId, Integer depart, Date createTime) {
+        AbstractHibernateStatelessResultAction<List<RecipeOrderFeeVO>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrderFeeVO>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                //处方金额
+                hql.append("select r.recipeType,r.recipeId,o.cashAmount,o.fundAmount,o.payBackPrice from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan=:organId and r.depart=:depart and r.createDate>=:createTime");
+                Query q = ss.createSQLQuery(hql.toString());
+                if (StringUtils.isNotEmpty(hql)){
+                    q.setParameter("organId",organId);
+                    q.setParameter("depart",depart);
+                    q.setParameter("createTime",createTime);
+                }
+
+                List<Object[]> result=q.list();
+                List<RecipeOrderFeeVO> backList = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)){
+                    RecipeOrderFeeVO recipeOrderFeeVO;
+                    for (Object[] objs : result) {
+                        //参数组装
+                        recipeOrderFeeVO=new RecipeOrderFeeVO();
+                        //处方类型
+                        recipeOrderFeeVO.setRecipeType((objs[0]==null?null:Integer.valueOf(objs[0].toString())));
+                        //处方单号
+                        recipeOrderFeeVO.setRecipeId(objs[1]==null?null:Integer.valueOf(objs[1].toString()));
+                        //自费  new BigDecimal(objs[].toString())
+                        recipeOrderFeeVO.setCashMoney(objs[2] == null ? null:new BigDecimal(objs[2].toString()));
+                        //医保
+                        recipeOrderFeeVO.setMedicalMoney(objs[3] == null ? null:new BigDecimal(objs[3].toString()));
+                        //处方总支付金额
+                        recipeOrderFeeVO.setRecipePayMoney(objs[4] == null ? null:new BigDecimal(objs[4].toString()));
+                        backList.add(recipeOrderFeeVO);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
+    /**
      * 获取处方总数
      *
      * @param doctorId

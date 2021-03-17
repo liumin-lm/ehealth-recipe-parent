@@ -818,5 +818,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
+
+    /**
+     * 深圳二院财务报表  处方费用
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    @RpcService
+    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime);
 }
 
