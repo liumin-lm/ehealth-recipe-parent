@@ -1058,6 +1058,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 Iterator drugIterator = drugInventoryInfos.iterator();
                 while (drugIterator.hasNext()) {
                     DrugInventoryInfo drugInventoryInfo = (DrugInventoryInfo)drugIterator.next();
+                    LOGGER.info("filterInventoriesData drugInventoryInfo:{}", JSONUtils.toString(drugInventoryInfo));
                     List<DrugPharmacyInventoryInfo> drugPharmacyInventoryInfos = drugInventoryInfo.getPharmacyInventories();
                     if (CollectionUtils.isEmpty(drugPharmacyInventoryInfos)) {
                         break;
