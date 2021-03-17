@@ -302,18 +302,15 @@ public class HisRecipeService {
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(recipe.getStatus()));
                     if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                         hisRecipeVO.setFromFlag(1);
-                        hisRecipeVO.setJumpPageType(0);
-                        result.add(hisRecipeVO);
-
                     } else {
                         hisRecipeVO.setFromFlag(0);
-                        hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
-                        hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
-                        List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
-                        hisRecipeVO.setRecipeDetail(recipeDetailVOS);
-                        hisRecipeVO.setJumpPageType(0);
-                        result.add(hisRecipeVO);
                     }
+                    hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
+                    hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+                    List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+                    hisRecipeVO.setRecipeDetail(recipeDetailVOS);
+                    hisRecipeVO.setJumpPageType(0);
+                    result.add(hisRecipeVO);
                 } else {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
