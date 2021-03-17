@@ -1475,11 +1475,16 @@ public class RecipeServiceSub {
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(recipe.getDetailData().get(0).getDrugName());
-        stringBuilder.append(" ").append((recipe.getDetailData().get(0).getDrugSpec()) == null ? "" : recipe.getDetailData().get(0).getDrugSpec()).append("/").append(recipe.getDetailData().get(0).getDrugUnit() == null ? "" : recipe.getDetailData().get(0).getDrugUnit()).append("、");
-        //统一显示第一个药品信息
-        r.setRecipeDrugName(stringBuilder.toString());
+        if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
+            r.setRecipeDrugName(recipe.getDetailData().get(0).getDrugDisplaySplicedName());
+        } else {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(recipe.getDetailData().get(0).getDrugName());
+            stringBuilder.append(" ").append((recipe.getDetailData().get(0).getDrugSpec()) == null ? "" : recipe.getDetailData().get(0).getDrugSpec()).append("/").append(recipe.getDetailData().get(0).getDrugUnit() == null ? "" : recipe.getDetailData().get(0).getDrugUnit());
+            //统一显示第一个药品信息
+            r.setRecipeDrugName(stringBuilder.toString());
+        }
+
 
         if (StringUtils.isNotEmpty(recipe.getSignDate())) {
             r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
