@@ -726,26 +726,16 @@ public class RecipeListService extends RecipeBaseService {
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称
-                StringBuilder stringBuilder = new StringBuilder();
                 List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
-                if (CollectionUtils.isNotEmpty(recipedetails)) {
-                    for (Recipedetail recipedetail : recipedetails) {
-                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetail.getDrugId());
-                        if (organDrugList != null) {
-                            stringBuilder.append(organDrugList.getSaleName());
-                            if (StringUtils.isNotEmpty(organDrugList.getDrugForm())) {
-                                stringBuilder.append(organDrugList.getDrugForm());
-                            }
-                        } else {
-                            stringBuilder.append(recipedetail.getDrugName());
-                        }
-                        stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                if (null != recipedetails && recipedetails.size() > 0) {
+                    if (StringUtils.isNotEmpty(recipedetails.get(0).getDrugDisplaySplicedName())) {
+                        recipe.setRecipeDrugName(recipedetails.get(0).getDrugDisplaySplicedName());
+                    } else {
+                        //历史数据处理
+                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetails.get(0).getDrugId());
+                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrugList), recipedetails.get(0), recipe.getRecipeType()));
                     }
                 }
-                if (stringBuilder.lastIndexOf("、") != -1) {
-                    stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
-                }
-                recipe.setRecipeDrugName(stringBuilder.toString());
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态

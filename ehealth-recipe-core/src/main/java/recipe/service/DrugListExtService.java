@@ -177,6 +177,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
         // 添加医院数据
         if (CollectionUtils.isNotEmpty(drugList)) {
+            drugList.forEach(a -> a.setDrugType(drugDTO.getDrugType()));
             getHospitalPrice(drugDTO.getOrganId(), drugList);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
@@ -425,6 +426,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
         // 添加医院数据
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
+            drugListBeans.forEach(a -> a.setDrugType(commonDrugListDTO.getDrugType()));
             getHospitalPrice(commonDrugListDTO.getOrganId(), drugListBeans);
         }
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
