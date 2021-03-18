@@ -177,7 +177,7 @@ public class DrugNameDisplayUtil {
 
 
     /**
-     * 后台处理药品显示名---卡片消息/处方笺
+     * 后台处理药品显示名---卡片消息/处方笺/处方列表页第一个药名
      *
      * @param recipedetail
      * @param drugType
@@ -198,7 +198,7 @@ public class DrugNameDisplayUtil {
                 stringBuilder.append("(").append(recipedetail.getMemo()).append(")");
             }
         } else {
-            if (StringUtils.isNotEmpty(recipedetail.getDrugDisplaySplicedName())) {
+            if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                 if (CollectionUtils.isEmpty(organDrugLists)) {
