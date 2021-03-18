@@ -42,9 +42,9 @@ public class DrugListOPService implements IDrugListService {
         }
         DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
         if (drugListBean.getSourceOrgan() != null){
-            DrugSources drugSources = dao.get(drugListBean.getSourceOrgan());
-            if (drugSources != null){
-                drugListBean.setSourceOrganText(drugSources.getDrugSourcesName());
+            List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(drugListBean.getSourceOrgan());
+            if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
+                drugListBean.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
             }
         }
 

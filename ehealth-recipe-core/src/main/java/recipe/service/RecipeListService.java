@@ -723,21 +723,13 @@ public class RecipeListService extends RecipeBaseService {
                 organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(k -> k.getOrganId() + "_" + k.getDrugId(), a -> a, (k1, k2) -> k1));
                 LOGGER.info("instanceRecipesAndPatient organDrugListMap:{} ", JSONUtils.toString(organDrugListMap));
             }
-            int index;
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称---取第一个药
                 List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
                 if (null != recipedetails && recipedetails.size() > 0) {
                     //这里反向取一下要，前面跌倒了
-                    index = recipedetails.size() - 1;
-                    if (StringUtils.isNotEmpty(recipedetails.get(index).getDrugDisplaySplicedName())) {
-                        recipe.setRecipeDrugName(recipedetails.get(index).getDrugDisplaySplicedName());
-                    } else {
-                        //历史数据处理
-                        OrganDrugList organDrugList = organDrugListMap.get(recipe.getClinicOrgan() + "_" + recipedetails.get(index).getDrugId());
-                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrugList), recipedetails.get(index), recipe.getRecipeType()));
-                    }
+                    recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(recipedetails.size() - 1), recipe.getRecipeType(), recipe.getClinicOrgan()));
                 }
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
@@ -1683,13 +1675,7 @@ public class RecipeListService extends RecipeBaseService {
                 //设置处方具体药品名称---取第一个药展示
                 List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 if (null != recipedetails && recipedetails.size() > 0) {
-                    if (StringUtils.isNotEmpty(recipedetails.get(0).getDrugDisplaySplicedName())) {
-                        recipe.setRecipeDrugName(recipedetails.get(0).getDrugDisplaySplicedName());
-                    } else {
-                        //历史数据处理
-                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());
-                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetails.get(0), recipe.getRecipeType()));
-                    }
+                    recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                 }
 
                 //前台页面展示的时间源不同

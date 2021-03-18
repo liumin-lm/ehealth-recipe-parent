@@ -110,6 +110,7 @@ public class RecipeRefundService extends RecipeBaseService{
                 RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
                 Map<String, Object> otherInfo = new HashMap<>();
                 otherInfo.put("busType", "1");
+                otherInfo.put("desc", applyReason);
                 ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, eh.base.constant.BussTypeConstant.RECIPE, otherInfo));
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {

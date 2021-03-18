@@ -394,13 +394,9 @@ public class RecipeLabelManager {
                 dTotal = detail.getUseDose() + detail.getUseDoseUnit();
             }
             if (!StringUtils.isEmpty(detail.getMemo())) {
-                dTotal = dTotal + "*" + detail.getMemo();
+                dTotal = dTotal + "(" + detail.getMemo() + ")";
             }
-            if (StringUtils.isNotEmpty(detail.getDrugDisplaySplicedName())) {
-                drugShowName = detail.getDrugDisplaySplicedName();
-            } else {
-                drugShowName = detail.getSaleName() + ":" + dTotal;
-            }
+            drugShowName = detail.getDrugName() + " " + dTotal;
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
