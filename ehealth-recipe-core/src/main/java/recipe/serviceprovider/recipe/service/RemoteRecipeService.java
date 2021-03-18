@@ -2345,18 +2345,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @return
      */
     @RpcService
-    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime){
+    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime,Date endTime){
 
-        LOGGER.info("getRecipeFeeDetail organId,depart is {},{}");
+        LOGGER.info("getRecipeFeeDetail organId,depart is ={},{}",organId,depart);
         //1.根据机构查询，处方类型数据
-        List<RecipeOrderFeeVO> voList=recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId,depart,createTime);
+        List<RecipeOrderFeeVO> voList=recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId,depart,createTime,endTime);
         //处方费用分类
         if (CollectionUtils.isNotEmpty(voList)){
             RecipeOrderFeeVO recipeOrderFeeVO;
-            HosBusFundsReportResult.MedFundsDetail medFee;
             for (RecipeOrderFeeVO vo:voList){
                 recipeOrderFeeVO=new RecipeOrderFeeVO();
-                medFee=new HosBusFundsReportResult.MedFundsDetail();
                 if (vo.getRecipeType()==1){
                     //西药费
                     vo.setWestMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
@@ -2369,13 +2367,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     //中草药
                     vo.setChineseMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
                 }
-                //组装自费和医保信息
-                medFee.setMedicalAmount(vo.getMedicalMoney());
-                medFee.setPersonalAmount(vo.getCashMoney());
-                medFee.setTotalAmount(vo.getCashMoney().add(vo.getMedicalMoney()));
-                vo.setMedFee(medFee);
+                if (vo.getRecipeType()==4){
+                    //膏方药
+                    vo.setPasteMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                }
+                //医疗费
+                vo.setTotalAmount((vo.getPersonalAmount()==null?new BigDecimal(0.00):vo.getPersonalAmount()).add(vo.getMedicalAmount()==null?new BigDecimal(0.00):vo.getMedicalAmount()));
             }
-            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {}",JSONUtils.toString(voList));
+            LOGGER.info("getRecipeFeeDetail={}",voList.size());
+            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}",JSONUtils.toString(voList),voList.size());
             return voList;
         }
         return null;

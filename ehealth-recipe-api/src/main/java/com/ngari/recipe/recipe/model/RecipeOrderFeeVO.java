@@ -1,6 +1,4 @@
 package com.ngari.recipe.recipe.model;
-
-import com.ngari.opbase.base.mode.HosBusFundsReportResult;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,6 +12,15 @@ import java.math.BigDecimal;
 public class RecipeOrderFeeVO {
 
     /**
+     * 科室代码
+     */
+    private String departId;
+    /**
+     * 科室名称
+     */
+    private String departName;
+
+    /**
      * 西药费
      */
     private BigDecimal westMedFee;
@@ -25,20 +32,26 @@ public class RecipeOrderFeeVO {
      * 中药费
      */
     private BigDecimal chineseMedFee;
+    /**
+     * 膏方费
+     */
+    private BigDecimal pasteMedFee;
 
     /**
-     * 医疗费  医保+自费
+     *  医保 自费
      */
-    private HosBusFundsReportResult.MedFundsDetail medFee;
+    private BigDecimal medicalAmount;
+    private BigDecimal personalAmount;
+    /**
+     * 医疗费
+     */
+    private BigDecimal totalAmount;
+
     //处方单类型
     private Integer recipeType;
     //处方id
     private Integer recipeId;
-    //处方支付金额
+    //处方药物类型  支付金额
     private  BigDecimal recipePayMoney;
-    //自费
-    private  BigDecimal cashMoney;
-    //医保
-    private  BigDecimal MedicalMoney;
 
 }
