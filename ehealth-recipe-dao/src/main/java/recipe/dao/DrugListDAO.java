@@ -632,9 +632,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     for (DrugList list : lists) {
                         DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                         if (list.getSourceOrgan() != null){
-                            DrugSources drugSources = dao.get(list.getSourceOrgan());
-                            if (drugSources != null){
-                                list.setSourceOrganText(drugSources.getDrugSourcesName());
+                            List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(list.getSourceOrgan());
+                            if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
+                                list.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
                             }
                         }
                         lists2.add(list);
