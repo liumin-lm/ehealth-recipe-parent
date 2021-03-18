@@ -4413,7 +4413,7 @@ public class RecipeService extends RecipeBaseService {
                     pharmacyTcm.setSort(1000);
                     boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
                     if (b){
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacyName());
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacyName());
                         drugListMatch.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
                     }
                 }
@@ -4504,7 +4504,7 @@ public class RecipeService extends RecipeBaseService {
                     pharmacyTcm.setSort(1000);
                     boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
                     if (b){
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacyName());
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacyName());
                         organDrug.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
                     }
                 }
@@ -4654,7 +4654,7 @@ public class RecipeService extends RecipeBaseService {
                     pharmacyTcm.setSort(1000);
                     boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
                     if (b){
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacy());
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacy());
                         organDrug.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
                     }
                 }
