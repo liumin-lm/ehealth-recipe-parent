@@ -579,8 +579,8 @@ public class RecipeServiceSub {
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
-                            //中药药品显示名称处理---固定
-                            detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail, RecipeBussConstant.RECIPETYPE_TCM));
+                            //中药药品显示名称处理---固定--中药药品名暂时前端拼接写死
+                            //detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail,RecipeBussConstant.RECIPETYPE_TCM));
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
 
                             if (detail.getUseDays() == null) {
@@ -2670,7 +2670,7 @@ public class RecipeServiceSub {
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
         //取第一个药的药品显示拼接名
-        drugNames.add(details.get(0).getDrugDisplaySplicedName());
+        drugNames.add(DrugNameDisplayUtil.dealwithRecipeDrugName(details.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
 
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setDiseaseName(diseaseName);
