@@ -3753,7 +3753,7 @@ public class RecipeService extends RecipeBaseService {
         if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             RecipeResultBean recipeResultBean = hisService.scanDrugStockByRecipeId(recipeId);
-            LOGGER.info("findUnSupportDrugEnterprise 医院库存查询结果={}", JSONObject.toJSONString(recipeResultBean));
+            LOGGER.info("findUnSupportDrugEnterprise recipeId={},医院库存查询结果={}", recipeId, JSONObject.toJSONString(recipeResultBean));
             if (recipeResultBean.getCode() == RecipeResultBean.SUCCESS){
                 result.setCode(DrugEnterpriseResult.SUCCESS);
             }else {
@@ -3770,7 +3770,7 @@ public class RecipeService extends RecipeBaseService {
             ScanRequestBean scanRequestBean = RemoteDrugEnterpriseService.getScanRequestBean(recipe, drugsEnterprise);
             LOGGER.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
             HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-            LOGGER.info("findUnSupportDrugEnterprise 前置机调用查询结果={}", JSONObject.toJSONString(responseTO));
+            LOGGER.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipeId, JSONObject.toJSONString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
                 result.setCode(DrugEnterpriseResult.SUCCESS);
             } else {
@@ -3790,10 +3790,10 @@ public class RecipeService extends RecipeBaseService {
         } else {
             drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
         }
-        LOGGER.info("findUnSupportDrugEnterprise 平台调用查询方法={}", JSONObject.toJSONString(drugEnterpriseService.getClass().getName()));
         if (null != drugEnterpriseService) {
+            LOGGER.info("findUnSupportDrugEnterprise recipeId={},平台调用查询方法={}", recipeId, JSONObject.toJSONString(drugEnterpriseService.getClass().getName()));
             result = drugEnterpriseService.scanStock(recipeId, drugsEnterprise);
-            LOGGER.info("findUnSupportDrugEnterprise 平台调用查询结果={}", JSONObject.toJSONString(result));
+            LOGGER.info("findUnSupportDrugEnterprise recipeId={},平台调用查询结果={}", recipeId, JSONObject.toJSONString(result));
         }
         LOGGER.info("findUnSupportDrugEnterprise recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
@@ -4413,7 +4413,7 @@ public class RecipeService extends RecipeBaseService {
                     pharmacyTcm.setSort(1000);
                     boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
                     if (b){
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacyName());
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacyName());
                         drugListMatch.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
                     }
                 }
@@ -4504,7 +4504,7 @@ public class RecipeService extends RecipeBaseService {
                     pharmacyTcm.setSort(1000);
                     boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
                     if (b){
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacyName());
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacyName());
                         organDrug.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
                     }
                 }
@@ -4654,7 +4654,7 @@ public class RecipeService extends RecipeBaseService {
                     pharmacyTcm.setSort(1000);
                     boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
                     if (b){
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName(organId, drug.getPharmacy());
+                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacy());
                         organDrug.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
                     }
                 }

@@ -19,6 +19,7 @@ import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.opbase.base.mode.HosBusFundsReportResult;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -2336,9 +2337,55 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return false;
     }
 
+    /**
+     * 深圳二院财务  处方费用
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    @RpcService
+    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime){
+
+        LOGGER.info("getRecipeFeeDetail organId,depart is {},{}");
+        //1.根据机构查询，处方类型数据
+        List<RecipeOrderFeeVO> voList=recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId,depart,createTime);
+        //处方费用分类
+        if (CollectionUtils.isNotEmpty(voList)){
+            RecipeOrderFeeVO recipeOrderFeeVO;
+            HosBusFundsReportResult.MedFundsDetail medFee;
+            for (RecipeOrderFeeVO vo:voList){
+                recipeOrderFeeVO=new RecipeOrderFeeVO();
+                medFee=new HosBusFundsReportResult.MedFundsDetail();
+                if (vo.getRecipeType()==1){
+                    //西药费
+                    vo.setWestMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                }
+                if (vo.getRecipeType()==2){
+                    //中成药费用
+                    vo.setChinesePatentMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                }
+                if (vo.getRecipeType()==3){
+                    //中草药
+                    vo.setChineseMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                }
+                //组装自费和医保信息
+                medFee.setMedicalAmount(vo.getMedicalMoney());
+                medFee.setPersonalAmount(vo.getCashMoney());
+                medFee.setTotalAmount(vo.getCashMoney().add(vo.getMedicalMoney()));
+                vo.setMedFee(medFee);
+            }
+            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {}",JSONUtils.toString(voList));
+            return voList;
+        }
+        return null;
+    }
+
+
     @Override
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
         return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
     }
+
 }

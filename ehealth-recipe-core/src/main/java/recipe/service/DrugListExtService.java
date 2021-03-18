@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -1166,6 +1167,29 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }else {
                 amount = "无库存";
+                //特殊情况返回-1时会返回部分药品没库存
+                OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                if (StringUtils.isNotEmpty(hisResp.getMsg())) {
+                    //如果返回多个没库存的药品会有,分隔
+                    List<String> noStock = Splitter.on(",").splitToList(hisResp.getMsg());
+                    List<String> noStockFiltDrugs = noStock.stream().filter((a -> organDrugListDAO.getCountByOrganDrugCode(a) > 0)).collect(Collectors.toList());
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        //如果机构药品中查不到就不返回医院库存
+                        if (StringUtils.isEmpty(drugIdAndOrganDrugCode.get(drugListBean.getDrugId()))) {
+                            continue;
+                        }
+                        //只要没库存的药品列表没包含就说明有库存
+                        if (!noStockFiltDrugs.contains(drugIdAndOrganDrugCode.get(drugListBean.getDrugId()))) {
+                            amount = "有库存";
+                        }
+                        drugInventoryInfos = new ArrayList<>(1);
+                        drugInventory = DrugInventoryInfo.builder().type("his").pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount, 3))).remoteQueryStatus("0").build();
+                        drugInventoryInfos.add(drugInventory);
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
+                    return;
+                }
+
             }
             //只处理有无库存情况 不显示数量
             //循环查询的药品
