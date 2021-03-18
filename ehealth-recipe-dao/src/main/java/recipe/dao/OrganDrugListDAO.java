@@ -532,7 +532,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,Integer organId, String drugClass, String keyword, Integer status, int start, int limit, Boolean canDrugSend) {
+    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,Integer organId, String drugClass, String keyword, Integer status, int start,final Integer isregulationDrug ,int limit, Boolean canDrugSend) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -583,6 +583,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     hql.append(" and a.status in (0, 1) and a.organId =:organId ");
                 } else {
                     hql.append(" and a.organId =:organId ");
+                }
+                if (isregulationDrug != null){
+                    if (isregulationDrug == 1){
+                        hql.append(" and a.regulationDrugCode is not null ");
+                    }
+                    if (isregulationDrug == 0){
+                        hql.append(" and a.regulationDrugCode is null ");
+                    }
                 }
                 hql.append(" and b.status = 1 order by a.organDrugId desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());

@@ -610,11 +610,12 @@ public class OrganDrugListService implements IOrganDrugListService {
     public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, final Integer organId,
                                                                                final String drugClass,
                                                                                final String keyword, final Integer status,
+                                                                               final Integer isregulationDrug,
                                                                                final int start, final int limit, Boolean canDrugSend) {
         QueryResult result = null;
         try {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status, start, limit, canDrugSend);
+            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status,isregulationDrug, start, limit, canDrugSend);
             result.setItems(covertData(result.getItems()));
         } catch (Exception e) {
             logger.error("queryOrganDrugAndSaleForOp error", e);
