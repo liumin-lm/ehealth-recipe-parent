@@ -365,7 +365,7 @@ public class RecipeLabelManager {
             stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(useDay);
 
             if (!StringUtils.isEmpty(d.getMemo())) {
-                stringBuilder.append(" \n ").append("备注:").append(d.getMemo());
+                stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
             }
             list.add(new RecipeLabelVO("medicine", "drugInfo" + i, stringBuilder.toString()));
         }
@@ -416,6 +416,7 @@ public class RecipeLabelManager {
             list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()==null?"":extend.getMakeMethodText()));
         }
         list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()==null?"":recipe.getRecipeMemo()));
+
     }
 
 
