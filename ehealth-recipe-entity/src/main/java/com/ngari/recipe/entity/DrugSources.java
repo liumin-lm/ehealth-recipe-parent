@@ -15,6 +15,9 @@ public class DrugSources implements java.io.Serializable {
 
     private static final long serialVersionUID = -2304192004034649222L;
 
+    @ItemProperty(alias = "ID")
+    private Integer id;
+
     @ItemProperty(alias = "来源序号  机构取机构ID")
     private Integer drugSourcesId;
 
@@ -24,18 +27,29 @@ public class DrugSources implements java.io.Serializable {
     public DrugSources() {
 
     }
-    public DrugSources(Integer drugSourcesId, String drugSourcesName) {
+
+    public DrugSources(Integer id, Integer drugSourcesId, String drugSourcesName) {
+        this.id = id;
         this.drugSourcesId = drugSourcesId;
         this.drugSourcesName = drugSourcesName;
     }
 
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "drugSourcesId", unique = true, nullable = false)
+    @Column(name = "id", unique = true, nullable = false)
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Column(name = "drugSourcesId")
     public Integer getDrugSourcesId() {
         return drugSourcesId;
     }
-
     public void setDrugSourcesId(Integer drugSourcesId) {
         this.drugSourcesId = drugSourcesId;
     }

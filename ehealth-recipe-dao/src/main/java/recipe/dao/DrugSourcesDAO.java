@@ -15,7 +15,7 @@ public abstract class DrugSourcesDAO extends HibernateSupportDelegateDAO<DrugSou
     public DrugSourcesDAO() {
         super();
         this.setEntityName(DrugSources.class.getName());
-        this.setKeyField("drugSourcesId");
+        this.setKeyField("id");
     }
 
 
