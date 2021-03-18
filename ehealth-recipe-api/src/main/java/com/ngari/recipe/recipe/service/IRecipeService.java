@@ -827,6 +827,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime);
+    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime,Date endTime);
 }
 

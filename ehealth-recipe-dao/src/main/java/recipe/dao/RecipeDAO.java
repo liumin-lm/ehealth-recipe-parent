@@ -486,23 +486,23 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param createTime
      * @return
      */
-    public List<RecipeOrderFeeVO> findRecipeByOrganIdAndCreateTimeAnddepart(Integer organId, Integer depart, Date createTime) {
+    public List<RecipeOrderFeeVO> findRecipeByOrganIdAndCreateTimeAnddepart(Integer organId, Integer depart, Date createTime,Date endTime) {
+        final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
+        final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
         AbstractHibernateStatelessResultAction<List<RecipeOrderFeeVO>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrderFeeVO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 //处方金额
-                hql.append("select r.recipeType,r.recipeId,o.cashAmount,o.fundAmount,o.payBackPrice from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan=:organId and r.depart=:depart and r.createDate>=:createTime");
-                Query q = ss.createSQLQuery(hql.toString());
+                hql.append("select r.recipeType,r.recipeId,o.cashAmount,o.fundAmount,o.payBackPrice,r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan="+organId);
                 if (StringUtils.isNotEmpty(hql)){
-                    q.setParameter("organId",organId);
-                    q.setParameter("depart",depart);
-                    q.setParameter("createTime",createTime);
+                    hql.append(depart==null?" and (r.depart is not null)":" and r.depart ="+depart);
+                    hql.append(" and (r.signDate between '"+start+"' and  '"+end+"') order by r.recipeId desc ");
                 }
 
+                Query q = ss.createSQLQuery(hql.toString());
                 List<Object[]> result=q.list();
                 List<RecipeOrderFeeVO> backList = new ArrayList<>();
-
                 if (CollectionUtils.isNotEmpty(result)){
                     RecipeOrderFeeVO recipeOrderFeeVO;
                     for (Object[] objs : result) {
@@ -513,11 +513,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         //处方单号
                         recipeOrderFeeVO.setRecipeId(objs[1]==null?null:Integer.valueOf(objs[1].toString()));
                         //自费  new BigDecimal(objs[].toString())
-                        recipeOrderFeeVO.setCashMoney(objs[2] == null ? null:new BigDecimal(objs[2].toString()));
+                        recipeOrderFeeVO.setPersonalAmount(objs[2] == null ? null:new BigDecimal(objs[2].toString()));
                         //医保
-                        recipeOrderFeeVO.setMedicalMoney(objs[3] == null ? null:new BigDecimal(objs[3].toString()));
+                        recipeOrderFeeVO.setMedicalAmount(objs[3] == null ? null:new BigDecimal(objs[3].toString()));
                         //处方总支付金额
                         recipeOrderFeeVO.setRecipePayMoney(objs[4] == null ? null:new BigDecimal(objs[4].toString()));
+                        //科室代码
+                        recipeOrderFeeVO.setDepartId(objs[5] == null ? null:String.valueOf(objs[5]));
+                        //科室名称
+                        recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText((Integer)objs[5]));
                         backList.add(recipeOrderFeeVO);
                     }
                 }
