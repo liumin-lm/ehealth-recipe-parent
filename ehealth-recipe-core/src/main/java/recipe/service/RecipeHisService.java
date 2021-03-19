@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -1034,6 +1035,7 @@ public class RecipeHisService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean scanDrugStock(Recipe recipe, List<Recipedetail> detailList) {
+        LOGGER.info("scanDrugStock 入参 recipe={},recipedetail={}", JSONObject.toJSONString(recipe),JSONObject.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
@@ -1093,7 +1095,7 @@ public class RecipeHisService extends RecipeBaseService {
             result.setError("医院HIS未启用。");
             LOGGER.error("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
-
+        LOGGER.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
     }
 

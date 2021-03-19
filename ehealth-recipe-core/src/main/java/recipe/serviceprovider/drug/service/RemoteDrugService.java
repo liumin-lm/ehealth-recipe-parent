@@ -360,10 +360,10 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     @RpcService
     @Override
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
-                                                                              Integer status, int start, int limit) {
+                                                                              Integer status,final Integer drugSourcesId, int start, int limit) {
         DrugListService drugListService = ApplicationUtils.getRecipeService(DrugListService.class);
         QueryResult<DrugListBean> result = drugListService.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword,
-                status, start, limit);
+                status,drugSourcesId, start, limit);
         return result;
     }
 
@@ -378,7 +378,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     public List<HisDrugListBean> findDrugList(Integer start, Integer limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<HisDrugListBean> hisDrugListBeen = Lists.newArrayList();
-        QueryResult<DrugList> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,start,limit);
+        QueryResult<DrugList> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,null,start,limit);
         List<DrugList> lists = queryResult.getItems();
         if (CollectionUtils.isEmpty(lists)){
             return hisDrugListBeen;

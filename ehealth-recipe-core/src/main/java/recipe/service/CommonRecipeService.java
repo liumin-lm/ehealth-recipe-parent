@@ -24,11 +24,14 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.service.manager.CommonRecipeManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -150,6 +153,15 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         commonRecipeList.forEach(a -> {
             List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(a.getCommonRecipeId());
             if (CollectionUtils.isNotEmpty(commonDrugList)) {
+                //药品名拼接配置
+                Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, a.getRecipeType()));
+                //药品商品名拼接配置
+                Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, a.getRecipeType()));
+                commonDrugList.forEach(item -> {
+                    //药品名历史数据处理---取实时的
+                    item.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(item, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(a.getRecipeType())));
+                    item.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(item, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(a.getRecipeType())));
+                });
                 a.setCommonDrugList(commonDrugList);
             }
             CommonRecipeExtDTO commonRecipeExt = commonRecipeExtMap.get(a.getCommonRecipeId());

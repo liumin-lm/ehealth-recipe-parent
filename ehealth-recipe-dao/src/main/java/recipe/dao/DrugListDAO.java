@@ -1,7 +1,9 @@
 package recipe.dao;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -340,6 +342,64 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
+    public void check(final String drugName, final String drugSpec, final String unit, final String drugForm, final  String producer){
+        if (StringUtils.isEmpty(drugSpec)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugSpec不能为空!");
+        }
+        if (StringUtils.isEmpty(drugName)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugName不能为空!");
+        }
+        if (StringUtils.isEmpty(unit)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "unit不能为空!");
+        }
+        if (StringUtils.isEmpty(drugForm)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugForm不能为空!");
+        }
+        if (StringUtils.isEmpty(producer)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "producer不能为空!");
+        }
+    }
+
+    /**
+     * 自动匹配搜索
+     * renfuhao
+     *
+     * @return
+     */
+    public List<DrugList> findDrugMatchAutomatic(final String drugName, final String saleName, final String drugSpec, final String unit, final String drugForm, final  String producer) {
+        check(drugName,drugSpec, unit, drugForm, producer);
+        //查询出所有有效药品 根据药品分类drugClass进行分组
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select d From DrugList d where "
+                        + "d.status=1  ");
+
+                if (!StringUtils.isEmpty(saleName)) {
+                    hql.append("and d.drugName =:drugName and d.saleName =:saleName ");
+                }else {
+
+                }hql.append("and d.drugName =:drugName ");
+
+                hql.append("and d.drugSpec=:drugSpec  and d.unit=:unit and d.drugForm=:drugForm and d.producer=:producer ");
+                Query q = ss.createQuery(hql.toString());
+                if (!StringUtils.isEmpty(saleName)) {
+                    q.setParameter("saleName", saleName );
+                }
+                q.setParameter("drugName", drugName );
+                q.setParameter("drugSpec", drugSpec);
+                q.setParameter("unit", unit);
+                q.setParameter("drugForm", drugForm);
+                q.setParameter("producer", producer);
+                List<DrugList> drugListList = q.list();
+                setResult(drugListList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
 
     /**
      * 供 employmentdao-findEffEmpWithDrug 调用
@@ -497,13 +557,13 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                          final Integer status,
+                                                                          final Integer status,final Integer sourceOrgan,
                                                                           final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                StringBuilder hql = new StringBuilder("From DrugList where 1=1 and sourceOrgan is NULL ");
+                StringBuilder hql = new StringBuilder("From DrugList where 1=1   ");
                 if (!StringUtils.isEmpty(drugClass)) {
                     hql.append(" and drugClass like :drugClass");
                 }
@@ -524,10 +584,18 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
                 }
+                if (!ObjectUtils.isEmpty(sourceOrgan)) {
+                    hql.append(" and sourceOrgan =:sourceOrgan ");
+                }else {
+                    hql.append(" and sourceOrgan is NULL ");
+                }
                 hql.append(" order by createDt desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);
+                }
+                if (!ObjectUtils.isEmpty(sourceOrgan)) {
+                    countQuery.setParameter("sourceOrgan", sourceOrgan);
                 }
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
@@ -547,6 +615,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);
                 }
+                if (!ObjectUtils.isEmpty(sourceOrgan)) {
+                    query.setParameter("sourceOrgan", sourceOrgan);
+                }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
                 }
@@ -556,7 +627,20 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
                 List<DrugList> lists = query.list();
-                setResult(new QueryResult<DrugList>(total, query.getFirstResult(), query.getMaxResults(), lists));
+                List<DrugList> lists2 = Lists.newArrayList();
+                if (lists != null && lists.size() > 0){
+                    for (DrugList list : lists) {
+                        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+                        if (list.getSourceOrgan() != null){
+                            List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(list.getSourceOrgan());
+                            if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
+                                list.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
+                            }
+                        }
+                        lists2.add(list);
+                    }
+                }
+                setResult(new QueryResult<DrugList>(total, query.getFirstResult(), query.getMaxResults(), lists2));
             }
         };
         HibernateSessionTemplate.instance().execute(action);

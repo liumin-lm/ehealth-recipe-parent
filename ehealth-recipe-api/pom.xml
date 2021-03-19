@@ -6,7 +6,7 @@
     <parent>
         <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>3.3.1.8.master-SNAPSHOT</version>
+        <version>3.3.2.4.master-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
@@ -37,6 +37,10 @@
                     <groupId>ngari</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-basic-dto</artifactId>
         </dependency>
     </dependencies>
 </project>

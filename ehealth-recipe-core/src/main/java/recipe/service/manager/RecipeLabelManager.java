@@ -9,6 +9,7 @@ import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.DictionaryController;
@@ -28,6 +29,7 @@ import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -59,73 +61,49 @@ public class RecipeLabelManager {
     private RedisClient redisClient;
 
     /**
-     * 因为pdf动态配置无法得知再次写入时所需高度，故计算
-     * 根据运营平台配置的模块二数量计算 收获人/收获地址的写入高度
+     * 获取电子病例模块
      *
-     * @param organId 机构id
-     * @return Y坐标点位 （默认460）
+     * @param organId    机构id
+     * @param moduleName 模块名称
+     * @return
      */
-    public int getPdfReceiverHeight(Integer recipeId, Integer organId) {
-        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
-        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
-        if (!CollectionUtils.isEmpty(coOrdinateList)) {
-            for (CoOrdinateVO coOrdinate : coOrdinateList) {
-                if ("receiverPlaceholder".equals(coOrdinate.getName()) && null != coOrdinate.getY()) {
-                    return 595 - 60 - coOrdinate.getY();
-                }
-            }
-        }
-
-        int height = 460;
-        if (null == organId) {
-            return height;
-        }
+    public List<Scratchable> scratchableList(Integer organId, String moduleName) {
         Map<String, Object> labelMap = scratchableService.findRecipeListDetail(organId.toString());
         if (CollectionUtils.isEmpty(labelMap)) {
-            return height;
+            return new LinkedList<>();
         }
-        List<Scratchable> moduleOne = (List<Scratchable>) labelMap.get("moduleOne");
-        List<Scratchable> moduleTwo = (List<Scratchable>) labelMap.get("moduleTwo");
-        if (CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
-            return height;
-        }
-        if (!CollectionUtils.isEmpty(moduleOne) && !CollectionUtils.isEmpty(moduleTwo)) {
-            height = 429;
-        }
-        if (!CollectionUtils.isEmpty(moduleOne) && CollectionUtils.isEmpty(moduleTwo)) {
-            height = 454;
-        }
-        if (CollectionUtils.isEmpty(moduleOne) && !CollectionUtils.isEmpty(moduleTwo)) {
-            height = 442;
-        }
-        height = getHeight(moduleOne, 3, height);
-        height = getHeight(moduleTwo, 6, height);
-        return height;
+        return (List<Scratchable>) labelMap.get(moduleName);
     }
 
     /**
-     * 根据 非标准配置值参数个数 与 标准参数配置计算浮动高度
+     * 获取pdf 特殊字段坐标
      *
-     * @param module     非标准配置值参数个数
-     * @param initialize 标准参数配置计算浮动高度
-     * @param height     高度
+     * @param recipeId   处方id
+     * @param coordsName 特殊字段名称
      * @return
      */
-    private int getHeight(List<Scratchable> module, int initialize, int height) {
-        if (CollectionUtils.isEmpty(module)) {
-            return height;
+    public CoOrdinateVO getPdfCoordsHeight(Integer recipeId, String coordsName) {
+        if (ValidateUtil.integerIsEmpty(recipeId) || StringUtils.isEmpty(coordsName)) {
+            return null;
         }
-        int size = module.size();
-        if (size <= initialize) {
-            return height;
+        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
+        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
+
+        if (CollectionUtils.isEmpty(coOrdinateList)) {
+            logger.error("RecipeLabelManager getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId为空");
         }
-        int formatting = (size - initialize) / 3;
-        if (0 != (size - initialize) % 3) {
-            formatting++;
+
+        for (CoOrdinateVO coOrdinate : coOrdinateList) {
+            if (coordsName.equals(coOrdinate.getName())) {
+                coOrdinate.setY(499 - coOrdinate.getY());
+                coOrdinate.setX(coOrdinate.getX() + 5);
+                return coOrdinate;
+            }
         }
-        height = height - formatting * 12;
-        return height;
+        return null;
     }
+
 
     /**
      * 获取pdf oss id
@@ -247,7 +225,7 @@ public class RecipeLabelManager {
             return;
         }
         redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
-        
+
     }
 
     /**
@@ -338,6 +316,11 @@ public class RecipeLabelManager {
                 }
             }
         }
+        //药品金额
+        RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
+        if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
+            recipeBean.setActualPrice(recipeOrder.getRecipeFee());
+        }
     }
 
     /**
@@ -356,8 +339,14 @@ public class RecipeLabelManager {
             RecipeDetailBean d = recipeDetailList.get(i);
             //名称+规格+药品单位+开药总量+药品单位
             StringBuilder stringBuilder = new StringBuilder(i + 1);
-            stringBuilder.append(i + 1).append("、").append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit())
-                    .append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
+            stringBuilder.append(i + 1).append("、");
+            //药品显示名处理
+            if (StringUtils.isNotEmpty(d.getDrugDisplaySplicedName())) {
+                stringBuilder.append(d.getDrugDisplaySplicedName());
+            } else {
+                stringBuilder.append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
+            }
+            stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
             Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
             if ((boolean) canShowDrugCost) {
                 BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP);
@@ -376,7 +365,7 @@ public class RecipeLabelManager {
             stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(useDay);
 
             if (!StringUtils.isEmpty(d.getMemo())) {
-                stringBuilder.append(" \n ").append("备注:").append(d.getMemo());
+                stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
             }
             list.add(new RecipeLabelVO("medicine", "drugInfo" + i, stringBuilder.toString()));
         }
@@ -395,6 +384,7 @@ public class RecipeLabelManager {
             return;
         }
         List<RecipeDetailBean> recipeDetailList = (List<RecipeDetailBean>) list.get(0).getValue();
+        String drugShowName;
         for (int i = 0; i < recipeDetailList.size(); i++) {
             RecipeDetailBean detail = recipeDetailList.get(i);
             String dTotal;
@@ -404,9 +394,10 @@ public class RecipeLabelManager {
                 dTotal = detail.getUseDose() + detail.getUseDoseUnit();
             }
             if (!StringUtils.isEmpty(detail.getMemo())) {
-                dTotal = dTotal + "*" + detail.getMemo();
+                dTotal = dTotal + "(" + detail.getMemo() + ")";
             }
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, detail.getSaleName() + ":" + dTotal));
+            drugShowName = detail.getDrugName() + " " + dTotal;
+            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", (StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()) + "天"));
@@ -425,6 +416,7 @@ public class RecipeLabelManager {
             list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()==null?"":extend.getMakeMethodText()));
         }
         list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()==null?"":recipe.getRecipeMemo()));
+
     }
 
 

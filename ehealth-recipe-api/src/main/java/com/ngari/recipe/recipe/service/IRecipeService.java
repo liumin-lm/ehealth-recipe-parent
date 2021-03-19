@@ -1,7 +1,10 @@
 package com.ngari.recipe.recipe.service;
 
+import com.ngari.common.dto.DepartChargeReportResult;
+import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.IBaseService;
@@ -9,7 +12,6 @@ import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
@@ -827,5 +829,34 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<RecipeBean> findToAuditPlatformRecipe();
+
+    /**
+     * ca组装参数 供casign调用
+     * @param recipeBean
+     * @param detailBeanList
+     * @return
+     */
+    @RpcService
+    public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
+
+    /**
+     * 深圳二院财务报表  处方费用
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    @RpcService
+    public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime);
+
+    /**
+     * 处方 医疗费  自费+医保
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    @RpcService
+    public  List<HosBusFundsReportResult> getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
 }
 
