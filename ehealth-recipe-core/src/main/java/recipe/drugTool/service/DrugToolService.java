@@ -1552,7 +1552,7 @@ public class DrugToolService implements IDrugToolService {
             }else {
                 //如果是已匹配的取消匹配
                 if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
-                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", urt.getUserName()));
+                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
                 }
                 //updata by maoly on 2020/03/16 自动同步至平台药品库
                 DrugList drugList = new DrugList();
