@@ -1732,6 +1732,69 @@ public class DrugToolService implements IDrugToolService {
 
         return status;
     }
+    /**
+     * 省药品匹配
+     */
+    @RpcService
+    public List<ProvinceDrugListBean> provinceDrugMatchNew(int drugId, int organId, int start, int limit, String seacrhString) {
+        OrganDrugList organDrugList = organDrugListDAO.get(drugId);
+        if (null == organDrugList) {
+            LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构列表中", drugId);
+            return null;
+        }
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsNew(organId, organDrugList, start, limit, seacrhString);
+        if (null == provinceDrugLists) {
+            //如果没有省平台药品数据则为null
+            return null;
+        }
+        List<ProvinceDrugListBean> provinceDrugListBeans = getProvinceDrugListBeanNew(organDrugList, provinceDrugLists);
+
+        return provinceDrugListBeans;
+
+    }
+
+    /*根据匹配的药品销售名，获取相似名称的省平台药品*/
+    private List<ProvinceDrugList> getProvinceDrugListsNew(int organId,  OrganDrugList organDrugList, int start, int limit, String seacrhString) {
+        List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
+        if (!checkOrganRegulation(organId)) return null;
+
+        //判断机构对应省平台下有没有药品，没有省平台返回null
+        String addrArea = checkOrganAddrArea(organId);
+        Long countByProvinceIdAndStatus = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
+        if (null == countByProvinceIdAndStatus || 0 >= countByProvinceIdAndStatus) {
+            return null;
+        }
+
+        //根据药品名取标准药品库查询相关药品
+        String likeDrugName = DrugMatchUtil.match(organDrugList.getDrugName());
+
+        List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
+        if (CollectionUtils.isNotEmpty(searchDrugs)) {
+            provinceDrugLists = searchDrugs;
+        }
+
+        return provinceDrugLists;
+    }
+
+
+    /*渲染页面上的勾选展示的项*/
+    private List<ProvinceDrugListBean> getProvinceDrugListBeanNew(OrganDrugList organDrugList, List<ProvinceDrugList> provinceDrugLists) {
+        List<ProvinceDrugListBean> provinceDrugListBeans = new ArrayList<>();
+        //已匹配状态返回匹配药品id
+        if (CollectionUtils.isNotEmpty(provinceDrugLists)) {
+            provinceDrugListBeans = ObjectCopyUtils.convert(provinceDrugLists, ProvinceDrugListBean.class);
+            for (ProvinceDrugListBean provinceDrugListBean : provinceDrugListBeans) {
+                //判断当前关联省平台药品code和关联code一致
+                if (null != provinceDrugListBean.getProvinceDrugCode() && provinceDrugListBean.getProvinceDrugCode().equals(organDrugList.getRegulationDrugCode())) {
+                    provinceDrugListBean.setMatched(true);
+                }
+            }
+        }
+
+        return provinceDrugListBeans;
+    }
+
+
 
     /**
      * 省药品匹配

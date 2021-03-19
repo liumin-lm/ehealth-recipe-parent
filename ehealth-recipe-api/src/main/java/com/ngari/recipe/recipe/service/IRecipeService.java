@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.service;
 
+import com.ngari.common.dto.DepartChargeReportResult;
+import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
@@ -827,6 +829,16 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime,Date endTime);
+    public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime);
+
+    /**
+     * 处方 医疗费  自费+医保
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    @RpcService
+    public  List<HosBusFundsReportResult> getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
 }
 

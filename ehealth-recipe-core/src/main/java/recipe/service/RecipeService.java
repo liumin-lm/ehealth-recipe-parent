@@ -1729,7 +1729,7 @@ public class RecipeService extends RecipeBaseService {
                         invalidDate = calendar.getTime();
                         break;
                     default:
-                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},配置={}",clinicOrgan, JSONObject.toJSONString(invalidInfoObject));
+                        LOGGER.error("机构处方失效时间-配置格式错误，机构={},处方id={},配置={}",clinicOrgan, recipeId, JSONObject.toJSONString(invalidInfoObject));
                         break;
                 }
                 invalidDTO.setInvalidDate(invalidDate);
