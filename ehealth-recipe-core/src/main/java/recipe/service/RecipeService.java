@@ -41,7 +41,6 @@ import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
-import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
@@ -4074,7 +4073,7 @@ public class RecipeService extends RecipeBaseService {
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
-                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
+                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeLabelManager, recipeId, recipeFee));
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);
@@ -4102,7 +4101,7 @@ public class RecipeService extends RecipeBaseService {
     public String recipePdfTest(Integer recipeId) throws Exception {
         CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
-        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, BigDecimal.valueOf(521.20)));
+        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeLabelManager, recipeId, BigDecimal.valueOf(521.20)));
         return null;
     }
 
