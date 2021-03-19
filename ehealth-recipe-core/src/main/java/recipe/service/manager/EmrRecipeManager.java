@@ -170,9 +170,7 @@ public class EmrRecipeManager {
         List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
         //替换下药品拼接名
         Map<Integer, Recipedetail> recipedetailMap = recipeDetailList.stream().collect(Collectors.toMap(Recipedetail::getRecipeDetailId, a -> a));
-        rpDetailBean.forEach(a -> {
-            a.setDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetailMap.get(a.getRecipeDetailId()), recipe.getRecipeType(), recipe.getClinicOrgan()));
-        });
+        rpDetailBean.forEach(a -> a.setDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetailMap.get(a.getRecipeDetailId()), recipe.getRecipeType(), recipe.getClinicOrgan())));
         try {
             docIndexService.saveRpDetailRelation(docId, recipeId, recipe.getRecipeType(), rpDetailBean);
         } catch (Exception e) {
