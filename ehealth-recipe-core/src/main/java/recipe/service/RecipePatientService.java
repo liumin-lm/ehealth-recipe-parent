@@ -52,6 +52,7 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -295,19 +296,41 @@ public class RecipePatientService extends RecipeBaseService {
         LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企信息[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(unDepList));
         if (CollectionUtils.isNotEmpty(unDepList)) {
             resultBean.setCode(RecipeResultBean.FAIL);
-            List<String> drugList = (List<String>) unDepList.get(0).getObject();
+            List<String> drugList = new ArrayList<>();
+            drugList.addAll((List<String>) unDepList.get(0).getObject());
             for (DrugEnterpriseResult result : unDepList){
                 List<String> list = (List<String>) result.getObject();
                 // 有药品名称取交集
                 if (CollectionUtils.isNotEmpty(list)){
                     drugList.retainAll(list);
-                    resultBean.setObject(drugList);
                 }else {
                     // 有一个不能返回具体无库存药品，不展示药品名称，返回药品信息为空
                     LOGGER.info("findUnSupportDepList recipeId={}, 药企未返回具体无库存药品信息[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(result));
                     resultBean.setObject(null);
                     break;
                 }
+            }
+            // 仅各药企库存不足药品是包含关系才展示，即交集不为空，且交集结果至少是某一个药企无库存药品
+            if (CollectionUtils.isNotEmpty(drugList)){
+                Collections.sort(drugList);
+                String retainStr = drugList.toString();
+                Boolean showDrug = false;
+                for (DrugEnterpriseResult result : unDepList){
+                    List<String> list = (List<String>) result.getObject();
+                    Collections.sort(list);
+                    String listStr = list.toString();
+                    if (retainStr.equals(listStr)){
+                        showDrug = true;
+                        break;
+                    }
+                }
+                if (showDrug){
+                    resultBean.setObject(drugList);
+                }else {
+                    resultBean.setObject(null);
+                }
+            }else {
+                resultBean.setObject(null);
             }
         }
         LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企药品信息取交集结果[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(resultBean));

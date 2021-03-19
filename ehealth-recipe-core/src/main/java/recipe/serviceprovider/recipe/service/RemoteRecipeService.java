@@ -10,6 +10,8 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
+import com.ngari.common.dto.DepartChargeReportResult;
+import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
@@ -19,7 +21,6 @@ import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
-import com.ngari.opbase.base.mode.HosBusFundsReportResult;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -2345,38 +2346,48 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @return
      */
     @RpcService
-    public List<RecipeOrderFeeVO> getRecipeFeeDetail(Integer organId,Integer depart,Date createTime,Date endTime){
+    public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime){
 
         LOGGER.info("getRecipeFeeDetail organId,depart is ={},{}",organId,depart);
         //1.根据机构查询，处方类型数据
         List<RecipeOrderFeeVO> voList=recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId,depart,createTime,endTime);
+        List<DepartChargeReportResult> drList=new ArrayList<>();
         //处方费用分类
         if (CollectionUtils.isNotEmpty(voList)){
             RecipeOrderFeeVO recipeOrderFeeVO;
+            DepartChargeReportResult dr;
             for (RecipeOrderFeeVO vo:voList){
                 recipeOrderFeeVO=new RecipeOrderFeeVO();
+                dr=new DepartChargeReportResult();
                 if (vo.getRecipeType()==1){
                     //西药费
                     vo.setWestMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                    dr.setWestMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
                 }
                 if (vo.getRecipeType()==2){
                     //中成药费用
                     vo.setChinesePatentMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                    dr.setChinesePatentMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
                 }
                 if (vo.getRecipeType()==3){
                     //中草药
                     vo.setChineseMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
+                    dr.setChineseMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
                 }
                 if (vo.getRecipeType()==4){
                     //膏方药
                     vo.setPasteMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
                 }
+                //科室代码
+                dr.setDepartId(Integer.valueOf(vo.getDepartId()));
+                //科室名称
+                dr.setDepartName(vo.getDepartName());
                 //医疗费
                 vo.setTotalAmount((vo.getPersonalAmount()==null?new BigDecimal(0.00):vo.getPersonalAmount()).add(vo.getMedicalAmount()==null?new BigDecimal(0.00):vo.getMedicalAmount()));
+                drList.add(dr);
             }
-            LOGGER.info("getRecipeFeeDetail={}",voList.size());
-            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}",JSONUtils.toString(voList),voList.size());
-            return voList;
+            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},drList={},voList.size={}",JSONUtils.toString(voList),JSONUtils.toString(drList),voList.size());
+            return drList;
         }
         return null;
     }
@@ -2388,4 +2399,40 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
     }
 
+    /**
+     * 统计处方医疗费  自费+医保
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    @RpcService
+    public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
+        LOGGER.info("getRecipeFeeDetail organId is ={},{}",organId);
+        //统计机构的自费和医保的数据
+        List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
+        LOGGER.info("getRecipeFeeDetail.hoList.size ={}",hoList.size());
+        HosBusFundsReportResult ho=new HosBusFundsReportResult();
+        HosBusFundsReportResult.MedFundsDetail medFee = new HosBusFundsReportResult.MedFundsDetail();
+        BigDecimal totalPersonalAmount=new BigDecimal(0.00);
+        BigDecimal totalMedicalAmount=new BigDecimal(0.00);
+        if (CollectionUtils.isNotEmpty(hoList)){
+            for (HosBusFundsReportResult h:hoList){
+                //医保+自费
+                medFee=h.getMedFee();
+                //总自费方式
+                totalPersonalAmount=totalPersonalAmount.add(medFee.getPersonalAmount()==null?new BigDecimal(0.00):medFee.getPersonalAmount());
+                //总医保
+                totalMedicalAmount=totalMedicalAmount.add(medFee.getMedicalAmount()==null?new BigDecimal(0.00):medFee.getMedicalAmount());
+            }
+            medFee.setPersonalAmount(totalPersonalAmount);
+            medFee.setMedicalAmount(totalMedicalAmount);
+            //总的诊疗费（处方）
+            medFee.setTotalAmount(totalMedicalAmount.add(totalPersonalAmount));
+            ho.setMedFee(medFee);
+            LOGGER.info("getRecipeMedAndCash .ho is {}",JSONUtils.toString(ho));
+            return ho;
+        }
+        return null;
+    }
 }

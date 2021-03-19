@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
@@ -340,7 +341,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(testDocIds)) {
                     q.setParameterList("testDocIds", testDocIds);
                 }
-
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
 
@@ -499,7 +499,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(depart==null?" and (r.depart is not null)":" and r.depart ="+depart);
                     hql.append(" and (r.signDate between '"+start+"' and  '"+end+"') order by r.recipeId desc ");
                 }
-
                 Query q = ss.createSQLQuery(hql.toString());
                 List<Object[]> result=q.list();
                 List<RecipeOrderFeeVO> backList = new ArrayList<>();
@@ -532,6 +531,49 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    /**
+     * 处方医疗费
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    public List<HosBusFundsReportResult> findRecipeByOrganIdAndCreateTime(Integer organId, Date createTime, Date endTime) {
+        final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
+        final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
+        AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>> action = new AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select o.cashAmount,o.fundAmount,r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan="+organId);
+                if (StringUtils.isNotEmpty(hql)){
+                    hql.append(" and (r.signDate between '"+start+"' and  '"+end+"') order by r.recipeId desc ");
+                }
+                Query q = ss.createSQLQuery(hql.toString());
+                List<Object[]> result=q.list();
+                List<HosBusFundsReportResult> backList = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)){
+                    HosBusFundsReportResult ho;
+                    HosBusFundsReportResult.MedFundsDetail medFee;
+                    for (Object[] objs : result) {
+                        ho=new HosBusFundsReportResult();
+                        //参数组装
+                        medFee=new HosBusFundsReportResult.MedFundsDetail();
+                        //自费
+                        medFee.setPersonalAmount(objs[0]==null?null:new BigDecimal(objs[0].toString()));
+                        //医保
+                        medFee.setMedicalAmount(objs[1]==null?null:new BigDecimal(objs[1].toString()));
+                        ho.setMedFee(medFee);
+                        backList.add(ho);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
     /**
      * 获取处方总数
