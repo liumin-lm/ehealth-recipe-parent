@@ -54,6 +54,7 @@ import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariRefundService;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -2739,6 +2740,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService(timeout = 600000)
     public  Map<String,Long> drugInfoSynMovement(Integer organId,List<String> drugForms) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
         IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
@@ -2801,7 +2803,7 @@ public class RecipeService extends RecipeBaseService {
                                         drugListMatchDAO.remove(drugListMatch.getDrugId());
                                     }
                                 }
-                                addHisDrug(drug,organId);
+                                addHisDrug(drug,organId,urt.getUserName());
                             }else {
                                 startIndex++;
                                 continue;
@@ -2818,7 +2820,7 @@ public class RecipeService extends RecipeBaseService {
                                     drugListMatchDAO.remove(drugListMatch.getDrugId());
                                 }
                             }
-                            addHisDrug(drug,organId);
+                            addHisDrug(drug,organId,urt.getUserName());
                         }
                         addNum++;
                         startIndex++;
@@ -4308,7 +4310,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organId
      */
-    private void addHisDrug(OrganDrugInfoTO drug ,Integer organId) {
+    private void addHisDrug(OrganDrugInfoTO drug ,Integer organId,String operator) {
         DrugListMatch drugListMatch=new DrugListMatch();
 
         if (StringUtils.isEmpty(drug.getOrganDrugCode())) {
@@ -4429,7 +4431,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         DrugListMatch save = drugListMatchDAO.save(drugListMatch);
         try {
-            drugToolService.automaticDrugMatch(save);
+            drugToolService.automaticDrugMatch(save,operator);
         } catch (Exception e) {
             LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
         }

@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.comment.RecipeEmrComment;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
@@ -37,6 +38,7 @@ import recipe.util.ByteUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yinsheng
@@ -166,6 +168,9 @@ public class EmrRecipeManager {
         //写入电子病例 药品信息
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
+        //替换下药品拼接名
+        Map<Integer, Recipedetail> recipedetailMap = recipeDetailList.stream().collect(Collectors.toMap(Recipedetail::getRecipeDetailId, a -> a));
+        rpDetailBean.forEach(a -> a.setDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetailMap.get(a.getRecipeDetailId()), recipe.getRecipeType(), recipe.getClinicOrgan())));
         try {
             docIndexService.saveRpDetailRelation(docId, recipeId, recipe.getRecipeType(), rpDetailBean);
         } catch (Exception e) {

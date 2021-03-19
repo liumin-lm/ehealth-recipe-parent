@@ -839,6 +839,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    public  List<HosBusFundsReportResult> getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
+    public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
 }
 
