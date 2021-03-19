@@ -526,7 +526,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         //科室id
                         recipeOrderFeeVO.setDepartId(objs[0] == null ? null : Integer.valueOf(objs[3].toString()));
                         //科室名称
-                        recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId());
+                        if (recipeOrderFeeVO.getDepartId() != null) {
+                            recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId()));
+                        }
                         backList.add(recipeOrderFeeVO);
                     }
                 }
