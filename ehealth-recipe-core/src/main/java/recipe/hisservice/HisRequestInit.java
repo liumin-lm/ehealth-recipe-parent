@@ -812,6 +812,7 @@ public class HisRequestInit {
         requestTO.setPatientID(recipe.getPatientID());
         if (null != recipeExtend) {
             requestTO.setRegisterID(recipeExtend.getRegisterID());
+            requestTO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
 
         if (null != patient) {

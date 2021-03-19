@@ -41,7 +41,6 @@ import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
-import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
@@ -54,6 +53,7 @@ import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.wxpay.service.INgariRefundService;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -1964,9 +1964,20 @@ public class RecipeService extends RecipeBaseService {
                     } else {
                         String nameStr="";
                         if (CollectionUtils.isNotEmpty(hospitalDrugName) && CollectionUtils.isNotEmpty(enterpriseDrugName)){
-                            hospitalDrugName.retainAll(enterpriseDrugName);
-                            if (CollectionUtils.isNotEmpty(hospitalDrugName));
-                            nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                            List<String> drugNameList = new ArrayList<>();
+                            drugNameList.addAll(hospitalDrugName);
+                            drugNameList.retainAll(enterpriseDrugName);
+                            if (CollectionUtils.isNotEmpty(drugNameList)){
+                                Collections.sort(drugNameList);
+                                String drugStr = drugNameList.toString();
+                                Collections.sort(hospitalDrugName);
+                                String hospitalStr = hospitalDrugName.toString();
+                                Collections.sort(enterpriseDrugName);
+                                String enterpriseStr = enterpriseDrugName.toString();
+                                if (drugStr.equals(hospitalStr) || drugStr.equals(enterpriseStr)){
+                                    nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                                }
+                            }
                         }
                         rMap.put("msg", "由于该处方单上的" + nameStr + "药品库存不足，请更换其他药品后再试。");
                     }
@@ -2739,10 +2750,14 @@ public class RecipeService extends RecipeBaseService {
     @RpcService(timeout = 600000)
     public  Map<String,Long> drugInfoSynMovement(Integer organId,List<String> drugForms) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
         IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
+        if(!sync){
+            throw new DAOException(DAOException.VALUE_NEEDED, "请先确认接口对接已完成，且配置管理-机构配置-机构设置-业务设置-【药品目录是否支持接口同步】已开启，再尝试进行同步!");
+        }
         Boolean add = organConfigService.getByOrganIdEnableDrugAdd(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
@@ -2801,7 +2816,7 @@ public class RecipeService extends RecipeBaseService {
                                         drugListMatchDAO.remove(drugListMatch.getDrugId());
                                     }
                                 }
-                                addHisDrug(drug,organId);
+                                addHisDrug(drug,organId,urt.getUserName());
                             }else {
                                 startIndex++;
                                 continue;
@@ -2818,7 +2833,7 @@ public class RecipeService extends RecipeBaseService {
                                     drugListMatchDAO.remove(drugListMatch.getDrugId());
                                 }
                             }
-                            addHisDrug(drug,organId);
+                            addHisDrug(drug,organId,urt.getUserName());
                         }
                         addNum++;
                         startIndex++;
@@ -4074,7 +4089,7 @@ public class RecipeService extends RecipeBaseService {
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
-                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, recipeFee));
+                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeLabelManager, recipeId, recipeFee));
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);
@@ -4102,7 +4117,7 @@ public class RecipeService extends RecipeBaseService {
     public String recipePdfTest(Integer recipeId) throws Exception {
         CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
-        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, BigDecimal.valueOf(521.20)));
+        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeLabelManager, recipeId, BigDecimal.valueOf(521.20)));
         return null;
     }
 
@@ -4308,7 +4323,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organId
      */
-    private void addHisDrug(OrganDrugInfoTO drug ,Integer organId) {
+    private void addHisDrug(OrganDrugInfoTO drug ,Integer organId,String operator) {
         DrugListMatch drugListMatch=new DrugListMatch();
 
         if (StringUtils.isEmpty(drug.getOrganDrugCode())) {
@@ -4429,7 +4444,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("drugInfoSynMovementaddHisDrug"+drug.getDrugName()+"organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         DrugListMatch save = drugListMatchDAO.save(drugListMatch);
         try {
-            drugToolService.automaticDrugMatch(save);
+            drugToolService.automaticDrugMatch(save,operator);
         } catch (Exception e) {
             LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
         }

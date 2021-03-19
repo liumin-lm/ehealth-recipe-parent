@@ -3,13 +3,17 @@ package recipe.thread;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
+import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.RecipeDAO;
+import recipe.service.manager.RecipeLabelManager;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 修改pdf 添加费用
@@ -19,6 +23,7 @@ import java.math.BigDecimal;
 public class UpdateTotalRecipePdfRunable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateTotalRecipePdfRunable.class);
+    private final RecipeLabelManager recipeLabelManager;
 
     private Integer recipeId;
     /**
@@ -26,9 +31,10 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
      */
     private BigDecimal recipeFee;
 
-    public UpdateTotalRecipePdfRunable(Integer recipeId, BigDecimal recipeFee) {
+    public UpdateTotalRecipePdfRunable(RecipeLabelManager recipeLabelManager, Integer recipeId, BigDecimal recipeFee) {
         this.recipeId = recipeId;
         this.recipeFee = recipeFee;
+        this.recipeLabelManager = recipeLabelManager;
     }
 
     @Override
@@ -43,6 +49,14 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
         //更新pdf
         if (null == recipe) {
             logger.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipeId);
+            return;
+        }
+        List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFour");
+        if (CollectionUtils.isEmpty(scratchableList)) {
+            return;
+        }
+        boolean actualPrice = scratchableList.stream().noneMatch(a -> "recipe.actualPrice".equals(a.getBoxLink()));
+        if (actualPrice) {
             return;
         }
 

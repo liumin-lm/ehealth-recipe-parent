@@ -238,7 +238,6 @@ public class RecipeValidateUtil {
                 recipeDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
 
                 try {
-                    recipeDetail.setDrugForm(organDrug.getDrugForm());
                     //药品名历史数据处理
                     if (StringUtils.isEmpty(recipeDetail.getDrugDisplaySplicedName())) {
                         recipeDetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrug), ObjectCopyUtils.convert(recipeDetail, Recipedetail.class), recipe.getRecipeType()));
@@ -247,7 +246,7 @@ public class RecipeValidateUtil {
                         recipeDetail.setDrugDisplaySplicedSaleName(DrugNameDisplayUtil.dealwithRecipedetailSaleName(Arrays.asList(organDrug), ObjectCopyUtils.convert(recipeDetail, Recipedetail.class), recipe.getRecipeType()));
                     }
                 } catch (Exception e) {
-                    LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage(), e);
+                    LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 设置药品拼接名error, recipeId:{},{}.", recipeId, e.getMessage(), e);
                 }
             }
             try {
@@ -260,7 +259,7 @@ public class RecipeValidateUtil {
                     recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
                 }
             } catch (Exception e) {
-                LOGGER.info("validateDrugsImpl error,recipeId={}", recipeId, e);
+                LOGGER.error("validateDrugsImpl error,recipeId={}", recipeId, e);
             }
             backDetailList.add(recipeDetail);
         }
