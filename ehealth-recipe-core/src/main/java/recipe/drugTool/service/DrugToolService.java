@@ -515,7 +515,7 @@ public class DrugToolService implements IDrugToolService {
                             //自动匹配功能暂无法提供
                             DrugListMatch save = drugListMatchDAO.save(drug);
                             try {
-                                automaticDrugMatch(save);
+                                automaticDrugMatch(save,operator);
                             } catch (Exception e) {
                                 LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
                             }
@@ -525,7 +525,7 @@ public class DrugToolService implements IDrugToolService {
                             if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
                                 for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
                                     try {
-                                        automaticDrugMatch(drugListMatch);
+                                        automaticDrugMatch(drugListMatch,operator);
                                     } catch (Exception e) {
                                         LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
                                     }
@@ -1536,18 +1536,17 @@ public class DrugToolService implements IDrugToolService {
      * @return
      */
     @RpcService
-    public Integer automaticDrugMatch(DrugListMatch drugListMatch) {
+    public Integer automaticDrugMatch(DrugListMatch drugListMatch,String operator) {
         List<DrugList> drugLists = drugListDAO.findDrugMatchAutomatic(drugListMatch.getDrugName(), drugListMatch.getSaleName(), drugListMatch.getDrugSpec(),
                 drugListMatch.getUnit(), drugListMatch.getDrugForm(), drugListMatch.getProducer());
         Integer status = 0;
-        UserRoleToken urt = UserRoleToken.getCurrent();
         if (drugListMatch.getStatus() != DrugMatchConstant.ALREADY_MATCH && drugListMatch.getStatus() != DrugMatchConstant.SUBMITED){
             if (drugLists != null && drugLists.size() > 0){
                 UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
                 bean.setDrugId(drugListMatch.getDrugId());
                 bean.setMatchDrugId(drugLists.get(0).getDrugId());
                 bean.setHaveProvinceDrug(false);
-                bean.setOperator(urt.getUserName());
+                bean.setOperator(operator);
                 bean.setMakeType(0);
                 status = updateMatchStatusCurrent(bean);
             }else {
@@ -1604,7 +1603,7 @@ public class DrugToolService implements IDrugToolService {
                 bean.setDrugId(drugListMatch.getDrugId());
                 bean.setMatchDrugId(save.getDrugId());
                 bean.setHaveProvinceDrug(false);
-                bean.setOperator(urt.getUserName());
+                bean.setOperator(operator);
                 bean.setMakeType(0);
                 status = updateMatchStatusCurrent(bean);
             }
