@@ -586,7 +586,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 }
                 if (isregulationDrug != null){
                     if (isregulationDrug == 1){
-                        hql.append(" and a.regulationDrugCode is not null and a.regulationDrugCode <>\" \" ");
+                        hql.append(" and a.regulationDrugCode is not null  ");
                     }
                     if (isregulationDrug == 0){
                         hql.append(" and a.regulationDrugCode is null ");
