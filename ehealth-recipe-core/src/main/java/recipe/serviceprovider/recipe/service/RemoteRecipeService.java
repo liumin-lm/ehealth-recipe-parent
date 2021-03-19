@@ -87,6 +87,7 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -96,8 +97,6 @@ import recipe.util.MapValueUtil;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -2299,8 +2298,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param  statusCode
      * @return
      */
+    @Override
     @RpcService
-    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
+    public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode){
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
         //查询处方记录
         List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
@@ -2346,50 +2346,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @return
      */
     @RpcService
+    @Override
     public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime){
-
         LOGGER.info("getRecipeFeeDetail organId,depart is ={},{}",organId,depart);
-        //1.根据机构查询，处方类型数据
-        List<RecipeOrderFeeVO> voList=recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId,depart,createTime,endTime);
-        List<DepartChargeReportResult> drList=new ArrayList<>();
-        //处方费用分类
-        if (CollectionUtils.isNotEmpty(voList)){
-            RecipeOrderFeeVO recipeOrderFeeVO;
-            DepartChargeReportResult dr;
-            for (RecipeOrderFeeVO vo:voList){
-                recipeOrderFeeVO=new RecipeOrderFeeVO();
-                dr=new DepartChargeReportResult();
-                if (vo.getRecipeType()==1){
-                    //西药费
-                    vo.setWestMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                    dr.setWestMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                }
-                if (vo.getRecipeType()==2){
-                    //中成药费用
-                    vo.setChinesePatentMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                    dr.setChinesePatentMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                }
-                if (vo.getRecipeType()==3){
-                    //中草药
-                    vo.setChineseMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                    dr.setChineseMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                }
-                if (vo.getRecipeType()==4){
-                    //膏方药
-                    vo.setPasteMedFee(vo.getRecipePayMoney()==null?new BigDecimal(0.00):vo.getRecipePayMoney());
-                }
-                //科室代码
-                dr.setDepartId(Integer.valueOf(vo.getDepartId()));
-                //科室名称
-                dr.setDepartName(vo.getDepartName());
-                //医疗费
-                vo.setTotalAmount((vo.getPersonalAmount()==null?new BigDecimal(0.00):vo.getPersonalAmount()).add(vo.getMedicalAmount()==null?new BigDecimal(0.00):vo.getMedicalAmount()));
-                drList.add(dr);
-            }
-            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},drList={},voList.size={}",JSONUtils.toString(voList),JSONUtils.toString(drList),voList.size());
-            return drList;
-        }
-        return null;
+        List<DepartChargeReportResult> voList = recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
+        LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
+        return voList;
     }
 
 
@@ -2406,33 +2368,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param endTime
      * @return
      */
+    @Override
     @RpcService
     public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
         LOGGER.info("getRecipeFeeDetail organId is ={},{}",organId);
         //统计机构的自费和医保的数据
         List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
         LOGGER.info("getRecipeFeeDetail.hoList.size ={}",hoList.size());
-        HosBusFundsReportResult ho=new HosBusFundsReportResult();
-        HosBusFundsReportResult.MedFundsDetail medFee = new HosBusFundsReportResult.MedFundsDetail();
-        BigDecimal totalPersonalAmount=new BigDecimal(0.00);
-        BigDecimal totalMedicalAmount=new BigDecimal(0.00);
-        if (CollectionUtils.isNotEmpty(hoList)){
-            for (HosBusFundsReportResult h:hoList){
-                //医保+自费
-                medFee=h.getMedFee();
-                //总自费方式
-                totalPersonalAmount=totalPersonalAmount.add(medFee.getPersonalAmount()==null?new BigDecimal(0.00):medFee.getPersonalAmount());
-                //总医保
-                totalMedicalAmount=totalMedicalAmount.add(medFee.getMedicalAmount()==null?new BigDecimal(0.00):medFee.getMedicalAmount());
-            }
-            medFee.setPersonalAmount(totalPersonalAmount);
-            medFee.setMedicalAmount(totalMedicalAmount);
-            //总的诊疗费（处方）
-            medFee.setTotalAmount(totalMedicalAmount.add(totalPersonalAmount));
-            ho.setMedFee(medFee);
-            LOGGER.info("getRecipeMedAndCash .ho is {}",JSONUtils.toString(ho));
-            return ho;
-        }
-        return null;
+        return hoList.get(0);
     }
 }
