@@ -1965,9 +1965,20 @@ public class RecipeService extends RecipeBaseService {
                     } else {
                         String nameStr="";
                         if (CollectionUtils.isNotEmpty(hospitalDrugName) && CollectionUtils.isNotEmpty(enterpriseDrugName)){
-                            hospitalDrugName.retainAll(enterpriseDrugName);
-                            if (CollectionUtils.isNotEmpty(hospitalDrugName));
-                            nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                            List<String> drugNameList = new ArrayList<>();
+                            drugNameList.addAll(hospitalDrugName);
+                            drugNameList.retainAll(enterpriseDrugName);
+                            if (CollectionUtils.isNotEmpty(drugNameList)){
+                                Collections.sort(drugNameList);
+                                String drugStr = drugNameList.toString();
+                                Collections.sort(hospitalDrugName);
+                                String hospitalStr = hospitalDrugName.toString();
+                                Collections.sort(enterpriseDrugName);
+                                String enterpriseStr = enterpriseDrugName.toString();
+                                if (drugStr.equals(hospitalStr) || drugStr.equals(enterpriseStr)){
+                                    nameStr = "【" + Joiner.on("、").join(hospitalDrugName) + "】";
+                                }
+                            }
                         }
                         rMap.put("msg", "由于该处方单上的" + nameStr + "药品库存不足，请更换其他药品后再试。");
                     }
