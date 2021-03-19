@@ -509,7 +509,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     q.setParameter("depart", depart);
                 }
                 q.setParameter("start", start);
-                q.setParameter("endTime", end);
+                q.setParameter("end", end);
                 List<Object[]> result = q.list();
                 List<DepartChargeReportResult> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
