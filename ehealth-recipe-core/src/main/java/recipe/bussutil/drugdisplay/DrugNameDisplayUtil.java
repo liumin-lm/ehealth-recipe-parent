@@ -177,7 +177,7 @@ public class DrugNameDisplayUtil {
 
 
     /**
-     * 后台处理药品显示名---卡片消息/处方笺/处方列表页第一个药名
+     * 后台处理药品显示名---卡片消息/处方笺/处方列表页第一个药名/电子病历详情
      *
      * @param recipedetail
      * @param drugType

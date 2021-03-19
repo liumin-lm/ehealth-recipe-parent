@@ -2401,8 +2401,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 dr.setDepartName(vo.getDepartName());
                 //医疗费
                 vo.setTotalAmount((vo.getPersonalAmount()==null?new BigDecimal(0.00):vo.getPersonalAmount()).add(vo.getMedicalAmount()==null?new BigDecimal(0.00):vo.getMedicalAmount()));
+                drList.add(dr);
             }
-            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}",JSONUtils.toString(voList),voList.size());
+            LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},drList={},voList.size={}",JSONUtils.toString(voList),JSONUtils.toString(drList),voList.size());
             return drList;
         }
         return null;
@@ -2423,19 +2424,31 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @return
      */
     @RpcService
-    public  List<HosBusFundsReportResult> getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
+    public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
         LOGGER.info("getRecipeFeeDetail organId is ={},{}",organId);
         //统计机构的自费和医保的数据
         List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
-        HosBusFundsReportResult.MedFundsDetail medFee;
+        LOGGER.info("getRecipeFeeDetail.hoList.size ={}",hoList.size());
+        HosBusFundsReportResult ho=new HosBusFundsReportResult();
+        HosBusFundsReportResult.MedFundsDetail medFee = new HosBusFundsReportResult.MedFundsDetail();
+        BigDecimal totalPersonalAmount=new BigDecimal(0.00);
+        BigDecimal totalMedicalAmount=new BigDecimal(0.00);
         if (CollectionUtils.isNotEmpty(hoList)){
             for (HosBusFundsReportResult h:hoList){
-                //组装医保+自费
+                //医保+自费
                 medFee=h.getMedFee();
-                medFee.setTotalAmount((medFee.getPersonalAmount()==null?new BigDecimal(0.00):medFee.getPersonalAmount()).add(medFee.getMedicalAmount()==null?new BigDecimal(0.00):medFee.getMedicalAmount()));
+                //总自费方式
+                totalPersonalAmount=totalPersonalAmount.add(medFee.getPersonalAmount()==null?new BigDecimal(0.00):medFee.getPersonalAmount());
+                //总医保
+                totalMedicalAmount=totalMedicalAmount.add(medFee.getMedicalAmount()==null?new BigDecimal(0.00):medFee.getMedicalAmount());
             }
-            LOGGER.info("getRecipeMedAndCash HosBusFundsReportResult.hoList is {},hoList.size={}",JSONUtils.toString(hoList),hoList.size());
-            return hoList;
+            medFee.setPersonalAmount(totalPersonalAmount);
+            medFee.setMedicalAmount(totalMedicalAmount);
+            //总的诊疗费（处方）
+            medFee.setTotalAmount(totalMedicalAmount.add(totalPersonalAmount));
+            ho.setMedFee(medFee);
+            LOGGER.info("getRecipeMedAndCash .ho is {}",JSONUtils.toString(ho));
+            return ho;
         }
         return null;
     }

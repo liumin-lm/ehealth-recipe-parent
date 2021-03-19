@@ -500,7 +500,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(depart==null?" and (r.depart is not null)":" and r.depart ="+depart);
                     hql.append(" and (r.signDate between '"+start+"' and  '"+end+"') order by r.recipeId desc ");
                 }
-
                 Query q = ss.createSQLQuery(hql.toString());
                 List<Object[]> result=q.list();
                 List<RecipeOrderFeeVO> backList = new ArrayList<>();

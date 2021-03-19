@@ -1099,10 +1099,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
         Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
-        if (!configurations.containsKey(giveModeText)) {
-            return true;
-        }
-        return false;
+        return !configurations.containsKey(giveModeText);
     }
 
     private void setHosInventories(Integer organId, List<Integer> drugIds, List<DrugListBean> drugListBeans,@Nullable Integer pharmacyId) {
