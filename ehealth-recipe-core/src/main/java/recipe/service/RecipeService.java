@@ -2744,6 +2744,9 @@ public class RecipeService extends RecipeBaseService {
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
+        if(!sync){
+            throw new DAOException(DAOException.VALUE_NEEDED, "请先确认接口对接已完成，且配置管理-机构配置-机构设置-业务设置-【药品目录是否支持接口同步】已开启，再尝试进行同步!");
+        }
         Boolean add = organConfigService.getByOrganIdEnableDrugAdd(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
