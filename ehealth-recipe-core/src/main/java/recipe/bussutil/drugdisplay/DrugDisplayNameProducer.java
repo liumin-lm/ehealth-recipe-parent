@@ -40,7 +40,7 @@ public class DrugDisplayNameProducer {
             //是否是字段名
             if (matchEnglishName(name)) {
                 //常用药的单位是drugUnit 需要特殊处理下
-                if (drugInfoObject instanceof CommonRecipeDrugDTO && "unit".equals(name)) {
+                if ((drugInfoObject instanceof CommonRecipeDrugDTO) && "unit".equals(name)) {
                     name = "drugUnit";
                 }
                 //通过字段名取值
