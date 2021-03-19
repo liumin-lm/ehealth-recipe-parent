@@ -524,7 +524,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         //中草药费
                         recipeOrderFeeVO.setChineseMedFee(objs[2] == null ? new BigDecimal(0) : new BigDecimal(objs[2].toString()));
                         //科室id
-                        recipeOrderFeeVO.setDepartId(objs[0] == null ? null : Integer.valueOf(objs[3].toString()));
+                        recipeOrderFeeVO.setDepartId(objs[3] == null ? null : Integer.valueOf(objs[3].toString()));
                         //科室名称
                         if (recipeOrderFeeVO.getDepartId() != null) {
                             recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId()));
