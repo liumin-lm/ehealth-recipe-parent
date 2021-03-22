@@ -1068,19 +1068,19 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     Iterator drugPharmacyIterator = drugPharmacyInventoryInfos.iterator();
                     while (drugPharmacyIterator.hasNext()) {
                         DrugPharmacyInventoryInfo drugPharmacyInventoryInfo = (DrugPharmacyInventoryInfo)drugPharmacyIterator.next();
-                        if (getOrganGiveMode(organId, "SUPPORT_TO_HOS") && "3".equals(drugPharmacyInventoryInfo.getType())) {
+                        if (getOrganGiveMode(organId, SUPPORT_TO_HOS) && "3".equals(drugPharmacyInventoryInfo.getType())) {
                             //说明运营平台没有配置到院取药
                             drugPharmacyIterator.remove();
                         }
-                        if (getOrganGiveMode(organId, "SUPPORT_SEND_TO_ENTERPRISES") && "2".equals(drugPharmacyInventoryInfo.getType())) {
+                        if (getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES) && "2".equals(drugPharmacyInventoryInfo.getType())) {
                             //说明运营平台没有配置药企配送
                             drugPharmacyIterator.remove();
                         }
-                        if (getOrganGiveMode(organId, "SUPPORT_SEND_TO_HOS") && "1".equals(drugPharmacyInventoryInfo.getType())) {
+                        if (getOrganGiveMode(organId, SUPPORT_SEND_TO_HOS) && "1".equals(drugPharmacyInventoryInfo.getType())) {
                             //说明运营平台没有配置医院配送
                             drugPharmacyIterator.remove();
                         }
-                        if (getOrganGiveMode(organId, "SUPPORT_TFDS") && "4".equals(drugPharmacyInventoryInfo.getType())) {
+                        if (getOrganGiveMode(organId, SUPPORT_TFDS) && "4".equals(drugPharmacyInventoryInfo.getType())) {
                             //说明运营平台没有配置药店取药
                             drugPharmacyIterator.remove();
                         }
