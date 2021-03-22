@@ -120,8 +120,8 @@ public class OrganDrugListService implements IOrganDrugListService {
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
-        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
+        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
         if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 try {

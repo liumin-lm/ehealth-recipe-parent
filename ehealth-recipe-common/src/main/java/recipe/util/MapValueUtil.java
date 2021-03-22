@@ -243,7 +243,7 @@ public class MapValueUtil {
             }
             return value.toString();
         } catch (Exception e) {
-            logger.error("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
+            logger.warn("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
             return null;
         }
     }
