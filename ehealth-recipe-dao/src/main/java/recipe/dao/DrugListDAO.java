@@ -589,7 +589,11 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     hql.append(" and status =:status");
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
-                    hql.append(" and sourceOrgan =:sourceOrgan ");
+                    if (sourceOrgan == 0){
+                        hql.append(" and sourceOrgan is null ");
+                    }else {
+                        hql.append(" and sourceOrgan =:sourceOrgan ");
+                    }
                 }
 
                 hql.append(" order by createDt desc");
@@ -639,6 +643,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                             if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
                                 list.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
                             }
+                        }else {
+                            list.setSourceOrganText("平台通用");
                         }
                         lists2.add(list);
                     }
