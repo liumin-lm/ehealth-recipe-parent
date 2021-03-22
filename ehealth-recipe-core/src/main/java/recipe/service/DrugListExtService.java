@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -17,6 +18,8 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -37,23 +40,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bean.HisSearchDrugDTO;
+import static recipe.bussutil.RecipeUtil.getHospitalPrice;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.serviceprovider.BaseService;
+import recipe.util.MapValueUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static recipe.bussutil.RecipeUtil.getHospitalPrice;
 
 /**
  * @author： 0184/yu_yun
@@ -68,6 +73,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugListExtService.class);
+
+    private static final String SUPPORT_TO_HOS = "supportToHos";
+    private static final String SUPPORT_SEND_TO_ENTERPRISES = "showSendToEnterprises";
+    private static final String SUPPORT_SEND_TO_HOS = "showSendToHos";
+    private static final String SUPPORT_TFDS = "supportTFDS";
 
     private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
 
@@ -168,6 +178,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
         // 添加医院数据
         if (CollectionUtils.isNotEmpty(drugList)) {
+            drugList.forEach(a -> a.setDrugType(drugDTO.getDrugType()));
             getHospitalPrice(drugDTO.getOrganId(), drugList);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
@@ -265,12 +276,20 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             Map<String, SearchDrugDetailDTO> detailMap = searchList.stream().collect(Collectors.toMap(SearchDrugDetailDTO::getOrganDrugCode, (drugdetail -> drugdetail)));
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<DrugDetailTO> hisDrugList = hisDrug.getData().getDetails();
+            //药品名拼接配置
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(searchDrug.getOrganId(), searchDrug.getDrugType()));
+            //药品商品名拼接配置
+            Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(searchDrug.getOrganId(), searchDrug.getDrugType()));
             for (DrugDetailTO drug : hisDrugList){
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(searchDrug.getOrganId(),drug.getOrganDrugCode());
                 if (null != organDrug && null != detailMap.get(drug.getOrganDrugCode())){
                     SearchDrugDetailDTO drugListBean = detailMap.get(drug.getOrganDrugCode());
                     drugListBean.setHisciIsClaim(drug.getIsClaim());
                     drugListBean.setHisciReimburseRate(drug.getReimburse());
+                    //前端展示的药品拼接名处理
+                    drugListBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(organDrug, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(searchDrug.getDrugType())));
+                    //前端展示的药品商品名拼接名处理
+                    drugListBean.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(organDrug, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(searchDrug.getDrugType())));
                     drugList.add(drugListBean);
                 }
             }
@@ -408,6 +427,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
         // 添加医院数据
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
+            drugListBeans.forEach(a -> a.setDrugType(commonDrugListDTO.getDrugType()));
             getHospitalPrice(commonDrugListDTO.getOrganId(), drugListBeans);
         }
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
@@ -502,6 +522,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
             // 改成字符串返回
             pharmacyInventory.setAmount(amount);
+            //设置到院取药的类型
+            pharmacyInventory.setType(3);
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
@@ -750,29 +772,15 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(drugInfo)) {
             SearchDrugDetailDTO drugList = null;
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-            //OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            //获取药品展示拼接配置
+            //药品名拼接配置---这里处理防止每次循环还得处理一遍
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, drugType));
+            //药品商品名拼接配置
+            Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, drugType));
             DrugList drugListNow;
             boolean drugInventoryFlag;
             List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
             for (String s : drugInfo) {
-               /* try {
-                    drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
-                    //考虑到在es做过滤有可能会导致老版本搜索出多个重复药品
-                    //(如果X药品有AB两个药房，要同步两次到es，如果不根据药房id搜索就会出现两个重复药品),so过滤药房暂时先放这
-                    if (organId != null && pharmacyId != null){
-                        canAddDrug = false;
-                        OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, drugList.getOrganDrugCode(), drugList.getDrugId());
-                        if (organDrugList !=null && StringUtils.isNotEmpty(organDrugList.getPharmacy())){
-                            //过滤掉不在此药房内的药
-                            List<String> pharmacyIds = Splitter.on(",").splitToList(organDrugList.getPharmacy());
-                            if (pharmacyIds.contains(String.valueOf(pharmacyId))){
-                                canAddDrug = true;
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("searchDrugListWithES parse error.  String=" + s,e);
-                }*/
                 drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
                 drugList.setHospitalPrice(drugList.getSalePrice());
                 //该高亮字段给微信端使用:highlightedField
@@ -818,6 +826,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(), drugList.getUseDoseSmallestUnit(), drugList.getSmallestUnitUseDose()));
                 }
                 drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                //前端展示的药品拼接名处理
+                drugList.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugType)));
+                //前端展示的药品商品名拼接名处理
+                drugList.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(drugList, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(drugType)));
                 dList.add(drugList);
             }
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
@@ -1030,7 +1042,64 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
         //查询药企库存----若超过5s还未返回库存, 则不展示对应药企库存字段;
         setDrugsEnterpriseInventoriesByFiveSeconds(req.getOrganId(),drugListBeans);
+        //按照机构配置的购药方式进行数据过滤
+        return filterInventoriesData(req.getOrganId(), drugListBeans);
+    }
+
+    private List<DrugListBean> filterInventoriesData(Integer organId, List<DrugListBean> drugListBeans){
+        LOGGER.info("filterInventoriesData drugListBeans:{}", JSONUtils.toString(drugListBeans));
+        Iterator iterator = drugListBeans.iterator();
+        boolean inventoryFlag = false;
+        while (iterator.hasNext()) {
+            DrugListBean drugListBean = (DrugListBean)iterator.next();
+            if (drugListBean != null) {
+                List<DrugInventoryInfo> drugInventoryInfos = drugListBean.getInventories();
+                if (CollectionUtils.isNotEmpty(drugInventoryInfos)) {
+                    inventoryFlag = true;
+                }
+                Iterator drugIterator = drugInventoryInfos.iterator();
+                while (drugIterator.hasNext()) {
+                    DrugInventoryInfo drugInventoryInfo = (DrugInventoryInfo)drugIterator.next();
+                    LOGGER.info("filterInventoriesData drugInventoryInfo:{}", JSONUtils.toString(drugInventoryInfo));
+                    List<DrugPharmacyInventoryInfo> drugPharmacyInventoryInfos = drugInventoryInfo.getPharmacyInventories();
+                    if (CollectionUtils.isEmpty(drugPharmacyInventoryInfos)) {
+                        continue;
+                    }
+                    Iterator drugPharmacyIterator = drugPharmacyInventoryInfos.iterator();
+                    while (drugPharmacyIterator.hasNext()) {
+                        DrugPharmacyInventoryInfo drugPharmacyInventoryInfo = (DrugPharmacyInventoryInfo)drugPharmacyIterator.next();
+                        if (getOrganGiveMode(organId, "SUPPORT_TO_HOS") && "3".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置到院取药
+                            drugPharmacyIterator.remove();
+                        }
+                        if (getOrganGiveMode(organId, "SUPPORT_SEND_TO_ENTERPRISES") && "2".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置药企配送
+                            drugPharmacyIterator.remove();
+                        }
+                        if (getOrganGiveMode(organId, "SUPPORT_SEND_TO_HOS") && "1".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置医院配送
+                            drugPharmacyIterator.remove();
+                        }
+                        if (getOrganGiveMode(organId, "SUPPORT_TFDS") && "4".equals(drugPharmacyInventoryInfo.getType())) {
+                            //说明运营平台没有配置药店取药
+                            drugPharmacyIterator.remove();
+                        }
+                    }
+                }
+            }
+            if (inventoryFlag && drugListBean != null) {
+                drugListBean.setInventoriesFlag(inventoryFlag);
+            }
+        }
         return drugListBeans;
+    }
+
+    private boolean getOrganGiveMode(Integer organId, String giveModeText){
+        //获取机构支持的购药方式
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
+        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        return !configurations.containsKey(giveModeText);
     }
 
     private void setHosInventories(Integer organId, List<Integer> drugIds, List<DrugListBean> drugListBeans,@Nullable Integer pharmacyId) {
@@ -1095,6 +1164,29 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }else {
                 amount = "无库存";
+                //特殊情况返回-1时会返回部分药品没库存
+                OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                if (StringUtils.isNotEmpty(hisResp.getMsg())) {
+                    //如果返回多个没库存的药品会有,分隔
+                    List<String> noStock = Splitter.on(",").splitToList(hisResp.getMsg());
+                    List<String> noStockFiltDrugs = noStock.stream().filter((a -> organDrugListDAO.getCountByOrganDrugCode(a) > 0)).collect(Collectors.toList());
+                    for (IDrugInventory drugListBean : drugListBeans) {
+                        //如果机构药品中查不到就不返回医院库存
+                        if (StringUtils.isEmpty(drugIdAndOrganDrugCode.get(drugListBean.getDrugId()))) {
+                            continue;
+                        }
+                        //只要没库存的药品列表没包含就说明有库存
+                        if (!noStockFiltDrugs.contains(drugIdAndOrganDrugCode.get(drugListBean.getDrugId()))) {
+                            amount = "有库存";
+                        }
+                        drugInventoryInfos = new ArrayList<>(1);
+                        drugInventory = DrugInventoryInfo.builder().type("his").pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount, 3))).remoteQueryStatus("0").build();
+                        drugInventoryInfos.add(drugInventory);
+                        drugListBean.setInventories(drugInventoryInfos);
+                    }
+                    return;
+                }
+
             }
             //只处理有无库存情况 不显示数量
             //循环查询的药品
@@ -1106,7 +1198,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugInventoryInfos = new ArrayList<>(1);
                 drugInventory = DrugInventoryInfo.builder()
                         .type("his")
-                        .pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)))
+                        .pharmacyInventories(Lists.newArrayList(new DrugPharmacyInventoryInfo(amount, 3)))
                         .remoteQueryStatus("0")
                         .build();
                 drugInventoryInfos.add(drugInventory);
@@ -1190,7 +1282,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
                         }
                         //过滤掉暂不支持库存查询的药企
-                        if (inventory.length()>5){
+                        if ("暂不支持库存查询".equals(inventory)){
                             continue;
                         }
                         pharmacyInventory = new DrugPharmacyInventoryInfo();
@@ -1198,6 +1290,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         pharmacyInventory.setPharmacyName(drugsEnterprise.getName());
                         //库存数量or有无库存
                         pharmacyInventory.setAmount(inventory);
+                        //设置药企类型
+                        setPharmacyInventoryType(drugsEnterprise, pharmacyInventory);
                         pharmacyInventories.add(pharmacyInventory);
                     }
                     drugInventory = DrugInventoryInfo.builder()
@@ -1213,5 +1307,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             LOGGER.error("查询药企药品实时查询库存错误setDrugsEnterpriseInventories ", e);
         }
         return drugListBeans;
+    }
+
+    private void setPharmacyInventoryType(DrugsEnterprise drugsEnterprise, DrugPharmacyInventoryInfo pharmacyInventory){
+        if (new Integer(1).equals(drugsEnterprise.getSendType())) {
+            pharmacyInventory.setType(1);
+        } else {
+            //需要根据药企支持的配送类型设置药企配送或者药店取药或者两个都支持
+            if (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(2);
+            } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(4);
+            } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(drugsEnterprise.getPayModeSupport())
+                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(5);
+            }
+        }
     }
 }

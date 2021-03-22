@@ -8,15 +8,17 @@ import com.ngari.his.visit.mode.CheckForRefundVisitReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordResponseTO;
 import com.ngari.his.visit.service.IVisitService;
+import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
@@ -29,6 +31,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ChinaIDNumberUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -39,10 +42,7 @@ import recipe.dao.*;
 import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -106,6 +106,12 @@ public class RecipeRefundService extends RecipeBaseService{
                 recipeRefund.setApplyNo(hisResult.getData());
                 recipeRefund.setReason(applyReason);
                 recipeReFundSave(recipe, recipeRefund);
+                //增加药师首页待处理任务---创建任务
+                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                Map<String, Object> otherInfo = new HashMap<>();
+                otherInfo.put("busType", "1");
+                otherInfo.put("desc", applyReason);
+                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, eh.base.constant.BussTypeConstant.RECIPE, otherInfo));
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {
                 LOGGER.error("applyForRecipeRefund-applicationForRefundVisit处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
@@ -532,7 +538,15 @@ public class RecipeRefundService extends RecipeBaseService{
     public List<RecipePatientRefundVO> findPatientRefundRecipesByDoctorId(Integer doctorId, Integer refundType, int start, int limit) {
         //获取当前医生的退费处方列表，根据当前处方的开方医生审核列表获取当前退费最新的一条记录
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
-        return recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
+        //患者信息处理
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        List<RecipePatientRefundVO> recipePatientRefundVOS = recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
+        recipePatientRefundVOS.forEach(a->{
+            PatientDTO patient = patientService.get(a.getPatientMpiid());
+            a.setPhoto(patient.getPhoto());
+            a.setPatientSex(patient.getPatientSex());
+        });
+        return recipePatientRefundVOS;
     }
 
     private void initRecipeRefundVo(List<Integer> noteList, Recipe recipe, RecipeOrder recipeOrder, Integer recipeId, RecipePatientRefundVO recipePatientRefundVO) {
@@ -566,7 +580,20 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public RecipePatientRefundVO getPatientRefundRecipeByRecipeId(Integer busId) {
         RecipeRefundDAO recipeRefundDAO = getDAO(RecipeRefundDAO.class);
-        return recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
+        RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(busId);
+        //患者信息处理
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patient = patientService.get(recipePatientRefundVO.getPatientMpiid());
+        recipePatientRefundVO.setPhoto(patient.getPhoto());
+        recipePatientRefundVO.setPatientSex(patient.getPatientSex());
+        try{
+            Integer age = ChinaIDNumberUtil.getAgeFromIDNumber(patient.getIdcard());
+            recipePatientRefundVO.setPatientAge(age);
+        }catch (Exception e){
+            LOGGER.error("getPatientRefundRecipeByRecipeId 设置患者年龄转换出错 {}.", patient.getMpiId());
+        }
+
+        return recipePatientRefundVO;
     }
 
     //用户提交退费申请给医生

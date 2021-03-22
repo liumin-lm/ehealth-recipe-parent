@@ -7,7 +7,6 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.SaleDrugList;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -213,6 +212,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode and drugId=:drugId and status = 1")
     public abstract OrganDrugList getByOrganIdAndOrganDrugCodeAndDrugId(@DAOParam("organId") int organId, @DAOParam("organDrugCode") String organDrugCode,@DAOParam("drugId") Integer drugId);
 
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode and drugId=:drugId ")
+    public abstract List<OrganDrugList> findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(@DAOParam("organId") int organId, @DAOParam("organDrugCode") String organDrugCode, @DAOParam("drugId") Integer drugId);
 
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and producerCode=:producerCode and status = 1")
     public abstract OrganDrugList getByOrganIdAndProducerCode(@DAOParam("organId") int organId, @DAOParam("producerCode") String producerCode);
@@ -226,7 +227,19 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @return
      */
     @DAOMethod(sql = "from OrganDrugList where drugId=:drugId and organId=:organId ")
+    @Deprecated
     public abstract OrganDrugList getByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
+
+
+    /**
+     * 通过药品编码及机构id获取
+     *
+     * @param organDrugCode
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organDrugCode=:organDrugCode and organId=:organId and status = 1 ")
+    public abstract List<OrganDrugList> findByOrganDrugCodeAndOrganId(@DAOParam("organDrugCode") String organDrugCode, @DAOParam("organId") int organId);
 
 
     /**
@@ -519,7 +532,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,Integer organId, String drugClass, String keyword, Integer status, int start, int limit, Boolean canDrugSend) {
+    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,Integer organId, String drugClass, String keyword, Integer status ,final Integer isregulationDrug,int start ,int limit, Boolean canDrugSend) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -570,6 +583,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     hql.append(" and a.status in (0, 1) and a.organId =:organId ");
                 } else {
                     hql.append(" and a.organId =:organId ");
+                }
+                if (isregulationDrug != null){
+                    if (isregulationDrug == 1){
+                        hql.append(" and a.regulationDrugCode is not null and a.regulationDrugCode <>''  ");
+                    }
+                    if (isregulationDrug == 0){
+                        hql.append(" and a.regulationDrugCode is null ");
+                    }
                 }
                 hql.append(" and b.status = 1 order by a.organDrugId desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
@@ -1020,6 +1041,16 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "select count(organDrugId) from OrganDrugList where drugId=:drugId  ",limit = 0)
     public abstract Long getCountByDrugId(@DAOParam("drugId") int drugId);
+
+
+    /**
+     * 根据drugId查询所有机构药品数量
+     *
+     * @param organDrugCode 机构药品编码
+     * @return 药品数量
+     */
+    @DAOMethod(sql = "select count(*) from OrganDrugList where organDrugCode=:organDrugCode  ", limit = 0)
+    public abstract Long getCountByOrganDrugCode(@DAOParam("organDrugCode") String organDrugCode);
 
 
 

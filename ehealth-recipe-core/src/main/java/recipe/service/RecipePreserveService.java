@@ -32,6 +32,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -51,6 +52,8 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.auditmode.IAuditMode;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.CacheConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -59,9 +62,11 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
@@ -70,9 +75,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-
-import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 
 /**
@@ -288,6 +290,8 @@ public class RecipePreserveService {
             return result;
         }
         List<HisRecipeBean> recipes = Lists.newArrayList();
+        //默认西药
+        Integer recipeType = 1;
         for (RecipeInfoTO recipeInfoTO: data){
             HisRecipeBean recipeBean = ObjectCopyUtils.convert(recipeInfoTO, HisRecipeBean.class);
             recipeBean.setSignDate(recipeInfoTO.getSignTime());
@@ -295,6 +299,13 @@ public class RecipePreserveService {
             recipeBean.setDepartText(recipeInfoTO.getDepartName());
             List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
             List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+            try {
+                recipeType = Integer.valueOf(recipeBean.getRecipeType());
+            } catch (NumberFormatException e) {
+                LOGGER.error("getHosRecipeList recipeType trans error", e);
+            }
+            //药品名拼接配置
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
             for (RecipeDetailTO recipeDetailTO: detailData){
                 HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
                 detailBean.setDrugUnit(recipeDetailTO.getUnit());
@@ -308,6 +319,7 @@ public class RecipePreserveService {
                 detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
                 detailBean.setUseDose(recipeDetailTO.getUseDose());
                 detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
+                detailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(detailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);

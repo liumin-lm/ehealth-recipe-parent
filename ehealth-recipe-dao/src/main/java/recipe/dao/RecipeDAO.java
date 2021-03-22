@@ -2,6 +2,8 @@ package recipe.dao;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.common.dto.DepartChargeReportResult;
+import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
@@ -43,6 +45,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -340,7 +343,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(testDocIds)) {
                     q.setParameterList("testDocIds", testDocIds);
                 }
-
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
 
@@ -471,6 +473,111 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     }
                 }
 
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据开方时间查询处方订单药品表
+     *
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    public List<DepartChargeReportResult> findRecipeByOrganIdAndCreateTimeAnddepart(Integer organId, Integer depart, Date createTime, Date endTime) {
+        final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
+        final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
+        AbstractHibernateStatelessResultAction<List<DepartChargeReportResult>> action = new AbstractHibernateStatelessResultAction<List<DepartChargeReportResult>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                //处方金额
+                hql.append("select sum(case when r.recipeType =1 then IFNULL(o.payBackPrice,0) ELSE 0 end) westMedFee,");
+                hql.append("sum(case when r.recipeType =2 then IFNULL(o.payBackPrice,0) ELSE 0 end) chinesePatentMedFee,");
+                hql.append("sum(case when r.recipeType =3 then IFNULL(o.payBackPrice,0) ELSE 0 end) chineseMedFee,");
+                hql.append("r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan=:organId");
+                if (depart != null) {
+                    hql.append(" and r.depart =:depart");
+                }
+                hql.append(" and (r.signDate between :start and :end) GROUP BY r.depart ");
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("organId", organId);
+                if (depart != null) {
+                    q.setParameter("depart", depart);
+                }
+                q.setParameter("start", start);
+                q.setParameter("end", end);
+                List<Object[]> result = q.list();
+                List<DepartChargeReportResult> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    DepartChargeReportResult recipeOrderFeeVO;
+                    for (Object[] objs : result) {
+                        //参数组装
+                        recipeOrderFeeVO = new DepartChargeReportResult();
+                        //西药费
+                        recipeOrderFeeVO.setWestMedFee(objs[0] == null ? new BigDecimal(0) : new BigDecimal(objs[0].toString()));
+                        //中成药费
+                        recipeOrderFeeVO.setChinesePatentMedFee(objs[1] == null ? new BigDecimal(0) : new BigDecimal(objs[1].toString()));
+                        //中草药费
+                        recipeOrderFeeVO.setChineseMedFee(objs[2] == null ? new BigDecimal(0) : new BigDecimal(objs[2].toString()));
+                        //科室id
+                        recipeOrderFeeVO.setDepartId(objs[3] == null ? null : Integer.valueOf(objs[3].toString()));
+                        //科室名称
+                        if (recipeOrderFeeVO.getDepartId() != null) {
+                            recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId()));
+                        }
+                        backList.add(recipeOrderFeeVO);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 处方医疗费
+     *
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    public List<HosBusFundsReportResult> findRecipeByOrganIdAndCreateTime(Integer organId, Date createTime, Date endTime) {
+        final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
+        final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
+        AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>> action = new AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select IFNULL(sum(o.cashAmount),0),IFNULL(sum(o.fundAmount),0) from cdr_recipe r left join cdr_recipeorder o");
+                hql.append(" on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan=" + organId);
+                hql.append(" and (r.signDate between '" + start + "' and  '" + end + "')");
+                Query q = ss.createSQLQuery(hql.toString());
+                List<Object[]> result = q.list();
+                List<HosBusFundsReportResult> backList = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)) {
+                    HosBusFundsReportResult ho;
+                    HosBusFundsReportResult.MedFundsDetail medFee;
+                    for (Object[] objs : result) {
+                        ho = new HosBusFundsReportResult();
+                        //参数组装
+                        medFee = new HosBusFundsReportResult.MedFundsDetail();
+                        //自费
+                        medFee.setPersonalAmount(new BigDecimal(objs[0].toString()));
+                        //医保
+                        medFee.setMedicalAmount(new BigDecimal(objs[1].toString()));
+                        medFee.setTotalAmount(medFee.getPersonalAmount().add(medFee.getMedicalAmount()));
+                        ho.setMedFee(medFee);
+                        backList.add(ho);
+                    }
+                }
                 setResult(backList);
             }
         };
@@ -806,8 +913,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and giveMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag = 1 and giveMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
+                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
+                        " or (fromflag = 1 and payMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -1071,18 +1178,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit       分页长度
      * @return QueryResult<Map>
      */
-    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status,
-                                              final Integer doctor, final String patientName,
-                                              final Date bDate, final Date eDate, final Integer dateType,
-                                              final Integer depart, final int start, final int limit,
-                                              List<Integer> organIds, Integer giveMode, Integer sendType,
-                                              Integer fromflag, Integer recipeId, Integer enterpriseId,
-                                              Integer checkStatus, Integer payFlag, Integer orderType,
-                                              Integer refundNodeStatus) {
+    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor,
-                patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId,
-                enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus);
+        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
             @Override
@@ -1090,15 +1188,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                 // 查询总记录数
-                SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k")
-                        .addScalar("count", LongType.INSTANCE);
+                SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k").addScalar("count", LongType.INSTANCE);
                 sqlQuery.setParameter("startTime", sdf.format(bDate));
                 sqlQuery.setParameter("endTime", sdf.format(eDate));
                 Long total = (Long) sqlQuery.uniqueResult();
 
                 // 查询结果
-                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString())
-                        .addEntity(Recipe.class);
+                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
                 query.setParameter("startTime", sdf.format(bDate));
                 query.setParameter("endTime", sdf.format(eDate));
                 query.setFirstResult(start);
@@ -1153,12 +1249,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                         // 处方退费状态
                         // 经过表结构讨论，当前不做大修改，因此将退费状态字段RefundNodeStatus放在了RecipeExtend表
-                        RecipeExtend recipeExtend =  getRecipeRefundNodeStatus(recipe);
+                        RecipeExtend recipeExtend = getRecipeRefundNodeStatus(recipe);
 
                         // 注意：若不使用BeanUtils.map转换，而直接放对象，
                         // 会造成opbase QueryResult<Map>端枚举值的Text字段不会自动生成
                         // 还有一种方式是在opbase QueryResult<Map>端循环读取然后重新设置（张宪强的回答）
-                        if(recipeExtend != null) {
+                        if (recipeExtend != null) {
                             Map<String, Object> recipeExtendMap = Maps.newHashMap();
                             BeanUtils.map(recipeExtend, recipeExtendMap);
                             map.put("recipeExtend", recipeExtendMap);
@@ -1167,7 +1263,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         maps.add(map);
                     }
                 }
-                logger.info("findRecipesByInfo maps:{}",JSONUtils.toString(maps));
+                logger.info("findRecipesByInfo maps:{}", JSONUtils.toString(maps));
                 setResult(new QueryResult<Map>(total, query.getFirstResult(), query.getMaxResults(), maps));
             }
         };
@@ -1177,7 +1273,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     // 改为批量查询提高效率
     private RecipeExtend getRecipeRefundNodeStatus(Recipe recipe) {
-        RecipeExtendDAO recipeExtendDAO =  DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         return recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
     }
 
@@ -1250,7 +1346,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
                             "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.status = 8 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
-                            "ORDER BY canUrgentAuditRecipe desc, signdate DESC");
+                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
                 }
                 //1是审核通过  2是审核未通过
                 else if (flag == 1 || flag == notPass) {
@@ -1259,7 +1355,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //4是未签名
                 else if (flag == 4) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + "order by signDate desc");
+                    hql.append("from Recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + " order by signDate desc");
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
@@ -1292,6 +1388,64 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
+     * 查询药师审核的总数
+     */
+    public Long findRecipeCountByFlag(final List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, final int flag, final int start, final int limit) {
+        final int notPass = 2;
+        final int all = 3;
+        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                //0是待药师审核
+                if (flag == 0) {
+                    //hql.append("from Recipe where clinicOrgan in (:organ)  and checkMode<2 and status = " + RecipeStatusConstant.READY_CHECK_YS + " and  (recipeType in(:recipeTypes) or grabOrderStatus=1)");
+                    hql.append("SELECT\n" +
+                            "\tcount(r.recipeid)\n" +
+                            "FROM\n" +
+                            "\tcdr_recipe r\n" +
+                            "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.status = 8 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
+                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
+                }
+                //1是审核通过  2是审核未通过
+                else if (flag == 1 || flag == notPass) {
+                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and ");
+                    hql.append(getSqlIn(recipeIds, 300, "recipeId") + " order by signDate desc");
+                }
+                //4是未签名
+                else if (flag == 4) {
+                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and status = " + RecipeStatusConstant.SIGN_NO_CODE_PHA + " order by signDate desc");
+                }
+
+                //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
+                else if (flag == all) {
+                    hql.append("select count(r.recipeid) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2)))  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) order by signDate desc");
+                } else {
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
+                }
+
+                Query q;
+                /*if (flag == all || flag == 0) {
+
+                } else {
+                    q = ss.createQuery(hql.toString());
+                }*/
+                q = ss.createSQLQuery(hql.toString());
+                q.setParameterList("organ", organ);
+                if (flag == 0 || flag == all) {
+                    q.setParameterList("recipeTypes", recipeTypes);
+                }
+                BigInteger count = (BigInteger) q.uniqueResult();
+                setResult(count.longValue());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
+    /**
      * 查询处方列表
      *
      * @param status      处方状态
@@ -1305,7 +1459,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public List<Object[]> findRecipesByInfoForExcelN(RecipesQueryVO recipesQueryVO) {
         this.validateOptionForStatistics(recipesQueryVO);
         final StringBuilder preparedHql = this.generateRecipeOderHQLforStatisticsN(recipesQueryVO);
-        logger.info("findRecipesByInfoForExcelN-sql={}",preparedHql.toString());
+        logger.info("findRecipesByInfoForExcelN-sql={}", preparedHql.toString());
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1364,7 +1518,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param dateType 时间类型（0：开方时间，1：审核时间）
      * @param start    分页开始index
      * @param limit    分页长度
-     * @return HashMap<String   ,       Integer>
+     * @return HashMap<String                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Integer>
      */
     public HashMap<String, Integer> getStatisticsByStatus(final Integer organId, final Integer status, final Integer doctor, final String mpiid, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId) {
         this.validateOptionForStatistics(status, doctor, mpiid, bDate, eDate, dateType, start, limit);
@@ -1457,12 +1611,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return hql;
     }
 
-    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor,
-                                                             String mpiId, Integer dateType, Integer depart,
-                                                             final List<Integer> requestOrgans, Integer giveMode,
-                                                             Integer sendType, Integer fromflag, Integer recipeId,
-                                                             Integer enterpriseId, Integer checkStatus,
-                                                             Integer payFlag, Integer orderType, Integer refundNodeStatus) {
+    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus) {
 //        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
@@ -2502,11 +2651,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
-                if ("onready".equals(tabStatus)){
+                if ("onready".equals(tabStatus)) {
                     q.setParameterList("recipeStatusList", recipeStatusList);
-                }else if ("ongoing".equals(tabStatus)){
+                } else if ("ongoing".equals(tabStatus)) {
                     q.setParameterList("orderStatusList", orderStatusList);
-                }else {
+                } else {
                     q.setParameterList("orderStatusList", orderStatusList);
                     q.setParameterList("recipeStatusList", recipeStatusList);
                     if (CollectionUtils.isNotEmpty(recipeIdWithoutHisAndPayList)) {
@@ -2566,30 +2715,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 药房工作量
+     *
      * @param organId
      * @return
      */
     public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDis(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName, String recipeType) {
-        HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
+        HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" +
-                        "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" +
-                        "\tcount(recipeId) AS recipeCount,\n" +
-                        "\tsum(totalMoney) totalMoney\n" +
-                        "FROM\n" +
-                        "\tcdr_recipe r\n" +
-                        "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" +
-                        "WHERE\n" +
-                        "\tr.ordercode IS NOT NULL\n" +
-                        "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
-                        "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
-                        "AND o.status in (" + orderStatus + ")\n" +
-                        "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
-                        "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType)?
-                        "AND r.recipeType in (:recipeType)\n" : "") +
-                        "GROUP BY\n" +
-                        "\to.dispensingApothecaryName";
+                String sql = "SELECT\n" + "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" + "\tcount(recipeId) AS recipeCount,\n" + "\tsum(totalMoney) totalMoney\n" + "FROM\n" + "\tcdr_recipe r\n" + "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" + "WHERE\n" + "\tr.ordercode IS NOT NULL\n" + "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName) ? "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") + "AND o.status in (" + orderStatus + ")\n" + "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" + "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType) ? "AND r.recipeType in (:recipeType)\n" : "") + "GROUP BY\n" + "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
@@ -2604,10 +2738,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 List<Object[]> result = q.list();
                 List<WorkLoadTopDTO> vo = new ArrayList<>();
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
-                        workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
+                        workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "" : objects[0].toString());
                         workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
                         workLoadTopDTO.setTotalMoney(new BigDecimal(String.valueOf(objects[2])).setScale(2, BigDecimal.ROUND_HALF_UP));
                         vo.add(workLoadTopDTO);
@@ -2622,31 +2756,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 药房工作量 带退费的
+     *
      * @param organId
      * @return
      */
     public List<WorkLoadTopDTO> findRecipeByOrderCodegroupByDisWithRefund(Integer organId, String orderStatus, Integer start, Integer limit, String startDate, String endDate, String doctorName, String recipeType) {
-        HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>(){
+        HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" +
-                        "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" +
-                        "\tcount(recipeId) AS recipeCount,\n" +
-                        "\tsum(0) totalMoney\n" +
-                        "FROM\n" +
-                        "\tcdr_recipe r\n" +
-                        "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" +
-                        "WHERE\n" +
-                        "\tr.ordercode IS NOT NULL\n" +
-                        "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName)?
-                        "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") +
-                        "AND o.status in (" + orderStatus + ")\n" +
-                        "AND o.dispensingTime is not null\n" +
-                        "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
-                        "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType)?
-                        "AND r.recipeType in (:recipeType)\n" : "") +
-                        "GROUP BY\n" +
-                        "\to.dispensingApothecaryName";
+                String sql = "SELECT\n" + "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" + "\tcount(recipeId) AS recipeCount,\n" + "\tsum(0) totalMoney\n" + "FROM\n" + "\tcdr_recipe r\n" + "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" + "WHERE\n" + "\tr.ordercode IS NOT NULL\n" + "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName) ? "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") + "AND o.status in (" + orderStatus + ")\n" + "AND o.dispensingTime is not null\n" + "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" + "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType) ? "AND r.recipeType in (:recipeType)\n" : "") + "GROUP BY\n" + "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
@@ -2661,10 +2779,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 List<Object[]> result = q.list();
                 List<WorkLoadTopDTO> vo = new ArrayList<>();
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
-                        workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "":objects[0].toString());
+                        workLoadTopDTO.setDispensingApothecaryName(objects[0] == null ? "" : objects[0].toString());
                         workLoadTopDTO.setRecipeCount(Integer.valueOf(objects[1].toString()));
                         workLoadTopDTO.setTotalMoney(new BigDecimal(String.valueOf(objects[2])).setScale(2, BigDecimal.ROUND_HALF_UP));
                         vo.add(workLoadTopDTO);
@@ -2679,6 +2797,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 发药月报
+     *
      * @param organId
      * @return
      */
@@ -2686,9 +2805,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>> action = new AbstractHibernateStatelessResultAction<List<PharmacyMonthlyReportDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "select cr.depart, sum(cr.totalMoney) as totalMoney, count(cr.RECIPEID) as count,sum(cr.totalMoney)/count(cr.RECIPEID) AS avgMoney from cdr_recipe cr LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)  where co.dispensingTime BETWEEN '" + startDate + "'\n" +
-                        "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null AND co.STATUS IN (4,5,13)" + (StringUtils.isNotEmpty(recipeType)?
-                        " AND cr.recipeType in (:recipeType)\n" : "");
+                String sql = "select cr.depart, sum(cr.totalMoney) as totalMoney, count(cr.RECIPEID) as count,sum(cr.totalMoney)/count(cr.RECIPEID) AS avgMoney from cdr_recipe cr LEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)  where co.dispensingTime BETWEEN '" + startDate + "'\n" + "\t\tAND '" + endDate + "' and cr.ClinicOrgan =:organId and cr.totalMoney is not null AND co.STATUS IN (4,5,13)" + (StringUtils.isNotEmpty(recipeType) ? " AND cr.recipeType in (:recipeType)\n" : "");
                 if (StringUtils.isNotEmpty(depart)) {
                     sql += " and depart='" + depart + "'";
                 }
@@ -2762,43 +2879,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
                         "GROUP BY\n" +
                         "\tdrugId,cr.recipeId\n";*/
-                String sql = "SELECT\n" +
-                        "\trd.OrganDrugCode,\n" +
-                        "\trd.drugName,\n" +
-                        "\trd.drugSpec,\n" +
-                        "\trd.drugUnit,\n" +
-                        "\tcast(\n" +
-                        "\t\tsum(rd.useTotalDose) AS SIGNED\n" +
-                        "\t) AS count,\n" +
-                        "\trd.saleprice,\n" +
-                        "\tSUM(rd.drugCost) AS countMoney,\n" +
-                        "\tCASE bd.drugtype\n" +
-                        "WHEN 1 THEN\n" +
-                        "\t'西药'\n" +
-                        "WHEN 2 THEN\n" +
-                        "\t'中成药'\n" +
-                        "ELSE\n" +
-                        "\t'中草药'\n" +
-                        "END AS drugtype\n" +
-                        "FROM\n" +
-                        "\tcdr_recipedetail rd\n" +
-                        " LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
-                        "WHERE\n" +
-                        "\trd.recipeid IN (\n" +
-                        "\t\tSELECT\n" +
-                        "\t\t\trecipeId\n" +
-                        "\t\tFROM\n" +
-                        "\t\t\tcdr_recipe cr\n" +
-                        "\t\tLEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)\n" +
-                        "\t\tWHERE\n" +
-                        "\t\t\tco.dispensingTime BETWEEN '" + startDate + "  '\n" +
-                        "\t\tAND '"+endDate+"'\n" +
-                        "\t\tAND ClinicOrgan = :organId\n" +
-                        "\t\tAND rd.drugCost IS NOT NULL\n" +
-                        "\t\tAND co.`Status` IN (" + orderStatus + ")\n" +
-                        (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") +
-                        "\t)  AND rd.STATUS=1 GROUP BY\n" +
-                        "\tOrganDrugCode\n";
+                String sql = "SELECT\n" + "\trd.OrganDrugCode,\n" + "\trd.drugName,\n" + "\trd.drugSpec,\n" + "\trd.drugUnit,\n" + "\tcast(\n" + "\t\tsum(rd.useTotalDose) AS SIGNED\n" + "\t) AS count,\n" + "\trd.saleprice,\n" + "\tSUM(rd.drugCost) AS countMoney,\n" + "\tCASE bd.drugtype\n" + "WHEN 1 THEN\n" + "\t'西药'\n" + "WHEN 2 THEN\n" + "\t'中成药'\n" + "ELSE\n" + "\t'中草药'\n" + "END AS drugtype\n" + "FROM\n" + "\tcdr_recipedetail rd\n" + " LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" + "WHERE\n" + "\trd.recipeid IN (\n" + "\t\tSELECT\n" + "\t\t\trecipeId\n" + "\t\tFROM\n" + "\t\t\tcdr_recipe cr\n" + "\t\tLEFT JOIN cdr_recipeorder co ON (cr.ordercode = co.ordercode)\n" + "\t\tWHERE\n" + "\t\t\tco.dispensingTime BETWEEN '" + startDate + "  '\n" + "\t\tAND '" + endDate + "'\n" + "\t\tAND ClinicOrgan = :organId\n" + "\t\tAND rd.drugCost IS NOT NULL\n" + "\t\tAND co.`Status` IN (" + orderStatus + ")\n" + (drugType == 0 ? " " : "AND bd.drugtype IN (:drugType)\n") + "\t)  AND rd.STATUS=1 GROUP BY\n" + "\tOrganDrugCode\n";
                 if (order == 1) {
                     sql += "order by SUM(rd.saleprice) desc";
                 }
@@ -2846,51 +2927,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 发药查询整体
+     *
      * @param organId
      * @return
      */
-    public List<RecipeDrugDetialReportDTO> findRecipeDrugDetialReport(Integer organId, String startDate, String endDate,String drugName, String cardNo, String patientName, String billNumber, String recipeId,
-                                                                      String orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
+    public List<RecipeDrugDetialReportDTO> findRecipeDrugDetialReport(Integer organId, String startDate, String endDate, String drugName, String cardNo, String patientName, String billNumber, String recipeId, String orderStatus, Integer depart, String doctorName, String dispensingApothecaryName, Integer recipeType, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<RecipeDrugDetialReportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeDrugDetialReportDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" +
-                        "\tcrb.bill_number,\n" +
-                        "\tcr.recipeId,\n" +
-                        "\tcr.depart,\n" +
-                        "\tcr.patientName,\n" +
-                        "\tDATE_FORMAT(co.dispensingTime, '%Y-%m-%d %k:%i:%s') as sendDate,\n" +
-                        "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已拒发' WHEN 15 THEN '已退药' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" +
-                        "\tco.dispensingApothecaryName as sendApothecaryName,\n" +
-                        "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" +
-                        "\t'' AS dispensingWindow,\n" +
-                        "\tcr.doctorName,\n" +
-                        "\tcr.totalMoney,\n" +
-                        "\tCASE cr.RecipeType WHEN 1 THEN '西药' WHEN 2 THEN '中成药' WHEN 3 THEN '中药' ELSE '膏方' END AS RecipeType,\n" +
-                        "\tDATE_FORMAT(cr.CreateDate, '%Y-%m-%d %k:%i:%s') as CreateDate,\n" +
-                        "\tDATE_FORMAT(co.PayTime, '%Y-%m-%d %k:%i:%s') as PayTime\n" +
-                        "FROM\n" +
-                        "\tcdr_recipe cr\n" +
-                        "LEFT JOIN cdr_recipedetail rd ON (cr.RecipeID = rd.RecipeID)\n" +
-                        "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" +
-                        "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
-                        "LEFT JOIN cdr_recipe_ext cre ON cre.recipeId = cr.RecipeID\n" +
-                        "LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" +
-                        "WHERE\n" +
-                        "\tcr.ClinicOrgan = :organId\n" +
-                        "AND (\n" +
-                        "\tco. STATUS IN (" + orderStatus + ")\n" +
-                        ")\n" +
-                        "AND co.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" +
-                        "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") +
-                        (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName like :patientName" : "") +
-                        (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :billNumber" : "") +
-                        (StringUtils.isNotEmpty(recipeId) ? " AND cr.recipeId = :recipeId" : "") +
-                        (recipeType != null ? " AND cr.recipeType = :recipeType" : "") +
-                        (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName like :dispensingApothecaryName" : "") +
-                        (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") +
-                        (StringUtils.isNotEmpty(drugName) ? " AND rd.DrugName like :drugName" : "") +
-                        (depart != null ? " AND cr.depart = :depart" : "");
+                String sql = "SELECT\n" + "\tcrb.bill_number,\n" + "\tcr.recipeId,\n" + "\tcr.depart,\n" + "\tcr.patientName,\n" + "\tDATE_FORMAT(co.dispensingTime, '%Y-%m-%d %k:%i:%s') as sendDate,\n" + "\tCASE co.STATUS WHEN 13 THEN '已发药' WHEN 14 THEN '已拒发' WHEN 15 THEN '已退药' WHEN 4 THEN '配送中' WHEN 5 THEN '已完成' ELSE '' END AS STATUS,\n" + "\tco.dispensingApothecaryName as sendApothecaryName,\n" + "\tco.dispensingApothecaryName as dispensingApothecaryName,\n" + "\t'' AS dispensingWindow,\n" + "\tcr.doctorName,\n" + "\tcr.totalMoney,\n" + "\tCASE cr.RecipeType WHEN 1 THEN '西药' WHEN 2 THEN '中成药' WHEN 3 THEN '中药' ELSE '膏方' END AS RecipeType,\n" + "\tDATE_FORMAT(cr.CreateDate, '%Y-%m-%d %k:%i:%s') as CreateDate,\n" + "\tDATE_FORMAT(co.PayTime, '%Y-%m-%d %k:%i:%s') as PayTime\n" + "FROM\n" + "\tcdr_recipe cr\n" + "LEFT JOIN cdr_recipedetail rd ON (cr.RecipeID = rd.RecipeID)\n" + "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" + "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" + "LEFT JOIN cdr_recipe_ext cre ON cre.recipeId = cr.RecipeID\n" + "LEFT JOIN base_druglist bd ON (rd.drugId = bd.drugid)\n" + "WHERE\n" + "\tcr.ClinicOrgan = :organId\n" + "AND (\n" + "\tco. STATUS IN (" + orderStatus + ")\n" + ")\n" + "AND co.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" + "AND '" + endDate + "'" + (StringUtils.isNotEmpty(cardNo) ? " AND cre.cardNo = :cardNo" : "") + (StringUtils.isNotEmpty(patientName) ? " AND cr.patientName like :patientName" : "") + (StringUtils.isNotEmpty(billNumber) ? " AND crb.bill_number = :billNumber" : "") + (StringUtils.isNotEmpty(recipeId) ? " AND cr.recipeId = :recipeId" : "") + (recipeType != null ? " AND cr.recipeType = :recipeType" : "") + (StringUtils.isNotEmpty(dispensingApothecaryName) ? " AND co.dispensingApothecaryName like :dispensingApothecaryName" : "") + (StringUtils.isNotEmpty(doctorName) ? " AND cr.doctorName like :doctorName" : "") + (StringUtils.isNotEmpty(drugName) ? " AND rd.DrugName like :drugName" : "") + (depart != null ? " AND cr.depart = :depart" : "");
                 sql += " group by cr.recipeId";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
@@ -2898,7 +2943,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     q.setParameter("cardNo", cardNo);
                 }
                 if (StringUtils.isNotEmpty(patientName)) {
-                    q.setParameter("patientName", "%"+patientName+"%");
+                    q.setParameter("patientName", "%" + patientName + "%");
                 }
                 if (StringUtils.isNotEmpty(billNumber)) {
                     q.setParameter("billNumber", billNumber);
@@ -2910,16 +2955,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     q.setParameter("recipeType", recipeType);
                 }
                 if (StringUtils.isNotEmpty(dispensingApothecaryName)) {
-                    q.setParameter("dispensingApothecaryName", "%"+dispensingApothecaryName+"%");
+                    q.setParameter("dispensingApothecaryName", "%" + dispensingApothecaryName + "%");
                 }
                 if (StringUtils.isNotEmpty(doctorName)) {
-                    q.setParameter("doctorName", "%"+doctorName+"%");
+                    q.setParameter("doctorName", "%" + doctorName + "%");
                 }
                 if (depart != null) {
                     q.setParameter("depart", depart);
                 }
-                if (StringUtils.isNotEmpty(drugName) ) {
-                    q.setParameter("drugName", "%"+drugName+"%");
+                if (StringUtils.isNotEmpty(drugName)) {
+                    q.setParameter("drugName", "%" + drugName + "%");
                 }
                 if (start != null && limit != null) {
                     q.setFirstResult(start);
@@ -2931,15 +2976,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         RecipeDrugDetialReportDTO value = new RecipeDrugDetialReportDTO();
-                        value.setBillNumber(String.valueOf(objects[0] == null ? "": objects[0]));
+                        value.setBillNumber(String.valueOf(objects[0] == null ? "" : objects[0]));
                         value.setRecipeId(Integer.valueOf(String.valueOf(objects[1])));
                         value.setDepart(Integer.valueOf(String.valueOf(objects[2])));
                         value.setPatientName(String.valueOf(objects[3]));
-                        value.setSendDate(objects[4] == null ? "":String.valueOf(objects[4]));
+                        value.setSendDate(objects[4] == null ? "" : String.valueOf(objects[4]));
                         value.setStatus(String.valueOf(objects[5]));
-                        value.setSendApothecaryName(objects[6] == null ? "":String.valueOf(objects[6]));
-                        value.setDispensingApothecaryName(objects[7] == null ? "":String.valueOf(objects[7]));
-                        value.setDispensingWindow(objects[8] == null ? "":String.valueOf(objects[8]));
+                        value.setSendApothecaryName(objects[6] == null ? "" : String.valueOf(objects[6]));
+                        value.setDispensingApothecaryName(objects[7] == null ? "" : String.valueOf(objects[7]));
+                        value.setDispensingWindow(objects[8] == null ? "" : String.valueOf(objects[8]));
                         value.setDoctorName(String.valueOf(objects[9]));
                         value.setTotalMoney(Double.valueOf(String.valueOf(objects[10])));
                         value.setRecipeType(String.valueOf(objects[11]));
@@ -2957,6 +3002,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 发药查询 单个
+     *
      * @param recipeId
      * @return
      */
@@ -2964,38 +3010,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" +
-                        "\tcrb.bill_number,\n" +
-                        "\tcr.patientName,\n" +
-                        "\tcre.medicalTypeText\n" +
-                        "AS patientType,\n" +
-                        " co.dispensingTime,\n" +
-                        " cr.recipeId,\n" +
-                        " cr.doctorName,\n" +
-                        " co.dispensingApothecaryName AS sendApothecaryName,\n" +
-                        " co.dispensingApothecaryName AS dispensingApothecaryName,\n" +
-                        " '' AS memo,\n" +
-                        " cre.cardNo,\n" +
-                        " crt.drugSpec,\n" +
-                        " crt.useDose,\n" +
-                        " crt.usingRate,\n" +
-                        " crt.usePathwaysText,\n" +
-                        " crt.drugCost,\n" +
-                        " crt.drugName,\n" +
-                        " crt.useTotalDose,\n" +
-                        " crt.drugunit,\n" +
-                        " crt.producer,\n" +
-                        " cr.OrganDiseaseName,\n" +
-                        " cr.MPIID,\n" +
-                        " crt.DosageUnit\n" +
-                        "FROM\n" +
-                        "\tcdr_recipe cr\n" +
-                        "LEFT JOIN cdr_recipe_ext cre ON (cr.RecipeID = cre.recipeId)\n" +
-                        "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" +
-                        "LEFT JOIN cdr_recipedetail crt ON crt.RecipeID = cre.recipeId\n" +
-                        "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" +
-                        "WHERE\n" +
-                        "\tcr.RecipeID = :recipeId AND crt.status = 1" ;
+                String sql = "SELECT\n" + "\tcrb.bill_number,\n" + "\tcr.patientName,\n" + "\tcre.medicalTypeText\n" + "AS patientType,\n" + " co.dispensingTime,\n" + " cr.recipeId,\n" + " cr.doctorName,\n" + " co.dispensingApothecaryName AS sendApothecaryName,\n" + " co.dispensingApothecaryName AS dispensingApothecaryName,\n" + " '' AS memo,\n" + " cre.cardNo,\n" + " crt.drugSpec,\n" + " crt.useDose,\n" + " crt.usingRate,\n" + " crt.usePathwaysText,\n" + " crt.drugCost,\n" + " crt.drugName,\n" + " crt.useTotalDose,\n" + " crt.drugunit,\n" + " crt.producer,\n" + " cr.OrganDiseaseName,\n" + " cr.MPIID,\n" + " crt.DosageUnit\n" + "FROM\n" + "\tcdr_recipe cr\n" + "LEFT JOIN cdr_recipe_ext cre ON (cr.RecipeID = cre.recipeId)\n" + "LEFT JOIN cdr_recipeorder co ON cr.ordercode = co.ordercode\n" + "LEFT JOIN cdr_recipedetail crt ON crt.RecipeID = cre.recipeId\n" + "LEFT JOIN cdr_recipeorder_bill crb ON crb.recipe_order_code = co.OrderCode\n" + "WHERE\n" + "\tcr.RecipeID = :recipeId AND crt.status = 1";
                 Query q = statelessSession.createSQLQuery(sql);
                 LOGGER.info("findRecipeDrugDetialByRecipeId sql : " + sql);
                 q.setParameter("recipeId", recipeId);
@@ -3005,28 +3020,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (CollectionUtils.isNotEmpty(result)) {
                     for (Object[] objects : result) {
                         Map<String, Object> value = new HashMap<>();
-                        value.put("billNumber", objects[0] == null ? "":objects[0]);
+                        value.put("billNumber", objects[0] == null ? "" : objects[0]);
                         value.put("patientName", objects[1]);
                         value.put("patientType", objects[2]);
                         value.put("createDate", objects[3]);
                         value.put("recipeId", objects[4]);
                         value.put("doctorName", objects[5]);
-                        value.put("sendApothecaryName", objects[6] == null ? "":objects[6]);
-                        value.put("dispensingApothecaryName", objects[7] == null ? "":objects[7]);
-                        value.put("memo", objects[8] == null ? "":objects[8]);
-                        value.put("cardNo", objects[9] == null ? "":objects[9]);
-                        value.put("drugSpec", objects[10] == null ? "":objects[10]);
-                        value.put("useDose", objects[11] == null ? "":objects[11]);
-                        value.put("usingRate", objects[12] == null ? "":objects[12]);
-                        value.put("usePathwaysText", objects[13] == null ? "":objects[13]);
-                        value.put("drugCost", objects[14] == null ? "":objects[14]);
-                        value.put("drugName", objects[15] == null ? "":objects[15]);
-                        value.put("sendNumber", objects[16] == null ? "":objects[16]);
-                        value.put("dosageUnit", objects[17] == null ? "":objects[17]);
-                        value.put("producer", objects[18] == null ? "":objects[18]);
-                        value.put("organDiseaseName", objects[19] == null ? "":objects[19]);
-                        value.put("MPIID", objects[20] == null ? "":objects[20]);
-                        value.put("unit", objects[21] == null ? "":objects[21]);
+                        value.put("sendApothecaryName", objects[6] == null ? "" : objects[6]);
+                        value.put("dispensingApothecaryName", objects[7] == null ? "" : objects[7]);
+                        value.put("memo", objects[8] == null ? "" : objects[8]);
+                        value.put("cardNo", objects[9] == null ? "" : objects[9]);
+                        value.put("drugSpec", objects[10] == null ? "" : objects[10]);
+                        value.put("useDose", objects[11] == null ? "" : objects[11]);
+                        value.put("usingRate", objects[12] == null ? "" : objects[12]);
+                        value.put("usePathwaysText", objects[13] == null ? "" : objects[13]);
+                        value.put("drugCost", objects[14] == null ? "" : objects[14]);
+                        value.put("drugName", objects[15] == null ? "" : objects[15]);
+                        value.put("sendNumber", objects[16] == null ? "" : objects[16]);
+                        value.put("dosageUnit", objects[17] == null ? "" : objects[17]);
+                        value.put("producer", objects[18] == null ? "" : objects[18]);
+                        value.put("organDiseaseName", objects[19] == null ? "" : objects[19]);
+                        value.put("MPIID", objects[20] == null ? "" : objects[20]);
+                        value.put("unit", objects[21] == null ? "" : objects[21]);
                         vo.add(value);
                     }
                 }
@@ -3050,6 +3065,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 获取挂号序号和处方id对应关系
+     *
      * @param mpiIdList
      * @param start
      * @param limit
@@ -3232,8 +3248,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
 
         List<Recipe> recipes = action.getResult();
-        Long totalConsumedTime=new Date().getTime()-beginTime;
-        LOGGER.info("findRecipeListByDoctorAndPatientAndStatusList cost:{}",totalConsumedTime);
+        Long totalConsumedTime = new Date().getTime() - beginTime;
+        LOGGER.info("findRecipeListByDoctorAndPatientAndStatusList cost:{}", totalConsumedTime);
         return recipes;
     }
 
@@ -3404,23 +3420,23 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 通过复诊业务来源调用查询处方状态
+     *
      * @param bussSource
      * @param clinicId
      * @return
      */
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
-    public abstract List<Recipe> findRecipeStatusByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId);
+    public abstract List<Recipe> findRecipeStatusByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
 
     /**
-     *
      * @param bussSource
      * @param clinicId
      * @param Status
      * @return
      */
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status not in(9,13,14)")
-    public abstract List<Recipe> findRecipeStatusLoseByBussSourceAndClinicId(@DAOParam("bussSource")Integer bussSource,@DAOParam("clinicId") Integer clinicId,@DAOParam("status") Integer Status);
+    public abstract List<Recipe> findRecipeStatusLoseByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId, @DAOParam("status") Integer Status);
 
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
@@ -3751,15 +3767,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         sql.append("and e.chronicDiseaseName is null ");
                     }
                     sql.append("GROUP BY e.registerID,d.ClinicOrgan,e.chronicDiseaseName");
-                }else {
+                } else {
                     sql.append("GROUP BY e.registerID,d.ClinicOrgan");
                 }
                 Query q = ss.createSQLQuery(sql.toString());
-                q.setParameter("registerId",registerId);
-                q.setParameter("organId",organId);
+                q.setParameter("registerId", registerId);
+                q.setParameter("organId", organId);
                 q.setParameter("mpiId", mpiId);
-                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)){
-                    q.setParameter("chronicDiseaseName",chronicDiseaseName);
+                if ("e.registerId,e.chronicDiseaseName".equals(mergeRecipeWay) && StringUtils.isNotEmpty(chronicDiseaseName)) {
+                    q.setParameter("chronicDiseaseName", chronicDiseaseName);
                 }
                 if (q.uniqueResult() == null) {
                     setResult(0);
@@ -3775,14 +3791,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 复诊Id查询当前有效的处方单
+     *
      * @param clinicId
      * @return
      */
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,13,14,16)")
-    public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId")Integer clinicId);
+    public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId") Integer clinicId);
 
     /**
      * 处方数据  处方明细数据
+     *
      * @param organId
      * @param startDate
      * @param endDate
@@ -3799,7 +3817,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 //                Query query = ss.createQuery(hql.toString());
 //                setResult(query.list());
                 Query q = ss.createSQLQuery(hql.toString());
-                q.setParameter("organId",organId);
+                q.setParameter("organId", organId);
                 ((SQLQuery) q).addEntity(Recipe.class);
                 setResult(q.list());
             }

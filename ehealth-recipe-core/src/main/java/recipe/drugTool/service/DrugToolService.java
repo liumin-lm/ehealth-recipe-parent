@@ -23,6 +23,7 @@ import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.patient.utils.UrtUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
@@ -31,9 +32,11 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
+import ctd.mvc.controller.util.UserRoleTokenUtils;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -510,9 +513,24 @@ public class DrugToolService implements IDrugToolService {
                         boolean isSuccess = drugListMatchDAO.updateData(drug);
                         if (!isSuccess) {
                             //自动匹配功能暂无法提供
-                            drugListMatchDAO.save(drug);
+                            DrugListMatch save = drugListMatchDAO.save(drug);
+                            try {
+                                automaticDrugMatch(save,operator);
+                            } catch (Exception e) {
+                                LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
+                            }
                             addNum++;
                         } else {
+                            List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCodenew(drug.getOrganDrugCode(), drug.getSourceOrgan());
+                            if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0){
+                                for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
+                                    try {
+                                        automaticDrugMatch(drugListMatch,operator);
+                                    } catch (Exception e) {
+                                        LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
+                                    }
+                                }
+                            }
                             updateNum++;
                         }
                     } catch (Exception e) {
@@ -687,6 +705,18 @@ public class DrugToolService implements IDrugToolService {
         drugList.setLastModify(new Date());
         //来源机构
         drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+        if (drugListMatch.getSourceOrgan() != null){
+            DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+            DrugSources drugSources = dao.get(drugListMatch.getSourceOrgan());
+            if (drugSources == null){
+                OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+                OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
+                DrugSources saveData = new DrugSources();
+                saveData.setDrugSourcesId(byOrganId.getOrganId());
+                saveData.setDrugSourcesName(byOrganId.getName());
+                dao.save(saveData);
+            }
+        }
         Integer status = drugListMatch.getStatus();
         try {
             DrugList save = drugListDAO.save(drugList);
@@ -975,13 +1005,21 @@ public class DrugToolService implements IDrugToolService {
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
-                            organDrugListDAO.save(organDrugList);
+                            OrganDrugList save = organDrugListDAO.save(organDrugList);
+                            organDrugSync(save);
                             //同步药品到监管备案
                             RecipeBusiThreadPool.submit(() -> {
                                 organDrugListService.uploadDrugToRegulation(organDrugList);
                                 return null;
                             });
                             num = num + 1;
+                        }else {
+                            List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
+                            if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0){
+                                for (OrganDrugList drugList : byDrugIdAndOrganId) {
+                                    organDrugSync(drugList);
+                                }
+                            }
                         }
                     }
                 }
@@ -1102,7 +1140,8 @@ public class DrugToolService implements IDrugToolService {
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
-                            organDrugListDAO.save(organDrugList);
+                            OrganDrugList save = organDrugListDAO.save(organDrugList);
+                            organDrugSync(save);
                             saveMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
                             //同步药品到监管备案
                             RecipeBusiThreadPool.submit(() -> {
@@ -1111,6 +1150,12 @@ public class DrugToolService implements IDrugToolService {
                             });
                             num = num + 1;
                         }else {
+                            List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
+                            if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0){
+                                for (OrganDrugList drugList : byDrugIdAndOrganId) {
+                                    organDrugSync(drugList);
+                                }
+                            }
                             //更新
                             updateMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
                         }
@@ -1486,6 +1531,86 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /**
+     * 药品自动匹配
+     * @param drugListMatch
+     * @return
+     */
+    @RpcService
+    public Integer automaticDrugMatch(DrugListMatch drugListMatch,String operator) {
+        List<DrugList> drugLists = drugListDAO.findDrugMatchAutomatic(drugListMatch.getDrugName(), drugListMatch.getSaleName(), drugListMatch.getDrugSpec(),
+                drugListMatch.getUnit(), drugListMatch.getDrugForm(), drugListMatch.getProducer());
+        Integer status = 0;
+        if (drugListMatch.getStatus() != DrugMatchConstant.ALREADY_MATCH && drugListMatch.getStatus() != DrugMatchConstant.SUBMITED){
+            if (drugLists != null && drugLists.size() > 0){
+                UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
+                bean.setDrugId(drugListMatch.getDrugId());
+                bean.setMatchDrugId(drugLists.get(0).getDrugId());
+                bean.setHaveProvinceDrug(false);
+                bean.setOperator(operator);
+                bean.setMakeType(0);
+                status = updateMatchStatusCurrent(bean);
+            }else {
+                //如果是已匹配的取消匹配
+                if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
+                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
+                }
+                //updata by maoly on 2020/03/16 自动同步至平台药品库
+                DrugList drugList = new DrugList();
+                //药品名
+                drugList.setDrugName(drugListMatch.getDrugName());
+                //商品名
+                drugList.setSaleName(drugListMatch.getSaleName());
+                //一次剂量
+                drugList.setUseDose(drugListMatch.getUseDose());
+                //剂量单位
+                drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
+                //规格
+                drugList.setDrugSpec(drugListMatch.getDrugSpec());
+                //药品包装数量---默认1
+                drugList.setPack(drugListMatch.getPack()==null?1:drugListMatch.getPack());
+                //药品单位
+                drugList.setUnit(drugListMatch.getUnit());
+                //药品类型
+                drugList.setDrugType(drugListMatch.getDrugType());
+                //剂型
+                drugList.setDrugForm(drugListMatch.getDrugForm());
+                drugList.setPrice1(drugListMatch.getPrice().doubleValue());
+                drugList.setPrice2(drugListMatch.getPrice().doubleValue());
+                //厂家
+                drugList.setProducer(drugListMatch.getProducer());
+                //其他
+                drugList.setDrugClass("1901");
+                drugList.setAllPyCode("");
+                drugList.setStatus(1);
+                drugList.setCreateDt(new Date());
+                drugList.setLastModify(new Date());
+                //来源机构
+                drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+                if (drugListMatch.getSourceOrgan() != null){
+                    DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+                    DrugSources drugSources = dao.get(drugListMatch.getSourceOrgan());
+                    if (drugSources == null){
+                        OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+                        OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
+                        DrugSources saveData = new DrugSources();
+                        saveData.setDrugSourcesId(byOrganId.getOrganId());
+                        saveData.setDrugSourcesName(byOrganId.getName());
+                        dao.save(saveData);
+                    }
+                }
+                DrugList save = drugListDAO.save(drugList);
+                UpdateMatchStatusFormBean bean=new UpdateMatchStatusFormBean();
+                bean.setDrugId(drugListMatch.getDrugId());
+                bean.setMatchDrugId(save.getDrugId());
+                bean.setHaveProvinceDrug(false);
+                bean.setOperator(operator);
+                bean.setMakeType(0);
+                status = updateMatchStatusCurrent(bean);
+            }
+        }
+        return status;
+    }
+    /**
      * @param updateMatchStatusFormBean 属性值
      *                                  drugId 更新的药品id
      *                                  matchDrugId 匹配上的平台药品id
@@ -1606,6 +1731,69 @@ public class DrugToolService implements IDrugToolService {
 
         return status;
     }
+    /**
+     * 省药品匹配
+     */
+    @RpcService
+    public List<ProvinceDrugListBean> provinceDrugMatchNew(int drugId, int organId, int start, int limit, String seacrhString) {
+        OrganDrugList organDrugList = organDrugListDAO.get(drugId);
+        if (null == organDrugList) {
+            LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构列表中", drugId);
+            return null;
+        }
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsNew(organId, organDrugList, start, limit, seacrhString);
+        if (null == provinceDrugLists) {
+            //如果没有省平台药品数据则为null
+            return null;
+        }
+        List<ProvinceDrugListBean> provinceDrugListBeans = getProvinceDrugListBeanNew(organDrugList, provinceDrugLists);
+
+        return provinceDrugListBeans;
+
+    }
+
+    /*根据匹配的药品销售名，获取相似名称的省平台药品*/
+    private List<ProvinceDrugList> getProvinceDrugListsNew(int organId,  OrganDrugList organDrugList, int start, int limit, String seacrhString) {
+        List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
+        if (!checkOrganRegulation(organId)) return null;
+
+        //判断机构对应省平台下有没有药品，没有省平台返回null
+        String addrArea = checkOrganAddrArea(organId);
+        Long countByProvinceIdAndStatus = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
+        if (null == countByProvinceIdAndStatus || 0 >= countByProvinceIdAndStatus) {
+            return null;
+        }
+
+        //根据药品名取标准药品库查询相关药品
+        String likeDrugName = DrugMatchUtil.match(organDrugList.getDrugName());
+
+        List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
+        if (CollectionUtils.isNotEmpty(searchDrugs)) {
+            provinceDrugLists = searchDrugs;
+        }
+
+        return provinceDrugLists;
+    }
+
+
+    /*渲染页面上的勾选展示的项*/
+    private List<ProvinceDrugListBean> getProvinceDrugListBeanNew(OrganDrugList organDrugList, List<ProvinceDrugList> provinceDrugLists) {
+        List<ProvinceDrugListBean> provinceDrugListBeans = new ArrayList<>();
+        //已匹配状态返回匹配药品id
+        if (CollectionUtils.isNotEmpty(provinceDrugLists)) {
+            provinceDrugListBeans = ObjectCopyUtils.convert(provinceDrugLists, ProvinceDrugListBean.class);
+            for (ProvinceDrugListBean provinceDrugListBean : provinceDrugListBeans) {
+                //判断当前关联省平台药品code和关联code一致
+                if (null != provinceDrugListBean.getProvinceDrugCode() && provinceDrugListBean.getProvinceDrugCode().equals(organDrugList.getRegulationDrugCode())) {
+                    provinceDrugListBean.setMatched(true);
+                }
+            }
+        }
+
+        return provinceDrugListBeans;
+    }
+
+
 
     /**
      * 省药品匹配
@@ -2134,6 +2322,46 @@ public class DrugToolService implements IDrugToolService {
             }
         }
         return errorList;
+    }
+
+    /**
+     * 同步自健药企药品
+     * @param organDrugList
+     */
+    public void organDrugSync(OrganDrugList organDrugList){
+        List<OrganDrugList> lists= Lists.newArrayList();
+        lists.add(organDrugList);
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
+        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
+                try {
+                    saveOrUpdateOrganDrugDataToSaleDrugList(lists,organDrugList.getOrganId(),drugsEnterpris.getId(),true);
+                } catch (Exception e) {
+                    LOGGER.info("批量新增机构药品新增修改同步对应药企"+e);
+
+                }
+            }
+        }
+    }
+    /**
+     * 中间表药品搜索
+     * @param drugListMatchId
+     */
+    @RpcService
+    public DrugListMatch getDrugListMatch(Integer drugListMatchId){
+         return drugListMatchDAO.get(drugListMatchId);
+    }
+
+
+
+    @RpcService
+    public DrugSources saveDrugSources(Integer drugSourcesId,String drugSourcesName){
+        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+        DrugSources saveData = new DrugSources();
+        saveData.setDrugSourcesId(drugSourcesId);
+        saveData.setDrugSourcesName(drugSourcesName);
+        return dao.save(saveData);
     }
 
 }

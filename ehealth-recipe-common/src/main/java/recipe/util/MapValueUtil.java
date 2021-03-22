@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -257,6 +258,23 @@ public class MapValueUtil {
         char[] cs = str.toCharArray();
         cs[0] -= 32;
         return String.valueOf(cs);
+    }
+
+    /**
+     * 将string数组根据下标转成map
+     *
+     * @param strArray
+     * @return
+     */
+    public static Map<String, Integer> strArraytoMap(String[] strArray) {
+        if (strArray == null) {
+            return null;
+        }
+        Map<String, Integer> map = new HashMap<>(strArray.length);
+        for (int i = 0; i < strArray.length; i++) {
+            map.put(strArray[i], i);
+        }
+        return map;
     }
 
 }

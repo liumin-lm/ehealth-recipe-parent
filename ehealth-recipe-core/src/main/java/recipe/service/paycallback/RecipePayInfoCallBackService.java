@@ -139,8 +139,14 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String wnPayWay = StringUtils.defaultString(notifyMap.get("zffs"), "");
             //支付业务信息
             String bodyString = StringUtils.defaultString(notifyMap.get("body"), "");
-            Map<String, String> body = JSONUtils.parse(bodyString, Map.class);
 
+            // 医保结算内容
+            String ybbody = StringUtils.defaultString(notifyMap.get("ybbody"), "");
+            if(StringUtils.isNotEmpty(ybbody)){
+                attr.put("healthInsurancePayContent", ybbody);
+            }
+
+            Map<String, String> body = JSONUtils.parse(bodyString, Map.class);
             //获取平台的ysbody---卫宁付支付预算信息
             String ysbodyString = StringUtils.defaultString(notifyMap.get("ysbody"), "");
             Map<String, String> ysbody = JSONUtils.parse(ysbodyString, Map.class);

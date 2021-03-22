@@ -1,5 +1,7 @@
 package recipe.hisservice.syncdata;
 
+import com.ngari.base.employment.model.EmploymentBean;
+import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -17,6 +19,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
+import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -54,6 +57,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.hisservice.EleInvoiceService;
+import recipe.hisservice.QueryRecipeService;
 import recipe.service.RecipeExtendService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -512,7 +516,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setDispensingApothecaryName(dispensingApothecary.getName());
             }
             if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryIdCard())) {
-                req.setDispensingApothecaryIdCard(recipeOrder.getDispensingApothecaryName());
+                req.setDispensingApothecaryIdCard(recipeOrder.getDispensingApothecaryIdCard());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -1166,6 +1170,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             LOGGER.info("调用regulation接口，上传派药信息，req = {}", JSONUtils.toString(req));
             IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+            //监管平台进行数据上传
             HisResponseTO hisResponseTO = regulationService.uploadSendMedicine(Integer.valueOf(req.getOrganId()), req);
             LOGGER.info("调用regulation接口，上传派药信息，res = {}", JSONUtils.toString(hisResponseTO));
 
@@ -1322,6 +1327,23 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
             costDetailReq.setDetailId(item.getRecipeDetailId());
 
+            //用药频次
+            costDetailReq.setUsingRate(item.getOrganUsingRate());
+            //用药途径
+            costDetailReq.setUsePathways(item.getOrganUsePathways());
+            //用药剂量
+            costDetailReq.setUseDose(item.getUseDose());
+            //剂量单位1
+            costDetailReq.setDosageUnit(item.getDosageUnit());
+            //剂量单位2
+            costDetailReq.setUseDoseUnit(item.getUseDoseUnit());
+            //包装单位
+            costDetailReq.setPack(item.getDrugUnit());
+            //用药途径名
+            costDetailReq.setUsingRateTextFromHis(item.getUsingRateTextFromHis());
+            //给药途径名称
+            costDetailReq.setUsingRateText(item.getUsePathwaysTextFromHis());
+
             //医保编码
             OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> list = organDrugListDAO.findByDrugIdAndOrganId(item.getDrugId(), recipe.getClinicOrgan());
@@ -1331,7 +1353,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             items.add(costDetailReq);
         }
-
         return items;
     }
 
@@ -1349,19 +1370,24 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
         RegulationSendMedicineReq req = null;
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+
+        EmploymentService employmentService = AppContextHolder.getBean("basic.employmentService",EmploymentService.class);
+        //EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+
 
         if (ValidateUtil.nullOrZeroInteger(recipeId)) {
             LOGGER.warn("pakRegulationSendMedicineReq  recipeId is null.");
             return null;
         }
 
-
+        //处方单
         Recipe recipe = recipeDAO.get(recipeId);
         if (null == recipe) {
             LOGGER.warn("pakRegulationSendMedicineReq  recipe is null,recipeid={}", recipeId);
             return null;
         }
-
+        //生成了订单的处方
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)) {
 
@@ -1386,6 +1412,42 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setRecipeCode(recipe.getRecipeCode());
                 req.setRecipeType(recipe.getRecipeType());
                 req.setBussSource(recipe.getBussSource());
+
+
+                //门诊号
+                req.setPatientID(recipe.getPatientID());
+                //计费时间
+                req.setPayDate(order.getPayTime());
+
+                //患者Id
+                req.setMpiid(recipe.getMpiid());
+                //开方时间
+                req.setCreateDate(recipe.getCreateDate());
+
+                //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
+
+                //获取发药药师姓名  默认平台配置
+                if (order != null && StringUtils.isNotEmpty(order.getDispensingApothecaryName())) {
+                    req.setDispensingCheckerName(order.getDispensingApothecaryName());
+                } else if (doctorId != null) {
+                    //获取机构发药药师
+                    DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                    req.setDispensingCheckerName(dispensingApothecary.getName());
+                }
+
+                //获取发药药师工号
+               if (recipe.getChecker()!=null){
+                   EmploymentDTO employment=employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                   if(employment!=null){
+                       req.setDispensingCheckerId(employment.getJobNumber());
+                   }
+               }
+
+                //获取发药时间  订单表中进行获取
+                req.setDispensingTime(order.getDispensingTime());
+
 
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
@@ -1423,14 +1485,30 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
                 req.setOrderNo(order.getOutTradeNo());
 
+                //医保金额
+                req.setFundAmount(order.getFundAmount());
+                //自费金额
+                req.setCashAmount(order.getCashAmount());
 
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 if (recipeExtend != null) {
+                    //获取电子病历,优先从电子病历取
+                    EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                     //从his返回的挂号序号
                     req.setRegisterNo(recipeExtend.getRegisterID());
                     req.setRegisterId(recipeExtend.getRegisterID());
+                    //诊断编码
+                    req.setOrganDiseaseId(recipe.getOrganDiseaseId());
+                    //诊断名称
+                    req.setOrganDiseaseName(recipe.getOrganDiseaseName());
                     //从监管平台上传保存的序号
                     req.setSuperviseRecipecode(recipeExtend.getSuperviseRecipecode());
+                    //主诉
+                    req.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+                    //现病史
+                    req.setCurrentMedical(recipeExtend.getCurrentMedical());
+                    //既往史
+                    req.setHistroyMedical(recipeExtend.getHistroyMedical());
                 }
 
                 //开方医生信息
@@ -1444,9 +1522,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
 
         }
-
+        LOGGER.warn("pakRegulationSendMedicineReq  req={}",JSONUtils.toString(req));
         return req;
     }
-
-
 }

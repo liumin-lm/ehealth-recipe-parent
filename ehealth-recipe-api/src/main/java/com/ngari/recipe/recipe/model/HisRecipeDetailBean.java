@@ -42,6 +42,11 @@ public class HisRecipeDetailBean implements Serializable {
 
     private String pharmacyCode;
 
+    /**
+     * 前端展示的药品拼接名
+     */
+    private String drugDisplaySplicedName;
+
     public String getUseDaysB() {
         return useDaysB;
     }
@@ -184,5 +189,13 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setUsePathways(String usePathways) {
         this.usePathways = usePathways;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
     }
 }

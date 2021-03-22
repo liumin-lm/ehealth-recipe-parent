@@ -20,11 +20,18 @@ public class DrugPharmacyInventoryInfo implements Serializable {
     @ItemProperty(alias = "药品库存")
     private String amount;
 
+    @ItemProperty(alias = "类型 1 医院配送 2 药企配送 3 到院取药 4 药店取药 5 配送+药店取药")
+    private Integer type;
+
     public DrugPharmacyInventoryInfo() {
 
     }
     public DrugPharmacyInventoryInfo(String amount) {
         this.amount = amount;
+    }
+    public DrugPharmacyInventoryInfo(String amount, Integer type) {
+        this.amount = amount;
+        this.type = type;
     }
     public DrugPharmacyInventoryInfo(String pharmacyCode, String pharmacyName, String amount) {
         this.pharmacyCode = pharmacyCode;
@@ -54,5 +61,13 @@ public class DrugPharmacyInventoryInfo implements Serializable {
 
     public void setAmount(String amount) {
         this.amount = amount;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 }

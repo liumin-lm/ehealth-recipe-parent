@@ -10,8 +10,9 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
+import com.ngari.common.dto.DepartChargeReportResult;
+import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
@@ -19,6 +20,7 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -43,8 +45,6 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
-import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -55,7 +55,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.base.constant.ErrorCode;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -75,7 +74,6 @@ import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -89,6 +87,7 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -97,10 +96,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -1527,6 +1523,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeBeans;
     }
 
+    @RpcService
+    @Override
+    public Long findRecipeCountByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        LOGGER.info("findRecipeByFlag request=[{}]", JSONUtils.toString(organ) + "," + JSONUtils.toString(recipeIds) + "," + JSONUtils.toString(recipeTypes) + "," + flag + "," + limit);
+        Long recipeCount = recipeDAO.findRecipeCountByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
+        return recipeCount;
+    }
+
 
     @Override
     public void doAfterCheckNotPassYs(RecipeBean recipeBean) {
@@ -2303,8 +2307,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param  statusCode
      * @return
      */
+    @Override
     @RpcService
-    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode){
+    public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode){
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
         //查询处方记录
         List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
@@ -2348,5 +2353,45 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Date date = DateUtils.addYears(new Date(), -1);
         List<Recipe> toAuditPlatformRecipe = recipeDAO.findToAuditPlatformRecipe(date);
         return ObjectCopyUtils.convert(toAuditPlatformRecipe, RecipeBean.class);
+    }
+
+    /**
+     * 深圳二院财务  处方费用
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    @RpcService
+    @Override
+    public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime){
+        LOGGER.info("getRecipeFeeDetail organId,depart is ={},{}",organId,depart);
+        List<DepartChargeReportResult> voList = recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
+        LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
+        return voList;
+    }
+
+
+    @Override
+    public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
+        return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
+    }
+
+    /**
+     * 统计处方医疗费  自费+医保
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    @Override
+    @RpcService
+    public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
+        LOGGER.info("getRecipeFeeDetail organId is ={},{}",organId);
+        //统计机构的自费和医保的数据
+        List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
+        LOGGER.info("getRecipeFeeDetail.hoList.size ={}",hoList.size());
+        return hoList.get(0);
     }
 }
