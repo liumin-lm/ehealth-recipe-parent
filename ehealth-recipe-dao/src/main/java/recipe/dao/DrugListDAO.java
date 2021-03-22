@@ -378,10 +378,12 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!StringUtils.isEmpty(saleName)) {
                     hql.append("and d.drugName =:drugName and d.saleName =:saleName ");
                 }else {
-
-                }hql.append("and d.drugName =:drugName ");
-
-                hql.append("and d.drugSpec=:drugSpec  and d.unit=:unit and d.drugForm=:drugForm and d.producer=:producer ");
+                    hql.append("and d.drugName =:drugName ");
+                }
+                hql.append("and d.drugSpec=:drugSpec  and d.unit=:unit  and d.producer=:producer ");
+                if (!StringUtils.isEmpty(drugForm)) {
+                    hql.append(" and d.drugForm=:drugForm ");
+                }
                 Query q = ss.createQuery(hql.toString());
                 if (!StringUtils.isEmpty(saleName)) {
                     q.setParameter("saleName", saleName );
@@ -389,7 +391,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 q.setParameter("drugName", drugName );
                 q.setParameter("drugSpec", drugSpec);
                 q.setParameter("unit", unit);
-                q.setParameter("drugForm", drugForm);
+                if (!StringUtils.isEmpty(drugForm)) {
+                    q.setParameter("drugForm", drugForm);
+                }
                 q.setParameter("producer", producer);
                 List<DrugList> drugListList = q.list();
                 setResult(drugListList);

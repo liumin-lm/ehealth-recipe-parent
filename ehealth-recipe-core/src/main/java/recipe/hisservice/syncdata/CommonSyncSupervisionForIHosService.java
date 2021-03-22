@@ -1,7 +1,6 @@
 package recipe.hisservice.syncdata;
 
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.opbase.base.mode.MinkeOrganDTO;
 import com.ngari.opbase.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -33,7 +32,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
@@ -49,6 +47,7 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author： 0184/yu_yun
@@ -70,6 +69,9 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 处方核销接口
@@ -228,9 +230,6 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         PatientService patientService = BasicAPI.getService(PatientService.class);
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-
-//        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
         List<RecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
@@ -259,6 +258,12 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         AuditMedicinesBean medicine;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
+        Map<String, RecipeOrder> recipeOrderMap = new HashMap<>();
+        List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(orderCodeList)) {
+            List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
+            recipeOrderMap = recipeOrderList.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
+        }
         for (Recipe recipe : recipeList) {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
@@ -406,6 +411,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             req.setUpdateTime(now);
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
+
             req.setVerificationStatus(getVerificationStatus(recipe));
             //处方pdfId
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
@@ -420,6 +426,13 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             if (CollectionUtils.isEmpty(detailList)) {
                 LOGGER.warn("uploadRecipeIndicators detail is null. recipe.id={}", recipe.getRecipeId());
                 continue;
+            }
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
+                if (null != recipeOrder) {
+                    req.setOutTradeNo(recipeOrder.getOutTradeNo());
+                    req.setPayTime(recipeOrder.getPayTime());
+                }
             }
             setDetail(req, detailList, usingRateDic, usePathwaysDic);
 
