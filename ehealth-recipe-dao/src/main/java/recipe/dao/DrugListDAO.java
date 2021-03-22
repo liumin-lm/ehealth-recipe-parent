@@ -586,9 +586,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     hql.append(" and sourceOrgan =:sourceOrgan ");
-                }else {
-                    hql.append(" and sourceOrgan is NULL ");
                 }
+
                 hql.append(" order by createDt desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
