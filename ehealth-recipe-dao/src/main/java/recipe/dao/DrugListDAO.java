@@ -352,9 +352,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         if (StringUtils.isEmpty(unit)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "unit不能为空!");
         }
-        if (StringUtils.isEmpty(drugForm)) {
+       /* if (StringUtils.isEmpty(drugForm)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugForm不能为空!");
-        }
+        }*/
         if (StringUtils.isEmpty(producer)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "producer不能为空!");
         }
