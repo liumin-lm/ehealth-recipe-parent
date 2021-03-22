@@ -1,7 +1,5 @@
 package recipe.hisservice.syncdata;
 
-import com.ngari.base.employment.model.EmploymentBean;
-import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -19,7 +17,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
-import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -30,7 +27,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -57,7 +53,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.hisservice.EleInvoiceService;
-import recipe.hisservice.QueryRecipeService;
 import recipe.service.RecipeExtendService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -66,6 +61,8 @@ import recipe.util.RedisClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2019/6/3
@@ -471,6 +468,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setFinishTime(recipeOrder.getFinishTime());
                 //配送状态
                 req.setDeliveryStatus(recipeOrder.getStatus());
+                //商户订单号
+                req.setOutTradeNo(recipeOrder.getOutTradeNo());
+                //支付时间
+                req.setPayTime(recipeOrder.getPayTime());
             }
 
             //卡号，卡类型
