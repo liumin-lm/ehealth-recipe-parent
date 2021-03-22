@@ -1046,6 +1046,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return filterInventoriesData(req.getOrganId(), drugListBeans);
     }
 
+    /**
+     * 数据过滤
+     * @param organId       机构ID
+     * @param drugListBeans  药品数据
+     * @return
+     */
     private List<DrugListBean> filterInventoriesData(Integer organId, List<DrugListBean> drugListBeans){
         LOGGER.info("filterInventoriesData drugListBeans:{}", JSONUtils.toString(drugListBeans));
         Iterator iterator = drugListBeans.iterator();
