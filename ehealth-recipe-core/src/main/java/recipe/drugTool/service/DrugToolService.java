@@ -578,21 +578,13 @@ public class DrugToolService implements IDrugToolService {
             if (checkOrganRegulation(drug.getSourceOrgan()) && isHaveReulationId(drug.getSourceOrgan())) {
                 addrArea = checkOrganAddrArea(drug.getSourceOrgan());
                 provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
-                if (drugList != null && provinceDrugList != null) {
+                if (drugList != null) {
                     // 以匹配
                     drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
                     drug.setMatchDrugId(drugList.getDrugId());
-                } else if (drugList == null && provinceDrugList == null) {
+                } else {
                     //未匹配
                     drug.setStatus(DrugMatchConstant.UNMATCH);
-                    drug.setPlatformDrugId(null);
-                } else if (drugList != null && provinceDrugList == null) {
-                    //匹配中
-                    drug.setStatus(DrugMatchConstant.MATCHING);
-                    drug.setRegulationDrugCode(null);
-                } else if (drugList == null && provinceDrugList != null) {
-                    // 匹配中
-                    drug.setStatus(DrugMatchConstant.MATCHING);
                     drug.setPlatformDrugId(null);
                 }
             } else {
@@ -1551,9 +1543,7 @@ public class DrugToolService implements IDrugToolService {
                 status = updateMatchStatusCurrent(bean);
             }else {
                 //如果是已匹配的取消匹配
-                if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
-                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
-                }
+                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
                 //updata by maoly on 2020/03/16 自动同步至平台药品库
                 DrugList drugList = new DrugList();
                 //药品名

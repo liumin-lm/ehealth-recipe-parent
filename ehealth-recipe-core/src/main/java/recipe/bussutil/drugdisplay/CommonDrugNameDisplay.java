@@ -21,11 +21,12 @@ public class CommonDrugNameDisplay implements IDrugNameDisplay {
         List<String> sortList = Lists.newArrayList();
         //机构药品名称、机构商品名称在页面显示的前后顺序根据运营平台配置项顺序显示；
         this.sortDrugNameAndSaleName(sortList, keyMap);
-        sortList.add(StringUtils.SPACE);
         //剂型、药品规格、单位顺序固定显示并且在机构药品名称、机构商品名称后显示
+        //【"机构药品名称”、“机构商品名称”、“剂型”】与【“药品规格”、“单位”】中间要加空格
         if (keyMap.containsKey(DRUG_FORM)) {
             sortList.add(DRUG_FORM);
         }
+        sortList.add(StringUtils.SPACE);
         if (keyMap.containsKey(DRUG_SPEC)) {
             sortList.add(DRUG_SPEC);
         }

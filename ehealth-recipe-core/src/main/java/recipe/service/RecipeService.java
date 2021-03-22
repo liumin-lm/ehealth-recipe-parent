@@ -4549,6 +4549,7 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
             organDrug.setStatus(drug.getStatus());
         }
+        organDrug.setLastModify(new Date());
         OrganDrugList update = organDrugListDAO.update(organDrug);
         try {
             drugToolService.organDrugSync(update);
