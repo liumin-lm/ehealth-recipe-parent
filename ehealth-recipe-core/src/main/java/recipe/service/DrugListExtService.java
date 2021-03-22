@@ -1096,10 +1096,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             //说明运营平台没有配置药店取药和配送到家
                             drugPharmacyIterator.remove();
                         }
-                        if (6 == drugPharmacyInventoryInfo.getType() && getOrganGiveMode(organId, SUPPORT_TFDS) && getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES) && getOrganGiveMode(organId, SUPPORT_SEND_TO_HOS)) {
-                            //说明运营平台没有配置药店取药和配送到家和医院配送
-                            drugPharmacyIterator.remove();
-                        }
                     }
                 }
             }
@@ -1334,10 +1330,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 pharmacyInventory.setType(2);
             } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
                 pharmacyInventory.setType(4);
-            } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
+            } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(drugsEnterprise.getPayModeSupport())
+                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(drugsEnterprise.getPayModeSupport())){
                 pharmacyInventory.setType(5);
-            } else if (RecipeBussConstant.DEP_SUPPORT_ALL.equals(drugsEnterprise.getPayModeSupport())) {
-                pharmacyInventory.setType(6);
             }
         }
     }
