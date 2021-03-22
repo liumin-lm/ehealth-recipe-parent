@@ -1068,12 +1068,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     DrugInventoryInfo drugInventoryInfo = (DrugInventoryInfo)drugIterator.next();
                     LOGGER.info("filterInventoriesData drugInventoryInfo:{}", JSONUtils.toString(drugInventoryInfo));
                     List<DrugPharmacyInventoryInfo> drugPharmacyInventoryInfos = drugInventoryInfo.getPharmacyInventories();
+                    LOGGER.info("filterInventoriesData drugPharmacyInventoryInfos:{}", JSONUtils.toString(drugPharmacyInventoryInfos));
                     if (CollectionUtils.isEmpty(drugPharmacyInventoryInfos)) {
                         continue;
                     }
                     Iterator drugPharmacyIterator = drugPharmacyInventoryInfos.iterator();
                     while (drugPharmacyIterator.hasNext()) {
                         DrugPharmacyInventoryInfo drugPharmacyInventoryInfo = (DrugPharmacyInventoryInfo)drugPharmacyIterator.next();
+                        LOGGER.info("filterInventoriesData drugPharmacyInventoryInfo:{}", JSONUtils.toString(drugPharmacyInventoryInfo));
                         if (getOrganGiveMode(organId, SUPPORT_TO_HOS) && "3".equals(drugPharmacyInventoryInfo.getType())) {
                             //说明运营平台没有配置到院取药
                             drugPharmacyIterator.remove();
