@@ -112,7 +112,31 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     //发药药师身份证号
     private String dispensingApothecaryIdCard;
 
+    /**
+     * 商户订单号
+     */
+    private String outTradeNo;
 
+    /**
+     * 支付时间
+     */
+    private Date payTime;
+
+    public String getOutTradeNo() {
+        return outTradeNo;
+    }
+
+    public void setOutTradeNo(String outTradeNo) {
+        this.outTradeNo = outTradeNo;
+    }
+
+    public Date getPayTime() {
+        return payTime;
+    }
+
+    public void setPayTime(Date payTime) {
+        this.payTime = payTime;
+    }
 
     public String getUnitID() {
         return unitID;
