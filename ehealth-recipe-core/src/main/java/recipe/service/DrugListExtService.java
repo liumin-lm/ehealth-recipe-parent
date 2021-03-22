@@ -1115,6 +1115,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
         Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        LOGGER.info("getOrganGiveMode configurations:{}.", JSONUtils.toString(configurations));
+        LOGGER.info("getOrganGiveMode flag:{}.", !configurations.containsKey(giveModeText));
         return !configurations.containsKey(giveModeText);
     }
 
