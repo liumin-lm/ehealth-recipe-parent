@@ -602,7 +602,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     countQuery.setParameter("status", status);
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
-                    countQuery.setParameter("sourceOrgan", sourceOrgan);
+                    if (sourceOrgan != 0){
+                        countQuery.setParameter("sourceOrgan", sourceOrgan);
+                    }
                 }
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
@@ -623,7 +625,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     query.setParameter("drugId", drugId);
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
-                    query.setParameter("sourceOrgan", sourceOrgan);
+                    if (sourceOrgan != 0){
+                        query.setParameter("sourceOrgan", sourceOrgan);
+                    }
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
