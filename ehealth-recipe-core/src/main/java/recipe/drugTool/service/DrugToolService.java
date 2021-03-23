@@ -493,7 +493,7 @@ public class DrugToolService implements IDrugToolService {
                 if (!ObjectUtils.isEmpty(organId)){
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
-                    if (byDrugSourcesId == null ){
+                    if (byDrugSourcesId == null || byDrugSourcesId.size() <= 0 ){
                         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                         OrganDTO byOrganId = bean.getByOrganId(organId);
                         DrugSources saveData = new DrugSources();
@@ -1603,7 +1603,7 @@ public class DrugToolService implements IDrugToolService {
                 if (drugListMatch.getSourceOrgan() != null){
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(drugListMatch.getSourceOrgan());
-                    if (byDrugSourcesId == null ){
+                    if (byDrugSourcesId == null || byDrugSourcesId.size() <= 0 ){
                         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                         OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
                         DrugSources saveData = new DrugSources();
