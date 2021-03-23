@@ -616,6 +616,14 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> doctorCheckRefundRecipe(Integer busId, Boolean checkResult, String doctorNoPassReason){
         Map<String, Object> result = Maps.newHashMap();
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(busId, RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_DOCTOR);
+        if (CollectionUtils.isNotEmpty(recipeRefunds)) {
+            LOGGER.info("doctorCheckRefundRecipe 该处方单已被医生审核,busId:{}.", busId);
+            result.put("result", false);
+            result.put("code", -1);
+            return result;
+        }
         try {
             checkForRecipeRefund(busId,checkResult ? "1" : "2",doctorNoPassReason);
         } catch (Exception e) {
