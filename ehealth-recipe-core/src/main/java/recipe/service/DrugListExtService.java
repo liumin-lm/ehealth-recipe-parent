@@ -1093,6 +1093,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             //说明运营平台没有配置药店取药和配送到家
                             drugPharmacyIterator.remove();
                         }
+
                         //处理没有被移除的药企是否有库存
                         if (!"无库存".equals(drugPharmacyInventoryInfo.getAmount()) || !"0".equals(drugPharmacyInventoryInfo.getAmount())
                                 || !"暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount())) {
