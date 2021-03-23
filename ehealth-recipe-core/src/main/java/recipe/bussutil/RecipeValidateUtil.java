@@ -26,11 +26,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -221,6 +224,12 @@ public class RecipeValidateUtil {
 
         IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
         IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        //暂存也会走这里但是 暂存要用药品名实时配置
+        Map<String, Integer> configDrugNameMap = null;
+        if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
+            //药品名拼接配置
+            configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
+        }
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (RecipeDetailBean recipeDetail : detailBeans) {
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
@@ -238,12 +247,17 @@ public class RecipeValidateUtil {
                 recipeDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
 
                 try {
-                    //药品名历史数据处理
-                    if (StringUtils.isEmpty(recipeDetail.getDrugDisplaySplicedName())) {
-                        recipeDetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrug), ObjectCopyUtils.convert(recipeDetail, Recipedetail.class), recipe.getRecipeType()));
-                    }
-                    if (StringUtils.isEmpty(recipeDetail.getDrugDisplaySplicedSaleName())) {
-                        recipeDetail.setDrugDisplaySplicedSaleName(DrugNameDisplayUtil.dealwithRecipedetailSaleName(Arrays.asList(organDrug), ObjectCopyUtils.convert(recipeDetail, Recipedetail.class), recipe.getRecipeType()));
+                    //暂存也会走这里但是 暂存要用药品名实时配置
+                    if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
+                        recipeDetail.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetail, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+                    } else {
+                        //药品名历史数据处理
+                        if (StringUtils.isEmpty(recipeDetail.getDrugDisplaySplicedName())) {
+                            recipeDetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(Arrays.asList(organDrug), ObjectCopyUtils.convert(recipeDetail, Recipedetail.class), recipe.getRecipeType()));
+                        }
+                        if (StringUtils.isEmpty(recipeDetail.getDrugDisplaySplicedSaleName())) {
+                            recipeDetail.setDrugDisplaySplicedSaleName(DrugNameDisplayUtil.dealwithRecipedetailSaleName(Arrays.asList(organDrug), ObjectCopyUtils.convert(recipeDetail, Recipedetail.class), recipe.getRecipeType()));
+                        }
                     }
                 } catch (Exception e) {
                     LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 设置药品拼接名error, recipeId:{},{}.", recipeId, e.getMessage(), e);
