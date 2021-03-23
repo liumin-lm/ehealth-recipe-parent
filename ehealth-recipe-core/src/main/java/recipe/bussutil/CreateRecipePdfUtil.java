@@ -203,7 +203,7 @@ public class CreateRecipePdfUtil {
         CoOrdinateVO coords = new CoOrdinateVO();
         coords.setValue("药品金额 ：" + total + "元");
         coords.setX(285);
-        coords.setY(81);
+        coords.setY(80);
         coords.setRepeatWrite(true);
         return generateCoOrdinatePdf(pdfId, coords);
     }
