@@ -902,6 +902,15 @@ public class DrugToolService implements IDrugToolService {
                     }
                 }
             }
+        }else {
+            drugListBeans = drugMatchSearch(drugId,drugListMatch.getSourceOrgan(),drugListMatch.getDrugName(),drugListMatch.getProducer());
+            if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
+                for (DrugListBean drugListBean : drugListBeans) {
+                    if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
+                        drugListBean.setIsMatched(true);
+                    }
+                }
+            }
         }
         return drugListBeans;
 
