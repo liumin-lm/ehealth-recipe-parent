@@ -646,6 +646,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                             List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(list.getSourceOrgan());
                             if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
                                 list.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
+                            }else {
+                                list.setSourceOrganText("平台通用");
                             }
                         }else {
                             list.setSourceOrganText("平台通用");
