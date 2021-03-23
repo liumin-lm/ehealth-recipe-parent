@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
@@ -1675,7 +1676,14 @@ public class RecipeListService extends RecipeBaseService {
                 //设置处方具体药品名称---取第一个药展示
                 List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 if (null != recipedetails && recipedetails.size() > 0) {
-                    recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
+                    //未签名显示实时
+                    if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
+                        //药品名拼接配置
+                        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
+                        recipe.setRecipeDrugName(DrugDisplayNameProducer.getDrugName(ObjectCopyUtils.convert(recipedetails.get(0), RecipeDetailBean.class), configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+                    } else {
+                        recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
+                    }
                 }
 
                 //前台页面展示的时间源不同
