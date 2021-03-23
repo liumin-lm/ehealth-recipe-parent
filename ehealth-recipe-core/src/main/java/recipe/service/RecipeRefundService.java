@@ -9,6 +9,7 @@ import com.ngari.his.visit.mode.FindRefundRecordReqTO;
 import com.ngari.his.visit.mode.FindRefundRecordResponseTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.DoctorDTO;
@@ -364,7 +365,8 @@ public class RecipeRefundService extends RecipeBaseService{
             LOGGER.error("checkForRecipeRefund-处方退费审核失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             throw new DAOException("处方退费审核失败！" + hisResult.getMsg());
         }
-
+        //增加医生首页待处理任务---完成任务
+        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
     }
 
 
