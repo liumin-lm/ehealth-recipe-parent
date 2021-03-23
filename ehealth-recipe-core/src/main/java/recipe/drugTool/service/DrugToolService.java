@@ -493,7 +493,7 @@ public class DrugToolService implements IDrugToolService {
                 if (!ObjectUtils.isEmpty(organId)){
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
-                    if (byDrugSourcesId == null || byDrugSourcesId.size() <= 0 ){
+                    if (ObjectUtils.isEmpty(byDrugSourcesId) ){
                         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                         OrganDTO byOrganId = bean.getByOrganId(organId);
                         DrugSources saveData = new DrugSources();
@@ -1603,7 +1603,7 @@ public class DrugToolService implements IDrugToolService {
                 if (drugListMatch.getSourceOrgan() != null){
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(drugListMatch.getSourceOrgan());
-                    if (byDrugSourcesId == null || byDrugSourcesId.size() <= 0 ){
+                    if (ObjectUtils.isEmpty(byDrugSourcesId) ){
                         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
                         OrganDTO byOrganId = bean.getByOrganId(drugListMatch.getSourceOrgan());
                         DrugSources saveData = new DrugSources();
@@ -1612,7 +1612,12 @@ public class DrugToolService implements IDrugToolService {
                         DrugSources save = dao.save(saveData);
                         drugList.setSourceOrgan(save.getDrugSourcesId());
                     }else {
-                        drugList.setSourceOrgan(byDrugSourcesId.get(0).getDrugSourcesId());
+                        DrugSources drugSources = byDrugSourcesId.get(0);
+                        if (drugSources == null){
+                            drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+                        }else {
+                            drugList.setSourceOrgan(drugSources.getDrugSourcesId());
+                        }
                     }
                 }
                 DrugList save = drugListDAO.save(drugList);
