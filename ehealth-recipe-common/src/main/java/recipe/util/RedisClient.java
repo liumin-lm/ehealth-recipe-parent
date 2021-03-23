@@ -15,6 +15,7 @@ import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Protocol;
 import redis.clients.util.SafeEncoder;
+import org.springframework.util.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;

@@ -1088,6 +1088,10 @@ public class HisRecipeService {
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
+        //设置煎法
+        if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
+            recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
+        }
         try {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
             RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
@@ -1684,8 +1688,13 @@ public class HisRecipeService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
+                recipeBean.setOrganDiseaseName(diseaseName);
+                recipeBean.setOrganDiseaseId(disease);
                 emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                recipe.setOrganDiseaseId(disease);
+                recipe.setOrganDiseaseName(diseaseName);
+                recipeDAO.update(recipe);
             }
         });
         return hisRecipeMap;

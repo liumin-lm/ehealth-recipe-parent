@@ -596,6 +596,21 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit);
 
+
+    /**
+     * 根据审核状态查询处方列表
+     *
+     * @param organ 机构集合
+     * @param recipeIds 处方集合
+     * @param recipeTypes 处方类型集合
+     * @param flag  审核标记
+     * @param start 当前页
+     * @param limit 页数
+     * @return
+     */
+    @RpcService
+    Long findRecipeCountByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit);
+
     /**
      * 审核不通过后处理
      */
@@ -811,6 +826,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode);
+
+    @RpcService
+    List<RecipeBean> findToAuditPlatformRecipe();
 
     /**
      * ca组装参数 供casign调用

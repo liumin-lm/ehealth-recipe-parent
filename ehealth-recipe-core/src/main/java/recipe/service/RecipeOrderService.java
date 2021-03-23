@@ -2539,7 +2539,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, nowRecipe);
                 }
             }
-        } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())
+        } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())
                 && !nowRecipe.getReviewType().equals(ReviewTypeConstant.Postposition_Check)
         ) {
             // 支付成功 到院取药 推送消息 审方前置

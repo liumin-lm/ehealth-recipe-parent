@@ -1516,10 +1516,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        LOGGER.info("findRecipeByFlag request=[{}]", JSONUtils.toString(organ) + "," + JSONUtils.toString(recipeIds) + "," + JSONUtils.toString(recipeTypes) + "," + flag + "," + limit);
         List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
+    }
+
+    @RpcService
+    @Override
+    public Long findRecipeCountByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        LOGGER.info("findRecipeByFlag request=[{}]", JSONUtils.toString(organ) + "," + JSONUtils.toString(recipeIds) + "," + JSONUtils.toString(recipeTypes) + "," + flag + "," + limit);
+        Long recipeCount = recipeDAO.findRecipeCountByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
+        return recipeCount;
     }
 
 
@@ -2338,6 +2347,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return false;
     }
 
+    @RpcService
+    @Override
+    public List<RecipeBean> findToAuditPlatformRecipe() {
+        Date date = DateUtils.addYears(new Date(), -1);
+        List<Recipe> toAuditPlatformRecipe = recipeDAO.findToAuditPlatformRecipe(date);
+        return ObjectCopyUtils.convert(toAuditPlatformRecipe, RecipeBean.class);
+    }
+
     /**
      * 深圳二院财务  处方费用
      * @param organId
@@ -2348,7 +2365,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime){
-        LOGGER.info("getRecipeFeeDetail organId,depart is ={},{}",organId,depart);
+        LOGGER.info("getRecipeFeeDetail organId={},depart={},createTime={},endTime ={}",organId,depart,createTime,endTime);
         List<DepartChargeReportResult> voList = recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
         return voList;
@@ -2371,10 +2388,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @RpcService
     public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
-        LOGGER.info("getRecipeFeeDetail organId is ={},{}",organId);
+        LOGGER.info("getRecipeMedAndCash organId ={},createTime={},endTime={}",organId,createTime,endTime);
         //统计机构的自费和医保的数据
         List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
-        LOGGER.info("getRecipeFeeDetail.hoList.size ={}",hoList.size());
+        LOGGER.info("getRecipeMedAndCash.hoList ={}",JSONUtils.toString(hoList));
         return hoList.get(0);
     }
 }
