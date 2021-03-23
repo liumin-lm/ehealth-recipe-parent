@@ -3,6 +3,10 @@ package recipe.sign;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.ca.api.service.ICaRemoteService;
+import com.ngari.ca.api.vo.CaSignResultBean;
+import com.ngari.ca.api.vo.CommonSignRequest;
+import com.ngari.ca.api.vo.SealRequestBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaAccountResponseTO;
@@ -19,6 +23,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.sign.ISignInfoService;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -254,18 +259,40 @@ public class SignInfoService implements ISignInfoService {
      */
     @RpcService
     public String getSignStatus(String signId, Integer organId) {
-        CaSignRequestTO request = new CaSignRequestTO();
-        request.setOrganId(organId);
-        request.setSignId(signId);
-        logger.info("getSignStatus request info=[{}]", JSONUtils.toString(request));
-        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService", ICaHisService.class);
-        HisResponseTO<CaSignResponseTO> response = iCaHisService.caSignBusiness(request);
-        logger.info("getSignStatus respose info=[{}]", JSONUtils.toString(response));
-        if (null != response && "200".equals(response.getMsgCode())) {
-            return response.getData().getSignStatus();
+        IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        String thirdCASign = (String) configurationService.getConfiguration(organId, "thirdCASign");
+        if("bjNingxiaCA".equals(thirdCASign)){
+            ICaRemoteService caRemoteService = AppDomainContext.getBean("mi.caRemoteService", ICaRemoteService.class);
+            CommonSignRequest commonSignRequest = new CommonSignRequest();
+            SealRequestBean sealRequestBean= new SealRequestBean();
+            sealRequestBean.setSignId(signId);
+            commonSignRequest.setOrganId(organId);
+            commonSignRequest.setSealRequestBean(sealRequestBean);
+            CaSignResultBean caSignResultBean = caRemoteService.commonCaSignAndSeal(commonSignRequest);
+            if (caSignResultBean != null && StringUtils.isNotBlank(caSignResultBean.getSignCode())){
+                return "USER_SIGN_FINISH";
+            }else {
+                return "WAITING_USER_SIGN";
+            }
+        }else {
+
+
+            CaSignRequestTO request = new CaSignRequestTO();
+            request.setOrganId(organId);
+            request.setSignId(signId);
+            logger.info("getSignStatus request info=[{}]", JSONUtils.toString(request));
+            ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService", ICaHisService.class);
+            HisResponseTO<CaSignResponseTO> response = iCaHisService.caSignBusiness(request);
+            logger.info("getSignStatus respose info=[{}]", JSONUtils.toString(response));
+            if (null != response && "200".equals(response.getMsgCode())) {
+                return response.getData().getSignStatus();
+            }
+            else {
+                throw new DAOException(609,response.getMsg());
+            }
         }
-        else {
-            throw new DAOException(609,response.getMsg());
-        }
+
+
+
     }
 }

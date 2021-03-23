@@ -1297,7 +1297,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
                         }
                         //过滤掉暂不支持库存查询的药企
-                        if (inventory.length()>5){
+                        if ("暂不支持库存查询".equals(inventory)){
                             continue;
                         }
                         pharmacyInventory = new DrugPharmacyInventoryInfo();
