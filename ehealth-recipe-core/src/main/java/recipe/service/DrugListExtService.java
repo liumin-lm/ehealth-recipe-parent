@@ -1071,32 +1071,37 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     }
                     Iterator drugPharmacyIterator = drugPharmacyInventoryInfos.iterator();
                     while (drugPharmacyIterator.hasNext()) {
+                        int acc = 0;
                         DrugPharmacyInventoryInfo drugPharmacyInventoryInfo = (DrugPharmacyInventoryInfo)drugPharmacyIterator.next();
                         LOGGER.info("filterInventoriesData drugPharmacyInventoryInfo:{}", JSONUtils.toString(drugPharmacyInventoryInfo));
                         if (getOrganGiveMode(organId, SUPPORT_TO_HOS) && 3 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置到院取药
                             drugPharmacyIterator.remove();
+                            acc++;
                         }
                         if (getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES) && 2 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置药企配送
                             drugPharmacyIterator.remove();
+                            acc++;
                         }
                         if (getOrganGiveMode(organId, SUPPORT_SEND_TO_HOS) && 1 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置医院配送
                             drugPharmacyIterator.remove();
+                            acc++;
                         }
                         if (getOrganGiveMode(organId, SUPPORT_TFDS) && 4 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置药店取药
                             drugPharmacyIterator.remove();
+                            acc++;
                         }
                         if (5 == drugPharmacyInventoryInfo.getType() && getOrganGiveMode(organId, SUPPORT_TFDS) && getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES)) {
                             //说明运营平台没有配置药店取药和配送到家
                             drugPharmacyIterator.remove();
+                            acc++;
                         }
-
                         //处理没有被移除的药企是否有库存
-                        if (!"无库存".equals(drugPharmacyInventoryInfo.getAmount()) || !"0".equals(drugPharmacyInventoryInfo.getAmount())
-                                || !"暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount())) {
+                        if ((acc == 0) && (!"无库存".equals(drugPharmacyInventoryInfo.getAmount()) || !"0".equals(drugPharmacyInventoryInfo.getAmount())
+                                || !"暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount()))) {
                             LOGGER.info("filterInventoriesDate 有库存的药企:{}.", JSONUtils.toString(drugPharmacyInventoryInfo));
                             //不是这三种情况我们认为药企是有库存的
                             inventoryFlag = true;
