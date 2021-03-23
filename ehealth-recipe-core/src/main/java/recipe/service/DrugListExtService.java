@@ -1099,6 +1099,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             drugPharmacyIterator.remove();
                             acc++;
                         }
+                        if (0 == drugPharmacyInventoryInfo.getType()) {
+                            //表示该药企全不支持
+                            drugPharmacyIterator.remove();
+                            acc++;
+                        }
                         //处理没有被移除的药企是否有库存
                         if ((acc == 0) && (!"无库存".equals(drugPharmacyInventoryInfo.getAmount()) || !"0".equals(drugPharmacyInventoryInfo.getAmount())
                                 || !"暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount()))) {
@@ -1343,6 +1348,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(drugsEnterprise.getPayModeSupport())
                     || RecipeBussConstant.DEP_SUPPORT_ALL.equals(drugsEnterprise.getPayModeSupport())){
                 pharmacyInventory.setType(5);
+            } else if (RecipeBussConstant.DEP_SUPPORT_UNKNOW.equals(drugsEnterprise.getPayModeSupport())) {
+                pharmacyInventory.setType(0);
             }
         }
     }

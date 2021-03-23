@@ -490,7 +490,21 @@ public class DrugToolService implements IDrugToolService {
                 drug.setMedicalDrugCode(getStrFromCell(row.getCell(21)));
                 drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(22)));
                 drug.setHisFormCode(getStrFromCell(row.getCell(23)));
-                drug.setSourceOrgan(organId);
+                if (!ObjectUtils.isEmpty(organId)){
+                    DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+                    List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
+                    if (byDrugSourcesId == null ){
+                        OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+                        OrganDTO byOrganId = bean.getByOrganId(organId);
+                        DrugSources saveData = new DrugSources();
+                        saveData.setDrugSourcesId(byOrganId.getOrganId());
+                        saveData.setDrugSourcesName(byOrganId.getName());
+                        DrugSources save = dao.save(saveData);
+                        drug.setSourceOrgan(save.getDrugSourcesId());
+                    }else {
+                        drug.setSourceOrgan(organId);
+                    }
+                }
                 drug.setStatus(DrugMatchConstant.UNMATCH);
                 drug.setOperator(operator);
                 drug.setRegulationDrugCode(getStrFromCell(row.getCell(25)));
