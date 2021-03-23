@@ -46,6 +46,9 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
 
     public void saveRecipeExtend(RecipeExtend recipeExtend) {
         LOGGER.info("处方扩展表保存：" + JSONUtils.toString(recipeExtend));
+        if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+            recipeExtend.setCanUrgentAuditRecipe(0);
+        }
         super.save(recipeExtend);
     }
 
@@ -74,6 +77,9 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     public void saveOrUpdateRecipeExtend(RecipeExtend recipeExtend) {
         if(null == recipeExtend.getRecipeId()){
             return;
+        }
+        if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+            recipeExtend.setCanUrgentAuditRecipe(0);
         }
         if (ObjectUtils.isEmpty(getByRecipeId(recipeExtend.getRecipeId()))) {
             save(recipeExtend);
@@ -151,7 +157,7 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      *
      * @param recipeIds
      */
-    @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)")
+    @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)",limit = 20)
     public abstract List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
 

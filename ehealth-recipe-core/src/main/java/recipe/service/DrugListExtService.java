@@ -1060,9 +1060,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugListBean drugListBean = (DrugListBean)iterator.next();
             if (drugListBean != null) {
                 List<DrugInventoryInfo> drugInventoryInfos = drugListBean.getInventories();
-                if (CollectionUtils.isNotEmpty(drugInventoryInfos)) {
-                    inventoryFlag = true;
-                }
                 Iterator drugIterator = drugInventoryInfos.iterator();
                 while (drugIterator.hasNext()) {
                     DrugInventoryInfo drugInventoryInfo = (DrugInventoryInfo)drugIterator.next();
@@ -1095,6 +1092,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         if (5 == drugPharmacyInventoryInfo.getType() && getOrganGiveMode(organId, SUPPORT_TFDS) && getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES)) {
                             //说明运营平台没有配置药店取药和配送到家
                             drugPharmacyIterator.remove();
+                        }
+                        //处理没有被移除的药企是否有库存
+                        if (!"无库存".equals(drugPharmacyInventoryInfo.getAmount()) || !"0".equals(drugPharmacyInventoryInfo.getAmount())
+                                || !"暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount())) {
+                            //不是这三种情况我们认为药企是有库存的
+                            inventoryFlag = true;
                         }
                     }
                 }
@@ -1294,7 +1297,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
                         }
                         //过滤掉暂不支持库存查询的药企
-                        if (inventory.length()>5){
+                        if ("暂不支持库存查询".equals(inventory)){
                             continue;
                         }
                         pharmacyInventory = new DrugPharmacyInventoryInfo();

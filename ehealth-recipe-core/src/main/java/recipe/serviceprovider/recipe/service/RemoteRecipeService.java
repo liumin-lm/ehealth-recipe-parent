@@ -1516,10 +1516,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        LOGGER.info("findRecipeByFlag request=[{}]", JSONUtils.toString(organ) + "," + JSONUtils.toString(recipeIds) + "," + JSONUtils.toString(recipeTypes) + "," + flag + "," + limit);
         List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
+    }
+
+    @RpcService
+    @Override
+    public Long findRecipeCountByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit) {
+        LOGGER.info("findRecipeByFlag request=[{}]", JSONUtils.toString(organ) + "," + JSONUtils.toString(recipeIds) + "," + JSONUtils.toString(recipeTypes) + "," + flag + "," + limit);
+        Long recipeCount = recipeDAO.findRecipeCountByFlag(organ, recipeIds, recipeTypes, flag, start, limit);
+        return recipeCount;
     }
 
 
@@ -2336,6 +2345,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         LOGGER.info("judgeRecipeStatus is {}", true);
         return false;
+    }
+
+    @RpcService
+    @Override
+    public List<RecipeBean> findToAuditPlatformRecipe() {
+        Date date = DateUtils.addYears(new Date(), -1);
+        List<Recipe> toAuditPlatformRecipe = recipeDAO.findToAuditPlatformRecipe(date);
+        return ObjectCopyUtils.convert(toAuditPlatformRecipe, RecipeBean.class);
     }
 
     /**

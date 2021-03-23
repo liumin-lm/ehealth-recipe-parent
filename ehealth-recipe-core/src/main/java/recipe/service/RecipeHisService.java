@@ -21,6 +21,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -285,10 +286,26 @@ public class RecipeHisService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(hisRecipeStatus)) {
                     request.setRecipeStatus(hisRecipeStatus);
                 }
+                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    //科室代码
+                    AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+                    AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                    request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+                    //科室名称
+                    request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+                } else {
+                    //互联网环境下没有挂号科室 取department表
+                    DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+                    DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+                    //科室编码
+                    request.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
+                    //科室名称
+                    request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+                }
                 EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
                 String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
                 request.setDoctorNumber(jobNumber);
-                LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", request);
+                LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", JSONUtils.toString(request));
                 flag = service.recipeUpdate(request);
             } catch (Exception e) {
                 LOGGER.error("recipeStatusUpdateWithOrganId error ", e);
