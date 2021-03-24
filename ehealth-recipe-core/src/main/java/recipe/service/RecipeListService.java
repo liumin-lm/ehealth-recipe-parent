@@ -1678,9 +1678,14 @@ public class RecipeListService extends RecipeBaseService {
                 if (null != recipedetails && recipedetails.size() > 0) {
                     //未签名显示实时
                     if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
-                        //药品名拼接配置
-                        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
-                        recipe.setRecipeDrugName(DrugDisplayNameProducer.getDrugName(ObjectCopyUtils.convert(recipedetails.get(0), RecipeDetailBean.class), configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+                        //如果是中药暂存只取药品名显示
+                        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+                            recipe.setRecipeDrugName(recipedetails.get(0).getDrugName());
+                        } else {
+                            //药品名拼接配置
+                            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
+                            recipe.setRecipeDrugName(DrugDisplayNameProducer.getDrugName(ObjectCopyUtils.convert(recipedetails.get(0), RecipeDetailBean.class), configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+                        }
                     } else {
                         recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                     }
