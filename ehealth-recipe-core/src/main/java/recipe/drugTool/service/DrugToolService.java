@@ -908,7 +908,7 @@ public class DrugToolService implements IDrugToolService {
             } catch (ExecutionException e) {
                 LOGGER.error("drugMatch:" + e.getMessage(),e);
             }
-            if (CollectionUtils.isEmpty(drugLists)) {
+            if (CollectionUtils.isNotEmpty(drugLists)) {
                 drugListBeans = ObjectCopyUtils.convert(drugLists, DrugListBean.class);
                 if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
                     for (DrugListBean drugListBean : drugListBeans) {
