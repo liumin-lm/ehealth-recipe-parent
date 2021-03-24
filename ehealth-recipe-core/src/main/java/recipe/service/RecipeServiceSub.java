@@ -573,9 +573,9 @@ public class RecipeServiceSub {
                                 detail.setUsingRate(recipe.getTcmUsingRate());
                             }
 
-                            if (detail.getUseDays() == null) {
-                                detail.setUseDays(recipe.getCopyNum());
-                            }
+//                            if (detail.getUseDays() == null) {
+//                                detail.setUseDays(recipe.getCopyNum());
+//                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -583,9 +583,9 @@ public class RecipeServiceSub {
                             //detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail,RecipeBussConstant.RECIPETYPE_TCM));
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
 
-                            if (detail.getUseDays() == null) {
-                                detail.setUseDays(recipe.getCopyNum());
-                            }
+//                            if (detail.getUseDays() == null) {
+//                                detail.setUseDays(recipe.getCopyNum());
+//                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
