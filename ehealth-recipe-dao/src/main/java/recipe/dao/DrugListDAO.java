@@ -808,11 +808,6 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from DrugList where status = 1  ");
-                if (organId != null){
-                    hql.append(" and (  sourceOrgan is null or sourceOrgan =:organId   )   ");
-                }else {
-                    hql.append("  and sourceOrgan is null    )   ");
-                }
                 if (input != null){
                     hql.append(" and (  saleName like :input or drugId like:input or drugName like:input   )   ");
                 }
@@ -820,9 +815,6 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     hql.append(" and producer like :producer   ");
                 }
                 Query q = ss.createQuery(hql.toString());
-                if (organId != null){
-                    q.setParameter("organId", organId);
-                }
                 if (input != null){
                     q.setParameter("input", "%" + input + "%");
                 }
