@@ -1541,15 +1541,15 @@ public class HisRecipeService {
             if (null == hisRecipe) {
                 return;
             } else {
-                //已处理处方不应删除
-                if(2==hisRecipe.getStatus()){
-                    return;
-                }
                 if (!hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}",recipeCode);
                     return;
                 }
+            }
+            //已处理处方不应删除(现在因为其他用户绑定了该就诊人也要查询到数据，所以mpiid不一致，数据需要删除)
+            if(2==hisRecipe.getStatus()){
+                return;
             }
             List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
             if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
