@@ -1466,6 +1466,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @RpcService
     public RecipeResultBean getOrderDetailById(Integer orderId) {
+        LOGGER.info("getOrderDetailById.orderId={}", orderId);
+
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == orderId) {
             result.setCode(RecipeResultBean.FAIL);
@@ -1644,6 +1646,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         LOGGER.error("获取运营平台处方支付配置异常", e);
                     }
                     patientRecipeBeanList.add(prb);
+                    LOGGER.info("getOrderDetailById.prb={}", JSONUtils.toString(prb));
 
                     if (1 == order.getEffective()) {
                         String account = enterpriseAccountMap.get(order.getEnterpriseId());
@@ -1725,7 +1728,7 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
         }
-
+        LOGGER.info("getOrderDetailById.result={}", JSONUtils.toString(result));
         return result;
     }
 
