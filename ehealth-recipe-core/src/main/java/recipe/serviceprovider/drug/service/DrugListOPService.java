@@ -46,10 +46,10 @@ public class DrugListOPService implements IDrugListService {
             if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
                 drugListBean.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
             }else {
-                drugListBean.setSourceOrganText("平台通用");
+                drugListBean.setSourceOrgan(0);
             }
         }else {
-            drugListBean.setSourceOrganText("平台通用");
+            drugListBean.setSourceOrgan(0);
         }
 
         return drugListBean;
