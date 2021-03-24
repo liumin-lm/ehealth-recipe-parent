@@ -58,6 +58,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -141,8 +142,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -659,6 +658,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @Deprecated
     public List<RecipeDetailBean> validateDrugs(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
