@@ -3747,6 +3747,10 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        // 存在满足库存的药企
+        if (CollectionUtils.isNotEmpty(backList) && CollectionUtils.isNotEmpty(drugsEnterpriseList) && backList.size() < drugsEnterpriseList.size()){
+            backList.clear();
+        }
         return backList;
     }
 
