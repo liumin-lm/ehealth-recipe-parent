@@ -1541,6 +1541,10 @@ public class HisRecipeService {
             if (null == hisRecipe) {
                 return;
             } else {
+                //已处理处方不应删除
+                if(2==hisRecipe.getStatus()){
+                    return;
+                }
                 if (!hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}",recipeCode);
