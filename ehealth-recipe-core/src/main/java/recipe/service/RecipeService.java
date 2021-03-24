@@ -2807,6 +2807,7 @@ public class RecipeService extends RecipeBaseService {
                             if (-1 != i){
                                 if (status !=null){
                                     if (status == 0){
+                                        startIndex++;
                                         continue;
                                     }
                                 }
@@ -2824,6 +2825,7 @@ public class RecipeService extends RecipeBaseService {
                         }else {
                             if (status !=null){
                                 if (status == 0){
+                                    startIndex++;
                                     continue;
                                 }
                             }
