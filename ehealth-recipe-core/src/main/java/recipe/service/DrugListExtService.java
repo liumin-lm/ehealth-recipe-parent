@@ -1105,8 +1105,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             acc++;
                         }
                         //处理没有被移除的药企是否有库存
-                        if ((acc == 0) && (!"无库存".equals(drugPharmacyInventoryInfo.getAmount()) || !"0".equals(drugPharmacyInventoryInfo.getAmount())
-                                || !"暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount()))) {
+                        if (acc == 0 && !("无库存".equals(drugPharmacyInventoryInfo.getAmount()) || "0".equals(drugPharmacyInventoryInfo.getAmount())
+                                || "暂不支持库存查询".equals(drugPharmacyInventoryInfo.getAmount()))) {
                             LOGGER.info("filterInventoriesDate 有库存的药企:{}.", JSONUtils.toString(drugPharmacyInventoryInfo));
                             //不是这三种情况我们认为药企是有库存的
                             inventoryFlag = true;
