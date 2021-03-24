@@ -1682,6 +1682,14 @@ public class RecipeListService extends RecipeBaseService {
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             recipe.setRecipeDrugName(recipedetails.get(0).getDrugName());
                         } else {
+                            //剂型获取---暂存重新获取配置药品名由于Recipedetail没有剂型要重新获取一遍
+                            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());
+                            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                                if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                                    recipedetails.get(0).setDrugForm(organDrugLists.get(0).getDrugForm());
+                                }
+                            }
                             //药品名拼接配置
                             Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
                             recipe.setRecipeDrugName(DrugDisplayNameProducer.getDrugName(ObjectCopyUtils.convert(recipedetails.get(0), RecipeDetailBean.class), configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
