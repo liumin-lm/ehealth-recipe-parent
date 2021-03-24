@@ -45,7 +45,11 @@ public class DrugListOPService implements IDrugListService {
             List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(drugListBean.getSourceOrgan());
             if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
                 drugListBean.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
+            }else {
+                drugListBean.setSourceOrganText("平台通用");
             }
+        }else {
+            drugListBean.setSourceOrganText("平台通用");
         }
 
         return drugListBean;
