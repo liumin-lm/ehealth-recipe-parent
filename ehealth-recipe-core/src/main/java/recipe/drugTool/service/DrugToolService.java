@@ -900,34 +900,35 @@ public class DrugToolService implements IDrugToolService {
         //根据药品名取标准药品库查询相关药品
         List<DrugList> drugLists = null;
         List<DrugListBean> drugListBeans = null;
-        try {
-            drugLists = drugListCache.get(str);
-        } catch (ExecutionException e) {
-            LOGGER.error("drugMatch:" + e.getMessage(),e);
-        }
-
+        drugListBeans = drugMatchSearch(drugId,drugListMatch.getSourceOrgan(),drugListMatch.getDrugName(),drugListMatch.getProducer());
         //已匹配状态返回匹配药品id
-        if (CollectionUtils.isNotEmpty(drugLists)) {
-            drugListBeans = ObjectCopyUtils.convert(drugLists, DrugListBean.class);
-            if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
-                for (DrugListBean drugListBean : drugListBeans) {
-                    if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
-                        drugListBean.setIsMatched(true);
+        if (CollectionUtils.isEmpty(drugListBeans)) {
+            try {
+                drugLists = drugListCache.get(str);
+            } catch (ExecutionException e) {
+                LOGGER.error("drugMatch:" + e.getMessage(),e);
+            }
+            if (CollectionUtils.isNotEmpty(drugLists)) {
+                drugListBeans = ObjectCopyUtils.convert(drugLists, DrugListBean.class);
+                if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
+                    for (DrugListBean drugListBean : drugListBeans) {
+                        if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
+                            drugListBean.setIsMatched(true);
+                        }
                     }
                 }
             }
         }else {
-            drugListBeans = drugMatchSearch(drugId,drugListMatch.getSourceOrgan(),drugListMatch.getDrugName(),drugListMatch.getProducer());
             if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
                 for (DrugListBean drugListBean : drugListBeans) {
                     if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
                         drugListBean.setIsMatched(true);
                     }
                 }
+
             }
         }
         return drugListBeans;
-
     }
 
     /**

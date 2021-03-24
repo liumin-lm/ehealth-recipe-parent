@@ -14,11 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.service.client.DrugClient;
 import recipe.service.client.IConfigurationClient;
 import recipe.util.ByteUtils;
+import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -68,6 +71,8 @@ public class RecipeDetailService {
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
         logger.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //校验数据判断状态
         recipeDetails.forEach(a -> {
             a.setValidateStatus(VALIDATE_STATUS_YES);
@@ -90,6 +95,8 @@ public class RecipeDetailService {
                 for (OrganDrugList drug : organDrugs) {
                     if (drug.getDrugId().equals(a.getDrugId())) {
                         organDrug = drug;
+                        //设置剂型--后面药品名拼接会用到
+                        a.setDrugForm(drug.getDrugForm());
                         break;
                     }
                 }
@@ -120,6 +127,8 @@ public class RecipeDetailService {
                 }
                 a.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
             }
+            //续方也会走这里但是 续方要用药品名实时配置
+            a.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(a, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
         });
         return recipeDetails;
     }
