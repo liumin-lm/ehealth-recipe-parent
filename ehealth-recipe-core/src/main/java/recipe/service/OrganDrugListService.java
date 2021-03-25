@@ -138,7 +138,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * 同步自健药企药品
      * @param organDrugList
      */
-    public void organDrugSync2(OrganDrugList organDrugList){
+    public void organDrugSync2(OrganDrugList organDrugList,Integer status){
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
@@ -147,9 +147,13 @@ public class OrganDrugListService implements IOrganDrugListService {
         if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 try {
-                    bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                    if (status==1){
+                        bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                    }else if (status == 2){
+                        bean.updateOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                    }
                 } catch (Exception e) {
-                    logger.info("机构药品删除同步对应药企"+e);
+                    logger.info("机构药品禁用删除同步对应药企"+e);
 
                 }
             }
@@ -219,7 +223,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
-        organDrugSync2(organDrugList);
+        organDrugSync2(organDrugList,1);
         organDrugListDAO.remove(organDrugListId);
 
     }
@@ -275,6 +279,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             organDrugList.setDisableReason(disableReason);
         }
         organDrugList.setLastModify(new Date());
+        organDrugSync2(organDrugList,2);
         organDrugListDAO.update(organDrugList);
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
