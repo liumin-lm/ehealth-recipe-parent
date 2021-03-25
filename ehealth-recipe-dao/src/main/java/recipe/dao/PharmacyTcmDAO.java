@@ -118,7 +118,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param limit
      * @return
      */
-    public QueryResult<PharmacyTcmDTO> queryTempByTimeAndName(Integer organId , String input, final int start, final int limit){
+    public QueryResult<PharmacyTcmDTO> queryTempByTimeAndName(Integer organId , String input,  Integer start,  Integer limit){
         HibernateStatelessResultAction<QueryResult<PharmacyTcmDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<PharmacyTcmDTO>>(){
 
             @Override
