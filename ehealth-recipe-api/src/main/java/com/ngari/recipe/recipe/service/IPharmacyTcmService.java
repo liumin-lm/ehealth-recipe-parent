@@ -47,7 +47,7 @@ public interface IPharmacyTcmService {
      * @return
      */
     @RpcService
-    QueryResult<PharmacyTcmDTO> querPharmacyTcmByOrganIdAndName(Integer organId , String input, final int start, final int limit);
+    QueryResult<PharmacyTcmDTO> querPharmacyTcmByOrganIdAndName(Integer organId , String input, Integer start, Integer limit);
 
     /**
      *根据机构id查询药房
