@@ -1758,7 +1758,7 @@ public class DrugToolService implements IDrugToolService {
      * 省药品匹配
      */
     @RpcService
-    public List<ProvinceDrugListBean> provinceDrugMatchNew(int drugId, int organId, int start, int limit, String seacrhString,final String producer) {
+    public List<ProvinceDrugListBean> provinceDrugMatchNew(int drugId, int organId, int start, int limit, String seacrhString, String producer) {
         OrganDrugList organDrugList = organDrugListDAO.get(drugId);
         if (null == organDrugList) {
             LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构列表中", drugId);
