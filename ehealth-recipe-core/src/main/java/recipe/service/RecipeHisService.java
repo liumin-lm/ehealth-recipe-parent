@@ -302,6 +302,7 @@ public class RecipeHisService extends RecipeBaseService {
                     //科室名称
                     request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
                 }
+
                 EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
                 String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
                 request.setDoctorNumber(jobNumber);
