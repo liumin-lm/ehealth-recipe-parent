@@ -146,15 +146,14 @@ public class OrganDrugListService implements IOrganDrugListService {
         List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
         if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
-                try {
-                    if (status==1){
-                        bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
-                    }else if (status == 2){
+                if (status==1){
+                    bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                }else if (status == 2){
+                    try {
                         bean.updateOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                    } catch (Exception e) {
+                        logger.info("机构药品禁用删除同步对应药企"+e);
                     }
-                } catch (Exception e) {
-                    logger.info("机构药品禁用删除同步对应药企"+e);
-
                 }
             }
         }
