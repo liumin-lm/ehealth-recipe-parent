@@ -1364,6 +1364,21 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @RpcService
+    public void   deleteOrganDrugDataToSaleDrugList(List<OrganDrugList> drugs, Integer depId) {
+        SaleDrugList saleDrugList;
+        for (OrganDrugList organDrugList : drugs) {
+            List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(depId, organDrugList.getOrganDrugCode());
+            if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
+                if (organDrugList.getStatus().equals(1)){
+                    for (SaleDrugList drugList : byOrganIdAndDrugCode) {
+                        saleDrugListDAO.remove(drugList.getDrugId());
+                    }
+                }
+            }
+        }
+    }
+
+    @RpcService
     public Map<String,Integer>  saveOrUpdateOrganDrugDataToSaleDrugList(List<OrganDrugList> drugs,Integer organId, Integer depId, Boolean flag) {
         Integer save=0;
         Integer update=0;
@@ -1376,6 +1391,10 @@ public class DrugToolService implements IDrugToolService {
                 if (organDrugList.getStatus().equals(1)){
                     SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
                     saleDrugList1.setPrice(organDrugList.getSalePrice());
+                    saleDrugList1.setDrugName(organDrugList.getDrugName());
+                    saleDrugList1.setSaleName(organDrugList.getSaleName());
+                    saleDrugList1.setDrugSpec(organDrugList.getDrugSpec());
+                    saleDrugList1.setStatus(organDrugList.getStatus());
                     saleDrugList1.setLastModify(new Date());
                     saleDrugListDAO.update(saleDrugList1);
                     update++;
