@@ -1812,7 +1812,11 @@ public class RecipeServiceSub {
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
         //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
+        LOGGER.info("checker test {}", StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS);
         if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+            LOGGER.info("checker test {}" , !(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA));
             if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                     recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
                     recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
