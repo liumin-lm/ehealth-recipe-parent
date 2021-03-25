@@ -127,18 +127,17 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
                 }
                 Map<String,Object> param = Maps.newHashMap();
-                StringBuffer sql = new StringBuffer(" from PharmacyTcm where organId =:organId ");
+                StringBuffer sql = new StringBuffer(" from PharmacyTcm d where d.organId =:organId ");
                 param.put("organId",organId);
                 if (!ObjectUtils.isEmpty(input)){
-                    sql.append(" and pharmacyName like:name ");
+                    sql.append(" and d.pharmacyName like:name ");
                     param.put("name","%"+input+"%");
                 }
+                sql.append(" order by sort ASC");
                 Query countQuery = ss.createQuery("select count(*) "+sql.toString());
                 countQuery.setProperties(param);
                 Long total = (Long) countQuery.uniqueResult();
-
-                sql.append(" order by sort ASC");
-                Query query = ss.createQuery(sql.toString());
+                Query query = ss.createQuery("select d "+sql.toString());
                 query.setProperties(param);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
