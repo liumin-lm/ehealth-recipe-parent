@@ -1861,7 +1861,7 @@ public class RecipeServiceSub {
             recipeBean.setCheckerText(checkerText);
         }
         //处理审核药师
-        if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+        if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
             recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
             recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS)) {
             recipeBean.setCheckerText("");
