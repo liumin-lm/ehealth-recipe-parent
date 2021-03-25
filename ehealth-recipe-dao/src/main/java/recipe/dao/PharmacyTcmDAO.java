@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 
 import java.util.List;
@@ -128,7 +129,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
                 Map<String,Object> param = Maps.newHashMap();
                 StringBuffer sql = new StringBuffer(" from PharmacyTcm where organId =:organId ");
                 param.put("organId",organId);
-                if (!StringUtils.isEmpty(input)){
+                if (!ObjectUtils.isEmpty(input)){
                     sql.append(" and pharmacyName like:name ");
                     param.put("name","%"+input+"%");
                 }
