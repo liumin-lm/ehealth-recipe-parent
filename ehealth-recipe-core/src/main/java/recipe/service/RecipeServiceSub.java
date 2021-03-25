@@ -1855,7 +1855,11 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText()) &&
+                recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS &&
+                recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA &&
+                recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA &&
+                recipe.getStatus() != RecipeStatusConstant.SIGN_NO_CODE_PHA) {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
