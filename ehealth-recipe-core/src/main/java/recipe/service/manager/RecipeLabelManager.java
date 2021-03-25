@@ -91,7 +91,7 @@ public class RecipeLabelManager {
 
         if (CollectionUtils.isEmpty(coOrdinateList)) {
             logger.error("RecipeLabelManager getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId为空");
+            return null;
         }
 
         for (CoOrdinateVO coOrdinate : coOrdinateList) {
