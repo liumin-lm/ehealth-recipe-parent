@@ -118,7 +118,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param limit
      * @return
      */
-    public QueryResult<PharmacyTcmDTO> queryTempByTimeAndName(Integer organId , String input, final int start, final int limit){
+    public QueryResult<PharmacyTcmDTO> queryTempByTimeAndName(Integer organId , String input,  Integer start,  Integer limit){
         HibernateStatelessResultAction<QueryResult<PharmacyTcmDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<PharmacyTcmDTO>>(){
 
             @Override
@@ -133,7 +133,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
                     sql.append(" and d.pharmacyName like:name ");
                     param.put("name","%"+input+"%");
                 }
-                sql.append(" order by sort ASC");
+                sql.append(" order by d.pharmacyId,d.sort ASC");
                 Query countQuery = ss.createQuery("select count(*) "+sql.toString());
                 countQuery.setProperties(param);
                 Long total = (Long) countQuery.uniqueResult();
