@@ -1758,13 +1758,13 @@ public class DrugToolService implements IDrugToolService {
      * 省药品匹配
      */
     @RpcService
-    public List<ProvinceDrugListBean> provinceDrugMatchNew(int drugId, int organId, int start, int limit, String seacrhString) {
+    public List<ProvinceDrugListBean> provinceDrugMatchNew(int drugId, int organId, int start, int limit, String seacrhString,final String producer) {
         OrganDrugList organDrugList = organDrugListDAO.get(drugId);
         if (null == organDrugList) {
             LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构列表中", drugId);
             return null;
         }
-        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsNew(organId, organDrugList, start, limit, seacrhString);
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsNew(organId, organDrugList, start, limit, seacrhString,producer);
         if (null == provinceDrugLists) {
             //如果没有省平台药品数据则为null
             return null;
@@ -1776,7 +1776,7 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /*根据匹配的药品销售名，获取相似名称的省平台药品*/
-    private List<ProvinceDrugList> getProvinceDrugListsNew(int organId,  OrganDrugList organDrugList, int start, int limit, String seacrhString) {
+    private List<ProvinceDrugList> getProvinceDrugListsNew(int organId,  OrganDrugList organDrugList, int start, int limit, String seacrhString,final String producer) {
         List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
         if (!checkOrganRegulation(organId)) return null;
 
@@ -1790,7 +1790,7 @@ public class DrugToolService implements IDrugToolService {
         //根据药品名取标准药品库查询相关药品
         String likeDrugName = DrugMatchUtil.match(organDrugList.getDrugName());
 
-        List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
+        List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLikeSearch( addrArea, start, limit, seacrhString,producer);
         if (CollectionUtils.isNotEmpty(searchDrugs)) {
             provinceDrugLists = searchDrugs;
         }
