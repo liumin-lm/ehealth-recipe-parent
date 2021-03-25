@@ -1372,6 +1372,7 @@ public class DrugToolService implements IDrugToolService {
                for (SaleDrugList drugList : byOrganIdAndDrugCode) {
                    drugList.setStatus(organDrugList.getStatus());
                    saleDrugListDAO.update(drugList);
+                   LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除（delete）= " + drugList + " 药品 ：机构药品（）= " + organDrugList +" !");
                }
             }
         }
@@ -1382,13 +1383,15 @@ public class DrugToolService implements IDrugToolService {
         SaleDrugList saleDrugList;
         for (OrganDrugList organDrugList : drugs) {
             List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(depId, organDrugList.getOrganDrugCode());
+            SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
-                if (organDrugList.getStatus().equals(1)){
-                    for (SaleDrugList drugList : byOrganIdAndDrugCode) {
-                        saleDrugListDAO.remove(drugList.getDrugId());
-                        LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除（delete）= " + drugList + " 药品 ：机构药品（）= " + organDrugList +" !");
-                    }
+                for (SaleDrugList drugList : byOrganIdAndDrugCode) {
+                    saleDrugListDAO.remove(drugList.getDrugId());
+                    LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除（delete）= " + drugList + " 药品 ：机构药品（）= " + organDrugList +" !");
                 }
+            }else if (byDrugIdAndOrganId != null ){
+                saleDrugListDAO.remove(byDrugIdAndOrganId.getDrugId());
+                LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除2（delete）= " + byDrugIdAndOrganId + " 药品 ：机构药品（）= " + organDrugList +" !");
             }
         }
     }

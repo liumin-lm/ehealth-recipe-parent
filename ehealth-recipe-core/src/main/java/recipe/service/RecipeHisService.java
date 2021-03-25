@@ -127,7 +127,7 @@ public class RecipeHisService extends RecipeBaseService {
     RecipeRetryService recipeRetryService;
 
     @Resource
-    private PharmacyDAO pharmacyDAO;
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     /**
      * 发送处方
@@ -708,7 +708,7 @@ public class RecipeHisService extends RecipeBaseService {
                             List<String> splitToList = Splitter.on(",").splitToList(pharmacy);
                             if (!org.springframework.util.CollectionUtils.isEmpty(splitToList) && splitToList.size() == 1){
                                 Integer pharmacyId = Integer.valueOf(splitToList.get(0));
-                                Pharmacy p = pharmacyDAO.get(pharmacyId);
+                                PharmacyTcm p = pharmacyTcmDAO.get(pharmacyId);
                                 if (p != null){
                                     drugInfoTO.setPharmacyCode(p.getPharmacyCode());
                                 }
