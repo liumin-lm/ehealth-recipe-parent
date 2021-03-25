@@ -1386,6 +1386,7 @@ public class DrugToolService implements IDrugToolService {
                 if (organDrugList.getStatus().equals(1)){
                     for (SaleDrugList drugList : byOrganIdAndDrugCode) {
                         saleDrugListDAO.remove(drugList.getDrugId());
+                        LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除（delete）= " + drugList + " 药品 ：机构药品（）= " + organDrugList +" !");
                     }
                 }
             }
