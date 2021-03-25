@@ -1812,11 +1812,7 @@ public class RecipeServiceSub {
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
         //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
-        LOGGER.info("checker test1 {}", StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS);
         if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-            LOGGER.info("checker test2 {}, recipeStatus{}" , !(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA), recipe.getStatus());
             if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                     recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
                     recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
@@ -1860,9 +1856,11 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
-            if (!(recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText()) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+            LOGGER.info("checker test {}, recipeStatus {}, recipeID {}" , !(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA), recipe.getStatus(), recipe.getRecipeId());
+            if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                     recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
                     recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
                 String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
