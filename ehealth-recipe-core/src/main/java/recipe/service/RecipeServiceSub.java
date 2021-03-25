@@ -1856,16 +1856,15 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText()) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-            LOGGER.info("checker test {}, recipeStatus {}, recipeID {}" , !(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA), recipe.getStatus(), recipe.getRecipeId());
-            if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
-                recipeBean.setCheckerText(checkerText);
-            }
+        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+            String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
+            recipeBean.setCheckerText(checkerText);
+        }
+        //处理审核药师
+        if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS)) {
+            recipeBean.setCheckerText("");
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
             //处理线下转线上的代煎费
