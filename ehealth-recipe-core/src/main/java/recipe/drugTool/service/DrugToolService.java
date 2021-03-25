@@ -1371,7 +1371,7 @@ public class DrugToolService implements IDrugToolService {
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
                 if (organDrugList.getStatus().equals(1)){
                     for (SaleDrugList drugList : byOrganIdAndDrugCode) {
-                        drugList.setStatus(0);
+                        drugList.setStatus(organDrugList.getStatus());
                         saleDrugListDAO.update(drugList);
                     }
                 }
