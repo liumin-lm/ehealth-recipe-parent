@@ -1789,7 +1789,7 @@ public class DrugToolService implements IDrugToolService {
         List<ProvinceDrugList> searchDrugs =Lists.newArrayList();
         //根据药品名取标准药品库查询相关药品
         String likeDrugName = DrugMatchUtil.match(organDrugList.getDrugName());
-        if (ObjectUtils.isEmpty(producer)){
+        if (!ObjectUtils.isEmpty(producer)){
             searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLikeSearch( addrArea, start, limit, seacrhString,producer);
         }else {
             searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
