@@ -34,6 +34,9 @@ public class DrugInfoHisBean implements Serializable{
     //机构平台代码
     private Integer organId;
 
+    //药房Id
+    private String pharmacy;
+
     public DrugInfoHisBean(){
 
     }
@@ -49,6 +52,14 @@ public class DrugInfoHisBean implements Serializable{
         this.pack = String.valueOf(pack);
         this.packUnit = packUnit;
         this.manfcode = manfcode;
+    }
+
+    public DrugInfoHisBean(String drcode, int pack, String packUnit, String manfcode,String pharmacy){
+        this.drcode = drcode;
+        this.pack = String.valueOf(pack);
+        this.packUnit = packUnit;
+        this.manfcode = manfcode;
+        this.pharmacy = pharmacy;
     }
 
     public DrugInfoHisBean(String drcode){
@@ -118,5 +129,13 @@ public class DrugInfoHisBean implements Serializable{
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
     }
 }

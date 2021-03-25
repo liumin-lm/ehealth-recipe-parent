@@ -123,7 +123,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "select new recipe.dao.bean.DrugInfoHisBean(od.organDrugCode,d.pack,d.unit,od.producerCode) " + "from OrganDrugList od, DrugList d where od.drugId=d.drugId and od.organId=:organId and od.organDrugCode is not null and od.status=1")
+    @DAOMethod(sql = "select new recipe.dao.bean.DrugInfoHisBean(od.organDrugCode,d.pack,d.unit,od.producerCode,od.pharmacy) " + "from OrganDrugList od, DrugList d where od.drugId=d.drugId and od.organId=:organId and od.organDrugCode is not null and od.status=1")
     public abstract List<DrugInfoHisBean> findDrugInfoByOrganId(@DAOParam("organId") int organId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
