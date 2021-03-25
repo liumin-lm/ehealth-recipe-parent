@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -51,6 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spockframework.util.CollectionUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
@@ -123,6 +125,9 @@ public class RecipeHisService extends RecipeBaseService {
 
     @Resource
     RecipeRetryService recipeRetryService;
+
+    @Resource
+    private PharmacyDAO pharmacyDAO;
 
     /**
      * 发送处方
@@ -302,9 +307,11 @@ public class RecipeHisService extends RecipeBaseService {
                     //科室名称
                     request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
                 }
+
                 EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
                 String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
                 request.setDoctorNumber(jobNumber);
+                request.setDoctorName(recipe.getDoctorName());
                 LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", JSONUtils.toString(request));
                 flag = service.recipeUpdate(request);
             } catch (Exception e) {
@@ -695,7 +702,18 @@ public class RecipeHisService extends RecipeBaseService {
                     DrugInfoTO drugInfoTO;
                     for (DrugInfoHisBean drugInfoHisBean : drugInfoList) {
                         drugInfoTO = new DrugInfoTO();
+                        String pharmacy = drugInfoHisBean.getPharmacy();
                         BeanUtils.copyProperties(drugInfoHisBean, drugInfoTO);
+                        if (!StringUtils.isEmpty(pharmacy)){
+                            List<String> splitToList = Splitter.on(",").splitToList(pharmacy);
+                            if (!org.springframework.util.CollectionUtils.isEmpty(splitToList) && splitToList.size() == 1){
+                                Integer pharmacyId = Integer.valueOf(splitToList.get(0));
+                                Pharmacy p = pharmacyDAO.get(pharmacyId);
+                                if (p != null){
+                                    drugInfoTO.setPharmacyCode(p.getPharmacyCode());
+                                }
+                            }
+                        }
                         requestList.add(drugInfoTO);
                     }
                     List<DrugInfoTO> drugInfoTOs = service.queryDrugInfo(requestList, organId);
@@ -716,6 +734,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         return null;
     }
+
 
     /**
      * 处方省医保预结算接口+杭州市互联网预结算接口---废弃
