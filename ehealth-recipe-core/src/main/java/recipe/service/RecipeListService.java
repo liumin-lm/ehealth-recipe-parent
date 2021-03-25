@@ -1669,6 +1669,8 @@ public class RecipeListService extends RecipeBaseService {
                 orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
             }
 
+            List<OrganDrugList> organDrugLists;
+            Map<String, Integer> configDrugNameMap;
             for (Recipe recipe : recipeList) {
                 if (StringUtils.isNotEmpty(recipe.getMpiid())) {
                     patientIds.add(recipe.getMpiid());
@@ -1678,9 +1680,21 @@ public class RecipeListService extends RecipeBaseService {
                 if (null != recipedetails && recipedetails.size() > 0) {
                     //未签名显示实时
                     if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
-                        //药品名拼接配置
-                        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
-                        recipe.setRecipeDrugName(DrugDisplayNameProducer.getDrugName(ObjectCopyUtils.convert(recipedetails.get(0), RecipeDetailBean.class), configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+                        //如果是中药暂存只取药品名显示
+                        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+                            recipe.setRecipeDrugName(recipedetails.get(0).getDrugName());
+                        } else {
+                            //剂型获取---暂存重新获取配置药品名由于Recipedetail没有剂型要重新获取一遍
+                            organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());
+                            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                                if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                                    recipedetails.get(0).setDrugForm(organDrugLists.get(0).getDrugForm());
+                                }
+                            }
+                            //药品名拼接配置
+                            configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
+                            recipe.setRecipeDrugName(DrugDisplayNameProducer.getDrugName(ObjectCopyUtils.convert(recipedetails.get(0), RecipeDetailBean.class), configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+                        }
                     } else {
                         recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                     }

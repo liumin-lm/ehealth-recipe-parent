@@ -297,6 +297,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     }
                 }
             } else {
+                //药品名拼接配置
+                Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(commonRecipeDTO.getOrganId(), commonRecipeDTO.getRecipeType()));
                 organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(commonRecipeDTO.getOrganId(), organDrugCodeList);
                 for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
                     Integer durgId = commonRecipeDrug.getDrugId();
@@ -317,6 +319,9 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                                 commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                         new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                             }
+                            //设置药品拼接名
+                            //要用药品名实时配置
+                            commonRecipeDrug.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(commonRecipeDrug, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(commonRecipeDTO.getRecipeType())));
                             //设置医生端每次剂量和剂量单位联动关系
                             useDoseAndUnitRelationList = Lists.newArrayList();
                             //用药单位不为空时才返回给前端

@@ -573,9 +573,9 @@ public class RecipeServiceSub {
                                 detail.setUsingRate(recipe.getTcmUsingRate());
                             }
 
-                            if (detail.getUseDays() == null) {
-                                detail.setUseDays(recipe.getCopyNum());
-                            }
+//                            if (detail.getUseDays() == null) {
+//                                detail.setUseDays(recipe.getCopyNum());
+//                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -583,9 +583,9 @@ public class RecipeServiceSub {
                             //detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail,RecipeBussConstant.RECIPETYPE_TCM));
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
 
-                            if (detail.getUseDays() == null) {
-                                detail.setUseDays(recipe.getCopyNum());
-                            }
+//                            if (detail.getUseDays() == null) {
+//                                detail.setUseDays(recipe.getCopyNum());
+//                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -1811,10 +1811,14 @@ public class RecipeServiceSub {
             map.put("doctorSignImg", signInfo.get("doctorSignImg"));
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
-        //设置药师手签图片id-----药师撤销审核结果不应该显示药师手签
+        //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
         if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-            map.put("checkerSignImg", signInfo.get("checkerSignImg"));
-            map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+            if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+            }
         }
         //获取药师撤销原因
         if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
@@ -1853,8 +1857,13 @@ public class RecipeServiceSub {
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
         if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
-            String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
-            recipeBean.setCheckerText(checkerText);
+            if (!(recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
+                recipeBean.setCheckerText(checkerText);
+            }
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
             //处理线下转线上的代煎费

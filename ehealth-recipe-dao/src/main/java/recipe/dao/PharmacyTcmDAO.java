@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 
 import java.util.List;
@@ -117,7 +118,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param limit
      * @return
      */
-    public QueryResult<PharmacyTcmDTO> queryTempByTimeAndName(Integer organId , String input, final int start, final int limit){
+    public QueryResult<PharmacyTcmDTO> queryTempByTimeAndName(Integer organId , String input,  Integer start,  Integer limit){
         HibernateStatelessResultAction<QueryResult<PharmacyTcmDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<PharmacyTcmDTO>>(){
 
             @Override
@@ -126,18 +127,17 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
                 }
                 Map<String,Object> param = Maps.newHashMap();
-                StringBuffer sql = new StringBuffer(" from PharmacyTcm where organId =:organId ");
+                StringBuffer sql = new StringBuffer(" from PharmacyTcm d where d.organId =:organId ");
                 param.put("organId",organId);
-                if (!StringUtils.isEmpty(input)){
-                    sql.append(" and pharmacyName like:name ");
+                if (!ObjectUtils.isEmpty(input)){
+                    sql.append(" and d.pharmacyName like:name ");
                     param.put("name","%"+input+"%");
                 }
+                sql.append(" order by d.pharmacyId,d.sort ASC");
                 Query countQuery = ss.createQuery("select count(*) "+sql.toString());
                 countQuery.setProperties(param);
                 Long total = (Long) countQuery.uniqueResult();
-
-                sql.append(" order by sort ASC");
-                Query query = ss.createQuery(sql.toString());
+                Query query = ss.createQuery("select d "+sql.toString());
                 query.setProperties(param);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);

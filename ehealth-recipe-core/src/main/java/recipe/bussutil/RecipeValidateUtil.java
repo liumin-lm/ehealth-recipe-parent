@@ -167,6 +167,8 @@ public class RecipeValidateUtil {
 
         IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
         IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (Recipedetail recipedetail : details) {
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
@@ -188,6 +190,12 @@ public class RecipeValidateUtil {
                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
             }
             mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            try {
+                //重新开具也会走这里但是 暂存要用药品名实时配置
+                mapDetail.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(mapDetail, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+            } catch (Exception e) {
+                LOGGER.error("RecipeServiceSub.validateDrugsImpl 设置药品拼接名error, recipeId:{},{}.", recipeId, e.getMessage(), e);
+            }
             try {
                 UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsingRate());
                 if (usingRateDTO != null) {

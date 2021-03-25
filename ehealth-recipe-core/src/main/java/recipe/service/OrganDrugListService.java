@@ -134,6 +134,28 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
     }
 
+    /**
+     * 同步自健药企药品
+     * @param organDrugList
+     */
+    public void organDrugSync2(OrganDrugList organDrugList){
+        DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
+        List<OrganDrugList> lists= Lists.newArrayList();
+        lists.add(organDrugList);
+        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
+        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
+                try {
+                    bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                } catch (Exception e) {
+                    logger.info("机构药品删除同步对应药企"+e);
+
+                }
+            }
+        }
+    }
+
     private void validateOrganDrugList(OrganDrugList organDrugList) {
         if (null == organDrugList) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品信息不能为空");
@@ -196,6 +218,8 @@ public class OrganDrugListService implements IOrganDrugListService {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
+        organDrugSync2(organDrugList);
         organDrugListDAO.remove(organDrugListId);
 
     }

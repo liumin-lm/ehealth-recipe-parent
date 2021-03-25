@@ -890,7 +890,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作,添加前置未操作的判断 后置待处理或者前置待审核和医保上传确认中
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and giveMode is null or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
+                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS + " and chooseFlag = 0  or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -912,9 +912,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and payMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " +
-                        " or (fromflag = 1 and payMode is null and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
+                StringBuilder hql = new StringBuilder("from Recipe where (status in (8,24) and reviewType = 1 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " + " or (fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS + " and payFlag=0 and giveMode is not null and orderCode is not null and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') " + " or (fromflag = 1 and chooseFlag = 0 and status = 2 and invalidTime is not null and invalidTime between '" + startDt + "' and '" + endDt + "') ");
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
             }
@@ -1361,7 +1359,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2)))  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) order by signDate desc");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.status in (8,27,31,30,32) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2)))  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) order by signDate desc");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }

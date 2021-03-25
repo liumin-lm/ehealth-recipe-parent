@@ -297,7 +297,13 @@ public class RecipePatientService extends RecipeBaseService {
         if (CollectionUtils.isNotEmpty(unDepList)) {
             resultBean.setCode(RecipeResultBean.FAIL);
             List<String> drugList = new ArrayList<>();
-            drugList.addAll((List<String>) unDepList.get(0).getObject());
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.addAll((list));
+                    break;
+                }
+            }
             for (DrugEnterpriseResult result : unDepList){
                 List<String> list = (List<String>) result.getObject();
                 // 有药品名称取交集

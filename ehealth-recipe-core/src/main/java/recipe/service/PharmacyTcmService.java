@@ -276,7 +276,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
      * @return
      */
     @RpcService
-    public QueryResult<PharmacyTcmDTO> querPharmacyTcmByOrganIdAndName(Integer organId , String input, final int start, final int limit) {
+    public QueryResult<PharmacyTcmDTO> querPharmacyTcmByOrganIdAndName(Integer organId , String input,  Integer start,  Integer limit) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }

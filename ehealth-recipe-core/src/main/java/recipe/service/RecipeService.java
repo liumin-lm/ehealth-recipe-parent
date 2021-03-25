@@ -58,6 +58,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -141,8 +142,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -659,6 +658,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @Deprecated
     public List<RecipeDetailBean> validateDrugs(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
@@ -1925,6 +1925,7 @@ public class RecipeService extends RecipeBaseService {
                 //药企和医院库存都要校验
                 //医院库存校验
                 RecipeResultBean scanResult3 = hisService.scanDrugStockByRecipeId(recipeId);
+                LOGGER.info("doSignRecipeCheck recipeId={},scanResult3={}", recipeId, JSONObject.toJSONString(scanResult3));
                 List<String> hospitalDrugName = (List<String>)scanResult3.getObject();
                 // 是否需要校验药企库存
                 boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
@@ -2807,6 +2808,7 @@ public class RecipeService extends RecipeBaseService {
                             if (-1 != i){
                                 if (status !=null){
                                     if (status == 0){
+                                        startIndex++;
                                         continue;
                                     }
                                 }
@@ -2824,6 +2826,7 @@ public class RecipeService extends RecipeBaseService {
                         }else {
                             if (status !=null){
                                 if (status == 0){
+                                    startIndex++;
                                     continue;
                                 }
                             }
@@ -3746,6 +3749,10 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.error("findUnSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]", dep.getName(), recipeId, depId);
                 }
             }
+        }
+        // 存在满足库存的药企
+        if (CollectionUtils.isNotEmpty(backList) && CollectionUtils.isNotEmpty(drugsEnterpriseList) && backList.size() < drugsEnterpriseList.size()){
+            backList.clear();
         }
         return backList;
     }
