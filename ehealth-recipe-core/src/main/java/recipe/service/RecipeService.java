@@ -1925,6 +1925,7 @@ public class RecipeService extends RecipeBaseService {
                 //药企和医院库存都要校验
                 //医院库存校验
                 RecipeResultBean scanResult3 = hisService.scanDrugStockByRecipeId(recipeId);
+                LOGGER.info("doSignRecipeCheck recipeId={},scanResult3={}", recipeId, JSONObject.toJSONString(scanResult3));
                 List<String> hospitalDrugName = (List<String>)scanResult3.getObject();
                 // 是否需要校验药企库存
                 boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
