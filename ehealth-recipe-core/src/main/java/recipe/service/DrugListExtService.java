@@ -1162,7 +1162,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
         } else {
             //显示医院库存
-            String amount;
+            String amount = "无库存";
             DrugInventoryInfo drugInventory;
             //前置机成功码可能返回0或者200
             if (Integer.valueOf(0).equals(hisResp.getMsgCode()) || Integer.valueOf(200).equals(hisResp.getMsgCode())){
@@ -1190,7 +1190,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     return;
                 }
             }else {
-                amount = "无库存";
                 //特殊情况返回-1时会返回部分药品没库存
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                 if (StringUtils.isNotEmpty(hisResp.getMsg())) {
@@ -1198,6 +1197,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     List<String> noStock = Splitter.on(",").splitToList(hisResp.getMsg());
                     List<String> noStockFiltDrugs = noStock.stream().filter((a -> organDrugListDAO.getCountByOrganDrugCode(a) > 0)).collect(Collectors.toList());
                     for (IDrugInventory drugListBean : drugListBeans) {
+                        amount = "无库存";
                         //如果机构药品中查不到就不返回医院库存
                         if (StringUtils.isEmpty(drugIdAndOrganDrugCode.get(drugListBean.getDrugId()))) {
                             continue;
