@@ -54,7 +54,6 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -103,6 +102,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static ctd.persistence.DAOFactory.getDAO;
+
 /**
  * 处方订单管理
  * company: ngarihealth
@@ -128,9 +129,6 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeListService recipeListService;
-
-    @Autowired
-    private RecipeService recipeService;
 
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
