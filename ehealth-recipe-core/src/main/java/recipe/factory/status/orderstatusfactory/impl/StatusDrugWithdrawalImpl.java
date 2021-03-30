@@ -30,13 +30,11 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_WITHDRAWAL);
         RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(2);
         hisInventoryClient.drugInventory(request);
-        Recipe recipe = new Recipe();
-        recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DRUG_WITHDRAWAL.getType());
         return recipe;
     }

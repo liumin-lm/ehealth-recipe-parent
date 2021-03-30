@@ -53,6 +53,7 @@ public class SignManager {
      * @return
      */
     public AttachSealPicDTO giveUser(Integer organId, String giveUser, Integer recipeId) {
+        logger.info("SignManager giveUser organId:{} giveUser:{} recipeId:{}", organId, giveUser, recipeId);
         AttachSealPicDTO attachSealPicDTO = new AttachSealPicDTO();
         if (StringUtils.isNotEmpty(giveUser)) {
             Integer giveUserId;
@@ -79,6 +80,7 @@ public class SignManager {
             String giveUserSignImgToken = FileAuth.instance().createToken(attachSealPicDTO.getGiveUserSignImg(), 3600L);
             attachSealPicDTO.setGiveUserSignImgToken(giveUserSignImgToken);
         }
+        logger.info("SignManager giveUser attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
         return attachSealPicDTO;
     }
 
@@ -89,6 +91,7 @@ public class SignManager {
      * @return
      */
     public DoctorDTO oragnDefaultDispensingApothecary(Integer organId) {
+        logger.info("SignManager oragnDefaultDispensingApothecary organId:{}", organId);
         String giveUserId = configurationClient.getValueCatch(organId, "oragnDefaultDispensingApothecary", "");
         if (StringUtils.isEmpty(giveUserId)) {
             return null;
@@ -97,6 +100,7 @@ public class SignManager {
         if (null == dispensingApothecary) {
             return null;
         }
+        logger.info("SignManager oragnDefaultDispensingApothecary dispensingApothecary:{}", JSON.toJSONString(dispensingApothecary));
         return dispensingApothecary;
     }
 

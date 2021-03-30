@@ -1,5 +1,6 @@
 package recipe.factory.status.givemodefactory.impl;
 
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class HospitalDrugImp extends AbstractGiveMode {
     public void updateStatus(UpdateOrderStatusVO orderStatus) {
         orderStatus.setSender("");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
-        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
+        Recipe recipe = super.getRecipe(orderStatus.getRecipeId());
+        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 }

@@ -1,5 +1,6 @@
 package recipe.factory.status.givemodefactory.impl;
 
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,8 @@ public class PharmacyDrugImpl extends AbstractGiveMode {
         orderStatus.setSender("");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         recipeOrder.setPayTime(new Date());
-        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
+        Recipe recipe = super.getRecipe(orderStatus.getRecipeId());
+        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 
     @Override

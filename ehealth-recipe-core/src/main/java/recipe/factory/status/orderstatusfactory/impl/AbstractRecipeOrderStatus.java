@@ -15,10 +15,6 @@ import recipe.service.manager.GroupRecipeManager;
  * @author fuzi
  */
 public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusService {
-    /**
-     * 订单是否有效 1有效，0表示该订单已取消或者无效临时订单
-     */
-    protected final static int EFFECTIVE = 0;
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     protected RecipeOrderDAO recipeOrderDAO;
@@ -26,10 +22,6 @@ public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusSer
     protected RecipeDAO recipeDAO;
     @Autowired
     private GroupRecipeManager groupRecipeManager;
-
-    protected Recipe getRecipe(Integer recipeId) {
-        return recipeDAO.getByRecipeId(recipeId);
-    }
 
     @Override
     public void upRecipeThreadPool(Recipe recipe) {

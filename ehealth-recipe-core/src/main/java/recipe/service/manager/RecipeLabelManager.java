@@ -8,6 +8,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.AttachSealPicDTO;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
@@ -62,6 +64,20 @@ public class RecipeLabelManager {
     private RedisClient redisClient;
     @Autowired
     private SignManager signManager;
+
+    public void giveUserUpdate(Recipe recipe) {
+        AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        if (StringUtils.isEmpty(attachSealPicDTO.getGiveUserSignImg())) {
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+            String newPfd = CreateRecipePdfUtil.generateDocSignImageInRecipePdf();
+            recipe.setChemistSignFile(newPfd);
+        } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            String newPfd = CreateRecipePdfUtil.generateDocSignImageInRecipePdf();
+            recipe.setSignFile(newPfd);
+        }
+    }
 
     /**
      * 获取电子病例模块
