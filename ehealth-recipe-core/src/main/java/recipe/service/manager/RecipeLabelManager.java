@@ -213,6 +213,7 @@ public class RecipeLabelManager {
         return resultMap;
     }
 
+
     /**
      * 特殊字段坐标记录
      *
@@ -415,10 +416,15 @@ public class RecipeLabelManager {
             list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText() == null ? "" : extend.getMakeMethodText()));
         }
         list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo() == null ? "" : recipe.getRecipeMemo()));
-
     }
 
-
+    /**
+     * 获取天数 与 单位字符串展示
+     *
+     * @param useDaysB
+     * @param useDays
+     * @return
+     */
     private String getUseDays(String useDaysB, Integer useDays) {
         if (StringUtils.isNotEmpty(useDaysB)) {
             return useDaysB + "天";
@@ -428,5 +434,4 @@ public class RecipeLabelManager {
         }
         return "";
     }
-
 }
