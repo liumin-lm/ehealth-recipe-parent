@@ -10,6 +10,7 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.client.HisInventoryClient;
 import recipe.service.manager.RecipeLabelManager;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;
 
@@ -42,7 +43,16 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         request.setInventoryType(1);
         hisInventoryClient.drugInventory(request);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
-        recipeLabelManager.giveUserUpdate(recipe);
         return recipe;
+    }
+
+    @Override
+    public void upRecipeThreadPool(Recipe recipe) {
+        RecipeBusiThreadPool.execute(() -> {
+            Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
+            if (null != recipeUpdate) {
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            }
+        });
     }
 }

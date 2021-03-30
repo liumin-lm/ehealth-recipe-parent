@@ -1,5 +1,6 @@
 package recipe.service.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
@@ -65,18 +66,37 @@ public class RecipeLabelManager {
     @Autowired
     private SignManager signManager;
 
-    public void giveUserUpdate(Recipe recipe) {
+    /**
+     * 更新 pdf 核对发药
+     *
+     * @param recipe
+     * @return
+     */
+    public Recipe giveUserUpdate(Recipe recipe) {
+        logger.error("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
+        //获取 核对发药药师签名id
         AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
         if (StringUtils.isEmpty(attachSealPicDTO.getGiveUserSignImg())) {
-            return;
+            return null;
         }
+        //修改pdf文件
+        Recipe recipeUpdate = new Recipe();
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-            String newPfd = CreateRecipePdfUtil.generateDocSignImageInRecipePdf();
-            recipe.setChemistSignFile(newPfd);
+            String newPfd = CreateRecipePdfUtil.giveUserUpdate(attachSealPicDTO.getGiveUserSignImg(), recipe.getChemistSignFile());
+            if (StringUtils.isEmpty(newPfd)) {
+                return null;
+            }
+            recipeUpdate.setChemistSignFile(newPfd);
         } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-            String newPfd = CreateRecipePdfUtil.generateDocSignImageInRecipePdf();
-            recipe.setSignFile(newPfd);
+            String newPfd = CreateRecipePdfUtil.giveUserUpdate(attachSealPicDTO.getGiveUserSignImg(), recipe.getSignFile());
+            if (StringUtils.isEmpty(newPfd)) {
+                return null;
+            }
+            recipeUpdate.setSignFile(newPfd);
         }
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        logger.error("RecipeLabelManager giveUserUpdate recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+        return recipeUpdate;
     }
 
     /**

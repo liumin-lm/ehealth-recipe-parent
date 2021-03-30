@@ -261,6 +261,19 @@ public class CreateRecipePdfUtil {
         return null;
     }
 
+    /**
+     * 核对发药 签名图片添加
+     *
+     * @param giveUserSignImg 核对发药id
+     * @param signFile        pdfId
+     * @return
+     */
+    public static String giveUserUpdate(String giveUserSignImg, String signFile) {
+        if (StringUtils.isAnyEmpty(giveUserSignImg, signFile)) {
+            return null;
+        }
+        return null;
+    }
 
     /**
      * 条形码 处方号和患者病历号
