@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.DictionaryController;
@@ -59,6 +60,8 @@ public class RecipeLabelManager {
     private IESignBaseService esignService;
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private SignManager signManager;
 
     /**
      * 获取电子病例模块
@@ -302,6 +305,11 @@ public class RecipeLabelManager {
             recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
         } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText())) {
             recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText());
+        }
+        //核发药师签名图片
+        AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
+        if (StringUtils.isAnyEmpty(attachSealPicDTO.getGiveUserSignImg(), attachSealPicDTO.getGiveUserSignImgToken())) {
+            recipeBean.setGiveUser(attachSealPicDTO.getGiveUserSignImg() + ByteUtils.COMMA + attachSealPicDTO.getGiveUserSignImgToken());
         }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {

@@ -5,6 +5,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.AttachSealPicDTO;
+import ctd.util.FileAuth;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,23 +52,34 @@ public class SignManager {
      * @param recipeId 处方id
      * @return
      */
-    public String giveUser(Integer organId, Integer giveUser, Integer recipeId) {
-        if (ValidateUtil.integerIsEmpty(giveUser)) {
-            DoctorDTO defaultGiveUser = oragnDefaultDispensingApothecary(organId);
-            if (null == defaultGiveUser) {
-                return null;
+    public AttachSealPicDTO giveUser(Integer organId, String giveUser, Integer recipeId) {
+        AttachSealPicDTO attachSealPicDTO = new AttachSealPicDTO();
+        if (StringUtils.isNotEmpty(giveUser)) {
+            Integer giveUserId;
+            try {
+                giveUserId = Integer.valueOf(giveUser);
+            } catch (Exception e) {
+                giveUserId = null;
             }
-            return defaultGiveUser.getSignImage();
+            String signImg = signImg(organId, giveUserId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
+            if (StringUtils.isNotEmpty(signImg)) {
+                attachSealPicDTO.setGiveUserSignImg(signImg);
+            }
+            signImg = platFormSeal(giveUserId);
+            if (StringUtils.isNotEmpty(signImg)) {
+                attachSealPicDTO.setGiveUserSignImg(signImg);
+            }
+        } else {
+            DoctorDTO defaultGiveUser = oragnDefaultDispensingApothecary(organId);
+            if (null != defaultGiveUser && StringUtils.isNotEmpty(defaultGiveUser.getSignImage())) {
+                attachSealPicDTO.setGiveUserSignImg(defaultGiveUser.getSignImage());
+            }
         }
-        String signImg = signImg(organId, giveUser, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
-        if (StringUtils.isNotEmpty(signImg)) {
-            return signImg;
+        if (StringUtils.isNotEmpty(attachSealPicDTO.getGiveUserSignImg())) {
+            String giveUserSignImgToken = FileAuth.instance().createToken(attachSealPicDTO.getGiveUserSignImg(), 3600L);
+            attachSealPicDTO.setGiveUserSignImgToken(giveUserSignImgToken);
         }
-        signImg = platFormSeal(giveUser);
-        if (StringUtils.isNotEmpty(signImg)) {
-            return signImg;
-        }
-        return null;
+        return attachSealPicDTO;
     }
 
     /**
@@ -115,6 +127,9 @@ public class SignManager {
      */
     private String signImg(Integer organId, Integer doctorId, Integer recipeId, Integer type) {
         logger.info("SignManager signImg param organId:{},doctorId:{},recipeId:{},recipeId:{}", organId, doctorId, recipeId, type);
+        if (ValidateUtil.integerIsEmpty(organId) || ValidateUtil.integerIsEmpty(doctorId) || ValidateUtil.integerIsEmpty(recipeId)) {
+            return null;
+        }
         //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
         String sealDataFrom = configurationClient.getValueCatch(organId, "sealDataFrom", CA_SEAL_PLAT_FORM);
         if (CA_SEAL_THIRD.equals(sealDataFrom)) {
