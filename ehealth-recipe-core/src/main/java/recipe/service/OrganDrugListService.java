@@ -327,12 +327,8 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCodes.add(organDrugList.getOrganDrugCode());
         if (StringUtils.isEmpty(organDrugList.getSaleName())) {
             organDrugList.setSaleName(organDrugList.getDrugName());
-        } else if (organDrugList.getSaleName().indexOf(organDrugList.getDrugName()) != -1) {
-            organDrugList.setSaleName(organDrugList.getSaleName());
         } else {
-            if (StringUtils.isNotEmpty(organDrugList.getDrugName()) && !organDrugList.getSaleName().equals(organDrugList.getDrugName())) {
-                organDrugList.setSaleName(organDrugList.getSaleName() + " " + organDrugList.getDrugName());
-            }
+            organDrugList.setSaleName(organDrugList.getSaleName());
         }
         Integer organId = organDrugList.getOrganId();
         OrganService organService = BasicAPI.getService(OrganService.class);
