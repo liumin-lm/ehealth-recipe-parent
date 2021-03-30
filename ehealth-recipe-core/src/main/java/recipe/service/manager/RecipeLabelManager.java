@@ -361,8 +361,7 @@ public class RecipeLabelManager {
             String dRateName = d.getUsingRateTextFromHis() != null ? d.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", d.getUsingRate());
             //用法
             String dWay = d.getUsePathwaysTextFromHis() != null ? d.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", d.getUsePathways());
-            String useDay = d.getUseDays() + "天";
-            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(useDay);
+            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(getUseDays(d.getUseDaysB(), d.getUseDays()));
 
             if (!StringUtils.isEmpty(d.getMemo())) {
                 stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
@@ -400,24 +399,34 @@ public class RecipeLabelManager {
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
-        list.add(new RecipeLabelVO("天数", "tcmUseDay", (StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()) + "天"));
-        try{
+        list.add(new RecipeLabelVO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+        try {
             list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
             list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
         }
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
         if (null != extend) {
-            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()==null?"":extend.getDecoctionText()));
+            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText() == null ? "" : extend.getDecoctionText()));
             list.add(new RecipeLabelVO("每付取汁", "tcmJuice", extend.getJuice() + extend.getJuiceUnit()));
             list.add(new RecipeLabelVO("次量", "tcmMinor", extend.getMinor() + extend.getMinorUnit()));
-            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()==null?"":extend.getMakeMethodText()));
+            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText() == null ? "" : extend.getMakeMethodText()));
         }
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()==null?"":recipe.getRecipeMemo()));
+        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo() == null ? "" : recipe.getRecipeMemo()));
 
     }
 
+
+    private String getUseDays(String useDaysB, Integer useDays) {
+        if (StringUtils.isNotEmpty(useDaysB)) {
+            return useDaysB + "天";
+        }
+        if (!ValidateUtil.integerIsEmpty(useDays)) {
+            return useDays + "天";
+        }
+        return "";
+    }
 
 }
