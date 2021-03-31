@@ -2808,6 +2808,7 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认接口对接已完成，且配置管理-机构配置-机构设置-业务设置-【药品目录是否支持接口同步】已开启，再尝试进行同步!");
         }
         Boolean add = organConfigService.getByOrganIdEnableDrugAdd(organId);
+        Boolean commit = organConfigService.getByOrganIdEnableDrugSyncArtificial(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
         if (CollectionUtils.isEmpty(details)) {
@@ -2834,7 +2835,7 @@ public class RecipeService extends RecipeBaseService {
         }
         Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
-        return drugInfoSynMovementExt(organId,drugForms,data,drugMap,urt.getUserName(),sync,add);
+        return drugInfoSynMovementExt(organId,drugForms,data,drugMap,urt.getUserName(),sync,add,commit);
     }
 
     /**
@@ -2845,7 +2846,7 @@ public class RecipeService extends RecipeBaseService {
      *
      *
      */
-    public  Map<String,Object> drugInfoSynMovementExt(Integer organId,List<String> drugForms,List<OrganDrugInfoTO> data,Map<String, OrganDrugList> drugMap,String operator,Boolean sync,Boolean add) throws ParseException {
+    public  Map<String,Object> drugInfoSynMovementExt(Integer organId,List<String> drugForms,List<OrganDrugInfoTO> data,Map<String, OrganDrugList> drugMap,String operator,Boolean sync,Boolean add,Boolean commit) throws ParseException {
         SimpleDateFormat myFmt2=new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String,Object> map =Maps.newHashMap();
         map.put("Date",myFmt2.format(new Date()));
@@ -2935,8 +2936,8 @@ public class RecipeService extends RecipeBaseService {
                     }
                 }
                 try {
-                    addOrUpdateDrugInfoSynMovement(organId,addList,1,operator);
-                    addOrUpdateDrugInfoSynMovement(organId,updateList,2,operator);
+                    addOrUpdateDrugInfoSynMovement(organId,addList,1,operator,commit);
+                    addOrUpdateDrugInfoSynMovement(organId,updateList,2,operator,commit);
                 } catch (InterruptedException e) {
                     LOGGER.error("drugInfoSynMovement list新增修改,", e);
                 }
@@ -2952,13 +2953,15 @@ public class RecipeService extends RecipeBaseService {
         return map;
     }
 
-    public void addOrUpdateDrugInfoSynMovement(Integer organId, List<OrganDrugInfoTO> list, Integer way,String operator) throws InterruptedException {
+    public void addOrUpdateDrugInfoSynMovement(Integer organId, List<OrganDrugInfoTO> list, Integer way,String operator,Boolean commit) throws InterruptedException {
         if (list != null && list.size() > 0){
             if (way == 1){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     addHisDrug(organDrugInfoTO,organId,operator);
                 }
-                drugToolService.drugCommit(null,organId);
+                if (!commit){
+                    drugToolService.drugCommit(null,organId);
+                }
             }else if (way == 2){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrugInfoTO.getOrganDrugCode());
