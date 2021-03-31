@@ -511,16 +511,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
             //获取运营平台发药药师
-            ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
-            if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryName())) {
-                req.setDispensingApothecaryName(apothecaryVO.getDispensingApothecaryName());
+            ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
+            if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
+                req.setDispensingApothecaryName(apothecaryVO.getGiveUserName());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                 req.setDispensingApothecaryName(dispensingApothecary.getName());
             }
-            if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryIdCard())) {
-                req.setDispensingApothecaryIdCard(apothecaryVO.getDispensingApothecaryIdCard());
+            if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserIdCard())) {
+                req.setDispensingApothecaryIdCard(apothecaryVO.getGiveUserIdCard());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -1431,10 +1431,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
-                ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
+                ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
                 //获取发药药师姓名  默认平台配置
-                if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryName())) {
-                    req.setDispensingCheckerName(apothecaryVO.getDispensingApothecaryName());
+                if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
+                    req.setDispensingCheckerName(apothecaryVO.getGiveUserName());
                 } else if (doctorId != null) {
                     //获取机构发药药师
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));

@@ -33,7 +33,6 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setFinishTime(date);
         recipe.setGiveDate(date);
         recipe.setGiveFlag(1);
-        recipe.setGiveUser(orderStatus.getSender());
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
         return recipe;
     }

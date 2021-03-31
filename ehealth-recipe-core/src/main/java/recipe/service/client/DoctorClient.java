@@ -32,43 +32,56 @@ public class DoctorClient extends BaseClient {
      */
     public ApothecaryVO getApothecary(Integer organId, Recipe recipe) {
         ApothecaryVO apothecaryVO = getApothecary(recipe);
-        if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryName())) {
+        if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
             return apothecaryVO;
         }
         DoctorDTO doctorDTO = oragnDefaultDispensingApothecary(organId);
-        apothecaryVO.setDispensingApothecaryName(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
-        apothecaryVO.setDispensingApothecaryName(doctorDTO.getName());
+        apothecaryVO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
+        apothecaryVO.setGiveUserName(doctorDTO.getName());
+        apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());
         return apothecaryVO;
     }
 
     /**
-     * 获取药师信息用于前端展示，仅获取选中 发药药师
+     * 获取药师信息用于前端展示
      *
      * @param recipe
      * @return
      */
     public ApothecaryVO getApothecary(Recipe recipe) {
         logger.info("getApothecary recipe:{} ", JSON.toJSONString(recipe));
-        ApothecaryVO apothecaryVO = new ApothecaryVO();
-        apothecaryVO.setRecipeId(recipe.getRecipeId());
+        ApothecaryVO apothecaryVO = getGiveUser(recipe);
         Integer apothecaryId = recipe.getChecker();
         if (!ValidateUtil.integerIsEmpty(apothecaryId)) {
             DoctorDTO doctorDTO = getDoctor(apothecaryId);
             apothecaryVO.setCheckApothecaryIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
             apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
         }
-        if (StringUtils.isNotEmpty(recipe.getGiveUser())) {
-            Integer giveUserId = ByteUtils.strValueOf(recipe.getGiveUser());
-            if (!ValidateUtil.integerIsEmpty(giveUserId)) {
-                DoctorDTO doctorDTO = getDoctor(apothecaryId);
-                apothecaryVO.setDispensingApothecaryIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
-                apothecaryVO.setDispensingApothecaryName(doctorDTO.getName());
-            }
-        }
         logger.info("getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
         return apothecaryVO;
     }
 
+    /**
+     * 获取 核发药师
+     *
+     * @param recipe
+     * @return
+     */
+    public ApothecaryVO getGiveUser(Recipe recipe) {
+        ApothecaryVO apothecaryVO = new ApothecaryVO();
+        apothecaryVO.setRecipeId(recipe.getRecipeId());
+        if (StringUtils.isEmpty(recipe.getGiveUser())) {
+            return apothecaryVO;
+        }
+        Integer giveUserId = ByteUtils.strValueOf(recipe.getGiveUser());
+        if (!ValidateUtil.integerIsEmpty(giveUserId)) {
+            DoctorDTO doctorDTO = getDoctor(giveUserId);
+            apothecaryVO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
+            apothecaryVO.setGiveUserName(doctorDTO.getName());
+            apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());
+        }
+        return apothecaryVO;
+    }
 
     /**
      * 获取医生信息

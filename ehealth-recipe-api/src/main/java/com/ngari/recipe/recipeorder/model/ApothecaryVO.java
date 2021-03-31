@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipeorder.model;
 
+import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +14,7 @@ import java.io.Serializable;
  */
 @Getter
 @Setter
-public class ApothecaryVO implements Serializable {
+public class ApothecaryVO extends AttachSealPicDTO implements Serializable {
 
     private static final long serialVersionUID = 2398885985048336367L;
     @ItemProperty(alias = "订单ID")
@@ -26,8 +27,8 @@ public class ApothecaryVO implements Serializable {
     private String checkApothecaryIdCard;
 
     @ItemProperty(alias = "发药药师姓名")
-    private String dispensingApothecaryName;
+    private String giveUserName;
 
     @ItemProperty(alias = "发药药师身份证")
-    private String dispensingApothecaryIdCard;
+    private String giveUserIdCard;
 }
