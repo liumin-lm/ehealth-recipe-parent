@@ -490,14 +490,11 @@ public class CreateRecipePdfUtil {
      * @param file
      */
     private static void getFileByBytes(byte[] bytes, File file) {
-        @Cleanup BufferedOutputStream bos = null;
-        @Cleanup FileOutputStream fos = null;
         try {
             //输出流
-            fos = new FileOutputStream(file);
+            @Cleanup FileOutputStream fos = new FileOutputStream(file);
             //缓冲流
-            bos = new BufferedOutputStream(fos);
-            //将字节数组写出
+            @Cleanup BufferedOutputStream bos = new BufferedOutputStream(fos);
             bos.write(bytes);
         } catch (Exception e) {
             logger.info("getFileByBytes error", e);
