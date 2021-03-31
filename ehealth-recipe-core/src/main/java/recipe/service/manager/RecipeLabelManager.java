@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.CacheConstant;
@@ -100,15 +101,19 @@ public class RecipeLabelManager {
             return null;
         }
         //修改pdf文件
+        SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getGiveUser()
+                , attachSealPicDTO.getGiveUserSignImg(), null, 50f, 20f, 190f, 96f);
         Recipe recipeUpdate = new Recipe();
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-            String newPfd = CreateRecipePdfUtil.giveUserUpdate(attachSealPicDTO.getGiveUserSignImg(), recipe.getChemistSignFile());
+            signImgNode.setSignFileFileId(recipe.getChemistSignFile());
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
             if (StringUtils.isEmpty(newPfd)) {
                 return null;
             }
             recipeUpdate.setChemistSignFile(newPfd);
         } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-            String newPfd = CreateRecipePdfUtil.giveUserUpdate(attachSealPicDTO.getGiveUserSignImg(), recipe.getSignFile());
+            signImgNode.setSignFileFileId(recipe.getSignFile());
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
             if (StringUtils.isEmpty(newPfd)) {
                 return null;
             }
