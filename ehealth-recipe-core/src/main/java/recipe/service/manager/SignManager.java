@@ -2,7 +2,6 @@ package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import ctd.util.FileAuth;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.CARecipeTypeConstant;
+import recipe.service.client.DoctorClient;
 import recipe.service.client.IConfigurationClient;
 import recipe.sign.SignRecipeInfoService;
 import recipe.util.ValidateUtil;
@@ -40,9 +40,9 @@ public class SignManager {
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
-    private DoctorService doctorService;
-    @Autowired
     private SignRecipeInfoService signRecipeInfoService;
+    @Autowired
+    private DoctorClient doctorClient;
 
     /**
      * 获取 发药药师签名图片id
@@ -66,13 +66,13 @@ public class SignManager {
             if (StringUtils.isNotEmpty(signImg)) {
                 attachSealPicDTO.setGiveUserSignImg(signImg);
             }
-            signImg = platFormSeal(giveUserId);
+            signImg = doctorClient.getDoctor(giveUserId).getSignImage();
             if (StringUtils.isNotEmpty(signImg)) {
                 attachSealPicDTO.setGiveUserSignImg(signImg);
             }
         } else {
-            DoctorDTO defaultGiveUser = oragnDefaultDispensingApothecary(organId);
-            if (null != defaultGiveUser && StringUtils.isNotEmpty(defaultGiveUser.getSignImage())) {
+            DoctorDTO defaultGiveUser = doctorClient.oragnDefaultDispensingApothecary(organId);
+            if (StringUtils.isNotEmpty(defaultGiveUser.getSignImage())) {
                 attachSealPicDTO.setGiveUserSignImg(defaultGiveUser.getSignImage());
             }
         }
@@ -82,26 +82,6 @@ public class SignManager {
         }
         logger.info("SignManager giveUser attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
         return attachSealPicDTO;
-    }
-
-    /**
-     * 获取 机构默认发药药师
-     *
-     * @param organId
-     * @return
-     */
-    public DoctorDTO oragnDefaultDispensingApothecary(Integer organId) {
-        logger.info("SignManager oragnDefaultDispensingApothecary organId:{}", organId);
-        String giveUserId = configurationClient.getValueCatch(organId, "oragnDefaultDispensingApothecary", "");
-        if (StringUtils.isEmpty(giveUserId)) {
-            return null;
-        }
-        DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(giveUserId));
-        if (null == dispensingApothecary) {
-            return null;
-        }
-        logger.info("SignManager oragnDefaultDispensingApothecary dispensingApothecary:{}", JSON.toJSONString(dispensingApothecary));
-        return dispensingApothecary;
     }
 
     /**
@@ -141,30 +121,8 @@ public class SignManager {
         } else if (CA_SEAL_OFFLINE.equals(sealDataFrom)) {
             return offlineSeal(doctorId);
         } else {
-            return platFormSeal(doctorId);
-        }
-    }
-
-    /**
-     * 平台手签
-     *
-     * @param doctorId 医生/药师id
-     * @return
-     */
-    private String platFormSeal(Integer doctorId) {
-        logger.info("(Integer doctorId 平台手签，doctorId:{}", doctorId);
-        if (ValidateUtil.integerIsEmpty(doctorId)) {
-            return null;
-        }
-        try {
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-            if (null == doctorDTO) {
-                return null;
-            }
-            return doctorDTO.getSignImage();
-        } catch (Exception e) {
-            logger.warn("(Integer doctorId 平台手签，doctorId:{}", doctorId, e);
-            return null;
+            //平台手签
+            return doctorClient.getDoctor(doctorId).getSignImage();
         }
     }
 
@@ -175,8 +133,8 @@ public class SignManager {
      * @return
      */
     private String thirdSeal(Integer recipeId, Integer type) {
-        logger.info("thirdSeal 使用第三方签名，recipeId:{},type:{}", recipeId, type);
         if (ValidateUtil.integerIsEmpty(recipeId) || ValidateUtil.integerIsEmpty(type)) {
+            logger.info("SignManager thirdSeal 使用第三方签名，recipeId:{},type:{}", recipeId, type);
             return null;
         }
         try {
@@ -186,7 +144,7 @@ public class SignManager {
             }
             return docInfo.getSignPictureDoc();
         } catch (Exception e) {
-            logger.warn("thirdSeal 使用第三方签名，recipeId:{},type:{}", recipeId, type, e);
+            logger.warn("SignManager thirdSeal 使用第三方签名，recipeId:{},type:{}", recipeId, type, e);
             return null;
         }
     }
@@ -198,8 +156,8 @@ public class SignManager {
      * @return
      */
     private String offlineSeal(Integer doctorId) {
-        logger.info("offlineSeal 如果线上处方设置成线下手签，doctorId:{}", doctorId);
         if (ValidateUtil.integerIsEmpty(doctorId)) {
+            logger.info("SignManager offlineSeal 如果线上处方设置成线下手签，doctorId:{}", doctorId);
             return null;
         }
         try {
@@ -209,7 +167,7 @@ public class SignManager {
             }
             return signImgId;
         } catch (Exception e) {
-            logger.warn("offlineSeal 如果线上处方设置成线下手签，doctorId:{}", doctorId, e);
+            logger.warn("SignManager offlineSeal 如果线上处方设置成线下手签，doctorId:{}", doctorId, e);
             return null;
         }
     }

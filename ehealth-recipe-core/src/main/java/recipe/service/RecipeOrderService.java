@@ -40,7 +40,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -55,7 +54,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -89,7 +87,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 import wnpay.api.model.WnAccountDetail;
@@ -3131,21 +3128,6 @@ public class RecipeOrderService extends RecipeBaseService {
         // 处方推送到药企
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(request.getRecipeId()));
-    }
-
-    @RpcService
-    public Boolean updateApothecaryByOrderId(ApothecaryVO apothecary) throws ValidateException {
-        if (null == apothecary || null == apothecary.getOrderId()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "订单不存在");
-        }
-        ChinaIDNumberUtil.isValidIDNumber(apothecary.getDispensingApothecaryIdCard());
-        try {
-            recipeOrderDAO.updateApothecaryByOrderId(apothecary.getOrderId(), apothecary.getDispensingApothecaryName(), apothecary.getDispensingApothecaryIdCard());
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("updateApothecaryByOrderId apothecaryVO :{}", JSONUtils.toString(apothecary), e);
-            return false;
-        }
     }
 
     private String getAddressDic(String area) {

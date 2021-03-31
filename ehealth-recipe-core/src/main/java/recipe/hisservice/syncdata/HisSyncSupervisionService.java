@@ -17,6 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -54,6 +55,7 @@ import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.hisservice.EleInvoiceService;
 import recipe.service.RecipeExtendService;
+import recipe.service.client.DoctorClient;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -74,7 +76,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
-    private EmrRecipeManager emrRecipeManager;
+    private DoctorClient doctorClient;
     /**
      * logger
      */
@@ -509,15 +511,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
             //获取运营平台发药药师
-            if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryName())) {
-                req.setDispensingApothecaryName(recipeOrder.getDispensingApothecaryName());
+            ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
+            if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryName())) {
+                req.setDispensingApothecaryName(apothecaryVO.getDispensingApothecaryName());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                 req.setDispensingApothecaryName(dispensingApothecary.getName());
             }
-            if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryIdCard())) {
-                req.setDispensingApothecaryIdCard(recipeOrder.getDispensingApothecaryIdCard());
+            if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryIdCard())) {
+                req.setDispensingApothecaryIdCard(apothecaryVO.getDispensingApothecaryIdCard());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -1428,10 +1431,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
-
+                ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
                 //获取发药药师姓名  默认平台配置
-                if (order != null && StringUtils.isNotEmpty(order.getDispensingApothecaryName())) {
-                    req.setDispensingCheckerName(order.getDispensingApothecaryName());
+                if (StringUtils.isNotEmpty(apothecaryVO.getDispensingApothecaryName())) {
+                    req.setDispensingCheckerName(apothecaryVO.getDispensingApothecaryName());
                 } else if (doctorId != null) {
                     //获取机构发药药师
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -1439,9 +1442,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
 
                 //获取发药药师工号
-               if (recipe.getChecker()!=null){
-                   EmploymentDTO employment=employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
-                   if(employment!=null){
+                if (recipe.getChecker() != null) {
+                    EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                    if (employment != null) {
                        req.setDispensingCheckerId(employment.getJobNumber());
                    }
                }
