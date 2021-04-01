@@ -1,7 +1,7 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
@@ -15,6 +15,7 @@ import recipe.constant.CARecipeTypeConstant;
 import recipe.service.client.DoctorClient;
 import recipe.service.client.IConfigurationClient;
 import recipe.sign.SignRecipeInfoService;
+import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
 /**
@@ -55,30 +56,18 @@ public class SignManager {
      */
     public ApothecaryVO giveUser(Integer organId, String giveUser, Integer recipeId) {
         logger.info("SignManager giveUser organId:{} giveUser:{} recipeId:{}", organId, giveUser, recipeId);
+        Integer giveUserId = ByteUtils.strValueOf(giveUser);
+        String signImg = signImg(organId, giveUserId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
         ApothecaryVO apothecaryVO = new ApothecaryVO();
-        if (StringUtils.isNotEmpty(giveUser)) {
-            Integer giveUserId;
-            try {
-                giveUserId = Integer.valueOf(giveUser);
-            } catch (Exception e) {
-                giveUserId = null;
-            }
-            String signImg = signImg(organId, giveUserId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
-            if (StringUtils.isNotEmpty(signImg)) {
-                apothecaryVO.setGiveUserSignImg(signImg);
-            } else {
-                DoctorDTO doctorDTO = doctorClient.getDoctor(giveUserId);
-                if (StringUtils.isNotEmpty(doctorDTO.getSignImage())) {
-                    apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());
-                    apothecaryVO.setGiveUserName(doctorDTO.getName());
-                }
-            }
+        if (StringUtils.isNotEmpty(signImg)) {
+            apothecaryVO.setGiveUserSignImg(signImg);
         } else {
-            DoctorDTO defaultGiveUser = doctorClient.oragnDefaultDispensingApothecary(organId);
-            if (StringUtils.isNotEmpty(defaultGiveUser.getSignImage())) {
-                apothecaryVO.setGiveUserSignImg(defaultGiveUser.getSignImage());
-                apothecaryVO.setGiveUserName(defaultGiveUser.getName());
-            }
+            Recipe recipe = new Recipe();
+            recipe.setRecipeId(recipeId);
+            recipe.setGiveUser(giveUser);
+            recipe.setClinicOrgan(organId);
+            ApothecaryVO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
+            apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
         }
         if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserSignImg())) {
             String giveUserSignImgToken = FileAuth.instance().createToken(apothecaryVO.getGiveUserSignImg(), 3600L);

@@ -25,17 +25,17 @@ public class DoctorClient extends BaseClient {
     private IConfigurationClient configurationClient;
 
     /**
-     * 获取平台药师信息 用于前端展示：无选中发药药师 则获取默认发药药师
+     * 获取平台药师信息 无选择发药药师 则获取默认发药药师
      *
      * @param recipe 处方
      * @return
      */
-    public ApothecaryVO getApothecary(Integer organId, Recipe recipe) {
+    public ApothecaryVO getGiveUserDefault(Recipe recipe) {
         ApothecaryVO apothecaryVO = getApothecary(recipe);
         if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
             return apothecaryVO;
         }
-        DoctorDTO doctorDTO = oragnDefaultDispensingApothecary(organId);
+        DoctorDTO doctorDTO = oragnDefaultDispensingApothecary(recipe.getClinicOrgan());
         apothecaryVO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
         apothecaryVO.setGiveUserName(doctorDTO.getName());
         apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());
