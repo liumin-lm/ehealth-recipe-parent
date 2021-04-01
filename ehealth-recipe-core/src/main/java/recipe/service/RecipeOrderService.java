@@ -2331,12 +2331,12 @@ public class RecipeOrderService extends RecipeBaseService {
 
                 // 下单成功更新物流单号、物流公司
                 Map<String, Object> orderAttrMap = new HashedMap();
-                orderAttrMap.put("LogisticsCompany", enterprise.getLogisticsCompany());
+                orderAttrMap.put("LogisticsCompany", order.getLogisticsCompany());
 
                 orderAttrMap.put("TrackingNumber", trackingNumber);
                 recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
                 RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
-                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, enterprise.getLogisticsCompany(), order.getOrderId());
+                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, order.getLogisticsCompany(), order.getOrderId());
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
@@ -2407,7 +2407,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 业务编码
         logisticsOrder.setBusinessNo(order.getOrderCode());
         // 快递编码
-        logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany() + "");
+        logisticsOrder.setLogisticsCode(order.getLogisticsCompany() + "");
         // 寄件人姓名
         logisticsOrder.setConsignorName(enterprise.getConsignorName());
         // 寄件人手机号
