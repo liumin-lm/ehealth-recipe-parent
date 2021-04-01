@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class SignImgNode implements Serializable {
     private static final long serialVersionUID = -6566326647606097783L;
     /**
-     * 处方id
+     * 处方id 用于表示处方pdf 文件名称
      */
     private String recipeId;
     /**

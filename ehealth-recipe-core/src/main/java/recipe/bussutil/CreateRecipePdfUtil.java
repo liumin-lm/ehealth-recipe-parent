@@ -91,7 +91,7 @@ public class CreateRecipePdfUtil {
             URL url = giveUserImage.toURI().toURL();
             //获取pdf
             byte[] signFileByte = fileDownloadService.downloadAsByte(signImgNode.getSignFileFileId());
-            File signFilePDF = new File(signImgNode.getRecipeId() + new Date().toString() + ".pdf");
+            File signFilePDF = new File(signImgNode.getRecipeId() + System.currentTimeMillis() + ".pdf");
             @Cleanup InputStream input = new ByteArrayInputStream(signFileByte);
             @Cleanup OutputStream output = new FileOutputStream(signFilePDF);
             addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(), signImgNode.getX(), signImgNode.getY());
