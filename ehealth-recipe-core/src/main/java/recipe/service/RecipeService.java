@@ -2776,6 +2776,24 @@ public class RecipeService extends RecipeBaseService {
 
 
     /**
+     * 从缓存中删除异常同步情况
+     * @param organId
+     * @return
+     * @throws ParseException
+     */
+    @RpcService
+    public Long  getTimeByOrganId(Integer organId) throws ParseException {
+        long minutes =0L;
+        Map<String,Object> hget = (Map<String,Object>)redisClient.get(KEY_THE_DRUG_SYNC+organId.toString());
+        if ( hget != null){
+            Integer status = (Integer) hget.get("Status");
+            String date = (String) hget.get("Date");
+            minutes = timeDifference(date);
+        }
+        return minutes;
+    }
+
+    /**
      *   平台手动同步
      * @param organId
      * @param drugForms
@@ -2789,13 +2807,13 @@ public class RecipeService extends RecipeBaseService {
         Map<String,Object> hget = (Map<String,Object>)redisClient.get(KEY_THE_DRUG_SYNC+organId.toString());
         if ( hget != null){
             Integer status = (Integer) hget.get("Status");
-            if (status == 0){
-                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
-            }
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
             if(minutes < 10L){
                 throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
+            }
+            if (status == 0){
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
             }
         }
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
