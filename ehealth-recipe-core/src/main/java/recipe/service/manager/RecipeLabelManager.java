@@ -12,9 +12,9 @@ import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
@@ -79,8 +79,8 @@ public class RecipeLabelManager {
     public Recipe giveUserUpdate(Recipe recipe) {
         logger.info("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
         //获取 核对发药药师签名id
-        AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
-        if (StringUtils.isEmpty(attachSealPicDTO.getGiveUserSignImg())) {
+        ApothecaryVO apothecaryVO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        if (StringUtils.isEmpty(apothecaryVO.getGiveUserSignImg())) {
             return null;
         }
         //判断发药状态
@@ -102,7 +102,7 @@ public class RecipeLabelManager {
         }
         //修改pdf文件
         SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getGiveUser()
-                , attachSealPicDTO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f);
+                , apothecaryVO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f);
         Recipe recipeUpdate = new Recipe();
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
             signImgNode.setSignFileFileId(recipe.getChemistSignFile());
@@ -347,25 +347,33 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeMap is null!");
         }
+        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
         //处理性别转化
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         if (null != patientDTO && StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
             patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
         }
-        //签名字段替换
-        String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
-        String doctorSignImgToken = null == recipeMap.get("doctorSignImgToken") ? "" : recipeMap.get("doctorSignImgToken").toString();
-        if (!StringUtils.isAnyEmpty(doctorSignImg, doctorSignImgToken)) {
-            recipeMap.put("doctorSignImg,doctorSignImgToken", doctorSignImg + ByteUtils.COMMA + doctorSignImgToken);
+        //药品金额
+        RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
+        if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
+            recipeBean.setActualPrice(recipeOrder.getRecipeFee());
         }
-        String checkerSignImg = null == recipeMap.get("checkerSignImg") ? "" : recipeMap.get("checkerSignImg").toString();
-        String checkerSignImgToken = null == recipeMap.get("checkerSignImgToken") ? "" : recipeMap.get("checkerSignImgToken").toString();
-
-        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
-        if (!StringUtils.isAnyEmpty(checkerSignImg, checkerSignImgToken)) {
-            recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
-        } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText())) {
-            recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText());
+        /**签名字段替换*/
+        //医生签名图片
+        ApothecaryVO doctor = new ApothecaryVO();
+        doctor.setDoctorSignImg(ByteUtils.objValueOf(recipeMap.get("doctorSignImg")));
+        doctor.setDoctorSignImgToken(ByteUtils.objValueOf(recipeMap.get("doctorSignImgToken")));
+        recipeMap.put("doctorSignImg,doctorSignImgToken", JSON.toJSONString(doctor));
+        //审方药师签名图片
+        ApothecaryVO checker = new ApothecaryVO();
+        checker.setCheckerSignImg(ByteUtils.objValueOf(recipeMap.get("checkerSignImg")));
+        checker.setCheckerSignImgToken(ByteUtils.objValueOf(recipeMap.get("checkerSignImgToken")));
+        checker.setCheckApothecaryName(ByteUtils.objValueOf(recipeBean.getCheckerText()));
+        recipeMap.put("checkerSignImg,checkerSignImgToken", JSON.toJSONString(checker));
+        //核发药师签名图片
+        if (null != recipeOrder && DISPENSING_FLAG_DONE.equals(recipeOrder.getDispensingFlag()) && null != recipeBean) {
+            ApothecaryVO apothecaryVO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
+            recipeBean.setGiveUser(JSON.toJSONString(apothecaryVO));
         }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {
@@ -379,19 +387,6 @@ public class RecipeLabelManager {
                 if (null != recipeBean) {
                     recipeBean.setOrganName(boxDesc);
                 }
-            }
-        }
-        //药品金额
-        RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
-        if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
-            recipeBean.setActualPrice(recipeOrder.getRecipeFee());
-        }
-
-        if (null != recipeOrder && DISPENSING_FLAG_DONE.equals(recipeOrder.getDispensingFlag()) && null != recipeBean) {
-            //核发药师签名图片
-            AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
-            if (StringUtils.isAnyEmpty(attachSealPicDTO.getGiveUserSignImg(), attachSealPicDTO.getGiveUserSignImgToken())) {
-                recipeBean.setGiveUser(attachSealPicDTO.getGiveUserSignImg() + ByteUtils.COMMA + attachSealPicDTO.getGiveUserSignImgToken());
             }
         }
     }

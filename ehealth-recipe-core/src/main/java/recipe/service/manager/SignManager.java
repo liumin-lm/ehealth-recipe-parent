@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.AttachSealPicDTO;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import ctd.util.FileAuth;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,9 +53,9 @@ public class SignManager {
      * @param recipeId 处方id
      * @return
      */
-    public AttachSealPicDTO giveUser(Integer organId, String giveUser, Integer recipeId) {
+    public ApothecaryVO giveUser(Integer organId, String giveUser, Integer recipeId) {
         logger.info("SignManager giveUser organId:{} giveUser:{} recipeId:{}", organId, giveUser, recipeId);
-        AttachSealPicDTO attachSealPicDTO = new AttachSealPicDTO();
+        ApothecaryVO apothecaryVO = new ApothecaryVO();
         if (StringUtils.isNotEmpty(giveUser)) {
             Integer giveUserId;
             try {
@@ -64,24 +65,27 @@ public class SignManager {
             }
             String signImg = signImg(organId, giveUserId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
             if (StringUtils.isNotEmpty(signImg)) {
-                attachSealPicDTO.setGiveUserSignImg(signImg);
-            }
-            signImg = doctorClient.getDoctor(giveUserId).getSignImage();
-            if (StringUtils.isNotEmpty(signImg)) {
-                attachSealPicDTO.setGiveUserSignImg(signImg);
+                apothecaryVO.setGiveUserSignImg(signImg);
+            } else {
+                DoctorDTO doctorDTO = doctorClient.getDoctor(giveUserId);
+                if (StringUtils.isNotEmpty(doctorDTO.getSignImage())) {
+                    apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());
+                    apothecaryVO.setGiveUserName(doctorDTO.getName());
+                }
             }
         } else {
             DoctorDTO defaultGiveUser = doctorClient.oragnDefaultDispensingApothecary(organId);
             if (StringUtils.isNotEmpty(defaultGiveUser.getSignImage())) {
-                attachSealPicDTO.setGiveUserSignImg(defaultGiveUser.getSignImage());
+                apothecaryVO.setGiveUserSignImg(defaultGiveUser.getSignImage());
+                apothecaryVO.setGiveUserName(defaultGiveUser.getName());
             }
         }
-        if (StringUtils.isNotEmpty(attachSealPicDTO.getGiveUserSignImg())) {
-            String giveUserSignImgToken = FileAuth.instance().createToken(attachSealPicDTO.getGiveUserSignImg(), 3600L);
-            attachSealPicDTO.setGiveUserSignImgToken(giveUserSignImgToken);
+        if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserSignImg())) {
+            String giveUserSignImgToken = FileAuth.instance().createToken(apothecaryVO.getGiveUserSignImg(), 3600L);
+            apothecaryVO.setGiveUserSignImgToken(giveUserSignImgToken);
         }
-        logger.info("SignManager giveUser attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
-        return attachSealPicDTO;
+        logger.info("SignManager giveUser attachSealPicDTO:{}", JSON.toJSONString(apothecaryVO));
+        return apothecaryVO;
     }
 
     /**

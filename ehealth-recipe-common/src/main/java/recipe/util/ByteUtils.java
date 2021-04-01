@@ -1,5 +1,6 @@
 package recipe.util;
 
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -157,6 +158,17 @@ public class ByteUtils {
 			return Integer.valueOf(str);
 		} catch (Exception e) {
 			return 0;
+		}
+	}
+
+	public static String objValueOf(Object str) {
+		if (ObjectUtils.isEmpty(str)) {
+			return null;
+		}
+		try {
+			return String.valueOf(str);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 }
