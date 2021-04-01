@@ -46,6 +46,7 @@ import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
@@ -108,6 +109,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     /**
      * 待配送状态
      *
@@ -1406,10 +1409,14 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     }
 
     @RpcService
-    public DrugsEnterprise findByEnterpriseId(Integer id) {
+    public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
-        return drugsEnterprise;
+        DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
+        BeanUtils.copy(drugsEnterprise,drugsEnterpriseDTO);
+        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
+        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+        return drugsEnterpriseDTO;
     }
 
     /**

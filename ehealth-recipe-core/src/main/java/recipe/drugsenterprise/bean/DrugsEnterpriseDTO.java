@@ -1,31 +1,22 @@
-package com.ngari.recipe.entity;
+package recipe.drugsenterprise.bean;
 
+import com.ngari.recipe.entity.DrugEnterpriseLogistics;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
- * 药企
- * @company: ngarihealth
- * @author: 0184/yu_yun
- * @date:2016/6/6.
+ * @description：
+ * @author： whf
+ * @date： 2021-03-31 17:53
  */
-
-@Entity
 @Schema
-@Table(name = "cdr_drugsenterprise")
-@Access(AccessType.PROPERTY)
-public class DrugsEnterprise implements java.io.Serializable {
-
-    private static final long serialVersionUID = 7806649469165719455L;
+public class DrugsEnterpriseDTO implements Serializable {
 
     @ItemProperty(alias = "药企序号")
     private Integer id;
@@ -172,72 +163,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "寄件人街道编码")
     private String consignorStreet;
 
-    @Column(name = "consignorStreet")
-    public String getConsignorStreet() {
-        return consignorStreet;
-    }
 
-    public void setConsignorStreet(String consignorStreet) {
-        this.consignorStreet = consignorStreet;
-    }
+    private List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList;
 
-    @Column(name = "consignorName")
-    public String getConsignorName() {
-        return consignorName;
-    }
-
-    public void setConsignorName(String consignorName) {
-        this.consignorName = consignorName;
-    }
-
-    @Column(name = "consignorMobile")
-    public String getConsignorMobile() {
-        return consignorMobile;
-    }
-
-    public void setConsignorMobile(String consignorMobile) {
-        this.consignorMobile = consignorMobile;
-    }
-
-    @Column(name = "consignorProvince")
-    public String getConsignorProvince() {
-        return consignorProvince;
-    }
-
-    public void setConsignorProvince(String consignorProvince) {
-        this.consignorProvince = consignorProvince;
-    }
-
-    @Column(name = "consignorCity")
-    public String getConsignorCity() {
-        return consignorCity;
-    }
-
-    public void setConsignorCity(String consignorCity) {
-        this.consignorCity = consignorCity;
-    }
-
-    @Column(name = "consignorDistrict")
-    public String getConsignorDistrict() {
-        return consignorDistrict;
-    }
-
-    public void setConsignorDistrict(String consignorDistrict) {
-        this.consignorDistrict = consignorDistrict;
-    }
-
-    @Column(name = "consignorAddress")
-    public String getConsignorAddress() {
-        return consignorAddress;
-    }
-
-    public void setConsignorAddress(String consignorAddress) {
-        this.consignorAddress = consignorAddress;
-    }
-
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
     public Integer getId() {
         return id;
     }
@@ -246,7 +174,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.id = id;
     }
 
-    @Column(name = "Name")
     public String getName() {
         return name;
     }
@@ -255,7 +182,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.name = name;
     }
 
-    @Column(name = "enterpriseCode")
     public String getEnterpriseCode() {
         return enterpriseCode;
     }
@@ -264,7 +190,14 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.enterpriseCode = enterpriseCode;
     }
 
-    @Column(name = "appKey")
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
+    }
+
     public String getAppKey() {
         return appKey;
     }
@@ -273,7 +206,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.appKey = appKey;
     }
 
-    @Column(name = "Account", length = 20)
     public String getAccount() {
         return account;
     }
@@ -282,7 +214,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.account = account;
     }
 
-    @Column(name = "UserId")
     public String getUserId() {
         return userId;
     }
@@ -291,7 +222,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.userId = userId;
     }
 
-    @Column(name = "Password")
     public String getPassword() {
         return password;
     }
@@ -300,7 +230,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.password = password;
     }
 
-    @Column(name = "Tel")
     public String getTel() {
         return tel;
     }
@@ -309,7 +238,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.tel = tel;
     }
 
-    @Column(name = "CallSys")
     public String getCallSys() {
         return callSys;
     }
@@ -318,7 +246,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.callSys = callSys;
     }
 
-    @Column(name = "settlementMode")
     public Integer getSettlementMode() {
         return settlementMode;
     }
@@ -327,7 +254,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.settlementMode = settlementMode;
     }
 
-    @Column(name = "Token")
     public String getToken() {
         return token;
     }
@@ -336,7 +262,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.token = token;
     }
 
-    @Column(name = "AuthenUrl")
     public String getAuthenUrl() {
         return authenUrl;
     }
@@ -345,7 +270,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.authenUrl = authenUrl;
     }
 
-    @Column(name = "BusinessUrl")
     public String getBusinessUrl() {
         return businessUrl;
     }
@@ -354,7 +278,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.businessUrl = businessUrl;
     }
 
-    @Column(name = "CreateDate")
     public Date getCreateDate() {
         return createDate;
     }
@@ -363,7 +286,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.createDate = createDate;
     }
 
-    @Column(name = "LastModify")
     public Date getLastModify() {
         return lastModify;
     }
@@ -372,7 +294,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.lastModify = lastModify;
     }
 
-    @Column(name = "PayModeSupport")
     public Integer getPayModeSupport() {
         return payModeSupport;
     }
@@ -381,7 +302,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.payModeSupport = payModeSupport;
     }
 
-    @Column(name = "hosInteriorSupport")
     public Integer getHosInteriorSupport() {
         return hosInteriorSupport;
     }
@@ -390,7 +310,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.hosInteriorSupport = hosInteriorSupport;
     }
 
-    @Column(name = "orderType")
     public Integer getOrderType() {
         return orderType;
     }
@@ -399,7 +318,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.orderType = orderType;
     }
 
-    @Column(name = "Status")
     public Integer getStatus() {
         return status;
     }
@@ -408,7 +326,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.status = status;
     }
 
-    @Column(name = "Sort")
     public Integer getSort() {
         return sort;
     }
@@ -417,7 +334,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.sort = sort;
     }
 
-    @Column(name = "checkInventoryFlag")
     public Integer getCheckInventoryFlag() {
         return checkInventoryFlag;
     }
@@ -434,7 +350,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.createType = createType;
     }
 
-    @Column(name = "TransFeeDetail")
     public String getTransFeeDetail() {
         return transFeeDetail;
     }
@@ -443,7 +358,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.transFeeDetail = transFeeDetail;
     }
 
-    @Column(name = "isHosDep")
     public Integer getIsHosDep() {
         return isHosDep;
     }
@@ -452,7 +366,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.isHosDep = isHosDep;
     }
 
-    @Column(name = "memo")
     public String getMemo() {
         return memo;
     }
@@ -461,7 +374,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.memo = memo;
     }
 
-    @Column(name = "MedicalInsuranceSupport")
     public Integer getMedicalInsuranceSupport() {
         return medicalInsuranceSupport;
     }
@@ -470,7 +382,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.medicalInsuranceSupport = medicalInsuranceSupport;
     }
 
-    @Column(name = "storePayFlag")
     public Integer getStorePayFlag() {
         return storePayFlag;
     }
@@ -479,7 +390,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.storePayFlag = storePayFlag;
     }
 
-    @Column(name = "sendType")
     public Integer getSendType() {
         return sendType;
     }
@@ -488,7 +398,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.sendType = sendType;
     }
 
-    @Column(name = "expressFeePayWay")
     public Integer getExpressFeePayWay() {
         return expressFeePayWay;
     }
@@ -497,7 +406,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.expressFeePayWay = expressFeePayWay;
     }
 
-    @Column(name = "manageUnit")
     public String getManageUnit() {
         return manageUnit;
     }
@@ -506,7 +414,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.manageUnit = manageUnit;
     }
 
-    @Column(name = "showStoreFlag")
     public Integer getShowStoreFlag() {
         return showStoreFlag;
     }
@@ -515,7 +422,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.showStoreFlag = showStoreFlag;
     }
 
-    @Column(name = "downSignImgType")
     public Integer getDownSignImgType() {
         return downSignImgType;
     }
@@ -524,7 +430,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.downSignImgType = downSignImgType;
     }
 
-    @Column(name = "expressFeeType")
     public Integer getExpressFeeType() {
         return expressFeeType;
     }
@@ -533,39 +438,12 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.expressFeeType = expressFeeType;
     }
 
-    @Column(name = "operationType")
     public Integer getOperationType() {
         return operationType;
     }
 
     public void setOperationType(Integer operationType) {
         this.operationType = operationType;
-    }
-
-    @Column(name = "organId")
-    public Integer getOrganId() {
-        return organId;
-    }
-
-    public void setOrganId(Integer organId) {
-        this.organId = organId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {return true;}
-        if (o == null || getClass() != o.getClass()) {return false;}
-
-        DrugsEnterprise that = (DrugsEnterprise) o;
-
-        if (!id.equals(that.id)) {return false;}
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
     }
 
     public Integer getIsShowExpectSendDate() {
@@ -592,7 +470,6 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.sendDateText = sendDateText;
     }
 
-    @Column(name = "logisticsCompany")
     public Integer getLogisticsCompany() {
         return logisticsCompany;
     }
@@ -601,12 +478,75 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.logisticsCompany = logisticsCompany;
     }
 
-    @Column(name = "logisticsType")
     public Integer getLogisticsType() {
         return logisticsType;
     }
 
     public void setLogisticsType(Integer logisticsType) {
         this.logisticsType = logisticsType;
+    }
+
+    public String getConsignorName() {
+        return consignorName;
+    }
+
+    public void setConsignorName(String consignorName) {
+        this.consignorName = consignorName;
+    }
+
+    public String getConsignorMobile() {
+        return consignorMobile;
+    }
+
+    public void setConsignorMobile(String consignorMobile) {
+        this.consignorMobile = consignorMobile;
+    }
+
+    public String getConsignorProvince() {
+        return consignorProvince;
+    }
+
+    public void setConsignorProvince(String consignorProvince) {
+        this.consignorProvince = consignorProvince;
+    }
+
+    public String getConsignorCity() {
+        return consignorCity;
+    }
+
+    public void setConsignorCity(String consignorCity) {
+        this.consignorCity = consignorCity;
+    }
+
+    public String getConsignorDistrict() {
+        return consignorDistrict;
+    }
+
+    public void setConsignorDistrict(String consignorDistrict) {
+        this.consignorDistrict = consignorDistrict;
+    }
+
+    public String getConsignorAddress() {
+        return consignorAddress;
+    }
+
+    public void setConsignorAddress(String consignorAddress) {
+        this.consignorAddress = consignorAddress;
+    }
+
+    public String getConsignorStreet() {
+        return consignorStreet;
+    }
+
+    public void setConsignorStreet(String consignorStreet) {
+        this.consignorStreet = consignorStreet;
+    }
+
+    public List<DrugEnterpriseLogistics> getDrugEnterpriseLogisticsList() {
+        return drugEnterpriseLogisticsList;
+    }
+
+    public void setDrugEnterpriseLogisticsList(List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList) {
+        this.drugEnterpriseLogisticsList = drugEnterpriseLogisticsList;
     }
 }
