@@ -4,6 +4,7 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -23,11 +24,14 @@ public class DrugEnterpriseLogisticsBean implements Serializable {
     private Integer drugsEnterpriseId;
 
     @ItemProperty(alias = "是否默认物流公司 0 否 1是")
+    @NotNull
     private Integer isDefault;
 
     @ItemProperty(alias = "物流公司")
+    @NotNull
     private Integer logisticsCompany;
     @ItemProperty(alias = "物流公司名称")
+    @NotNull
     private String logisticsCompanyName;
 
     @ItemProperty(alias = "创建时间")
