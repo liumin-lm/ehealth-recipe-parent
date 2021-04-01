@@ -1,5 +1,8 @@
 package recipe.factory.status.constant;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 处方状态枚举
  *
@@ -63,6 +66,14 @@ public enum RecipeStatusEnum {
     public String getName() {
         return name;
     }
+
+
+    /**
+     * 待审核 list
+     */
+    public static final List<Integer> READY_CHECK = Arrays.asList(RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType()
+            , RECIPE_STATUS_SIGN_ING_CODE_PHA.getType()
+            , RECIPE_STATUS_SIGN_NO_CODE_PHA.getType(), RECIPE_STATUS_READY_CHECK_YS.getType());
 
     /**
      * 根据类型获取名称

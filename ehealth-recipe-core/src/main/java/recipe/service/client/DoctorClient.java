@@ -25,7 +25,7 @@ public class DoctorClient extends BaseClient {
     private IConfigurationClient configurationClient;
 
     /**
-     * 获取药师信息用于前端展示：无选中发药药师 则获取默认发药药师
+     * 获取平台药师信息 用于前端展示：无选中发药药师 则获取默认发药药师
      *
      * @param recipe 处方
      * @return
