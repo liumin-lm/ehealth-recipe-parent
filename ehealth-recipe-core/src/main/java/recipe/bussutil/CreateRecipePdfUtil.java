@@ -211,37 +211,7 @@ public class CreateRecipePdfUtil {
         }
         return fileId;
     }
-
-
-    /**
-     * 处方签pdf添加收货人信息
-     *
-     * @param stamper
-     * @param receiver
-     * @param recMobile
-     * @param completeAddress
-     * @param height
-     * @throws IOException
-     * @throws DocumentException
-     */
-    private static void addReceiverInfoRecipePdf(PdfStamper stamper, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
-        PdfContentByte page = stamper.getOverContent(1);
-        //将文字贴入pdf
-        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
-        page.beginText();
-        page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 10);
-        page.setTextMatrix(10, height);
-        page.showText("收货人姓名：" + receiver);
-        page.setTextMatrix(149, height);
-        page.showText("收货人电话：" + recMobile);
-        page.setTextMatrix(10, height - 12);
-        page.showText("收货人地址：" + completeAddress);
-        page.endText();
-    }
-
-
-
+    
     /**
      * pdf写入 药品价格
      */
@@ -320,6 +290,34 @@ public class CreateRecipePdfUtil {
         }
         organSealFile.delete();
         return fileId;
+    }
+
+
+    /**
+     * 处方签pdf添加收货人信息
+     *
+     * @param stamper
+     * @param receiver
+     * @param recMobile
+     * @param completeAddress
+     * @param height
+     * @throws IOException
+     * @throws DocumentException
+     */
+    private static void addReceiverInfoRecipePdf(PdfStamper stamper, String receiver, String recMobile, String completeAddress, Integer height) throws IOException, DocumentException {
+        PdfContentByte page = stamper.getOverContent(1);
+        //将文字贴入pdf
+        BaseFont bf = BaseFont.createFont(ClassLoader.getSystemResource("recipe/font/simhei.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 10);
+        page.setTextMatrix(10, height);
+        page.showText("收货人姓名：" + receiver);
+        page.setTextMatrix(149, height);
+        page.showText("收货人电话：" + recMobile);
+        page.setTextMatrix(10, height - 12);
+        page.showText("收货人地址：" + completeAddress);
+        page.endText();
     }
 
 
