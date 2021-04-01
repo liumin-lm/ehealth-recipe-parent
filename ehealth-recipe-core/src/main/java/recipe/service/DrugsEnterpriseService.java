@@ -132,7 +132,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
         // 写入药企关联物流公司信息
-        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans());
+        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(),newDrugsEnterprise.getId());
         //更新管理单元
         String manageUnit = "yq" + newDrugsEnterprise.getId();
         drugsEnterpriseDAO.updateManageUnitById(newDrugsEnterprise.getId(), manageUnit);
@@ -206,7 +206,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         }
         target = drugsEnterpriseDAO.update(target);
         // 写入药企关联物流公司信息
-        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans());
+        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(),target.getId());
 
         if (null != drugsEnterpriseBean.getCreateType() && 0 == drugsEnterpriseBean.getCreateType()) {
             //自建药企要存储药店信息

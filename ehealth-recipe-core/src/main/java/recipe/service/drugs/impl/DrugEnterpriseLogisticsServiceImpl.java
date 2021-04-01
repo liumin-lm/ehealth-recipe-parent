@@ -18,10 +18,9 @@ import java.util.List;
 public class DrugEnterpriseLogisticsServiceImpl implements IDrugEnterpriseLogisticsService {
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveDrugEnterpriseLogistics(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics) {
+    public void saveDrugEnterpriseLogistics(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics,Integer drugsEnterpriseId) {
         DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO = DAOFactory.getDAO(DrugEnterpriseLogisticsDAO.class);
-        Integer drugsEnterpriseId = drugEnterpriseLogistics.get(0).getDrugsEnterpriseId();
         drugEnterpriseLogisticsDAO.deleteByDrugsEnterpriseId(drugsEnterpriseId);
-        drugEnterpriseLogisticsDAO.saveAll(drugEnterpriseLogistics);
+        drugEnterpriseLogisticsDAO.saveAll(drugEnterpriseLogistics,drugsEnterpriseId);
     }
 }

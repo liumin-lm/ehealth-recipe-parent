@@ -49,8 +49,8 @@ public abstract class DrugEnterpriseLogisticsDAO extends HibernateSupportDelegat
      * @param drugEnterpriseLogistics
      * @return
      */
-    public Boolean saveAll(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics) {
-        return insertAll(drugEnterpriseLogistics);
+    public Boolean saveAll(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics,Integer drugsEnterpriseId) {
+        return insertAll(drugEnterpriseLogistics,drugsEnterpriseId);
     }
 
 
@@ -60,7 +60,7 @@ public abstract class DrugEnterpriseLogisticsDAO extends HibernateSupportDelegat
      * @param drugEnterpriseLogistics
      * @return
      */
-    private Boolean insertAll(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics) {
+    private Boolean insertAll(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics,Integer drugsEnterpriseId) {
         if (CollectionUtils.isEmpty(drugEnterpriseLogistics)) {
             return true;
         }
@@ -72,6 +72,7 @@ public abstract class DrugEnterpriseLogisticsDAO extends HibernateSupportDelegat
                 drugEnterpriseLogistics.forEach(drugEnterpriseLogisticsBean -> {
 
                     DrugEnterpriseLogistics drugEnterpriseLogistic = new DrugEnterpriseLogistics();
+                    drugEnterpriseLogistic.setDrugsEnterpriseId(drugsEnterpriseId);
                     BeanUtils.copy(drugEnterpriseLogisticsBean, drugEnterpriseLogistic);
                     drugEnterpriseLogistic.setCreateTime(new Date());
                     ss.insert(drugEnterpriseLogistic);

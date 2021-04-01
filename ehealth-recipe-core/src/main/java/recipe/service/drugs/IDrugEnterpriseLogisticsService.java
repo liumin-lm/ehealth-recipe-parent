@@ -16,5 +16,5 @@ public interface IDrugEnterpriseLogisticsService {
      *
      * @param drugEnterpriseLogistics
      */
-    void saveDrugEnterpriseLogistics(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics);
+    void saveDrugEnterpriseLogistics(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogistics,Integer drugsEnterpriseId);
 }
