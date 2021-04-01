@@ -69,9 +69,10 @@ public class RecipeOrderTwoService {
             logger.error("RecipeOrderTwoService updateRecipeGiveUser ", e);
         }
 
-        //更新pdf 与 处方字段
+        //更新pdf
         recipe.setGiveUser(giveUser.toString());
         Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
+        //更新处方字段
         if (null != recipeUpdate) {
             recipeUpdate.setGiveUser(giveUser.toString());
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);

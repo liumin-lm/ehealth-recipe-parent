@@ -70,8 +70,8 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         if (RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())) {
             Date date = new Date();
             recipeOrder.setPayTime(date);
-            recipe.setPayFlag(1);
             recipe.setPayDate(date);
+            recipe.setPayFlag(1);
         }
         if (null != orderStatus.getLogisticsCompany()) {
             recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
