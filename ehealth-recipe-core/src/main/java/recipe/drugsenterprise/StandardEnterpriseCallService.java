@@ -342,7 +342,6 @@ public class StandardEnterpriseCallService {
                 attrMap.put("giveDate", StringUtils.isEmpty(finishDTO.getDate()) ? DateTime.now().toDate() :
                         DateConversion.parseDate(finishDTO.getDate(), DateConversion.DEFAULT_DATE_TIME));
                 attrMap.put("giveFlag", 1);
-                attrMap.put("giveUser", finishDTO.getSender());
                 attrMap.put("payFlag", 1);
                 attrMap.put("payDate", DateTime.now().toDate());
                 //更新处方信息

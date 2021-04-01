@@ -41,7 +41,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
      * @param orderStatus
      * @return
      */
-    public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+    public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         logger.info("RecipeOrderStatusProxy updateOrderByStatus orderStatus = {}", JSON.toJSONString(orderStatus));
         Integer status = orderStatus.getTargetRecipeOrderStatus();
         if (null == status) {
@@ -49,7 +49,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         }
         IRecipeOrderStatusService factoryService = getFactoryService(status);
         //根据订单状态 更新处方状态
-        Recipe recipe = factoryService.updateStatus(orderStatus, recipeOrder);
+        factoryService.updateStatus(orderStatus, recipeOrder, recipe);
         orderStatus.setTargetRecipeStatus(recipe.getStatus());
         //更新处方状态
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);

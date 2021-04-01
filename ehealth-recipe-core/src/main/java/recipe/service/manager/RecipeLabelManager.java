@@ -1,5 +1,6 @@
 package recipe.service.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
@@ -8,6 +9,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.AttachSealPicDTO;
@@ -22,11 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
+import recipe.dao.RecipeOrderDAO;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -45,7 +50,7 @@ import java.util.*;
 @Service
 public class RecipeLabelManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
+    protected final static Integer DISPENSING_FLAG_DONE = 1;
     /**
      * 运营平台机构配置，处方签配置， 特殊字段替换展示
      */
@@ -62,6 +67,62 @@ public class RecipeLabelManager {
     private RedisClient redisClient;
     @Autowired
     private SignManager signManager;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+
+    /**
+     * 更新 pdf 核对发药
+     *
+     * @param recipe
+     * @return
+     */
+    public Recipe giveUserUpdate(Recipe recipe) {
+        logger.info("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
+        //获取 核对发药药师签名id
+        AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        if (StringUtils.isEmpty(attachSealPicDTO.getGiveUserSignImg())) {
+            return null;
+        }
+        //判断发药状态
+        if (StringUtils.isEmpty(recipe.getOrderCode())) {
+            return null;
+        }
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder || !DISPENSING_FLAG_DONE.equals(recipeOrder.getDispensingFlag())) {
+            return null;
+        }
+        //判断配置是否有核对发药
+        List<Scratchable> scratchableList = scratchableList(recipe.getClinicOrgan(), "moduleFour");
+        if (CollectionUtils.isEmpty(scratchableList)) {
+            return null;
+        }
+        boolean isGiveUser = scratchableList.stream().noneMatch(a -> "recipe.giveUser".equals(a.getBoxLink()));
+        if (isGiveUser) {
+            return null;
+        }
+        //修改pdf文件
+        SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getGiveUser()
+                , attachSealPicDTO.getGiveUserSignImg(), null, 50f, 20f, 190f, 96f);
+        Recipe recipeUpdate = new Recipe();
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+            signImgNode.setSignFileFileId(recipe.getChemistSignFile());
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+            if (StringUtils.isEmpty(newPfd)) {
+                return null;
+            }
+            recipeUpdate.setChemistSignFile(newPfd);
+        } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            signImgNode.setSignFileFileId(recipe.getSignFile());
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+            if (StringUtils.isEmpty(newPfd)) {
+                return null;
+            }
+            recipeUpdate.setSignFile(newPfd);
+        }
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        logger.info("RecipeLabelManager giveUserUpdate recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+        return recipeUpdate;
+    }
 
     /**
      * 获取电子病例模块
@@ -306,11 +367,6 @@ public class RecipeLabelManager {
         } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText())) {
             recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText());
         }
-        //核发药师签名图片
-        AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
-        if (StringUtils.isAnyEmpty(attachSealPicDTO.getGiveUserSignImg(), attachSealPicDTO.getGiveUserSignImgToken())) {
-            recipeBean.setGiveUser(attachSealPicDTO.getGiveUserSignImg() + ByteUtils.COMMA + attachSealPicDTO.getGiveUserSignImgToken());
-        }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {
             String boxDesc = null;
@@ -329,6 +385,14 @@ public class RecipeLabelManager {
         RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
         if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
             recipeBean.setActualPrice(recipeOrder.getRecipeFee());
+        }
+
+        if (null != recipeOrder && DISPENSING_FLAG_DONE.equals(recipeOrder.getDispensingFlag()) && null != recipeBean) {
+            //核发药师签名图片
+            AttachSealPicDTO attachSealPicDTO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
+            if (StringUtils.isAnyEmpty(attachSealPicDTO.getGiveUserSignImg(), attachSealPicDTO.getGiveUserSignImgToken())) {
+                recipeBean.setGiveUser(attachSealPicDTO.getGiveUserSignImg() + ByteUtils.COMMA + attachSealPicDTO.getGiveUserSignImgToken());
+            }
         }
     }
 

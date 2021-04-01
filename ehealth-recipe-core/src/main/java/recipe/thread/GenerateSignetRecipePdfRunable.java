@@ -52,7 +52,7 @@ public class GenerateSignetRecipePdfRunable implements Runnable {
         }
         try {
             //更新pdf
-            String newPfd = CreateRecipePdfUtil.generateSignetRecipePdf(recipe.getChemistSignFile(), organSealId.toString(), recipe.getRecipeType());
+            String newPfd = CreateRecipePdfUtil.generateSignetRecipePdf(recipe.getChemistSignFile(), organSealId.toString());
             if (StringUtils.isNotEmpty(newPfd)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
             }

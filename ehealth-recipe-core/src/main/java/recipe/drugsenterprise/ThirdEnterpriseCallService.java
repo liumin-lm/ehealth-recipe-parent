@@ -546,7 +546,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
-        attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
@@ -644,7 +643,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
-        attrMap.put("giveUser", sender);
         String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
         if (StringUtils.isNotEmpty(recipeFeeStr)) {
             attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));

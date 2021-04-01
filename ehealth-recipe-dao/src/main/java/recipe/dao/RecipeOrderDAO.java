@@ -30,7 +30,6 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.comment.ExtendDao;
 
 import java.math.BigDecimal;
@@ -1182,16 +1181,17 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     @DAOMethod(sql = "from RecipeOrder where orderCode in (:recipeCodes) and effective = 1", limit = 0)
     public abstract List<RecipeOrder> findValidListbyCodes(@DAOParam("recipeCodes") List<String> recipeCodes);
-    @DAOMethod(sql = "update RecipeOrder set dispensingApothecaryName=:dispensingApothecaryName,dispensingApothecaryIdCard=:dispensingApothecaryIdCard where orderId=:orderId")
-    public abstract void updateApothecaryByOrderId(@DAOParam("orderId") Integer orderId,
+
+    @DAOMethod(sql = "update RecipeOrder set dispensingApothecaryName=:dispensingApothecaryName,dispensingApothecaryIdCard=:dispensingApothecaryIdCard where orderCode=:orderCode")
+    public abstract void updateApothecaryByOrderId(@DAOParam("orderCode") String orderCode,
                                                    @DAOParam("dispensingApothecaryName") String dispensingApothecaryName,
                                                    @DAOParam("dispensingApothecaryIdCard") String dispensingApothecaryIdCard);
 
     @DAOMethod(sql = "from RecipeOrder where status =:status and effective = 1 and payFlag = 1 and enterpriseId =:enterpriseId ")
     public abstract List<RecipeOrder> findRecipeOrderByStatusAndEnterpriseId(@DAOParam("status") Integer status, @DAOParam("enterpriseId") Integer enterpriseId);
 
-    private String getManageUnit(String manageUnit){
-        if(StringUtils.isNotEmpty(manageUnit)){
+    private String getManageUnit(String manageUnit) {
+        if (StringUtils.isNotEmpty(manageUnit)) {
             return manageUnit;
         }
         UserRoleToken urt = UserRoleToken.getCurrent();
