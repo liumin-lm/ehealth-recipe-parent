@@ -76,6 +76,7 @@ public class DoctorClient extends BaseClient {
         Integer giveUserId = ByteUtils.strValueOf(recipe.getGiveUser());
         if (!ValidateUtil.integerIsEmpty(giveUserId)) {
             DoctorDTO doctorDTO = getDoctor(giveUserId);
+            apothecaryVO.setGiveUserIdCardCleartext(doctorDTO.getIdNumber());
             apothecaryVO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
             apothecaryVO.setGiveUserName(doctorDTO.getName());
             apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());

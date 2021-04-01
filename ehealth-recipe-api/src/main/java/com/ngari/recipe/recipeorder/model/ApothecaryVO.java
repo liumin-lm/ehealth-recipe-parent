@@ -31,4 +31,8 @@ public class ApothecaryVO extends AttachSealPicDTO implements Serializable {
 
     @ItemProperty(alias = "发药药师身份证")
     private String giveUserIdCard;
+    /**
+     * 发药药师身份证 明文 运营平台使用
+     */
+    private String giveUserIdCardCleartext;
 }
