@@ -102,7 +102,7 @@ public class RecipeLabelManager {
         }
         //修改pdf文件
         SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getGiveUser()
-                , attachSealPicDTO.getGiveUserSignImg(), null, 50f, 20f, 190f, 96f);
+                , attachSealPicDTO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f);
         Recipe recipeUpdate = new Recipe();
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
             signImgNode.setSignFileFileId(recipe.getChemistSignFile());
@@ -125,7 +125,7 @@ public class RecipeLabelManager {
     }
 
     /**
-     * 获取电子病例模块
+     * 获取处方签配置模块
      *
      * @param organId    机构id
      * @param moduleName 模块名称
