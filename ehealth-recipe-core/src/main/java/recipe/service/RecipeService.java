@@ -2809,7 +2809,7 @@ public class RecipeService extends RecipeBaseService {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
-            if(minutes < 10L){
+            if(minutes < 1L){
                 throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
             }
             if (status == 0){
