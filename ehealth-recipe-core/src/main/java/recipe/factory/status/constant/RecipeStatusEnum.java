@@ -71,8 +71,7 @@ public enum RecipeStatusEnum {
     /**
      * 待审核 list
      */
-    public static final List<Integer> READY_CHECK = Arrays.asList(RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType()
-            , RECIPE_STATUS_SIGN_ING_CODE_PHA.getType()
+    public static final List<Integer> READY_CHECK = Arrays.asList(RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RECIPE_STATUS_SIGN_ING_CODE_PHA.getType()
             , RECIPE_STATUS_SIGN_NO_CODE_PHA.getType(), RECIPE_STATUS_READY_CHECK_YS.getType());
 
     /**
