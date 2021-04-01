@@ -229,6 +229,7 @@ public class PayModeOnline implements IPurchaseService {
         Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
+        Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
@@ -350,6 +351,10 @@ public class PayModeOnline implements IPurchaseService {
             payModeNew = 2;
         }
         order.setPayMode(payModeNew);
+        // 在订单创建的时候写入物流公司信息
+        if(Objects.nonNull(logisticsCompany)) {
+            order.setLogisticsCompany(logisticsCompany);
+        }
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
