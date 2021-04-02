@@ -30,7 +30,7 @@ public class DrugEnterpriseLogistics {
     private Integer isDefault;
 
     @ItemProperty(alias = "物流公司")
-    @Dictionary(id = "eh.cdr.dictionary.LogisticsCode")
+//    @Dictionary(id = "eh.cdr.dictionary.LogisticsCode")
     private Integer logisticsCompany;
     @ItemProperty(alias = "物流公司名称")
     private String logisticsCompanyName;
