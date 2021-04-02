@@ -1412,6 +1412,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
+        if(Objects.isNull(drugsEnterprise)){
+            throw new DAOException(ErrorCode.SERVICE_SUCCEED, "DrugsEnterprise is null");
+        }
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
         BeanUtils.copy(drugsEnterprise,drugsEnterpriseDTO);
         List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
