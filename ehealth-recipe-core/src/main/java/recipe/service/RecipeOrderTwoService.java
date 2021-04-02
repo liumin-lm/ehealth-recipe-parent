@@ -61,8 +61,8 @@ public class RecipeOrderTwoService {
         if (StringUtils.isEmpty(recipe.getOrderCode())) {
             return result;
         }
-        //更新订单表字段 兼容老版本
         try {
+            //更新订单表字段 兼容老版本
             ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
             recipeOrderDAO.updateApothecaryByOrderId(recipe.getOrderCode(), apothecaryVO.getGiveUserName(), apothecaryVO.getGiveUserIdCard());
         } catch (Exception e) {
