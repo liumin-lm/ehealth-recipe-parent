@@ -3,7 +3,6 @@ package recipe.service.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
-import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import ctd.util.FileAuth;
 import org.apache.commons.lang3.StringUtils;
@@ -84,11 +83,19 @@ public class SignManager {
      * @param
      * @Author liumin
      */
-    public AttachSealPicDTO attachSealPic(Integer organId, Integer doctorId, Integer checker, Integer recipeId) {
+    public ApothecaryVO attachSealPic(Integer organId, Integer doctorId, Integer checker, Integer recipeId) {
         logger.info("SignManager attachSealPic param organId:{},doctorId:{},checker:{},recipeId:{}", organId, doctorId, checker, recipeId);
-        AttachSealPicDTO attachSealPicDTO = new AttachSealPicDTO();
+        ApothecaryVO attachSealPicDTO = new ApothecaryVO();
         attachSealPicDTO.setDoctorSignImg(signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_DOC));
+        if (StringUtils.isNotEmpty(attachSealPicDTO.getDoctorSignImg())) {
+            attachSealPicDTO.setDoctorId(doctorId);
+            attachSealPicDTO.setDoctorSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getDoctorSignImg(), 3600L));
+        }
         attachSealPicDTO.setCheckerSignImg(signImg(organId, checker, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA));
+        if (StringUtils.isNotEmpty(attachSealPicDTO.getCheckerSignImg())) {
+            attachSealPicDTO.setCheckerId(checker);
+            attachSealPicDTO.setCheckerSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getCheckerSignImg(), 3600L));
+        }
         logger.info("SignManager attachSealPic attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
         return attachSealPicDTO;
     }

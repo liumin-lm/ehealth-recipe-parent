@@ -20,12 +20,20 @@ public class ApothecaryVO extends AttachSealPicDTO implements Serializable {
     @ItemProperty(alias = "订单ID")
     private Integer recipeId;
 
+    @ItemProperty(alias = "医生签名Id")
+    private Integer doctorId;
+
+    @ItemProperty(alias = "审核药师Id")
+    private Integer checkerId;
+
     @ItemProperty(alias = "审核药师姓名")
     private String checkApothecaryName;
 
     @ItemProperty(alias = "审核药师身份证")
     private String checkApothecaryIdCard;
 
+    @ItemProperty(alias = "发药药师Id")
+    private Integer giveUserId;
     @ItemProperty(alias = "发药药师姓名")
     private String giveUserName;
 
