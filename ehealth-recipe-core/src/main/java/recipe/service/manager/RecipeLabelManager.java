@@ -493,7 +493,7 @@ public class RecipeLabelManager {
      * @return
      */
     private String getUseDays(String useDaysB, Integer useDays) {
-        if (StringUtils.isNotEmpty(useDaysB)) {
+        if (StringUtils.isNotEmpty(useDaysB) && !"0".equals(useDaysB)) {
             return useDaysB + "天";
         }
         if (!ValidateUtil.integerIsEmpty(useDays)) {
