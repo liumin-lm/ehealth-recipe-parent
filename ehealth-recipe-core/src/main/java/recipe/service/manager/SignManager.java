@@ -86,6 +86,7 @@ public class SignManager {
     public ApothecaryVO attachSealPic(Integer organId, Integer doctorId, Integer checker, Integer recipeId) {
         logger.info("SignManager attachSealPic param organId:{},doctorId:{},checker:{},recipeId:{}", organId, doctorId, checker, recipeId);
         ApothecaryVO attachSealPicDTO = new ApothecaryVO();
+        attachSealPicDTO.setRecipeId(recipeId);
         attachSealPicDTO.setDoctorSignImg(signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_DOC));
         if (StringUtils.isNotEmpty(attachSealPicDTO.getDoctorSignImg())) {
             attachSealPicDTO.setDoctorId(doctorId);
