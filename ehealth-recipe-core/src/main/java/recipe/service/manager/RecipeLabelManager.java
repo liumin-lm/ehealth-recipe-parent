@@ -80,9 +80,6 @@ public class RecipeLabelManager {
         logger.info("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
         //获取 核对发药药师签名id
         ApothecaryVO apothecaryVO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
-        if (StringUtils.isEmpty(apothecaryVO.getGiveUserSignImg())) {
-            return null;
-        }
         //判断发药状态
         if (StringUtils.isEmpty(recipe.getOrderCode())) {
             return null;
