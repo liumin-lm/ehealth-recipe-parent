@@ -2104,9 +2104,6 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("scanDrugStock", true);
 
                 }
-                HashedMap hashedMap = new HashedMap();
-                hashedMap.put("distributionFlag",1);
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId,hashedMap);
                 return rMap;
             }
         }
