@@ -2137,6 +2137,9 @@ public class RecipeServiceSub {
                 map.put("supportOnline", 0);
                 map.put("supportToHos", 0);
             }
+            if (new Integer(1).equals(recipe.getDistributionFlag())) {
+                map.put("supportToHos", 0);
+            }
         }
         //date 20200724 北京互联网按钮展示根据HIS进行判断
         if (new Integer(2).equals(recipe.getRecipeSource())) {
