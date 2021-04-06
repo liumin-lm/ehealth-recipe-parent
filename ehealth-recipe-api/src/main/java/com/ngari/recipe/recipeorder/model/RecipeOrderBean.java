@@ -296,6 +296,17 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "发药状态修改时间")
     private Date dispensingStatusAlterTime;
 
+    @Deprecated
+    /**
+     * 发药药师姓名 废弃字段兼容老版本暂时保留
+     */
+    private String dispensingApothecaryName;
+    @Deprecated
+    /**
+     * 发药药师身份证 废弃字段兼容老版本暂时保留
+     */
+    private String dispensingApothecaryIdCard;
+
     public Integer getLogisticsType() {
         return logisticsType;
     }
@@ -1023,5 +1034,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setDispensingStatusAlterTime(Date dispensingStatusAlterTime) {
         this.dispensingStatusAlterTime = dispensingStatusAlterTime;
+    }
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
     }
 }
