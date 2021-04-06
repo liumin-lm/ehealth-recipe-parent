@@ -2135,6 +2135,10 @@ public class RecipeServiceSub {
                 map.put("showSendToHos", 0);
                 map.put("supportTFDS", 0);
                 map.put("supportOnline", 0);
+                map.put("supportToHos", 0);
+            }
+            if (new Integer(1).equals(recipe.getDistributionFlag())) {
+                map.put("supportToHos", 0);
             }
         }
         //date 20200724 北京互联网按钮展示根据HIS进行判断
