@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.CARecipeTypeConstant;
+import recipe.dao.RecipeDAO;
 import recipe.service.client.DoctorClient;
 import recipe.service.client.IConfigurationClient;
 import recipe.sign.SignRecipeInfoService;
@@ -98,6 +99,9 @@ public class SignManager {
         return attachSealPicDTO;
     }
 
+    @Autowired
+    private RecipeDAO recipeDAO;
+
     /**
      * 签名图片取值规则：根据运营平台-机构配置里面"处方单和处方笺签名取值配置"来定，拿不到在拿平台
      *
@@ -108,19 +112,30 @@ public class SignManager {
      */
     private ApothecaryVO giveUser(Integer organId, Integer doctorId, Integer recipeId) {
         ApothecaryVO apothecaryVO = new ApothecaryVO();
+        Recipe recipe = new Recipe();
+        recipe.setRecipeId(recipeId);
+        recipe.setGiveUser(doctorId.toString());
+        recipe.setClinicOrgan(organId);
+        //todo 第三方ca特殊处理  等CA在表中增加doctorId后修改
+        String sealDataFrom = configurationClient.getValueCatch(organId, "sealDataFrom", CA_SEAL_PLAT_FORM);
+        if (CA_SEAL_THIRD.equals(sealDataFrom)) {
+            Recipe recipeChecker = recipeDAO.getByRecipeId(recipeId);
+            if (null == recipeChecker.getChecker() || !recipeChecker.getChecker().equals(doctorId)) {
+                ApothecaryVO giveUserDefault = doctorClient.getGiveUser(recipe);
+                apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
+            }
+        }
+        //获取签名图片
         String signImg = signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
         if (StringUtils.isNotEmpty(signImg)) {
             apothecaryVO.setGiveUserSignImg(signImg);
         } else {
-            Recipe recipe = new Recipe();
-            recipe.setRecipeId(recipeId);
-            recipe.setGiveUser(doctorId.toString());
-            recipe.setClinicOrgan(organId);
             ApothecaryVO giveUserDefault = doctorClient.getGiveUser(recipe);
             apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
         }
         return apothecaryVO;
     }
+
 
     /**
      * 获取手签图片
