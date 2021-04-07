@@ -49,7 +49,7 @@ public class DoctorClient extends BaseClient {
      * @return
      */
     public ApothecaryVO getApothecary(Recipe recipe) {
-        logger.info("getApothecary recipe:{} ", JSON.toJSONString(recipe));
+        logger.info("DoctorClient getApothecary recipe:{} ", JSON.toJSONString(recipe));
         ApothecaryVO apothecaryVO = getGiveUser(recipe);
         Integer apothecaryId = recipe.getChecker();
         if (!ValidateUtil.integerIsEmpty(apothecaryId)) {
@@ -57,7 +57,7 @@ public class DoctorClient extends BaseClient {
             apothecaryVO.setCheckApothecaryIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
             apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
         }
-        logger.info("getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
+        logger.info("DoctorClient getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
         return apothecaryVO;
     }
 
@@ -68,6 +68,7 @@ public class DoctorClient extends BaseClient {
      * @return
      */
     public ApothecaryVO getGiveUser(Recipe recipe) {
+        logger.info("DoctorClient getGiveUser recipe:{} ", JSONUtils.toString(recipe));
         ApothecaryVO apothecaryVO = new ApothecaryVO();
         apothecaryVO.setRecipeId(recipe.getRecipeId());
         if (StringUtils.isEmpty(recipe.getGiveUser())) {
@@ -81,6 +82,7 @@ public class DoctorClient extends BaseClient {
             apothecaryVO.setGiveUserName(doctorDTO.getName());
             apothecaryVO.setGiveUserSignImg(doctorDTO.getSignImage());
         }
+        logger.info("DoctorClient getGiveUser apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
         return apothecaryVO;
     }
 

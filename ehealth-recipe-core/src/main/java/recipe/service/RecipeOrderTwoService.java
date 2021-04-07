@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,7 @@ public class RecipeOrderTwoService {
             //更新订单表字段 兼容老版本
             ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
             recipeOrderDAO.updateApothecaryByOrderId(recipe.getOrderCode(), apothecaryVO.getGiveUserName(), apothecaryVO.getGiveUserIdCard());
+            logger.info("RecipeOrderTwoService updateRecipeGiveUser OrderCode{}, apothecaryVO:{} ", recipe.getOrderCode(), JSONUtils.toString(apothecaryVO));
         } catch (Exception e) {
             logger.error("RecipeOrderTwoService updateRecipeGiveUser ", e);
         }
