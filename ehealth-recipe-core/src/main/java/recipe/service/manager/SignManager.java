@@ -123,6 +123,7 @@ public class SignManager {
             if (null == recipeChecker.getChecker() || !recipeChecker.getChecker().equals(doctorId)) {
                 ApothecaryVO giveUserDefault = doctorClient.getGiveUser(recipe);
                 apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
+                return apothecaryVO;
             }
         }
         //获取签名图片
