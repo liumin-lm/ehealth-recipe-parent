@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>3.4.0.2.master-SNAPSHOT</version>
+        <version>3.4.2.7.feature20210427-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
