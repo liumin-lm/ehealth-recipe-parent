@@ -50,7 +50,6 @@ import java.util.*;
 @Service
 public class RecipeLabelManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final static Integer DISPENSING_DEFAULT = 0;
     /**
      * 运营平台机构配置，处方签配置， 特殊字段替换展示
      */
@@ -85,7 +84,7 @@ public class RecipeLabelManager {
             return null;
         }
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        if (null == recipeOrder || DISPENSING_DEFAULT.equals(recipeOrder.getDispensingFlag())) {
+        if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             return null;
         }
         //判断配置是否有核对发药
@@ -368,7 +367,7 @@ public class RecipeLabelManager {
         checker.setCheckApothecaryName(ByteUtils.objValueOf(recipeBean.getCheckerText()));
         recipeMap.put("checkerSignImg,checkerSignImgToken", JSON.toJSONString(checker));
         //核发药师签名图片
-        if (null != recipeOrder && !DISPENSING_DEFAULT.equals(recipeOrder.getDispensingFlag()) && null != recipeBean) {
+        if (null != recipeOrder && null != recipeOrder.getDispensingTime()) {
             ApothecaryVO apothecaryVO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
             recipeBean.setGiveUser(JSON.toJSONString(apothecaryVO));
         }
