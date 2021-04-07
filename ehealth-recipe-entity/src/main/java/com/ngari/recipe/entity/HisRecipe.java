@@ -125,6 +125,10 @@ public class HisRecipe implements Serializable {
     private String decoctionCode;
     @ItemProperty(alias = "煎法名称")
     private String decoctionText;
+    @ItemProperty(alias = "药师姓名")
+    private String checkerName;
+    @ItemProperty(alias = "药师工号")
+    private String checkerCode;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -573,5 +577,23 @@ public class HisRecipe implements Serializable {
 
     public void setDecoctionText(String decoctionText) {
         this.decoctionText = decoctionText;
+    }
+
+    @Column(name = "checkerName")
+    public String getCheckerName() {
+        return checkerName;
+    }
+
+    public void setCheckerName(String checkerName) {
+        this.checkerName = checkerName;
+    }
+
+    @Column(name = "checkerCode")
+    public String getCheckerCode() {
+        return checkerCode;
+    }
+
+    public void setCheckerCode(String checkerCode) {
+        this.checkerCode = checkerCode;
     }
 }

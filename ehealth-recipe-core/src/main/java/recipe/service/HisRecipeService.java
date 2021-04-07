@@ -855,7 +855,9 @@ public class HisRecipeService {
                 hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum()==null?null:String.valueOf(queryHisRecipResTO.getTcmNum()));
                 //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
                 hisRecipe.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
-
+                //审核药师
+                hisRecipe.setCheckerCode(queryHisRecipResTO.getCheckerCode());
+                hisRecipe.setCheckerName(queryHisRecipResTO.getCheckerName());
                 try {
                     hisRecipe = hisRecipeDAO.save(hisRecipe);
                     LOGGER.info("saveHisRecipeInfo hisRecipe:{} 当前时间：{}",hisRecipe, System.currentTimeMillis());
@@ -1170,6 +1172,16 @@ public class HisRecipeService {
             }
         }
 
+        if (StringUtils.isNotEmpty(hisRecipe.getCheckerCode())) {
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+                recipe.setChecker(employmentDTO.getDoctorId());
+                recipe.setCheckerText(hisRecipe.getCheckerName());
+            } else {
+                LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
+            }
+        }
         recipe.setDoctorName(hisRecipe.getDoctorName());
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setSignDate(hisRecipe.getCreateDate());

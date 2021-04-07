@@ -1860,6 +1860,12 @@ public class RecipeServiceSub {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
+
+        //线下转线上的处方  设置默认审方药师
+        if (recipe.getRecipeSourceType().equals(2)) {
+
+        }
+
         //处理审核药师
         if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
             recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
