@@ -350,7 +350,7 @@ public class RecipeLabelManager {
             patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
         }
         //药品金额
-        RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
+        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeBean.getRecipeId());
         if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
             recipeBean.setActualPrice(recipeOrder.getRecipeFee());
         }
