@@ -1,6 +1,7 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
@@ -56,17 +57,12 @@ public class SignManager {
     public ApothecaryVO giveUser(Integer organId, String giveUser, Integer recipeId) {
         logger.info("SignManager giveUser organId:{} giveUser:{} recipeId:{}", organId, giveUser, recipeId);
         Integer giveUserId = ByteUtils.strValueOf(giveUser);
-        String signImg = signImg(organId, giveUserId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
-        ApothecaryVO apothecaryVO = new ApothecaryVO();
-        if (StringUtils.isNotEmpty(signImg)) {
-            apothecaryVO.setGiveUserSignImg(signImg);
+        ApothecaryVO apothecaryVO;
+        if (!ValidateUtil.integerIsEmpty(giveUserId)) {
+            apothecaryVO = giveUser(organId, giveUserId, recipeId);
         } else {
-            Recipe recipe = new Recipe();
-            recipe.setRecipeId(recipeId);
-            recipe.setGiveUser(giveUser);
-            recipe.setClinicOrgan(organId);
-            ApothecaryVO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
-            apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
+            DoctorDTO doctorDTO = doctorClient.oragnDefaultDispensingApothecary(organId);
+            apothecaryVO = giveUser(organId, doctorDTO.getDoctorId(), recipeId);
         }
         if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserSignImg())) {
             String giveUserSignImgToken = FileAuth.instance().createToken(apothecaryVO.getGiveUserSignImg(), 3600L);
@@ -75,6 +71,7 @@ public class SignManager {
         logger.info("SignManager giveUser attachSealPicDTO:{}", JSON.toJSONString(apothecaryVO));
         return apothecaryVO;
     }
+
 
     /**
      * 根据配置项sealDataFrom获取签章图片
@@ -102,6 +99,30 @@ public class SignManager {
     }
 
     /**
+     * 签名图片取值规则：根据运营平台-机构配置里面"处方单和处方笺签名取值配置"来定，拿不到在拿平台
+     *
+     * @param organId  机构id
+     * @param doctorId 药师id
+     * @param recipeId 处方id
+     * @return
+     */
+    private ApothecaryVO giveUser(Integer organId, Integer doctorId, Integer recipeId) {
+        ApothecaryVO apothecaryVO = new ApothecaryVO();
+        String signImg = signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
+        if (StringUtils.isNotEmpty(signImg)) {
+            apothecaryVO.setGiveUserSignImg(signImg);
+        } else {
+            Recipe recipe = new Recipe();
+            recipe.setRecipeId(recipeId);
+            recipe.setGiveUser(doctorId.toString());
+            recipe.setClinicOrgan(organId);
+            ApothecaryVO giveUserDefault = doctorClient.getGiveUser(recipe);
+            apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
+        }
+        return apothecaryVO;
+    }
+
+    /**
      * 获取手签图片
      *
      * @param organId  机构id
@@ -111,8 +132,8 @@ public class SignManager {
      * @return
      */
     private String signImg(Integer organId, Integer doctorId, Integer recipeId, Integer type) {
-        logger.info("SignManager signImg param organId:{},doctorId:{},recipeId:{},recipeId:{}", organId, doctorId, recipeId, type);
-        if (ValidateUtil.integerIsEmpty(organId) || ValidateUtil.integerIsEmpty(doctorId) || ValidateUtil.integerIsEmpty(recipeId)) {
+        logger.info("SignManager signImg param organId:{},doctorId:{},recipeId:{},type:{}", organId, doctorId, recipeId, type);
+        if (ValidateUtil.integerIsEmpty(organId)) {
             return null;
         }
         //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
