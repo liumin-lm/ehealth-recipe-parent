@@ -2981,9 +2981,11 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.info("drugInfoSynMovement 新增失败,", organDrugInfoTO);
                     }
                 }
-                if (!commit){
-                    drugToolService.drugCommit(null,organId);
-                    LOGGER.info("drugInfoSynMovement 自动提交完成,organID=",organId);
+                if (commit != null){
+                    if (!commit){
+                        drugToolService.drugCommit(null,organId);
+                        LOGGER.info("drugInfoSynMovement 自动提交完成,organID=",organId);
+                    }
                 }
             }else if (way == 2){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
