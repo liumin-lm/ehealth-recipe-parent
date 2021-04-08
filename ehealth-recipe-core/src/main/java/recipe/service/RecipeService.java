@@ -604,7 +604,7 @@ public class RecipeService extends RecipeBaseService {
 
 
     /**
-     * 药师审核不通过的情况下，医生重新开处方
+     * 药师审核不通过的情况下，医生重新开处方   审核不通过的时候，重新开具处方按钮
      *
      * @param recipeId
      * @return
@@ -612,6 +612,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public List<RecipeDetailBean> reCreatedRecipe(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        //查询现有（原来）处方数据信息
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
         if (null == dbRecipe) {
             LOGGER.error("reCreatedRecipe 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
@@ -623,7 +624,7 @@ public class RecipeService extends RecipeBaseService {
             return Lists.newArrayList();
         }
         //date 2020/1/2
-        //发送二次不通过消息判断是否是二次审核不通过
+        //发送二次不通过消息判断是否是二次审核不通过  运营平台存在一个开关（二次审核，药师审核不通过，医生再次进行审核的时候可强制通过）
         if (!RecipecCheckStatusConstant.Check_Normal.equals(dbRecipe.getCheckStatus())) {
             //添加发送不通过消息
             RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
@@ -1505,7 +1506,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 重试
+     * 重试   当状态为  11（his写入失败） 19（处方医保状态上传失败） 43（审方接口异常）的时候出现的情况  已取消的状态
      *
      * @param recipeId
      */
@@ -1515,13 +1516,20 @@ public class RecipeService extends RecipeBaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
-        Integer status = recipeDAO.getStatusByRecipeId(recipeId);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
         //date 20191127
         //重试功能添加his写入失败的处方
-        if (null == status || (status != RecipeStatusConstant.CHECKING_HOS && status != RecipeStatusConstant.HIS_FAIL)) {
+        if (null==recipe||null == recipe.getStatus() || (recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
+        //his写回提示，处方推送成功，否则再次推送
+        String recipeCode = recipe.getRecipeCode();
+        if (StringUtils.isNotEmpty(recipeCode)){
+            resultBean.setMsg("处方已推送成功");
+        }
+        LOGGER.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(recipe));
         //HIS消息发送
         RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
         if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
