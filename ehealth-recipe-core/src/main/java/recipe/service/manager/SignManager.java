@@ -114,7 +114,7 @@ public class SignManager {
         ApothecaryVO apothecaryVO = new ApothecaryVO();
         Recipe recipe = new Recipe();
         recipe.setRecipeId(recipeId);
-        recipe.setGiveUser(doctorId.toString());
+        recipe.setGiveUser(ByteUtils.objValueOf(doctorId));
         recipe.setClinicOrgan(organId);
         //todo 第三方ca特殊处理  等CA在表中增加doctorId后修改
         String sealDataFrom = configurationClient.getValueCatch(organId, "sealDataFrom", CA_SEAL_PLAT_FORM);
