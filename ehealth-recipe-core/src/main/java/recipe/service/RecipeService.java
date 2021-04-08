@@ -2829,9 +2829,6 @@ public class RecipeService extends RecipeBaseService {
         Boolean commit = organConfigService.getByOrganIdEnableDrugSyncArtificial(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-        if (CollectionUtils.isEmpty(details)) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "该机构未查询到药品!");
-        }
         OrganDrugInfoRequestTO  request = new OrganDrugInfoRequestTO();
         request.setOrganId(organId);
         //查询全部药品信息，返回的是医院所有有效的药品信息
@@ -2851,7 +2848,10 @@ public class RecipeService extends RecipeBaseService {
         if (ObjectUtils.isEmpty(data)){
             throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
         }
-        Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        Map<String, OrganDrugList> drugMap =Maps.newHashMap();
+        if (!CollectionUtils.isEmpty(details)) {
+            drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        }
         LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
         return drugInfoSynMovementExt(organId,drugForms,data,drugMap,urt.getUserName(),sync,add,commit);
     }
