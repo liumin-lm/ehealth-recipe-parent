@@ -24,7 +24,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -55,8 +54,6 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
-import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
-import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
@@ -68,6 +65,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * 处方业务一些列表查询
@@ -283,6 +284,14 @@ public class RecipeListService extends RecipeBaseService {
         return ObjectCopyUtils.convert(processListDate(backList, allMpiIds), PatientRecipeDS.class);
     }
 
+
+    /**
+    * rpc接口不支持重载，线上异常，紧急处理bug#65156
+    **/
+    @RpcService
+    public List<PatientRecipeDTO> findPatientAllRecipes(String mpiId, Integer index, Integer limit){
+        return findAllRecipesForPatient(mpiId,index,limit);
+    }
     /**
      * 获取所有处方单信息
      * 患者端没有用到
