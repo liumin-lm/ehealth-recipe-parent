@@ -2980,6 +2980,7 @@ public class RecipeService extends RecipeBaseService {
                 }
                 if (!commit){
                     drugToolService.drugCommit(null,organId);
+                    LOGGER.info("drugInfoSynMovement 自动提交完成,organID=",organId);
                 }
             }else if (way == 2){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
@@ -4457,6 +4458,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organId
      */
+    @RpcService
     private void addHisDrug(OrganDrugInfoTO drug ,Integer organId,String operator) {
         DrugListMatch drugListMatch=new DrugListMatch();
 
