@@ -746,6 +746,12 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
+        //获取处方回写单号  提示推送成功，否则继续推送
+        String recipeCode = dbRecipe.getRecipeCode();
+        if (StringUtils.isNotEmpty(recipeCode)){
+            resultBean.setMsg("处方已推送成功");
+        }
+        LOG.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(dbRecipe));
         //发送HIS处方开具消息
         RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
         RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
