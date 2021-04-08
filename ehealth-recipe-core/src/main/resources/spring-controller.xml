@@ -5,7 +5,7 @@
        			http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <!-- service register center -->
-    <ngari:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+    <ngari:applicationDomain name="eh" registryAddress="zookeeper://172.20.1.58:5181" serverId="recipe" region="renfuhao"/>
     <ngari:connector url="${url}">
         <ngari:filter id="json"/>
         <ngari:filter id="urt"/>
@@ -18,7 +18,7 @@
     zookeeper://172.20.1.58:4181 FAT
     zookeeper://zk.ngarihealth.com:6666 UAT
     zookeeper://172.20.1.58:7181  f5环境
-    zookeeper://zk.ngarihealth.com:9999  devtest环境
+    zookeeper://172.20.1.58:5181  devtest环境
     zookeeper://zk.ngarihealth.com:8888  shishi环境
     zookeeper://zk.ngarihealth.com:7777  f6环境
     zookeeper://zk.ngarihealth.com:8899  f7环境
