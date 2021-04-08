@@ -2976,6 +2976,7 @@ public class RecipeService extends RecipeBaseService {
             if (way == 1){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     addHisDrug(organDrugInfoTO,organId,operator);
+                    LOGGER.error("drugInfoSynMovement 新增,", organDrugInfoTO);
                 }
                 if (!commit){
                     drugToolService.drugCommit(null,organId);
@@ -2984,6 +2985,7 @@ public class RecipeService extends RecipeBaseService {
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrugInfoTO.getOrganDrugCode());
                     updateHisOrganDrug(organDrugInfoTO,byOrganIdAndOrganDrugCode,organId);
+                    LOGGER.error("drugInfoSynMovement 修改,", organDrugInfoTO);
                 }
             }
         }
