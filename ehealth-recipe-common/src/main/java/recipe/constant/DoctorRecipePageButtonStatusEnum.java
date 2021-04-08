@@ -29,7 +29,7 @@ public enum DoctorRecipePageButtonStatusEnum {
     /**
      * 重新编辑--His写入失败 11
      */
-    reOpenRecipeEditor("reOpenRecipeEditor",Arrays.asList(RecipeStatusConstant.HIS_FAIL)),
+    reOpenRecipeEditorFlag("reOpenRecipeEditor",Arrays.asList(RecipeStatusConstant.HIS_FAIL)),
     /**续方--
      * 已完成 6
      * 未处理  14
