@@ -749,7 +749,11 @@ public class RecipeSignService {
         //获取处方回写单号  提示推送成功，否则继续推送
         String recipeCode = dbRecipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)){
+            resultBean.setCode(RecipeResultBean.PUSHSUCCESS);
             resultBean.setMsg("处方已推送成功");
+        }else {
+            resultBean.setCode(RecipeResultBean.SUCCESS);
+            resultBean.setMsg("已重新提交医院系统");
         }
         LOG.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(dbRecipe));
         //发送HIS处方开具消息

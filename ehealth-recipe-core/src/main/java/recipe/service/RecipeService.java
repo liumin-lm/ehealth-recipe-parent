@@ -1527,7 +1527,11 @@ public class RecipeService extends RecipeBaseService {
         //his写回提示，处方推送成功，否则再次推送
         String recipeCode = recipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)){
+            resultBean.setCode(RecipeResultBean.PUSHSUCCESS);
             resultBean.setMsg("处方已推送成功");
+        }else {
+            resultBean.setCode(RecipeResultBean.SUCCESS);
+            resultBean.setMsg("已重新提交医院系统");
         }
         LOGGER.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(recipe));
         //HIS消息发送

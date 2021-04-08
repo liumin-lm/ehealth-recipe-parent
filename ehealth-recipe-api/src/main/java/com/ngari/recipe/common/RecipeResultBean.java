@@ -22,6 +22,8 @@ public class RecipeResultBean implements Serializable {
 
     public static final Integer CHECKFAIL = 5;
 
+    public static final Integer PUSHSUCCESS = 6;
+
     private static final long serialVersionUID = 8407331602023924130L;
 
     private Integer code;
