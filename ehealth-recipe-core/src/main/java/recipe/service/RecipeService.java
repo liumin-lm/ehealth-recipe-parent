@@ -2975,8 +2975,11 @@ public class RecipeService extends RecipeBaseService {
         if (list != null && list.size() > 0){
             if (way == 1){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
-                    addHisDrug(organDrugInfoTO,organId,operator);
-                    LOGGER.info("drugInfoSynMovement 新增,", organDrugInfoTO);
+                    try {
+                        addHisDrug(organDrugInfoTO,organId,operator);
+                    } catch (Exception e) {
+                        LOGGER.info("drugInfoSynMovement 新增失败,", organDrugInfoTO);
+                    }
                 }
                 if (!commit){
                     drugToolService.drugCommit(null,organId);
@@ -2985,8 +2988,11 @@ public class RecipeService extends RecipeBaseService {
             }else if (way == 2){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrugInfoTO.getOrganDrugCode());
-                    updateHisOrganDrug(organDrugInfoTO,byOrganIdAndOrganDrugCode,organId);
-                    LOGGER.info("drugInfoSynMovement 修改,", organDrugInfoTO);
+                    try {
+                        updateHisOrganDrug(organDrugInfoTO,byOrganIdAndOrganDrugCode,organId);
+                    } catch (Exception e) {
+                        LOGGER.info("drugInfoSynMovement 修改失败,", organDrugInfoTO);
+                    }
                 }
             }
         }
