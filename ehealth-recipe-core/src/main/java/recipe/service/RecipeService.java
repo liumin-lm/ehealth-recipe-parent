@@ -2957,7 +2957,7 @@ public class RecipeService extends RecipeBaseService {
                     addOrUpdateDrugInfoSynMovement(organId,addList,1,operator,commit);
                     addOrUpdateDrugInfoSynMovement(organId,updateList,2,operator,commit);
                 } catch (InterruptedException e) {
-                    LOGGER.error("drugInfoSynMovement list新增修改,", e);
+                    LOGGER.info("drugInfoSynMovement list新增修改,", e);
                 }
                 map.put("addNum",addNum);
                 map.put("updateNum",updateNum);
@@ -2976,6 +2976,7 @@ public class RecipeService extends RecipeBaseService {
             if (way == 1){
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     addHisDrug(organDrugInfoTO,organId,operator);
+                    LOGGER.info("drugInfoSynMovement 新增,", organDrugInfoTO);
                 }
                 if (!commit){
                     drugToolService.drugCommit(null,organId);
@@ -2984,6 +2985,7 @@ public class RecipeService extends RecipeBaseService {
                 for (OrganDrugInfoTO organDrugInfoTO : list) {
                     OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrugInfoTO.getOrganDrugCode());
                     updateHisOrganDrug(organDrugInfoTO,byOrganIdAndOrganDrugCode,organId);
+                    LOGGER.info("drugInfoSynMovement 修改,", organDrugInfoTO);
                 }
             }
         }
