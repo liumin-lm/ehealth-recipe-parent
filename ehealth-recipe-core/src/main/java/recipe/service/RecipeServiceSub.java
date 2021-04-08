@@ -1862,14 +1862,20 @@ public class RecipeServiceSub {
         }
 
         //线下转线上的处方  设置默认审方药师
-        if (recipe.getRecipeSourceType().equals(2)) {
-
+        if (recipe.getRecipeSourceType().equals(2) && recipe.getChecker() == null) {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
+            if (doctorId != null) {
+                DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
+                recipeBean.setCheckerText(defaultDoctor.getName());
+                recipeBean.setChecker(Integer.valueOf(doctorId));
+            }
         }
 
         //处理审核药师
         if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
             recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS)) {
+            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS)) {
             recipeBean.setCheckerText("");
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {

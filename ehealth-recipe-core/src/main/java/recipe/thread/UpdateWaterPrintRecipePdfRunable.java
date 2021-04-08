@@ -11,6 +11,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
+import recipe.util.DateConversion;
 
 /**
  *  所有ca模式在医生签名完成后异步添加水印
@@ -51,8 +52,10 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
             if (null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) {
                 return;
             }
+            Boolean isShowTime = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintRecipeWithTime");
+            String dateFormatter = DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy/MM/dd HH:mm");
             if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), waterPrintText.toString());
+                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), waterPrintText.toString() + (isShowTime? " " +dateFormatter:""));
                 key = "SignFile";
             } else {
                 logger.warn("UpdateWaterPrintRecipePdfRunable file is null  recipeId={}", recipeId);
