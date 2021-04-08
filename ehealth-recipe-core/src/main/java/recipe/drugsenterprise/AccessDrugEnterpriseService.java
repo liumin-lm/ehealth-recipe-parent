@@ -82,7 +82,7 @@ public abstract class AccessDrugEnterpriseService {
                 try {
                     RecipeBusiThreadPool.submitList(callables);
                 } catch (InterruptedException e) {
-                    LOGGER.error("updateAccessToken 线程池异常",e);
+                    LOGGER.error("updateAccessToken 线程池异常", e);
                 }
             }
         }
@@ -130,7 +130,7 @@ public abstract class AccessDrugEnterpriseService {
             try {
                 address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
             }
         }
     }
@@ -170,6 +170,7 @@ public abstract class AccessDrugEnterpriseService {
     public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
 
     }
+
     /**
      * 推送处方
      *
@@ -182,18 +183,17 @@ public abstract class AccessDrugEnterpriseService {
     /**
      * 通过前置机直接推送处方
      *
-     * @param hospitalRecipeDTO  前置机传入的处方信息
-     * @param enterprise         药企
-     * @return                   推送结果
+     * @param hospitalRecipeDTO 前置机传入的处方信息
+     * @param enterprise        药企
+     * @return 推送结果
      */
     public abstract DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise);
 
 
     /**
-     *
-     * @param drugId  药品ID
-     * @param drugsEnterprise  药企
-     * @return  库存
+     * @param drugId          药品ID
+     * @param drugsEnterprise 药企
+     * @return 库存
      */
     public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId);
 
@@ -235,10 +235,10 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public abstract DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
-    
+
     /**
-     * @param rxId  处⽅Id
-     * @param queryOrder  是否查询订单
+     * @param rxId       处⽅Id
+     * @param queryOrder 是否查询订单
      * @return 处方单
      */
     public DrugEnterpriseResult queryPrescription(String rxId, Boolean queryOrder) {
@@ -248,6 +248,7 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 推送药企处方状态，由于只是个别药企需要实现，故有默认实现
+     *
      * @param rxId
      * @return
      */
@@ -266,29 +267,29 @@ public abstract class AccessDrugEnterpriseService {
     //当前处方为配送到家、到院取药的时候，当处方推送到药企后自建的药企需要推送短信消息给药企
     public static void pushMessageToEnterprise(List<Integer> recipeIds) {
         Integer recipeId;
-        if(null != recipeIds && 0 < recipeIds.size()){
+        if (null != recipeIds && 0 < recipeIds.size()) {
             recipeId = recipeIds.get(0);
-        }else{
+        } else {
             LOGGER.warn("当前推送的处方信息为空，无法推送消息！");
             return;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe nowRecipe = recipeDAO.get(recipeId);
-        if(null != nowRecipe && null != nowRecipe.getEnterpriseId()){
+        if (null != nowRecipe && null != nowRecipe.getEnterpriseId()) {
 
             //自建类型的药企需要给药企发送短信
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
-            if(drugsEnterprise != null && drugsEnterprise.getCreateType() != null &&
-                    0 == drugsEnterprise.getCreateType() && nowRecipe.getPayFlag() == 1){
+            if (drugsEnterprise != null && drugsEnterprise.getCreateType() != null &&
+                    0 == drugsEnterprise.getCreateType() && nowRecipe.getPayFlag() == 1) {
                 LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
-                SmsInfoBean smsInfo=new SmsInfoBean();
+                SmsInfoBean smsInfo = new SmsInfoBean();
                 smsInfo.setBusType("RecipeOrderCreate");
                 smsInfo.setSmsType("RecipeOrderCreate");
                 smsInfo.setBusId(recipeId);
                 smsInfo.setOrganId(0);
 
-                Map<String,Object> smsMap = Maps.newHashMap();
+                Map<String, Object> smsMap = Maps.newHashMap();
 
                 //设置自建药企的电话号码
                 PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
@@ -316,8 +317,13 @@ public abstract class AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
+        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
         //判断药企是否校验库存的开关
-        if (dep != null && dep.getCheckInventoryFlag() != null &&  dep.getCheckInventoryFlag() == 0) {
+        if (dep != null && dep.getCheckInventoryFlag() != null && dep.getCheckInventoryFlag() == 0) {
+            // 没有药品的药企还是不展示
+            if (null == count || count == 0) {
+                return false;
+            }
             //不需要校验库存
             return true;
         }
@@ -327,7 +333,6 @@ public abstract class AccessDrugEnterpriseService {
         }
 
         //判断药企平台内药品权限，此处简单判断数量是否一致
-        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
         if (null != count && count > 0) {
             if (count == drugIds.size()) {
                 succFlag = true;
@@ -353,7 +358,7 @@ public abstract class AccessDrugEnterpriseService {
     public String appEnterprise(RecipeOrder order) {
         String appEnterprise = null;
         if (null != order && order.getEnterpriseId() != null) {
-                //设置配送方名称
+            //设置配送方名称
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             appEnterprise = drugsEnterprise.getName();
@@ -365,7 +370,7 @@ public abstract class AccessDrugEnterpriseService {
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
         BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS()|| payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
+        if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
             nowFee = orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
         LOGGER.info("appEnterprise 当前公用药企逻辑-返回订单的处方费用为：{}", nowFee);
@@ -378,7 +383,7 @@ public abstract class AccessDrugEnterpriseService {
         if (order.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if(drugsEnterprise != null){
+            if (drugsEnterprise != null) {
                 order.setEnterpriseName(drugsEnterprise.getName());
                 order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
             }
@@ -386,7 +391,7 @@ public abstract class AccessDrugEnterpriseService {
         LOGGER.info("setOrderEnterpriseMsg 当前公用药企逻辑-返回订单的药企信息：{}", JSONUtils.toString(order));
     }
 
-    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map){
+    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
         LOGGER.info("checkRecipeGiveDeliveryMsg 当前公用药企逻辑-预校验，入参：recipeBean:{},map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
         /*//预校验返回 取药方式1配送到家 2医院取药 3两者都支持
         String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
