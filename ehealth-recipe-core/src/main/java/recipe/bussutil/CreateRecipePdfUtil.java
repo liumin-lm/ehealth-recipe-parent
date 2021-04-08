@@ -94,7 +94,7 @@ public class CreateRecipePdfUtil {
             File signFilePDF = new File(signImgNode.getRecipeId() + System.currentTimeMillis() + ".pdf");
             @Cleanup InputStream input = new ByteArrayInputStream(signFileByte);
             @Cleanup OutputStream output = new FileOutputStream(signFilePDF);
-            addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(), signImgNode.getX(), signImgNode.getY());
+            addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(), signImgNode.getX(), signImgNode.getY(), true);
             //上传pdf文件
             byte[] bytes = File2byte(signFilePDF);
             IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
@@ -121,7 +121,7 @@ public class CreateRecipePdfUtil {
             //获取图片url
             URL url = CreateRecipePdfUtil.class.getClassLoader().getResource("drug.png");
             //添加图片
-            addBarCodeImgForRecipePdfByCoordinates(input, output, url, null, null, 250, 500);
+            addBarCodeImgForRecipePdfByCoordinates(input, output, url, null, null, 250, 500, false);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -280,7 +280,7 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             //添加图片
             @Cleanup OutputStream output = new FileOutputStream(file);
-            addBarCodeImgForRecipePdfByCoordinates(input, output, url, 90F, 90F, 250, 740);
+            addBarCodeImgForRecipePdfByCoordinates(input, output, url, 90F, 90F, 250, 740, false);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
@@ -443,7 +443,7 @@ public class CreateRecipePdfUtil {
                 //获取图片url
                 URL url = docSignImage.toURI().toURL();
                 //添加图片
-                addBarCodeImgForRecipePdfByCoordinates(input,output,url, 50f, 20f, xPoint, yPoint);
+                addBarCodeImgForRecipePdfByCoordinates(input, output, url, 50f, 20f, xPoint, yPoint, false);
                 //上传pdf文件
                 byte[] bytes = File2byte(file);
                 fileId = fileUploadService.uploadFileWithoutUrt(bytes, file.getName());
@@ -512,10 +512,19 @@ public class CreateRecipePdfUtil {
      * @throws Exception
      */
     private static void addBarCodeImgForRecipePdfByCoordinates(InputStream input, OutputStream output, URL url
-            , Float newWidth, Float newHeight, float xPoint, float yPoint) throws Exception {
+            , Float newWidth, Float newHeight, float xPoint, float yPoint, Boolean repeatWrite) throws Exception {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
+        if (repeatWrite) {
+            //添加空白覆盖
+            page.saveState();
+            page.setColorFill(BaseColor.WHITE);
+            page.rectangle(xPoint, yPoint, newWidth, newHeight);
+            page.fill();
+            page.restoreState();
+        }
+
         //将图片贴入pdf
         Image image = Image.getInstance(url);
         if (null != newWidth) {

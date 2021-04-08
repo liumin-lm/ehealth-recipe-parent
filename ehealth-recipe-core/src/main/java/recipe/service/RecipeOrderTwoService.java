@@ -65,7 +65,7 @@ public class RecipeOrderTwoService {
         try {
             //更新订单表字段 兼容老版本
             ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
-            recipeOrderDAO.updateApothecaryByOrderId(recipe.getOrderCode(), apothecaryVO.getGiveUserName(), apothecaryVO.getGiveUserIdCard());
+            recipeOrderDAO.updateApothecaryByOrderId(recipe.getOrderCode(), apothecaryVO.getGiveUserName(), apothecaryVO.getGiveUserIdCardCleartext());
             logger.info("RecipeOrderTwoService updateRecipeGiveUser OrderCode{}, apothecaryVO:{} ", recipe.getOrderCode(), JSONUtils.toString(apothecaryVO));
         } catch (Exception e) {
             logger.error("RecipeOrderTwoService updateRecipeGiveUser ", e);
