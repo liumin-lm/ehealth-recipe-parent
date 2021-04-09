@@ -858,5 +858,17 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
-}
 
+    /**
+     * 根据配置项sealDataFrom获取签章图片
+     *
+     * @param clinicOrgan
+     * @param doctorId
+     * @param checker
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public  Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId);
+
+}

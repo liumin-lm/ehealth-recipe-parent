@@ -87,7 +87,6 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -97,6 +96,8 @@ import recipe.util.MapValueUtil;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -2393,5 +2394,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
         LOGGER.info("getRecipeMedAndCash.hoList ={}",JSONUtils.toString(hoList));
         return hoList.get(0);
+    }
+
+    @Override
+    public Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
+        return RecipeServiceSub.attachSealPic(clinicOrgan,doctorId,checker,recipeId);
     }
 }

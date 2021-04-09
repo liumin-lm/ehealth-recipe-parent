@@ -21,10 +21,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.HisRecipeBean;
-import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
@@ -209,14 +206,6 @@ public class RecipePreserveService {
 
     @RpcService
     public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
-        //测试 设置超时
-//        if(organId==1){
-//            try{
-//                Thread.sleep(10000);
-//            }catch (Exception e){
-//
-//            }
-//        }
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
@@ -297,6 +286,25 @@ public class RecipePreserveService {
             recipeBean.setSignDate(recipeInfoTO.getSignTime());
             recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
             recipeBean.setDepartText(recipeInfoTO.getDepartName());
+            recipeBean.setCopyNum(recipeInfoTO.getCopyNum());
+            recipeBean.setRecipeMemo(recipeInfoTO.getRecipeMemo());
+            RecipeExtendBean recipeExtend = new RecipeExtendBean();
+            if (recipeInfoTO.getRecipeExtendBean() != null) {
+                recipeExtend.setDecoctionText(recipeInfoTO.getRecipeExtendBean().getDecoctionText());
+                recipeExtend.setJuice(recipeInfoTO.getRecipeExtendBean().getJuice());
+                recipeExtend.setJuiceUnit(recipeInfoTO.getRecipeExtendBean().getJuiceUnit());
+                recipeExtend.setMakeMethodText(recipeInfoTO.getRecipeExtendBean().getMakeMethodText());
+                recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
+                recipeExtend.setMinorUnit(recipeInfoTO.getRecipeExtendBean().getMinorUnit());
+            } else {
+                recipeExtend.setDecoctionText("");
+                recipeExtend.setJuice("");
+                recipeExtend.setJuiceUnit("");
+                recipeExtend.setMakeMethodText("");
+                recipeExtend.setMinor("");
+                recipeExtend.setMinorUnit("");
+            }
+            recipeBean.setRecipeExtend(recipeExtend);
             List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
             List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
             try {
