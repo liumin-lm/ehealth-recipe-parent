@@ -55,6 +55,8 @@ import recipe.dao.*;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.service.client.DoctorClient;
+import recipe.util.ByteUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 
@@ -80,6 +82,9 @@ public class OperationPlatformRecipeService {
     private IRecipeCheckService recipeCheckService;
     @Autowired
     private IRecipeCheckDetailService recipeCheckDetailService;
+
+    @Autowired
+    private DoctorClient doctorClient;
 
     @Autowired
     private IAuditMedicinesService auditMedicinesService;
@@ -310,7 +315,6 @@ public class OperationPlatformRecipeService {
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            recipeOrder.setDispensingApothecaryIdCard(hideIdCard(recipeOrder.getDispensingApothecaryIdCard()));
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
             if (order == null) {
                 order = new RecipeOrderBean();
@@ -420,7 +424,8 @@ public class OperationPlatformRecipeService {
                 map.put("grabOrderStatus", orderStatusAndLimitTime.get("grabOrderStatus"));
             }
         }
-        getApothecary(recipe.getChecker(), order, map);
+        ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
+        map.put("apothecary", apothecaryVO);
         return map;
     }
 
@@ -446,33 +451,6 @@ public class OperationPlatformRecipeService {
             signReason = "审方签名中";
         }
         return signReason;
-    }
-
-
-    /**
-     * 查询药师信息
-     *
-     * @param apothecaryId
-     * @param order
-     * @param map
-     */
-    private void getApothecary(Integer apothecaryId, RecipeOrderBean order, Map<String, Object> map) {
-        LOGGER.info("getApothecary apothecaryId:{} order :{}", apothecaryId, JSONUtils.toString(order));
-        ApothecaryVO apothecaryVO = new ApothecaryVO();
-        if (null != apothecaryId && !apothecaryId.equals(0)) {
-            DoctorDTO doctorDTO = doctorService.get(apothecaryId);
-            if (null != doctorDTO) {
-                apothecaryVO.setCheckApothecaryIdCard(hideIdCard(doctorDTO.getIdNumber()));
-                apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
-            }
-        }
-        if (null != order) {
-            apothecaryVO.setOrderId(order.getOrderId());
-            apothecaryVO.setDispensingApothecaryIdCard(order.getDispensingApothecaryIdCard());
-            apothecaryVO.setDispensingApothecaryName(order.getDispensingApothecaryName());
-        }
-        LOGGER.info("getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
-        map.put("apothecary", apothecaryVO);
     }
 
     private String getCancelReasonForChecker(Integer recipeId) {
@@ -647,19 +625,7 @@ public class OperationPlatformRecipeService {
      * @return
      */
     private String hideIdCard(String idCard) {
-        if (StringUtils.isEmpty(idCard)) {
-            return "";
-        }
-        try {
-            //显示前1-3位
-            String str1 = idCard.substring(0, 3);
-            //显示后15-18位
-            String str2 = idCard.substring(14, 18);
-            idCard = str1 + "***********" + str2;
-            return idCard;
-        } catch (Exception e) {
-            return "";
-        }
+        return ByteUtils.hideIdCard(idCard);
     }
 
     /**

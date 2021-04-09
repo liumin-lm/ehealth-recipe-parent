@@ -41,15 +41,15 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
      * @param orderStatus
      * @return
      */
-    public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+    public Recipe updateOrderByStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         logger.info("RecipeOrderStatusProxy updateOrderByStatus orderStatus = {}", JSON.toJSONString(orderStatus));
         Integer status = orderStatus.getTargetRecipeOrderStatus();
         if (null == status) {
             return null;
         }
         IRecipeOrderStatusService factoryService = getFactoryService(status);
-        //根据订单状态 更新处方状态
-        Recipe recipe = factoryService.updateStatus(orderStatus, recipeOrder);
+        //根据订单状态 设置处方状态
+        factoryService.updateStatus(orderStatus, recipeOrder, recipe);
         orderStatus.setTargetRecipeStatus(recipe.getStatus());
         //更新处方状态
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
@@ -58,10 +58,10 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         //订单状态改变时间
         recipeOrder.setDispensingStatusAlterTime(new Date());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
-        //异步处方信息上传
-        factoryService.upRecipeThreadPool(recipe);
         //更新同组处方状态
         factoryService.updateGroupRecipe(recipe, recipeOrder.getOrderId());
+        //异步处方信息处理
+        factoryService.upRecipeThreadPool(recipe);
         logger.info("RecipeOrderStatusProxy updateOrderByStatus recipe = {}", JSON.toJSONString(recipe));
         return recipe;
     }

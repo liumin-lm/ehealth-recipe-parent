@@ -37,7 +37,6 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
@@ -89,8 +88,8 @@ import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
+import recipe.service.manager.SignManager;
 import recipe.service.recipecancel.RecipeCancelService;
-import recipe.sign.SignRecipeInfoService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
@@ -116,6 +115,7 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
+    private static SignManager signManager = AppContextHolder.getBean("signManager", SignManager.class);
     @Autowired
     private EmrRecipeManager emrRecipeManager;
     @Autowired
@@ -124,9 +124,6 @@ public class RecipeServiceSub {
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
-
-    private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
-
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -1861,9 +1858,7 @@ public class RecipeServiceSub {
             recipeBean.setCheckerText(checkerText);
         }
         //处理审核药师
-        if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS)) {
+        if (RecipeStatusEnum.READY_CHECK.contains(recipe.getStatus())) {
             recipeBean.setCheckerText("");
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -1953,66 +1948,10 @@ public class RecipeServiceSub {
      * @Author liumin
      */
     public static Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
-        LOGGER.info("attachSealPic param clinicOrgan:{},doctorId:{},checker:{},recipeId:{}", clinicOrgan, doctorId, checker, recipeId);
         Map<String, String> map = new HashMap<>();
-        SignRecipeInfoService signRecipeInfoService = AppContextHolder.getBean("signRecipeInfoService", SignRecipeInfoService.class);
-        try {
-            //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
-            String sealDataFrom = "platFormSeal";
-            try {
-                sealDataFrom = (String) configService.getConfiguration(clinicOrgan, "sealDataFrom");
-            } catch (Exception e) {
-                if (recipeId != null) {
-                    LOGGER.error("attachSealPic 获取签章使用方配置error, recipeId:{}", recipeId, e);
-                } else {
-                    LOGGER.error("attachSealPic 获取签章使用方配置error, clinicOrgan:{}", clinicOrgan, e);
-                }
-            }
-            if ("thirdSeal".equals(sealDataFrom)) {
-                LOGGER.info("attachSealPic 使用第三方签名，recipeId:{}", recipeId);
-                SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_DOC);
-                SignDoctorRecipeInfo phaInfo = signRecipeInfoService.getSignInfoByRecipeIdAndServerType(recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
-                if (null != docInfo) {
-                    //医生图片
-                    if (StringUtils.isNotEmpty(docInfo.getSignPictureDoc())) {
-                        map.put("doctorSignImg", docInfo.getSignPictureDoc());
-                    }
-                }
-                //药师图片
-                if (null != phaInfo) {
-                    if (StringUtils.isNotEmpty(phaInfo.getSignPictureDoc())) {
-                        map.put("checkerSignImg", phaInfo.getSignPictureDoc());
-                    }
-                }
-            }
-            //线下手签
-            else if ("offlineSeal".equals(sealDataFrom)) {
-                LOGGER.info("attachSealPic 线下手签，clinicOrgan:{}", clinicOrgan);
-                String doctorSignImg = signRecipeInfoService.getOfflineCaPictureByDocId(doctorId);
-                if (StringUtils.isNotBlank(doctorSignImg)) {
-                    map.put("doctorSignImg", doctorSignImg);
-                }
-                //线下处方没有药师审方 如果线上处方设置成线下手签
-                String checkerSignImg = signRecipeInfoService.getOfflineCaPictureByDocId(checker);
-                if (StringUtils.isNotBlank(checkerSignImg)) {
-                    map.put("checkerSignImg", checkerSignImg);
-                }
-            }
-            //平台手签
-            else {
-                //设置医生手签图片id
-                DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-                if (doctorDTO != null) {
-                    map.put("doctorSignImg", doctorDTO.getSignImage());
-                }
-                DoctorDTO auditDTO = doctorService.getByDoctorId(checker);
-                if (auditDTO != null) {
-                    map.put("checkerSignImg", auditDTO.getSignImage());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("attachSealPic clinicOrgan:{} error:{}", clinicOrgan, e);
-        }
+        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(clinicOrgan, doctorId, checker, recipeId);
+        map.put("doctorSignImg", sttachSealPicDTO.getDoctorSignImg());
+        map.put("checkerSignImg", sttachSealPicDTO.getCheckerSignImg());
         return map;
     }
 

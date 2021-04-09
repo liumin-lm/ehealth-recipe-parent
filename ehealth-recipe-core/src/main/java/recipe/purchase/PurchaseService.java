@@ -334,7 +334,7 @@ public class PurchaseService {
      *                 {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
      *                 "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
      *                 "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
-     *                 "calculateFee":"1(1:需要，0:不需要)"}
+     *                 "calculateFee":"1(1:需要，0:不需要),"logisticsCompany":"物流公司"}
      *                 <p>
      *                 ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
      *                 gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
