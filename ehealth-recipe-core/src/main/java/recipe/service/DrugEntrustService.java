@@ -1,5 +1,7 @@
 package recipe.service;
 
+import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.service.BusActionLogService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.DrugEntrust;
@@ -9,6 +11,7 @@ import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -36,9 +39,6 @@ public class DrugEntrustService implements IDrugEntrustService {
     private DrugEntrustDAO drugEntrustDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
-    @Autowired
-    private BusActionLogService busActionLogService;
-
     /**
      * 根据药品嘱托ID 查找药品嘱托数据
      * @param pharmacyTcmId
@@ -80,7 +80,8 @@ public class DrugEntrustService implements IDrugEntrustService {
         }
         drugEntrust.setCreateDt(new Date());
         DrugEntrust save = drugEntrustDAO.save(drugEntrust);
-        busActionLogService.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "新增药品嘱托，名称为【" + save.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
+        IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "新增药品嘱托，名称为【" + save.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
         return true;
 
     }
@@ -127,7 +128,8 @@ public class DrugEntrustService implements IDrugEntrustService {
         DrugEntrust convert = ObjectCopyUtils.convert(drugEntrust, DrugEntrust.class);
         logger.info("编辑药品嘱托服务[updateDrugEntrustForOrgan]:" + JSONUtils.toString(convert));
         DrugEntrust update = drugEntrustDAO.update(convert);
-        busActionLogService.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "修改药品嘱托，名称【" + drugEntrust.getDrugEntrustName() + "】修改为【" + update.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
+        IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "修改药品嘱托，名称【" + drugEntrust.getDrugEntrustName() + "】修改为【" + update.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
         return update;
 
     }
@@ -154,7 +156,8 @@ public class DrugEntrustService implements IDrugEntrustService {
             }
         }
         drugEntrustDAO.remove(drugEntrustId);
-        busActionLogService.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "删除药品嘱托，名称为【" + drugEntrust.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
+        IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "删除药品嘱托，名称为【" + drugEntrust.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
 
     }
 
