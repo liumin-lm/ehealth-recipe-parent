@@ -184,7 +184,7 @@ public class DrugEntrustService implements IDrugEntrustService {
 
 
     /**
-     * 根据机构Id查询药房
+     * 根据机构Id查询药品嘱托
      * @param organId
      * @return
      */
@@ -199,7 +199,7 @@ public class DrugEntrustService implements IDrugEntrustService {
     }
 
     /**
-     * 根据机构Id查询药房
+     * 根据机构Id查询药品嘱托
      * @param organId
      * @return
      */
