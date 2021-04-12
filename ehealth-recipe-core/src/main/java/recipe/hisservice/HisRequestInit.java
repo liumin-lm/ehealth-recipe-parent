@@ -301,6 +301,8 @@ public class HisRequestInit {
         // 简要病史
         requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         if (recipeExtend != null) {
+            //挂号序号
+            requestTO.setRegisteredId(recipeExtend.getRegisterID());
             //主诉
             requestTO.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             //现病史
@@ -346,7 +348,8 @@ public class HisRequestInit {
             LOGGER.error("queryPatientChannelId error:", e);
         }
         //设置挂号序号---如果有
-        if (recipe.getClinicId() != null) {
+        //处方扩展表没有再冲复诊取得
+        if (requestTO.getRegisteredId() == null && recipe.getClinicId() != null) {
             IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
             RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
             if (consultExDTO != null) {

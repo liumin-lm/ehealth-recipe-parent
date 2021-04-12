@@ -1,5 +1,6 @@
 package recipe.util;
 
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -132,6 +133,42 @@ public class ByteUtils {
 			return sdf.format(date);
 		} catch (Exception e) {
 			return "";
+		}
+	}
+
+
+	public static String hideIdCard(String idCard) {
+		if (org.apache.commons.lang3.StringUtils.isEmpty(idCard)) {
+			return "";
+		}
+		try {
+			//显示前1-3位
+			String str1 = idCard.substring(0, 3);
+			//显示后15-18位
+			String str2 = idCard.substring(14, 18);
+			idCard = str1 + "***********" + str2;
+			return idCard;
+		} catch (Exception e) {
+			return "";
+		}
+	}
+
+	public static Integer strValueOf(String str) {
+		try {
+			return Integer.valueOf(str);
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	public static String objValueOf(Object str) {
+		if (ObjectUtils.isEmpty(str)) {
+			return null;
+		}
+		try {
+			return String.valueOf(str);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 }

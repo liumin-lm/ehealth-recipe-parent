@@ -29,6 +29,8 @@ public class PharmacyTcmDTO implements Serializable {
 
     private String type;
 
+    private String pharmacyCategray;
+
     public Integer getPharmacyId() {
         return pharmacyId;
     }
@@ -91,5 +93,13 @@ public class PharmacyTcmDTO implements Serializable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getPharmacyCategray() {
+        return pharmacyCategray;
+    }
+
+    public void setPharmacyCategray(String pharmacyCategray) {
+        this.pharmacyCategray = pharmacyCategray;
     }
 }

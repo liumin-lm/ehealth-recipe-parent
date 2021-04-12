@@ -1,5 +1,6 @@
 package recipe.service.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
@@ -8,10 +9,12 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
@@ -21,11 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
+import recipe.dao.RecipeOrderDAO;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -44,7 +50,6 @@ import java.util.*;
 @Service
 public class RecipeLabelManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     /**
      * 运营平台机构配置，处方签配置， 特殊字段替换展示
      */
@@ -59,9 +64,64 @@ public class RecipeLabelManager {
     private IESignBaseService esignService;
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private SignManager signManager;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
-     * 获取电子病例模块
+     * 更新 pdf 核对发药
+     *
+     * @param recipe
+     * @return
+     */
+    public Recipe giveUserUpdate(Recipe recipe) {
+        logger.info("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
+        //获取 核对发药药师签名id
+        ApothecaryVO apothecaryVO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        //判断发药状态
+        if (StringUtils.isEmpty(recipe.getOrderCode())) {
+            return null;
+        }
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
+            return null;
+        }
+        //判断配置是否有核对发药
+        List<Scratchable> scratchableList = scratchableList(recipe.getClinicOrgan(), "moduleFour");
+        if (CollectionUtils.isEmpty(scratchableList)) {
+            return null;
+        }
+        boolean isGiveUser = scratchableList.stream().noneMatch(a -> "recipe.giveUser".equals(a.getBoxLink()));
+        if (isGiveUser) {
+            return null;
+        }
+        //修改pdf文件
+        SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
+                , apothecaryVO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f);
+        Recipe recipeUpdate = new Recipe();
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+            signImgNode.setSignFileFileId(recipe.getChemistSignFile());
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+            if (StringUtils.isEmpty(newPfd)) {
+                return null;
+            }
+            recipeUpdate.setChemistSignFile(newPfd);
+        } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            signImgNode.setSignFileFileId(recipe.getSignFile());
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+            if (StringUtils.isEmpty(newPfd)) {
+                return null;
+            }
+            recipeUpdate.setSignFile(newPfd);
+        }
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        logger.info("RecipeLabelManager giveUserUpdate recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+        return recipeUpdate;
+    }
+
+    /**
+     * 获取处方签配置模块
      *
      * @param organId    机构id
      * @param moduleName 模块名称
@@ -215,6 +275,7 @@ public class RecipeLabelManager {
         return resultMap;
     }
 
+
     /**
      * 特殊字段坐标记录
      *
@@ -284,25 +345,33 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeMap is null!");
         }
+        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
         //处理性别转化
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         if (null != patientDTO && StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
             patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
         }
-        //签名字段替换
-        String doctorSignImg = null == recipeMap.get("doctorSignImg") ? "" : recipeMap.get("doctorSignImg").toString();
-        String doctorSignImgToken = null == recipeMap.get("doctorSignImgToken") ? "" : recipeMap.get("doctorSignImgToken").toString();
-        if (!StringUtils.isAnyEmpty(doctorSignImg, doctorSignImgToken)) {
-            recipeMap.put("doctorSignImg,doctorSignImgToken", doctorSignImg + ByteUtils.COMMA + doctorSignImgToken);
+        //药品金额
+        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeBean.getRecipeId());
+        if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
+            recipeBean.setActualPrice(recipeOrder.getRecipeFee());
         }
-        String checkerSignImg = null == recipeMap.get("checkerSignImg") ? "" : recipeMap.get("checkerSignImg").toString();
-        String checkerSignImgToken = null == recipeMap.get("checkerSignImgToken") ? "" : recipeMap.get("checkerSignImgToken").toString();
-
-        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
-        if (!StringUtils.isAnyEmpty(checkerSignImg, checkerSignImgToken)) {
-            recipeMap.put("checkerSignImg,checkerSignImgToken", checkerSignImg + ByteUtils.COMMA + checkerSignImgToken);
-        } else if (null != recipeBean && StringUtils.isNotEmpty(recipeBean.getCheckerText())) {
-            recipeMap.put("checkerSignImg,checkerSignImgToken", recipeBean.getCheckerText());
+        /**签名字段替换*/
+        //医生签名图片
+        ApothecaryVO doctor = new ApothecaryVO();
+        doctor.setDoctorSignImg(ByteUtils.objValueOf(recipeMap.get("doctorSignImg")));
+        doctor.setDoctorSignImgToken(ByteUtils.objValueOf(recipeMap.get("doctorSignImgToken")));
+        recipeMap.put("doctorSignImg,doctorSignImgToken", JSON.toJSONString(doctor));
+        //审方药师签名图片
+        ApothecaryVO checker = new ApothecaryVO();
+        checker.setCheckerSignImg(ByteUtils.objValueOf(recipeMap.get("checkerSignImg")));
+        checker.setCheckerSignImgToken(ByteUtils.objValueOf(recipeMap.get("checkerSignImgToken")));
+        checker.setCheckApothecaryName(ByteUtils.objValueOf(recipeBean.getCheckerText()));
+        recipeMap.put("checkerSignImg,checkerSignImgToken", JSON.toJSONString(checker));
+        //核发药师签名图片
+        if (null != recipeOrder && null != recipeOrder.getDispensingTime()) {
+            ApothecaryVO apothecaryVO = signManager.giveUser(recipeBean.getClinicOrgan(), recipeBean.getGiveUser(), recipeBean.getRecipeId());
+            recipeBean.setGiveUser(JSON.toJSONString(apothecaryVO));
         }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {
@@ -317,11 +386,6 @@ public class RecipeLabelManager {
                     recipeBean.setOrganName(boxDesc);
                 }
             }
-        }
-        //药品金额
-        RecipeOrder recipeOrder = (RecipeOrder) recipeMap.get("recipeOrder");
-        if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
-            recipeBean.setActualPrice(recipeOrder.getRecipeFee());
         }
     }
 
@@ -363,8 +427,7 @@ public class RecipeLabelManager {
             String dRateName = d.getUsingRateTextFromHis() != null ? d.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", d.getUsingRate());
             //用法
             String dWay = d.getUsePathwaysTextFromHis() != null ? d.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", d.getUsePathways());
-            String useDay = d.getUseDays() + "天";
-            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(useDay);
+            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(getUseDays(d.getUseDaysB(), d.getUseDays()));
 
             if (!StringUtils.isEmpty(d.getMemo())) {
                 stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
@@ -402,24 +465,38 @@ public class RecipeLabelManager {
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         RecipeDetailBean detail = recipeDetailList.get(0);
-        list.add(new RecipeLabelVO("天数", "tcmUseDay", (StringUtils.isEmpty(detail.getUseDaysB()) ? detail.getUseDays() : detail.getUseDaysB()) + "天"));
-        try{
+        list.add(new RecipeLabelVO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+        try {
             list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
             list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
         }
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
         RecipeExtend extend = (RecipeExtend) recipeMap.get("recipeExtend");
         if (null != extend) {
-            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText()==null?"":extend.getDecoctionText()));
+            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText() == null ? "" : extend.getDecoctionText()));
             list.add(new RecipeLabelVO("每付取汁", "tcmJuice", extend.getJuice() + extend.getJuiceUnit()));
             list.add(new RecipeLabelVO("次量", "tcmMinor", extend.getMinor() + extend.getMinorUnit()));
-            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText()==null?"":extend.getMakeMethodText()));
+            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText() == null ? "" : extend.getMakeMethodText()));
         }
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo()==null?"":recipe.getRecipeMemo()));
-
+        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo() == null ? "" : recipe.getRecipeMemo()));
     }
 
-
+    /**
+     * 获取天数 与 单位字符串展示
+     *
+     * @param useDaysB
+     * @param useDays
+     * @return
+     */
+    private String getUseDays(String useDaysB, Integer useDays) {
+        if (StringUtils.isNotEmpty(useDaysB) && !"0".equals(useDaysB)) {
+            return useDaysB + "天";
+        }
+        if (!ValidateUtil.integerIsEmpty(useDays)) {
+            return useDays + "天";
+        }
+        return "";
+    }
 }

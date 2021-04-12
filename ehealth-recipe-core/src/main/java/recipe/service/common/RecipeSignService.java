@@ -518,7 +518,7 @@ public class RecipeSignService {
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+            if (null == status || (status > RecipeStatusConstant.UNSIGN&&status!=RecipeStatusConstant.HIS_FAIL)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
             }
             recipeService.updateRecipeAndDetail(recipeBean, details);
@@ -582,7 +582,7 @@ public class RecipeSignService {
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+            if (null == status || (status > RecipeStatusConstant.UNSIGN&&status!=RecipeStatusConstant.HIS_FAIL)){
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
             }
             recipeService.updateRecipeAndDetail(recipeBean, details);

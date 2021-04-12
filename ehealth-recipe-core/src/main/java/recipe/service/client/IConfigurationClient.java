@@ -3,6 +3,7 @@ package recipe.service.client;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import ctd.persistence.exception.DAOException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
@@ -18,6 +19,26 @@ import recipe.util.ByteUtils;
 public class IConfigurationClient extends BaseClient {
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public String getValueCatch(Integer organId, String key, String defaultValue) {
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            return (String) configService.getConfiguration(organId, key);
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
 
     /**
      * 获取用药天数

@@ -162,6 +162,8 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "药房")
     private String pharmacy;
 
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrust;
 
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
@@ -482,5 +484,14 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setPharmacy(String pharmacy) {
         this.pharmacy = pharmacy;
+    }
+
+    @Column(name = "drugEntrust")
+    public String getDrugEntrust() {
+        return drugEntrust;
+    }
+
+    public void setDrugEntrust(String drugEntrust) {
+        this.drugEntrust = drugEntrust;
     }
 }
