@@ -15,7 +15,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Schema
-@Table(name = "recipe_drugEntrust")
+@Table(name = "recipe_drugentrust")
 @Access(AccessType.PROPERTY)
 public class DrugEntrust implements Serializable {
 
