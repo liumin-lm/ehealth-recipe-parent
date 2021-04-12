@@ -119,10 +119,10 @@ public class DrugEntrustService implements IDrugEntrustService {
             throw new DAOException(DAOException.VALUE_NEEDED, "此药品嘱托不存在！");
         }
         validate(drugEntrust);
-        if (drugEntrustDAO.getByOrganIdAndDrugEntrustCode(drugEntrust.getOrganId(),drugEntrust.getDrugEntrustCode()) != null){
+        if (!drugEntrust.getDrugEntrustCode().equals(drugEntrust1.getDrugEntrustCode()) && drugEntrustDAO.getByOrganIdAndDrugEntrustCode(drugEntrust.getOrganId(),drugEntrust.getDrugEntrustCode()) != null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构此药品嘱托编码已存在，请重新输入！");
         }
-        if (drugEntrustDAO.getByOrganIdAndDrugEntrustName(drugEntrust.getOrganId(),drugEntrust.getDrugEntrustName()) != null){
+        if (!drugEntrust.getDrugEntrustName().equals(drugEntrust1.getDrugEntrustName()) &&drugEntrustDAO.getByOrganIdAndDrugEntrustName(drugEntrust.getOrganId(),drugEntrust.getDrugEntrustName()) != null){
             throw new DAOException(DAOException.VALUE_NEEDED, "机构此药品嘱托名称已存在，请重新输入！");
         }
         DrugEntrust convert = ObjectCopyUtils.convert(drugEntrust, DrugEntrust.class);

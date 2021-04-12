@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
@@ -133,9 +134,9 @@ public abstract class DrugEntrustDAO extends HibernateSupportDelegateDAO<DrugEnt
                 query.setProperties(param);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
-                List<DrugEntrustDTO> temps = query.list();
-
-                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), temps));
+                List<DrugEntrust> temps = query.list();
+                List<DrugEntrustDTO> convert = ObjectCopyUtils.convert(temps, DrugEntrustDTO.class);
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), convert));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
