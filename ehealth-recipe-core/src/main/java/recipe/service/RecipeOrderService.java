@@ -40,7 +40,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -54,9 +53,7 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -90,7 +87,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 import wnpay.api.model.WnAccountDetail;
@@ -102,6 +98,8 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方订单管理
@@ -128,9 +126,6 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeListService recipeListService;
-
-    @Autowired
-    private RecipeService recipeService;
 
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
@@ -2336,12 +2331,12 @@ public class RecipeOrderService extends RecipeBaseService {
 
                 // 下单成功更新物流单号、物流公司
                 Map<String, Object> orderAttrMap = new HashedMap();
-                orderAttrMap.put("LogisticsCompany", enterprise.getLogisticsCompany());
+                orderAttrMap.put("LogisticsCompany", order.getLogisticsCompany());
 
                 orderAttrMap.put("TrackingNumber", trackingNumber);
                 recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
                 RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
-                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, enterprise.getLogisticsCompany(), order.getOrderId());
+                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, order.getLogisticsCompany(), order.getOrderId());
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
@@ -2412,7 +2407,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 业务编码
         logisticsOrder.setBusinessNo(order.getOrderCode());
         // 快递编码
-        logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany() + "");
+        logisticsOrder.setLogisticsCode(order.getLogisticsCompany() + "");
         // 寄件人姓名
         logisticsOrder.setConsignorName(enterprise.getConsignorName());
         // 寄件人手机号
@@ -3133,21 +3128,6 @@ public class RecipeOrderService extends RecipeBaseService {
         // 处方推送到药企
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(request.getRecipeId()));
-    }
-
-    @RpcService
-    public Boolean updateApothecaryByOrderId(ApothecaryVO apothecary) throws ValidateException {
-        if (null == apothecary || null == apothecary.getOrderId()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "订单不存在");
-        }
-        ChinaIDNumberUtil.isValidIDNumber(apothecary.getDispensingApothecaryIdCard());
-        try {
-            recipeOrderDAO.updateApothecaryByOrderId(apothecary.getOrderId(), apothecary.getDispensingApothecaryName(), apothecary.getDispensingApothecaryIdCard());
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("updateApothecaryByOrderId apothecaryVO :{}", JSONUtils.toString(apothecary), e);
-            return false;
-        }
     }
 
     private String getAddressDic(String area) {

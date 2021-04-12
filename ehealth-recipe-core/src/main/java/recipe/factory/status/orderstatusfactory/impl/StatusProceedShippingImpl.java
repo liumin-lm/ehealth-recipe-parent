@@ -30,12 +30,10 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         logger.info("StatusProceedShippingImpl updateStatus orderStatus={},recipeOrder={}",
                 JSON.toJSONString(orderStatus), JSON.toJSONString(recipeOrder));
         Date date = new Date();
-        Integer recipeId = orderStatus.getRecipeId();
-        Recipe recipe = super.getRecipe(recipeId);
         recipe.setSendDate(date);
         recipe.setSender(orderStatus.getSender());
         //以免进行处方失效前提醒

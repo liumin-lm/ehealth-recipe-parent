@@ -1,7 +1,9 @@
 package com.ngari.recipe.recipeorder.model;
 
+import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -10,12 +12,19 @@ import java.io.Serializable;
  *
  * @author fuzi
  */
-@Schema
-public class ApothecaryVO implements Serializable {
+@Getter
+@Setter
+public class ApothecaryVO extends AttachSealPicDTO implements Serializable {
 
     private static final long serialVersionUID = 2398885985048336367L;
     @ItemProperty(alias = "订单ID")
-    private Integer orderId;
+    private Integer recipeId;
+
+    @ItemProperty(alias = "医生签名Id")
+    private Integer doctorId;
+
+    @ItemProperty(alias = "审核药师Id")
+    private Integer checkerId;
 
     @ItemProperty(alias = "审核药师姓名")
     private String checkApothecaryName;
@@ -23,49 +32,15 @@ public class ApothecaryVO implements Serializable {
     @ItemProperty(alias = "审核药师身份证")
     private String checkApothecaryIdCard;
 
+    @ItemProperty(alias = "发药药师Id")
+    private Integer giveUserId;
     @ItemProperty(alias = "发药药师姓名")
-    private String dispensingApothecaryName;
+    private String giveUserName;
 
     @ItemProperty(alias = "发药药师身份证")
-    private String dispensingApothecaryIdCard;
-
-    public Integer getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Integer orderId) {
-        this.orderId = orderId;
-    }
-
-    public String getCheckApothecaryName() {
-        return checkApothecaryName;
-    }
-
-    public void setCheckApothecaryName(String checkApothecaryName) {
-        this.checkApothecaryName = checkApothecaryName;
-    }
-
-    public String getCheckApothecaryIdCard() {
-        return checkApothecaryIdCard;
-    }
-
-    public void setCheckApothecaryIdCard(String checkApothecaryIdCard) {
-        this.checkApothecaryIdCard = checkApothecaryIdCard;
-    }
-
-    public String getDispensingApothecaryName() {
-        return dispensingApothecaryName;
-    }
-
-    public void setDispensingApothecaryName(String dispensingApothecaryName) {
-        this.dispensingApothecaryName = dispensingApothecaryName;
-    }
-
-    public String getDispensingApothecaryIdCard() {
-        return dispensingApothecaryIdCard;
-    }
-
-    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
-        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
-    }
+    private String giveUserIdCard;
+    /**
+     * 发药药师身份证 明文 运营平台使用
+     */
+    private String giveUserIdCardCleartext;
 }
