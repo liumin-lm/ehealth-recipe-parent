@@ -71,7 +71,6 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         } catch (Exception e) {
             LOGGER.error("基础服务物流下单.error=", e);
         }
-
     }
 
     /**
