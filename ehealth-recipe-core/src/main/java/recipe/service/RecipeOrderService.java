@@ -2037,7 +2037,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
     }
 
-    public RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
+    private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
         LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
