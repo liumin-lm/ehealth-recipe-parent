@@ -11,6 +11,8 @@ public class OnsConfig {
     public static String hisCdrinfo;
 
     public static String dbModifyTopic;
+
+    public static String sessionTopic;
     /**
      * 电子病历删除Topic
      */
@@ -45,5 +47,9 @@ public class OnsConfig {
 
     public void setEmrRecipe(String emrRecipe) {
         OnsConfig.emrRecipe = emrRecipe;
+    }
+
+    public void setSessionTopic(String sessionTopic) {
+        OnsConfig.sessionTopic = sessionTopic;
     }
 }
