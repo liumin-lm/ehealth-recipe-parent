@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
+import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.dao.DrugEntrustDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.service.client.DrugClient;
@@ -50,6 +52,9 @@ public class RecipeDetailService {
     private DrugClient drugClient;
     @Autowired
     private IConfigurationClient configurationClient;
+
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     /**
      * 校验线上线下 药品数据
@@ -191,6 +196,9 @@ public class RecipeDetailService {
             if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
+            if (entrustValidate(organDrug.getOrganId(), recipeDetail)) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
             //用药频次，用药途径是否在机构字典范围内
             medicationsValidate(organDrug.getOrganId(), recipeDetail);
             useDayValidate(recipeDay, recipeDetail);
@@ -212,6 +220,41 @@ public class RecipeDetailService {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
         }
+    }
+
+    /**
+     * 校验中药嘱托
+     *
+     * @param organId      机构id
+     * @param recipeDetail 处方明细数据
+     * @return
+     */
+    private boolean entrustValidate(Integer organId, RecipeDetailBean recipeDetail) {
+        if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
+            return false;
+        }
+        List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(drugEntrusts)) {
+            recipeDetail.setEntrustmentId(null);
+            recipeDetail.setMemo(null);
+            return true;
+        }
+        if (StringUtils.isNotEmpty(recipeDetail.getDrugEntrustCode())) {
+            boolean code = drugEntrusts.stream().noneMatch(a -> a.getDrugEntrustCode().equals(recipeDetail.getDrugEntrustCode()));
+            if (code) {
+                recipeDetail.setEntrustmentId(null);
+                recipeDetail.setMemo(null);
+                return true;
+            }
+        } else if (StringUtils.isNotEmpty(recipeDetail.getMemo())) {
+            boolean name = drugEntrusts.stream().noneMatch(a -> a.getDrugEntrustName().equals(recipeDetail.getMemo()));
+            if (name) {
+                recipeDetail.setEntrustmentId(null);
+                recipeDetail.setMemo(null);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
