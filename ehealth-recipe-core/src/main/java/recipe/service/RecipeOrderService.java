@@ -2093,6 +2093,7 @@ public class RecipeOrderService extends RecipeBaseService {
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
+        //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
         return result;
     }
