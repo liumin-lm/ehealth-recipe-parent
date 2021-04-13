@@ -12,6 +12,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
@@ -166,7 +167,8 @@ public abstract class AbstractCaProcessType {
         auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             //配送处方标记 1:只能配送 更改处方取药方式
-            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) || RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag()) ||
+                    RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
                 try {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                     RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);

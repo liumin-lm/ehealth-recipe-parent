@@ -37,6 +37,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
@@ -2086,14 +2087,16 @@ public class RecipeServiceSub {
                 map.put("showSendToHos", 1);
             }
             //不支持配送，则按钮都不显示--包括药店取药
-            if (new Integer(2).equals(recipe.getDistributionFlag())) {
+            if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 map.put("showSendToEnterprises", 0);
                 map.put("showSendToHos", 0);
                 map.put("supportTFDS", 0);
                 map.put("supportOnline", 0);
                 map.put("supportToHos", 0);
             }
-            if (new Integer(1).equals(recipe.getDistributionFlag())) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                    RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+                    || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
                 map.put("supportToHos", 0);
             }
         }
@@ -2499,7 +2502,9 @@ public class RecipeServiceSub {
     public static String getRecipeGetModeTip(Recipe recipe) {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
-        if (1 != recipe.getChooseFlag() && !Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+        if (1 != recipe.getChooseFlag() && !(RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+                || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag()))) {
             String organName = StringUtils.isEmpty(recipe.getOrganName()) ? "医院" : recipe.getOrganName();
             // 邵逸夫特殊处理院区
             if (1 == recipe.getClinicOrgan()) {
