@@ -15,10 +15,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
-import eh.cdr.api.vo.DocIndexBean;
-import eh.cdr.api.vo.MedicalDetailBean;
-import eh.cdr.api.vo.MedicalInfoBean;
-import eh.cdr.api.vo.RpDetailBean;
+import eh.cdr.api.vo.*;
 import eh.cdr.api.vo.request.SaveEmrContractReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,17 +27,22 @@ import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.comment.DictionaryUtil;
 import recipe.comment.RecipeEmrComment;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.util.ByteUtils;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * 电子病历
+ *
  * @author yinsheng
  * @date 2020\8\18 0018 08:57
  */
@@ -65,6 +67,66 @@ public class EmrRecipeManager {
 
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
+
+    /**
+     * 获取 电子病例明细对象
+     *
+     * @param docIndexId
+     * @return
+     */
+    public String getEmrDetails(Integer docIndexId) {
+        return getEmrDetail(docIndexId);
+    }
+
+    /**
+     * 获取 电子病例明细对象
+     *
+     * @param clinicId
+     * @return
+     */
+    public String getEmrDetailsByClinicId(Integer clinicId) {
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return null;
+        }
+        //业务类型， 1 处方 2 复诊 3 检查 4 检验
+        docIndexService.getMedicalInfoByBussTypeBussId(2, clinicId);
+        return null;
+    }
+
+    /**
+     * 根据老处方获取一个新的电子病历数据 有复诊就关联复诊
+     *
+     * @param recipeId 处方id
+     * @param clinicId 复诊id
+     * @return
+     */
+    public String copyEmrDetails(Integer recipeId, Integer clinicId) {
+        if (ValidateUtil.integerIsEmpty(recipeId, clinicId)) {
+            return null;
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null == recipeExtend || ValidateUtil.integerIsEmpty(recipeExtend.getDocIndexId())) {
+            return null;
+        }
+        CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
+        coverMedical.setRevisitId(clinicId);
+        coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
+        coverMedical.setMpiid(recipe.getMpiid());
+        coverMedical.setCreateOrgan(recipe.getCheckOrgan());
+        coverMedical.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
+        coverMedical.setDoctorName(recipe.getDoctorName());
+        coverMedical.setGetDate(new Date());
+        coverMedical.setDocStatus(DOC_STATUS_HOLD);
+        docIndexService.coverMedicalInfo(coverMedical);
+        return null;
+    }
 
     /**
      * 保存电子病历 主要用于兼容老数据结构
@@ -296,6 +358,7 @@ public class EmrRecipeManager {
         logger.debug("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
     }
 
+
     /**
      * 获取 电子病例明细对象
      *
@@ -303,7 +366,22 @@ public class EmrRecipeManager {
      * @return
      */
     private static List<EmrDetailDTO> getEmrDetailDTO(Integer docIndexId) {
-        if (null == docIndexId || 0 == docIndexId) {
+        String detail = getEmrDetail(docIndexId);
+        List<EmrDetailDTO> detailList = JSON.parseArray(detail, EmrDetailDTO.class);
+        if (CollectionUtils.isEmpty(detailList)) {
+            return null;
+        }
+        return detailList;
+    }
+
+    /**
+     * 获取 电子病例明细对象
+     *
+     * @param docIndexId
+     * @return
+     */
+    private static String getEmrDetail(Integer docIndexId) {
+        if (ValidateUtil.integerIsEmpty(docIndexId)) {
             return null;
         }
         IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
@@ -328,12 +406,9 @@ public class EmrRecipeManager {
         if (!docIndexId.equals(medicalDetailBean.getDocIndexId())) {
             return null;
         }
-        List<EmrDetailDTO> detail = JSON.parseArray(medicalDetailBean.getDetail(), EmrDetailDTO.class);
-        if (CollectionUtils.isEmpty(detail)) {
-            return null;
-        }
-        return detail;
+        return medicalDetailBean.getDetail();
     }
+
 
     /**
      * 新增电子病历 主要用于兼容老数据结构
