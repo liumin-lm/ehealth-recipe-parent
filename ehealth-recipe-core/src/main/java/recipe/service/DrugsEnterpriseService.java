@@ -37,6 +37,7 @@ import recipe.serviceprovider.BaseService;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 药企相关接口
@@ -634,5 +635,55 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             LOGGER.info("getTrackingNumber error msg:{}.", e.getMessage());
         }
         return "";
+    }
+
+    @RpcService
+    public Integer getDrugsEnterpriseContinue(Integer recipeId, int organId) {
+        // 都支持
+        List<Integer> DrugsEnterpriseAll = new ArrayList<>();
+        DrugsEnterpriseAll.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
+        DrugsEnterpriseAll.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
+        DrugsEnterpriseAll.add(RecipeBussConstant.DEP_SUPPORT_ALL);
+        // 到店取药
+        List<Integer> DrugsEnterpriseTo = new ArrayList<>();
+        DrugsEnterpriseTo.add(RecipeBussConstant.DEP_SUPPORT_TFDS);
+        // 药企配送
+        List<Integer> DrugsEnterpriseSend = new ArrayList<>();
+        DrugsEnterpriseSend.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
+        DrugsEnterpriseSend.add(RecipeBussConstant.DEP_SUPPORT_COD);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        List<Integer> list = new ArrayList<>();
+        list.add(recipeId);
+        // 获取所有有库存的药企
+        List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
+
+        if(CollectionUtils.isNotEmpty(supportDepList)) {
+            Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
+                Integer payModeSupport = drugsEnterprise.getPayModeSupport();
+                if (DrugsEnterpriseAll.contains(payModeSupport)) {
+                    return 1;
+                } else if (DrugsEnterpriseTo.contains(payModeSupport)) {
+                    return 11;
+                } else if (DrugsEnterpriseSend.contains(payModeSupport)) {
+                    return 12;
+                }
+                return null;
+            }).collect(Collectors.toSet());
+
+            Integer continueFlag = null;
+            if (collect.contains(1)) {
+                continueFlag = 1;
+            } else if (collect.contains(11) && collect.contains(12)) {
+                continueFlag = 1;
+            } else if (collect.contains(11)) {
+                continueFlag = 11;
+            } else if (collect.contains(12)) {
+                continueFlag = 12;
+            }
+            return continueFlag;
+        }else {
+            LOGGER.info("getDrugsEnterpriseContinue recipeId{}",recipeId);
+            return null;
+        }
     }
 }
