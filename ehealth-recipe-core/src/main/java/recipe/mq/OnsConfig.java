@@ -49,7 +49,7 @@ public class OnsConfig {
         OnsConfig.emrRecipe = emrRecipe;
     }
 
-    public static void setSessionTopic(String sessionTopic) {
+    public void setSessionTopic(String sessionTopic) {
         OnsConfig.sessionTopic = sessionTopic;
     }
 }
