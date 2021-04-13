@@ -31,7 +31,6 @@ public class CardDataUploadRunable implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("CardDataUploadRunable scene 010106:开方  030102:在线购药 010103:取药");
         LOGGER.info("CardDataUploadRunable start. organId={} mpiid={} scene={}", organId,mpiid,scene);
         try {
             CardUploadDTO cardUploadDTO=new CardUploadDTO();
