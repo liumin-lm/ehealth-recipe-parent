@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.ngari.recipe.vo.CaseHistoryVO;
+import eh.cdr.api.vo.MedicalDetailBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -30,10 +31,10 @@ public class CaseHistoryService {
      *
      * @param caseHistoryVO 电子病历查询对象
      */
-    public String getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
+    public MedicalDetailBean getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
         //查看
         if (DOC_ACTION_TYPE_INFO.equals(caseHistoryVO.getActionType())) {
-            String emrDetails = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
+            MedicalDetailBean emrDetails = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
             if (!StringUtils.isEmpty(emrDetails)) {
                 return emrDetails;
             }

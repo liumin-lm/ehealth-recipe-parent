@@ -1,8 +1,6 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.base.doctor.model.DoctorBean;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -22,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import recipe.bean.EmrDetailDTO;
 import recipe.bean.EmrDetailValueDTO;
@@ -33,6 +30,7 @@ import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.service.client.DoctorClient;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
@@ -60,7 +58,7 @@ public class EmrRecipeManager {
     @Resource
     private DepartmentService departmentService;
     @Autowired
-    private IDoctorService doctorService;
+    private DoctorClient doctorClient;
 
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
@@ -72,28 +70,34 @@ public class EmrRecipeManager {
 
 
     /**
-     * 获取 电子病例明细对象
+     * 根据病历id 获取 电子病例明细对象
      *
      * @param docIndexId
      * @return
      */
-    public String getEmrDetails(Integer docIndexId) {
-        return getEmrDetail(docIndexId);
+    public MedicalDetailBean getEmrDetails(Integer docIndexId) {
+        if (ValidateUtil.integerIsEmpty(docIndexId)) {
+            return null;
+        }
+        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByDocIndexIdV2(docIndexId);
+        logger.info("EmrRecipeManager getEmrDetails medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
+        return medicalInfoBean.getMedicalDetailBean();
     }
 
     /**
-     * 获取 电子病例明细对象
+     * 根据复诊id 获取 电子病例明细对象
      *
      * @param clinicId
      * @return
      */
-    public String getEmrDetailsByClinicId(Integer clinicId) {
+    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId) {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return null;
         }
         //业务类型， 1 处方 2 复诊 3 检查 4 检验
-        docIndexService.getMedicalInfoByBussTypeBussId(2, clinicId);
-        return null;
+        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(2, clinicId);
+        logger.info("EmrRecipeManager getEmrDetailsByClinicId medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
+        return medicalInfoBean.getMedicalDetailBean();
     }
 
     /**
@@ -103,7 +107,7 @@ public class EmrRecipeManager {
      * @param clinicId 复诊id
      * @return
      */
-    public String copyEmrDetails(Integer recipeId, Integer clinicId) {
+    public MedicalDetailBean copyEmrDetails(Integer recipeId, Integer clinicId) {
         if (ValidateUtil.integerIsEmpty(recipeId, clinicId)) {
             return null;
         }
@@ -124,8 +128,10 @@ public class EmrRecipeManager {
         coverMedical.setDoctorName(recipe.getDoctorName());
         coverMedical.setGetDate(new Date());
         coverMedical.setDocStatus(DOC_STATUS_HOLD);
-        docIndexService.coverMedicalInfo(coverMedical);
-        return null;
+        logger.info("EmrRecipeManager copyEmrDetails coverMedical:{}", JSONUtils.toString(coverMedical));
+        MedicalInfoBean medicalInfoBean = docIndexService.coverMedicalInfo(coverMedical);
+        logger.info("EmrRecipeManager copyEmrDetails medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
+        return medicalInfoBean.getMedicalDetailBean();
     }
 
     /**
@@ -243,6 +249,9 @@ public class EmrRecipeManager {
         saveEmrContractReq.setBussId(recipeId);
         saveEmrContractReq.setDocIndexId(docId);
         saveEmrContractReq.setBussType(1);
+        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+            saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
+        }
         Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
         // 更新 处方诊断信息
         List<EmrDetailDTO> detail = getEmrDetailDTO(docId);
@@ -266,9 +275,8 @@ public class EmrRecipeManager {
         try {
             docIndexService.deleteRpDetailRelation(recipeId);
         } catch (Exception e) {
-            logger.warn("EmrRecipeManager deleteRecipeDetailsFromDoc error:{}", e);
+            logger.warn("EmrRecipeManager deleteRecipeDetailsFromDoc error", e);
         }
-
     }
 
     /**
@@ -366,49 +374,35 @@ public class EmrRecipeManager {
      * @return
      */
     private static List<EmrDetailDTO> getEmrDetailDTO(Integer docIndexId) {
-        String detail = getEmrDetail(docIndexId);
+        if (ValidateUtil.integerIsEmpty(docIndexId)) {
+            return null;
+        }
+        IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
+        MedicalInfoBean medicalInfoBean;
+        try {
+            medicalInfoBean = docIndexService.getMedicalInfoByDocIndexIdV2(docIndexId);
+        } catch (Exception e) {
+            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", docIndexId, e.getMessage(), e);
+            return null;
+        }
+        logger.info("EmrRecipeManager getDetail medicalInfoBean={}", JSON.toJSONString(medicalInfoBean));
+
+        if (null == medicalInfoBean) {
+            return null;
+        }
+
+        MedicalDetailBean medicalDetailBean = medicalInfoBean.getMedicalDetailBean();
+        if (null == medicalDetailBean) {
+            return null;
+        }
+        String detail = medicalDetailBean.getDetail();
+
         List<EmrDetailDTO> detailList = JSON.parseArray(detail, EmrDetailDTO.class);
         if (CollectionUtils.isEmpty(detailList)) {
             return null;
         }
         return detailList;
     }
-
-    /**
-     * 获取 电子病例明细对象
-     *
-     * @param docIndexId
-     * @return
-     */
-    private static String getEmrDetail(Integer docIndexId) {
-        if (ValidateUtil.integerIsEmpty(docIndexId)) {
-            return null;
-        }
-        IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
-        Map<String, Object> medicalInfoMap;
-        try {
-            medicalInfoMap = docIndexService.getMedicalInfoByDocIndexId(docIndexId);
-        } catch (Exception e) {
-            logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", docIndexId, e.getMessage(), e);
-            return null;
-        }
-        logger.info("EmrRecipeManager getMedicalInfo medicalInfoMap={}", JSON.toJSONString(medicalInfoMap));
-
-        if (CollectionUtils.isEmpty(medicalInfoMap)) {
-            return null;
-        }
-        Object medicalDetail = medicalInfoMap.get("medicalDetailBean");
-        if (ObjectUtils.isEmpty(medicalDetail)) {
-            return null;
-        }
-        MedicalDetailBean medicalDetailBean = JSON.parseObject(JSON.toJSONString(medicalDetail), MedicalDetailBean.class);
-
-        if (!docIndexId.equals(medicalDetailBean.getDocIndexId())) {
-            return null;
-        }
-        return medicalDetailBean.getDetail();
-    }
-
 
     /**
      * 新增电子病历 主要用于兼容老数据结构
@@ -432,12 +426,11 @@ public class EmrRecipeManager {
         try {
             String departName = Optional.ofNullable(departmentService.get(recipe.getDepart())).map(DepartmentDTO::getName).orElse(null);
             docIndexBean.setDepartName(departName);
-            String doctorName = Optional.ofNullable(doctorService.getBeanByDoctorId(recipe.getDoctor())).map(DoctorBean::getName).orElse(null);
-            docIndexBean.setDoctorName(doctorName);
-            docIndexBean.setCreateDoctor(recipe.getDoctor());
         } catch (Exception e) {
-            logger.error("EmrRecipeManager Optional error", e);
+            logger.error("EmrRecipeManager addMedicalInfo departName error", e);
         }
+        docIndexBean.setCreateDoctor(recipe.getDoctor());
+        docIndexBean.setDoctorName(doctorClient.getDoctor(recipe.getDoctor()).getName());
         docIndexBean.setCreateDate(recipe.getCreateDate());
         docIndexBean.setGetDate(new Date());
         docIndexBean.setDoctypeName("电子处方病历");
