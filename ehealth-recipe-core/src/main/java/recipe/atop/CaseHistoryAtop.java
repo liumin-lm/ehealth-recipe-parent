@@ -6,6 +6,7 @@ import com.ngari.revisit.common.service.IRevisitService;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.cdr.api.vo.MedicalDetailBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -36,7 +37,7 @@ public class CaseHistoryAtop extends BaseAtop {
      * @param caseHistoryVO 电子病历查询对象
      */
     @RpcService
-    public String getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
+    public MedicalDetailBean getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
         logger.info("CaseHistoryAtop getDocIndexInfo caseHistoryVO {}", JSON.toJSONString(caseHistoryVO));
         if (null == caseHistoryVO || null == caseHistoryVO.getActionType()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
@@ -45,7 +46,7 @@ public class CaseHistoryAtop extends BaseAtop {
             return null;
         }
         try {
-            String result = caseHistoryService.getDocIndexInfo(caseHistoryVO);
+            MedicalDetailBean result = caseHistoryService.getDocIndexInfo(caseHistoryVO);
             logger.info("CaseHistoryAtop getDocIndexInfo result = {}", result);
             return result;
         } catch (DAOException e1) {

@@ -24,7 +24,7 @@ public class RecipeDetailAtop extends BaseAtop {
     private RecipeDetailService recipeDetailService;
 
     /**
-     * 校验线上线下 药品数据
+     * 校验线上线下 药品数据 用于续方需求
      *
      * @param organId       机构id
      * @param recipeDetails 处方明细
