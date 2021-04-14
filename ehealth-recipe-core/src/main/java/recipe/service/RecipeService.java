@@ -5712,4 +5712,63 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info(" 复诊查询当前就诊单 revisitId={}", revisitId);
         return revisitId == null ? false : true;
     }
+
+    /**
+     *
+     * @param organId  机构Id
+     * @param OrganDrugCode  机构药品编码
+     * @param drugType  药品类型
+     * @return
+     */
+    @RpcService
+    public List<DrugEntrustDTO> querDrugEntrustByOrganIdAndDrugCode(Integer organId,String OrganDrugCode,Integer drugType){
+        LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.organId={},OrganDrugCode={},drugType={}", organId,OrganDrugCode,drugType);
+        if (null == organId) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+
+        if (null == OrganDrugCode) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "机构药品编码不能为空");
+        }
+
+        if (null == drugType) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "机构药品类型不能为空");
+        }
+
+        OrganDrugListDAO drugListDAO = getDAO(OrganDrugListDAO.class);
+        DrugEntrustService entrustService = ApplicationUtils.getBaseService(DrugEntrustService.class);
+        List<DrugEntrustDTO> dtos=new ArrayList<>();
+        String defaultDrugEntrust= drugListDAO.findDrugEntrustByOrganDrugCodeAndOrganId(organId,OrganDrugCode);
+        //区分西药和中药默认嘱托
+        if (drugType==1||drugType==2){
+            //西药 中成药 --平台默认嘱托进行填充
+            if (defaultDrugEntrust!=null){
+                DrugEntrustDTO drugEntrustDTO = new DrugEntrustDTO();
+                drugEntrustDTO.setDrugEntrustDefaultFlag(true);
+                drugEntrustDTO.setDrugEntrustId(0);
+                drugEntrustDTO.setCreateDt(new Date());
+                drugEntrustDTO.setDrugEntrustCode("自定义默认000");
+                drugEntrustDTO.setDrugEntrustName("平台默认设置嘱托");
+                drugEntrustDTO.setDrugEntrustValue("西药，中成药平台默认设置嘱托");
+                dtos.add(drugEntrustDTO);
+                return dtos;
+            }
+        }
+        else if (drugType==3){
+            //中草药  --中药嘱托字典库
+            List<DrugEntrustDTO> dtos1 = entrustService.querDrugEntrustByOrganId(organId);
+            if (defaultDrugEntrust!=null){
+                for (DrugEntrustDTO dto:dtos1){
+                    if (defaultDrugEntrust.equals(dto.getDrugEntrustName())){
+                        dto.setDrugEntrustDefaultFlag(true);
+                        break;
+                    }
+                }
+            }
+            LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.dtos1{}", JSONUtils.toString(dtos1));
+             return dtos1;
+        }
+        LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.dtos{}", JSONUtils.toString(dtos));
+        return dtos;
+    }
 }
