@@ -94,19 +94,25 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物发放数量")
     private Double sendNumber;
 
-    @ItemProperty(alias="药物使用天数")
+    @ItemProperty(alias = "药物使用天数")
     private Integer useDays;
 
-    @ItemProperty(alias="药物金额")
+    @ItemProperty(alias = "药物金额")
     private BigDecimal drugCost;
 
-    @ItemProperty(alias="备注信息")
+    @ItemProperty(alias = "药品嘱托Id")
+    private String entrustmentId;
+
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode;
+
+    @ItemProperty(alias = "药品嘱托信息")
     private String memo;
 
-    @ItemProperty(alias="药品效期")
+    @ItemProperty(alias = "药品效期")
     private Date validDate;
 
-    @ItemProperty(alias="药品批号")
+    @ItemProperty(alias = "药品批号")
     private String drugBatch;
 
     @ItemProperty(alias="创建时间")
@@ -226,6 +232,14 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
+
+    public String getEntrustmentId() {
+        return entrustmentId;
+    }
+
+    public void setEntrustmentId(String entrustmentId) {
+        this.entrustmentId = entrustmentId;
+    }
 
     public String getSaleDrugCode() {
         return saleDrugCode;
@@ -799,5 +813,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
     }
 }

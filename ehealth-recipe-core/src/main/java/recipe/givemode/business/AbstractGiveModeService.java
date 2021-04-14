@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.persistence.DAOFactory;
@@ -124,7 +125,9 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         }
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             //开处方时校验库存时存的只支持配送方式--不支持到院取药
-            if (1 == recipe.getDistributionFlag()) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                    RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+            || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
                 removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
             }
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportDownload");
@@ -219,13 +222,21 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //不支持配送，则按钮都不显示--包括药店取药
-        if (new Integer(2).equals(recipe.getDistributionFlag())) {
+        if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
             removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
             removeGiveModeData(giveModeButtonBeans, "showSendToHos");
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
         }
-        if (new Integer(1).equals(recipe.getDistributionFlag())) {
+        if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
             removeGiveModeData(giveModeButtonBeans, "supportToHos");
+        }
+        if (RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())) {
+            removeGiveModeData(giveModeButtonBeans, "supportToHos");
+            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
+        }
+        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
+            removeGiveModeData(giveModeButtonBeans, "supportToHos");
+            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
         }
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());

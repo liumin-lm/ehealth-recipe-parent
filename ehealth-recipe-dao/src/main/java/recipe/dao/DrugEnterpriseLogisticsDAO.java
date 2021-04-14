@@ -72,8 +72,8 @@ public abstract class DrugEnterpriseLogisticsDAO extends HibernateSupportDelegat
                 drugEnterpriseLogistics.forEach(drugEnterpriseLogisticsBean -> {
 
                     DrugEnterpriseLogistics drugEnterpriseLogistic = new DrugEnterpriseLogistics();
-                    drugEnterpriseLogistic.setDrugsEnterpriseId(drugsEnterpriseId);
                     BeanUtils.copy(drugEnterpriseLogisticsBean, drugEnterpriseLogistic);
+                    drugEnterpriseLogistic.setDrugsEnterpriseId(drugsEnterpriseId);
                     drugEnterpriseLogistic.setCreateTime(new Date());
                     ss.insert(drugEnterpriseLogistic);
 

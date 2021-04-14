@@ -17,6 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.account.UserRoleToken;
@@ -1523,7 +1524,7 @@ public class RecipeListService extends RecipeBaseService {
             payModeShowButtonBean.setShowSendToHos(true);
         }
         //不支持配送，则按钮都不显示--包括药店取药
-        if (new Integer(2).equals(recipe.getDistributionFlag())) {
+        if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
             payModeShowButtonBean.setShowSendToEnterprises(false);
             payModeShowButtonBean.setShowSendToHos(false);
             payModeShowButtonBean.setSupportTFDS(false);
@@ -1562,7 +1563,9 @@ public class RecipeListService extends RecipeBaseService {
             }
         } else {
             //省平台互联网购药方式的配置
-            if (1 == recipe.getDistributionFlag()) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                    RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+                    || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
                 payModeShowButtonBean.setSupportToHos(false);
             }
         }
