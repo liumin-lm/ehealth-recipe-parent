@@ -48,13 +48,13 @@ public class KeepAccountService implements IAfterPayBussService{
      * @param recipes     处方信息
      */
     public void uploadKeepAccount(RecipeOrder order, List<Recipe> recipes) {
-        LOGGER.info("KeepAccountService handle recipes:{}", JSONUtils.toString(recipes));
+        LOGGER.info("KeepAccountService uploadKeepAccount recipes:{}", JSONUtils.toString(recipes));
         //(异步的过程，不影响主流程)
         GlobalEventExecFactory.instance().getExecutor().submit(()-> {
             try {
                 handleRecipeSplit(order, recipes);
             } catch (Exception e) {
-                LOGGER.error("支付回调处方记账业务异常，error=", e);
+                LOGGER.error("KeepAccountService uploadKeepAccount 支付回调处方记账业务异常，error=", e);
             }
         });
     }
