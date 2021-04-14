@@ -113,7 +113,7 @@ public class HisRecipeService {
             throw new DAOException(609, "患者信息不存在");
         }
         //同步查询待缴费处方[只查询，不存储]
-        HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipes=queryData(organId, patientDTO, timeQuantum, 1);
+        HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipes=queryData(organId, patientDTO, timeQuantum, 1,null);
         //待缴费非本人同步处方处理
         dealPatientInfo(noPayFeeRecipes,patientDTO);
         //异步获取已缴费处方
@@ -428,7 +428,7 @@ public class HisRecipeService {
     @RpcService
     public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
         //查询数据
-        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag,null);
         if (null == responseTO || null == responseTO.getData()) {
             return null;
         }
@@ -461,7 +461,7 @@ public class HisRecipeService {
      * @Author liumin
      * @Desciption  从 his查询待缴费已缴费的处方信息
      */
-    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag,String recipeCode) {
         //TODO question 查询条件带recipeCode
         //TODO question 让前置机去过滤数据
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
@@ -485,7 +485,9 @@ public class HisRecipeService {
         queryRecipeRequestTO.setEndDate(new Date());
         queryRecipeRequestTO.setOrgan(organId);
         queryRecipeRequestTO.setQueryType(flag);
-
+        if(StringUtils.isNotEmpty(recipeCode)){
+            queryRecipeRequestTO.setRecipeCode(recipeCode);
+        }
         IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);

@@ -858,5 +858,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
-}
 
+
+    @RpcService
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) ;
+
+}
