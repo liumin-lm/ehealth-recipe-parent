@@ -2667,6 +2667,10 @@ public class RecipeServiceSub {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeService.queryData(organId, patientDTO, null, 1, recipeCode);
         QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
+        if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
+            LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);
+            return;
+        }
         //拼接卡片显示参数
         RecipeTagMsgBean recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO,patientDTO);
         IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
