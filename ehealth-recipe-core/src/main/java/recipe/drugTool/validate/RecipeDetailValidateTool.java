@@ -173,7 +173,7 @@ public class RecipeDetailValidateTool {
      */
     private boolean entrustValidate(RecipeDetailBean recipeDetail, List<DrugEntrustDTO> drugEntrusts) {
         if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
-            return false;
+            return true;
         }
         if (CollectionUtils.isEmpty(drugEntrusts)) {
             recipeDetail.setEntrustmentId(null);
