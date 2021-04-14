@@ -82,22 +82,34 @@ public class RecipeDetailService {
             }
             //校验数据是否完善
             recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrusts);
-            /**返回前端必须字段*/
-            a.setStatus(organDrug.getStatus());
-            a.setDrugId(organDrug.getDrugId());
-            if (CollectionUtils.isEmpty(a.getUseDoseAndUnitRelation())) {
-                List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-                }
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
-                }
-                a.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-            }
-            //续方也会走这里但是 续方要用药品名实时配置
-            a.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(a, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
+            //返回前端必须字段
+            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
         });
         return recipeDetails;
+    }
+
+    /**
+     * 返回前端必须字段
+     *
+     * @param recipeDetailBean  出参处方明细
+     * @param organDrug         机构药品
+     * @param configDrugNameMap 药品名拼接配置
+     * @param recipeType        处方类型
+     */
+    private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap, Integer recipeType) {
+        recipeDetailBean.setStatus(organDrug.getStatus());
+        recipeDetailBean.setDrugId(organDrug.getDrugId());
+        if (CollectionUtils.isEmpty(recipeDetailBean.getUseDoseAndUnitRelation())) {
+            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+            if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+            }
+            if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+            }
+            recipeDetailBean.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+        }
+        //续方也会走这里但是 续方要用药品名实时配置
+        recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
     }
 }

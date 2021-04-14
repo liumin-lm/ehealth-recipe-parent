@@ -130,8 +130,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-
-
+        
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
