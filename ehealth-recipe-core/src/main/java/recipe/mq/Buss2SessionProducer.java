@@ -16,6 +16,7 @@ public class Buss2SessionProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Buss2SessionProducer.class);
 
     public static void sendMsgToMq(Recipe recipe, String contentType, Integer sessionType, String sessionId, String assessHisId) {
+        LOGGER.info("Buss2SessionProducer sendMsgToMq recipeID:{},contentType:{},sessionId:{}.", recipe.getRecipeId(), contentType, sessionId);
         Buss2SessionMsg msg = new Buss2SessionMsg();
         if (StringUtils.isNotEmpty(assessHisId)){
             msg.setMsgKey(assessHisId);
@@ -29,14 +30,14 @@ public class Buss2SessionProducer {
         msg.setSessionType(sessionType);
         msg.setSessionId(sessionId);
         if (null == msg.getSessionType()) {
-            LOGGER.info("sessionType null");
+            LOGGER.info("Buss2SessionProducer sendMsgToMq sessionType null");
             return;
         }
         try {
             MQHelper.getMqPublisher().publish(OnsConfig.sessionTopic, msg, "tag_revisit");
-            LOGGER.info("send to MQ, sessionType:{}, key:{}", msg.getSessionType(), msg.getMsgKey());
+            LOGGER.info("Buss2SessionProducer sendMsgToMq send to MQ, sessionType:{}, key:{}", msg.getSessionType(), msg.getMsgKey());
         } catch (Exception e) {
-            LOGGER.error("can't send to MQ, sessionType:{}, key:{}", msg.getSessionType(), msg.getMsgKey(), e);
+            LOGGER.error("Buss2SessionProducer sendMsgToMq can't send to MQ, sessionType:{}, key:{}", msg.getSessionType(), msg.getMsgKey(), e);
         }
     }
 }

@@ -6,7 +6,6 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -14,11 +13,8 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,7 +24,6 @@ import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.PayConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -37,6 +32,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.factory.status.constant.GiveModeEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
+import recipe.util.AddressUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -59,23 +55,30 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
-    @Override
-    public void handle(RecipeResultBean result, RecipeOrder order, List<Recipe> recipes, Integer payFlag) {
-
-        if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
-            // 平台物流对接--物流下单逻辑--且处方购药方式为配送到家
-            try {
-                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes) && GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipes.get(0).getGiveMode())) {
-                    LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
-                    createLogisticsOrder(order.getOrderCode(), order, recipes);
-                }
-            } catch (Exception e) {
-                LOGGER.error("基础服务物流下单.error=", e);
+    /**
+     * 根据支付结果进行物流下单
+     * @param order        订单信息
+     * @param recipes      处方列表
+     */
+    public void onlineOrder(RecipeOrder order, List<Recipe> recipes) {
+        LOGGER.info("LogisticsOnlineOrderService onlineOrder:[{}]", order.getOrderCode());
+        // 平台物流对接--物流下单逻辑--且处方购药方式为配送到家
+        try {
+            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipes.get(0).getGiveMode())) {
+                LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
+                createLogisticsOrder(order, recipes);
             }
+        } catch (Exception e) {
+            LOGGER.error("基础服务物流下单.error=", e);
         }
     }
 
-    private void createLogisticsOrder(String orderCode, RecipeOrder order, List<Recipe> recipeS) {
+    /**
+     * 包装物流信息，进行下单处理
+     * @param order    订单信息
+     * @param recipeS  处方信息
+     */
+    private void createLogisticsOrder(RecipeOrder order, List<Recipe> recipeS) {
         // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
@@ -107,7 +110,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                 orderAttrMap.put("LogisticsCompany", order.getLogisticsCompany());
 
                 orderAttrMap.put("TrackingNumber", trackingNumber);
-                recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
+                recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
                 RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
                 LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, order.getLogisticsCompany(), order.getOrderId());
             } else {
@@ -117,14 +120,20 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         } else if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT_HIS)) {
             //药企对接-无回写接口:将处方信息传给基础服务线
             ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-            WriteBackLogisticsOrderDto orderDto = getWriteBackLogisticsOrderDto(order, recipeS.get(0), enterprise);
+            WriteBackLogisticsOrderDto orderDto = getWriteBackLogisticsOrderDto(order, recipeS.get(0));
             LOGGER.info("基础服务物流下单入参 req={}", JSONUtils.toString(orderDto));
             String res = logisticsOrderService.writeBackLogisticsOrder(orderDto);
             LOGGER.info("基础服务物流下单结果 res={}", res);
         }
     }
 
-    private WriteBackLogisticsOrderDto getWriteBackLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
+    /**
+     * 物流参数包装
+     * @param order   订单信息
+     * @param recipe  处方信息
+     * @return        包装结果
+     */
+    private WriteBackLogisticsOrderDto getWriteBackLogisticsOrderDto(RecipeOrder order, Recipe recipe) {
         WriteBackLogisticsOrderDto orderDto = new WriteBackLogisticsOrderDto();
         // 机构id
         orderDto.setOrganId(recipe.getClinicOrgan());
@@ -141,13 +150,13 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         // 收件人手机号
         orderDto.setAddresseePhone(order.getRecMobile());
         // 收件省份
-        orderDto.setAddresseeProvince(getAddressDic(order.getAddress1()));
+        orderDto.setAddresseeProvince(AddressUtils.getAddressDic(order.getAddress1()));
         // 收件城市
-        orderDto.setAddresseeCity(getAddressDic(order.getAddress2()));
+        orderDto.setAddresseeCity(AddressUtils.getAddressDic(order.getAddress2()));
         // 收件镇/区
-        orderDto.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+        orderDto.setAddresseeDistrict(AddressUtils.getAddressDic(order.getAddress3()));
         // 收件人街道
-        orderDto.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
+        orderDto.setAddresseeStreet(AddressUtils.getAddressDic(order.getStreetAddress()));
         // 收件详细地址
         orderDto.setAddresseeAddress(order.getAddress4());
         //寄托物名称
@@ -164,6 +173,13 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         return orderDto;
     }
 
+    /**
+     * 物流信息包装
+     * @param order       订单信息
+     * @param recipe      处方信息
+     * @param enterprise  配送药企信息
+     * @return            包装后的物流信息
+     */
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
         // 机构id
@@ -181,13 +197,13 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         // 寄件人手机号
         logisticsOrder.setConsignorPhone(enterprise.getConsignorMobile());
         // 寄件人省份
-        logisticsOrder.setConsignorProvince(getAddressDic(enterprise.getConsignorProvince()));
+        logisticsOrder.setConsignorProvince(AddressUtils.getAddressDic(enterprise.getConsignorProvince()));
         // 寄件人城市
-        logisticsOrder.setConsignorCity(getAddressDic(enterprise.getConsignorCity()));
+        logisticsOrder.setConsignorCity(AddressUtils.getAddressDic(enterprise.getConsignorCity()));
         // 寄件人区域
-        logisticsOrder.setConsignorDistrict(getAddressDic(enterprise.getConsignorDistrict()));
+        logisticsOrder.setConsignorDistrict(AddressUtils.getAddressDic(enterprise.getConsignorDistrict()));
         // 寄件人街道
-        logisticsOrder.setConsignorStreet(getAddressDic(enterprise.getConsignorStreet()));
+        logisticsOrder.setConsignorStreet(AddressUtils.getAddressDic(enterprise.getConsignorStreet()));
         // 寄件人详细地址
         logisticsOrder.setConsignorAddress(enterprise.getConsignorAddress());
         // 收件人名称
@@ -195,13 +211,13 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         // 收件人手机号
         logisticsOrder.setAddresseePhone(order.getRecMobile());
         // 收件省份
-        logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
+        logisticsOrder.setAddresseeProvince(AddressUtils.getAddressDic(order.getAddress1()));
         // 收件城市
-        logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
+        logisticsOrder.setAddresseeCity(AddressUtils.getAddressDic(order.getAddress2()));
         // 收件镇/区
-        logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+        logisticsOrder.setAddresseeDistrict(AddressUtils.getAddressDic(order.getAddress3()));
         // 收件人街道
-        logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
+        logisticsOrder.setAddresseeStreet(AddressUtils.getAddressDic(order.getStreetAddress()));
         // 收件详细地址
         logisticsOrder.setAddresseeAddress(order.getAddress4());
         // 寄托物名称
@@ -235,16 +251,5 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             LOGGER.error("基础服务物流下单非必填信息获取异常：", e);
         }
         return logisticsOrder;
-    }
-
-    private String getAddressDic(String area) {
-        if (StringUtils.isNotEmpty(area)) {
-            try {
-                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
-            } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
-            }
-        }
-        return "";
     }
 }

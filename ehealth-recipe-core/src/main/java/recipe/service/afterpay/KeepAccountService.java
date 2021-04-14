@@ -8,7 +8,6 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -17,13 +16,10 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.event.GlobalEventExecFactory;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
-import recipe.constant.PayConstant;
 import recipe.constant.RecipeFeeEnum;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -37,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * 记账业务
  * @author yinsheng
  * @date 2021\4\12 0012 18:36
  */
@@ -46,36 +42,28 @@ public class KeepAccountService implements IAfterPayBussService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeepAccountService.class);
 
-    @Override
-    public void handle(RecipeResultBean result, RecipeOrder order, List<Recipe> recipes, Integer payFlag) {
-        LOGGER.info("KeepAccountService handle recipes:{}", JSONUtils.toString(recipes));
-        if (order == null || StringUtils.isEmpty(order.getOrderCode())) {
-            return;
-        }
-        if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
-            //(异步的过程，不影响主流程)
-            GlobalEventExecFactory.instance().getExecutor().submit(()-> {
-                    try {
-                        // 支付成功后调支付平台记账
-                        if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
-                            try {
-                                handleRecipeSplit(order, recipes);
-                            } catch (Exception e) {
-                                LOGGER.error("支付回调处方记账业务异常，error=", e);
-                            }
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("异步支付回调处方记账业务异常，error=", e);
-                    }
-            });
-        }
+    /**
+     * 上传记账信息
+     * @param order       订单信息
+     * @param recipes     处方信息
+     */
+    public void uploadKeepAccount(RecipeOrder order, List<Recipe> recipes) {
+        LOGGER.info("KeepAccountService uploadKeepAccount recipes:{}", JSONUtils.toString(recipes));
+        //(异步的过程，不影响主流程)
+        GlobalEventExecFactory.instance().getExecutor().submit(()-> {
+            try {
+                handleRecipeSplit(order, recipes);
+            } catch (Exception e) {
+                LOGGER.error("KeepAccountService uploadKeepAccount 支付回调处方记账业务异常，error=", e);
+            }
+        });
     }
 
     /**
      * 处方记账处理
      *
-     * @param order
-     * @param recipes
+     * @param order    订单信息
+     * @param recipes  处方信息
      */
     private void handleRecipeSplit(RecipeOrder order, List<Recipe> recipes) {
         WnAccountSplitParam wnSplitParam = new WnAccountSplitParam();
@@ -95,10 +83,9 @@ public class KeepAccountService implements IAfterPayBussService{
     /**
      * 处方分账基础信息
      *
-     * @param order
-     * @param recipes
-     * @param wnSplitParam
-     * @return
+     * @param order         订单信息
+     * @param recipes       处方信息
+     * @param wnSplitParam  卫宁返回参数
      */
     private void getSplitBaseInfo(RecipeOrder order, List<Recipe> recipes, WnAccountSplitParam wnSplitParam) {
         // 商户订单号
@@ -133,9 +120,9 @@ public class KeepAccountService implements IAfterPayBussService{
      * 获取处方记账账户信息
      * 账户类型 平台-1、医院-2、药店/药企-3、 医生-4、 药师-5
      *
-     * @param order
-     * @param wnSplitParam
-     * @param recipes
+     * @param order         订单信息
+     * @param wnSplitParam  卫宁返回参数
+     * @param recipes       处方信息
      */
     private void getSplitAccountInfo(RecipeOrder order, WnAccountSplitParam wnSplitParam, List<Recipe> recipes) {
         Recipe recipe = recipes.get(0);
@@ -193,7 +180,7 @@ public class KeepAccountService implements IAfterPayBussService{
      * 获取处方记账业务详情
      * 业务详情 : type 1-药费；2-挂号费；3-审方费；4-配送 amount对应金额
      *
-     * @param order
+     * @param order  订单信息
      */
     private List<JSONObject> getSplitFeeInfo(RecipeOrder order) {
         BigDecimal payAmount = new BigDecimal(order.getActualPrice().toString());

@@ -15,6 +15,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.exp.standard.IF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +146,9 @@ public class DrugEntrustService implements IDrugEntrustService {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugEntrustId is null");
         }
         DrugEntrust drugEntrust = drugEntrustDAO.get(drugEntrustId);
+        if (drugEntrust.getOrganId()==0){
+            throw new DAOException(DAOException.VALUE_NEEDED, "平台默认药品嘱托不支持删除!");
+        }
         if (drugEntrust == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药品嘱托不存在！");
         }
@@ -184,7 +188,7 @@ public class DrugEntrustService implements IDrugEntrustService {
 
 
     /**
-     * 根据机构Id查询药房
+     * 根据机构Id查询药品嘱托
      * @param organId
      * @return
      */
@@ -195,11 +199,14 @@ public class DrugEntrustService implements IDrugEntrustService {
         }
         List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
         logger.info("查询药品嘱托服务[querDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+        if (drugEntrusts == null || drugEntrusts.size() <= 0){
+            return  ObjectCopyUtils.convert(drugEntrustDAO.findByOrganId(0), DrugEntrustDTO.class);
+        }
         return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
     }
 
     /**
-     * 根据机构Id查询药房
+     * 根据机构Id查询药品嘱托
      * @param organId
      * @return
      */
