@@ -5737,38 +5737,38 @@ public class RecipeService extends RecipeBaseService {
 
         OrganDrugListDAO drugListDAO = getDAO(OrganDrugListDAO.class);
         DrugEntrustService entrustService = ApplicationUtils.getBaseService(DrugEntrustService.class);
-        List<DrugEntrustDTO> dtos=new ArrayList<>();
-        String defaultDrugEntrust= drugListDAO.findDrugEntrustByOrganDrugCodeAndOrganId(organId,OrganDrugCode);
-        //区分西药和中药默认嘱托
-        if (drugType==1||drugType==2){
+        List<DrugEntrustDTO> dtoList=new ArrayList<>();
+        String defaultDrugEntrust= drugListDAO.getDrugEntrustByOrganDrugCodeAndOrganId(organId,OrganDrugCode);
+        //区分西药和中药默认嘱托 RecipeBussConstant  drugType==1||drugType==2
+        if (RecipeBussConstant.RECIPETYPE_WM.equals(drugType)||RecipeBussConstant.RECIPETYPE_CPM.equals(drugType)){
             //西药 中成药 --平台默认嘱托进行填充
-            if (defaultDrugEntrust!=null){
+            if (StringUtils.isNotEmpty(defaultDrugEntrust)){
                 DrugEntrustDTO drugEntrustDTO = new DrugEntrustDTO();
                 drugEntrustDTO.setDrugEntrustDefaultFlag(true);
                 drugEntrustDTO.setDrugEntrustId(0);
                 drugEntrustDTO.setCreateDt(new Date());
                 drugEntrustDTO.setDrugEntrustCode("自定义默认000");
-                drugEntrustDTO.setDrugEntrustName("平台默认设置嘱托");
+                drugEntrustDTO.setDrugEntrustName(defaultDrugEntrust);
                 drugEntrustDTO.setDrugEntrustValue("西药，中成药平台默认设置嘱托");
-                dtos.add(drugEntrustDTO);
-                return dtos;
+                dtoList.add(drugEntrustDTO);
+                return dtoList;
             }
         }
-        else if (drugType==3){
-            //中草药  --中药嘱托字典库
-            List<DrugEntrustDTO> dtos1 = entrustService.querDrugEntrustByOrganId(organId);
-            if (defaultDrugEntrust!=null){
-                for (DrugEntrustDTO dto:dtos1){
+        else if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)){
+            //中草药  --中药嘱托字典库  drugType==3
+            List<DrugEntrustDTO> drugEntrustDTOList = entrustService.querDrugEntrustByOrganId(organId);
+            if (StringUtils.isNotEmpty(defaultDrugEntrust)){
+                for (DrugEntrustDTO dto:drugEntrustDTOList){
                     if (defaultDrugEntrust.equals(dto.getDrugEntrustName())){
                         dto.setDrugEntrustDefaultFlag(true);
                         break;
                     }
                 }
             }
-            LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.dtos1{}", JSONUtils.toString(dtos1));
-             return dtos1;
+            LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.drugEntrustDTOList{}", JSONUtils.toString(drugEntrustDTOList));
+             return drugEntrustDTOList;
         }
-        LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.dtos{}", JSONUtils.toString(dtos));
-        return dtos;
+        LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.dtoList{}", JSONUtils.toString(dtoList));
+        return dtoList;
     }
 }
