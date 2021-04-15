@@ -15,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.DrugDecoctionWayDao;
+import recipe.dao.DrugEntrustDAO;
 import recipe.dao.DrugMakingMethodDao;
+import recipe.dao.PharmacyTcmDAO;
 
 import java.util.List;
 
@@ -31,6 +33,10 @@ public class DrugExtService implements IDrugExtService {
     DrugMakingMethodDao drugMakingMethodDao;
     @Autowired
     DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     @RpcService
     @Override
@@ -227,5 +233,26 @@ public class DrugExtService implements IDrugExtService {
             throw new DAOException("decoctionId不能为空");
         }
         drugDecoctionWayDao.deleteDecoctionWayByDecoctionId(decoctionId);
+    }
+
+    /**
+     * 3 制法 4 煎法  5 药房 7医嘱
+     * 查询机构字典
+     * @param organId
+     * @param type
+     * @return
+     */
+    @Override
+    public Integer getCountOfOrgan(Integer organId,Integer type) {
+        Integer total = 0;
+        if (type == 3)
+            total = drugMakingMethodDao.getCountOfOrgan(organId).intValue();
+        if (type == 4)
+            total = drugDecoctionWayDao.getCountOfOrgan(organId).intValue();
+        if (type == 5)
+            total = pharmacyTcmDAO.getCountOfOrgan(organId).intValue();
+        if (type == 7)
+            total = drugEntrustDAO.getCountOfOrgan(organId).intValue();
+        return total;
     }
 }
