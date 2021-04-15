@@ -224,7 +224,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer organId,
                                                                                      final String drugClass,
                                                                                      final String keyword, final Integer status,
-                                                                                     final int start, final int limit) {
+                                                                                     final Integer type, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugListAndSaleDrugList>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndSaleDrugList>>() {
                     @SuppressWarnings("unchecked")
@@ -239,6 +239,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (!StringUtils.isEmpty(drugClass)) {
                             hql.append(" and d.drugClass like :drugClass");
+                        }
+
+                        if (!ObjectUtils.isEmpty(type)) {
+                            hql.append(" and d.drugType =:drugType");
                         }
                         Integer drugId = null;
                         if (!StringUtils.isEmpty(keyword)) {
@@ -272,6 +276,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(drugClass)) {
                             countQuery.setParameter("drugClass", drugClass + "%");
                         }
+                        if (!ObjectUtils.isEmpty(type)) {
+                            countQuery.setParameter("drugType", type);
+                        }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
                                 || ObjectUtils.nullSafeEquals(status, -1)
@@ -303,6 +310,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (!StringUtils.isEmpty(keyword)) {
                             query.setParameter("keyword", "%" + keyword + "%");
+                        }
+                        if (!ObjectUtils.isEmpty(type)) {
+                            query.setParameter("drugType", type);
                         }
                         if (!ObjectUtils.isEmpty(startTime)){
                             query.setParameter("startTime", startTime);
