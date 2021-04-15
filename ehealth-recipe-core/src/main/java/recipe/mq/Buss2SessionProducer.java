@@ -25,15 +25,11 @@ public class Buss2SessionProducer {
         msg.setMpiId(recipe.getMpiid());
         msg.setSessionType(4);
         msg.setSessionId(sessionId);
-        if (null == msg.getSessionType()) {
-            LOGGER.info("Buss2SessionProducer sendMsgToMq sessionType null");
-            return;
-        }
         try {
             MQHelper.getMqPublisher().publish(OnsConfig.sessionTopic, msg, "tag_revisit");
-            LOGGER.info("Buss2SessionProducer sendMsgToMq send to MQ, sessionType:{}, key:{}", msg.getSessionType(), msg.getMsgKey());
+            LOGGER.info("Buss2SessionProducer sendMsgToMq send to MQ, sessionType:{}, recipeID:{}", msg.getSessionType(), recipe.getRecipeId());
         } catch (Exception e) {
-            LOGGER.error("Buss2SessionProducer sendMsgToMq can't send to MQ, sessionType:{}, key:{}", msg.getSessionType(), msg.getMsgKey(), e);
+            LOGGER.error("Buss2SessionProducer sendMsgToMq can't send to MQ, sessionType:{}, recipeID:{}", msg.getSessionType(), recipe.getRecipeId(), e);
         }
     }
 }
