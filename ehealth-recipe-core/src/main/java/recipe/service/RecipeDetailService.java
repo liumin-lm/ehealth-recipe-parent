@@ -50,7 +50,7 @@ public class RecipeDetailService {
      * @param recipeDetails 处方明细
      * @return
      */
-    public List<RecipeDetailBean> validateDrug(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
+    public List<RecipeDetailBean> continueRecipeValidateDrug(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
         //药房信息

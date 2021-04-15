@@ -37,7 +37,7 @@ public class RecipeDetailAtop extends BaseAtop {
             return null;
         }
         try {
-            List<RecipeDetailBean> result = recipeDetailService.validateDrug(organId, recipeType, recipeDetails);
+            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(organId, recipeType, recipeDetails);
             logger.info("RecipeDetailAtop validateDetail result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
