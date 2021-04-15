@@ -5721,8 +5721,8 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<DrugEntrustDTO> querDrugEntrustByOrganIdAndDrugCode(Integer organId,String OrganDrugCode,Integer drugType){
-        LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.organId={},OrganDrugCode={},drugType={}", organId,OrganDrugCode,drugType);
+    public List<DrugEntrustDTO> queryDrugEntrustByOrganIdAndDrugCode(Integer organId,String OrganDrugCode,Integer drugType){
+        LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.organId={},OrganDrugCode={},drugType={}", organId,OrganDrugCode,drugType);
         if (null == organId) {
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
@@ -5765,10 +5765,10 @@ public class RecipeService extends RecipeBaseService {
                     }
                 }
             }
-            LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.drugEntrustDTOList{}", JSONUtils.toString(drugEntrustDTOList));
+            LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.drugEntrustDTOList{}", JSONUtils.toString(drugEntrustDTOList));
              return drugEntrustDTOList;
         }
-        LOGGER.info(" querDrugEntrustByOrganIdAndDrugCode.dtoList{}", JSONUtils.toString(dtoList));
+        LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.dtoList{}", JSONUtils.toString(dtoList));
         return dtoList;
     }
 }
