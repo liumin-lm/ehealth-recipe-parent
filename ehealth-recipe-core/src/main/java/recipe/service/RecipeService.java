@@ -222,6 +222,9 @@ public class RecipeService extends RecipeBaseService {
     @Resource
     private RecipeOrderDAO recipeOrderDAO;
 
+    @Resource
+    private SyncDrugExcDAO syncDrugExcDAO;
+
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
 
@@ -2902,6 +2905,7 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 0);
+        map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
 
@@ -2987,6 +2991,7 @@ public class RecipeService extends RecipeBaseService {
                     }
                 }
                 try {
+                    syncDrugExcDAO.deleteByOrganId(organId,1);
                     addOrUpdateDrugInfoSynMovement(organId, addList, 1, operator, commit);
                     addOrUpdateDrugInfoSynMovement(organId, updateList, 2, operator, commit);
                 } catch (InterruptedException e) {
@@ -2996,6 +3001,10 @@ public class RecipeService extends RecipeBaseService {
                 map.put("updateNum", updateNum);
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
+                List<SyncDrugExc> byOrganId = syncDrugExcDAO.findByOrganId(organId);
+                if (byOrganId !=null && byOrganId.size() > 0){
+                    map.put("Exception", 1);
+                }
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
                 drugInfoSynTaskExt(organId);
@@ -3011,6 +3020,7 @@ public class RecipeService extends RecipeBaseService {
                     try {
                         addHisDrug(organDrugInfoTO, organId, operator);
                     } catch (Exception e) {
+                        syncDrugExcDAO.save(convertSyncExc(organDrugInfoTO,organId,way));
                         LOGGER.info("drugInfoSynMovement 新增失败,", organDrugInfoTO);
                     }
                 }
@@ -3026,11 +3036,85 @@ public class RecipeService extends RecipeBaseService {
                     try {
                         updateHisOrganDrug(organDrugInfoTO, byOrganIdAndOrganDrugCode, organId);
                     } catch (Exception e) {
+                        syncDrugExcDAO.save(convertSyncExc(organDrugInfoTO,organId,way));
                         LOGGER.info("drugInfoSynMovement 修改失败,", organDrugInfoTO);
                     }
                 }
             }
         }
+    }
+    public  SyncDrugExc convertSyncExc( OrganDrugInfoTO drug ,Integer organId ,Integer way){
+        if (ObjectUtils.isEmpty(drug)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "手动同步异常数据转换对象为空!");
+        }
+        SyncDrugExc syncDrugExc=new SyncDrugExc();
+        if (!StringUtils.isEmpty(drug.getOrganDrugCode())) {
+            syncDrugExc.setOrganDrugCode(drug.getOrganDrugCode());
+        }
+        if (!StringUtils.isEmpty(drug.getDrugName())) {
+            syncDrugExc.setDrugName(drug.getDrugName());
+        }
+        if (!StringUtils.isEmpty(drug.getSaleName())) {
+            syncDrugExc.setSaleName(drug.getSaleName());
+        }
+        if (!StringUtils.isEmpty(drug.getDrugSpec())) {
+            syncDrugExc.setDrugSpec(drug.getDrugSpec());
+        }
+        if (!ObjectUtils.isEmpty(drug.getPack())) {
+            syncDrugExc.setPack(drug.getPack().intValue());
+        }
+        if (!ObjectUtils.isEmpty(drug.getUnit())) {
+            syncDrugExc.setUnit(drug.getUnit());
+        }
+        if (!ObjectUtils.isEmpty(drug.getProducer())) {
+            syncDrugExc.setProducer(drug.getProducer());
+        }
+        if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {
+            syncDrugExc.setBaseDrug(drug.getBaseDrug());
+        }
+        if (!ObjectUtils.isEmpty(drug.getUseDoseUnit())) {
+            syncDrugExc.setUseDoseUnit(drug.getUseDoseUnit());
+        }
+        if (!ObjectUtils.isEmpty(drug.getDrugform())) {
+            syncDrugExc.setDrugForm(drug.getDrugform());
+        }
+        if (!ObjectUtils.isEmpty(drug.getPrice())) {
+            BigDecimal drugPrice = new BigDecimal(drug.getPrice());
+            syncDrugExc.setSalePrice(drugPrice);
+        }
+        if (!ObjectUtils.isEmpty(drug.getDrugManfCode())) {
+            syncDrugExc.setProducerCode(drug.getDrugManfCode());
+        }
+
+        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            syncDrugExc.setPharmacy(drug.getPharmacyCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getPharmacyName())) {
+            syncDrugExc.setPharmacyName(drug.getPharmacyName());
+        }
+        if (!ObjectUtils.isEmpty(drug.getLicenseNumber())) {
+            syncDrugExc.setLicenseNumber(drug.getLicenseNumber());
+        }
+        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            String pharmacyCode = drug.getPharmacyCode();
+            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+            if (byPharmacyAndOrganId != null) {
+                syncDrugExc.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
+            }
+        }
+        if (!ObjectUtils.isEmpty(organId)) {
+            syncDrugExc.setOrganId(organId);
+        }
+        if (!ObjectUtils.isEmpty(drug.getStatus())) {
+            syncDrugExc.setStatus(drug.getStatus());
+        }
+        if (way == 1){
+            syncDrugExc.setExcType("未新增入库");
+        }else if (way == 2) {
+            syncDrugExc.setExcType("未同步更新");
+        }
+        syncDrugExc.setSyncType(1);
+        return syncDrugExc;
     }
 
     /**
@@ -3045,7 +3129,7 @@ public class RecipeService extends RecipeBaseService {
     public void drugInfoSynTaskExt(Integer organId) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-
+        syncDrugExcDAO.deleteByOrganId(organId,2);
         List<Integer> organIds = new ArrayList<>();
         if (null == organId) {
             //查询 base_organconfig 表配置需要同步的机构

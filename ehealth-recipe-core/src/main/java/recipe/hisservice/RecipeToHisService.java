@@ -9,10 +9,7 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HosPatientDTO;
 import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
 import com.ngari.recipe.hisprescription.model.HosRecipeDTO;
@@ -27,14 +24,18 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.SyncDrugExcDAO;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,12 @@ public class RecipeToHisService {
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisService.class);
+
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+
+    @Autowired
+    private SyncDrugExcDAO syncDrugExcDAO;
 
     public void recipeSend(RecipeSendRequestTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
@@ -281,13 +288,105 @@ public class RecipeToHisService {
             LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
             if (null != response && Integer.valueOf(200).equals(response.getMsgCode())) {
                 return (null != response.getData()) ? response.getData() : new ArrayList<>();
+            }else if (ObjectUtils.isEmpty(response)){
+                if (drugInfoList.size()>0 && drugInfoList!=null){
+                    syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
+                }
             }
         } catch (Exception e) {
+            if (drugInfoList.size()>0 && drugInfoList!=null){
+                syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
+            }
             LOGGER.error("queryDrugInfo error ", e);
         }
         return null;
     }
 
+    public SyncDrugExc convertSyncExc(DrugInfoTO drug , Integer organId ){
+        if (null == drug) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "定时异常数据转换对象为空!");
+        }
+        SyncDrugExc syncDrugExc=new SyncDrugExc();
+        //获取金额
+        if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
+            BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
+            syncDrugExc.setSalePrice(drugPrice);
+        }
+        //药品规格
+        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
+            syncDrugExc.setDrugSpec(drug.getDrmodel());
+        }
+        //转换系数
+        if (StringUtils.isNotEmpty(drug.getPack())) {
+            syncDrugExc.setPack(Integer.valueOf(drug.getPack()));
+        }
+        //生产厂家
+        if (StringUtils.isNotEmpty(drug.getProducer())) {
+            syncDrugExc.setProducer(drug.getProducer());
+        }
+        //商品名称
+        if (StringUtils.isNotEmpty(drug.getTradename())) {
+            syncDrugExc.setSaleName(drug.getTradename());
+        }
+        //通用名
+        if (StringUtils.isNotEmpty(drug.getDrname())) {
+            syncDrugExc.setDrugName(drug.getDrname());
+        }
+        //药品包装单位
+        if (StringUtils.isNotEmpty(drug.getPackUnit())) {
+            syncDrugExc.setUnit(drug.getPackUnit());
+        }
+        //实际单次剂量（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
+            syncDrugExc.setUseDose(drug.getUseDose());
+        }
+
+        //单次剂量单位（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDoseUnit())) {
+            syncDrugExc.setUseDoseUnit(drug.getUseDoseUnit());
+        }
+
+        //使用状态 0 无效 1 有效
+        if (!ObjectUtils.isEmpty(drug.getStatus())) {
+            syncDrugExc.setStatus(drug.getStatus());
+        }
+        //生产厂家代码
+        if (!ObjectUtils.isEmpty(drug.getProducerCode())) {
+            syncDrugExc.setProducerCode(drug.getProducerCode());
+        }
+        //外带药标志 1:外带药
+        if (!ObjectUtils.isEmpty(drug.getTakeMedicine())) {
+            syncDrugExc.setTakeMedicine(drug.getTakeMedicine());
+        }
+        //药房
+        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            String pharmacyCode = drug.getPharmacyCode();
+            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+            if (byPharmacyAndOrganId != null) {
+                syncDrugExc.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
+            }
+        }
+        //医院药房名字
+        if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
+            syncDrugExc.setPharmacyName(drug.getPharmacy());
+        }
+        //剂型
+        if (!ObjectUtils.isEmpty(drug.getDrugForm())) {
+            syncDrugExc.setDrugForm(drug.getDrugForm());
+        }
+        //是否基药
+        if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {
+            syncDrugExc.setBaseDrug(drug.getBaseDrug());
+        }
+        //批准文号
+        if (!ObjectUtils.isEmpty(drug.getLicenseNumber())) {
+            syncDrugExc.setLicenseNumber(drug.getLicenseNumber());
+        }
+
+        syncDrugExc.setExcType("未同步更新");
+        syncDrugExc.setSyncType(2);
+        return syncDrugExc;
+    }
 
     public Boolean drugTakeChange(DrugTakeChangeReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
