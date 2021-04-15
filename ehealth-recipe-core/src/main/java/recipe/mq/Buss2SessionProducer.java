@@ -3,7 +3,6 @@ package recipe.mq;
 import com.ngari.common.dto.Buss2SessionMsg;
 import com.ngari.recipe.entity.Recipe;
 import ctd.net.broadcast.MQHelper;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,19 +14,16 @@ public class Buss2SessionProducer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Buss2SessionProducer.class);
 
-    public static void sendMsgToMq(Recipe recipe, String contentType, Integer sessionType, String sessionId, String assessHisId) {
+    public static void sendMsgToMq(Recipe recipe, String contentType, String sessionId) {
         LOGGER.info("Buss2SessionProducer sendMsgToMq recipeID:{},contentType:{},sessionId:{}.", recipe.getRecipeId(), contentType, sessionId);
         Buss2SessionMsg msg = new Buss2SessionMsg();
-        if (StringUtils.isNotEmpty(assessHisId)){
-            msg.setMsgKey(assessHisId);
-        }
-        msg.setBusId(String.valueOf(recipe.getRecipeId()));
-        msg.setContentId(String.valueOf(recipe.getClinicId()));
+        msg.setBusId(String.valueOf(recipe.getClinicId()));
+        msg.setContentId(String.valueOf(recipe.getRecipeId()));
         msg.setContentType(contentType);
         msg.setDoctorId(recipe.getDoctor());
         msg.setStatus(0);
         msg.setMpiId(recipe.getMpiid());
-        msg.setSessionType(sessionType);
+        msg.setSessionType(4);
         msg.setSessionId(sessionId);
         if (null == msg.getSessionType()) {
             LOGGER.info("Buss2SessionProducer sendMsgToMq sessionType null");
