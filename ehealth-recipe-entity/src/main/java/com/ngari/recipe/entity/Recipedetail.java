@@ -117,6 +117,9 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias="药品嘱托信息")
 	private String memo;
 
+	@ItemProperty(alias="药品嘱托编码")
+	private String drugEntrustCode;
+
 	@ItemProperty(alias="药品效期")
 	private Date validDate;
 	
@@ -244,6 +247,14 @@ public class Recipedetail implements java.io.Serializable {
 
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
+
+	public String getDrugEntrustCode() {
+		return drugEntrustCode;
+	}
+
+	public void setDrugEntrustCode(String drugEntrustCode) {
+		this.drugEntrustCode = drugEntrustCode;
+	}
 
 	@Column(name = "entrustmentId")
 	public String getEntrustmentId() {

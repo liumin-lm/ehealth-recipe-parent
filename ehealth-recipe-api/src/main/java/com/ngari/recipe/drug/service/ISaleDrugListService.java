@@ -21,7 +21,7 @@ public interface ISaleDrugListService {
     SaleDrugListDTO getByDrugId(Integer drugId );
 
     @RpcService
-    QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(Date startTime, Date endTime, Integer organId, String drugClass, String keyword, Integer status, int start, int limit);
+    QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(Date startTime, Date endTime, Integer organId, String drugClass, String keyword, Integer status, Integer type, int start, int limit);
 
     @RpcService
     Long getCountByDrugId(int drugId);

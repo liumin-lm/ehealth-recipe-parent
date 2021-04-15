@@ -33,6 +33,7 @@ public class AfterPayBusService{
     private PaySendMsgService paySendMsgService;
 
     public void handle(RecipeResultBean result, RecipeOrder recipeOrder, List<Recipe> recipes, Integer payFlag) {
+        LOGGER.info("AfterPayBusService handle recipeOrder:{}.", JSONUtils.toString(recipeOrder));
         if (CollectionUtils.isEmpty(recipes)) {
             LOGGER.info("AfterPayBusService handle 处方列表为空,recipes:{}.", JSONUtils.toString(recipes));
             return;

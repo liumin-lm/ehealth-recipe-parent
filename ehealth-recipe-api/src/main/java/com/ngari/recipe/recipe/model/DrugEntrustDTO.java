@@ -32,8 +32,19 @@ public class DrugEntrustDTO implements Serializable {
     @ItemProperty(alias = "药品嘱托排序")
     private Integer sort;
 
+    @ItemProperty(alias = "药品嘱托默认值标识")
+    private Boolean drugEntrustDefaultFlag=false;
+
     @ItemProperty(alias = "机构ID")
     private Integer organId;
+
+    public Boolean getDrugEntrustDefaultFlag() {
+        return drugEntrustDefaultFlag;
+    }
+
+    public void setDrugEntrustDefaultFlag(Boolean drugEntrustDefaultFlag) {
+        this.drugEntrustDefaultFlag = drugEntrustDefaultFlag;
+    }
 
     public Integer getDrugEntrustId() {
         return drugEntrustId;
