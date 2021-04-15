@@ -248,6 +248,7 @@ public class Recipedetail implements java.io.Serializable {
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
 
+	@Column(name = "drugEntrustCode")
 	public String getDrugEntrustCode() {
 		return drugEntrustCode;
 	}
