@@ -5820,7 +5820,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         OrganDrugListDAO drugListDAO = getDAO(OrganDrugListDAO.class);
-        DrugEntrustService entrustService = ApplicationUtils.getBaseService(DrugEntrustService.class);
+        DrugEntrustService entrustService = ApplicationUtils.getRecipeService(DrugEntrustService.class);
         List<DrugEntrustDTO> dtoList=new ArrayList<>();
         String defaultDrugEntrust= drugListDAO.getDrugEntrustByOrganDrugCodeAndOrganId(organId,OrganDrugCode);
         //区分西药和中药默认嘱托 RecipeBussConstant  drugType==1||drugType==2
