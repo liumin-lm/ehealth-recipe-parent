@@ -10,6 +10,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -661,24 +662,24 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
                 Integer payModeSupport = drugsEnterprise.getPayModeSupport();
                 if (DrugsEnterpriseAll.contains(payModeSupport)) {
-                    return 1;
+                    return RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
                 } else if (DrugsEnterpriseTo.contains(payModeSupport)) {
-                    return 11;
+                    return RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType();
                 } else if (DrugsEnterpriseSend.contains(payModeSupport)) {
-                    return 12;
+                    return RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
                 }
                 return null;
             }).collect(Collectors.toSet());
 
             Integer continueFlag = null;
-            if (collect.contains(1)) {
-                continueFlag = 1;
-            } else if (collect.contains(11) && collect.contains(12)) {
-                continueFlag = 1;
-            } else if (collect.contains(11)) {
-                continueFlag = 11;
-            } else if (collect.contains(12)) {
-                continueFlag = 12;
+            if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE.getType())) {
+                continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
+            } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType()) && collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType())) {
+                continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
+            } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType())) {
+                continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType();
+            } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType())) {
+                continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
             }
             return continueFlag;
         }else {
