@@ -130,8 +130,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-
-
+        
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
@@ -173,7 +172,7 @@ public class RecipeDetailValidateTool {
      */
     private boolean entrustValidate(RecipeDetailBean recipeDetail, List<DrugEntrustDTO> drugEntrusts) {
         if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
-            return false;
+            return true;
         }
         if (CollectionUtils.isEmpty(drugEntrusts)) {
             recipeDetail.setEntrustmentId(null);
