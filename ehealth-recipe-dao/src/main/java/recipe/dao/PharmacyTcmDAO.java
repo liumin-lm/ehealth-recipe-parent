@@ -149,4 +149,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "select count(*) from PharmacyTcm where organId=:organId")
+    public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
 }

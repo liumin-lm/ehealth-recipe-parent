@@ -143,4 +143,7 @@ public abstract class DrugEntrustDAO extends HibernateSupportDelegateDAO<DrugEnt
         return action.getResult();
     }
 
+    @DAOMethod(sql = "select count(*) from DrugEntrust where organId=:organId")
+    public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
+
 }
