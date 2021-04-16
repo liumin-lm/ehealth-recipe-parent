@@ -840,6 +840,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
 
     /**
+     * ca调用接口 供getTaskcode接口调用
+     * @param recipeList
+     * @param request
+     */
+    @RpcService
+    void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request);
+    /**
      * 深圳二院财务报表  处方费用
      * @param organId
      * @param depart

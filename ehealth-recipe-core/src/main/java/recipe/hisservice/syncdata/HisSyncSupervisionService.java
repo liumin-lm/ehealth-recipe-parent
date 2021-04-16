@@ -1529,9 +1529,4 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         LOGGER.warn("pakRegulationSendMedicineReq  req={}",JSONUtils.toString(req));
         return req;
     }
-
-    @Override
-    public void splicingBackRecipeDataForCaServer(List<Recipe> recipeList, List<RegulationRecipeIndicatorsReq> request) {
-        this.splicingBackRecipeData(recipeList,request);
-    }
 }
