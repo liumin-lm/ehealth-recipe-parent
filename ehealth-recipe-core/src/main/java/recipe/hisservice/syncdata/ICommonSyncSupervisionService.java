@@ -1,5 +1,6 @@
 package recipe.hisservice.syncdata;
 
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.recipe.entity.Recipe;
 import recipe.common.response.CommonResponse;
 
@@ -26,4 +27,12 @@ public interface ICommonSyncSupervisionService {
      * @return
      */
     CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList);
+
+
+    /**
+     * 供CA getTaskCode方法调用
+     * @param recipeList
+     * @param request
+     */
+    void splicingBackRecipeDataForCaServer(List<Recipe> recipeList, List<RegulationRecipeIndicatorsReq> request);
 }
