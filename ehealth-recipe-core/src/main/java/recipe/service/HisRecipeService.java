@@ -989,7 +989,7 @@ public class HisRecipeService {
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         if (hisRecipe == null) {
-            throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
+            //throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
         }
         LOGGER.info("getHisRecipeDetail hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         //待处理
@@ -1001,8 +1001,8 @@ public class HisRecipeService {
                 payFlag = 1;
             }
         }
-        //TODO liumin 这个条件应改为hisRecipeId是否存在，存在表明已经转成线上了，不用走这个逻辑了  但是重复走这个逻辑也没关系，保存时会判断，存在数据也不会新增
-        if(hisRecipe.getStatus() != 2 || payFlag == 1){
+        //TODO liumin 这个条件应改为待缴费处方还是已缴费处方，已缴费处方不用走这个逻辑了  但是重复走这个逻辑也没关系，保存时会判断，存在数据也不会新增
+        if(hisRecipe==null||hisRecipe.getStatus() != 2 || payFlag == 1){
             LOGGER.info("getHisRecipeDetail 进入");
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
