@@ -41,7 +41,7 @@ public class PaySendMsgService implements IAfterPayBussService{
                     IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
                     RevisitBean revisitBean = iRevisitService.getById(a.getClinicId());
                     if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
-                        Buss2SessionProducer.sendMsgToMq(a, "recipePaySuccess", 4, revisitBean.getSessionID(), null);
+                        Buss2SessionProducer.sendMsgToMq(a, "recipePaySuccess", revisitBean.getSessionID());
                     }
                 }
             });

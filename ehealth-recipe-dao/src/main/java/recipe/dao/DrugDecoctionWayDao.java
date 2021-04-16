@@ -87,4 +87,9 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+
+    @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
+    public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
+
 }

@@ -109,4 +109,12 @@ public interface IDrugExtService extends IBaseService {
      */
     @RpcService
     public void deleteDrugDecoctionWay(Integer decoctionId);
+
+    /**
+     * 机构字典查询数量
+     * @param organId
+     * @return
+     */
+    @RpcService
+    Integer getCountOfOrgan(Integer organId,Integer type);
 }
