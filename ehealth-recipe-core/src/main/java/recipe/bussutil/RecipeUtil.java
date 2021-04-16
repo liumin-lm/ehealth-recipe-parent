@@ -129,6 +129,9 @@ public class RecipeUtil {
                     if (StringUtils.isNotEmpty(odlist.getUsingRateId())){
                         drugList.setUsingRateId(odlist.getUsingRateId());
                     }
+                    if (StringUtils.isNotEmpty(odlist.getDrugEntrust())){
+                        drugList.setDrugEntrust(odlist.getDrugEntrust());
+                    }
                     //历史用药入口--默认填充机构的，平台的不填充
                     drugList.setUseDose(odlist.getUseDose());
                     //剂型

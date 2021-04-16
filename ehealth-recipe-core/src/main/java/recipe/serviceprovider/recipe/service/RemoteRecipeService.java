@@ -84,6 +84,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
@@ -2374,6 +2375,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
         return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
+    }
+
+    @Override
+    public void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request) {
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        service.splicingBackRecipeData(ObjectCopyUtils.convert(recipeList,Recipe.class),request);
     }
 
     /**
