@@ -52,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spockframework.util.CollectionUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
@@ -75,7 +74,6 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.presettle.settle.IRecipeSettleService;
 import recipe.purchase.PayModeOnline;
-import recipe.purchase.PurchaseEnum;
 import recipe.purchase.PurchaseService;
 import recipe.retry.RecipeRetryService;
 import recipe.service.manager.EmrRecipeManager;
@@ -1644,6 +1642,7 @@ public class RecipeHisService extends RecipeBaseService {
             mapDetail.setSendNumber(recipeDetail.getAmount());
             mapDetail.setUseDays(recipeDetail.getUseDays());
             mapDetail.setDrugUnit(recipeDetail.getUnit());
+            mapDetail.setMemo(recipeDetail.getMemo());
             if (null == recipeDetail.getUseDays()) {
                 mapDetail.setUseDays(Integer.valueOf(recipeDetail.getDays()));
             }

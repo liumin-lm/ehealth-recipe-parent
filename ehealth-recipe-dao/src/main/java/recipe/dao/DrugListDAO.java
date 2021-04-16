@@ -946,5 +946,11 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = " from DrugList where drugName=:drugName and saleName=:saleName  and drugType=:drugType  and producer=:producer  and drugSpec=:drugSpec and status = 1",limit = 0)
     public abstract List<DrugList> findRepeatDrugListNoOrgan(@DAOParam("drugName") String drugName,@DAOParam("saleName") String saleName,@DAOParam("drugType") Integer drugType, @DAOParam("producer") String producer, @DAOParam("drugSpec") String drugSpec);
 
-
+    /**
+     * 查询单个药品药品信息的默认嘱托数据
+     * @param organDrugCode
+     * @return
+     */
+    @DAOMethod(sql = " select drugEntrust from OrganDrugList where OrganDrugCode=:OrganDrugCode and status = 1")
+    public abstract String getDrugEntrustById(@DAOParam("OrganDrugCode") String organDrugCode);
 }
