@@ -43,6 +43,15 @@ public class HisRecipeDetailBean implements Serializable {
     private String pharmacyCode;
 
     /**
+     * 药品嘱托编码
+     */
+    private String drugEntrustCode;
+
+    /**
+     * 药品嘱托信息
+     */
+    private String memo;
+    /**
      * 前端展示的药品拼接名
      */
     private String drugDisplaySplicedName;
@@ -197,5 +206,21 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
         this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
     }
 }
