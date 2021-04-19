@@ -1983,7 +1983,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
         if (drugsEnterprise == null) {
-            standardResult.setCode(StandardResultDTO.SUCCESS);
+            standardResult.setCode(StandardResultDTO.FAIL);
             standardResult.setMsg("未匹配到药企");
             return standardResult;
         }
