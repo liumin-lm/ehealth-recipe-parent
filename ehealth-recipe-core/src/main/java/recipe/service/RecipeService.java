@@ -630,8 +630,9 @@ public class RecipeService extends RecipeBaseService {
             return Lists.newArrayList();
         }
         Integer status = dbRecipe.getStatus();
-        if (null == status || status != RecipeStatusConstant.CHECK_NOT_PASS_YS) {
-            LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方. recipeId=[{}]", recipeId);
+        //重新编辑（His写入失败）  重新开具（药师审核未通过）
+        if (null == status || (status != RecipeStatusConstant.CHECK_NOT_PASS_YS&&status!=RecipeStatusConstant.HIS_FAIL)) {
+            LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方或者His写入失败的处方. recipeId=[{}]", recipeId);
             return Lists.newArrayList();
         }
         //date 2020/1/2
