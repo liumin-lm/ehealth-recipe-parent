@@ -63,6 +63,8 @@ public class HisRecipeDetailVO implements Serializable{
     @ItemProperty(alias = "使用天数")
     private Integer useDays;
     private String drugForm;
+    @ItemProperty(alias = "前端展示的药品名拼接名")
+    private String drugDisplaySplicedName;
 
     public String getUseDoseStr() {
         return useDoseStr;
@@ -270,5 +272,13 @@ public class HisRecipeDetailVO implements Serializable{
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
     }
 }
