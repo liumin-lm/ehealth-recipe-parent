@@ -2653,6 +2653,7 @@ public class RecipeServiceSub {
      * @Author liumin
      */
     public static void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeTagMsgBean recipeTagMsg =new RecipeTagMsgBean();
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
         if (StringUtils.isNotEmpty(cardId)) {
@@ -2663,19 +2664,24 @@ public class RecipeServiceSub {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        //获取当前处方详情
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeService.queryData(organId, patientDTO, null, 1, recipeCode);
-        QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
-        if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
-            LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);
-            return;
+        if(StringUtils.isEmpty(recipeCode)){
+            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+        }else{
+            //获取当前处方详情
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeService.queryData(organId, patientDTO, null, 1, recipeCode);
+            QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
+            if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
+                LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+            }else{
+                //拼接卡片显示参数
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO,patientDTO);
+            }
         }
-        //拼接卡片显示参数
-        RecipeTagMsgBean recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO,patientDTO);
-        IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
         //环信消息发送
         LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe revisitMessageService.handleRecipeMsg recipecode:{} param:[{},{},{}]",recipeCode,consultId,JSONUtils.toString(recipeTagMsg),doctorId);
+        IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
         revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, doctorId);
     }
 
@@ -2687,8 +2693,6 @@ public class RecipeServiceSub {
      */
     private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(QueryHisRecipResTO queryHisRecipResTO, PatientDTO patientDTO) {
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}",JSONUtils.toString(queryHisRecipResTO));
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         //获取诊断疾病名称
         String diseaseName = queryHisRecipResTO.getDiseaseName();
         List<String> drugNames = Lists.newArrayList();
@@ -2739,6 +2743,16 @@ public class RecipeServiceSub {
         }
         recipeTagMsg.setCardId(patientDTO.getCardId());
         recipeTagMsg.setRecipeSourceType(2);
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
+        return recipeTagMsg;
+    }
+
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe( PatientDTO patientDTO) {
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}",JSONUtils.toString(patientDTO));
+        //获取诊断疾病名称
+        RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
+        recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
+        recipeTagMsg.setFlag("1");
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
         return recipeTagMsg;
     }
