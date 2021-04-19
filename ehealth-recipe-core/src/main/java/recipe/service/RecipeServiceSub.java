@@ -2753,6 +2753,8 @@ public class RecipeServiceSub {
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
         recipeTagMsg.setFlag("1");
+        recipeTagMsg.setCardId(patientDTO.getCardId());
+        recipeTagMsg.setRecipeSourceType(2);
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
         return recipeTagMsg;
     }
