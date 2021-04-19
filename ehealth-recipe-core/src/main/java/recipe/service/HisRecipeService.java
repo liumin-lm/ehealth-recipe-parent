@@ -473,10 +473,10 @@ public class HisRecipeService {
         if(CollectionUtils.isEmpty(queryHisRecipResTOList)){
             return hisRecipeVOs;
         }
-        //药品名拼接配置
-        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(queryHisRecipResTOList.get(0).getClinicOrgan(),queryHisRecipResTOList.get(0).getRecipeType()));
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
+            //药品名拼接配置
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeType()));
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
             //数据库不存在处方信息，则新增
@@ -570,7 +570,7 @@ public class HisRecipeService {
                         drugList.setUnit(hisRecipeDetailVO.getDrugUnit());
                         drugList.setDrugForm(hisRecipeDetailVO.getDrugForm());
                         //前端展示的药品拼接名处理
-                        hisRecipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
+                        hisRecipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(queryHisRecipResTO.getRecipeType())));
 
                         hisRecipeDetailVOs.add(hisRecipeDetailVO);
                     }
@@ -600,7 +600,7 @@ public class HisRecipeService {
                             drugList.setUnit(hisRecipeDetailVO.getDrugUnit());
                             drugList.setDrugForm(hisRecipeDetailVO.getDrugForm());
                             //前端展示的药品拼接名处理
-                            hisRecipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
+                            hisRecipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(queryHisRecipResTO.getRecipeType())));
 
                             hisRecipeDetailVOs.add(hisRecipeDetailVO);
                         }
