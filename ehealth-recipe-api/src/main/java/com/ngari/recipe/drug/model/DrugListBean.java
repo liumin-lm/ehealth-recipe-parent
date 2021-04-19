@@ -187,6 +187,16 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "库存有无")
     private boolean inventoriesFlag;
 
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrust;
+
+    public String getDrugEntrust() {
+        return drugEntrust;
+    }
+
+    public void setDrugEntrust(String drugEntrust) {
+        this.drugEntrust = drugEntrust;
+    }
 
     public DrugListBean() {
     }

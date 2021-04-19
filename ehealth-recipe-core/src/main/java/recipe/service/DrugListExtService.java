@@ -391,6 +391,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      */
     @RpcService
     public List<DrugListBean> findCommonDrugListsNew(CommonDrugListDTO commonDrugListDTO) {
+        LOGGER.info("findCommonDrugListsNew.commonDrugListDTO={}", JSONUtils.toString(commonDrugListDTO));
         Args.notNull(commonDrugListDTO.getDoctor(), "doctor");
         Args.notNull(commonDrugListDTO.getDrugType(), "drugType");
         Args.notNull(commonDrugListDTO.getOrganId(), "organId");
@@ -441,6 +442,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
+        LOGGER.info("findCommonDrugListsNew.drugListBeans={}", JSONUtils.toString(drugListBeans));
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(commonDrugListDTO.getOrganId(), drugListBeans);
         return drugListBeans;
@@ -606,7 +608,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
 
         request.setData(data);
-        LOGGER.info("getDrugStock request={}", JSONUtils.toString(request));
+                LOGGER.info("getDrugStock request={}", JSONUtils.toString(request));
         DrugInfoResponseTO response;
         try {
             response = hisService.scanDrugStock(request);

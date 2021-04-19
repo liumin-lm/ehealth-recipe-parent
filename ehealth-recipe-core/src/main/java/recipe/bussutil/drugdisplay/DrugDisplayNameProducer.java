@@ -54,7 +54,7 @@ public class DrugDisplayNameProducer {
                 splicedName.append(name);
             }
         }
-        return splicedName.toString();
+        return splicedName.toString().replace(StringUtils.SPACE + "/",StringUtils.SPACE);
     }
 
     public static boolean matchEnglishName(String name) {

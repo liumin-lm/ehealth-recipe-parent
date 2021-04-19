@@ -350,72 +350,9 @@ public class HisRecipeService {
             hisRecipeVO.setIsCachePlatform(1);
             setOtherInfo(hisRecipeVO,hisRecipe.getMpiId(), hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
             result.add(hisRecipeVO);
-//            Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipes.get(0).getClinicOrgan());
-//            if (recipe == null) {
-//                hisRecipeVO.setOrderStatusText("待支付");
-//                hisRecipeVO.setFromFlag(1);
-//                hisRecipeVO.setJumpPageType(0);
-//                result.add(hisRecipeVO);
-//            } else {
-//                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-//                    if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
-//                        //表示该处方来源于HIS
-//                        if(StringUtils.isEmpty(recipe.getOrderCode())){
-//                            hisRecipeVO.setOrderStatusText("待支付");
-//                            hisRecipeVO.setJumpPageType(0);
-//                        }else{
-//                            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-//                            if(recipeOrder!=null){
-//                                if(new Integer(0).equals(recipeOrder.getPayFlag())){
-//                                    hisRecipeVO.setOrderStatusText("待支付");
-//                                }else{
-//                                    hisRecipeVO.setOrderStatusText("已完成");
-//                                }
-//                                hisRecipeVO.setJumpPageType(1);//跳转到订单详情页
-//                                hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
-//                                hisRecipeVO.setOrderCode(recipe.getOrderCode());
-//                            }
-//                        }
-//                        hisRecipeVO.setFromFlag(recipe.getRecipeSourceType()==2?1:0);
-//                        result.add(hisRecipeVO);
-//                    } else {
-//                        //表示该处方来源于平台
-//                        hisRecipeVO.setOrderStatusText("待支付");
-//                        hisRecipeVO.setFromFlag(0);
-//                        hisRecipeVO.setJumpPageType(0);
-//                        hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
-//                        hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
-//                        List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
-//                        hisRecipeVO.setRecipeDetail(recipeDetailVOS);
-//                        result.add(hisRecipeVO);
-//                    }
-//                }
-
         }
         return result;
     }
-
-//    private List<HisRecipeVO> convertResult(List<HisRecipeVO> result){
-//        if(result!=null&&result.size()>0){
-//            //获取运营平台隐方配置
-//            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-//            Object isHiddenRecipeDetail = configService.getConfiguration(result.get(0).getClinicOrgan(), "isHiddenRecipeDetail");
-//            for(int i=0;i<result.size();i++){
-//                if(recipeListService.isReturnRecipeDetail(result.get(i).getClinicOrgan(),result.get(i).getRecipeType(),0)){
-//                }else{
-//                    List<HisRecipeDetailVO> hisRecipeDetailVOs=result.get(i).getRecipeDetail();
-//                    if(hisRecipeDetailVOs!=null&&hisRecipeDetailVOs.size()>0){
-//                        for(int j=0;j<hisRecipeDetailVOs.size();j++){
-//                            hisRecipeDetailVOs.get(j).setDrugName(null);
-//                            hisRecipeDetailVOs.get(j).setDrugSpec(null);
-//                        }
-//                    }
-//                }
-//                result.get(i).setIsHiddenRecipeDetail((boolean)isHiddenRecipeDetail);
-//            }
-//        }
-//        return result;
-//    }
 
     /**
      * 查询线下处方 入库操作
@@ -490,24 +427,6 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
-        //TODO 注释
-//        if(responseTO!=null){
-//            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
-//            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
-//                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
-////                    if(1==queryHisRecipResTO.getStatus()){
-////                        queryHisRecipResTO.setRecipeCode("444");
-////                    }
-////                    if(2==queryHisRecipResTO.getStatus()){
-////                        queryHisRecipResTO.setRecipeCode("111");
-////                        queryHisRecipResTO.setStatus(1);
-////                    }
-//                    queryHisRecipResTO.setRecipeCostNumber("111");
-//                    queryHisRecipResTO.setDecoctionFee(new BigDecimal(20));
-//                    queryHisRecipResTO.setTcmFee(new BigDecimal(19));
-//                }
-//            }
-//        }
         //过滤数据
         responseTO=filterData(responseTO);
         LOGGER.info("queryHisRecipeInfo queryData:{}.", JSONUtils.toString(responseTO));

@@ -286,8 +286,8 @@ public class RecipePreserveService {
             recipeBean.setSignDate(recipeInfoTO.getSignTime());
             recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
             recipeBean.setDepartText(recipeInfoTO.getDepartName());
-            recipeBean.setCopyNum(recipeInfoTO.getCopyNum());
-            recipeBean.setRecipeMemo(recipeInfoTO.getRecipeMemo());
+            recipeBean.setCopyNum(recipeInfoTO.getCopyNum()==null?0:recipeInfoTO.getCopyNum());
+            recipeBean.setRecipeMemo(StringUtils.isEmpty(recipeInfoTO.getRecipeMemo())?"":recipeInfoTO.getRecipeMemo());
             RecipeExtendBean recipeExtend = new RecipeExtendBean();
             if (recipeInfoTO.getRecipeExtendBean() != null) {
                 recipeExtend.setDecoctionText(recipeInfoTO.getRecipeExtendBean().getDecoctionText());
