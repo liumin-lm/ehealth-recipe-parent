@@ -175,6 +175,7 @@ public class RecipeDetailValidateTool {
             return true;
         }
         if (CollectionUtils.isEmpty(drugEntrusts)) {
+            recipeDetail.setDrugEntrustCode(null);
             recipeDetail.setEntrustmentId(null);
             recipeDetail.setMemo(null);
             return true;
@@ -194,6 +195,7 @@ public class RecipeDetailValidateTool {
         if (entrusts) {
             recipeDetail.setEntrustmentId(null);
             recipeDetail.setMemo(null);
+            recipeDetail.setDrugEntrustCode(null);
             return true;
         }
         return false;

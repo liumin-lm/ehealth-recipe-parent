@@ -1414,10 +1414,17 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public Integer getCardType(Integer organId) {
-        //卡类型 1 表示身份证  2 表示就诊卡
+    public List<String> getCardType(Integer organId) {
+        //卡类型 1 表示身份证  2 表示就诊卡  3 表示就诊卡
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        return (Integer) configurationCenterUtilsService.getConfiguration(organId, "getCardTypeForHis");
+        //根据运营平台配置  如果配置了就诊卡 医保卡（根据卡类型进行查询）； 如果都不配（默认使用身份证查询）
+        String[] cardTypes=(String[]) configurationCenterUtilsService.getConfiguration(organId,"getCardTypeForHis");
+        List<String> cardList=new ArrayList<>();
+        if (cardTypes==null||cardTypes.length==0){
+            cardList.add("1");
+            return cardList;
+        }
+        return Arrays.asList(cardTypes);
     }
 
     /**
