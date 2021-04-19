@@ -12,6 +12,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
@@ -36,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
@@ -46,6 +49,7 @@ import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.QueryHisRecipeCallable;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -340,9 +344,20 @@ public class HisRecipeService {
     private List<HisRecipeVO> findPendingHisRecipeVo(List<HisRecipe> hisRecipes) {
         LOGGER.info("findPendingHisRecipeVo:{} ",JSONUtils.toString(hisRecipes));
         List<HisRecipeVO> result = new ArrayList<>();
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(hisRecipes.get(0).getClinicOrgan(),hisRecipes.get(0).getRecipeType()));
         for (HisRecipe hisRecipe : hisRecipes) {
             HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
+            hisRecipeDetails.forEach(hisRecipeDetail->{
+                DrugListBean drugList = new DrugListBean();
+                drugList.setDrugName(hisRecipeDetail.getDrugName());
+                drugList.setSaleName(hisRecipeDetail.getSaleName());
+                drugList.setDrugSpec(hisRecipeDetail.getDrugSpec());
+                drugList.setUnit(hisRecipeDetail.getDrugUnit());
+                //前端展示的药品拼接名处理
+                hisRecipeDetail.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
+            });
             List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
             LOGGER.info("hisRecipeId:{} hisRecipeDetailVOS:{}",hisRecipe.getHisRecipeID(),hisRecipeDetailVOS);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
@@ -409,16 +424,9 @@ public class HisRecipeService {
         patientBaseInfo.setMpi(patientDTO.getMpiId());
         patientBaseInfo.setCardID(patientDTO.getCardId());
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
-        //测试数据
-//        patientBaseInfo.setMpi("2c90820c76cceb7b0176fec2bee7688d");
-//        patientBaseInfo.setCertificate("230103198006264247");
-//        patientBaseInfo.setPatientName("刘魏娜");
-//        patientBaseInfo.setPatientSex("2");
-        //patientBaseInfo.setBirthday("1980-06-26 00:00:00");
 
         QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
         queryRecipeRequestTO.setPatientInfo(patientBaseInfo);
-        //queryRecipeRequestTO.setStartDate(new Date());
         queryRecipeRequestTO.setEndDate(new Date());
         queryRecipeRequestTO.setOrgan(organId);
         queryRecipeRequestTO.setQueryType(flag);
