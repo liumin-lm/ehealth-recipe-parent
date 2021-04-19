@@ -2889,7 +2889,7 @@ public class RecipeService extends RecipeBaseService {
         if (!CollectionUtils.isEmpty(details)) {
             drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         }
-        LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
+        //LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
         return drugInfoSynMovementExt(organId, drugForms, data, drugMap, urt.getUserName(), sync, add, commit);
     }
 
@@ -3002,7 +3002,7 @@ public class RecipeService extends RecipeBaseService {
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
                 List<SyncDrugExc> byOrganId = syncDrugExcDAO.findByOrganId(organId);
-                if (byOrganId !=null && byOrganId.size() > 0){
+                if (!ObjectUtils.isEmpty(byOrganId)){
                     map.put("Exception", 1);
                 }
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
