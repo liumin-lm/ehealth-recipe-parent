@@ -179,20 +179,22 @@ public class RecipeDetailValidateTool {
             recipeDetail.setMemo(null);
             return true;
         }
-        if (StringUtils.isNotEmpty(recipeDetail.getDrugEntrustCode())) {
-            boolean code = drugEntrusts.stream().noneMatch(a -> a.getDrugEntrustCode().equals(recipeDetail.getDrugEntrustCode()));
-            if (code) {
-                recipeDetail.setEntrustmentId(null);
-                recipeDetail.setMemo(null);
-                return true;
+        boolean entrusts = true;
+        for (DrugEntrustDTO drugEntrustDTO : drugEntrusts) {
+            if (drugEntrustDTO.getDrugEntrustCode().equals(recipeDetail.getDrugEntrustCode())) {
+                entrusts = false;
+                recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
+                break;
+            } else if (drugEntrustDTO.getDrugEntrustName().equals(recipeDetail.getMemo())) {
+                entrusts = false;
+                recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
+                break;
             }
-        } else if (StringUtils.isNotEmpty(recipeDetail.getMemo())) {
-            boolean name = drugEntrusts.stream().noneMatch(a -> a.getDrugEntrustName().equals(recipeDetail.getMemo()));
-            if (name) {
-                recipeDetail.setEntrustmentId(null);
-                recipeDetail.setMemo(null);
-                return true;
-            }
+        }
+        if (entrusts) {
+            recipeDetail.setEntrustmentId(null);
+            recipeDetail.setMemo(null);
+            return true;
         }
         return false;
     }
