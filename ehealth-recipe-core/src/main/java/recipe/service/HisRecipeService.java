@@ -94,6 +94,7 @@ public class HisRecipeService {
      */
     @RpcService
     public List<HisRecipeVO> findHisRecipe(Map<String, Object> request) {
+        LOGGER.info("hisRecipeService.findHisRecipe.request={}", JSONUtils.toString(request));
         Integer organId = (Integer) request.get("organId");
         String mpiId = (String) request.get("mpiId");
         Integer timeQuantum = (Integer) request.get("timeQuantum");
