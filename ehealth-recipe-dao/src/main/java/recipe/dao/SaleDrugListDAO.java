@@ -53,6 +53,15 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select count(id) from SaleDrugList where status=1 and organId=:organId and drugId in :drugId")
     public abstract Long getCountByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugId") List<Integer> drugId);
+    /**
+     * 根据机构id及药品id列表获取数量
+     *
+     * @param organId
+     * @param drugId
+     * @return
+     */
+    @DAOMethod(sql = "select * from SaleDrugList where status=1 and organId=:organId and drugId in :drugId")
+    public abstract List<SaleDrugList> getByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugId") List<Integer> drugId);
 
     /**
      * 设置某些药品为无效
@@ -453,7 +462,5 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select count(organDrugId) from SaleDrugList where drugId=:drugId  ",limit = 0)
     public abstract Long getCountByDrugId(@DAOParam("drugId") int drugId);
-
-
 
 }
