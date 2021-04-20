@@ -28,10 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.PharmacyTcmDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.SyncDrugExcDAO;
+import recipe.dao.*;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 
@@ -385,6 +382,22 @@ public class RecipeToHisService {
 
         syncDrugExc.setExcType("未同步更新");
         syncDrugExc.setSyncType(2);
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+        if (CollectionUtils.isEmpty(depIds)) {
+            syncDrugExc.setCanDrugSend(false);
+        } else {
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId,drug.getDrcode());
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrug.getDrugId(), depIds);
+            if (CollectionUtils.isEmpty(saleDrugLists)) {
+                syncDrugExc.setCanDrugSend(false);
+            } else {
+                syncDrugExc.setCanDrugSend(true);
+            }
+        }
+
         return syncDrugExc;
     }
 

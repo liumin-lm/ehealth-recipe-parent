@@ -1063,9 +1063,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * @return
      */
     private List<DrugListBean> filterInventoriesData(Integer organId, List<DrugListBean> drugListBeans){
-        LOGGER.info("filterInventoriesData drugListBeans:{}", JSONUtils.toString(drugListBeans));
+        LOGGER.info("filterInventoriesData 入参 drugListBeans:{}", JSONUtils.toString(drugListBeans));
         Iterator iterator = drugListBeans.iterator();
         boolean inventoryFlag = false;
+        boolean supportToHosFlag = getOrganGiveMode(organId, SUPPORT_TO_HOS);
+        boolean supportSendToEnterprises = getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES);
+        boolean supportToSendHos = getOrganGiveMode(organId, SUPPORT_SEND_TO_HOS);
+        boolean supportTFDS = getOrganGiveMode(organId, SUPPORT_TFDS);
         while (iterator.hasNext()) {
             DrugListBean drugListBean = (DrugListBean)iterator.next();
             if (drugListBean != null) {
@@ -1073,9 +1077,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 Iterator drugIterator = drugInventoryInfos.iterator();
                 while (drugIterator.hasNext()) {
                     DrugInventoryInfo drugInventoryInfo = (DrugInventoryInfo)drugIterator.next();
-                    LOGGER.info("filterInventoriesData drugInventoryInfo:{}", JSONUtils.toString(drugInventoryInfo));
                     List<DrugPharmacyInventoryInfo> drugPharmacyInventoryInfos = drugInventoryInfo.getPharmacyInventories();
-                    LOGGER.info("filterInventoriesData drugPharmacyInventoryInfos:{}", JSONUtils.toString(drugPharmacyInventoryInfos));
                     if (CollectionUtils.isEmpty(drugPharmacyInventoryInfos)) {
                         continue;
                     }
@@ -1083,28 +1085,27 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     while (drugPharmacyIterator.hasNext()) {
                         int acc = 0;
                         DrugPharmacyInventoryInfo drugPharmacyInventoryInfo = (DrugPharmacyInventoryInfo)drugPharmacyIterator.next();
-                        LOGGER.info("filterInventoriesData drugPharmacyInventoryInfo:{}", JSONUtils.toString(drugPharmacyInventoryInfo));
-                        if (getOrganGiveMode(organId, SUPPORT_TO_HOS) && 3 == drugPharmacyInventoryInfo.getType()) {
+                        if (supportToHosFlag && 3 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置到院取药
                             drugPharmacyIterator.remove();
                             acc++;
                         }
-                        if (getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES) && 2 == drugPharmacyInventoryInfo.getType()) {
+                        if (supportSendToEnterprises && 2 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置药企配送
                             drugPharmacyIterator.remove();
                             acc++;
                         }
-                        if (getOrganGiveMode(organId, SUPPORT_SEND_TO_HOS) && 1 == drugPharmacyInventoryInfo.getType()) {
+                        if (supportToSendHos && 1 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置医院配送
                             drugPharmacyIterator.remove();
                             acc++;
                         }
-                        if (getOrganGiveMode(organId, SUPPORT_TFDS) && 4 == drugPharmacyInventoryInfo.getType()) {
+                        if (supportTFDS && 4 == drugPharmacyInventoryInfo.getType()) {
                             //说明运营平台没有配置药店取药
                             drugPharmacyIterator.remove();
                             acc++;
                         }
-                        if (5 == drugPharmacyInventoryInfo.getType() && getOrganGiveMode(organId, SUPPORT_TFDS) && getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES)) {
+                        if (5 == drugPharmacyInventoryInfo.getType() && supportTFDS && supportSendToEnterprises) {
                             //说明运营平台没有配置药店取药和配送到家
                             drugPharmacyIterator.remove();
                             acc++;
@@ -1128,6 +1129,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugListBean.setInventoriesFlag(inventoryFlag);
             }
         }
+        LOGGER.info("filterInventoriesData 出参 drugListBeans:{}", JSONUtils.toString(drugListBeans));
         return drugListBeans;
     }
 
