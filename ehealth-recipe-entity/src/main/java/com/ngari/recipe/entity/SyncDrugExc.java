@@ -97,6 +97,9 @@ public class SyncDrugExc implements Serializable {
     @ItemProperty(alias = "同步失败类型   未同步更新  未新增入库")
     private String excType;
 
+    @ItemProperty(alias = "是否支持配送")
+    private Boolean canDrugSend;
+
 
 
 
@@ -316,5 +319,14 @@ public class SyncDrugExc implements Serializable {
 
     public void setSyncType(Integer syncType) {
         this.syncType = syncType;
+    }
+
+    @Column(name = "canDrugSend")
+    public Boolean getCanDrugSend() {
+        return canDrugSend;
+    }
+
+    public void setCanDrugSend(Boolean canDrugSend) {
+        this.canDrugSend = canDrugSend;
     }
 }
