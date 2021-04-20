@@ -42,6 +42,7 @@ import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.omg.CORBA.INTERNAL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,7 @@ import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -480,7 +482,20 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 0) {
-            result.setCode(DrugEnterpriseResult.SUCCESS);
+            // 没有药品的药企还是不展示
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Integer> drugIds = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
+            List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+            Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+            Integer code = DrugEnterpriseResult.SUCCESS;
+            for (Integer drugId : drugIds) {
+                if( Objects.isNull(collect.get(drugId))){
+                    code = DrugEnterpriseResult.FAIL;
+                }
+            }
+            //不需要校验库存
+            result.setCode(code);
             return result;
         }
 
