@@ -38,7 +38,7 @@ public class CaseHistoryAtop extends BaseAtop {
      */
     @RpcService
     public MedicalDetailBean getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
-        logger.info("CaseHistoryAtop getDocIndexInfo caseHistoryVO {}", JSON.toJSONString(caseHistoryVO));
+        logger.info("CaseHistoryAtop getDocIndexInfo caseHistoryVO = {}", JSON.toJSONString(caseHistoryVO));
         if (null == caseHistoryVO || null == caseHistoryVO.getActionType()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
@@ -49,7 +49,7 @@ public class CaseHistoryAtop extends BaseAtop {
         }
         try {
             MedicalDetailBean result = caseHistoryService.getDocIndexInfo(caseHistoryVO);
-            logger.info("CaseHistoryAtop getDocIndexInfo result = {}", result);
+            logger.info("CaseHistoryAtop getDocIndexInfo result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             logger.warn("CaseHistoryAtop getDocIndexInfo DAOException", e1);
