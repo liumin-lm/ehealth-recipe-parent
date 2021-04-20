@@ -108,7 +108,7 @@ public class EmrRecipeManager {
      * @return
      */
     public MedicalDetailBean copyEmrDetails(Integer recipeId, Integer clinicId) {
-        if (ValidateUtil.integerIsEmpty(recipeId, clinicId)) {
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
             return null;
         }
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -120,7 +120,9 @@ public class EmrRecipeManager {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
-        coverMedical.setRevisitId(clinicId);
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            coverMedical.setRevisitId(clinicId);
+        }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
         coverMedical.setMpiid(recipe.getMpiid());
         coverMedical.setCreateOrgan(recipe.getCheckOrgan());

@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public interface IDrugToolService {
 
-    @RpcService(timeout = 600)
+    @RpcService(timeout = 6000)
     Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator);
 
     @RpcService

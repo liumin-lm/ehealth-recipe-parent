@@ -42,7 +42,9 @@ public class CaseHistoryAtop extends BaseAtop {
         if (null == caseHistoryVO || null == caseHistoryVO.getActionType()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
-        if (ValidateUtil.integerIsEmpty(caseHistoryVO.getClinicId(), caseHistoryVO.getRecipeId(), caseHistoryVO.getDocIndexId())) {
+        if (ValidateUtil.integerIsEmpty(caseHistoryVO.getClinicId())
+                && ValidateUtil.integerIsEmpty(caseHistoryVO.getRecipeId())
+                && ValidateUtil.integerIsEmpty(caseHistoryVO.getDocIndexId())) {
             return new MedicalDetailBean();
         }
         try {
