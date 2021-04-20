@@ -8,7 +8,6 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -81,21 +80,28 @@ public class CARemoteServiceImpl implements ICARemoteService {
         return false;
     }
 
-
-//    @Override
-//    public CaSignResultVo commonCASignAndSeal(Integer doctorId, Integer bussId, Integer bussType) {
-//        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},bussId={}，bussType={}", doctorId, bussId, bussType);
-//        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-//        // 目前先支持recipe 后期加入其他业务
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        Recipe recipe = recipeDAO.get(bussId);
-//        EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
-//        CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
-//        if (caInterface != null) {
-//            return caInterface.commonCASignAndSeal(null,recipe,doctorDTO.getOrgan(),employmentDTO.getJobNumber(),null);
-//        }
-//        return null;
-//    }
+    /**
+     * 已迁移到CA
+     * @param doctorId
+     * @param bussId
+     * @param bussType
+     * @return
+     */
+    @Deprecated
+    @Override
+    public CaSignResultVo commonCASignAndSeal(Integer doctorId, Integer bussId, Integer bussType) {
+        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},bussId={}，bussType={}", doctorId, bussId, bussType);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+        // 目前先支持recipe 后期加入其他业务
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(bussId);
+        EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
+        CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
+        if (caInterface != null) {
+            return caInterface.commonCASignAndSeal(null,recipe,doctorDTO.getOrgan(),employmentDTO.getJobNumber(),null);
+        }
+        return null;
+    }
 
     @RpcService
     public Date getSystemTime() {
