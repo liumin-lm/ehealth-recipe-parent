@@ -437,7 +437,9 @@ public class HisRecipeService {
             if(!StringUtils.isEmpty(recipeCode)){
                 hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCodeThreadLocal.get());
             }
-            recipes.add(hisRecipe);
+            if(hisRecipe!=null){
+                recipes.add(hisRecipe);
+            }
             return recipes;
         }
         try {
