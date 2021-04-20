@@ -75,7 +75,7 @@ public class CaseHistoryAtop extends BaseAtop {
             List<Integer> revisitIds = revisitService.findApplyingConsultByRequestMpiAndDoctorId(mpiId, doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             logger.info("CaseHistoryAtop getRevisitId revisitIds = {}", JSON.toJSONString(revisitIds));
             if (CollectionUtils.isEmpty(revisitIds)) {
-                return -1;
+                return 0;
             }
             return revisitIds.get(0);
         } catch (DAOException e1) {
