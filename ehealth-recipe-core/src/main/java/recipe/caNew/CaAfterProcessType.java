@@ -1,9 +1,9 @@
 package recipe.caNew;
 
+import ca.service.ICaSignService;
+import ca.vo.CommonSignRequest;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
-import com.ngari.ca.api.service.ICaRemoteService;
-import com.ngari.ca.api.vo.CommonSignRequest;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -28,8 +28,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 public class CaAfterProcessType extends AbstractCaProcessType {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaAfterProcessType.class);
 
-    private ICaRemoteService caRemoteService = AppDomainContext.getBean("mi.caRemoteService", ICaRemoteService.class);
-
+    private ICaSignService caSignService = AppDomainContext.getBean("ca.caSignService", ICaSignService.class);
 
     //我们将开方的流程拆开：
     //后置CA操作：1.保存处方（公共操作），推送处方到his=》2.获取his推送结果=》3.成功后触发CA结果 =》4.CA成功后将处方向下流
@@ -74,7 +73,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
         LOGGER.info("当前请求CA的组装数据：{}", JSONUtils.toString(commonSignRequest));
         //2.请求后台的CA
         try {
-            caRemoteService.commonCaSignAndSeal(commonSignRequest);
+            caSignService.commonCaSignAndSeal(commonSignRequest);
         }catch (Exception e){
             LOGGER.warn("请求CA异常{}！", e);
         }

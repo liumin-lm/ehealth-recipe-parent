@@ -69,6 +69,10 @@
             <artifactId>ehealth-base-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-casign-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-recipeaudit-api</artifactId>
             <exclusions>

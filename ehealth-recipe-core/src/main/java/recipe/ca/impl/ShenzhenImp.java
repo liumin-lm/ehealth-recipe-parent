@@ -5,15 +5,11 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
-import ctd.account.user.support.SM3;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +23,8 @@ import recipe.service.RecipeService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.util.RedisClient;
 
-import java.util.Date;
-
 /**
- * CA新对接模式已迁移miscellany项目中 后期不将recipe维护
+ * 已迁移到CA 兼容老app 后续删除
  */
 
 @Deprecated

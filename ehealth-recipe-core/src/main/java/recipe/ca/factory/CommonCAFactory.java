@@ -19,9 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 已迁移到CA 兼容老app 后续删除
  * 根据不同的机构获取机构对应的实现
  * CA工厂类
  */
+@Deprecated
 @RpcBean
 public class CommonCAFactory {
 
