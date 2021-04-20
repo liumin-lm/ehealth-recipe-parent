@@ -83,6 +83,11 @@ public class SignDoctorRecipeInfo {
 
     private String uniqueId;
 
+    /**
+     * 签名医生
+     */
+    private String signDoctor;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column
@@ -300,5 +305,14 @@ public class SignDoctorRecipeInfo {
 
     public void setUniqueId(String uniqueId) {
         this.uniqueId = uniqueId;
+    }
+
+    @Column
+    public String getSignDoctor() {
+        return signDoctor;
+    }
+
+    public void setSignDoctor(String signDoctor) {
+        this.signDoctor = signDoctor;
     }
 }
