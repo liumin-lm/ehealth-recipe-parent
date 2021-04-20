@@ -248,6 +248,11 @@
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
+                <artifactId>ehealth-casign-api</artifactId>
+                <version>${ngari.casign.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
                 <artifactId>ehealth-video-api</artifactId>
                 <version>${ngari.video.version}</version>
             </dependency>

@@ -1,5 +1,6 @@
 package recipe.service;
 
+import ca.service.ICaRemoteService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -59,7 +60,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -83,7 +83,6 @@ import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
-import lombok.SneakyThrows;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections.map.HashedMap;
@@ -102,8 +101,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
-import recipe.ca.CAInterface;
-import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CARecipeTypeEnum;
@@ -145,6 +142,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方服务类
@@ -189,9 +188,6 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private SignRecipeInfoService signRecipeInfoService;
-
-    @Autowired
-    private CommonCAFactory commonCAFactory;
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
@@ -802,9 +798,10 @@ public class RecipeService extends RecipeBaseService {
                 } else {
                     requestSealTO.setSealBase64Str("");
                 }
-                //通过工厂获取对应的实现CA类
-                CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-                caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
+                //CA
+                ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.caSignService", ICaRemoteService.class);
+                ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+                iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                 result.setCode(RecipeResultBean.NO_ADDRESS);
                 return result;
@@ -3115,6 +3112,25 @@ public class RecipeService extends RecipeBaseService {
             syncDrugExc.setExcType("未同步更新");
         }
         syncDrugExc.setSyncType(1);
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+        if (CollectionUtils.isEmpty(depIds)) {
+            syncDrugExc.setCanDrugSend(false);
+        } else {
+            if (way == 2) {
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId,drug.getOrganDrugCode());
+                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrug.getDrugId(), depIds);
+                if (CollectionUtils.isEmpty(saleDrugLists)) {
+                    syncDrugExc.setCanDrugSend(false);
+                } else {
+                    syncDrugExc.setCanDrugSend(true);
+                }
+            }else {
+                syncDrugExc.setCanDrugSend(false);
+            }
+        }
+
         return syncDrugExc;
     }
 
