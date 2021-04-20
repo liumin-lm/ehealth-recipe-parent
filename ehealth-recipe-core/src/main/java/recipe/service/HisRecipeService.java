@@ -234,6 +234,7 @@ public class HisRecipeService {
             //已处理
             result=findAlreadyDealHisRecipe(hisRecipes);
         }
+        LOGGER.info("HisRecipeService mergeData:{}",JSONUtils.toString(result));
         return result;
     }
 
@@ -406,6 +407,7 @@ public class HisRecipeService {
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
         //TODO question 查询条件带recipeCode
         //TODO question 让前置机去过滤数据
+        LOGGER.info("HisRecipeService HisResponseTO.queryData:organId:{},patientDTO:{}",organId,JSONUtils.toString(patientDTO));
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());

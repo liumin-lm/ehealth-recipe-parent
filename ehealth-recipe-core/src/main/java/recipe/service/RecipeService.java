@@ -3115,6 +3115,25 @@ public class RecipeService extends RecipeBaseService {
             syncDrugExc.setExcType("未同步更新");
         }
         syncDrugExc.setSyncType(1);
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+        if (CollectionUtils.isEmpty(depIds)) {
+            syncDrugExc.setCanDrugSend(false);
+        } else {
+            if (way == 2) {
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId,drug.getOrganDrugCode());
+                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrug.getDrugId(), depIds);
+                if (CollectionUtils.isEmpty(saleDrugLists)) {
+                    syncDrugExc.setCanDrugSend(false);
+                } else {
+                    syncDrugExc.setCanDrugSend(true);
+                }
+            }else {
+                syncDrugExc.setCanDrugSend(false);
+            }
+        }
+
         return syncDrugExc;
     }
 
