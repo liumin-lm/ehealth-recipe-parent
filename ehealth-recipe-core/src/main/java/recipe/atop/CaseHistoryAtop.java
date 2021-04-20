@@ -43,7 +43,7 @@ public class CaseHistoryAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         if (ValidateUtil.integerIsEmpty(caseHistoryVO.getClinicId(), caseHistoryVO.getRecipeId(), caseHistoryVO.getDocIndexId())) {
-            return null;
+            return new MedicalDetailBean();
         }
         try {
             MedicalDetailBean result = caseHistoryService.getDocIndexInfo(caseHistoryVO);
@@ -75,7 +75,7 @@ public class CaseHistoryAtop extends BaseAtop {
             List<Integer> revisitIds = revisitService.findApplyingConsultByRequestMpiAndDoctorId(mpiId, doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             logger.info("CaseHistoryAtop getRevisitId revisitIds = {}", JSON.toJSONString(revisitIds));
             if (CollectionUtils.isEmpty(revisitIds)) {
-                return null;
+                return -1;
             }
             return revisitIds.get(0);
         } catch (DAOException e1) {
