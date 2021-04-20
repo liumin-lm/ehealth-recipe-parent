@@ -24,6 +24,7 @@
 	<import resource="spring-service-miscellany.xml"/>
 	<import resource="spring-service-opbase.xml"/>
 	<import resource="spring-file.xml"/>
+	<import resource="spring-service-casign.xml"/>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
