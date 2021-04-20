@@ -27,7 +27,7 @@ public abstract class CommonRecipeExtDAO extends HibernateSupportDelegateDAO<Com
      * @param commonRecipeIds
      * @return
      */
-    @DAOMethod(sql = "from CommonRecipeExt where  common_recipe_id in (:commonRecipeIds) ")
+    @DAOMethod(sql = "from CommonRecipeExt where  common_recipe_id in (:commonRecipeIds)", limit = 0)
     public abstract List<CommonRecipeExt> findByCommonRecipeIds(@DAOParam("commonRecipeIds") List<Integer> commonRecipeIds);
 
     /**

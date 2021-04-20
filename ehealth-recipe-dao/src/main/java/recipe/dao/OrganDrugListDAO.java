@@ -55,7 +55,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @param drugIds
      * @return
      */
-    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId in (:drugIds)")
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId in (:drugIds)", limit = 0)
     public abstract List<OrganDrugList> findByOrganIdAndDrugIdWithoutStatus(@DAOParam("organId") int organId, @DAOParam("drugIds") List drugIds);
 
     /**
