@@ -1118,7 +1118,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
             }
             //如果运营平台配置了下载处方签则显示
-            if (!supportDownLoad) {
+            if (!supportDownLoad && supportToHosFlag && supportSendToEnterprises && supportToSendHos && supportTFDS) {
                 inventoryFlag = true;
             }
             if (inventoryFlag && drugListBean != null) {
