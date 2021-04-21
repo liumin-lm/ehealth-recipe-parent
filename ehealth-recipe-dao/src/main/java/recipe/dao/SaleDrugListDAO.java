@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
+import com.ngari.recipe.entity.DrugEnterpriseLogistics;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
@@ -13,11 +14,13 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugListAndSaleDrugList;
@@ -54,14 +57,29 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     @DAOMethod(sql = "select count(id) from SaleDrugList where status=1 and organId=:organId and drugId in :drugId")
     public abstract Long getCountByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugId") List<Integer> drugId);
     /**
-     * 根据机构id及药品id列表获取数量
+     * 根据机构id及药品id列表
      *
      * @param organId
-     * @param drugId
+     * @param drugIds
      * @return
      */
-    @DAOMethod(sql = "select * from SaleDrugList where status=1 and organId=:organId and drugId in :drugId")
-    public abstract List<SaleDrugList> getByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugId") List<Integer> drugId);
+    public  List<SaleDrugList> getByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugIds") List<Integer> drugIds){
+        HibernateStatelessResultAction<List<SaleDrugList> > action = new AbstractHibernateStatelessResultAction<List<SaleDrugList> >() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from SaleDrugList where status=1 and organId=:organId and drugId in :drugIds";
+                Map<String, Object> param = Maps.newHashMap();
+                param.put("organId", organId);
+                param.put("drugIds", drugIds);
+                Query query = ss.createQuery(hql);
+                query.setProperties(param);
+                List list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 
     /**
      * 设置某些药品为无效

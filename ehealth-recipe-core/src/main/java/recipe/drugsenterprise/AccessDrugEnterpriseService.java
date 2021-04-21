@@ -319,6 +319,9 @@ public abstract class AccessDrugEnterpriseService {
         if (dep != null && dep.getCheckInventoryFlag() != null && dep.getCheckInventoryFlag() == 0) {
             // 没有药品的药企还是不展示
             List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(dep.getId(), drugIds);
+            if(Objects.isNull(list)){
+                return false;
+            }
             Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
             AtomicBoolean returnFlag = new AtomicBoolean(true);
             drugIds.forEach(id->{

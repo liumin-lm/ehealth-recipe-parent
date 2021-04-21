@@ -487,6 +487,10 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             List<Integer> drugIds = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
             List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+            if(Objects.isNull(list)){
+                result.setCode(DrugEnterpriseResult.FAIL);
+                return result;
+            }
             Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
             Integer code = DrugEnterpriseResult.SUCCESS;
             for (Integer drugId : drugIds) {
