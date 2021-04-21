@@ -427,13 +427,20 @@ public class HisRecipeService {
      */
     @RpcService
     public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+        List<HisRecipe> recipes=new ArrayList<>();
         //查询数据
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag,null);
         if (null == responseTO || null == responseTO.getData()) {
-            return null;
-        }
-        if(responseTO.getData()==null){
-            return null;
+            //点击卡片 历史处方his不会返回 故从表查
+            String recipeCode=recipeCodeThreadLocal.get();
+            HisRecipe hisRecipe=new HisRecipe();
+            if(!StringUtils.isEmpty(recipeCode)){
+                hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCodeThreadLocal.get());
+            }
+            if(hisRecipe!=null){
+                recipes.add(hisRecipe);
+            }
+            return recipes;
         }
         try {
             /** 更新数据校验*/
@@ -441,7 +448,6 @@ public class HisRecipeService {
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        List<HisRecipe> recipes=new ArrayList<>();
         try {
             //数据入库
             recipes=saveHisRecipeInfo(responseTO, patientDTO, flag);
