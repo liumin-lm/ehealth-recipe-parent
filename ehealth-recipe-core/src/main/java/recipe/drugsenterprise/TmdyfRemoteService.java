@@ -85,7 +85,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
-        return "暂不支持库存查询";
+        return "有库存";
     }
 
     @Override
