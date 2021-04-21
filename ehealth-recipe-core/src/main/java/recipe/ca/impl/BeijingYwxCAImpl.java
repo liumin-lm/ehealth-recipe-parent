@@ -1,32 +1,29 @@
 package recipe.ca.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ngari.base.doctor.model.DoctorBean;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.*;
 import com.ngari.his.ca.service.ICaHisService;
-import com.ngari.his.common.service.ICommonHisService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
-import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
-import recipe.ca.vo.CaSignResultVo;
 import recipe.util.RedisClient;
 
-import javax.print.Doc;
 
+/**
+ * 已迁移到CA 兼容老app 后续删除
+ */
+
+@Deprecated
 @RpcBean("BeijingYCA")
 public class BeijingYwxCAImpl{
 

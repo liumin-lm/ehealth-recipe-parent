@@ -26,18 +26,15 @@ import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.dao.*;
-import recipe.purchase.PayModeOnline;
-import recipe.purchase.PurchaseService;
 import recipe.service.RecipeOrderService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * 通用药企对接服务(国药协议)
@@ -321,11 +318,16 @@ public abstract class AccessDrugEnterpriseService {
         //判断药企是否校验库存的开关
         if (dep != null && dep.getCheckInventoryFlag() != null && dep.getCheckInventoryFlag() == 0) {
             // 没有药品的药企还是不展示
-            if (null == count || count == 0) {
-                return false;
-            }
+            List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(dep.getId(), drugIds);
+            Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+            AtomicBoolean returnFlag = new AtomicBoolean(true);
+            drugIds.forEach(id->{
+               if( Objects.isNull(collect.get(id))){
+                   returnFlag.set(false);
+               }
+            });
             //不需要校验库存
-            return true;
+            return returnFlag.get();
         }
         boolean succFlag = false;
         if (null == dep || CollectionUtils.isEmpty(drugIds)) {

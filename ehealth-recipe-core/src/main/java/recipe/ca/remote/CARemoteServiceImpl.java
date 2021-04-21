@@ -8,7 +8,6 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -81,7 +80,14 @@ public class CARemoteServiceImpl implements ICARemoteService {
         return false;
     }
 
-
+    /**
+     * 已迁移到CA
+     * @param doctorId
+     * @param bussId
+     * @param bussType
+     * @return
+     */
+    @Deprecated
     @Override
     public CaSignResultVo commonCASignAndSeal(Integer doctorId, Integer bussId, Integer bussType) {
         LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},bussId={}，bussType={}", doctorId, bussId, bussType);
