@@ -1019,7 +1019,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         setAppOtherMessage(order);
-        result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
+        RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+        if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
+            recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
+        }
+        result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
             result.setBusId(order.getOrderId());
