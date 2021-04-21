@@ -1681,6 +1681,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
                     orderBean.setSendType(drugsEnterprise.getSendType());
+                    //药企定义的订单备注
+                    orderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
