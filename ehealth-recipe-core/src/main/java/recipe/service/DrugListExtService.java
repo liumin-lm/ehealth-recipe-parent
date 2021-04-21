@@ -1056,13 +1056,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private List<DrugListBean> filterInventoriesData(Integer organId, List<DrugListBean> drugListBeans){
         LOGGER.info("filterInventoriesData 入参 drugListBeans:{}", JSONUtils.toString(drugListBeans));
         Iterator iterator = drugListBeans.iterator();
-        boolean inventoryFlag = false;
         boolean supportToHosFlag = getOrganGiveMode(organId, SUPPORT_TO_HOS);
         boolean supportSendToEnterprises = getOrganGiveMode(organId, SUPPORT_SEND_TO_ENTERPRISES);
         boolean supportToSendHos = getOrganGiveMode(organId, SUPPORT_SEND_TO_HOS);
         boolean supportTFDS = getOrganGiveMode(organId, SUPPORT_TFDS);
         boolean supportDownLoad = getOrganGiveMode(organId, SUPPORT_DOWNLOAD);
         while (iterator.hasNext()) {
+            boolean inventoryFlag = false;
             DrugListBean drugListBean = (DrugListBean)iterator.next();
             if (drugListBean != null) {
                 List<DrugInventoryInfo> drugInventoryInfos = drugListBean.getInventories();
