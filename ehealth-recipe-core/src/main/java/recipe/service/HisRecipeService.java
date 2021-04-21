@@ -222,9 +222,10 @@ public class HisRecipeService {
             }
             result.addAll(equalsHisRecipeVOs);
             result.addAll(onlyExistnoPayFeeHisRecipeVOs);
-            GlobalEventExecFactory.instance().getExecutor().execute(()->{
-                 deleteOnlyExistnoHisRecipeVOs(onlyExistHisRecipeVOs);
-            });
+            //因卡片消息需要查询历史详情 故不能删除his未返回在平台未支付数据
+//            GlobalEventExecFactory.instance().getExecutor().execute(()->{
+//                 deleteOnlyExistnoHisRecipeVOs(onlyExistHisRecipeVOs);
+//            });
         } else {
             //已处理
             result=findAlreadyDealHisRecipe(hisRecipes);
@@ -430,7 +431,7 @@ public class HisRecipeService {
         List<HisRecipe> recipes=new ArrayList<>();
         //查询数据
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag,null);
-        if (null == responseTO || null == responseTO.getData()) {
+        if (null == responseTO || CollectionUtils.isEmpty(responseTO.getData())) {
             //点击卡片 历史处方his不会返回 故从表查
             String recipeCode=recipeCodeThreadLocal.get();
             HisRecipe hisRecipe=new HisRecipe();
@@ -990,6 +991,7 @@ public class HisRecipeService {
      */
     @RpcService
     public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId,String mpiId,String recipeCode,String organId,Integer isCachePlatform, String cardId){
+        LOGGER.info("HisRecipeService getHisRecipeDetail param:[{},{},{},{},{},{}]",hisRecipeId,mpiId,recipeCode,organId,isCachePlatform,cardId);
         //是否缓存标志是必传字段
         //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
         //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
