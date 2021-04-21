@@ -432,16 +432,7 @@ public class HisRecipeService {
         //查询数据
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag,null);
         if (null == responseTO || CollectionUtils.isEmpty(responseTO.getData())) {
-            //点击卡片 历史处方his不会返回 故从表查
-            String recipeCode=recipeCodeThreadLocal.get();
-            HisRecipe hisRecipe=new HisRecipe();
-            if(!StringUtils.isEmpty(recipeCode)){
-                hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCodeThreadLocal.get());
-            }
-            if(hisRecipe!=null){
-                recipes.add(hisRecipe);
-            }
-            return recipes;
+            return null;
         }
         try {
             /** 更新数据校验*/
@@ -989,12 +980,21 @@ public class HisRecipeService {
      * @author liumin
      * @Description 获取处方详情
      */
+    /**
+     *
+     * @param hisRecipeId
+     * @param mpiId
+     * @param recipeCode
+     * @param organId
+     * @param isCachePlatform 作废
+     * @param cardId
+     * @return
+     * @author liumin
+     * @Description 获取处方详情
+     */
     @RpcService
     public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId,String mpiId,String recipeCode,String organId,Integer isCachePlatform, String cardId){
         LOGGER.info("HisRecipeService getHisRecipeDetail param:[{},{},{},{},{},{}]",hisRecipeId,mpiId,recipeCode,organId,isCachePlatform,cardId);
-        //是否缓存标志是必传字段
-        //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
-        //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         if (hisRecipe == null) {
             //throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
@@ -1037,6 +1037,16 @@ public class HisRecipeService {
                 recipeCodeThreadLocal.remove();
             }
         }
+        if(hisRecipeId==null){
+            //点击卡片 历史处方his不会返回 故从表查  同时也兼容已处理状态的处方，前端漏传hisRecipeId的情况
+            if(!StringUtils.isEmpty(recipeCode)){
+                hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(Integer.parseInt(organId), recipeCode);
+            }
+            if(hisRecipe!=null){
+                hisRecipeId=hisRecipe.getHisRecipeID();
+            }
+        }
+
         //存储到recipe相关表
         if(hisRecipeId==null){
             throw new DAOException(DAOException.VALUE_NEEDED, "hisRecipeId不能为空！");
@@ -1085,6 +1095,7 @@ public class HisRecipeService {
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         map.put("hisRecipeExts", hisRecipeExts);
         map.put("showText", hisRecipe.getShowText());
+        LOGGER.info("getHisRecipeDetailByHisRecipeId response:{}",JSONUtils.toString(map));
         return map;
     }
 
