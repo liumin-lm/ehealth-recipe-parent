@@ -289,6 +289,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setOnlineRecipeId(null != recipe.getClinicId() ? recipe.getClinicId().toString() : null);
             simpleBusObject.setRecipeId(null != busId ? busId.toString() : null);
             simpleBusObject.setHisRecipeId(recipe.getRecipeCode());
+            simpleBusObject.setPatId(recipe.getPatientID());
         } else {
             simpleBusObject.setBusId(busId);
             simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
@@ -340,6 +341,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setOnlineRecipeId(null != recipeBean.getClinicId() ? recipeBean.getClinicId().toString() : null);
                 simpleBusObject.setRecipeId(null != recipeBean.getRecipeId() ? recipeBean.getRecipeId().toString() : null);
                 simpleBusObject.setHisRecipeId(recipeBean.getRecipeCode());
+                simpleBusObject.setPatId(recipeBean.getPatientID());
+
             }
 
         }
