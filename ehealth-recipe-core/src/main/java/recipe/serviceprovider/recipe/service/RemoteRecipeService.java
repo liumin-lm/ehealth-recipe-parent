@@ -23,10 +23,9 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
@@ -2404,5 +2403,62 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
         return RecipeServiceSub.attachSealPic(clinicOrgan,doctorId,checker,recipeId);
+    }
+
+    @RpcService
+    public List<HealthCardDTO> queryHealthCardFromHisAndMerge(final Integer organId, final String mpiid, final boolean remotePull){
+        LOGGER.info("queryHealthCardFromHisAndMerge.organId ={},Mpiid={}",organId,mpiid);
+        HealthCardService cardService = BasicAPI.getService(HealthCardService.class);
+        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        List<HealthCardDTO> cardDTOS=new ArrayList<>();
+        try {
+            cardDTOS = cardService.queryHealthCardFromHisAndMerge(organId, mpiid, remotePull);
+            LOGGER.info("queryHealthCardFromHisAndMerge.before.cardDTOS ={}",JSONUtils.toString(cardDTOS));
+        //针对两端的获取对应的配置关系
+        //根据运营平台配置  如果配置了就诊卡 医保卡（根据卡类型进行查询）； 如果都不配（默认使用身份证查询）
+        String[] cardTypes=(String[]) configurationCenterUtilsService.getConfiguration(organId,"getCardTypeForHis");
+
+        if (cardTypes==null||cardTypes.length==0){
+            return new ArrayList<HealthCardDTO>();
+        }
+
+        if (CollectionUtils.isEmpty(cardDTOS)){
+            return new ArrayList<HealthCardDTO>();
+        }
+
+        List<Integer> in=new ArrayList<>();
+        List<Integer> on=new ArrayList<>();
+        for (HealthCardDTO healthCardDTO:cardDTOS){
+            in.add(Integer.valueOf(healthCardDTO.getCardId())+1);
+        }
+
+        for (int i=0;i<cardTypes.length;i++){
+            on.add(Integer.valueOf(cardTypes[i]));
+        }
+        //就诊卡类型1    医保卡类型2
+        //就诊卡 2  医保卡 3
+        //二者取交集处理
+        in.retainAll(on);
+
+        List<HealthCardDTO> dtos=new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(in)){
+            for (int i=0;i<in.size();i++){
+                for (int j=0;j<cardDTOS.size();j++){
+                    HealthCardDTO d=cardDTOS.get(j);
+                    if (!String.valueOf(in.get(i)-1).equals(d.getCardId())){
+                        dtos.add(d);
+                    }
+                }
+            }
+            cardDTOS.removeAll(dtos);
+        }else {
+            return new ArrayList<HealthCardDTO>();
+        }
+        LOGGER.info("queryHealthCardFromHisAndMerge.after.cardDTOS ={}",JSONUtils.toString(cardDTOS));
+        return cardDTOS;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
