@@ -33,11 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @ClassName SignToThirdService
- * @Description
- * @Author maoLy
- * @Date 2020/6/4
- **/
+ * 已迁移到CA 兼容老app 后续删除
+ */
+@Deprecated
 @RpcBean
 public class SignToThirdService {
 
