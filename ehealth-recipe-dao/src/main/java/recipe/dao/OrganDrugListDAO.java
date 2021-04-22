@@ -1080,4 +1080,12 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "select drugEntrust from OrganDrugList where organId=:organId and OrganDrugCode =:OrganDrugCode")
     public abstract String getDrugEntrustByOrganDrugCodeAndOrganId(@DAOParam("organId") Integer organId, @DAOParam("OrganDrugCode") String OrganDrugCode);
+
+    /**
+     * 查询单个药品药品信息的默认嘱托数据
+     * @param organDrugCode
+     * @return
+     */
+    @DAOMethod(sql = " select drugEntrust from OrganDrugList where OrganDrugCode=:OrganDrugCode and status = 1 and OrganID=:OrganID")
+    public abstract String getDrugEntrustById(@DAOParam("OrganDrugCode") String organDrugCode,@DAOParam("OrganID")int OrganID);
 }

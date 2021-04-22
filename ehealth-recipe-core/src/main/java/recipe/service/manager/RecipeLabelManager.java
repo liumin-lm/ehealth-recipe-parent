@@ -1,6 +1,8 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
@@ -222,7 +224,9 @@ public class RecipeLabelManager {
             map.put("templateType", "tcm");
             createChineMedicinePDF(result, recipeMap, recipe);
             //添加斜线位置 1,中间  2 下面
-            map.put("diagonalLineLayer", (Integer)configService.getConfiguration(recipe.getClinicOrgan(), "diagonalLineLayer"));
+            Object invalidInfoObject = configService.getConfiguration(recipe.getClinicOrgan(), "diagonalLineLayer");
+            JSONArray jsonArray = JSON.parseArray(JSONObject.toJSONString(invalidInfoObject));
+            map.put("diagonalLineLayer", Integer.valueOf(jsonArray.getString(0)));
         } else {
             map.put("templateType", "wm");
             createMedicinePDF(result, recipe);

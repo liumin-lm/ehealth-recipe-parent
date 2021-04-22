@@ -15,6 +15,7 @@ import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.*;
 import eh.cdr.api.vo.request.SaveEmrContractReq;
+import eh.cdr.api.vo.response.EmrConfigRes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +60,8 @@ public class EmrRecipeManager {
     private DepartmentService departmentService;
     @Autowired
     private DoctorClient doctorClient;
-
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
-
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -120,7 +119,7 @@ public class EmrRecipeManager {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
-        if (ValidateUtil.integerIsEmpty(clinicId)) {
+        if (!ValidateUtil.integerIsEmpty(clinicId)) {
             coverMedical.setRevisitId(clinicId);
         }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
@@ -168,7 +167,7 @@ public class EmrRecipeManager {
         logger.info("EmrRecipeManager saveDocList recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
         try {
             // 更新 处方诊断信息
-            List<EmrDetailDTO> detail = getEmrDetailDTO(recipeExt.getDocIndexId());
+            List<EmrConfigRes> detail = getEmrDetailDTO(recipeExt.getDocIndexId());
             if (CollectionUtils.isEmpty(detail)) {
                 return;
             }
@@ -256,7 +255,7 @@ public class EmrRecipeManager {
         }
         Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
         // 更新 处方诊断信息
-        List<EmrDetailDTO> detail = getEmrDetailDTO(docId);
+        List<EmrConfigRes> detail = getEmrDetailDTO(docId);
         if (CollectionUtils.isEmpty(detail)) {
             return;
         }
@@ -307,11 +306,11 @@ public class EmrRecipeManager {
             logger.info("EmrRecipeManager getMedicalInfo RecipeId={}", recipe.getRecipeId());
             return;
         }
-        List<EmrDetailDTO> detail = getEmrDetailDTO(recipeExtend.getDocIndexId());
+        List<EmrConfigRes> detail = getEmrDetailDTO(recipeExtend.getDocIndexId());
         if (CollectionUtils.isEmpty(detail)) {
             return;
         }
-        for (EmrDetailDTO detailDTO : detail) {
+        for (EmrConfigRes detailDTO : detail) {
             if (null == detailDTO) {
                 logger.warn("EmrRecipeManager getMedicalInfo detailDTO is null");
                 continue;
@@ -375,7 +374,7 @@ public class EmrRecipeManager {
      * @param docIndexId
      * @return
      */
-    private static List<EmrDetailDTO> getEmrDetailDTO(Integer docIndexId) {
+    private static List<EmrConfigRes> getEmrDetailDTO(Integer docIndexId) {
         if (ValidateUtil.integerIsEmpty(docIndexId)) {
             return null;
         }
@@ -397,13 +396,11 @@ public class EmrRecipeManager {
         if (null == medicalDetailBean) {
             return null;
         }
-        String detail = medicalDetailBean.getDetail();
-
-        List<EmrDetailDTO> detailList = JSON.parseArray(detail, EmrDetailDTO.class);
-        if (CollectionUtils.isEmpty(detailList)) {
+        List<EmrConfigRes> emrConfigRes = medicalDetailBean.getDetailList();
+        if (CollectionUtils.isEmpty(emrConfigRes)) {
             return null;
         }
-        return detailList;
+        return emrConfigRes;
     }
 
     /**
@@ -462,7 +459,7 @@ public class EmrRecipeManager {
      * @param medicalDetailBean
      */
     private void setMedicalDetailBean(RecipeBean recipe, RecipeExtend recipeExt, MedicalDetailBean medicalDetailBean) {
-        List<EmrDetailDTO> detail = new ArrayList<>();
+        List<EmrConfigRes> detail = new ArrayList<>();
         //设置主诉
         detail.add(new EmrDetailDTO(RecipeEmrComment.COMPLAIN, "主诉", RecipeEmrComment.TEXT_AREA, ByteUtils.isEmpty(recipeExt.getMainDieaseDescribe()), true));
         //病史
@@ -501,7 +498,7 @@ public class EmrRecipeManager {
      * @param recipe
      * @param recipeExtend
      */
-    private static void getMultiSearch(EmrDetailDTO detail, Recipe recipe, RecipeExtend recipeExtend) {
+    private static void getMultiSearch(EmrConfigRes detail, Recipe recipe, RecipeExtend recipeExtend) {
         /**诊断 ，中医症候特殊处理*/
         if (!RecipeEmrComment.MULTI_SEARCH.equals(detail.getType())) {
             return;

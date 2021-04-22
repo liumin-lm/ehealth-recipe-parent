@@ -323,14 +323,14 @@ public abstract class AccessDrugEnterpriseService {
                 return false;
             }
             Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-            AtomicBoolean returnFlag = new AtomicBoolean(true);
-            drugIds.forEach(id->{
-               if( Objects.isNull(collect.get(id))){
-                   returnFlag.set(false);
-               }
-            });
+           Boolean returnFlag = true;
+            for (Integer drugId : drugIds) {
+                if( Objects.isNull(collect.get(drugId))){
+                    returnFlag = false;
+                }
+            }
             //不需要校验库存
-            return returnFlag.get();
+            return returnFlag;
         }
         boolean succFlag = false;
         if (null == dep || CollectionUtils.isEmpty(drugIds)) {
