@@ -28,7 +28,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 public class CaAfterProcessType extends AbstractCaProcessType {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaAfterProcessType.class);
 
-    private ICaSignService caSignService = AppDomainContext.getBean("ca.caSignService", ICaSignService.class);
+    private ICaSignService caSignService = AppDomainContext.getBean("ca.iCaSignService", ICaSignService.class);
 
     //我们将开方的流程拆开：
     //后置CA操作：1.保存处方（公共操作），推送处方到his=》2.获取his推送结果=》3.成功后触发CA结果 =》4.CA成功后将处方向下流
