@@ -1,6 +1,8 @@
 package recipe.service;
 
 import ca.service.ICaRemoteService;
+import ca.service.ISignRecipeInfoService;
+import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -40,6 +42,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
@@ -124,7 +127,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
-import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
@@ -173,6 +175,8 @@ public class RecipeService extends RecipeBaseService {
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
+    private ISignRecipeInfoService signRecipeInfoService = AppDomainContext.getBean("ca.signRecipeInfoService", ISignRecipeInfoService.class);
+
     private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
@@ -185,9 +189,6 @@ public class RecipeService extends RecipeBaseService {
 
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
-
-    @Autowired
-    private SignRecipeInfoService signRecipeInfoService;
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
@@ -1241,7 +1242,7 @@ public class RecipeService extends RecipeBaseService {
                     if (CA_OLD_TYPE.equals(CANewOldWay)) {
                         signRecipeInfoSave(recipeId, true, resultVo, organId);
                         try {
-                            SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
+                            SignDoctorRecipeInfoDTO signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
                             JSONObject jsonObject = new JSONObject();
                             jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
                             jsonObject.put("details", JSONObject.toJSONString(details));
@@ -5336,7 +5337,7 @@ public class RecipeService extends RecipeBaseService {
             if (caList.contains(organId + "")) {
                 thirdCASign = "shanghaiCA";
             }
-            signRecipeInfoService.saveSignInfo(recipeId, isDoctor, signResultVo, thirdCASign);
+            signRecipeInfoService.saveSignInfo(recipeId, isDoctor, ObjectCopyUtils.convert(signResultVo, ca.vo.CaSignResultVo.class), thirdCASign);
         } catch (Exception e) {
             LOGGER.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage(), e);
         }
