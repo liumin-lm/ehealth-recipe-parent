@@ -392,6 +392,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      */
     @RpcService
     public List<DrugListBean> findCommonDrugListsNew(CommonDrugListDTO commonDrugListDTO) {
+        LOGGER.info("findCommonDrugListsNew.commonDrugListDTO={}", JSONUtils.toString(commonDrugListDTO));
         Args.notNull(commonDrugListDTO.getDoctor(), "doctor");
         Args.notNull(commonDrugListDTO.getDrugType(), "drugType");
         Args.notNull(commonDrugListDTO.getOrganId(), "organId");
@@ -442,6 +443,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
+        LOGGER.info("findCommonDrugListsNew.drugListBeans={}", JSONUtils.toString(drugListBeans));
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(commonDrugListDTO.getOrganId(), drugListBeans);
         return drugListBeans;
@@ -607,7 +609,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
 
         request.setData(data);
-        LOGGER.info("getDrugStock request={}", JSONUtils.toString(request));
+                LOGGER.info("getDrugStock request={}", JSONUtils.toString(request));
         DrugInfoResponseTO response;
         try {
             response = hisService.scanDrugStock(request);
@@ -773,6 +775,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(drugInfo)) {
             SearchDrugDetailDTO drugList = null;
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+
             //获取药品展示拼接配置
             //药品名拼接配置---这里处理防止每次循环还得处理一遍
             Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, drugType));
@@ -812,6 +816,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice1(null == drugList.getPrice1() ? drugListNow.getPrice1() : drugList.getPrice1());
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
+
+                String drugEntrust=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
+                //增加药品嘱托字段信息
+                if (StringUtils.isNotEmpty(drugEntrust)){
+                    drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
+                }
+
+
                 //药品库存标志-是否查药企库存
                 if (organId != null) {
                     drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, drugList.getDrugId());

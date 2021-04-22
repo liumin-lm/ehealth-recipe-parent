@@ -31,8 +31,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * CA标准化对接文档
+ * 已迁移到CA 兼容老app 后续删除
  */
+
+@Deprecated
 @RpcBean("shanghaiCA")
 public class ShanghaiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanghaiCAImpl.class);

@@ -39,6 +39,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
@@ -128,6 +129,9 @@ public class RecipeServiceSub {
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+
+    private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
+
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -1861,8 +1865,22 @@ public class RecipeServiceSub {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
+
+        //线下转线上的处方  设置默认审方药师
+        if (recipe.getRecipeSourceType().equals(2) && recipe.getChecker() == null) {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
+            if (doctorId != null) {
+                DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
+                recipeBean.setCheckerText(defaultDoctor.getName());
+                recipeBean.setChecker(Integer.valueOf(doctorId));
+            }
+        }
+
         //处理审核药师
-        if (RecipeStatusEnum.READY_CHECK.contains(recipe.getStatus())) {
+        if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS)) {
             recipeBean.setCheckerText("");
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -2073,14 +2091,16 @@ public class RecipeServiceSub {
                 map.put("showSendToHos", 1);
             }
             //不支持配送，则按钮都不显示--包括药店取药
-            if (new Integer(2).equals(recipe.getDistributionFlag())) {
+            if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 map.put("showSendToEnterprises", 0);
                 map.put("showSendToHos", 0);
                 map.put("supportTFDS", 0);
                 map.put("supportOnline", 0);
                 map.put("supportToHos", 0);
             }
-            if (new Integer(1).equals(recipe.getDistributionFlag())) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                    RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+                    || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
                 map.put("supportToHos", 0);
             }
         }
@@ -2486,7 +2506,9 @@ public class RecipeServiceSub {
     public static String getRecipeGetModeTip(Recipe recipe) {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
-        if (1 != recipe.getChooseFlag() && !Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+        if (1 != recipe.getChooseFlag() && !(RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+                || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag()))) {
             String organName = StringUtils.isEmpty(recipe.getOrganName()) ? "医院" : recipe.getOrganName();
             // 邵逸夫特殊处理院区
             if (1 == recipe.getClinicOrgan()) {

@@ -840,6 +840,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
 
     /**
+     * ca调用接口 供getTaskcode接口调用
+     * @param recipeList
+     * @param request
+     */
+    @RpcService
+    void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request);
+    /**
      * 深圳二院财务报表  处方费用
      * @param organId
      * @param depart
@@ -863,4 +870,17 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) ;
 
+    /**
+     * 根据配置项sealDataFrom获取签章图片
+     *
+     * @param clinicOrgan
+     * @param doctorId
+     * @param checker
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public  Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId);
+
 }
+

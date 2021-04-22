@@ -24,7 +24,7 @@ public class RecipeDetailAtop extends BaseAtop {
     private RecipeDetailService recipeDetailService;
 
     /**
-     * 校验线上线下 药品数据
+     * 校验线上线下 药品数据 用于续方需求
      *
      * @param organId       机构id
      * @param recipeDetails 处方明细
@@ -37,7 +37,7 @@ public class RecipeDetailAtop extends BaseAtop {
             return null;
         }
         try {
-            List<RecipeDetailBean> result = recipeDetailService.validateDrug(organId, recipeType, recipeDetails);
+            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(organId, recipeType, recipeDetails);
             logger.info("RecipeDetailAtop validateDetail result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {

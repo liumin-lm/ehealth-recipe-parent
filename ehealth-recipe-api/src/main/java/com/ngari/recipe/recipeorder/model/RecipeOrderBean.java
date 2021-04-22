@@ -307,6 +307,9 @@ public class RecipeOrderBean implements Serializable {
      */
     private String dispensingApothecaryIdCard;
 
+    @ItemProperty(alias = "订单备注")
+    private String orderMemo;
+
     public Integer getLogisticsType() {
         return logisticsType;
     }
@@ -1050,5 +1053,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
         this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    public String getOrderMemo() {
+        return orderMemo;
+    }
+
+    public void setOrderMemo(String orderMemo) {
+        this.orderMemo = orderMemo;
     }
 }

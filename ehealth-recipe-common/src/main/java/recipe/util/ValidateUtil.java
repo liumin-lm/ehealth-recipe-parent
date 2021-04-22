@@ -225,6 +225,18 @@ public class ValidateUtil {
         return false;
     }
 
+    public static boolean integerIsEmpty(Integer... args) {
+        if (null == args) {
+            return true;
+        }
+        for (Integer i : args) {
+            if (integerIsEmpty(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean doubleIsEmpty(Double d) {
         if (null == d || 0 == d) {
             return true;

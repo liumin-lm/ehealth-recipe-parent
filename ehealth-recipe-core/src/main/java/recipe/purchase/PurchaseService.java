@@ -21,6 +21,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -115,7 +116,7 @@ public class PurchaseService {
             //机构设置，是否可以到院取药
             //date 20191022,修改到院取药配置项
             boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
-            if (Integer.valueOf(0).equals(dbRecipe.getDistributionFlag())
+            if (RecipeDistributionFlagEnum.DEFAULT.getType().equals(dbRecipe.getDistributionFlag())
                     && hisStatus && flag) {
                 result.setToHos(true);
             }

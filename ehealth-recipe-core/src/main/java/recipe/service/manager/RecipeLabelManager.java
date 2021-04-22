@@ -221,6 +221,8 @@ public class RecipeLabelManager {
             //中药pdf参数
             map.put("templateType", "tcm");
             createChineMedicinePDF(result, recipeMap, recipe);
+            //添加斜线位置 1,中间  2 下面
+            map.put("diagonalLineLayer", (Integer)configService.getConfiguration(recipe.getClinicOrgan(), "diagonalLineLayer"));
         } else {
             map.put("templateType", "wm");
             createMedicinePDF(result, recipe);

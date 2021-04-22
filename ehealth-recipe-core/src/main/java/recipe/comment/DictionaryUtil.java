@@ -17,6 +17,13 @@ import recipe.hisservice.EleInvoiceService;
 public class DictionaryUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(EleInvoiceService.class);
 
+    /**
+     * 根据key 查询字典数据 value
+     *
+     * @param classId
+     * @param key
+     * @return
+     */
     public static String getDictionary(String classId, Integer key) {
         if (null == key) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DictionaryController is null");
@@ -29,6 +36,14 @@ public class DictionaryUtil {
         }
     }
 
+    /**
+     * 根据key 查询字典数据 value
+     * value为null 返回key
+     *
+     * @param classId
+     * @param key
+     * @return
+     */
     public static String getDictionary(String classId, String key) {
         if (null == key) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DictionaryController is null");

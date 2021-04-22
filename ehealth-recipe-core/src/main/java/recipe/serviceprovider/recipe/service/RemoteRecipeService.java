@@ -84,6 +84,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
@@ -1916,6 +1917,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
         caSignResultVo.setRecipeId(resultVo.getBussId());
         caSignResultVo.setBussType(resultVo.getBusstype());
+        caSignResultVo.setSignDoctor(resultVo.getSignDoctor());
         return caSignResultVo;
     }
 
@@ -2376,6 +2378,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
     }
 
+    @Override
+    public void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request) {
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        service.splicingBackRecipeData(ObjectCopyUtils.convert(recipeList,Recipe.class),request);
+    }
+
     /**
      * 统计处方医疗费  自费+医保
      * @param organId
@@ -2400,4 +2408,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
 
+
+    @Override
+    public Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
+        return RecipeServiceSub.attachSealPic(clinicOrgan,doctorId,checker,recipeId);
+    }
 }

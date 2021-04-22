@@ -24,6 +24,7 @@
 	<import resource="spring-service-miscellany.xml"/>
 	<import resource="spring-service-opbase.xml"/>
 	<import resource="spring-file.xml"/>
+	<import resource="spring-service-casign.xml"/>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
@@ -130,6 +131,7 @@
 		<property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
 		<property name="emrRecipe" value="${ons_emr_recipe}"/>
 		<property name="recipeDelayTopic" value="${ons_delay_topic_recipe}"/>
+		<property name="sessionTopic" value="${ons_topic_session}"/>
 	</bean>
 
 	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit"></bean>

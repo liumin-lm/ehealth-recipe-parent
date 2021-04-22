@@ -110,9 +110,15 @@ public class Recipedetail implements java.io.Serializable {
 	
 	@ItemProperty(alias="药物金额")
 	private BigDecimal drugCost;
-	
-	@ItemProperty(alias="备注信息")
+
+	@ItemProperty(alias="药品嘱托Id")
+	private String entrustmentId;
+
+	@ItemProperty(alias="药品嘱托信息")
 	private String memo;
+
+	@ItemProperty(alias="药品嘱托编码")
+	private String drugEntrustCode;
 
 	@ItemProperty(alias="药品效期")
 	private Date validDate;
@@ -242,7 +248,25 @@ public class Recipedetail implements java.io.Serializable {
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
 
-    public void setUseDaysB(String useDaysB) {
+	@Column(name = "drugEntrustCode")
+	public String getDrugEntrustCode() {
+		return drugEntrustCode;
+	}
+
+	public void setDrugEntrustCode(String drugEntrustCode) {
+		this.drugEntrustCode = drugEntrustCode;
+	}
+
+	@Column(name = "entrustmentId")
+	public String getEntrustmentId() {
+		return entrustmentId;
+	}
+
+	public void setEntrustmentId(String entrustmentId) {
+		this.entrustmentId = entrustmentId;
+	}
+
+	public void setUseDaysB(String useDaysB) {
 		this.useDaysB = useDaysB;
 	}
 	public void setDrugType(Integer drugType) {
@@ -576,7 +600,7 @@ public class Recipedetail implements java.io.Serializable {
         this.drugCost = drugCost;
     }
 
-	@Column(name = "Memo", length = 50)
+	@Column(name = "Memo", length = 200)
 	public String getMemo() {
 		return this.memo;
 	}

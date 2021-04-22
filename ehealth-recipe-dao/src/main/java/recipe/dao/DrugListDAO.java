@@ -561,7 +561,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                          final Integer status,final Integer sourceOrgan,
+                                                                          final Integer status,final Integer sourceOrgan,Integer type,
                                                                           final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
@@ -588,6 +588,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
                 }
+                if (!ObjectUtils.isEmpty(type)) {
+                    hql.append(" and drugType =:drugType");
+                }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){
                         hql.append(" and sourceOrgan is null ");
@@ -600,6 +603,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);
+                }
+                if (!ObjectUtils.isEmpty(type)) {
+                    countQuery.setParameter("drugType", type);
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan != 0){
@@ -620,6 +626,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 Query query = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     query.setParameter("status", status);
+                }
+                if (!ObjectUtils.isEmpty(type)) {
+                    query.setParameter("drugType", type);
                 }
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);

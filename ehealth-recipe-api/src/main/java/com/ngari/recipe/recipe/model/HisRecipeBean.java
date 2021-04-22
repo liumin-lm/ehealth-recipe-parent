@@ -31,6 +31,9 @@ public class HisRecipeBean implements Serializable {
     private List<HisRecipeDetailBean> detailData;
     private Integer queryStatus;
     private String serialNumber;
+    private Integer copyNum;
+    private String recipeMemo;
+    private RecipeExtendBean recipeExtend;
 
     public Integer getQueryStatus() {
         return queryStatus;
@@ -150,5 +153,29 @@ public class HisRecipeBean implements Serializable {
 
     public void setOrganName(String organName) {
         this.organName = organName;
+    }
+
+    public Integer getCopyNum() {
+        return copyNum;
+    }
+
+    public void setCopyNum(Integer copyNum) {
+        this.copyNum = copyNum;
+    }
+
+    public String getRecipeMemo() {
+        return recipeMemo;
+    }
+
+    public void setRecipeMemo(String recipeMemo) {
+        this.recipeMemo = recipeMemo;
+    }
+
+    public RecipeExtendBean getRecipeExtend() {
+        return recipeExtend;
+    }
+
+    public void setRecipeExtend(RecipeExtendBean recipeExtend) {
+        this.recipeExtend = recipeExtend;
     }
 }
