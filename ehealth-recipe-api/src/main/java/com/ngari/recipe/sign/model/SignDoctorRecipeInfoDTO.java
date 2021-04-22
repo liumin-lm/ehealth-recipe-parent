@@ -81,4 +81,6 @@ public class SignDoctorRecipeInfoDTO implements Serializable{
 
     private String uniqueId;
 
+    private Integer signDoctor;
+
 }
