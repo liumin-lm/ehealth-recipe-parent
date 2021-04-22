@@ -774,6 +774,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(drugInfo)) {
             SearchDrugDetailDTO drugList = null;
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+
             //获取药品展示拼接配置
             //药品名拼接配置---这里处理防止每次循环还得处理一遍
             Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, drugType));
@@ -814,7 +816,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
 
-                String drugEntrust=drugListDAO.getDrugEntrustById(drugList.getOrganDrugCode());
+                String drugEntrust=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode());
                 //增加药品嘱托字段信息
                 if (StringUtils.isNotEmpty(drugEntrust)){
                     drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
