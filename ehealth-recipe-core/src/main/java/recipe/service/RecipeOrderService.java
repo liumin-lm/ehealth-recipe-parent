@@ -14,8 +14,6 @@ import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -25,11 +23,7 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
-import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
-import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
-import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.AddressDTO;
-import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
@@ -40,7 +34,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -54,17 +47,13 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +63,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.bean.ThirdResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.common.CommonConstant;
@@ -82,19 +70,13 @@ import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
-import recipe.easypay.IEasyPayService;
-import recipe.factory.status.constant.GiveModeEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.purchase.PurchaseService;
+import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
-import recipe.thread.CardDataUploadRunable;
-import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
-import wnpay.api.model.WnAccountDetail;
-import wnpay.api.model.WnAccountSplitParam;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -102,6 +84,8 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方订单管理
@@ -129,9 +113,6 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private RecipeListService recipeListService;
 
-    @Autowired
-    private RecipeService recipeService;
-
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
@@ -146,6 +127,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
+
+    @Autowired
+    private AfterPayBusService afterPayBusService;
 
     /**
      * 处方结算时创建临时订单
@@ -1035,7 +1019,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         setAppOtherMessage(order);
-        result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
+        RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+        if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
+            recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
+        }
+        result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
             result.setBusId(order.getOrderId());
@@ -1697,6 +1686,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
                     orderBean.setSendType(drugsEnterprise.getSendType());
+                    //药企定义的订单备注
+                    orderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
@@ -1944,7 +1935,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1);
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
             List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
             if(CollectionUtils.isEmpty(hisRecipeTO)){
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
@@ -2053,7 +2044,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
     }
 
-    public RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
+    private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
         LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
@@ -2102,376 +2093,16 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
-            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && 0 < order.getActualPrice()) {
-                RecipeMsgService.batchSendMsg(recipes.get(0), RecipeStatusConstant.HAVE_PAY);
-            }
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
 
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
-            // 平台物流对接--物流下单逻辑--且处方购药方式为配送到家
-            try {
-                if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && CollectionUtils.isNotEmpty(recipes) && GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipes.get(0).getGiveMode())) {
-                    LOGGER.info("基础服务物流下单,支付回调订单信息={}", JSONObject.toJSONString(order));
-                    createLogisticsOrder(orderCode, order, recipes);
-                }
-            } catch (Exception e) {
-                LOGGER.error("基础服务物流下单.error=", e);
-            }
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
-            //(异步的过程，不影响主流程)
-            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // 支付成功后调支付平台记账
-                        if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order) {
-                            try {
-                                handleRecipeSplit(order, recipes);
-                            } catch (Exception e) {
-                                LOGGER.error("支付回调处方记账业务异常，error=", e);
-                            }
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("异步支付回调处方记账业务异常，error=", e);
-                    }
-                }
-            });
         }
-        //健康卡数据上传
-        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipes.get(0).getClinicOrgan(), recipes.get(0).getMpiid(), "030102"));
+        //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
+        afterPayBusService.handle(result, order, recipes, payFlag);
         return result;
-    }
-
-    /**
-     * 处方记账处理
-     *
-     * @param order
-     * @param recipes
-     */
-    private void handleRecipeSplit(RecipeOrder order, List<Recipe> recipes) {
-        WnAccountSplitParam wnSplitParam = new WnAccountSplitParam();
-        // 记账基本信息
-        getSplitBaseInfo(order, recipes, wnSplitParam);
-        // 记账业务详情
-        List<JSONObject> feeList = getSplitFeeInfo(order);
-        wnSplitParam.setBusDetail(feeList);
-        // 记账账户信息
-        getSplitAccountInfo(order, wnSplitParam, recipes);
-        LOGGER.info("支付回调支付平台记账入参={}", JSONObject.toJSONString(wnSplitParam));
-        IEasyPayService easyPayService = AppContextHolder.getBean("easypay.payService", IEasyPayService.class);
-        String splitResult = easyPayService.wnAccountSplitUpload(wnSplitParam);
-        LOGGER.info("支付回调支付平台记账结果={}", splitResult);
-    }
-
-    /**
-     * 处方分账基础信息
-     *
-     * @param order
-     * @param recipes
-     * @param wnSplitParam
-     * @return
-     */
-    private void getSplitBaseInfo(RecipeOrder order, List<Recipe> recipes, WnAccountSplitParam wnSplitParam) {
-        // 商户订单号
-        wnSplitParam.setOutTradeNo(order.getOutTradeNo());
-        Recipe recipe = recipes.get(0);
-        // 交易金额 总的需要分账的金额
-        BigDecimal payAmount = new BigDecimal(order.getActualPrice().toString());
-        wnSplitParam.setAmount(payAmount);
-        // 业务类型 5-处方
-        wnSplitParam.setBusType("5");
-        // 患者姓名
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        PatientDTO patientDTO = patientService.getPatientByMpiId(recipe.getMpiid());
-        if (patientDTO != null) {
-            wnSplitParam.setPatientName(patientDTO.getPatientName());
-        }
-        // 就诊卡号
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if (recipeExtend != null) {
-            wnSplitParam.setCardNo(recipeExtend.getCardNo());
-        }
-        // 问诊科室
-        DepartmentService service = BasicAPI.getService(DepartmentService.class);
-        DepartmentDTO departmentDTO = service.getById(recipe.getDepart());
-        if (departmentDTO != null) {
-            wnSplitParam.setDepartId(departmentDTO.getCode());
-        }
-    }
-
-    /**
-     * 获取处方记账账户信息
-     * 账户类型 平台-1、医院-2、药店/药企-3、 医生-4、 药师-5
-     *
-     * @param order
-     * @param wnSplitParam
-     * @param recipes
-     */
-    private void getSplitAccountInfo(RecipeOrder order, WnAccountSplitParam wnSplitParam, List<Recipe> recipes) {
-        Recipe recipe = recipes.get(0);
-        // 医院编码
-        wnSplitParam.setYydm(recipe.getClinicOrgan() + "");
-        // 分账方编码
-        String splitNumber = "";
-        // 分账方类型
-        Integer splitType = null;
-        // 分账方名称
-        String splitName = "";
-        // getPayeeCode:0平台，1机构，2药企根据getPayeeCode获取对应角色编码、类型、名称
-        // 账户类型 平台-1、医院/机构-2、药店/药企-3、 医生-4、 药师-5
-        switch (order.getPayeeCode()) {
-            case 0:
-                splitNumber = RecipeSystemConstant.SPLIT_NO_PLATFORM;
-                splitType = 1;
-                splitName = RecipeSystemConstant.SPLIT_NAME_PLATFORM;
-                break;
-            case 1:
-                OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-                OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-                splitNumber = organDTO.getOrganId() + "";
-                splitType = 2;
-                splitName = organDTO.getName();
-                break;
-            case 2:
-                splitNumber = order.getEnterpriseId() + "";
-                splitType = 3;
-                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (null != enterprise) {
-                    splitName = enterprise.getName();
-                }
-                break;
-            default:
-                break;
-        }
-        wnSplitParam.setFromName(splitName);
-        wnSplitParam.setFromType(splitType + "");
-        wnSplitParam.setFromNo(splitNumber);
-        // 分账明细 : 处方无法确定各项金额对应的分账比例金额,所以收款方=参与方=分账方 分账金额=总支付金额
-        List<WnAccountDetail> splitList = new ArrayList<>();
-        WnAccountDetail splitDTO = new WnAccountDetail();
-        splitDTO.setAmount(new BigDecimal(order.getActualPrice().toString()));
-        splitDTO.setAccountName(splitName);
-        splitDTO.setAccountNo(splitNumber);
-        splitDTO.setAccountType(splitType + "");
-        splitList.add(splitDTO);
-
-        wnSplitParam.setSplitDetail(splitList);
-    }
-
-    /**
-     * 获取处方记账业务详情
-     * 业务详情 : type 1-药费；2-挂号费；3-审方费；4-配送 amount对应金额
-     *
-     * @param order
-     */
-    private List<JSONObject> getSplitFeeInfo(RecipeOrder order) {
-        BigDecimal payAmount = new BigDecimal(order.getActualPrice().toString());
-        List<JSONObject> feeList = new ArrayList<>();
-        // 审方费
-        BigDecimal auditFee = order.getAuditFee();
-        if (null != auditFee && auditFee.compareTo(BigDecimal.ZERO) != 0) {
-            JSONObject auditDTO = new JSONObject();
-            auditDTO.put("type", RecipeFeeEnum.AUDIT_FEE.getFeeType());
-            auditDTO.put("amount", auditFee);
-            feeList.add(auditDTO);
-        }
-        // 药费
-        BigDecimal drugAmount = payAmount.subtract(auditFee == null ? new BigDecimal(0) : auditFee);
-        JSONObject drugDTO = new JSONObject();
-        drugDTO.put("type", RecipeFeeEnum.DRUG_FEE.getFeeType());
-        drugDTO.put("amount", drugAmount);
-        feeList.add(drugDTO);
-        // 挂号费
-        if (null != order.getRegisterFee() && order.getRegisterFee().compareTo(BigDecimal.ZERO) != 0) {
-            JSONObject registerDTO = new JSONObject();
-            registerDTO.put("type", RecipeFeeEnum.REGISTER_FEE.getFeeType());
-            registerDTO.put("amount", order.getRegisterFee());
-            feeList.add(registerDTO);
-        }
-        // 配送费
-        if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) != 0) {
-            JSONObject expressDTO = new JSONObject();
-            expressDTO.put("type", RecipeFeeEnum.EXPRESS_FEE.getFeeType());
-            expressDTO.put("amount", order.getRegisterFee());
-            feeList.add(expressDTO);
-        }
-        return feeList;
-    }
-
-    private void createLogisticsOrder(String orderCode, RecipeOrder order, List<Recipe> recipeS) {
-        // 获取处方药企物流对接方式-仅平台对接物流方式走基础服务物流下单流程
-        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
-            String trackingNumber;
-            try {
-                ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-                CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, recipeS.get(0), enterprise);
-                LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
-                trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
-            } catch (Exception e) {
-                LOGGER.error("基础服务物流下单异常，发起退款流程 orderId={}，异常=", order.getOrderId(), e);
-//                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-////                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
-//                for(int i=0; i<recipeS.size(); i++){
-//                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
-//                }
-                return;
-            }
-            LOGGER.info("基础服务物流下单结果={}", trackingNumber);
-            if (StringUtils.isNotBlank(trackingNumber)) {
-                for (int i = 0; i < recipeS.size(); i++) {
-                    Recipe recipe = recipeS.get(i);
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "基础服务物流下单成功");
-                    // 修改状态为待配送
-                    Map<String, Object> paramMap = new HashedMap();
-                    paramMap.put("recipeId", recipe.getRecipeId());
-                    ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-                    ThirdResultBean resultBean = callService.readyToSend(paramMap);
-                    LOGGER.info("基础服务物流下单成功,修改状态为待配送修改参数={},修改结果={}", paramMap, JSONObject.toJSONString(resultBean));
-                }
-
-                // 下单成功更新物流单号、物流公司
-                Map<String, Object> orderAttrMap = new HashedMap();
-                orderAttrMap.put("LogisticsCompany", enterprise.getLogisticsCompany());
-
-                orderAttrMap.put("TrackingNumber", trackingNumber);
-                recipeOrderDAO.updateByOrdeCode(orderCode, orderAttrMap);
-                RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
-                LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, enterprise.getLogisticsCompany(), order.getOrderId());
-            } else {
-                // 下单失败发起退款，退款原因=物流下单失败
-                LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
-//                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-////                recipeService.wxPayRefundForRecipe(6, recipe.getRecipeId(), "物流下单失败");
-//                for(int i=0; i<recipeS.size(); i++){
-//                    recipeService.wxPayRefundForRecipe(6, recipeS.get(i).getRecipeId(), "物流下单失败");
-//                }
-            }
-        } else if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT_HIS)) {
-            //药企对接-无回写接口:将处方信息传给基础服务线
-            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-            WriteBackLogisticsOrderDto orderDto = getWriteBackLogisticsOrderDto(order, recipeS.get(0), enterprise);
-            LOGGER.info("基础服务物流下单入参 req={}", JSONUtils.toString(orderDto));
-            String res = logisticsOrderService.writeBackLogisticsOrder(orderDto);
-            LOGGER.info("基础服务物流下单结果 res={}", res);
-        }
-    }
-
-    private WriteBackLogisticsOrderDto getWriteBackLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
-        WriteBackLogisticsOrderDto orderDto = new WriteBackLogisticsOrderDto();
-        // 机构id
-        orderDto.setOrganId(recipe.getClinicOrgan());
-        // 业务类型
-        orderDto.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
-        // 业务编码
-        orderDto.setBusinessNo(order.getOrderCode());
-        // 物流公司编码
-        orderDto.setLogisticsCode("1003");
-        //纳里收件人主键
-        orderDto.setUserId(order.getReceiver());
-        // 收件人名称
-        orderDto.setAddresseeName(order.getReceiver());
-        // 收件人手机号
-        orderDto.setAddresseePhone(order.getRecMobile());
-        // 收件省份
-        orderDto.setAddresseeProvince(getAddressDic(order.getAddress1()));
-        // 收件城市
-        orderDto.setAddresseeCity(getAddressDic(order.getAddress2()));
-        // 收件镇/区
-        orderDto.setAddresseeDistrict(getAddressDic(order.getAddress3()));
-        // 收件人街道
-        orderDto.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
-        // 收件详细地址
-        orderDto.setAddresseeAddress(order.getAddress4());
-        //寄托物名称
-        orderDto.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
-        //运单号
-        orderDto.setWaybillNo(recipe.getRecipeCode());
-        //运单费用
-        orderDto.setWaybillFee(order.getExpressFee());
-
-        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        //门诊号
-        orderDto.setOutpatientNumber(recipeExtend.getRegisterID());
-        return orderDto;
-    }
-
-    private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
-        CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
-        // 机构id
-        logisticsOrder.setOrganId(recipe.getClinicOrgan());
-        // 平台用户id
-        logisticsOrder.setUserId(recipe.getMpiid());
-        // 业务类型
-        logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
-        // 业务编码
-        logisticsOrder.setBusinessNo(order.getOrderCode());
-        // 快递编码
-        logisticsOrder.setLogisticsCode(enterprise.getLogisticsCompany() + "");
-        // 寄件人姓名
-        logisticsOrder.setConsignorName(enterprise.getConsignorName());
-        // 寄件人手机号
-        logisticsOrder.setConsignorPhone(enterprise.getConsignorMobile());
-        // 寄件人省份
-        logisticsOrder.setConsignorProvince(getAddressDic(enterprise.getConsignorProvince()));
-        // 寄件人城市
-        logisticsOrder.setConsignorCity(getAddressDic(enterprise.getConsignorCity()));
-        // 寄件人区域
-        logisticsOrder.setConsignorDistrict(getAddressDic(enterprise.getConsignorDistrict()));
-        // 寄件人街道
-        logisticsOrder.setConsignorStreet(getAddressDic(enterprise.getConsignorStreet()));
-        // 寄件人详细地址
-        logisticsOrder.setConsignorAddress(enterprise.getConsignorAddress());
-        // 收件人名称
-        logisticsOrder.setAddresseeName(order.getReceiver());
-        // 收件人手机号
-        logisticsOrder.setAddresseePhone(order.getRecMobile());
-        // 收件省份
-        logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
-        // 收件城市
-        logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
-        // 收件镇/区
-        logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
-        // 收件人街道
-        logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
-        // 收件详细地址
-        logisticsOrder.setAddresseeAddress(order.getAddress4());
-        // 寄托物名称
-        logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
-        // 就诊人信息
-        try {
-            IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            if (patientBean != null) {
-                // 就诊人名称
-                logisticsOrder.setPatientName(patientBean.getPatientName());
-                // 就诊人手机号
-                logisticsOrder.setPatientPhone(patientBean.getMobile());
-                // 就诊人身份证
-                String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
-                if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18) {
-                    cardNo = null;
-                }
-                logisticsOrder.setPatientIdentityCardNo(cardNo);
-
-            }
-            // 挂号序号
-            if (recipe.getClinicId() != null) {
-                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                if (consultExDTO != null) {
-                    logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("基础服务物流下单非必填信息获取异常：", e);
-        }
-        return logisticsOrder;
     }
 
     /**
@@ -3133,21 +2764,6 @@ public class RecipeOrderService extends RecipeBaseService {
         // 处方推送到药企
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(request.getRecipeId()));
-    }
-
-    @RpcService
-    public Boolean updateApothecaryByOrderId(ApothecaryVO apothecary) throws ValidateException {
-        if (null == apothecary || null == apothecary.getOrderId()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "订单不存在");
-        }
-        ChinaIDNumberUtil.isValidIDNumber(apothecary.getDispensingApothecaryIdCard());
-        try {
-            recipeOrderDAO.updateApothecaryByOrderId(apothecary.getOrderId(), apothecary.getDispensingApothecaryName(), apothecary.getDispensingApothecaryIdCard());
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("updateApothecaryByOrderId apothecaryVO :{}", JSONUtils.toString(apothecary), e);
-            return false;
-        }
     }
 
     private String getAddressDic(String area) {

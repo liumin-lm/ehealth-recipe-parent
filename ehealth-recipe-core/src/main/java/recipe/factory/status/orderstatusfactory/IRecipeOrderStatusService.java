@@ -22,7 +22,7 @@ public interface IRecipeOrderStatusService {
      * @param recipeOrder 变更订单数据
      * @return
      */
-    Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder);
+    Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe);
 
     /**
      * 异步处方信息上传

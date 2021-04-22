@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>3.4.0.2.master-SNAPSHOT</version>
+        <version>3.4.2.7.master-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -245,6 +245,11 @@
                         <groupId>ngari</groupId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-casign-api</artifactId>
+                <version>${ngari.casign.version}</version>
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>

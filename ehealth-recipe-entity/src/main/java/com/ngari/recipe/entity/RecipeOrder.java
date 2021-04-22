@@ -297,9 +297,11 @@ public class RecipeOrder implements Serializable {
     private String wnPayWay;
 
     @ItemProperty(alias = "发药药师姓名")
+    @Deprecated
     private String dispensingApothecaryName;
 
     @ItemProperty(alias = "发药药师身份证")
+    @Deprecated
     private String dispensingApothecaryIdCard;
 
     @ItemProperty(alias = "中医辨证论治费")
@@ -1044,19 +1046,22 @@ public class RecipeOrder implements Serializable {
         this.wnPayWay = wnPayWay;
     }
 
-
+    @Deprecated
     public String getDispensingApothecaryName() {
         return dispensingApothecaryName;
     }
 
+    @Deprecated
     public void setDispensingApothecaryName(String dispensingApothecaryName) {
         this.dispensingApothecaryName = dispensingApothecaryName;
     }
 
+    @Deprecated
     public String getDispensingApothecaryIdCard() {
         return dispensingApothecaryIdCard;
     }
 
+    @Deprecated
     public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
         this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
     }

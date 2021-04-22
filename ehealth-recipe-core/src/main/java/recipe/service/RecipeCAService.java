@@ -1,10 +1,10 @@
 package recipe.service;
 
+import ca.vo.CommonSignRequest;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.ca.api.vo.CommonSignRequest;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;

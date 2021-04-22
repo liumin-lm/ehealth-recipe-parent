@@ -43,6 +43,7 @@ import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.controller.exception.ControllerException;
@@ -83,11 +84,12 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
+import recipe.service.client.DoctorClient;
 import recipe.service.manager.EmrRecipeManager;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -97,6 +99,8 @@ import recipe.util.MapValueUtil;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -127,6 +131,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private DepartmentService departmentService;
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private DoctorClient doctorClient;
 
     @RpcService
     @Override
@@ -283,21 +289,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
                 checkStatus, payFlag, orderType, refundNodeStatus);
         List<Map> records=result.getItems();
-        for(Map record:records){
-            Recipe recipe=recipeDAO.getByRecipeId((int)record.get("recipeId"));
-            record.put("giveModeText",GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-            RecipeOrder recipeOrder = (RecipeOrder)record.get("recipeOrder");
-            //若没有发药药师
-            if (!StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryName())) {
-                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
-                //默认发药药师存在
-                if (doctorId != null && recipeOrder.getDispensingTime() != null) {
-                    DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
-                    recipeOrder.setDispensingApothecaryName(dispensingApothecary.getName());
-                }
-            } else if (recipeOrder.getDispensingTime() == null) {
-                //如果发药时间是空的 则不显示运营平台填写的发药药师
+        for(Map record:records) {
+            Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
+            record.put("giveModeText", GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+            RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
+            if (recipeOrder.getDispensingTime() != null) {
+                ApothecaryVO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
+                recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
+            } else {
                 recipeOrder.setDispensingApothecaryName("");
             }
         }
@@ -1918,6 +1917,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
         caSignResultVo.setRecipeId(resultVo.getBussId());
         caSignResultVo.setBussType(resultVo.getBusstype());
+        caSignResultVo.setSignDoctor(resultVo.getSignDoctor());
         return caSignResultVo;
     }
 
@@ -2378,6 +2378,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
     }
 
+    @Override
+    public void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request) {
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        service.splicingBackRecipeData(ObjectCopyUtils.convert(recipeList,Recipe.class),request);
+    }
+
     /**
      * 统计处方医疗费  自费+医保
      * @param organId
@@ -2393,5 +2399,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
         LOGGER.info("getRecipeMedAndCash.hoList ={}",JSONUtils.toString(hoList));
         return hoList.get(0);
+    }
+
+
+    @Override
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId,organId,recipeCode,cardId,consultId,doctorId);
+    }
+
+
+
+    @Override
+    public Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
+        return RecipeServiceSub.attachSealPic(clinicOrgan,doctorId,checker,recipeId);
     }
 }

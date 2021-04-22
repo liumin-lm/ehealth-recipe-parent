@@ -22,10 +22,14 @@ public enum DoctorRecipePageButtonStatusEnum {
      */
     recipeOpenRecipeFlag("recipeOpenRecipeFlag", Arrays.asList(RecipeStatusConstant.CHECK_NOT_PASS_YS)),
     /**
-     * 重试--HIS写入失败 11/处方医保上传失败 19
+     * 重试--HIS写入失败 11/处方医保上传失败 19  医院确认中 16
      */
     retryUploadRecipeFlag("retryUploadRecipeFlag", Arrays.asList(RecipeStatusConstant.HIS_FAIL,
-            RecipeStatusConstant.RECIPE_MEDICAL_FAIL)),
+            RecipeStatusConstant.RECIPE_MEDICAL_FAIL,RecipeStatusConstant.CHECKING_HOS)),
+    /**
+     * 重新编辑--His写入失败 11
+     */
+    reOpenRecipeEditorFlag("reOpenRecipeEditorFlag",Arrays.asList(RecipeStatusConstant.HIS_FAIL)),
     /**续方--
      * 已完成 6
      * 未处理  14

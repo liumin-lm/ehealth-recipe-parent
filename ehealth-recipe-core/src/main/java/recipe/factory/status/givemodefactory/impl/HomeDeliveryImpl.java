@@ -17,6 +17,7 @@ import recipe.ApplicationUtils;
 import recipe.comment.DictionaryUtil;
 import recipe.common.response.CommonResponse;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
@@ -32,6 +33,7 @@ import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,13 +65,21 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         }
         orderStatus.setSender("system");
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
+        Recipe recipe = super.getRecipe(orderStatus.getRecipeId());
+        //如果是货到付款还要更新付款时间和付款状态
+        if (RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())) {
+            Date date = new Date();
+            recipeOrder.setPayTime(date);
+            recipe.setPayDate(date);
+            recipe.setPayFlag(1);
+        }
         if (null != orderStatus.getLogisticsCompany()) {
             recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
         }
         if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
             recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
         }
-        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder);
+        recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 
 

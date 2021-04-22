@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @RpcBean("pharmacyTcmService")
 public class PharmacyTcmService  implements IPharmacyTcmService {
-    private static final Logger logger = LoggerFactory.getLogger(SymptomService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PharmacyTcmService.class);
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;

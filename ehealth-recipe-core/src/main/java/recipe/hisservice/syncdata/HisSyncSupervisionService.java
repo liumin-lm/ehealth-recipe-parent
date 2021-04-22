@@ -15,8 +15,10 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
+import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -27,6 +29,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import static ctd.persistence.DAOFactory.getDAO;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -54,6 +57,7 @@ import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.hisservice.EleInvoiceService;
 import recipe.service.RecipeExtendService;
+import recipe.service.client.DoctorClient;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -61,8 +65,6 @@ import recipe.util.RedisClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2019/6/3
@@ -74,7 +76,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
-    private EmrRecipeManager emrRecipeManager;
+    private DoctorClient doctorClient;
     /**
      * logger
      */
@@ -499,6 +501,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators detail is null. recipe.id={}", recipe.getRecipeId());
                 continue;
             }
+            setRecipeExtend(req, recipeExtend);
             setDetail(req, detailList, usingRateDic, usePathwaysDic, recipe);
 
             // 发票号
@@ -509,15 +512,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
             //获取运营平台发药药师
-            if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryName())) {
-                req.setDispensingApothecaryName(recipeOrder.getDispensingApothecaryName());
+            ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
+            if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
+                req.setDispensingApothecaryName(apothecaryVO.getGiveUserName());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                 req.setDispensingApothecaryName(dispensingApothecary.getName());
             }
-            if (recipeOrder != null && StringUtils.isNotEmpty(recipeOrder.getDispensingApothecaryIdCard())) {
-                req.setDispensingApothecaryIdCard(recipeOrder.getDispensingApothecaryIdCard());
+            if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserIdCard())) {
+                req.setDispensingApothecaryIdCard(apothecaryVO.getGiveUserIdCard());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -525,6 +529,39 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             request.add(req);
         }
+    }
+
+    /**
+     * 设置处方扩展数据
+     *
+     * @param req
+     * @param recipeExtend
+     */
+    private void setRecipeExtend(RegulationRecipeIndicatorsReq req, RecipeExtend recipeExtend) {
+        //处方扩展信息
+        req.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+        try {
+            //制法Code 煎法Code 中医证候Code
+            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+            DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
+            SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+            if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+            }
+            if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
+                DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+                req.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
+
+            }
+            if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
+                Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+            }
+        } catch (Exception e) {
+            LOGGER.error("setRecipeExtend recipeid:{} error :{}", recipeExtend.getRecipeId(), e);
+        }
+
     }
 
     /**
@@ -874,12 +911,20 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setPackUnit(detail.getDrugUnit());
             //频次
             reqDetail.setFrequency(detail.getUsingRate());
+            //机构频次
+            reqDetail.setOrganUsingRate(detail.getOrganUsingRate());
+            //机构频次名称
+            reqDetail.setUsingRateTextFromHis(detail.getUsingRateTextFromHis());
             //药品频次名称
             if (null != usingRateDic) {
                 reqDetail.setFrequencyName(detail.getUsingRateTextFromHis() != null ? detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate()));
             }
             //用法
             reqDetail.setAdmission(detail.getUsePathways());
+            //机构用法
+            reqDetail.setOrganUsePathways(detail.getOrganUsePathways());
+            //机构用法名称
+            reqDetail.setUsePathwaysTextFromHis(detail.getUsePathwaysTextFromHis());
             //药品用法名称
             if (null != usePathwaysDic) {
                 reqDetail.setAdmissionName(detail.getUsePathwaysTextFromHis() != null ? detail.getUsePathwaysTextFromHis() : usePathwaysDic.getText(detail.getUsePathways()));
@@ -1428,10 +1473,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
-
+                ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
                 //获取发药药师姓名  默认平台配置
-                if (order != null && StringUtils.isNotEmpty(order.getDispensingApothecaryName())) {
-                    req.setDispensingCheckerName(order.getDispensingApothecaryName());
+                if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
+                    req.setDispensingCheckerName(apothecaryVO.getGiveUserName());
                 } else if (doctorId != null) {
                     //获取机构发药药师
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -1439,9 +1484,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
 
                 //获取发药药师工号
-               if (recipe.getChecker()!=null){
-                   EmploymentDTO employment=employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
-                   if(employment!=null){
+                if (recipe.getChecker() != null) {
+                    EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                    if (employment != null) {
                        req.setDispensingCheckerId(employment.getJobNumber());
                    }
                }

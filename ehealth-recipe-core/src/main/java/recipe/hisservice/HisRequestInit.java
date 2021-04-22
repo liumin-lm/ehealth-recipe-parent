@@ -18,6 +18,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -172,7 +173,9 @@ public class HisRequestInit {
             requestTO.setCardType("4");//武昌-4-身份证
             requestTO.setCardNo(patient.getIdcard());
             //根据处方单设置配送方式
-            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                    RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+            || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
                 requestTO.setDeliveryType("1");
             } else {
                 requestTO.setDeliveryType("0");
@@ -301,6 +304,8 @@ public class HisRequestInit {
         // 简要病史
         requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         if (recipeExtend != null) {
+            //挂号序号
+            requestTO.setRegisteredId(recipeExtend.getRegisterID());
             //主诉
             requestTO.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             //现病史
@@ -346,7 +351,8 @@ public class HisRequestInit {
             LOGGER.error("queryPatientChannelId error:", e);
         }
         //设置挂号序号---如果有
-        if (recipe.getClinicId() != null) {
+        //处方扩展表没有再冲复诊取得
+        if (requestTO.getRegisteredId() == null && recipe.getClinicId() != null) {
             IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
             RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
             if (consultExDTO != null) {
@@ -398,7 +404,9 @@ public class HisRequestInit {
         }
 
         //根据处方单设置配送方式
-        if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+        if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
+                RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
+                || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
             requestTO.setDeliveryType("1");
         } else {
             switch (recipe.getGiveMode()) {

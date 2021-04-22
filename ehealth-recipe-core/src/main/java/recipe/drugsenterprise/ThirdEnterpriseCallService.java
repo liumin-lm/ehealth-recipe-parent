@@ -46,6 +46,7 @@ import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
@@ -108,6 +109,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     /**
      * 待配送状态
      *
@@ -543,7 +546,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
-        attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
@@ -641,7 +643,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
-        attrMap.put("giveUser", sender);
         String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
         if (StringUtils.isNotEmpty(recipeFeeStr)) {
             attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
@@ -1408,10 +1409,17 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     }
 
     @RpcService
-    public DrugsEnterprise findByEnterpriseId(Integer id) {
+    public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
-        return drugsEnterprise;
+        if(Objects.isNull(drugsEnterprise)){
+            throw new DAOException(ErrorCode.SERVICE_SUCCEED, "DrugsEnterprise is null");
+        }
+        DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
+        BeanUtils.copy(drugsEnterprise,drugsEnterpriseDTO);
+        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
+        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+        return drugsEnterpriseDTO;
     }
 
     /**
@@ -1975,7 +1983,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
         if (drugsEnterprise == null) {
-            standardResult.setCode(StandardResultDTO.SUCCESS);
+            standardResult.setCode(StandardResultDTO.FAIL);
             standardResult.setMsg("未匹配到药企");
             return standardResult;
         }

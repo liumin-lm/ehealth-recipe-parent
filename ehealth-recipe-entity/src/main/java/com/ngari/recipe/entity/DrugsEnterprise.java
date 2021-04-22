@@ -7,6 +7,7 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -170,6 +171,9 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     @ItemProperty(alias = "寄件人街道编码")
     private String consignorStreet;
+
+    @ItemProperty(alias = "订单备注")
+    private String orderMemo;
 
     @Column(name = "consignorStreet")
     public String getConsignorStreet() {
@@ -607,5 +611,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setLogisticsType(Integer logisticsType) {
         this.logisticsType = logisticsType;
+    }
+
+    @Column(name = "orderMemo")
+    public String getOrderMemo() {
+        return orderMemo;
+    }
+
+    public void setOrderMemo(String orderMemo) {
+        this.orderMemo = orderMemo;
     }
 }

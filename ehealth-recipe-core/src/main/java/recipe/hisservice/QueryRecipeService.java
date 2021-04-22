@@ -5,9 +5,11 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.base.cdr.service.IDiseaseService;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -28,6 +30,7 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -49,6 +52,8 @@ import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
+
+import static recipe.dao.DrugMakingMethodDao.log;
 import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
@@ -1135,5 +1140,29 @@ public class QueryRecipeService implements IQueryRecipeService {
             LOGGER.error("数据中心获取处方业务信息 recipeDTO error", e);
         }
         return recipeDTO;
+    }
+
+    /**
+     * 通过区域公众号查询当前支持线下处方查询的机构
+     * @return
+     */
+    @RpcService
+    public List<Integer> getOrganForWeb(){
+        ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+        //查询当前区域公众号下所有归属机构
+        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        List<Integer> oganList = new ArrayList<>();
+        //获取运营平台配置--是否开启查询线下处方
+        IConfigurationCenterUtilsService utilsService = AppDomainContext.getBean("eh.configurationCenterUtils", IConfigurationCenterUtilsService.class);
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(organIds)){
+            for (Integer oid:organIds){
+                //是否开启查询线下处方
+                if ((Boolean) utilsService.getConfiguration(oid, "queryGetToHisRecipe")){
+                    oganList.add(oid);
+                }
+            }
+        }
+        log.info("queryOrganService.getOrganByConfig.oganList={}",JSONUtils.toString(oganList));
+        return oganList;
     }
 }

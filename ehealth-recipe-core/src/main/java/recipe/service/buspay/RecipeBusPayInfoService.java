@@ -47,7 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.ApplicationUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
@@ -68,6 +68,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
+    @Qualifier("remoteRecipeService")
     @Autowired
     private RemoteRecipeService recipeService;
 
@@ -288,6 +289,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setOnlineRecipeId(null != recipe.getClinicId() ? recipe.getClinicId().toString() : null);
             simpleBusObject.setRecipeId(null != busId ? busId.toString() : null);
             simpleBusObject.setHisRecipeId(recipe.getRecipeCode());
+            simpleBusObject.setPatId(recipe.getPatientID());
         } else {
             simpleBusObject.setBusId(busId);
             simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
@@ -339,6 +341,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setOnlineRecipeId(null != recipeBean.getClinicId() ? recipeBean.getClinicId().toString() : null);
                 simpleBusObject.setRecipeId(null != recipeBean.getRecipeId() ? recipeBean.getRecipeId().toString() : null);
                 simpleBusObject.setHisRecipeId(recipeBean.getRecipeCode());
+                simpleBusObject.setPatId(recipeBean.getPatientID());
+
             }
 
         }

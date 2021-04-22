@@ -70,6 +70,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DoctorDrugUsageRequest;
@@ -152,6 +153,9 @@ public class DrugToolService implements IDrugToolService {
 
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
+
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
@@ -288,7 +292,7 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(20));
+                String retrievalCode = getStrFromCell(row.getCell(21));
                 if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
                     continue;
                 } else {
@@ -402,14 +406,31 @@ public class DrugToolService implements IDrugToolService {
                     LOGGER.error("药品单位有误 ," + e.getMessage(), e);
                     errMsg.append("药品单位有误").append(";");
                 }
+
+            try {
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(10)))) {
+                    //中药不需要设置
+                    if ((new Integer(3).equals(drug.getDrugType()))) {
+                        DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(10)));
+                        if (byOrganIdAndDrugEntrustName != null){
+                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustId().toString());
+                        }
+                    }else {
+                        drug.setDrugEntrust(getStrFromCell(row.getCell(10)));
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("药品嘱托有误 ," + e.getMessage(), e);
+                errMsg.append("药品嘱托有误").append(";");
+            }
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(12)))) {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("生产厂家不能为空").append(";");
                         }
                     }
-                    drug.setProducer(getStrFromCell(row.getCell(11)));
+                    drug.setProducer(getStrFromCell(row.getCell(12)));
                 } catch (Exception e) {
                     LOGGER.error("生产厂家有误 ," + e.getMessage(), e);
                     errMsg.append("生产厂家有误").append(";");
@@ -418,9 +439,9 @@ public class DrugToolService implements IDrugToolService {
                 //中药不需要设置
                 if (!(new Integer(3).equals(drug.getDrugType()))) {
                     try {
-                        if (("是").equals(getStrFromCell(row.getCell(19)))) {
+                        if (("是").equals(getStrFromCell(row.getCell(20)))) {
                             drug.setBaseDrug(1);
-                        } else if (("否").equals(getStrFromCell(row.getCell(19)))) {
+                        } else if (("否").equals(getStrFromCell(row.getCell(20)))) {
                             drug.setBaseDrug(0);
                         } else {
                             errMsg.append("是否基药格式不正确").append(";");
@@ -440,14 +461,14 @@ public class DrugToolService implements IDrugToolService {
                 }
 
                 try {
-                    drug.setRetrievalCode(getStrFromCell(row.getCell(20)));
+                    drug.setRetrievalCode(getStrFromCell(row.getCell(21)));
                 } catch (Exception e) {
                     LOGGER.error("院内检索码有误 ," + e.getMessage(), e);
                     errMsg.append("院内检索码有误").append(";");
                 }
 
                 try {
-                    String priceCell = getStrFromCell(row.getCell(12));
+                    String priceCell = getStrFromCell(row.getCell(13));
                     if (StringUtils.isEmpty(priceCell)) {
                         drug.setPrice(new BigDecimal(0));
                     } else {
@@ -458,10 +479,10 @@ public class DrugToolService implements IDrugToolService {
                     errMsg.append("药品单价有误").append(";");
                 }
                 //设置无需判断的数据
-                drug.setDrugManfCode(getStrFromCell(row.getCell(10)));
+                drug.setDrugManfCode(getStrFromCell(row.getCell(11)));
             try {
-                if (getStrFromCell(row.getCell(13)) != null) {
-                    String strFromCell = getStrFromCell(row.getCell(13));
+                if (getStrFromCell(row.getCell(14)) != null) {
+                    String strFromCell = getStrFromCell(row.getCell(14));
                     StringBuilder ss = new StringBuilder();
                     String[] split = strFromCell.split(",");
                     for (int i = 0; i < split.length; i++) {
@@ -481,15 +502,15 @@ public class DrugToolService implements IDrugToolService {
             }catch (Exception e){
                 LOGGER.error("药房名称有误 ," + e.getMessage(), e);
             }
-                drug.setLicenseNumber(getStrFromCell(row.getCell(14)));
-                drug.setStandardCode(getStrFromCell(row.getCell(15)));
-                drug.setIndications(getStrFromCell(row.getCell(16)));
-                drug.setDrugForm(getStrFromCell(row.getCell(17)));
-                drug.setPackingMaterials(getStrFromCell(row.getCell(18)));
+                drug.setLicenseNumber(getStrFromCell(row.getCell(15)));
+                drug.setStandardCode(getStrFromCell(row.getCell(16)));
+                drug.setIndications(getStrFromCell(row.getCell(17)));
+                drug.setDrugForm(getStrFromCell(row.getCell(18)));
+                drug.setPackingMaterials(getStrFromCell(row.getCell(19)));
                 //drug.setRegulationDrugCode(getStrFromCell(row.getCell(20)));
-                drug.setMedicalDrugCode(getStrFromCell(row.getCell(21)));
-                drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(22)));
-                drug.setHisFormCode(getStrFromCell(row.getCell(23)));
+                drug.setMedicalDrugCode(getStrFromCell(row.getCell(22)));
+                drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(23)));
+                drug.setHisFormCode(getStrFromCell(row.getCell(24)));
                 if (!ObjectUtils.isEmpty(organId)){
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
@@ -507,10 +528,10 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setStatus(DrugMatchConstant.UNMATCH);
                 drug.setOperator(operator);
-                drug.setRegulationDrugCode(getStrFromCell(row.getCell(25)));
+                drug.setRegulationDrugCode(getStrFromCell(row.getCell(26)));
                 try {
-                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(24)))) {
-                        drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(24)).trim()));
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(25)))) {
+                        drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(25)).trim()));
                     }
                 } catch (Exception e) {
                     LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
@@ -1119,12 +1140,7 @@ public class DrugToolService implements IDrugToolService {
                         if (StringUtils.isEmpty(drugListMatch.getSaleName())) {
                             organDrugList.setSaleName(drugListMatch.getDrugName());
                         } else {
-                            if (drugListMatch.getSaleName().equals(drugListMatch.getDrugName())) {
-                                organDrugList.setSaleName(drugListMatch.getSaleName());
-                            } else {
-                                organDrugList.setSaleName(drugListMatch.getSaleName() + " " + drugListMatch.getDrugName());
-                            }
-
+                            organDrugList.setSaleName(drugListMatch.getSaleName());
                         }
 
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
@@ -1153,6 +1169,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setMedicalDrugCode(drugListMatch.getMedicalDrugCode());
                         organDrugList.setMedicalDrugFormCode(drugListMatch.getMedicalDrugFormCode());
                         organDrugList.setDrugFormCode(drugListMatch.getHisFormCode());
+                        organDrugList.setDrugEntrust(drugListMatch.getDrugEntrust());
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {

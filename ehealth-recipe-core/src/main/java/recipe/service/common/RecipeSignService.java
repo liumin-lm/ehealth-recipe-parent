@@ -116,7 +116,7 @@ public class RecipeSignService {
         Map<String, Object> conditions = request.getConditions();
         Integer giveMode = MapValueUtil.getInteger(conditions, "giveMode");
         Integer depId = MapValueUtil.getInteger(conditions, "depId");
-        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)&& !RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
+        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode) && !RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
             response.setMsg("缺少药企编码");
             return response;
         }
@@ -159,13 +159,13 @@ public class RecipeSignService {
                 depId = null;
                 payMode = RecipeBussConstant.PAYMODE_COMPLEX;
                 newPayMode = RecipeBussConstant.PAYMODE_OFFLINE;
-            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                 //到院取药----走九州通补充库存模式----这里直接推送--不需要审核
                 payMode = RecipeBussConstant.PAYMODE_TO_HOS;
                 newPayMode = RecipeBussConstant.PAYMODE_OFFLINE;
                 //武昌模式到院取药推送处方到九州通
                 //没有库存就推送九州通
-                drugsEnterpriseService.pushHosInteriorSupport(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
+                drugsEnterpriseService.pushHosInteriorSupport(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
                 //发送患者没库存消息
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_NOINVENTORY, ObjectCopyUtils.convert(dbRecipe, Recipe.class));
                 String memo = "医院保存没库存处方并推送九州通/发送无库存短信成功";
@@ -292,7 +292,7 @@ public class RecipeSignService {
                 try {
                     recipeService.autoPassForCheckYs(checkResult);
                 } catch (Exception e) {
-                    LOG.error("sign 药师自动审核失败. recipeId={}", recipeId,e);
+                    LOG.error("sign 药师自动审核失败. recipeId={}", recipeId, e);
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
                             "sign 药师自动审核失败:" + e.getMessage());
                 }
@@ -315,46 +315,47 @@ public class RecipeSignService {
 
     /**
      * 武昌模式判断药品能否开在一张处方单上
+     *
      * @param recipeId
      * @param drugIds
      */
     @RpcService
-    public void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds,Integer giveMode){
+    public void canOpenRecipeDrugs(Integer recipeId, List<Integer> drugIds, Integer giveMode) {
         LOG.info("RecipeSignService.canOpenRecipeDrugs recipeId:{},drugIds:{},giveMode:{}.", recipeId, JSONUtils.toString(drugIds), giveMode);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe == null){
-            throw new DAOException(ErrorCode.SERVICE_ERROR,"该处方不存在");
+        if (recipe == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不存在");
         }
-        RecipeServiceSub.canOpenRecipeDrugs(recipe.getClinicOrgan(), recipeId,drugIds);
+        RecipeServiceSub.canOpenRecipeDrugs(recipe.getClinicOrgan(), recipeId, drugIds);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         boolean isSupport = false;
         //到院取药判断九州通药品是否支持
-        if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+        if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
             //取该机构下配置的补充库存药企
             List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndHosInteriorSupport(recipe.getClinicOrgan());
-            for (DrugsEnterprise drugsEnterprise: enterpriseList){
+            for (DrugsEnterprise drugsEnterprise : enterpriseList) {
                 List<SaleDrugList> saleDruglists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
-                if (CollectionUtils.isNotEmpty(saleDruglists) && saleDruglists.size() == drugIds.size()){
+                if (CollectionUtils.isNotEmpty(saleDruglists) && saleDruglists.size() == drugIds.size()) {
                     //存在即支持
                     isSupport = true;
                     break;
                 }
             }
 
-        }else {
+        } else {
             //其他购药方式 药品在支付宝是否支持
             List<SaleDrugList> zfbDrug = saleDrugListDAO.findByOrganIdAndDrugIds(103, drugIds);
-            if (CollectionUtils.isNotEmpty(zfbDrug) && zfbDrug.size() == drugIds.size()){
+            if (CollectionUtils.isNotEmpty(zfbDrug) && zfbDrug.size() == drugIds.size()) {
                 isSupport = true;
             }
         }
-        if (!isSupport){
+        if (!isSupport) {
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
             //拼接不支持药品名
             String drugNames = drugList.stream().map(DrugList::getDrugName).collect(Collectors.joining(","));
-            throw new DAOException(ErrorCode.SERVICE_ERROR,drugNames+"不能开具在一张处方上！");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, drugNames + "不能开具在一张处方上！");
         }
 
     }
@@ -363,10 +364,10 @@ public class RecipeSignService {
     /**
      * 签名服务（新）
      *
-     * @param recipeBean  处方
+     * @param recipeBean     处方
      * @param detailBeanList 详情
-     * @param continueFlag 校验标识
-     * @return Map<String ,   Object>
+     * @param continueFlag   校验标识
+     * @return Map<String, Object>
      */
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
@@ -377,15 +378,16 @@ public class RecipeSignService {
         rMap.put("signResult", true);
         try {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+
             recipeBean.setDistributionFlag(continueFlag);
 
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
             //第二步预校验
-            if(continueFlag == 0){
+            if (continueFlag == 0) {
                 //his处方预检查
                 boolean b = hisRecipeCheck(rMap, recipeBean);
-                if (!b){
+                if (!b) {
                     rMap.put("signResult", false);
                     rMap.put("recipeId", recipeBean.getRecipeId());
                     rMap.put("errorFlag", true);
@@ -393,23 +395,35 @@ public class RecipeSignService {
                 }
             }
             //第三步校验库存
-            if(continueFlag == 0 || continueFlag == 4){
+            if (continueFlag == 0 || continueFlag == 4) {
                 rMap = recipeService.doSignRecipeCheck(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
-                if(signResult != null && false == signResult){
+                if (signResult != null && false == signResult) {
                     return rMap;
                 }
             }
 
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
-            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
+
+            // 药企有库存的情况下区分到店取药与药企配送
+            Integer canContinueFlag = null;
+            if (Integer.valueOf(1).equals(continueFlag)) {
+                canContinueFlag = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
+
+            }
+            if (Objects.isNull(canContinueFlag)) {
+                canContinueFlag = continueFlag;
+            }
+            Map<String, Object> mapAttr = new HashMap<>();
+            mapAttr.put("DistributionFlag", canContinueFlag);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, mapAttr);
 
             //发送HIS处方开具消息
             sendRecipeToHIS(recipeBean);
             //处方开完后发送聊天界面消息 -医院确认中
             Integer consultId = recipeBean.getClinicId();
-            if(null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())){
+            if (null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())) {
                 try {
                     if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
                         IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
@@ -419,21 +433,20 @@ public class RecipeSignService {
                         IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
                         recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
                     }
-                } catch (Exception e){
-                    LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId,e);
+                } catch (Exception e) {
+                    LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId, e);
                 }
 
             }
 
             //健康卡数据上传
-            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
+            RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
 
         }
        /* catch(RevisitException e){
             LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM,e);
             throw new RevisitException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
-        }*/
-        catch (Exception e) {
+        }*/ catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
@@ -452,8 +465,8 @@ public class RecipeSignService {
     /**
      * 签名服务（处方存储）
      *
-     * @param recipeBean  处方
-     * @param details 详情
+     * @param recipeBean 处方
+     * @param details    详情
      * @return
      */
     @RpcService
@@ -471,7 +484,7 @@ public class RecipeSignService {
         // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
         //bug#46436 本人就诊人被删除保存不了导致后续微信模板消息重复推送多次
         List<PatientDTO> requestPatients = patientService.findOwnPatient(patient.getLoginId());
-        if (CollectionUtils.isNotEmpty(requestPatients)){
+        if (CollectionUtils.isNotEmpty(requestPatients)) {
             PatientDTO requestPatient = requestPatients.get(0);
             if (null != requestPatient && null != requestPatient.getMpiId()) {
                 recipeBean.setRequestMpiId(requestPatient.getMpiId());
@@ -487,12 +500,12 @@ public class RecipeSignService {
 
         //生成处方编号，不需要通过HIS去产生
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
-            recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+                recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
 
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+        Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
       /*  //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
@@ -500,14 +513,14 @@ public class RecipeSignService {
             recipeService.getConsultIdForRecipeSource(recipeBean,openRecipe);
         }*/
 
-        boolean optimize =recipeService.openRecipOptimize(recipeBean,openRecipe);
+        boolean optimize = recipeService.openRecipOptimize(recipeBean, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
-        if (!optimize){
+        if (!optimize) {
             LOG.error("ErrorCode.SERVICE_ERROR:erroCode={}", ErrorCode.SERVICE_ERROR);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
-        RequestVisitVO requestVisitVO=new RequestVisitVO();
+        RequestVisitVO requestVisitVO = new RequestVisitVO();
         requestVisitVO.setDoctor(recipeBean.getDoctor());
         requestVisitVO.setMpiid(recipeBean.getRequestMpiId());
         requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
@@ -518,7 +531,7 @@ public class RecipeSignService {
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+            if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
             }
             recipeService.updateRecipeAndDetail(recipeBean, details);
@@ -551,7 +564,7 @@ public class RecipeSignService {
         // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
         //bug#46436 本人就诊人被删除保存不了导致后续微信模板消息重复推送多次
         List<PatientDTO> requestPatients = patientService.findOwnPatient(patient.getLoginId());
-        if (CollectionUtils.isNotEmpty(requestPatients)){
+        if (CollectionUtils.isNotEmpty(requestPatients)) {
             PatientDTO requestPatient = requestPatients.get(0);
             if (null != requestPatient && null != requestPatient.getMpiId()) {
                 recipeBean.setRequestMpiId(requestPatient.getMpiId());
@@ -567,22 +580,22 @@ public class RecipeSignService {
 
         //生成处方编号，不需要通过HIS去产生
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
-            recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+                recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
 
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}",openRecipe);
+        Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
+        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
         //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
-        if (recipeBean.getClinicId()==null){
-            recipeService.getConsultIdForRecipeSource(recipeBean,openRecipe);
+        if (recipeBean.getClinicId() == null) {
+            recipeService.getConsultIdForRecipeSource(recipeBean, openRecipe);
         }
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+            if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
             }
             recipeService.updateRecipeAndDetail(recipeBean, details);
@@ -595,7 +608,7 @@ public class RecipeSignService {
 
         //his处方预检查
         boolean b = hisRecipeCheck(rMap, recipeBean);
-        if (!b){
+        if (!b) {
             return rMap;
         }
 
@@ -609,7 +622,7 @@ public class RecipeSignService {
         sendRecipeToHIS(recipeBean);
         //处方开完后发送聊天界面消息 -医院确认中
         Integer consultId = recipeBean.getClinicId();
-        if(null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())){
+        if (null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())) {
             try {
                 if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
                     IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
@@ -619,13 +632,13 @@ public class RecipeSignService {
                     IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
                     recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
                 }
-            } catch (Exception e){
-                LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId,e);
+            } catch (Exception e) {
+                LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId, e);
             }
 
         }
         //健康卡数据上传
-        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
     }
@@ -645,14 +658,14 @@ public class RecipeSignService {
                 checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
                 if (checkResult) {
                     rMap.put("canContinueFlag", 0);
-                }else{
-                    allowContinueMakeFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe");
+                } else {
+                    allowContinueMakeFlag = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe");
                     //date 20200706
                     //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过4，进行校验校验不通过不允许通过-1
-                    if(allowContinueMakeFlag){
+                    if (allowContinueMakeFlag) {
                         rMap.put("canContinueFlag", 4);
                         rMap.put("msg", rMap.get("errorMsg"));
-                    }else{
+                    } else {
                         rMap.put("canContinueFlag", -1);
                         rMap.put("msg", rMap.get("errorMsg"));
                     }
@@ -664,7 +677,7 @@ public class RecipeSignService {
         } catch (Exception e) {
             LOG.error("hisRecipeCheck error recipeId:{}", recipeBean.getRecipeId(), e);
             rMap.put("signResult", false);
-            rMap.put("errorFlag",true);
+            rMap.put("errorFlag", true);
             rMap.put("errorMsg", "his处方检查异常");
             rMap.put("canContinueFlag", -1);
             rMap.put("msg", "his处方检查异常");
@@ -678,10 +691,10 @@ public class RecipeSignService {
     private void sendRecipeToHIS(RecipeBean recipeBean) {
         //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
-        if(CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())){
+        if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
             //推送处方给his---recipesend
             RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
-        }else {
+        } else {
             //MQ推送处方开成功消息
             RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
             hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean,
@@ -698,11 +711,11 @@ public class RecipeSignService {
      * @return
      */
     @RpcService
-    public Map<String, Object> continueSignAfterCheckFailed (RecipeBean recipeBean, List<RecipeDetailBean> details) {
+    public Map<String, Object> continueSignAfterCheckFailed(RecipeBean recipeBean, List<RecipeDetailBean> details) {
 
         Map<String, Object> rMap = Maps.newHashMap();
         Integer recipeId = recipeBean.getRecipeId();
-        if (!RecipeServiceSub.isNotHZInternet(recipeBean.getClinicOrgan())){
+        if (!RecipeServiceSub.isNotHZInternet(recipeBean.getClinicOrgan())) {
             rMap.put("signResult", false);
             rMap.put("recipeId", recipeId);
             rMap.put("errorFlag", true);
@@ -720,8 +733,8 @@ public class RecipeSignService {
         //发送HIS处方开具消息
         sendRecipeToHIS(recipeBean);
         //健康卡数据上传
-        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(),"010106"));
-        LOG.info("continueSignAfterCheckFailed execute ok! recipeId={}",recipeId);
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
+        LOG.info("continueSignAfterCheckFailed execute ok! recipeId={}", recipeId);
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
         rMap.put("errorFlag", false);
@@ -746,6 +759,16 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
+        //获取处方回写单号  提示推送成功，否则继续推送
+        String recipeCode = dbRecipe.getRecipeCode();
+        if (StringUtils.isNotEmpty(recipeCode)) {
+            resultBean.setCode(RecipeResultBean.PUSHSUCCESS);
+            resultBean.setMsg("处方已推送成功");
+        } else {
+            resultBean.setCode(RecipeResultBean.SUCCESS);
+            resultBean.setMsg("已重新提交医院系统");
+        }
+        LOG.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(dbRecipe));
         //发送HIS处方开具消息
         RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
         RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
@@ -758,12 +781,13 @@ public class RecipeSignService {
 
     /**
      * 是否不能重试处方的状态
+     *
      * @param status
      * @return true-不能重试  flase-可以重试
      */
     private boolean canNoRetryStatus(Integer status) {
         boolean flag;
-        switch (status){
+        switch (status) {
             case RecipeStatusConstant.CHECKING_HOS:
             case RecipeStatusConstant.HIS_FAIL:
             case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:

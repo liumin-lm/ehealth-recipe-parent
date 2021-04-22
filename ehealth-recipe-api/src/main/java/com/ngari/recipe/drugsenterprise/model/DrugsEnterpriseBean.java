@@ -8,6 +8,7 @@ import ctd.util.JSONUtils;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -167,6 +168,20 @@ public class DrugsEnterpriseBean implements Serializable {
 
     @ItemProperty(alias = "寄件人街道编码")
     private String consignorStreet;
+
+    @ItemProperty(alias = "药企关联物流列表")
+    private List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans;
+
+    @ItemProperty(alias = "订单备注")
+    private String orderMemo;
+
+    public List<DrugEnterpriseLogisticsBean> getDrugEnterpriseLogisticsBeans() {
+        return drugEnterpriseLogisticsBeans;
+    }
+
+    public void setDrugEnterpriseLogisticsBeans(List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans) {
+        this.drugEnterpriseLogisticsBeans = drugEnterpriseLogisticsBeans;
+    }
 
 
     public DrugsEnterpriseBean() {
@@ -558,5 +573,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setConsignorStreet(String consignorStreet) {
         this.consignorStreet = consignorStreet;
+    }
+
+    public String getOrderMemo() {
+        return orderMemo;
+    }
+
+    public void setOrderMemo(String orderMemo) {
+        this.orderMemo = orderMemo;
     }
 }

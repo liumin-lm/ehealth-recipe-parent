@@ -25,7 +25,11 @@ import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.service.RecipeService;
 
 import java.util.Date;
+/**
+ * 已迁移到CA 兼容老app 后续删除
+ */
 
+@Deprecated
 @RpcBean("tianjinCA")
 public class TianjinCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(TianjinCAImpl.class);

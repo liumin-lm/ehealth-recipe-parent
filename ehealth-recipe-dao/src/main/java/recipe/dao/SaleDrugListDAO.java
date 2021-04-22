@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
+import com.ngari.recipe.entity.DrugEnterpriseLogistics;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
@@ -13,11 +14,13 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugListAndSaleDrugList;
@@ -53,6 +56,30 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select count(id) from SaleDrugList where status=1 and organId=:organId and drugId in :drugId")
     public abstract Long getCountByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugId") List<Integer> drugId);
+    /**
+     * 根据机构id及药品id列表
+     *
+     * @param organId
+     * @param drugIds
+     * @return
+     */
+    public  List<SaleDrugList> getByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugIds") List<Integer> drugIds){
+        HibernateStatelessResultAction<List<SaleDrugList> > action = new AbstractHibernateStatelessResultAction<List<SaleDrugList> >() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from SaleDrugList where status=1 and organId=:organId and drugId in :drugIds";
+                Map<String, Object> param = Maps.newHashMap();
+                param.put("organId", organId);
+                param.put("drugIds", drugIds);
+                Query query = ss.createQuery(hql);
+                query.setProperties(param);
+                List list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 
     /**
      * 设置某些药品为无效
@@ -224,7 +251,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer organId,
                                                                                      final String drugClass,
                                                                                      final String keyword, final Integer status,
-                                                                                     final int start, final int limit) {
+                                                                                     final Integer type, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugListAndSaleDrugList>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndSaleDrugList>>() {
                     @SuppressWarnings("unchecked")
@@ -239,6 +266,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (!StringUtils.isEmpty(drugClass)) {
                             hql.append(" and d.drugClass like :drugClass");
+                        }
+
+                        if (!ObjectUtils.isEmpty(type)) {
+                            hql.append(" and d.drugType =:drugType");
                         }
                         Integer drugId = null;
                         if (!StringUtils.isEmpty(keyword)) {
@@ -272,6 +303,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(drugClass)) {
                             countQuery.setParameter("drugClass", drugClass + "%");
                         }
+                        if (!ObjectUtils.isEmpty(type)) {
+                            countQuery.setParameter("drugType", type);
+                        }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
                                 || ObjectUtils.nullSafeEquals(status, -1)
@@ -303,6 +337,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (!StringUtils.isEmpty(keyword)) {
                             query.setParameter("keyword", "%" + keyword + "%");
+                        }
+                        if (!ObjectUtils.isEmpty(type)) {
+                            query.setParameter("drugType", type);
                         }
                         if (!ObjectUtils.isEmpty(startTime)){
                             query.setParameter("startTime", startTime);
@@ -443,7 +480,5 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select count(organDrugId) from SaleDrugList where drugId=:drugId  ",limit = 0)
     public abstract Long getCountByDrugId(@DAOParam("drugId") int drugId);
-
-
 
 }

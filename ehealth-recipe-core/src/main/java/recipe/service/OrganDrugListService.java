@@ -327,12 +327,8 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCodes.add(organDrugList.getOrganDrugCode());
         if (StringUtils.isEmpty(organDrugList.getSaleName())) {
             organDrugList.setSaleName(organDrugList.getDrugName());
-        } else if (organDrugList.getSaleName().indexOf(organDrugList.getDrugName()) != -1) {
-            organDrugList.setSaleName(organDrugList.getSaleName());
         } else {
-            if (StringUtils.isNotEmpty(organDrugList.getDrugName()) && !organDrugList.getSaleName().equals(organDrugList.getDrugName())) {
-                organDrugList.setSaleName(organDrugList.getSaleName() + " " + organDrugList.getDrugName());
-            }
+            organDrugList.setSaleName(organDrugList.getSaleName());
         }
         Integer organId = organDrugList.getOrganId();
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -639,11 +635,11 @@ public class OrganDrugListService implements IOrganDrugListService {
                                                                                final String drugClass,
                                                                                final String keyword, final Integer status,
                                                                                final Integer isregulationDrug,
-                                                                               final int start, final int limit, Boolean canDrugSend) {
+             final Integer type,final int start, final int limit, Boolean canDrugSend) {
         QueryResult result = null;
         try {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status,isregulationDrug, start, limit, canDrugSend);
+            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status,isregulationDrug,type, start, limit, canDrugSend);
             result.setItems(covertData(result.getItems()));
         } catch (Exception e) {
             logger.error("queryOrganDrugAndSaleForOp error", e);

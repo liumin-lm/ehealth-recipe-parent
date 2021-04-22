@@ -20,9 +20,7 @@ public class StatusDeclineImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
-        Recipe recipe = new Recipe();
-        recipe.setRecipeId(orderStatus.getRecipeId());
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DECLINE.getType());
         return recipe;
     }

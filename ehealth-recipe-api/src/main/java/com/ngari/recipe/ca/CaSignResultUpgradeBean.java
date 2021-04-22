@@ -50,6 +50,8 @@ public class CaSignResultUpgradeBean implements java.io.Serializable {
     // 签名原文
     private String signText;
 
+    private Integer signDoctor;
+
     public String getPdfBase64() {
         return pdfBase64;
     }
@@ -160,5 +162,13 @@ public class CaSignResultUpgradeBean implements java.io.Serializable {
 
     public void setSignText(String signText) {
         this.signText = signText;
+    }
+
+    public Integer getSignDoctor() {
+        return signDoctor;
+    }
+
+    public void setSignDoctor(Integer signDoctor) {
+        this.signDoctor = signDoctor;
     }
 }

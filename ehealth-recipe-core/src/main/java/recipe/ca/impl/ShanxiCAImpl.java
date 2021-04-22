@@ -21,8 +21,9 @@ import recipe.service.RecipeService;
 import recipe.util.RedisClient;
 
 /**
- * CA标准化对接文档
+ * 已迁移到CA 兼容老app 后续删除
  */
+@Deprecated
 @RpcBean("shanxiCA")
 public class ShanxiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanxiCAImpl.class);

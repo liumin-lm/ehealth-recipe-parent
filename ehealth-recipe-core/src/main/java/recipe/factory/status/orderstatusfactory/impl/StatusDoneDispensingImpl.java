@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.client.HisInventoryClient;
+import recipe.service.manager.RecipeLabelManager;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;
 
@@ -25,6 +27,8 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     protected final static int DISPENSING_FLAG_DONE = 1;
     @Autowired
     private HisInventoryClient hisInventoryClient;
+    @Autowired
+    private RecipeLabelManager recipeLabelManager;
 
     @Override
     public Integer getStatus() {
@@ -32,15 +36,27 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     }
 
     @Override
-    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder) {
+    public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_DONE);
         recipeOrder.setDispensingTime(new Date());
         RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
         request.setInventoryType(1);
         hisInventoryClient.drugInventory(request);
-        Recipe recipe = new Recipe();
-        recipe.setRecipeId(orderStatus.getRecipeId());
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         return recipe;
+    }
+
+    @Override
+    public void upRecipeThreadPool(Recipe recipe) {
+        RecipeBusiThreadPool.execute(() -> {
+            try {
+                Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
+                if (null != recipeUpdate) {
+                    recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                }
+            } catch (Exception e) {
+                logger.error("StatusDoneDispensingImpl upRecipeThreadPool ", e);
+            }
+        });
     }
 }

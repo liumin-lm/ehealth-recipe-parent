@@ -103,7 +103,7 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      */
     @RpcService
     QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
-                                                                       Integer status, Integer drugSourcesId, int start, int limit);
+                                                                       Integer status, Integer drugSourcesId,Integer type, int start, int limit);
     @RpcService
     DispensatoryDTO getByDrugId(Integer drugId);
 
