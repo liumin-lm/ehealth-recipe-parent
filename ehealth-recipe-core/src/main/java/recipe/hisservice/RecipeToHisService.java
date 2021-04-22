@@ -56,6 +56,9 @@ public class RecipeToHisService {
     @Autowired
     private SyncDrugExcDAO syncDrugExcDAO;
 
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+
     public void recipeSend(RecipeSendRequestTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -304,6 +307,10 @@ public class RecipeToHisService {
             throw new DAOException(DAOException.VALUE_NEEDED, "定时异常数据转换对象为空!");
         }
         SyncDrugExc syncDrugExc=new SyncDrugExc();
+        OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, drug.getDrcode());
+        if (byOrganIdAndOrganDrugCode != null){
+            syncDrugExc.setOrganDrugId(byOrganIdAndOrganDrugCode.getOrganDrugId());
+        }
         //获取金额
         if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
             BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());

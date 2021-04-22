@@ -3063,6 +3063,12 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(DAOException.VALUE_NEEDED, "手动同步异常数据转换对象为空!");
         }
         SyncDrugExc syncDrugExc=new SyncDrugExc();
+        if (way == 2){
+            OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, drug.getOrganDrugCode());
+            if (byOrganIdAndOrganDrugCode != null){
+                syncDrugExc.setOrganDrugId(byOrganIdAndOrganDrugCode.getOrganDrugId());
+            }
+        }
         if (!StringUtils.isEmpty(drug.getOrganDrugCode())) {
             syncDrugExc.setOrganDrugCode(drug.getOrganDrugCode());
         }
