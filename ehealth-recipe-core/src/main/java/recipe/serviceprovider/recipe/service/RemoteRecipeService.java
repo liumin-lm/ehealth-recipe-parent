@@ -2420,10 +2420,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("queryHealthCardFromHisAndMerge.after.cardTypes ={}",JSONUtils.toString(cardTypes));
 
         if (cardTypes==null||cardTypes.length==0){
+            LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.before ={}",JSONUtils.toString(cardTypes));
             return new ArrayList<HealthCardDTO>();
         }
-        LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.after ={}",JSONUtils.toString(cardTypes));
         if (CollectionUtils.isEmpty(cardDTOS)){
+            LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.after ={}",JSONUtils.toString(cardTypes));
             return new ArrayList<HealthCardDTO>();
         }
 
