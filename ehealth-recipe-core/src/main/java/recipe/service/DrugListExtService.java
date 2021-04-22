@@ -816,7 +816,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
 
-                String drugEntrust=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode());
+                String drugEntrust=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
                 //增加药品嘱托字段信息
                 if (StringUtils.isNotEmpty(drugEntrust)){
                     drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
