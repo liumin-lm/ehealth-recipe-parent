@@ -714,24 +714,6 @@ public class RecipeService extends RecipeBaseService {
                     if (!pharmacyIdList.contains(recipedetail.getPharmacyId())) {
                         throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
                     }
-                    //判断药房属性
-                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(recipedetail.getPharmacyId());
-                    List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcm.getPharmacyCategray().split(","));
-                    String drugType= "";
-                    //1 西药 2 中成药 3 中草药 4 膏方
-                    switch (dbRecipe.getRecipeType()) {
-                        case 1 :
-                            drugType = "西药";
-                        case 2 :
-                            drugType = "中成药";
-                        case 3 :
-                            drugType = "中草药";
-                        case 4 :
-                            drugType = "膏方";
-                    }
-                    if (!pharmacyCategaryList.contains(drugType)) {
-                        throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
-                    }
                     //判断药品归属药房
                     organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(dbRecipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                     if (organDrugList != null) {
@@ -743,6 +725,7 @@ public class RecipeService extends RecipeBaseService {
                         } else {
                             throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
                         }
+
                     }
                 }
             }
