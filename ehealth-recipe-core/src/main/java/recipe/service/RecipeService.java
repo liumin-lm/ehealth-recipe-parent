@@ -1,6 +1,8 @@
 package recipe.service;
 
 import ca.service.ICaRemoteService;
+import ca.service.ISignRecipeInfoService;
+import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -40,6 +42,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
@@ -124,7 +127,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
-import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
@@ -173,6 +175,8 @@ public class RecipeService extends RecipeBaseService {
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
+    private ISignRecipeInfoService signRecipeInfoService = AppDomainContext.getBean("ca.signRecipeInfoService", ISignRecipeInfoService.class);
+
     private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
@@ -185,9 +189,6 @@ public class RecipeService extends RecipeBaseService {
 
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
-
-    @Autowired
-    private SignRecipeInfoService signRecipeInfoService;
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
@@ -714,24 +715,6 @@ public class RecipeService extends RecipeBaseService {
                     if (!pharmacyIdList.contains(recipedetail.getPharmacyId())) {
                         throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
                     }
-                    //判断药房属性
-                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(recipedetail.getPharmacyId());
-                    List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcm.getPharmacyCategray().split(","));
-                    String drugType= "";
-                    //1 西药 2 中成药 3 中草药 4 膏方
-                    switch (dbRecipe.getRecipeType()) {
-                        case 1 :
-                            drugType = "西药";
-                        case 2 :
-                            drugType = "中成药";
-                        case 3 :
-                            drugType = "中草药";
-                        case 4 :
-                            drugType = "膏方";
-                    }
-                    if (!pharmacyCategaryList.contains(drugType)) {
-                        throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
-                    }
                     //判断药品归属药房
                     organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(dbRecipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                     if (organDrugList != null) {
@@ -817,7 +800,7 @@ public class RecipeService extends RecipeBaseService {
                     requestSealTO.setSealBase64Str("");
                 }
                 //CA
-                ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.caSignService", ICaRemoteService.class);
+                ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaSignService", ICaRemoteService.class);
                 ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
                 iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
@@ -1259,7 +1242,7 @@ public class RecipeService extends RecipeBaseService {
                     if (CA_OLD_TYPE.equals(CANewOldWay)) {
                         signRecipeInfoSave(recipeId, true, resultVo, organId);
                         try {
-                            SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
+                            SignDoctorRecipeInfoDTO signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
                             JSONObject jsonObject = new JSONObject();
                             jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
                             jsonObject.put("details", JSONObject.toJSONString(details));
@@ -3064,6 +3047,12 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(DAOException.VALUE_NEEDED, "手动同步异常数据转换对象为空!");
         }
         SyncDrugExc syncDrugExc=new SyncDrugExc();
+        if (way == 2){
+            OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, drug.getOrganDrugCode());
+            if (byOrganIdAndOrganDrugCode != null){
+                syncDrugExc.setOrganDrugId(byOrganIdAndOrganDrugCode.getOrganDrugId());
+            }
+        }
         if (!StringUtils.isEmpty(drug.getOrganDrugCode())) {
             syncDrugExc.setOrganDrugCode(drug.getOrganDrugCode());
         }
@@ -5348,7 +5337,7 @@ public class RecipeService extends RecipeBaseService {
             if (caList.contains(organId + "")) {
                 thirdCASign = "shanghaiCA";
             }
-            signRecipeInfoService.saveSignInfo(recipeId, isDoctor, signResultVo, thirdCASign);
+            signRecipeInfoService.saveSignInfo(recipeId, isDoctor, ObjectCopyUtils.convert(signResultVo, ca.vo.CaSignResultVo.class), thirdCASign);
         } catch (Exception e) {
             LOGGER.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage(), e);
         }
