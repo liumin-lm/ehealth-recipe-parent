@@ -42,6 +42,9 @@ public class CaSignResultVo {
     //当前ca关联的处方业务类型
     private Integer bussType;
 
+    //签名医生
+    private Integer signDoctor;
+
     public Integer getBussType() {
         return bussType;
     }
@@ -136,5 +139,13 @@ public class CaSignResultVo {
 
     public void setSignPicture(String signPicture) {
         this.signPicture = signPicture;
+    }
+
+    public Integer getSignDoctor() {
+        return signDoctor;
+    }
+
+    public void setSignDoctor(Integer signDoctor) {
+        this.signDoctor = signDoctor;
     }
 }
