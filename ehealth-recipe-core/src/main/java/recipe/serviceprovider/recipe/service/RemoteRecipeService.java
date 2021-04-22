@@ -2392,4 +2392,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("getRecipeMedAndCash.hoList ={}",JSONUtils.toString(hoList));
         return hoList.get(0);
     }
+
+
+    @Override
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId,organId,recipeCode,cardId,consultId,doctorId);
+    }
+
+
 }

@@ -113,7 +113,7 @@ public class HisRecipeService {
             throw new DAOException(609, "患者信息不存在");
         }
         //同步查询待缴费处方[只查询，不存储]
-        HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipes=queryData(organId, patientDTO, timeQuantum, 1);
+        HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipes=queryData(organId, patientDTO, timeQuantum, 1,null);
         //待缴费非本人同步处方处理
         dealPatientInfo(noPayFeeRecipes,patientDTO);
         //异步获取已缴费处方
@@ -222,9 +222,10 @@ public class HisRecipeService {
             }
             result.addAll(equalsHisRecipeVOs);
             result.addAll(onlyExistnoPayFeeHisRecipeVOs);
-            GlobalEventExecFactory.instance().getExecutor().execute(()->{
-                 deleteOnlyExistnoHisRecipeVOs(onlyExistHisRecipeVOs);
-            });
+            //因卡片消息需要查询历史详情 故不能删除his未返回在平台未支付数据
+//            GlobalEventExecFactory.instance().getExecutor().execute(()->{
+//                 deleteOnlyExistnoHisRecipeVOs(onlyExistHisRecipeVOs);
+//            });
         } else {
             //已处理
             result=findAlreadyDealHisRecipe(hisRecipes);
@@ -427,12 +428,10 @@ public class HisRecipeService {
      */
     @RpcService
     public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+        List<HisRecipe> recipes=new ArrayList<>();
         //查询数据
-        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag);
-        if (null == responseTO || null == responseTO.getData()) {
-            return null;
-        }
-        if(responseTO.getData()==null){
+        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId,patientDTO,timeQuantum,flag,null);
+        if (null == responseTO || CollectionUtils.isEmpty(responseTO.getData())) {
             return null;
         }
         try {
@@ -441,7 +440,6 @@ public class HisRecipeService {
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        List<HisRecipe> recipes=new ArrayList<>();
         try {
             //数据入库
             recipes=saveHisRecipeInfo(responseTO, patientDTO, flag);
@@ -461,7 +459,7 @@ public class HisRecipeService {
      * @Author liumin
      * @Desciption  从 his查询待缴费已缴费的处方信息
      */
-    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag,String recipeCode) {
         //TODO question 查询条件带recipeCode
         //TODO question 让前置机去过滤数据
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
@@ -485,7 +483,9 @@ public class HisRecipeService {
         queryRecipeRequestTO.setEndDate(new Date());
         queryRecipeRequestTO.setOrgan(organId);
         queryRecipeRequestTO.setQueryType(flag);
-
+        if(StringUtils.isNotEmpty(recipeCode)){
+            queryRecipeRequestTO.setRecipeCode(recipeCode);
+        }
         IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
@@ -980,14 +980,24 @@ public class HisRecipeService {
      * @author liumin
      * @Description 获取处方详情
      */
+    /**
+     *
+     * @param hisRecipeId
+     * @param mpiId
+     * @param recipeCode
+     * @param organId
+     * @param isCachePlatform 作废
+     * @param cardId
+     * @return
+     * @author liumin
+     * @Description 获取处方详情
+     */
     @RpcService
     public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId,String mpiId,String recipeCode,String organId,Integer isCachePlatform, String cardId){
-        //是否缓存标志是必传字段
-        //如果传1：转平台处方并根据hisRecipeId去表里查返回详情
-        //如果传0:根据mpiid+机构+recipeCode去his查 并缓存到cdr_his_recipe 然后转平台处方并根据hisRecipeId去表里查返回详情
+        LOGGER.info("HisRecipeService getHisRecipeDetail param:[{},{},{},{},{},{}]",hisRecipeId,mpiId,recipeCode,organId,isCachePlatform,cardId);
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         if (hisRecipe == null) {
-            throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
+            //throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
         }
         LOGGER.info("getHisRecipeDetail hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         //待处理
@@ -999,8 +1009,8 @@ public class HisRecipeService {
                 payFlag = 1;
             }
         }
-        //TODO liumin 这个条件应改为hisRecipeId是否存在，存在表明已经转成线上了，不用走这个逻辑了  但是重复走这个逻辑也没关系，保存时会判断，存在数据也不会新增
-        if(hisRecipe.getStatus() != 2 || payFlag == 1){
+        //TODO liumin 这个条件应改为待缴费处方还是已缴费处方，已缴费处方不用走这个逻辑了  但是重复走这个逻辑也没关系，保存时会判断，存在数据也不会新增
+        if(hisRecipe==null||hisRecipe.getStatus() != 2 || payFlag == 1){
             LOGGER.info("getHisRecipeDetail 进入");
             try{
                 PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -1027,6 +1037,16 @@ public class HisRecipeService {
                 recipeCodeThreadLocal.remove();
             }
         }
+        if(hisRecipeId==null){
+            //点击卡片 历史处方his不会返回 故从表查  同时也兼容已处理状态的处方，前端漏传hisRecipeId的情况
+            if(!StringUtils.isEmpty(recipeCode)){
+                hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(Integer.parseInt(organId), recipeCode);
+            }
+            if(hisRecipe!=null){
+                hisRecipeId=hisRecipe.getHisRecipeID();
+            }
+        }
+
         //存储到recipe相关表
         if(hisRecipeId==null){
             throw new DAOException(DAOException.VALUE_NEEDED, "hisRecipeId不能为空！");
@@ -1075,6 +1095,7 @@ public class HisRecipeService {
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         map.put("hisRecipeExts", hisRecipeExts);
         map.put("showText", hisRecipe.getShowText());
+        LOGGER.info("getHisRecipeDetailByHisRecipeId response:{}",JSONUtils.toString(map));
         return map;
     }
 

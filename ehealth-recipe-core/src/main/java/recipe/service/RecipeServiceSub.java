@@ -22,6 +22,8 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.service.IRelationLabelService;
 import com.ngari.follow.service.IRelationPatientService;
 import com.ngari.follow.vo.RelationDoctorVO;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
@@ -120,6 +122,8 @@ public class RecipeServiceSub {
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private RecipeLabelManager recipeLabelManager;
+
+    private static HisRecipeService hisRecipeService=ApplicationUtils.getRecipeService(HisRecipeService.class);
 
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
@@ -2638,6 +2642,124 @@ public class RecipeServiceSub {
     }
 
     /**
+     * 往咨询界面发送处方卡片
+     *
+     * @param mpiId
+     * @param organId
+     * @param recipeCode
+     * @param cardId
+     * @param consultId
+     * @param doctorId
+     * @Author liumin
+     */
+    public static void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeTagMsgBean recipeTagMsg =new RecipeTagMsgBean();
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(cardId)) {
+            patientDTO.setCardId(cardId);
+        } else {
+            patientDTO.setCardId("");
+        }
+        if (null == patientDTO) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        if(StringUtils.isEmpty(recipeCode)){
+            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+        }else{
+            //获取当前处方详情
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeService.queryData(organId, patientDTO, null, 1, recipeCode);
+            QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
+            if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
+                LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+            }else{
+                //拼接卡片显示参数
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO,patientDTO);
+            }
+        }
+        //环信消息发送
+        LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe revisitMessageService.handleRecipeMsg recipecode:{} param:[{},{},{}]",recipeCode,consultId,JSONUtils.toString(recipeTagMsg),doctorId);
+        IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
+        revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, doctorId);
+    }
+
+    /**
+     * 卡片消息显示参数拼接
+     * @param queryHisRecipResTO
+     * @param patientDTO
+     * @return
+     */
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(QueryHisRecipResTO queryHisRecipResTO, PatientDTO patientDTO) {
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}",JSONUtils.toString(queryHisRecipResTO));
+        //获取诊断疾病名称
+        String diseaseName = queryHisRecipResTO.getDiseaseName();
+        List<String> drugNames = Lists.newArrayList();
+        //取第一个药的药品显示拼接名
+        List<RecipeDetailTO> recipeDetailTOs = queryHisRecipResTO.getDrugList();
+        RecipeDetailTO recipeDetailTO = new RecipeDetailTO();
+        if (recipeDetailTOs != null && recipeDetailTOs.size() > 0) {
+            recipeDetailTO = recipeDetailTOs.get(0);
+        }
+        RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
+        if (recipeDetailTO == null) {
+            return recipeTagMsg;
+        }
+        //封装recipeDetail
+        Recipedetail recipeDetail = new Recipedetail();
+        recipeDetail.setDrugName(recipeDetailTO.getDrugName());
+        if (!StringUtils.isEmpty(recipeDetailTO.getUseDose())) {
+            try {
+                recipeDetail.setUseDose(Double.valueOf(recipeDetailTO.getUseDose()));//高优先级
+            } catch (Exception e) {
+                recipeDetail.setUseDoseStr(recipeDetailTO.getUseDose() + recipeDetailTO.getUseDoseUnit());
+            }
+        }
+        //  线下特殊用法
+        if (!StringUtils.isEmpty(recipeDetailTO.getUseDoseStr())) {
+            try {
+                if (recipeDetail.getUseDose() == null) {
+                    recipeDetail.setUseDose(Double.valueOf(recipeDetailTO.getUseDoseStr()));
+                }
+            } catch (Exception e) {
+                recipeDetail.setUseDoseStr(recipeDetailTO.getUseDoseStr() + recipeDetailTO.getUseDoseUnit());//高优先级
+            }
+        }
+        recipeDetail.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
+        recipeDetail.setMemo(recipeDetailTO.getMemo());
+        recipeDetail.setDrugSpec(recipeDetailTO.getDrugSpec());
+        recipeDetail.setDrugUnit(recipeDetailTO.getDrugUnit());
+
+        drugNames.add(DrugNameDisplayUtil.dealwithRecipeDrugName(recipeDetail, queryHisRecipResTO.getRecipeType(), queryHisRecipResTO.getClinicOrgan()));
+
+        recipeTagMsg.setDiseaseName(diseaseName);
+        recipeTagMsg.setDrugNames(drugNames);
+        recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
+        //recipeTagMsg.setFlag(recipeService.getItemSkipType(queryHisRecipResTO.getClinicOrgan()).get("itemList"));
+        recipeTagMsg.setFlag("1");
+        if (null != queryHisRecipResTO.getRecipeCode()) {
+            recipeTagMsg.setRecipeCode(queryHisRecipResTO.getRecipeCode());
+        }
+        recipeTagMsg.setCardId(patientDTO.getCardId());
+        recipeTagMsg.setRecipeSourceType(2);
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
+        return recipeTagMsg;
+    }
+
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe( PatientDTO patientDTO) {
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}",JSONUtils.toString(patientDTO));
+        //获取诊断疾病名称
+        RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
+        recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
+        recipeTagMsg.setFlag("1");
+        recipeTagMsg.setCardId(patientDTO.getCardId());
+        recipeTagMsg.setRecipeSourceType(2);
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
+        return recipeTagMsg;
+    }
+
+    /**
      * 处方撤销接口区分医生端和运营平台
      *
      * @param recipeId
@@ -3029,4 +3151,33 @@ public class RecipeServiceSub {
         Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
         return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
     }
+
+    /**
+     * 获取当前recipeCode的处方信息
+     *
+     * @param responseTO
+     * @param recipeCode
+     * @return
+     * @Author liumin
+     */
+    private static QueryHisRecipResTO getRecipeInfoByRecipeCode(HisResponseTO<List<QueryHisRecipResTO>> responseTO, String recipeCode) {
+        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , param:{}",recipeCode,JSONUtils.toString(responseTO));
+        QueryHisRecipResTO response = new QueryHisRecipResTO();
+        if (!StringUtils.isEmpty(recipeCode)) {
+            if (responseTO != null) {
+                List<QueryHisRecipResTO> queryHisRecipResTOs = responseTO.getData();
+                List<QueryHisRecipResTO> queryHisRecipResTOFilters = new ArrayList<>();
+                if (!CollectionUtils.isEmpty(queryHisRecipResTOs)) {
+                    for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOs) {
+                        if (recipeCode.equals(queryHisRecipResTO.getRecipeCode())) {
+                            response = queryHisRecipResTO;
+                        }
+                    }
+                }
+            }
+        }
+        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , response:{}",recipeCode,JSONUtils.toString(response));
+        return response;
+    }
 }
+
