@@ -43,6 +43,10 @@ import recipe.service.manager.EmrRecipeManager;
 
 import java.util.*;
 
+/**
+ * 已迁移到CA 兼容老app 后续删除
+ */
+@Deprecated
 @RpcBean
 public class SignInfoService implements ISignInfoService {
 

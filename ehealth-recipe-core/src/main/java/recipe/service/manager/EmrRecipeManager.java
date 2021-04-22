@@ -119,7 +119,7 @@ public class EmrRecipeManager {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
-        if (ValidateUtil.integerIsEmpty(clinicId)) {
+        if (!ValidateUtil.integerIsEmpty(clinicId)) {
             coverMedical.setRevisitId(clinicId);
         }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
