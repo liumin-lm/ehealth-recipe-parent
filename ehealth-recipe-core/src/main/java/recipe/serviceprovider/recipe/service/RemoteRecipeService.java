@@ -2417,6 +2417,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //针对两端的获取对应的配置关系
         //根据运营平台配置  如果配置了就诊卡 医保卡（根据卡类型进行查询）； 如果都不配（默认使用身份证查询）
         String[] cardTypes=(String[]) configurationCenterUtilsService.getConfiguration(organId,"getCardTypeForHis");
+        LOGGER.info("queryHealthCardFromHisAndMerge.after.cardTypes ={}",JSONUtils.toString(cardTypes));
 
         if (cardTypes==null||cardTypes.length==0){
             return new ArrayList<HealthCardDTO>();
@@ -2441,6 +2442,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         in.retainAll(on);
 
         List<HealthCardDTO> dtos=new ArrayList<>();
+        LOGGER.info("queryHealthCardFromHisAndMerge.after.in ={}",JSONUtils.toString(in));
         if (CollectionUtils.isNotEmpty(in)){
             for (int i=0;i<in.size();i++){
                 for (int j=0;j<cardDTOS.size();j++){
@@ -2452,6 +2454,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
             cardDTOS.removeAll(dtos);
         }else {
+            LOGGER.info("queryHealthCardFromHisAndMerge.after.in.after ={}",JSONUtils.toString(in));
             return new ArrayList<HealthCardDTO>();
         }
         LOGGER.info("queryHealthCardFromHisAndMerge.after.cardDTOS ={}",JSONUtils.toString(cardDTOS));
