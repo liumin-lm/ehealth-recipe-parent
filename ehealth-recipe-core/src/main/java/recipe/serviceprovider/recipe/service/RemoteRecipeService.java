@@ -2461,8 +2461,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("queryHealthCardFromHisAndMerge.after.cardDTOS ={}",JSONUtils.toString(cardDTOS));
         return cardDTOS;
         } catch (Exception e) {
+            LOGGER.error("queryHealthCardFromHisAndMerge.Exception",e);
             e.printStackTrace();
         }
+        LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.end",organId);
         return null;
     }
 }
