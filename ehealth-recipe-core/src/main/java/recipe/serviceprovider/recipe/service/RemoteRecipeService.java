@@ -2410,7 +2410,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("queryHealthCardFromHisAndMerge.organId ={},Mpiid={}",organId,mpiid);
         HealthCardService cardService = BasicAPI.getService(HealthCardService.class);
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        List<HealthCardDTO> cardDTOS=new ArrayList<>();
+        List<HealthCardDTO> cardDTOS;
         try {
             cardDTOS = cardService.queryHealthCardFromHisAndMerge(organId, mpiid, remotePull);
             LOGGER.info("queryHealthCardFromHisAndMerge.before.cardDTOS ={}",JSONUtils.toString(cardDTOS));
