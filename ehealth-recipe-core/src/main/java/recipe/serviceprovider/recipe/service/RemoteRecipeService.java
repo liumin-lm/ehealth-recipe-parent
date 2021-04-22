@@ -2431,7 +2431,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Integer> in=new ArrayList<>();
         List<Integer> on=new ArrayList<>();
         for (HealthCardDTO healthCardDTO:cardDTOS){
-            in.add(Integer.valueOf(healthCardDTO.getCardId())+1);
+            in.add(Integer.valueOf(healthCardDTO.getCardType())+1);
         }
 
         for (int i=0;i<cardTypes.length;i++){
@@ -2448,7 +2448,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             for (int i=0;i<in.size();i++){
                 for (int j=0;j<cardDTOS.size();j++){
                     HealthCardDTO d=cardDTOS.get(j);
-                    if (!String.valueOf(in.get(i)-1).equals(d.getCardId())){
+                    if (!String.valueOf(in.get(i)-1).equals(d.getCardType())){
                         dtos.add(d);
                     }
                 }
