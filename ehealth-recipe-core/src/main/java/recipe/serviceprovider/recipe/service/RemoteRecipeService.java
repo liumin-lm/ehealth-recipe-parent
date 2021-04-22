@@ -2422,7 +2422,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (cardTypes==null||cardTypes.length==0){
             return new ArrayList<HealthCardDTO>();
         }
-
+        LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.after ={}",JSONUtils.toString(cardTypes));
         if (CollectionUtils.isEmpty(cardDTOS)){
             return new ArrayList<HealthCardDTO>();
         }
