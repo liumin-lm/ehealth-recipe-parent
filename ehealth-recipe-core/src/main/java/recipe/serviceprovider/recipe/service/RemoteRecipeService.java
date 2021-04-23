@@ -2436,7 +2436,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             //终端配置获取  医保卡支持，从凭证里面获取  showCardType   2
             String[] medCardList=(String[])configurationCenterUtilsService.getPropertyOfKey(organId, "showCardType", 1);
-            if (medCardList.length==0||medCardList==null){
+            if (medCardList==null||medCardList.length==0){
                 return new ArrayList<HealthCardDTO>();//无交集[]
             }
             LOGGER.info("queryHealthCardFromHisAndMerge.medCardList.Array={}",JSONUtils.toString(medCardList));
