@@ -49,13 +49,13 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
             //如果机构配置未配置水印
             IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-            if (null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) {
+            Boolean isShowTime = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintRecipeWithTime");
+            if ((null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) && isShowTime) {
                 return;
             }
-            Boolean isShowTime = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintRecipeWithTime");
             String dateFormatter = DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy/MM/dd HH:mm");
             if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), waterPrintText.toString() + (isShowTime? " " +dateFormatter:""));
+                newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), (waterPrintText != null ? waterPrintText.toString() : "") + (isShowTime ? " " + dateFormatter : ""));
                 key = "SignFile";
             } else {
                 logger.warn("UpdateWaterPrintRecipePdfRunable file is null  recipeId={}", recipeId);
