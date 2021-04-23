@@ -3000,7 +3000,7 @@ public class RecipeService extends RecipeBaseService {
                 map.put("updateNum", updateNum);
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
-                List<SyncDrugExc> byOrganId = syncDrugExcDAO.findByOrganId(organId);
+                List<SyncDrugExc> byOrganId = syncDrugExcDAO.findByOrganIdAndSyncType(organId,1);
                 if (!ObjectUtils.isEmpty(byOrganId)){
                     map.put("Exception", 1);
                 }

@@ -1155,14 +1155,27 @@ public class QueryRecipeService implements IQueryRecipeService {
         //获取运营平台配置--是否开启查询线下处方
         IConfigurationCenterUtilsService utilsService = AppDomainContext.getBean("eh.configurationCenterUtils", IConfigurationCenterUtilsService.class);
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty(organIds)){
-            for (Integer oid:organIds){
+           /* for (Integer oid:organIds){
                 //是否开启查询线下处方
                 if ((Boolean) utilsService.getConfiguration(oid, "queryGetToHisRecipe")){
                     oganList.add(oid);
                 }
+            }*/
+            //
+            List<Integer> organIdList= utilsService.findOrganByPropertyKeyAndValue("queryGetToHisRecipe","false");
+            log.info("queryOrganService.getOrganByConfig.oganListBefore={}",JSONUtils.toString(organIdList));
+            if (CollectionUtils.isNotEmpty(organIdList)){
+                organIds.removeAll(organIdList);
+                return organIds;
             }
         }
-        log.info("queryOrganService.getOrganByConfig.oganList={}",JSONUtils.toString(oganList));
+        log.info("queryOrganService.getOrganByConfig.organIds={}",JSONUtils.toString(organIds));
+
+        if (CollectionUtils.isNotEmpty(organIds)){
+            if (organIds.contains(-1)){
+                organIds.remove(-1);
+            }
+        }
         return oganList;
     }
 }

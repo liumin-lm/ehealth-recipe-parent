@@ -47,6 +47,16 @@ public abstract class SyncDrugExcDAO extends HibernateSupportDelegateDAO<SyncDru
     @DAOMethod(sql = "from SyncDrugExc where organId=:organId ")
     public abstract List<SyncDrugExc> findByOrganId(@DAOParam("organId") Integer organId);
 
+    /**
+     * 通过orgsnId获取
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from SyncDrugExc where organId=:organId and syncType=:syncType ")
+    public abstract List<SyncDrugExc> findByOrganIdAndSyncType(@DAOParam("organId") Integer organId,@DAOParam("syncType") Integer syncType);
+
+
 
     /**
      * 通过orgsnId删除
