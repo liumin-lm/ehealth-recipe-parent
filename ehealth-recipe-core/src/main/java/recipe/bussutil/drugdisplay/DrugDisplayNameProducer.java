@@ -3,7 +3,10 @@ package recipe.bussutil.drugdisplay;
 
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.util.MapValueUtil;
 
 import java.util.List;
@@ -13,6 +16,8 @@ import java.util.Map;
  * created by shiyuping on 2021/3/10
  */
 public class DrugDisplayNameProducer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugDisplayNameProducer.class);
 
     public static final String ENGLISH_REG = "[a-zA-Z]+";
 
@@ -29,6 +34,7 @@ public class DrugDisplayNameProducer {
      * @return
      */
     public static String getDrugName(Object drugInfoObject, Map<String, Integer> keyMap, String configKey) {
+        LOGGER.info("DrugDisplayNameProducer getDrugName drugInfoObject:{}, keyMap:{}, configKey:{}.", JSONUtils.toString(drugInfoObject), JSONUtils.toString(keyMap), configKey);
         if (keyMap == null || StringUtils.isEmpty(configKey)) {
             return "";
         }
@@ -54,7 +60,13 @@ public class DrugDisplayNameProducer {
                 splicedName.append(name);
             }
         }
-        return splicedName.toString().replace(StringUtils.SPACE + "/",StringUtils.SPACE);
+        if (!sortConfigList.contains("drugSpace")) {
+            return splicedName.toString().replace(StringUtils.SPACE + "/",StringUtils.SPACE).trim();
+        }
+        if (sortConfigList.contains("drugSpace") && (!sortConfigList.contains("drugUnit") || !sortConfigList.contains("unit"))) {
+            return splicedName.toString().replace("/", "").trim();
+        }
+        return splicedName.toString();
     }
 
     public static boolean matchEnglishName(String name) {
