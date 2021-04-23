@@ -50,7 +50,7 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
             IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
             Boolean isShowTime = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintRecipeWithTime");
-            if ((null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) && isShowTime) {
+            if ((null == waterPrintText ||StringUtils.isEmpty(waterPrintText.toString())) && !isShowTime) {
                 return;
             }
             String dateFormatter = DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy/MM/dd HH:mm");
