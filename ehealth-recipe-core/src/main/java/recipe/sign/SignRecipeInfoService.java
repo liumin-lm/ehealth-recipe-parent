@@ -44,6 +44,10 @@ import java.util.Map;
 
 import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
+/**
+ * 已迁移到CA 兼容老app 后续删除
+ */
+@Deprecated
 @RpcBean
 public class SignRecipeInfoService implements ISignRecipeInfoService {
 

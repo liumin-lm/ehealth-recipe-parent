@@ -80,7 +80,10 @@ public class EmrRecipeManager {
         }
         MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByDocIndexIdV2(docIndexId);
         logger.info("EmrRecipeManager getEmrDetails medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
-        return medicalInfoBean.getMedicalDetailBean();
+        if (null != medicalInfoBean) {
+            return medicalInfoBean.getMedicalDetailBean();
+        }
+        return null;
     }
 
     /**
@@ -96,7 +99,10 @@ public class EmrRecipeManager {
         //业务类型， 1 处方 2 复诊 3 检查 4 检验
         MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(2, clinicId);
         logger.info("EmrRecipeManager getEmrDetailsByClinicId medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
-        return medicalInfoBean.getMedicalDetailBean();
+        if (null != medicalInfoBean) {
+            return medicalInfoBean.getMedicalDetailBean();
+        }
+        return null;
     }
 
     /**
@@ -119,7 +125,7 @@ public class EmrRecipeManager {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
-        if (ValidateUtil.integerIsEmpty(clinicId)) {
+        if (!ValidateUtil.integerIsEmpty(clinicId)) {
             coverMedical.setRevisitId(clinicId);
         }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
@@ -132,7 +138,11 @@ public class EmrRecipeManager {
         logger.info("EmrRecipeManager copyEmrDetails coverMedical:{}", JSONUtils.toString(coverMedical));
         MedicalInfoBean medicalInfoBean = docIndexService.coverMedicalInfo(coverMedical);
         logger.info("EmrRecipeManager copyEmrDetails medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
-        return medicalInfoBean.getMedicalDetailBean();
+        if (null != medicalInfoBean) {
+            return medicalInfoBean.getMedicalDetailBean();
+        }
+        return null;
+
     }
 
     /**
