@@ -41,6 +41,7 @@ public class DrugDisplayNameProducer {
         StringBuilder splicedName = new StringBuilder();
         //排好序的配置name列表
         List<String> sortConfigList = DrugDisplayNameSorter.sortConfigName(keyMap, configKey);
+        LOGGER.info("DrugDisplayNameProducer getDrugName sortConfigList:{}.", JSONUtils.toString(sortConfigList));
         String value;
         //依次拼接
         for (String name : sortConfigList) {
