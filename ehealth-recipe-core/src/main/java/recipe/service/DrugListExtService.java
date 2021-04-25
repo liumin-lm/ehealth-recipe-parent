@@ -24,6 +24,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -695,7 +696,27 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //医生查询药品信息
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
                 req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
-        return resultList;
+        //过滤不符合条件的药品
+        List<String> pharmacyCategaryList = Arrays.asList(DAOFactory.getDAO(PharmacyTcmDAO.class).get(req.getPharmacyId()).getPharmacyCategray().split(","));
+        List<SearchDrugDetailDTO> pharmacyCategaryListResult = new ArrayList<>();
+        for (SearchDrugDetailDTO searchDrugDetailDTO : resultList) {
+            String drugType= "";
+            //1 西药 2 中成药 3 中草药 4 膏方
+            switch (searchDrugDetailDTO.getDrugType()) {
+                case 1 :
+                    drugType = "西药";
+                case 2 :
+                    drugType = "中成药";
+                case 3 :
+                    drugType = "中草药";
+                case 4 :
+                    drugType = "膏方";
+            }
+            if (pharmacyCategaryList.contains(drugType)) {
+                pharmacyCategaryListResult.add(searchDrugDetailDTO);
+            }
+        }
+        return pharmacyCategaryListResult;
     }
 
 

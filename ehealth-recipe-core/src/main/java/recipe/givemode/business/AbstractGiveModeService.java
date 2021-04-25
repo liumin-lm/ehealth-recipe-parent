@@ -220,31 +220,37 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //不支持配送，则按钮都不显示--包括药店取药
-        if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-            removeGiveModeData(giveModeButtonBeans, "showSendToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_HOS.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_TFDS.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-            removeGiveModeData(giveModeButtonBeans, "showSendToHos");
+        switch (RecipeDistributionFlagEnum.getRecipeDistributionFlagEnum(recipe.getDistributionFlag())){
+            case HOS_HAVE:
+                removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
+                removeGiveModeData(giveModeButtonBeans, "showSendToHos");
+                removeGiveModeData(giveModeButtonBeans, "supportTFDS");
+                break;
+            case DRUGS_HAVE:
+                removeGiveModeData(giveModeButtonBeans, "supportToHos");
+                break;
+            case DRUGS_HAVE_TO:
+                removeGiveModeData(giveModeButtonBeans, "supportToHos");
+                removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
+                break;
+            case DRUGS_HAVE_SEND:
+                removeGiveModeData(giveModeButtonBeans, "supportToHos");
+                removeGiveModeData(giveModeButtonBeans, "supportTFDS");
+                break;
+            case DRUGS_HAVE_SEND_HOS:
+                removeGiveModeData(giveModeButtonBeans, "supportToHos");
+                removeGiveModeData(giveModeButtonBeans, "supportTFDS");
+                removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
+                break;
+            case DRUGS_HAVE_SEND_TFDS:
+                removeGiveModeData(giveModeButtonBeans, "supportToHos");
+                removeGiveModeData(giveModeButtonBeans, "supportTFDS");
+                removeGiveModeData(giveModeButtonBeans, "showSendToHos");
+                break;
+            default:
+                break;
+
+
         }
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
