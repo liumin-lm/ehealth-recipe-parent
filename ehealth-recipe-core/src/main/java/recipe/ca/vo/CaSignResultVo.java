@@ -45,6 +45,9 @@ public class CaSignResultVo {
     //签名医生
     private Integer signDoctor;
 
+    // 签名原文
+    private String signText;
+
     public Integer getBussType() {
         return bussType;
     }
@@ -147,5 +150,13 @@ public class CaSignResultVo {
 
     public void setSignDoctor(Integer signDoctor) {
         this.signDoctor = signDoctor;
+    }
+
+    public String getSignText() {
+        return signText;
+    }
+
+    public void setSignText(String signText) {
+        this.signText = signText;
     }
 }
