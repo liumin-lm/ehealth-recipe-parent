@@ -69,7 +69,7 @@ public class CaseHistoryAtop extends BaseAtop {
      */
     @RpcService
     public Integer getRevisitId(String mpiId, Integer doctorId) {
-        logger.info("CaseHistoryAtop getRevisitId mpiId: {},mpiId :{}", mpiId, doctorId);
+        logger.info("CaseHistoryAtop getRevisitId mpiId: {},doctorId :{}", mpiId, doctorId);
         if (StringUtils.isEmpty(mpiId) || ValidateUtil.integerIsEmpty(doctorId)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
