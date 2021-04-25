@@ -413,7 +413,7 @@ public class DrugToolService implements IDrugToolService {
                     if ((new Integer(3).equals(drug.getDrugType()))) {
                         DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(10)));
                         if (byOrganIdAndDrugEntrustName != null){
-                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustCode());
+                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustId().toString());
                         }
                     }else {
                         drug.setDrugEntrust(getStrFromCell(row.getCell(10)));
