@@ -241,7 +241,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
             removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
         }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_HOS.getType().equals(recipe.getDistributionFlag())) {
+        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_TFDS.getType().equals(recipe.getDistributionFlag())) {
             removeGiveModeData(giveModeButtonBeans, "supportToHos");
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
             removeGiveModeData(giveModeButtonBeans, "showSendToHos");
