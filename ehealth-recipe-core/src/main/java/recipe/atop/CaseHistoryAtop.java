@@ -2,20 +2,17 @@ package recipe.atop;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.CaseHistoryVO;
+import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeSystemConstant;
 import recipe.service.CaseHistoryService;
 import recipe.util.ValidateUtil;
-
-import java.util.List;
 
 /**
  * 电子病历服务入口类
@@ -69,17 +66,20 @@ public class CaseHistoryAtop extends BaseAtop {
      */
     @RpcService
     public Integer getRevisitId(String mpiId, Integer doctorId) {
-        logger.info("CaseHistoryAtop getRevisitId mpiId: {},mpiId :{}", mpiId, doctorId);
+        logger.info("CaseHistoryAtop getRevisitId mpiId: {},doctorId :{}", mpiId, doctorId);
         if (StringUtils.isEmpty(mpiId) || ValidateUtil.integerIsEmpty(doctorId)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
+        ValidRevisitRequest revisitRequest = new ValidRevisitRequest();
+        revisitRequest.setMpiId(mpiId);
+        revisitRequest.setDoctorID(doctorId);
         try {
-            List<Integer> revisitIds = revisitService.findApplyingConsultByRequestMpiAndDoctorId(mpiId, doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            logger.info("CaseHistoryAtop getRevisitId revisitIds = {}", JSON.toJSONString(revisitIds));
-            if (CollectionUtils.isEmpty(revisitIds)) {
+            Integer revisitId = revisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
+            logger.info("CaseHistoryAtop getRevisitId revisitIds = {}", JSON.toJSONString(revisitId));
+            if (ValidateUtil.integerIsEmpty(revisitId)) {
                 return 0;
             }
-            return revisitIds.get(0);
+            return revisitId;
         } catch (DAOException e1) {
             logger.warn("CaseHistoryAtop getRevisitId DAOException", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
