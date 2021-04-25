@@ -152,7 +152,7 @@ public class DrugEntrustService implements IDrugEntrustService {
         if (drugEntrust == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药品嘱托不存在！");
         }
-        List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndDrugEntrust(organId, drugEntrust.getDrugEntrustName());
+        List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndDrugEntrust(organId, drugEntrust.getDrugEntrustCode());
         if (!ObjectUtils.isEmpty(byOrganIdAndPharmacyId)){
             for (OrganDrugList organDrugList : byOrganIdAndPharmacyId) {
                 organDrugList.setDrugEntrust(null);
