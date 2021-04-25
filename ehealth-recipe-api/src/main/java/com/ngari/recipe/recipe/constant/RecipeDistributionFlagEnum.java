@@ -14,7 +14,8 @@ public enum RecipeDistributionFlagEnum {
      */
     DEFAULT("默认值", 0),
 
-    /**.
+    /**
+     *
      * 药企有库存
      */
     DRUGS_HAVE("药企有库存", 1),
@@ -33,6 +34,14 @@ public enum RecipeDistributionFlagEnum {
      * 药企库存的情况下药企只支持配送
      */
     DRUGS_HAVE_SEND("药企库存的情况下药企只支持配送", 12),
+    /**
+     * 药企配送
+     */
+    DRUGS_HAVE_SEND_TFDS("药企配送", 121),
+    /**
+     * 医院配送
+     */
+    DRUGS_HAVE_SEND_HOS("医院配送", 122),
     ;
 
     /**
