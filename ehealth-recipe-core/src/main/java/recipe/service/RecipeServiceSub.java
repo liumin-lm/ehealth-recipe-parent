@@ -1477,7 +1477,16 @@ public class RecipeServiceSub {
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
-            r.setRecipeDrugName(recipe.getDetailData().get(0).getDrugDisplaySplicedName());
+            HisRecipeDetailBean hisRecipeDetailBean = recipe.getDetailData().get(0);
+            Recipedetail recipedetail = new Recipedetail();
+            recipedetail.setDrugName(hisRecipeDetailBean.getDrugName());
+            if (hisRecipeDetailBean.getUseDose() != null) {
+                recipedetail.setUseDose(Double.parseDouble(hisRecipeDetailBean.getUseDose()));
+            }
+            recipedetail.setUseDoseUnit(hisRecipeDetailBean.getUseDoseUnit());
+            recipedetail.setMemo(hisRecipeDetailBean.getMemo());
+            recipedetail.setDrugDisplaySplicedName(hisRecipeDetailBean.getDrugDisplaySplicedName());
+            r.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetail, recipedetail.getDrugType(), recipe.getClinicOrgan()));
         } else {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(recipe.getDetailData().get(0).getDrugName());
@@ -2094,9 +2103,7 @@ public class RecipeServiceSub {
                 map.put("supportOnline", 0);
                 map.put("supportToHos", 0);
             }
-            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
-                    RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
-                    || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
+            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
                 map.put("supportToHos", 0);
             }
         }
@@ -2502,9 +2509,7 @@ public class RecipeServiceSub {
     public static String getRecipeGetModeTip(Recipe recipe) {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
-        if (1 != recipe.getChooseFlag() && !(RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) ||
-                RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())
-                || RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag()))) {
+        if (1 != recipe.getChooseFlag() && !(String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType())))) {
             String organName = StringUtils.isEmpty(recipe.getOrganName()) ? "医院" : recipe.getOrganName();
             // 邵逸夫特殊处理院区
             if (1 == recipe.getClinicOrgan()) {

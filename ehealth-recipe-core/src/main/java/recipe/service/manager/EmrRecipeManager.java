@@ -79,7 +79,7 @@ public class EmrRecipeManager {
             return null;
         }
         MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByDocIndexIdV2(docIndexId);
-        logger.info("EmrRecipeManager getEmrDetails medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
+        logger.info("EmrRecipeManager getEmrDetails docIndexId={},  medicalInfoBean:{}", docIndexId, JSONUtils.toString(medicalInfoBean));
         if (null != medicalInfoBean) {
             return medicalInfoBean.getMedicalDetailBean();
         }
@@ -98,7 +98,7 @@ public class EmrRecipeManager {
         }
         //业务类型， 1 处方 2 复诊 3 检查 4 检验
         MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(2, clinicId);
-        logger.info("EmrRecipeManager getEmrDetailsByClinicId medicalInfoBean:{}", JSONUtils.toString(medicalInfoBean));
+        logger.info("EmrRecipeManager getEmrDetailsByClinicId clinicId={}, medicalInfoBean:{}", clinicId, JSONUtils.toString(medicalInfoBean));
         if (null != medicalInfoBean) {
             return medicalInfoBean.getMedicalDetailBean();
         }
@@ -130,7 +130,7 @@ public class EmrRecipeManager {
         }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
         coverMedical.setMpiid(recipe.getMpiid());
-        coverMedical.setCreateOrgan(recipe.getCheckOrgan());
+        coverMedical.setCreateOrgan(recipe.getClinicOrgan());
         coverMedical.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
         coverMedical.setDoctorName(recipe.getDoctorName());
         coverMedical.setGetDate(new Date());

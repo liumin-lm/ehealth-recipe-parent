@@ -109,7 +109,9 @@ public class TianjinCAImpl implements CAInterface {
         LOGGER.info("TianjinCAImpl commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                 JSONUtils.toString(requestSealTO),recipe.getRecipeId(), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
+        Integer signDoc = recipe.getChecker() == null?recipe.getDoctor():recipe.getChecker();
         signResultVo.setRecipeId(recipe.getRecipeId());
+        signResultVo.setSignDoctor(signDoc);
 
         try {
             //电子签名

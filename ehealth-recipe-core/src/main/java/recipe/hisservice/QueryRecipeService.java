@@ -11,10 +11,7 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
@@ -1155,25 +1152,32 @@ public class QueryRecipeService implements IQueryRecipeService {
         //获取运营平台配置--是否开启查询线下处方
         IConfigurationCenterUtilsService utilsService = AppDomainContext.getBean("eh.configurationCenterUtils", IConfigurationCenterUtilsService.class);
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty(organIds)){
-           /* for (Integer oid:organIds){
-                //是否开启查询线下处方
-                if ((Boolean) utilsService.getConfiguration(oid, "queryGetToHisRecipe")){
-                    oganList.add(oid);
-                }
-            }*/
-            //
+            //取反操作，获取所以未打开配置的机构  []--所以机构都打开
             List<Integer> organIdList= utilsService.findOrganByPropertyKeyAndValue("queryGetToHisRecipe","false");
             log.info("queryOrganService.getOrganByConfig.oganListBefore={}",JSONUtils.toString(organIdList));
             if (CollectionUtils.isNotEmpty(organIdList)){
                 organIds.removeAll(organIdList);
+                log.info("queryOrganService.getOrganByConfig.organIds.size={}",JSONUtils.toString(organIds.size()));
                 return organIds;
             }
-        }
-        log.info("queryOrganService.getOrganByConfig.organIds={}",JSONUtils.toString(organIds));
-
-        if (CollectionUtils.isNotEmpty(organIds)){
+            log.info("queryOrganService.getOrganByConfig.organIds={}",JSONUtils.toString(organIds));
             if (organIds.contains(-1)){
-                organIds.remove(-1);
+                organIds.remove(new Integer(-1));
+            }
+            return organIds;
+        }
+
+        //查询全国机构 organService
+        if (organIds==null){
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            List<OrganDTO> organs = organService.findOrgans();
+            log.info("queryOrganService.organs={}",JSONUtils.toString(organs));
+            if (CollectionUtils.isNotEmpty(organs)){
+                for (OrganDTO o:organs){
+                    oganList.add(o.getOrganId());
+                }
+                log.info("queryOrganService.oganList={}",JSONUtils.toString(oganList));
+                return oganList;
             }
         }
         return oganList;

@@ -11,6 +11,7 @@ import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
+import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -657,10 +658,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         list.add(recipeId);
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
-
-        if(CollectionUtils.isNotEmpty(supportDepList)) {
+        LOGGER.info("有库存的药企列表 = {} ", supportDepList);
+        Set<Integer> sendTypes = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(supportDepList)) {
             Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
                 Integer payModeSupport = drugsEnterprise.getPayModeSupport();
+                Integer sendType = drugsEnterprise.getSendType();
+                sendTypes.add(sendType);
                 if (DrugsEnterpriseAll.contains(payModeSupport)) {
                     return RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
                 } else if (DrugsEnterpriseTo.contains(payModeSupport)) {
@@ -671,6 +675,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 return null;
             }).collect(Collectors.toSet());
 
+            // 根据药企的配送方式获取支持模式
             Integer continueFlag = null;
             if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE.getType())) {
                 continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
@@ -679,11 +684,23 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType())) {
                 continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType();
             } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType())) {
-                continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
+                // 根据配送主体区分医院配送还是药企配送
+                if (CollectionUtils.isNotEmpty(sendTypes)) {
+                    if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType()) && sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
+                        continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
+                    } else if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType())) {
+                        continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_HOS.getType();
+                    } else if (sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
+                        continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_TFDS.getType();
+                    }
+                } else {
+                    continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
+                }
             }
+            LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} continueFlag= {}", recipeId, continueFlag);
             return continueFlag;
-        }else {
-            LOGGER.info("getDrugsEnterpriseContinue recipeId{}",recipeId);
+        } else {
+            LOGGER.info("getDrugsEnterpriseContinue recipeId{}", recipeId);
             return null;
         }
     }

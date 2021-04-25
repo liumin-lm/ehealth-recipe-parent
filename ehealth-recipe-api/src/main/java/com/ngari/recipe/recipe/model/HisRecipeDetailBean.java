@@ -56,6 +56,9 @@ public class HisRecipeDetailBean implements Serializable {
      */
     private String drugDisplaySplicedName;
 
+    //剂型
+    private String drugForm;
+
     public String getUseDaysB() {
         return useDaysB;
     }
@@ -222,5 +225,13 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }

@@ -85,6 +85,8 @@ public class ShanghaiCAImpl implements CAInterface {
                 JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
         signResultVo.setRecipeId(recipe.getRecipeId());
+        Integer signDoc = recipe.getChecker() == null?recipe.getDoctor():recipe.getChecker();
+        signResultVo.setSignDoctor(signDoc);
         try {
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(recipe.getDoctor(), recipe.getClinicOrgan());

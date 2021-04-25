@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.constant;
 
 
+
 /**
  * @description：
  * @author： whf
@@ -14,7 +15,8 @@ public enum RecipeDistributionFlagEnum {
      */
     DEFAULT("默认值", 0),
 
-    /**.
+    /**
+     *
      * 药企有库存
      */
     DRUGS_HAVE("药企有库存", 1),
@@ -33,6 +35,14 @@ public enum RecipeDistributionFlagEnum {
      * 药企库存的情况下药企只支持配送
      */
     DRUGS_HAVE_SEND("药企库存的情况下药企只支持配送", 12),
+    /**
+     * 药企配送
+     */
+    DRUGS_HAVE_SEND_TFDS("药企配送", 121),
+    /**
+     * 医院配送
+     */
+    DRUGS_HAVE_SEND_HOS("医院配送", 122),
     ;
 
     /**
@@ -44,12 +54,18 @@ public enum RecipeDistributionFlagEnum {
      */
     private Integer type;
 
-
     RecipeDistributionFlagEnum(String text, Integer type) {
         this.text = text;
         this.type = type;
     }
-
+    public static RecipeDistributionFlagEnum getRecipeDistributionFlagEnum(Integer type) {
+        for (RecipeDistributionFlagEnum e : RecipeDistributionFlagEnum.values()) {
+            if (e.getType().equals(type)) {
+                return e;
+            }
+        }
+        return null;
+    }
 
     public String getText() {
         return text;

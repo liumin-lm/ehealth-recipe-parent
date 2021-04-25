@@ -42,15 +42,15 @@ public class DrugEntrustService implements IDrugEntrustService {
     private OrganDrugListDAO organDrugListDAO;
     /**
      * 根据药品嘱托ID 查找药品嘱托数据
-     * @param pharmacyTcmId
+     * @param entrustForId
      * @return
      */
     @RpcService
-    public DrugEntrustDTO getDrugEntrustForId(Integer pharmacyTcmId) {
-        if (null == pharmacyTcmId) {
+    public DrugEntrustDTO getDrugEntrustForId(Integer entrustForId) {
+        if (null == entrustForId) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pharmacyTcmId is null");
         }
-        DrugEntrust drugEntrust = drugEntrustDAO.get(pharmacyTcmId);
+        DrugEntrust drugEntrust = drugEntrustDAO.get(entrustForId);
         if (drugEntrust == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药品嘱托不存在！");
         }
@@ -152,7 +152,7 @@ public class DrugEntrustService implements IDrugEntrustService {
         if (drugEntrust == null){
             throw new DAOException(DAOException.VALUE_NEEDED, "此药品嘱托不存在！");
         }
-        List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndDrugEntrust(organId, drugEntrust.getDrugEntrustName());
+        List<OrganDrugList> byOrganIdAndPharmacyId = organDrugListDAO.findByOrganIdAndDrugEntrust(organId, drugEntrust.getDrugEntrustId().toString());
         if (!ObjectUtils.isEmpty(byOrganIdAndPharmacyId)){
             for (OrganDrugList organDrugList : byOrganIdAndPharmacyId) {
                 organDrugList.setDrugEntrust(null);
@@ -204,6 +204,32 @@ public class DrugEntrustService implements IDrugEntrustService {
         }
         return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
     }
+
+
+    /**
+     * 根据机构Id查询药品嘱托
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public List<DrugEntrustDTO> querAllDrugEntrustByOrganId(Integer organId ) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
+        List<DrugEntrust> byOrganId = drugEntrustDAO.findByOrganId(0);
+        logger.info("查询药品嘱托服务[querDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+        if (drugEntrusts == null || drugEntrusts.size() <= 0){
+            return  ObjectCopyUtils.convert(byOrganId, DrugEntrustDTO.class);
+        }
+        if (byOrganId != null){
+            for (DrugEntrust drugEntrust : byOrganId) {
+                drugEntrusts.add(drugEntrust);
+            }
+        }
+        return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
+    }
+
 
     /**
      * 根据机构Id查询药品嘱托

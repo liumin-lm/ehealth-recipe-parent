@@ -2,10 +2,16 @@ package recipe.bussutil.drugdisplay;
 
 
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
+import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.util.MapValueUtil;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +20,9 @@ import java.util.Map;
  */
 public class DrugDisplayNameProducer {
 
-    public static final String ENGLISH_REG = "[a-zA-Z]+";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugDisplayNameProducer.class);
 
-    /*public static String getDrugName(DrugDisplayNameInfo drugDisplayNameInfo) {
-        return getDrugName(drugDisplayNameInfo, drugDisplayNameInfo.getKeyMap(), drugDisplayNameInfo.getConfigKey());
-    }*/
+    public static final String ENGLISH_REG = "[a-zA-Z]+";
 
     /**
      * 获取拼接药品名称
@@ -29,19 +33,21 @@ public class DrugDisplayNameProducer {
      * @return
      */
     public static String getDrugName(Object drugInfoObject, Map<String, Integer> keyMap, String configKey) {
+        LOGGER.info("DrugDisplayNameProducer getDrugName drugInfoObject:{}, keyMap:{}, configKey:{}.", JSONUtils.toString(drugInfoObject), JSONUtils.toString(keyMap), configKey);
         if (keyMap == null || StringUtils.isEmpty(configKey)) {
             return "";
         }
         StringBuilder splicedName = new StringBuilder();
         //排好序的配置name列表
         List<String> sortConfigList = DrugDisplayNameSorter.sortConfigName(keyMap, configKey);
+        LOGGER.info("DrugDisplayNameProducer getDrugName sortConfigList:{}.", JSONUtils.toString(sortConfigList));
         String value;
         //依次拼接
         for (String name : sortConfigList) {
             //是否是字段名
             if (matchEnglishName(name)) {
                 //常用药或者处方明细的单位是drugUnit 需要特殊处理下
-                if (((drugInfoObject instanceof CommonRecipeDrugDTO) || (drugInfoObject instanceof RecipeDetailBean)) && "unit".equals(name)) {
+                if (((drugInfoObject instanceof CommonRecipeDrugDTO) || (drugInfoObject instanceof RecipeDetailBean) || (drugInfoObject instanceof  HisRecipeDetailBean)) && "unit".equals(name)) {
                     name = "drugUnit";
                 }
                 //通过字段名取值
@@ -54,7 +60,13 @@ public class DrugDisplayNameProducer {
                 splicedName.append(name);
             }
         }
-        return splicedName.toString().replace(StringUtils.SPACE + "/",StringUtils.SPACE);
+        if (!sortConfigList.contains("drugSpace")) {
+            return splicedName.toString().replace(StringUtils.SPACE + "/",StringUtils.SPACE).trim();
+        }
+        if (sortConfigList.contains("drugSpace") && (!sortConfigList.contains("drugUnit") || !sortConfigList.contains("unit"))) {
+            return splicedName.toString().replace("/", "").trim();
+        }
+        return splicedName.toString();
     }
 
     public static boolean matchEnglishName(String name) {

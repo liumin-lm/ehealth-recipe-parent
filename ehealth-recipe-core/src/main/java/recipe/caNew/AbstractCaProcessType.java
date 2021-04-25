@@ -167,8 +167,7 @@ public abstract class AbstractCaProcessType {
         auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             //配送处方标记 1:只能配送 更改处方取药方式
-            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()) || RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag()) ||
-                    RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
+            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
                 try {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                     RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
