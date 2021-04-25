@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.common.ICommonService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
@@ -2422,6 +2423,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         List<HealthCardDTO> cardDTOS;
         try {
+            //患者的所有卡
             cardDTOS = cardService.queryHealthCardFromHisAndMerge(organId, mpiid, remotePull);
             LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
             if (CollectionUtils.isEmpty(cardDTOS)){
@@ -2438,12 +2440,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 return new ArrayList<HealthCardDTO>();
             }
             LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.Array={}",JSONUtils.toString(cardTypes));
+
+            ICommonService serviceCard = BaseAPI.getService(ICommonService.class);
+            Map<String, Object> configs = serviceCard.getAllClientConfigs();
+            //获取终端配置  就诊卡开关
+            Boolean patientCardFlag = (Boolean) configs.get("patientCard");
+            //终端配置   展示就诊卡类型
+            String[] medCardList = (String[])configs.get("showCardType");
+
             //终端配置获取  终端管理-健康卡-就诊卡开关   配置 true 开启  false关闭
-            Boolean patientCardFlag = (Boolean)configurationCenterUtilsService.getPropertyOfKey(organId, "patientCard", 1);
+            /*Boolean patientCardFlag = (Boolean)configurationCenterUtilsService.getPropertyOfKey(organId, "patientCard", 1);*/
             LOGGER.info("queryHealthCardFromHisAndMerge.patientCardFlag={}",patientCardFlag);
 
             //终端配置获取  终端管理-就诊人-展示就诊凭证类型，从凭证里面获取  showCardType   2
-            String[] medCardList=(String[])configurationCenterUtilsService.getPropertyOfKey(organId, "showCardType", 1);
+            /*String[] medCardList=(String[])configurationCenterUtilsService.getPropertyOfKey(organId, "showCardType", 1);*/
             if (medCardList==null||medCardList.length==0){
                 //机构只配置就诊卡不支持医保卡    终端配置就诊卡开关打开--交集（就诊卡）其他情况无
                 if (Arrays.asList(cardTypes).contains("2")&&!Arrays.asList(cardTypes).contains("3")&&patientCardFlag){
