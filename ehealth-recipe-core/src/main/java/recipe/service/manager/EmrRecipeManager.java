@@ -130,7 +130,7 @@ public class EmrRecipeManager {
         }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
         coverMedical.setMpiid(recipe.getMpiid());
-        coverMedical.setCreateOrgan(recipe.getCheckOrgan());
+        coverMedical.setCreateOrgan(recipe.getClinicOrgan());
         coverMedical.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
         coverMedical.setDoctorName(recipe.getDoctorName());
         coverMedical.setGetDate(new Date());

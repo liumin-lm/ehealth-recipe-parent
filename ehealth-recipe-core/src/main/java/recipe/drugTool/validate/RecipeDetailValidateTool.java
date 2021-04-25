@@ -185,9 +185,11 @@ public class RecipeDetailValidateTool {
             if (drugEntrustDTO.getDrugEntrustCode().equals(recipeDetail.getDrugEntrustCode())) {
                 entrusts = false;
                 recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
+                recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
                 break;
-            } else if (drugEntrustDTO.getDrugEntrustName().equals(recipeDetail.getMemo())) {
+            } else if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && drugEntrustDTO.getDrugEntrustName().equals(recipeDetail.getMemo())) {
                 entrusts = false;
+                recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
                 recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
                 break;
             }
