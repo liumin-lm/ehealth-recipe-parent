@@ -681,7 +681,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType())) {
                 continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
             }
-            LOGGER.info("getDrugsEnterpriseContinue   recipeId= {} continueFlag= {}", recipeId,continueFlag);
+            LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} continueFlag= {}", recipeId,continueFlag);
             return continueFlag;
         }else {
             LOGGER.info("getDrugsEnterpriseContinue recipeId{}",recipeId);
