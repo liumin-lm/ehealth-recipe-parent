@@ -62,6 +62,7 @@ import recipe.service.manager.EmrRecipeManager;
 import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,6 +86,8 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     DrugListDAO drugListDAO;
     DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
     //手动推送给第三方
     @RpcService
     public void pushRecipeInfoForThirdSd(Integer recipeId, Integer depId){
@@ -865,6 +868,18 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //不需要校验库存
         else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
             List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = drugsDataBean.getRecipeDetailBeans();
+            // 药企如果没有其中一个药品,就不展示
+            List<Integer> drugIds = recipeDetailBeans.stream().map(com.ngari.recipe.recipe.model.RecipeDetailBean::getDrugId).collect(Collectors.toList());
+            List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+            if(Objects.isNull(list)){
+                return haveInventoryList;
+            }
+            Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+            for (Integer drugId : drugIds) {
+                if( Objects.isNull(collect.get(drugId))){
+                    return haveInventoryList;
+                }
+            }
             for (com.ngari.recipe.recipe.model.RecipeDetailBean drugresult:recipeDetailBeans){
                haveInventoryList.add(drugresult.getDrugName());
             }
