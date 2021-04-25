@@ -70,6 +70,13 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "备注信息")
     private String memo;
 
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode ;
+
+    @ItemProperty(alias = "药品嘱托Id")
+    private String drugEntrustId ;
+
+
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
@@ -133,6 +140,8 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
+
+
 
     public Integer getPack() {
         return pack;
