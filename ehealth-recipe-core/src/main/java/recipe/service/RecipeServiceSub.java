@@ -1477,7 +1477,16 @@ public class RecipeServiceSub {
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
-            r.setRecipeDrugName(recipe.getDetailData().get(0).getDrugDisplaySplicedName());
+            HisRecipeDetailBean hisRecipeDetailBean = recipe.getDetailData().get(0);
+            Recipedetail recipedetail = new Recipedetail();
+            recipedetail.setDrugName(hisRecipeDetailBean.getDrugName());
+            if (hisRecipeDetailBean.getUseDose() != null) {
+                recipedetail.setUseDose(Double.parseDouble(hisRecipeDetailBean.getUseDose()));
+            }
+            recipedetail.setUseDoseUnit(hisRecipeDetailBean.getUseDoseUnit());
+            recipedetail.setMemo(hisRecipeDetailBean.getMemo());
+            recipedetail.setDrugDisplaySplicedName(hisRecipeDetailBean.getDrugDisplaySplicedName());
+            r.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetail, recipedetail.getDrugType(), recipe.getClinicOrgan()));
         } else {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(recipe.getDetailData().get(0).getDrugName());

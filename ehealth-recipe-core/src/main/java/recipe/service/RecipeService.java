@@ -1586,7 +1586,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
-        LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList),continueFlag);
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
@@ -1601,6 +1601,17 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
+            // 药企有库存的情况下区分到店取药与药企配送
+            if (Integer.valueOf(1).equals(continueFlag)) {
+                Integer canContinueFlag = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
+                LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} canContinueFlag = {}",recipeBean.getRecipeId(),canContinueFlag);
+                if (Objects.nonNull(canContinueFlag)) {
+                    Map<String, Object> attMap = new HashMap<>();
+                    attMap.put("DistributionFlag", canContinueFlag);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
+
+                }
+            }
 
             //第二步预校验
             if (continueFlag == 0) {
@@ -1672,16 +1683,7 @@ public class RecipeService extends RecipeBaseService {
         // 处方失效时间处理
         handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
 
-        // 药企有库存的情况下区分到店取药与药企配送
-        if (Integer.valueOf(1).equals(continueFlag)) {
-            Integer canContinueFlag = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-            if (Objects.nonNull(canContinueFlag)) {
-                Map<String, Object> attMap = new HashMap<>();
-                attMap.put("DistributionFlag", canContinueFlag);
-                recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
 
-            }
-        }
         return rMap;
     }
 
