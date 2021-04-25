@@ -42,12 +42,10 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
-import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
@@ -5809,7 +5807,7 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}", JSONUtils.toString(revisitRequest));
-        if (recipe.getClinicId() == null) {
+        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
             getConsultIdForRecipeSource(recipe, registerNo);
         }
         if (!registerNo) {
