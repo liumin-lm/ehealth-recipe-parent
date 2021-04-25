@@ -327,6 +327,7 @@ public class RecipePreserveService {
                 detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
                 detailBean.setUseDose(recipeDetailTO.getUseDose());
                 detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
+                detailBean.setDrugForm(recipeDetailTO.getDrugForm());
                 detailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(detailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
                 hisRecipeDetailBeans.add(detailBean);
             }
