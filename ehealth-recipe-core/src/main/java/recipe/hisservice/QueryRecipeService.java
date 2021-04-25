@@ -11,10 +11,7 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
@@ -1168,6 +1165,20 @@ public class QueryRecipeService implements IQueryRecipeService {
                 organIds.remove(new Integer(-1));
             }
             return organIds;
+        }
+
+        //查询全国机构 organService
+        if (organIds==null){
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            List<OrganDTO> organs = organService.findOrgans();
+            log.info("queryOrganService.organs={}",JSONUtils.toString(organs));
+            if (CollectionUtils.isNotEmpty(organs)){
+                for (OrganDTO o:organs){
+                    oganList.add(o.getOrganId());
+                }
+                log.info("queryOrganService.oganList={}",JSONUtils.toString(oganList));
+                return oganList;
+            }
         }
         return oganList;
     }
