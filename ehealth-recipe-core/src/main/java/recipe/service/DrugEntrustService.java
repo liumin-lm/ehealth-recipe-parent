@@ -205,6 +205,32 @@ public class DrugEntrustService implements IDrugEntrustService {
         return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
     }
 
+
+    /**
+     * 根据机构Id查询药品嘱托
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public List<DrugEntrustDTO> querAllDrugEntrustByOrganId(Integer organId ) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
+        List<DrugEntrust> byOrganId = drugEntrustDAO.findByOrganId(0);
+        logger.info("查询药品嘱托服务[querDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+        if (drugEntrusts == null || drugEntrusts.size() <= 0){
+            return  ObjectCopyUtils.convert(byOrganId, DrugEntrustDTO.class);
+        }
+        if (byOrganId != null){
+            for (DrugEntrust drugEntrust : byOrganId) {
+                drugEntrusts.add(drugEntrust);
+            }
+        }
+        return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
+    }
+
+
     /**
      * 根据机构Id查询药品嘱托
      * @param organId
