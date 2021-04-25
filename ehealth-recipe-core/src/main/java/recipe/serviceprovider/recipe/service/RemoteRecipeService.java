@@ -2406,6 +2406,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return RecipeServiceSub.attachSealPic(clinicOrgan,doctorId,checker,recipeId);
     }
 
+    /**
+     * 用户判定机构配置支持的卡类型和终端配置支持的卡类型取交集
+     * 机构配置：查下线下处方所需信息 2就诊卡  3医保卡
+     * 终端配置:就诊人：展示到院取药凭证（2医保卡）   健康卡：就诊卡开关
+     * @param organId
+     * @param mpiid
+     * @param remotePull
+     * @return
+     */
     @RpcService
     public List<HealthCardDTO> queryHealthCardFromHisAndMerge(final Integer organId, final String mpiid, final boolean remotePull){
         LOGGER.info("queryHealthCardFromHisAndMerge.organId ={},Mpiid={}",organId,mpiid);
@@ -2416,27 +2425,46 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             cardDTOS = cardService.queryHealthCardFromHisAndMerge(organId, mpiid, remotePull);
             LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
             if (CollectionUtils.isEmpty(cardDTOS)){
-                //没有卡的情况下
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.before1 ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
+                //没有卡的情况下--显示新增就诊卡
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.就诊卡列表为空.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
                 return new ArrayList<HealthCardDTO>();
             }
             //运营平台终端配置   就诊卡开关打开--支持就诊卡   展示凭证存在医保卡展示支持医保卡
-            //机构配置支持的卡类型 2 就诊卡 3 医保卡
+            //机构配置支持的卡类型 2 就诊卡  3 医保卡
             String[] cardTypes=(String[]) configurationCenterUtilsService.getConfiguration(organId,"getCardTypeForHis");
-            //终端配置获取  就诊卡开关配置 true 开启  false关闭
+            if (cardTypes==null||cardTypes.length==0){
+                //机构不配就诊卡和医保卡 返回空，默认身份证查询
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.机构配置列表为空.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
+                return new ArrayList<HealthCardDTO>();
+            }
+            LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.Array={}",JSONUtils.toString(cardTypes));
+            //终端配置获取  终端管理-健康卡-就诊卡开关   配置 true 开启  false关闭
             Boolean patientCardFlag = (Boolean)configurationCenterUtilsService.getPropertyOfKey(organId, "patientCard", 1);
             LOGGER.info("queryHealthCardFromHisAndMerge.patientCardFlag={}",patientCardFlag);
 
-            //终端配置获取  医保卡支持，从凭证里面获取  showCardType   2
+            //终端配置获取  终端管理-就诊人-展示就诊凭证类型，从凭证里面获取  showCardType   2
             String[] medCardList=(String[])configurationCenterUtilsService.getPropertyOfKey(organId, "showCardType", 1);
             if (medCardList==null||medCardList.length==0){
+                //机构只配置就诊卡不支持医保卡    终端配置就诊卡开关打开--交集（就诊卡）其他情况无
+                if (Arrays.asList(cardTypes).contains("2")&&!Arrays.asList(cardTypes).contains("3")&&patientCardFlag){
+                    //展示就诊卡--去掉医保卡
+                    List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
+                    for (HealthCardDTO healthCardDTO:cardDTOS){
+                        if (healthCardDTO.getCardType().equals("2")){
+                            d.add(healthCardDTO);
+                        }
+                    }
+                    cardDTOS.removeAll(d);
+                    LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端开启就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                    return cardDTOS;
+                }
                 return new ArrayList<HealthCardDTO>();//无交集[]
             }
             LOGGER.info("queryHealthCardFromHisAndMerge.medCardList.Array={}",JSONUtils.toString(medCardList));
-            if (cardTypes==null||cardTypes.length==0){
+            //终端：展示就诊卡凭证 -- 存在
                 //1.终端支持就诊卡--显示就诊卡    2.终端支持医保卡--显示医保卡
-                //机构支持就诊卡   终端支持就诊卡和医保卡---显示就诊卡  筛选调医保卡 cardType=2
-               if (patientCardFlag&&!Arrays.asList(medCardList).contains("2")){
+                //机构支持就诊卡不支持医保卡    终端支持就诊卡和医保卡---显示就诊卡  筛选调医保卡 cardType=2
+               if (patientCardFlag&&Arrays.asList(medCardList).contains("2")&&Arrays.asList(cardTypes).contains("2")&&!Arrays.asList(cardTypes).contains("3")){
                    List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
                    for (HealthCardDTO healthCardDTO:cardDTOS){
                        if (healthCardDTO.getCardType().equals("2")){
@@ -2444,9 +2472,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                        }
                    }
                    cardDTOS.removeAll(d);
-                   LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before2.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                   LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
                    return cardDTOS;
-               }else if (!patientCardFlag&&Arrays.asList(medCardList).contains("2")){
+               }
+               //机构支持医保卡不支持就诊卡    终端支持就诊卡和医保卡---显示医保卡  筛选调就诊卡 cardType=1
+               if (patientCardFlag&&Arrays.asList(medCardList).contains("2")&&Arrays.asList(cardTypes).contains("3")&&!Arrays.asList(cardTypes).contains("2")){
                    List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
                    for (HealthCardDTO healthCardDTO:cardDTOS){
                        if (healthCardDTO.getCardType().equals("1")){
@@ -2454,25 +2484,27 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                        }
                    }
                    cardDTOS.removeAll(d);
-                   LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before3.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                   LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持医保卡不支持就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
                    return cardDTOS;
-               }else if (!patientCardFlag&&!Arrays.asList(medCardList).contains("2")){
+               }
+
+               //终端：就诊卡和医保卡都不支持--展示新增就诊卡，取不到交集
+               if (!patientCardFlag&&!Arrays.asList(medCardList).contains("2")){
                    return new ArrayList<HealthCardDTO>();
                }
-            }
-            LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.Array={}",JSONUtils.toString(cardTypes));
-            List<String> cardList = Arrays.asList(cardTypes);
 
-            //判断终端取药凭证中是否存在医保卡
+               //机构配置列表
+            List<String> cardList = Arrays.asList(cardTypes);
+            //判断终端：取药凭证中是否存在医保卡
             Boolean medCardFlag = (Boolean)Arrays.asList(medCardList).contains("2");
-            //开始进行筛选就诊卡和医保卡的信息
+            //终端支持就诊卡医保卡    机构支持就诊卡医保卡--返回就诊卡和医保卡
             if (cardList.contains("2")&&cardList.contains("3")&&medCardFlag&&patientCardFlag){
                 //支持就诊卡和医保卡
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before4.cardList={}",JSONUtils.toString(cardList));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持就诊卡医保卡且机构支持就诊卡医保卡.cardList={}",JSONUtils.toString(cardList));
                 return cardDTOS;
             }
 
-            //终端配了就诊卡    机构配了医保卡和就诊卡---就诊卡
+            //终端配了就诊卡不支持医保卡   机构配了医保卡和就诊卡---就诊卡
             if (cardList.contains("2")&&cardList.contains("3")&&!medCardFlag&&patientCardFlag){
                 //支持就诊卡和医保卡
                 List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
@@ -2482,11 +2514,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before5.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持就诊卡不支持医保卡且机构支持医保卡和就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
-            //终端配了医保卡    机构配了医保卡和就诊卡---医保卡
-            if (cardList.contains("2")&&cardList.contains("3")&&medCardFlag&&!patientCardFlag){
+            //终端配了医保卡不支持就诊卡    机构配了医保卡和就诊卡---医保卡
+            if (cardList.contains("2")&&!cardList.contains("3")&&medCardFlag&&!patientCardFlag){
                 //支持就诊卡和医保卡
                 List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
                 for (HealthCardDTO healthCardDTO:cardDTOS){
@@ -2495,41 +2527,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before6.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持医保卡不支持就诊卡且机构支持医保卡和就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
 
-            //只有医保卡开了  就诊卡关了--展示医保卡
-            if (cardList.contains("3")&&!cardList.contains("2")&&medCardFlag&&!patientCardFlag){
-                List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
-                for (HealthCardDTO healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("1")){
-                        d.add(healthCardDTO);
-                    }
-                }
-                cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before7.cardDTOS={}",JSONUtils.toString(cardDTOS));
-                return cardDTOS;
-            }
-
-            //展示医保卡
-            if (cardList.contains("3")&&!cardList.contains("2")&&medCardFlag&&patientCardFlag){
-                List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
-                for (HealthCardDTO healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("1")){
-                        d.add(healthCardDTO);
-                    }
-                }
-                cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before8.cardDTOS={}",JSONUtils.toString(cardDTOS));
-                return cardDTOS;
-            }
-
+            //机构支持医保卡就诊卡   终端不支持医保卡和就诊卡--无交集：显示新增就诊卡
             if (cardList.contains("3")&&!cardList.contains("2")&&!medCardFlag&&!patientCardFlag){
                 return new ArrayList<HealthCardDTO>();
             }
 
-            //只有就诊卡开了  医保卡关了关了--展示就诊卡
+            //机构支持就诊卡不支持医保卡   终端不支持医保卡支持就诊卡--就诊卡
             if (!cardList.contains("3")&&cardList.contains("2")&&!medCardFlag&&patientCardFlag){
                 //终端支持就诊卡  机构啥也不支持---无交集[]  展示就诊卡
                 List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
@@ -2539,19 +2546,31 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before9.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡且终端不支持医保卡支持就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
 
+            //机构支持医保卡不支持就就诊卡   终端不支持就诊卡不支持医保卡--无交集；显示新增
             if (!cardList.contains("3")&&cardList.contains("2")&&!medCardFlag&&!patientCardFlag){
                 return new ArrayList<HealthCardDTO>();
             }
 
-            if (cardList.contains("2")&&cardList.contains("3")&&!medCardFlag&&!patientCardFlag){
-                //机构支持就诊卡和医保卡   终端啥也不支持---无交集[]
-                return new ArrayList<HealthCardDTO>();
+            //机构支持医保卡不支持就诊卡   终端不支持就诊卡支持医保卡--展示医保卡
+            if (cardList.contains("3")&&!cardList.contains("2")&&!patientCardFlag&&medCardFlag){
+                //终端支持就诊卡  机构支持就诊卡 不支持医保卡---  展示医保卡
+                List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
+                for (HealthCardDTO healthCardDTO:cardDTOS){
+                    if (healthCardDTO.getCardType().equals("1")){
+                        d.add(healthCardDTO);
+                    }
+                }
+                cardDTOS.removeAll(d);
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持医保卡不支持就诊卡且终端不支持就诊卡支持医保卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                return cardDTOS;
             }
 
+
+            //机构支持就诊卡不支持医保卡   终端支持医保卡和就诊卡--就诊卡
             if (cardList.contains("2")&&!cardList.contains("3")&&medCardFlag&&patientCardFlag){
                 //终端支持就诊卡  机构支持就诊卡 不支持医保卡---  展示就诊卡
                 List<HealthCardDTO> d=new ArrayList<HealthCardDTO>();
@@ -2561,15 +2580,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.before10.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡且终端支持医保卡和就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
-
           return new ArrayList<HealthCardDTO>();//其他情况无任何交集[]
         } catch (Exception e) {
-            LOGGER.error("queryHealthCardFromHisAndMerge.Exception",e);
+            LOGGER.error("queryHealthCardFromHisAndMerge.ExceptionError",e);
         }
-        LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.end",organId);
+        LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.mpiid={}.当前就诊人没有卡支持",organId,mpiid);
         return null;
     }
 }
