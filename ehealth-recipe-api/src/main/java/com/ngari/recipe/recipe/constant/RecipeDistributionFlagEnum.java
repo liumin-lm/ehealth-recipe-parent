@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.constant;
 
 
+
 /**
  * @description：
  * @author： whf
@@ -53,12 +54,18 @@ public enum RecipeDistributionFlagEnum {
      */
     private Integer type;
 
-
     RecipeDistributionFlagEnum(String text, Integer type) {
         this.text = text;
         this.type = type;
     }
-
+    public static RecipeDistributionFlagEnum getRecipeDistributionFlagEnum(Integer type) {
+        for (RecipeDistributionFlagEnum e : RecipeDistributionFlagEnum.values()) {
+            if (e.getType().equals(type)) {
+                return e;
+            }
+        }
+        return null;
+    }
 
     public String getText() {
         return text;
