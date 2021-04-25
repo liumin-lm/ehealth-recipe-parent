@@ -580,7 +580,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drugId = null;
                     }
                     hql.append(" and (");
-                    hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or b.approvalNumber like :keyword ");
+                    hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
                     if (drugId != null) {
                         hql.append(" or a.drugId =:drugId");
                     }
