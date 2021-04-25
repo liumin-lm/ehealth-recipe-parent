@@ -657,7 +657,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         list.add(recipeId);
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
-
+        LOGGER.info("有库存的药企列表 = {} ", supportDepList);
         if(CollectionUtils.isNotEmpty(supportDepList)) {
             Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
                 Integer payModeSupport = drugsEnterprise.getPayModeSupport();
@@ -681,6 +681,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType())) {
                 continueFlag = RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
             }
+            LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} continueFlag= {}", recipeId,continueFlag);
             return continueFlag;
         }else {
             LOGGER.info("getDrugsEnterpriseContinue recipeId{}",recipeId);
