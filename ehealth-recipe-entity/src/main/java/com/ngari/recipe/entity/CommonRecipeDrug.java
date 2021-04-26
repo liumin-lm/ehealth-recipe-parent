@@ -447,6 +447,7 @@ public class CommonRecipeDrug implements java.io.Serializable{
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 
+    @Column(name = "drugEntrustCode")
     public String getDrugEntrustCode() {
         return drugEntrustCode;
     }
@@ -455,6 +456,7 @@ public class CommonRecipeDrug implements java.io.Serializable{
         this.drugEntrustCode = drugEntrustCode;
     }
 
+    @Column(name = "drugEntrustId")
     public String getDrugEntrustId() {
         return drugEntrustId;
     }
