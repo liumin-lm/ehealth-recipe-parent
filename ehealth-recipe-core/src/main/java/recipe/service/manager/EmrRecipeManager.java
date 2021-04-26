@@ -263,7 +263,7 @@ public class EmrRecipeManager {
         if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }
-        Boolean result = docIndexService.saveBussContact(saveEmrContractReq);
+        Integer result = docIndexService.saveBussContact(saveEmrContractReq);
         // 更新 处方诊断信息
         List<EmrConfigRes> detail = getEmrDetailDTO(docId);
         if (CollectionUtils.isEmpty(detail)) {
