@@ -40,6 +40,23 @@ public abstract class DrugEntrustDAO extends HibernateSupportDelegateDAO<DrugEnt
     }
 
     /**
+     * 通过 drugEntrustName获取平台默认的嘱托
+     * @param drugEntrustName
+     * @return
+     */
+    @DAOMethod(sql = "from DrugEntrust where organId=0 and drugEntrustName=:drugEntrustName")
+    public abstract DrugEntrust getDrugEntrustInfoByName(@DAOParam("drugEntrustName") String drugEntrustName);
+
+
+    /**
+     * 通过嘱托Id查找嘱托
+     * @param drugEntrustId
+     * @return
+     */
+    @DAOMethod(sql = "from DrugEntrust where drugEntrustId=:drugEntrustId")
+    public abstract DrugEntrust getDrugEntrustById(@DAOParam("drugEntrustId") Integer drugEntrustId);
+
+    /**
      * 通过orgsnId和 药房编码获取
      *
      * @param organId
@@ -145,5 +162,6 @@ public abstract class DrugEntrustDAO extends HibernateSupportDelegateDAO<DrugEnt
 
     @DAOMethod(sql = "select count(*) from DrugEntrust where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
+
 
 }

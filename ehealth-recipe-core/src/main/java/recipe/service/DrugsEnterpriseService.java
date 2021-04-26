@@ -12,6 +12,7 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
+import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -72,6 +73,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> list = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
         return getList(list, DrugsEnterpriseBean.class);
+    }
+
+    @RpcService
+    public  List<DrugsEnterpriseBean> getDrugsEnterpriseByName( String name) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(name);
+        return getList(drugsEnterpriseList, DrugsEnterpriseBean.class);
     }
 
     /**
@@ -658,7 +666,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         list.add(recipeId);
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
-        LOGGER.info("有库存的药企列表 = {} ", supportDepList);
+        LOGGER.info("recipeId = {} ,supportDepList = {} ", recipeId,JSONUtils.toString(supportDepList));
         Set<Integer> sendTypes = new HashSet<>();
         if (CollectionUtils.isNotEmpty(supportDepList)) {
             Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
