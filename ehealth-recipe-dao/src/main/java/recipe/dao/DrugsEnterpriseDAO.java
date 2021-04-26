@@ -78,7 +78,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param name
      * @return
      */
-    @DAOMethod(sql = "from DrugsEnterprise where status=1 and name=:name")
+    @DAOMethod(sql = "from DrugsEnterprise where  name=:name")
     public abstract DrugsEnterprise getByName(@DAOParam("name") String name);
 
     /**
