@@ -1490,6 +1490,7 @@ public class RecipeServiceSub {
             }
             recipedetail.setUseDoseUnit(hisRecipeDetailBean.getUseDoseUnit());
             recipedetail.setMemo(hisRecipeDetailBean.getMemo());
+            recipedetail.setDrugType(Integer.parseInt(recipe.getRecipeType()));
             recipedetail.setDrugDisplaySplicedName(hisRecipeDetailBean.getDrugDisplaySplicedName());
             r.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetail, recipedetail.getDrugType(), recipe.getClinicOrgan()));
         } else {
