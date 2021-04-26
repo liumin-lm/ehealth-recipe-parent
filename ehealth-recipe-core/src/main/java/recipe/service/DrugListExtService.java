@@ -85,6 +85,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -843,10 +845,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
 
-                String drugEntrust=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
+                String drugEntrustId=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
                 //增加药品嘱托字段信息
-                if (StringUtils.isNotEmpty(drugEntrust)){
-                    drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
+                if (StringUtils.isNotEmpty(drugEntrustId)){
+                    //根据嘱托Id查询嘱托名称
+                    String drugEntrustName=drugEntrustDAO.getDrugEntrustById(Integer.valueOf(drugEntrustId));
+                    drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrustName:drugList.getDrugEntrust());
+                    //使用drugEntrust进行查询机构配置的Name
+                    DrugEntrust drugEntrustInfo= drugEntrustDAO.getDrugEntrustInfoByName(drugEntrustName);
+                    LOGGER.info("searchDrugListWithES.drugEntrustInfo={} ",JSONUtils.toString(drugEntrustInfo));
+                    //查到了数据，说明是默认的嘱托
+                    if (drugEntrustInfo!=null){
+                        drugList.setDrugEntrustCode(drugEntrustInfo.getDrugEntrustCode());
+                        drugList.setDrugEntrustId(String.valueOf(drugEntrustInfo.getDrugEntrustId()));
+                        drugList.setDrugEntrust("无特殊煎法");
+                    }
                 }
 
 
