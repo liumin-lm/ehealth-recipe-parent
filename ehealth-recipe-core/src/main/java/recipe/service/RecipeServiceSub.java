@@ -1838,15 +1838,9 @@ public class RecipeServiceSub {
                 if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
-                    if (doctorId != null) {
-                        DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
-                        map.put("checkerSignImg", defaultDoctor.getSignImage());
-                        map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
-                    }
-                    /*map.put("checkerSignImg", signInfo.get("checkerSignImg"));
-                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));*/
+                    DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
+                    map.put("checkerSignImg", defaultDoctor.getSignImage());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
                 }
             }
         }
@@ -1886,7 +1880,7 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+        if (recipe.getRecipeSourceType().equals(1) &&null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
