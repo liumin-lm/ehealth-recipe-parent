@@ -1476,6 +1476,7 @@ public class RecipeServiceSub {
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        LOGGER.info("RecipeServiceSub convertHisRecipeForRAP recipe:{}.", JSONUtils.toString(recipe));
         if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
             HisRecipeDetailBean hisRecipeDetailBean = recipe.getDetailData().get(0);
             Recipedetail recipedetail = new Recipedetail();
