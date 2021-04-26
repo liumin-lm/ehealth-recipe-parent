@@ -76,10 +76,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     @RpcService
-    public DrugsEnterpriseBean getDrugsEnterpriseByName(final String name) {
+    public  List<DrugsEnterpriseBean> getDrugsEnterpriseByName( String name) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByName(name);
-        return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(name);
+        return getList(drugsEnterpriseList, DrugsEnterpriseBean.class);
     }
 
     /**
