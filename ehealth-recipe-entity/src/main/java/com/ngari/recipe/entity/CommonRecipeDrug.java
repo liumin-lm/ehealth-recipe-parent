@@ -68,8 +68,14 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="总药物金额")
     private BigDecimal drugCost;
 
-    @ItemProperty(alias="备注信息")
+    @ItemProperty(alias="药品嘱托信息")
     private String memo;
+
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode ;
+
+    @ItemProperty(alias = "药品嘱托Id")
+    private String drugEntrustId ;
 
     @ItemProperty(alias="创建时间")
     private Date createDt;
@@ -439,5 +445,21 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public String getDrugEntrustId() {
+        return drugEntrustId;
+    }
+
+    public void setDrugEntrustId(String drugEntrustId) {
+        this.drugEntrustId = drugEntrustId;
     }
 }
