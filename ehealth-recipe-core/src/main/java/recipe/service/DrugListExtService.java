@@ -852,6 +852,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrustName:drugList.getDrugEntrust());
                     //使用drugEntrust进行查询机构配置的Name
                     DrugEntrust drugEntrustInfo= drugEntrustDAO.getDrugEntrustInfoByName(drugEntrustName);
+                    LOGGER.info("searchDrugListWithES.drugEntrustInfo={} ",JSONUtils.toString(drugEntrustInfo));
                     //查到了数据，说明是默认的嘱托
                     if (drugEntrustInfo!=null){
                         drugList.setDrugEntrustCode(drugEntrustInfo.getDrugEntrustCode());

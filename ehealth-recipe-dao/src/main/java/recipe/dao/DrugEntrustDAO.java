@@ -53,7 +53,7 @@ public abstract class DrugEntrustDAO extends HibernateSupportDelegateDAO<DrugEnt
      * @param drugEntrustId
      * @return
      */
-    @DAOMethod(sql = "select DrugEntrustName from DrugEntrust where drugEntrustId=:drugEntrustId")
+    @DAOMethod(sql = "select drugEntrustName from DrugEntrust where drugEntrustId=:drugEntrustId")
     public abstract String getDrugEntrustById(@DAOParam("drugEntrustId") Integer drugEntrustId);
 
     /**
