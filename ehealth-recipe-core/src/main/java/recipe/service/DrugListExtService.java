@@ -450,6 +450,30 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("findCommonDrugListsNew.drugListBeans={}", JSONUtils.toString(drugListBeans));
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(commonDrugListDTO.getOrganId(), drugListBeans);
+        //根据药房属性 过滤失效药品
+        if (commonDrugListDTO.getPharmacyId() != null) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId()).getPharmacyCategray().split(","));
+            List<DrugListBean> pharmacyCategaryListResult = new ArrayList<>();
+            for (DrugListBean drugListBean : drugListBeans) {
+                String drugType= "";
+                //1 西药 2 中成药 3 中草药 4 膏方
+                switch (drugListBean.getDrugType()) {
+                    case 1 :
+                        drugType = "西药"; break;
+                    case 2 :
+                        drugType = "中成药";break;
+                    case 3 :
+                        drugType = "中药";break;
+                    case 4 :
+                        drugType = "膏方";break;
+                }
+                if (pharmacyCategaryList.contains(drugType)) {
+                    pharmacyCategaryListResult.add(drugListBean);
+                }
+            }
+            return pharmacyCategaryListResult;
+        }
         return drugListBeans;
     }
 
