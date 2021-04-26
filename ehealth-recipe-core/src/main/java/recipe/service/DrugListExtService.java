@@ -84,6 +84,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -846,6 +848,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 //增加药品嘱托字段信息
                 if (StringUtils.isNotEmpty(drugEntrust)){
                     drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
+                    //使用drugEntrust进行查询机构配置的Name
+                    DrugEntrust drugEntrustInfo= drugEntrustDAO.getDrugEntrustInfoByName(drugEntrust);
+                    //查到了数据，说明是默认的嘱托
+                    if (drugEntrustInfo!=null){
+                        drugList.setDrugEntrustCode(drugEntrustInfo.getDrugEntrustCode());
+                        drugList.setDrugEntrustId(String.valueOf(drugEntrustInfo.getDrugEntrustId()));
+                        drugList.setDrugEntrust("无特殊煎法");
+                    }
                 }
 
 
