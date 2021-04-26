@@ -851,7 +851,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     DrugEntrust drugEntrust=drugEntrustDAO.getDrugEntrustById(Integer.valueOf(drugEntrustId));
                     LOGGER.info("searchDrugListWithES.drugEntrustInfo={} ",JSONUtils.toString(drugEntrust));
                     if (drugEntrust!=null){
-                        drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust.getDrugEntrustName():drugList.getDrugEntrust());
+                        drugList.setDrugEntrust(drugEntrust.getDrugEntrustName());
                         drugList.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
                         drugList.setDrugEntrustId(String.valueOf(drugEntrust.getDrugEntrustId()));
                     }
