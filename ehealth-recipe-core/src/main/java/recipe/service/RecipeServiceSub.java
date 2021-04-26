@@ -1878,9 +1878,16 @@ public class RecipeServiceSub {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
             if (doctorId != null) {
-                DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
-                recipeBean.setCheckerText(defaultDoctor.getName());
-                recipeBean.setChecker(Integer.valueOf(doctorId));
+                Map<String, String> signInfoDefault = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), Integer.valueOf(doctorId), recipeId);
+                //该默认药师在平台的签名是有值的
+                if (StringUtils.isNotEmpty(signInfoDefault.get("checkerSignImg"))) {
+                    map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+                } else {
+                    DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
+                    map.put("checkerSignImg", defaultDoctor.getSignImage());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+                }
             }
         }
 
