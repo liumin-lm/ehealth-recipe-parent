@@ -150,7 +150,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         Map<Integer, PharmacyTcm> pharmacyMap = Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         //组织出参
-        commonRecipeList.forEach(a -> {
+        for (CommonRecipeDTO a : commonRecipeList) {
             List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(a.getCommonRecipeId());
             if (CollectionUtils.isNotEmpty(commonDrugList)) {
                 //药品名拼接配置
@@ -169,15 +169,15 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 a.setCommonRecipeExt(commonRecipeExt);
             }
             if (null == a.getPharmacyId()) {
-                return;
+                continue;
             }
             PharmacyTcm pharmacyTcm = pharmacyMap.get(a.getPharmacyId());
             if (null == pharmacyTcm) {
-                return;
+                continue;
             }
             a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
             a.setPharmacyName(pharmacyTcm.getPharmacyName());
-        });
+        }
         return commonRecipeList;
     }
 

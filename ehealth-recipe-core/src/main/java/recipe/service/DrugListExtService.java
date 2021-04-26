@@ -84,6 +84,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -696,26 +698,31 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
                 req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
         //过滤不符合条件的药品
-        List<String> pharmacyCategaryList = Arrays.asList(DAOFactory.getDAO(PharmacyTcmDAO.class).get(req.getPharmacyId()).getPharmacyCategray().split(","));
-        List<SearchDrugDetailDTO> pharmacyCategaryListResult = new ArrayList<>();
-        for (SearchDrugDetailDTO searchDrugDetailDTO : resultList) {
-            String drugType= "";
-            //1 西药 2 中成药 3 中草药 4 膏方
-            switch (searchDrugDetailDTO.getDrugType()) {
-                case 1 :
-                    drugType = "西药"; break;
-                case 2 :
-                    drugType = "中成药";break;
-                case 3 :
-                    drugType = "中药";break;
-                case 4 :
-                    drugType = "膏方";break;
+
+        if (req.getPharmacyId() != null) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(req.getPharmacyId()).getPharmacyCategray().split(","));
+            List<SearchDrugDetailDTO> pharmacyCategaryListResult = new ArrayList<>();
+            for (SearchDrugDetailDTO searchDrugDetailDTO : resultList) {
+                String drugType= "";
+                //1 西药 2 中成药 3 中草药 4 膏方
+                switch (searchDrugDetailDTO.getDrugType()) {
+                    case 1 :
+                        drugType = "西药"; break;
+                    case 2 :
+                        drugType = "中成药";break;
+                    case 3 :
+                        drugType = "中药";break;
+                    case 4 :
+                        drugType = "膏方";break;
+                }
+                if (pharmacyCategaryList.contains(drugType)) {
+                    pharmacyCategaryListResult.add(searchDrugDetailDTO);
+                }
             }
-            if (pharmacyCategaryList.contains(drugType)) {
-                pharmacyCategaryListResult.add(searchDrugDetailDTO);
-            }
+            return pharmacyCategaryListResult;
         }
-        return pharmacyCategaryListResult;
+        return resultList;
     }
 
 
@@ -841,6 +848,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 //增加药品嘱托字段信息
                 if (StringUtils.isNotEmpty(drugEntrust)){
                     drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
+                    //使用drugEntrust进行查询机构配置的Name
+                    DrugEntrust drugEntrustInfo= drugEntrustDAO.getDrugEntrustInfoByName(drugEntrust);
+                    //查到了数据，说明是默认的嘱托
+                    if (drugEntrustInfo!=null){
+                        drugList.setDrugEntrustCode(drugEntrustInfo.getDrugEntrustCode());
+                        drugList.setDrugEntrustId(String.valueOf(drugEntrustInfo.getDrugEntrustId()));
+                        drugList.setDrugEntrust("无特殊煎法");
+                    }
                 }
 
 

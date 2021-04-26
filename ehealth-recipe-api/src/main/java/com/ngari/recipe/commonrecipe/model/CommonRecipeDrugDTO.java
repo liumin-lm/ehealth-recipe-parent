@@ -120,6 +120,23 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public String getDrugEntrustId() {
+        return drugEntrustId;
+    }
+
+    public void setDrugEntrustId(String drugEntrustId) {
+        this.drugEntrustId = drugEntrustId;
+    }
+
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
 

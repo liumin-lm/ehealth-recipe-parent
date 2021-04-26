@@ -40,6 +40,15 @@ public abstract class DrugEntrustDAO extends HibernateSupportDelegateDAO<DrugEnt
     }
 
     /**
+     * 通过 drugEntrustName获取平台默认的嘱托
+     * @param drugEntrustName
+     * @return
+     */
+    @DAOMethod(sql = "from DrugEntrust where organId=0 and drugEntrustName=:drugEntrustName")
+    public abstract DrugEntrust getDrugEntrustInfoByName(@DAOParam("drugEntrustName") String drugEntrustName);
+
+
+    /**
      * 通过orgsnId和 药房编码获取
      *
      * @param organId
