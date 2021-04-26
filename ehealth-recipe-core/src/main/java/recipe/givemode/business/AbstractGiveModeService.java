@@ -247,8 +247,8 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
                     list.add("supportTFDS");
                 }
-                saveGiveModeDatas(giveModeButtonBeans, list);
             }
+            saveGiveModeDatas(giveModeButtonBeans, list);
         }
 
         //从运营平台获取配置项和现在的按钮集合取交集
