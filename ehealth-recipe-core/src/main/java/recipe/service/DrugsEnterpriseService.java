@@ -658,7 +658,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         list.add(recipeId);
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
-        LOGGER.info("有库存的药企列表 = {} ", supportDepList);
+        LOGGER.info("recipeId = {} ,supportDepList = {} ", recipeId,JSONUtils.toString(supportDepList));
         Set<Integer> sendTypes = new HashSet<>();
         if (CollectionUtils.isNotEmpty(supportDepList)) {
             Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
