@@ -697,26 +697,31 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
                 req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
         //过滤不符合条件的药品
-        List<String> pharmacyCategaryList = Arrays.asList(DAOFactory.getDAO(PharmacyTcmDAO.class).get(req.getPharmacyId()).getPharmacyCategray().split(","));
-        List<SearchDrugDetailDTO> pharmacyCategaryListResult = new ArrayList<>();
-        for (SearchDrugDetailDTO searchDrugDetailDTO : resultList) {
-            String drugType= "";
-            //1 西药 2 中成药 3 中草药 4 膏方
-            switch (searchDrugDetailDTO.getDrugType()) {
-                case 1 :
-                    drugType = "西药"; break;
-                case 2 :
-                    drugType = "中成药";break;
-                case 3 :
-                    drugType = "中药";break;
-                case 4 :
-                    drugType = "膏方";break;
+
+        if (req.getPharmacyId() != null) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(req.getPharmacyId()).getPharmacyCategray().split(","));
+            List<SearchDrugDetailDTO> pharmacyCategaryListResult = new ArrayList<>();
+            for (SearchDrugDetailDTO searchDrugDetailDTO : resultList) {
+                String drugType= "";
+                //1 西药 2 中成药 3 中草药 4 膏方
+                switch (searchDrugDetailDTO.getDrugType()) {
+                    case 1 :
+                        drugType = "西药"; break;
+                    case 2 :
+                        drugType = "中成药";break;
+                    case 3 :
+                        drugType = "中药";break;
+                    case 4 :
+                        drugType = "膏方";break;
+                }
+                if (pharmacyCategaryList.contains(drugType)) {
+                    pharmacyCategaryListResult.add(searchDrugDetailDTO);
+                }
             }
-            if (pharmacyCategaryList.contains(drugType)) {
-                pharmacyCategaryListResult.add(searchDrugDetailDTO);
-            }
+            return pharmacyCategaryListResult;
         }
-        return pharmacyCategaryListResult;
+        return resultList;
     }
 
 
