@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
+import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.persistence.DAOFactory;
@@ -125,7 +126,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         }
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             //开处方时校验库存时存的只支持配送方式--不支持到院取药
-            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportToHos");
             }
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportDownload");
@@ -220,32 +221,30 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //不支持配送，则按钮都不显示--包括药店取药
+        List<String> strings = Arrays.asList(recipe.getRecipeSupportGiveMode().split(","));
+
         if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
             removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
             removeGiveModeData(giveModeButtonBeans, "showSendToHos");
             removeGiveModeData(giveModeButtonBeans, "supportTFDS");
         }
         if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
+            List<String> list = new ArrayList<>();
+            if(strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))){
+                list.add("supportToHos");
+            }
+            if(strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))){
+                list.add("showSendToEnterprises");
+            }
+            if(strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType()))){
+                list.add("showSendToHos");
+            }
+            if(strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))){
+                list.add("supportTFDS");
+            }
+            saveGiveModeDatas(giveModeButtonBeans,list);
         }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_HOS.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE_SEND_TFDS.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "supportToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-            removeGiveModeData(giveModeButtonBeans, "showSendToHos");
-        }
+
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         List<GiveModeButtonBean> fromYyptButtons = giveModeShowButton.getGiveModeButtons();
@@ -322,6 +321,29 @@ public abstract class AbstractGiveModeService implements IGiveModeBase{
         while (iterator.hasNext()) {
             GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
             if (remoteGiveMode.equals(giveModeShowButtonVO.getShowButtonKey())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    protected void saveGiveModeDatas(List<GiveModeButtonBean> giveModeButtonBeans, List<String> remoteGiveMode){
+        List<String> list = new ArrayList<>();
+        if (!remoteGiveMode.contains("supportToHos")){
+            list.add("supportToHos");
+        }
+        if (!remoteGiveMode.contains("showSendToEnterprises")){
+            list.add("showSendToEnterprises");
+        }
+        if (!remoteGiveMode.contains("showSendToHos")){
+            list.add("showSendToHos");
+        }
+        if (!remoteGiveMode.contains("supportTFDS")){
+            list.add("supportTFDS");
+        }
+        Iterator iterator = giveModeButtonBeans.iterator();
+        while (iterator.hasNext()) {
+            GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
+            if (list.contains(giveModeShowButtonVO.getShowButtonKey())) {
                 iterator.remove();
             }
         }
