@@ -200,6 +200,7 @@ public class SignManager {
         }
         try {
             String signImgId = signRecipeInfoService.getOfflineCaPictureByDocId(doctorId);
+            logger.info("SignManager offlineSeal 如果线上处方设置成线下手签，signImgId:{},doctorId:{}", signImgId,doctorId);
             if (StringUtils.isEmpty(signImgId)) {
                 return null;
             }
