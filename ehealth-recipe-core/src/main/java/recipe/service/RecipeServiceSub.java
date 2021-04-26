@@ -2112,7 +2112,7 @@ public class RecipeServiceSub {
                 map.put("supportOnline", 0);
                 map.put("supportToHos", 0);
             }
-            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 map.put("supportToHos", 0);
             }
         }
@@ -2518,7 +2518,7 @@ public class RecipeServiceSub {
     public static String getRecipeGetModeTip(Recipe recipe) {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
-        if (1 != recipe.getChooseFlag() && !(String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType())))) {
+        if (1 != recipe.getChooseFlag() && !(RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()))) {
             String organName = StringUtils.isEmpty(recipe.getOrganName()) ? "医院" : recipe.getOrganName();
             // 邵逸夫特殊处理院区
             if (1 == recipe.getClinicOrgan()) {

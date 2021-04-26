@@ -371,7 +371,7 @@ public class RecipeSignService {
      */
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
-        LOG.info("RecipeSignService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList),continueFlag);
+        LOG.info("RecipeSignService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
@@ -407,16 +407,14 @@ public class RecipeSignService {
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
 
             // 药企有库存的情况下区分到店取药与药企配送
-            Integer canContinueFlag = null;
+            List<Integer> drugsEnterpriseContinue = null;
             if (Integer.valueOf(1).equals(continueFlag)) {
-                canContinueFlag = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-
-            }
-            if (Objects.isNull(canContinueFlag)) {
-                canContinueFlag = continueFlag;
+                drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
             }
             Map<String, Object> mapAttr = new HashMap<>();
-            mapAttr.put("DistributionFlag", canContinueFlag);
+            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
+                mapAttr.put("recipeSupportGiveMode", StringUtils.join(drugsEnterpriseContinue, ","));
+            }
             recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, mapAttr);
 
             //发送HIS处方开具消息
