@@ -12,6 +12,7 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
+import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -72,6 +73,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> list = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
         return getList(list, DrugsEnterpriseBean.class);
+    }
+
+    @RpcService
+    public DrugsEnterpriseBean getDrugsEnterpriseByName(final String name) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByName(name);
+        return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
     }
 
     /**
