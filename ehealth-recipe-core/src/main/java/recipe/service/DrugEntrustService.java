@@ -217,8 +217,8 @@ public class DrugEntrustService implements IDrugEntrustService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
         List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
-        List<DrugEntrust> byOrganId = drugEntrustDAO.findByOrganId(0);
-        logger.info("查询药品嘱托服务[querDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+        logger.info("查询药品嘱托服务[querAllDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+       /* List<DrugEntrust> byOrganId = drugEntrustDAO.findByOrganId(0);
         if (drugEntrusts == null || drugEntrusts.size() <= 0){
             return  ObjectCopyUtils.convert(byOrganId, DrugEntrustDTO.class);
         }
@@ -226,7 +226,7 @@ public class DrugEntrustService implements IDrugEntrustService {
             for (DrugEntrust drugEntrust : byOrganId) {
                 drugEntrusts.add(drugEntrust);
             }
-        }
+        }*/
         return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
     }
 
