@@ -170,6 +170,20 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     @ItemProperty(alias = "药品嘱托")
     private String drugEntrust;
 
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode;
+
+    @ItemProperty(alias = "药品嘱托Id")
+    private String drugEntrustId;
+
+    public String getDrugEntrustId() {
+        return drugEntrustId;
+    }
+
+    public void setDrugEntrustId(String drugEntrustId) {
+        this.drugEntrustId = drugEntrustId;
+    }
+
     public String getDrugEntrust() {
         return drugEntrust;
     }
@@ -555,5 +569,13 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
 
     public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
     }
 }
