@@ -704,13 +704,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             //1 西药 2 中成药 3 中草药 4 膏方
             switch (searchDrugDetailDTO.getDrugType()) {
                 case 1 :
-                    drugType = "西药";
+                    drugType = "西药"; break;
                 case 2 :
-                    drugType = "中成药";
+                    drugType = "中成药";break;
                 case 3 :
-                    drugType = "中草药";
+                    drugType = "中药";break;
                 case 4 :
-                    drugType = "膏方";
+                    drugType = "膏方";break;
             }
             if (pharmacyCategaryList.contains(drugType)) {
                 pharmacyCategaryListResult.add(searchDrugDetailDTO);
