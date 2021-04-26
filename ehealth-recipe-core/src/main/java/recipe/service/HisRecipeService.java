@@ -17,6 +17,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -1007,8 +1008,14 @@ public class HisRecipeService {
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
         }
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         Map<String,Object> map = recipeService.getPatientRecipeById(recipe.getRecipeId());
+        //特殊处理线下药品名展示
+        List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>)map.get("recipedetails");
+        recipeDetailBeans.forEach(recipeDetailBean->{
+            recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
+        });
         //if(recipeListService.isReturnRecipeDetail(recipe.getClinicOrgan(),recipe.getRecipeType(),recipe.getPayFlag())){
         List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
         map.put("hisRecipeDetails", hisRecipeDetails);
