@@ -1881,6 +1881,7 @@ public class RecipeServiceSub {
                 Map<String, String> signInfoDefault = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), Integer.valueOf(doctorId), recipeId);
                 //该默认药师在平台的签名是有值的
                 if (StringUtils.isNotEmpty(signInfoDefault.get("checkerSignImg"))) {
+                    LOGGER.info("signInfoDefault:{}", JSONUtils.toString(signInfoDefault));
                     map.put("checkerSignImg", signInfoDefault.get("checkerSignImg"));
                     map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfoDefault.get("checkerSignImg"), 3600L));
                 } else {
