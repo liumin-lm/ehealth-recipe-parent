@@ -1828,16 +1828,30 @@ public class RecipeServiceSub {
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
         //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
-        if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-            LOGGER.info("设置药师手签图片id1:{}", StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS);
-            if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                LOGGER.info("设置药师手签图片id2:{}", !(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+        if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
+            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA));
-                map.put("checkerSignImg", signInfo.get("checkerSignImg"));
-                map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                    map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+                }
+            }
+        } else{
+            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                    String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
+                    if (doctorId != null) {
+                        DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
+                        map.put("checkerSignImg", defaultDoctor.getSignImage());
+                        map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+                    }
+                    /*map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));*/
+                }
             }
         }
         //获取药师撤销原因
