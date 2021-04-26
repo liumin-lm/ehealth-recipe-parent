@@ -1563,7 +1563,7 @@ public class RecipeListService extends RecipeBaseService {
             }
         } else {
             //省平台互联网购药方式的配置
-            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 payModeShowButtonBean.setSupportToHos(false);
             }
         }

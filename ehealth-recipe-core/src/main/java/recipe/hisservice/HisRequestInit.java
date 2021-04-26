@@ -173,7 +173,7 @@ public class HisRequestInit {
             requestTO.setCardType("4");//武昌-4-身份证
             requestTO.setCardNo(patient.getIdcard());
             //根据处方单设置配送方式
-            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 requestTO.setDeliveryType("1");
             } else {
                 requestTO.setDeliveryType("0");
@@ -402,7 +402,7 @@ public class HisRequestInit {
         }
 
         //根据处方单设置配送方式
-        if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+        if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
             requestTO.setDeliveryType("1");
         } else {
             switch (recipe.getGiveMode()) {
