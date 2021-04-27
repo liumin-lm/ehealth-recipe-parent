@@ -1837,7 +1837,7 @@ public class RecipeServiceSub {
             if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
                 if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA) && recipe.getRecipeSourceType().equals(2)) {
                     DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
                     map.put("checkerSignImg", defaultDoctor.getSignImage());
                     map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
@@ -1880,7 +1880,7 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        if (recipe.getRecipeSourceType().equals(1) &&null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+        if (recipe.getRecipeSourceType().equals(1) && null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
@@ -1907,8 +1907,10 @@ public class RecipeServiceSub {
 
         //处理审核药师
         if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS)) {
+                recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) ||
+                (recipe.getRecipeSourceType().equals(2) && !StringUtils.isNotEmpty(signInfo.get("checkerSignImg")))
+        ) {
             recipeBean.setCheckerText("");
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
