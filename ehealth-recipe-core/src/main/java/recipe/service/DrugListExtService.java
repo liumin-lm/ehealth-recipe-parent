@@ -455,8 +455,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugListBean.setDrugEntrustCode("sos");
                     drugListBean.setDrugEntrustId("56");
                 }
-                if (StringUtils.isNotEmpty(drugEntrustId)){
-                    //需要进行反查一下药品嘱托表-当前的药品表种存储的是药嘱的Id
+                if (StringUtils.isNotEmpty(drugEntrustId)&&drugListBean.getDrugType().equals(new Integer(3))){
+                    //需要进行反查一下药品嘱托表-当前的药品表种存储的是药嘱的Id,只有中药才进行反查数据
                     DrugEntrust drugEntrustInfo = drugEntrustDAO.getDrugEntrustById(new Integer(drugEntrustId));
                     if (drugEntrustInfo!=null){
                         drugListBean.setDrugEntrust(drugEntrustInfo.getDrugEntrustName());
