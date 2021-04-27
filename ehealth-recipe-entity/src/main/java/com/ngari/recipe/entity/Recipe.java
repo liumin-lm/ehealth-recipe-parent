@@ -359,6 +359,18 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "是否被接方 0 未接方 1已接方")
     private Integer grabOrderStatus;
 
+    @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
+    private String recipeSupportGiveMode;
+
+    @Column(name = "recipeSupportGiveMode")
+    public String getRecipeSupportGiveMode() {
+        return recipeSupportGiveMode;
+    }
+
+    public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
+        this.recipeSupportGiveMode = recipeSupportGiveMode;
+    }
+
     public Recipe() {
     }
 

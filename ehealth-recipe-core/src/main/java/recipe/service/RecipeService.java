@@ -1092,7 +1092,7 @@ public class RecipeService extends RecipeBaseService {
 
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             //配送处方标记 1:只能配送 更改处方取药方式
-            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 try {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                     RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
@@ -1601,11 +1601,12 @@ public class RecipeService extends RecipeBaseService {
             doSignRecipeSave(recipeBean, detailBeanList);
             // 药企有库存的情况下区分到店取药与药企配送
             if (Integer.valueOf(1).equals(continueFlag)) {
-                Integer canContinueFlag = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-                LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} canContinueFlag = {}", recipeBean.getRecipeId(), canContinueFlag);
-                if (Objects.nonNull(canContinueFlag)) {
+                List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
+                LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} drugsEnterpriseContinue = {}", recipeBean.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
+                if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
                     Map<String, Object> attMap = new HashMap<>();
-                    attMap.put("DistributionFlag", canContinueFlag);
+                    String join = StringUtils.join(drugsEnterpriseContinue, ",");
+                    attMap.put("recipeSupportGiveMode", join);
                     recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
                 }
             }

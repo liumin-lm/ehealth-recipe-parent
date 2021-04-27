@@ -1,8 +1,12 @@
 package recipe.service;
 
+import com.ngari.base.organ.service.IOrganService;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BusActionLogService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -40,6 +44,8 @@ public class DrugEntrustService implements IDrugEntrustService {
     private DrugEntrustDAO drugEntrustDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    private OrganService organService = AppDomainContext.getBean("basic.organService", OrganService.class);
+
     /**
      * 根据药品嘱托ID 查找药品嘱托数据
      * @param entrustForId
@@ -82,7 +88,8 @@ public class DrugEntrustService implements IDrugEntrustService {
         drugEntrust.setCreateDt(new Date());
         DrugEntrust save = drugEntrustDAO.save(drugEntrust);
         IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "新增药品嘱托，名称为【" + save.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
+        OrganDTO byOrganId = organService.getByOrganId(drugEntrust.getOrganId());
+        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "新增药品嘱托，名称为【" + save.getDrugEntrustName() + "】", byOrganId.getName());
         return true;
 
     }
@@ -130,7 +137,8 @@ public class DrugEntrustService implements IDrugEntrustService {
         logger.info("编辑药品嘱托服务[updateDrugEntrustForOrgan]:" + JSONUtils.toString(convert));
         DrugEntrust update = drugEntrustDAO.update(convert);
         IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "修改药品嘱托，名称【" + drugEntrust.getDrugEntrustName() + "】修改为【" + update.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
+        OrganDTO byOrganId = organService.getByOrganId(drugEntrust.getOrganId());
+        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "修改药品嘱托，名称【" + drugEntrust.getDrugEntrustName() + "】修改为【" + update.getDrugEntrustName() + "】", byOrganId.getName());
         return update;
 
     }
@@ -160,8 +168,9 @@ public class DrugEntrustService implements IDrugEntrustService {
             }
         }
         drugEntrustDAO.remove(drugEntrustId);
+        OrganDTO byOrganId = organService.getByOrganId(drugEntrust.getOrganId());
         IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "删除药品嘱托，名称为【" + drugEntrust.getDrugEntrustName() + "】", BusActionLogService.defaultSubjectName);
+        bean.recordBusinessLogRpcNew("机构数据字典", "", "DrugEntrust", "删除药品嘱托，名称为【" + drugEntrust.getDrugEntrustName() + "】", byOrganId.getName());
 
     }
 
@@ -217,8 +226,8 @@ public class DrugEntrustService implements IDrugEntrustService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
         List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
-        List<DrugEntrust> byOrganId = drugEntrustDAO.findByOrganId(0);
-        logger.info("查询药品嘱托服务[querDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+        logger.info("查询药品嘱托服务[querAllDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
+       /* List<DrugEntrust> byOrganId = drugEntrustDAO.findByOrganId(0);
         if (drugEntrusts == null || drugEntrusts.size() <= 0){
             return  ObjectCopyUtils.convert(byOrganId, DrugEntrustDTO.class);
         }
@@ -226,7 +235,7 @@ public class DrugEntrustService implements IDrugEntrustService {
             for (DrugEntrust drugEntrust : byOrganId) {
                 drugEntrusts.add(drugEntrust);
             }
-        }
+        }*/
         return  ObjectCopyUtils.convert(drugEntrusts, DrugEntrustDTO.class);
     }
 

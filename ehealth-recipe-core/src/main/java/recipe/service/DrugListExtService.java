@@ -24,6 +24,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -31,6 +32,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import es.api.DrugSearchService;
+import io.netty.util.internal.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
@@ -83,6 +85,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -445,6 +449,30 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("findCommonDrugListsNew.drugListBeans={}", JSONUtils.toString(drugListBeans));
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(commonDrugListDTO.getOrganId(), drugListBeans);
+        //根据药房属性 过滤失效药品
+        if (commonDrugListDTO.getPharmacyId() != null) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId()).getPharmacyCategray().split(","));
+            List<DrugListBean> pharmacyCategaryListResult = new ArrayList<>();
+            for (DrugListBean drugListBean : drugListBeans) {
+                String drugType= "";
+                //1 西药 2 中成药 3 中草药 4 膏方
+                switch (drugListBean.getDrugType()) {
+                    case 1 :
+                        drugType = "西药"; break;
+                    case 2 :
+                        drugType = "中成药";break;
+                    case 3 :
+                        drugType = "中药";break;
+                    case 4 :
+                        drugType = "膏方";break;
+                }
+                if (pharmacyCategaryList.contains(drugType)) {
+                    pharmacyCategaryListResult.add(drugListBean);
+                }
+            }
+            return pharmacyCategaryListResult;
+        }
         return drugListBeans;
     }
 
@@ -694,6 +722,31 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //医生查询药品信息
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
                 req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
+        //过滤不符合条件的药品
+
+        if (req.getPharmacyId() != null) {
+            PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+            List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(req.getPharmacyId()).getPharmacyCategray().split(","));
+            List<SearchDrugDetailDTO> pharmacyCategaryListResult = new ArrayList<>();
+            for (SearchDrugDetailDTO searchDrugDetailDTO : resultList) {
+                String drugType= "";
+                //1 西药 2 中成药 3 中草药 4 膏方
+                switch (searchDrugDetailDTO.getDrugType()) {
+                    case 1 :
+                        drugType = "西药"; break;
+                    case 2 :
+                        drugType = "中成药";break;
+                    case 3 :
+                        drugType = "中药";break;
+                    case 4 :
+                        drugType = "膏方";break;
+                }
+                if (pharmacyCategaryList.contains(drugType)) {
+                    pharmacyCategaryListResult.add(searchDrugDetailDTO);
+                }
+            }
+            return pharmacyCategaryListResult;
+        }
         return resultList;
     }
 
@@ -815,13 +868,24 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice1(null == drugList.getPrice1() ? drugListNow.getPrice1() : drugList.getPrice1());
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
-
-                String drugEntrust=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
-                //增加药品嘱托字段信息
-                if (StringUtils.isNotEmpty(drugEntrust)){
-                    drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrust:drugList.getDrugEntrust());
+                //查询嘱托Id
+                String drugEntrustId=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
+                if (StringUtils.isNotEmpty(drugEntrustId)){
+                    //根据嘱托Id查询嘱托对象
+                    DrugEntrust drugEntrust=drugEntrustDAO.getDrugEntrustById(Integer.valueOf(drugEntrustId));
+                    LOGGER.info("searchDrugListWithES.drugEntrustInfo={} ",JSONUtils.toString(drugEntrust));
+                    if (drugEntrust!=null){
+                        drugList.setDrugEntrust(drugEntrust.getDrugEntrustName());
+                        drugList.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
+                        drugList.setDrugEntrustId(String.valueOf(drugEntrust.getDrugEntrustId()));
+                    }
                 }
-
+                //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
+                if (new Integer(3).equals(drugType)&&StringUtils.isEmpty(drugEntrustId)){
+                    drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
+                    drugList.setDrugEntrustCode("sos");
+                    drugList.setDrugEntrust("无特殊煎法");
+                }
 
                 //药品库存标志-是否查药企库存
                 if (organId != null) {
@@ -844,7 +908,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugList.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(drugList, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(drugType)));
                 dList.add(drugList);
             }
-            LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
+            LOGGER.info("searchDrugListWithES.dList= ",JSONUtils.toString(dList));
         } else {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
             //organDrugListDAO.findByDrugNameLikeNew(organId,drugName,start,limit);

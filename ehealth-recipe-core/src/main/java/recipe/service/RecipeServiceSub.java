@@ -1476,6 +1476,7 @@ public class RecipeServiceSub {
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
 //        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        LOGGER.info("RecipeServiceSub convertHisRecipeForRAP recipe:{}.", JSONUtils.toString(recipe));
         if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
             HisRecipeDetailBean hisRecipeDetailBean = recipe.getDetailData().get(0);
             Recipedetail recipedetail = new Recipedetail();
@@ -1485,6 +1486,7 @@ public class RecipeServiceSub {
             }
             recipedetail.setUseDoseUnit(hisRecipeDetailBean.getUseDoseUnit());
             recipedetail.setMemo(hisRecipeDetailBean.getMemo());
+            recipedetail.setDrugType(Integer.parseInt(recipe.getRecipeType()));
             recipedetail.setDrugDisplaySplicedName(hisRecipeDetailBean.getDrugDisplaySplicedName());
             r.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetail, recipedetail.getDrugType(), recipe.getClinicOrgan()));
         } else {
@@ -1822,12 +1824,24 @@ public class RecipeServiceSub {
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
         //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
-        if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg")) && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-            if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                    recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                map.put("checkerSignImg", signInfo.get("checkerSignImg"));
-                map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+        if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
+            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                    map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+                }
+            }
+        } else{
+            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                    DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
+                    map.put("checkerSignImg", defaultDoctor.getSignImage());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+                }
             }
         }
         //获取药师撤销原因
@@ -1866,7 +1880,7 @@ public class RecipeServiceSub {
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
-        if (null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
+        if (recipe.getRecipeSourceType().equals(1) && null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
             String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
             recipeBean.setCheckerText(checkerText);
         }
@@ -1876,16 +1890,27 @@ public class RecipeServiceSub {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
             if (doctorId != null) {
-                DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
-                recipeBean.setCheckerText(defaultDoctor.getName());
-                recipeBean.setChecker(Integer.valueOf(doctorId));
+                Map<String, String> signInfoDefault = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), Integer.valueOf(doctorId), recipeId);
+                //该默认药师在平台的签名是有值的
+                if (StringUtils.isNotEmpty(signInfoDefault.get("checkerSignImg"))) {
+                    LOGGER.info("signInfoDefault:{}", JSONUtils.toString(signInfoDefault));
+                    map.put("checkerSignImg", signInfoDefault.get("checkerSignImg"));
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfoDefault.get("checkerSignImg"), 3600L));
+                } else {
+                    DoctorDTO defaultDoctor = doctorService.get(Integer.valueOf(doctorId));
+                    LOGGER.info("defaultDoctor:{}", JSONUtils.toString(signInfoDefault));
+                    map.put("checkerSignImg", defaultDoctor.getSignImage());
+                    map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+                }
             }
         }
 
         //处理审核药师
         if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS)) {
+                recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) ||
+                (recipe.getRecipeSourceType().equals(2) && !StringUtils.isNotEmpty(signInfo.get("checkerSignImg")))
+        ) {
             recipeBean.setCheckerText("");
         }
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -2103,7 +2128,7 @@ public class RecipeServiceSub {
                 map.put("supportOnline", 0);
                 map.put("supportToHos", 0);
             }
-            if (String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()))) {
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 map.put("supportToHos", 0);
             }
         }
@@ -2509,7 +2534,7 @@ public class RecipeServiceSub {
     public static String getRecipeGetModeTip(Recipe recipe) {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
-        if (1 != recipe.getChooseFlag() && !(String.valueOf(recipe.getDistributionFlag()).startsWith(String.valueOf(RecipeDistributionFlagEnum.DRUGS_HAVE.getType())))) {
+        if (1 != recipe.getChooseFlag() && !(RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag()))) {
             String organName = StringUtils.isEmpty(recipe.getOrganName()) ? "医院" : recipe.getOrganName();
             // 邵逸夫特殊处理院区
             if (1 == recipe.getClinicOrgan()) {
