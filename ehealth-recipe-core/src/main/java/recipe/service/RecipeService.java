@@ -2726,15 +2726,17 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
-        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
-        PatientDTO patient = (PatientDTO) result.get("patient");
-        result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
+        LOGGER.error("findRecipeAndDetailById recipeId = {}", recipeId);
         try {
+            Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+            PatientDTO patient = (PatientDTO) result.get("patient");
+            result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
             EmrRecipeManager.getMedicalInfo((RecipeBean) result.get("recipe"), (RecipeExtend) result.get("recipeExtend"));
+            return result;
         } catch (Exception e) {
-            LOGGER.error("emrRecipeManager getMedicalInfo is error ", e);
+            LOGGER.error("findRecipeAndDetailById is error ", e);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        return result;
     }
 
     /**
