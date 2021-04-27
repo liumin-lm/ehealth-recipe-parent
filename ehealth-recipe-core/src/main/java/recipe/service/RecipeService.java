@@ -2726,7 +2726,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
-        LOGGER.error("findRecipeAndDetailById recipeId = {}", recipeId);
+        LOGGER.info("findRecipeAndDetailById recipeId = {}", recipeId);
         try {
             Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
             PatientDTO patient = (PatientDTO) result.get("patient");
