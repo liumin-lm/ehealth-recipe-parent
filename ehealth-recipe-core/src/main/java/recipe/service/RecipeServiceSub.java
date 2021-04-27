@@ -1834,10 +1834,10 @@ public class RecipeServiceSub {
                 }
             }
         } else{
-            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS && recipe.getRecipeSourceType().equals(2) && !ValidateUtil.integerIsEmpty(recipe.getChecker())) {
                 if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA) && recipe.getRecipeSourceType().equals(2)) {
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
                     DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
                     map.put("checkerSignImg", defaultDoctor.getSignImage());
                     map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
@@ -1881,8 +1881,7 @@ public class RecipeServiceSub {
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
         if (recipe.getRecipeSourceType().equals(1) && null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
-            String checkerText = DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker());
-            recipeBean.setCheckerText(checkerText);
+            recipeBean.setCheckerText(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker()));
         }
 
         //线下转线上的处方  设置默认审方药师
