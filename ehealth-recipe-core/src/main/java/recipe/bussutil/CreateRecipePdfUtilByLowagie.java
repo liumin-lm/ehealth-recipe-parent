@@ -51,7 +51,7 @@ public class CreateRecipePdfUtilByLowagie {
             metrics = label.getFontMetrics(label.getFont());//// 文字水印 起始位置
             textH = metrics.getHeight();
             textW = metrics.stringWidth(label.getText());
-            int interval = -textH/3;
+            int interval = -textH/4;
             PdfContentByte under2;
             for (int i = 1; i < total; i++) {//循环页
                 pageRect = pdfReader.getPageSizeWithRotation(i);
