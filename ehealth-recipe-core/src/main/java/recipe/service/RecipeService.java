@@ -5823,12 +5823,15 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+     * 只有安卓使用 5-1 版本删除
+     *
      * @param organId       机构Id
      * @param OrganDrugCode 机构药品编码
      * @param drugType      药品类型
      * @return
      */
     @RpcService
+    @Deprecated
     public List<DrugEntrustDTO> queryDrugEntrustByOrganIdAndDrugCode(Integer organId, String OrganDrugCode, Integer drugType) {
         LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.organId={},OrganDrugCode={},drugType={}", organId, OrganDrugCode, drugType);
         if (null == organId) {
