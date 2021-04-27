@@ -44,7 +44,8 @@ public class CreateRecipePdfUtilByLowagie {
             if(waterText.length()<9){
                 label.setText("一二三四五六七八九");
             }else{
-                label.setText(waterText);//固定label宽高
+                label.setText("一二三四五六七八九四五");
+                //label.setText(waterText);//固定label宽高
             }
 
 
