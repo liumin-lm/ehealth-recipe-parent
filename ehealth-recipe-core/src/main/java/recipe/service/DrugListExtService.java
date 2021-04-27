@@ -403,6 +403,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(commonDrugListDTO.getDoctor(), commonDrugListDTO.getOrganId(), commonDrugListDTO.getDrugType(), pharmacyId, 0, 20);
+        LOGGER.info("findCommonDrugListsNew.dList={}", JSONUtils.toString(dList));
         //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次
         Boolean isMergeRecipeType = null;
         try {
@@ -432,7 +433,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
         // 添加医院数据
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
-            drugListBeans.forEach(a -> a.setDrugType(commonDrugListDTO.getDrugType()));
+            for (DrugListBean a : drugListBeans) {
+                a.setDrugType(commonDrugListDTO.getDrugType());
+            }
             getHospitalPrice(commonDrugListDTO.getOrganId(), drugListBeans);
         }
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
@@ -444,6 +447,24 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
                 boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(commonDrugListDTO.getOrganId(), drugListBean.getDrugId());
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
+                //解决中药没有维护默认嘱托的时候，设定为默认选中
+                String drugEntrustId = drugListBean.getDrugEntrust();
+                if (StringUtils.isEmpty(drugEntrustId)&&drugListBean.getDrugType().equals(new Integer(3))){
+                    DrugEntrust entrust = new DrugEntrust();
+                    drugListBean.setDrugEntrust("无特殊煎法");
+                    drugListBean.setDrugEntrustCode("sos");
+                    drugListBean.setDrugEntrustId("56");
+                }
+                if (StringUtils.isNotEmpty(drugEntrustId)){
+                    //需要进行反查一下药品嘱托表-当前的药品表种存储的是药嘱的Id
+                    DrugEntrust drugEntrustInfo = drugEntrustDAO.getDrugEntrustById(new Integer(drugEntrustId));
+                    if (drugEntrustInfo!=null){
+                        drugListBean.setDrugEntrust(drugEntrustInfo.getDrugEntrustName());
+                        drugListBean.setDrugEntrustCode(drugEntrustInfo.getDrugEntrustCode());
+                        drugListBean.setDrugEntrustId(drugEntrustId);
+                    }
+                }
+
             }
         }
         LOGGER.info("findCommonDrugListsNew.drugListBeans={}", JSONUtils.toString(drugListBeans));
@@ -471,6 +492,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     pharmacyCategaryListResult.add(drugListBean);
                 }
             }
+            LOGGER.info("findCommonDrugListsNew.pharmacyCategaryListResult={}", JSONUtils.toString(pharmacyCategaryListResult));
             return pharmacyCategaryListResult;
         }
         return drugListBeans;
@@ -870,7 +892,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
                 //查询嘱托Id
                 String drugEntrustId=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
-                if (StringUtils.isNotEmpty(drugEntrustId)){
+                /*if (StringUtils.isNotEmpty(drugEntrustId)){
                     //根据嘱托Id查询嘱托对象
                     DrugEntrust drugEntrust=drugEntrustDAO.getDrugEntrustById(Integer.valueOf(drugEntrustId));
                     LOGGER.info("searchDrugListWithES.drugEntrustInfo={} ",JSONUtils.toString(drugEntrust));
@@ -879,7 +901,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         drugList.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
                         drugList.setDrugEntrustId(String.valueOf(drugEntrust.getDrugEntrustId()));
                     }
-                }
+                }*/
+
+                //西药存储的是中文备注信息  中药存储的是嘱托Id
+                drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrustId:drugList.getDrugEntrust());
                 //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
                 if (new Integer(3).equals(drugType)&&StringUtils.isEmpty(drugEntrustId)){
                     drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
