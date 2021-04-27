@@ -6,10 +6,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.EmploymentDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -1147,6 +1144,15 @@ public class HisRecipeService {
             } else {
                 LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
+            }
+        } else {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+            String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
+            if (StringUtils.isNotEmpty(doctorId)) {
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(Integer.parseInt(doctorId));
+                recipe.setChecker(Integer.parseInt(doctorId));
+                recipe.setCheckerText(doctorDTO.getName());
             }
         }
         recipe.setDoctorName(hisRecipe.getDoctorName());
