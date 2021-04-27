@@ -893,7 +893,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
                 //查询嘱托Id
                 String drugEntrustId=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
-                if (StringUtils.isNotEmpty(drugEntrustId)){
+                /*if (StringUtils.isNotEmpty(drugEntrustId)){
                     //根据嘱托Id查询嘱托对象
                     DrugEntrust drugEntrust=drugEntrustDAO.getDrugEntrustById(Integer.valueOf(drugEntrustId));
                     LOGGER.info("searchDrugListWithES.drugEntrustInfo={} ",JSONUtils.toString(drugEntrust));
@@ -902,7 +902,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         drugList.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
                         drugList.setDrugEntrustId(String.valueOf(drugEntrust.getDrugEntrustId()));
                     }
-                }
+                }*/
+
+                //西药存储的是中文备注信息  中药存储的是嘱托Id
+                drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrustId:drugList.getDrugEntrust());
                 //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
                 if (new Integer(3).equals(drugType)&&StringUtils.isEmpty(drugEntrustId)){
                     drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
