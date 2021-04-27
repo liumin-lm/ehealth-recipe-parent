@@ -44,15 +44,14 @@ public class CreateRecipePdfUtilByLowagie {
             if(waterText.length()<9){
                 label.setText("一二三四五六七八九");
             }else{
-                label.setText("一二三四五六七八九四五");
-                //label.setText(waterText);//固定label宽高
+                label.setText(waterText);//固定label宽高
             }
 
 
             metrics = label.getFontMetrics(label.getFont());//// 文字水印 起始位置
             textH = metrics.getHeight();
             textW = metrics.stringWidth(label.getText());
-            int interval = -textH/4;
+            int interval = -textH/3;
             PdfContentByte under2;
             for (int i = 1; i < total; i++) {//循环页
                 pageRect = pdfReader.getPageSizeWithRotation(i);
