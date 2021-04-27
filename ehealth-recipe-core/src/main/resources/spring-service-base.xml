@@ -36,6 +36,7 @@
     <reference interface="com.ngari.base.hisservice.service.IRecipeHisService" id="eh.remoteRecipeHisService"/>
     <reference interface="com.ngari.base.searchservice.service.ISearchService" id="eh.remoteSearchService"/>
     <reference interface="com.ngari.base.patient.service.IPatientExtendService" id="eh.remotePatientExtendService"/>
+    <reference interface="com.ngari.base.patient.service.IHealthCardService" id="eh.remoteHealthCardService"/>
     <reference interface="com.ngari.wxpay.service.IUnifiedPayService" id="eh.unifiedPayService"/>
     <reference interface="com.ngari.wxpay.service.INgariPayService" id="eh.payService"/>
     <reference interface="com.ngari.wxpay.service.INgariRefundService" id="eh.refundService"/>
