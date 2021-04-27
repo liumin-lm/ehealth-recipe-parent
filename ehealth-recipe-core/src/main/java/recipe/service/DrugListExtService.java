@@ -10,21 +10,22 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
-import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.mode.PatientDiagnosisDTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
+import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -32,7 +33,6 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import es.api.DrugSearchService;
-import io.netty.util.internal.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
@@ -42,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.bean.HisSearchDrugDTO;
-import static recipe.bussutil.RecipeUtil.getHospitalPrice;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.RecipeBussConstant;
@@ -61,6 +60,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static recipe.bussutil.RecipeUtil.getHospitalPrice;
 
 /**
  * @author： 0184/yu_yun
@@ -88,6 +89,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private PatientService patientService;
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
+    @Autowired
+    private IDrugEntrustService drugEntrustService;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -895,20 +898,24 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice1(null == drugList.getPrice1() ? drugListNow.getPrice1() : drugList.getPrice1());
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
-                //查询嘱托Id
-                LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo2:{}", drugInfo);
-                String drugEntrustId=organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(),organId);
-                LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo3:{}", drugInfo);
-                //西药存储的是中文备注信息  中药存储的是嘱托Id
-                if (StringUtils.isNotEmpty(drugEntrustId)){
-                    drugList.setDrugEntrust(null==drugList.getDrugEntrust()?drugEntrustId:drugList.getDrugEntrust());
-                }
-                LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo4:{}", drugInfo);
-                //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
-                if (new Integer(3).equals(drugType)&&StringUtils.isEmpty(drugEntrustId)){
-                    drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
-                    drugList.setDrugEntrustCode("sos");
-                    drugList.setDrugEntrust("无特殊煎法");
+                List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+                boolean drugEntrustName = drugEntrusts.stream().anyMatch(a -> "无特殊煎法".equals(a.getDrugEntrustName()));
+                if (drugEntrustName) {
+                    //查询嘱托Id
+                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo2:{}", drugInfo);
+                    String drugEntrustId = organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(), organId);
+                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo3:{}", drugInfo);
+                    //西药存储的是中文备注信息  中药存储的是嘱托Id
+                    if (StringUtils.isNotEmpty(drugEntrustId)) {
+                        drugList.setDrugEntrust(null == drugList.getDrugEntrust() ? drugEntrustId : drugList.getDrugEntrust());
+                    }
+                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo4:{}", drugInfo);
+                    //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
+                    if (new Integer(3).equals(drugType) && StringUtils.isEmpty(drugEntrustId)) {
+                        drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
+                        drugList.setDrugEntrustCode("sos");
+                        drugList.setDrugEntrust("无特殊煎法");
+                    }
                 }
                 LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo5:{}", drugInfo);
                 //药品库存标志-是否查药企库存
