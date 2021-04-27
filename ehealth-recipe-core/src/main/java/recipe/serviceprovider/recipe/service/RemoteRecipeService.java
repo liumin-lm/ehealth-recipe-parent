@@ -26,9 +26,10 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
@@ -2429,7 +2430,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public List<HealthCardBean> queryHealthCardFromHisAndMerge(final Integer organId, final String mpiid, final boolean remotePull){
         LOGGER.info("queryHealthCardFromHisAndMerge.organId ={},Mpiid={}",organId,mpiid);
-        IHealthCardService cardService= AppContextHolder.getBean("eh.remoteHealthCardService",IHealthCardService.class);
+        IHealthCardService cardService = BaseAPI.getService(IHealthCardService.class);
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         try {
             //患者的所有卡
