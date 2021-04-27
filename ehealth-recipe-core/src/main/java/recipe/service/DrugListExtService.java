@@ -1403,26 +1403,30 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     DrugPharmacyInventoryInfo pharmacyInventory;
                     pharmacyInventories = new ArrayList<>(drugsEnterprises.size());
                     for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                        //如果配置了不需要校验库存默认显示有
-                        if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
-                            inventory = "有";
-                        } else if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag()) && CollectionUtils.isNotEmpty(drugInventoryInfos)) {
-                            inventory = drugInventoryInfos.get(0).getPharmacyInventories().get(0).getAmount();
-                        }else {
-                            inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
+                        try{
+                            //如果配置了不需要校验库存默认显示有
+                            if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
+                                inventory = "有";
+                            } else if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag()) && CollectionUtils.isNotEmpty(drugInventoryInfos)) {
+                                inventory = drugInventoryInfos.get(0).getPharmacyInventories().get(0).getAmount();
+                            }else {
+                                inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
+                            }
+                            //过滤掉暂不支持库存查询的药企
+                            if ("暂不支持库存查询".equals(inventory)){
+                                continue;
+                            }
+                            pharmacyInventory = new DrugPharmacyInventoryInfo();
+                            pharmacyInventory.setPharmacyCode(String.valueOf(drugsEnterprise.getId()));
+                            pharmacyInventory.setPharmacyName(drugsEnterprise.getName());
+                            //库存数量or有无库存
+                            pharmacyInventory.setAmount(inventory);
+                            //设置药企类型
+                            setPharmacyInventoryType(drugsEnterprise, pharmacyInventory);
+                            pharmacyInventories.add(pharmacyInventory);
+                        } catch (Exception e){
+                            LOGGER.error("setDrugsEnterpriseInventories error", e);
                         }
-                        //过滤掉暂不支持库存查询的药企
-                        if ("暂不支持库存查询".equals(inventory)){
-                            continue;
-                        }
-                        pharmacyInventory = new DrugPharmacyInventoryInfo();
-                        pharmacyInventory.setPharmacyCode(String.valueOf(drugsEnterprise.getId()));
-                        pharmacyInventory.setPharmacyName(drugsEnterprise.getName());
-                        //库存数量or有无库存
-                        pharmacyInventory.setAmount(inventory);
-                        //设置药企类型
-                        setPharmacyInventoryType(drugsEnterprise, pharmacyInventory);
-                        pharmacyInventories.add(pharmacyInventory);
                     }
                     drugInventory = DrugInventoryInfo.builder()
                             .type("drugEnterprise")
