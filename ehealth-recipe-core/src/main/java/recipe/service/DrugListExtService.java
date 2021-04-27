@@ -432,7 +432,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
         // 添加医院数据
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
-            drugListBeans.forEach(a -> a.setDrugType(commonDrugListDTO.getDrugType()));
+            for (DrugListBean a : drugListBeans) {
+                a.setDrugType(commonDrugListDTO.getDrugType());
+            }
             getHospitalPrice(commonDrugListDTO.getOrganId(), drugListBeans);
         }
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
@@ -444,6 +446,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
                 boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(commonDrugListDTO.getOrganId(), drugListBean.getDrugId());
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
+                //解决中药没有维护默认嘱托的时候，设定为默认选中
+                String drugEntrustId = drugListBean.getDrugEntrust();
+                if (StringUtils.isEmpty(drugEntrustId)&&drugListBean.getDrugType().equals(new Integer(3))){
+                    DrugEntrust entrust = new DrugEntrust();
+                    drugListBean.setDrugEntrust("无特殊煎法");
+                    drugListBean.setDrugEntrustCode("sos");
+                    drugListBean.setDrugEntrustId("56");
+                }
             }
         }
         LOGGER.info("findCommonDrugListsNew.drugListBeans={}", JSONUtils.toString(drugListBeans));
