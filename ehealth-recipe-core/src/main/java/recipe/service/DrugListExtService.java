@@ -474,7 +474,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //根据药房属性 过滤失效药品
         if (commonDrugListDTO.getPharmacyId() != null) {
             PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
-            List<String> pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId()).getPharmacyCategray().split(","));
+            PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId());
+            List<String> pharmacyCategaryList = new LinkedList<>();
+            if (null != pharmacyTcm) {
+                pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId()).getPharmacyCategray().split(","));
+            }
             List<DrugListBean> pharmacyCategaryListResult = new ArrayList<>();
             for (DrugListBean drugListBean : drugListBeans) {
                 String drugType= "";
