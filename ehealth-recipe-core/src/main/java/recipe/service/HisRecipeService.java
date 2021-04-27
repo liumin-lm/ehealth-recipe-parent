@@ -898,6 +898,8 @@ public class HisRecipeService {
 
     private List<HisRecipeDetailVO> getHisRecipeDetailVOS(Recipe recipe) {
         List<HisRecipeDetailVO> recipeDetailVOS = new ArrayList<>();
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         for (Recipedetail recipedetail : recipedetails) {
             HisRecipeDetailVO hisRecipeDetailVO = new HisRecipeDetailVO();
@@ -909,6 +911,14 @@ public class HisRecipeService {
             hisRecipeDetailVO.setUseTotalDose(new BigDecimal(recipedetail.getUseTotalDose()));
             hisRecipeDetailVO.setUseDose(recipedetail.getUseDose()==null?"":recipedetail.getUseDose().toString());
             hisRecipeDetailVO.setDrugUnit(recipedetail.getDrugUnit());
+            DrugListBean drugList = new DrugListBean();
+            drugList.setDrugName(hisRecipeDetailVO.getDrugName());
+            drugList.setSaleName(hisRecipeDetailVO.getSaleName());
+            drugList.setDrugSpec(hisRecipeDetailVO.getDrugSpec());
+            drugList.setUnit(hisRecipeDetailVO.getDrugUnit());
+            drugList.setDrugForm(hisRecipeDetailVO.getDrugForm());
+            //前端展示的药品拼接名处理
+            hisRecipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipe.getRecipeType())));
             recipeDetailVOS.add(hisRecipeDetailVO);
         }
         return recipeDetailVOS;
