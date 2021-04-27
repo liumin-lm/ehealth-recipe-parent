@@ -690,21 +690,17 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                     (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType()) && collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType()))) {
                 if (CollectionUtils.isNotEmpty(sendTypes)) {
                     if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType()) && sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
                     } else if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType())) {
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
                     } else if (sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
                         recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
                     }
                 } else {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
                     recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
                     recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
                     recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());

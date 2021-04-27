@@ -235,9 +235,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 list.add("supportTFDS");
             } else {
                 List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
-                if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))) {
-                    list.add("supportToHos");
-                }
+
                 if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
                     list.add("showSendToEnterprises");
                 }
