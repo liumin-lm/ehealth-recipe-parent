@@ -1837,7 +1837,7 @@ public class RecipeServiceSub {
             if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
                 if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA) && recipe.getRecipeSourceType().equals(2)) {
                     DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
                     map.put("checkerSignImg", defaultDoctor.getSignImage());
                     map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
