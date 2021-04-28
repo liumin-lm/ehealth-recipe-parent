@@ -798,7 +798,7 @@ public class RecipeService extends RecipeBaseService {
                     requestSealTO.setSealBase64Str("");
                 }
                 //CA
-                ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaSignService", ICaRemoteService.class);
+                ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ICaRemoteService.class);
                 ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
                 iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
