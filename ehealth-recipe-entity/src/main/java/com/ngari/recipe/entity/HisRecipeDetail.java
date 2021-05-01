@@ -80,6 +80,13 @@ public class HisRecipeDetail implements Serializable{
     @ItemProperty(alias = "药品剂量特殊用法")
     private String useDoseStr;
 
+    @ItemProperty(alias = "药房code")
+    private String pharmacyCode;
+
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
+
     @Column(name = "useDoseStr")
     public String getUseDoseStr() {
         return useDoseStr;
@@ -332,5 +339,23 @@ public class HisRecipeDetail implements Serializable{
 
     public void setDrugCode(String drugCode) {
         this.drugCode = drugCode;
+    }
+
+    @Column(name="pharmacyCode")
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    @Column(name="pharmacyName")
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
     }
 }

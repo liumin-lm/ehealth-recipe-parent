@@ -78,6 +78,9 @@ public class HisRecipeService {
     private RecipeDetailDAO recipeDetailDAO;
 
     @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+
+    @Autowired
     private EmrRecipeManager emrRecipeManager;
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
 
@@ -862,6 +865,9 @@ public class HisRecipeService {
                         detail.setStatus(1);
                         //西药医嘱
                         detail.setMemo(recipeDetailTO.getMemo());
+                        //药房信息
+                        detail.setPharmacyCode(recipeDetailTO.getPharmacyCode());
+                        detail.setPharmacyName(recipeDetailTO.getpharmacyName());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
@@ -1302,6 +1308,18 @@ public class HisRecipeService {
                 recipedetail.setDrugCost(hisRecipeDetail.getTotalPrice());
             }
             recipedetail.setMemo(hisRecipeDetail.getMemo());
+            //药房信息
+            if(StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyCode())){
+                PharmacyTcm pharmacy=pharmacyTcmDAO.getByPharmacyAndOrganId(hisRecipeDetail.getPharmacyCode(),hisRecipe.getClinicOrgan());
+                if(pharmacy!=null){
+                    recipedetail.setPharmacyCode(pharmacy.getPharmacyCode());
+                    recipedetail.setPharmacyName(pharmacy.getpharmacyName());
+                }
+            }
+            if(StringUtils.isNotEmpty(hisRecipeDetail.getpharmacyName())){
+                recipedetail.setPharmacyName(hisRecipeDetail.getpharmacyName());
+            }
+
             recipeDetailDAO.save(recipedetail);
         }
     }
