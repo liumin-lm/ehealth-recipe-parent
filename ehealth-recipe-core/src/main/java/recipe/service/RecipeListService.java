@@ -110,6 +110,8 @@ public class RecipeListService extends RecipeBaseService {
     private IConfigurationCenterUtilsService configService;
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
+    @Resource
+    private PharmacyTcmDAO pharmacyTcmDAO;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
     //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
@@ -752,9 +754,22 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy2(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()), refundIdMap.get(recipe.getRecipeId()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-                List<HisRecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipedetails, HisRecipeDetailBean.class);
 
-                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe,recipeDetailBeans));
+                Set<Integer> integers = recipedetails.stream().collect(Collectors.groupingBy(Recipedetail::getPharmacyId)).keySet();
+                List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(integers);
+                Map<Integer, List<PharmacyTcm>> collect = null;
+                if(Objects.nonNull(pharmacyTcmByIds)) {
+                    collect = pharmacyTcmByIds.stream().collect(Collectors.groupingBy(PharmacyTcm::getPharmacyId));
+                }
+                Map<Integer, List<PharmacyTcm>> finalCollect = collect;
+                List<HisRecipeDetailBean> collect1 = recipedetails.stream().map(recipeDetail -> {
+                    HisRecipeDetailBean convert = ObjectCopyUtils.convert(recipeDetail, HisRecipeDetailBean.class);
+                    if(Objects.nonNull(finalCollect)) {
+                        convert.setPharmacyCode(finalCollect.get(recipeDetail.getPharmacyId()).get(0).getPharmacyCode());
+                    }
+                    return convert;
+                }).collect(Collectors.toList());
+                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe,collect1));
                 map.put("patient", patient);
                 //LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
