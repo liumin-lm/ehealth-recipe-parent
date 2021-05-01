@@ -867,7 +867,7 @@ public class HisRecipeService {
                         detail.setMemo(recipeDetailTO.getMemo());
                         //药房信息
                         detail.setPharmacyCode(recipeDetailTO.getPharmacyCode());
-                        detail.setPharmacyName(recipeDetailTO.getpharmacyName());
+                        detail.setPharmacyName(recipeDetailTO.getPharmacyName());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
@@ -1312,12 +1312,12 @@ public class HisRecipeService {
             if(StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyCode())){
                 PharmacyTcm pharmacy=pharmacyTcmDAO.getByPharmacyAndOrganId(hisRecipeDetail.getPharmacyCode(),hisRecipe.getClinicOrgan());
                 if(pharmacy!=null){
-                    recipedetail.setPharmacyCode(pharmacy.getPharmacyCode());
-                    recipedetail.setPharmacyName(pharmacy.getpharmacyName());
+                    recipedetail.setPharmacyId(pharmacy.getPharmacyId());
+                    recipedetail.setPharmacyName(pharmacy.getPharmacyName());
                 }
             }
-            if(StringUtils.isNotEmpty(hisRecipeDetail.getpharmacyName())){
-                recipedetail.setPharmacyName(hisRecipeDetail.getpharmacyName());
+            if(StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyName())){
+                recipedetail.setPharmacyName(hisRecipeDetail.getPharmacyName());
             }
 
             recipeDetailDAO.save(recipedetail);
