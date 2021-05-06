@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
+import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.PharmacyTcmDTO;
 import ctd.persistence.annotation.DAOMethod;
@@ -21,6 +22,7 @@ import recipe.constant.ErrorCode;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 药房dao
@@ -152,4 +154,22 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
 
     @DAOMethod(sql = "select count(*) from PharmacyTcm where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
+
+
+    public  List<PharmacyTcm> getPharmacyTcmByIds(@DAOParam("integers") Set<Integer> integers){
+        HibernateStatelessResultAction<List<PharmacyTcm> > action = new AbstractHibernateStatelessResultAction<List<PharmacyTcm> >() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from PharmacyTcm where pharmacyId in :integers";
+                Map<String, Object> param = Maps.newHashMap();
+                param.put("integers", integers);
+                Query query = ss.createQuery(hql);
+                query.setProperties(param);
+                List list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 }

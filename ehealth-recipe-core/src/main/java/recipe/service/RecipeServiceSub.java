@@ -1443,7 +1443,7 @@ public class RecipeServiceSub {
         return r;
     }
 
-    public static RecipeBean convertRecipeForRAPNew(Recipe recipe) {
+    public static RecipeBean convertRecipeForRAPNew(Recipe recipe,List<HisRecipeDetailBean> recipeDetailBeans) {
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1457,6 +1457,7 @@ public class RecipeServiceSub {
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setPayFlag(recipe.getPayFlag());
+        r.setDetailData(recipeDetailBeans);
         return r;
     }
 

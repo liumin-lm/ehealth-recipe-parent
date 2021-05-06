@@ -78,6 +78,9 @@ public class HisRecipeService {
     private RecipeDetailDAO recipeDetailDAO;
 
     @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+
+    @Autowired
     private EmrRecipeManager emrRecipeManager;
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
 
@@ -425,6 +428,29 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
+        //测试用 别删
+//        if(responseTO!=null){
+//            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
+//            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
+//                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
+////                    if(1==queryHisRecipResTO.getStatus()){
+////                        queryHisRecipResTO.setRecipeCode("444");
+////                    }
+////                    if(2==queryHisRecipResTO.getStatus()){
+////                        queryHisRecipResTO.setRecipeCode("111");
+////                        queryHisRecipResTO.setStatus(1);
+////                    }
+//                    queryHisRecipResTO.setRecipeCostNumber("111");
+//                    queryHisRecipResTO.setDecoctionFee(new BigDecimal(20));
+//                    queryHisRecipResTO.setTcmFee(new BigDecimal(19));
+//                    List<RecipeDetailTO> recipeDetailTOS=queryHisRecipResTO.getDrugList();
+//                    for(RecipeDetailTO recipeDetailTO:recipeDetailTOS){
+//                        recipeDetailTO.setPharmacyCode("zx-yf001");
+//                        recipeDetailTO.setPharmacyName("药房名称");
+//                    }
+//                }
+//            }
+//        }
         //过滤数据
         responseTO=filterData(responseTO);
         LOGGER.info("queryHisRecipeInfo queryData:{}.", JSONUtils.toString(responseTO));
@@ -862,6 +888,9 @@ public class HisRecipeService {
                         detail.setStatus(1);
                         //西药医嘱
                         detail.setMemo(recipeDetailTO.getMemo());
+                        //药房信息
+                        detail.setPharmacyCode(recipeDetailTO.getPharmacyCode());
+                        detail.setPharmacyName(recipeDetailTO.getPharmacyName());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
@@ -1302,6 +1331,18 @@ public class HisRecipeService {
                 recipedetail.setDrugCost(hisRecipeDetail.getTotalPrice());
             }
             recipedetail.setMemo(hisRecipeDetail.getMemo());
+            //药房信息
+            if(StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyCode())){
+                PharmacyTcm pharmacy=pharmacyTcmDAO.getByPharmacyAndOrganId(hisRecipeDetail.getPharmacyCode(),hisRecipe.getClinicOrgan());
+                if(pharmacy!=null){
+                    recipedetail.setPharmacyId(pharmacy.getPharmacyId());
+                    recipedetail.setPharmacyName(pharmacy.getPharmacyName());
+                }
+            }
+            if(StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyName())){
+                recipedetail.setPharmacyName(hisRecipeDetail.getPharmacyName());
+            }
+
             recipeDetailDAO.save(recipedetail);
         }
     }
