@@ -149,7 +149,7 @@ public class OrganDrugList implements java.io.Serializable {
     private Boolean medicalInsuranceControl;
 
     @ItemProperty(alias = "适应症 说明")
-    private String IndicationsDeclare;
+    private String indicationsDeclare;
 
     public OrganDrugList() {
     }
@@ -538,12 +538,12 @@ public class OrganDrugList implements java.io.Serializable {
         this.medicalInsuranceControl = medicalInsuranceControl;
     }
 
-    @Column(name = "IndicationsDeclare")
+    @Column(name = "indicationsDeclare")
     public String getIndicationsDeclare() {
-        return IndicationsDeclare;
+        return indicationsDeclare;
     }
 
     public void setIndicationsDeclare(String indicationsDeclare) {
-        IndicationsDeclare = indicationsDeclare;
+        indicationsDeclare = indicationsDeclare;
     }
 }
