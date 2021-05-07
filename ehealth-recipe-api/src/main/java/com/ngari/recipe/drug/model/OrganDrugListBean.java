@@ -495,6 +495,6 @@ public class OrganDrugListBean implements java.io.Serializable {
     }
 
     public void setIndicationsDeclare(String indicationsDeclare) {
-        indicationsDeclare = indicationsDeclare;
+        this.indicationsDeclare = indicationsDeclare;
     }
 }
