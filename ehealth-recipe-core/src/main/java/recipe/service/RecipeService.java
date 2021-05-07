@@ -40,6 +40,7 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeDetailsBean;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -5882,5 +5883,18 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.dtoList{}", JSONUtils.toString(dtoList));
         return dtoList;
+    }
+
+    /**
+     *
+     * 医保药品判定
+     */
+    @RpcService
+    public List<OrganDrugList> medicalCheck(List<RecipeDetailBean> detailBeanList, Integer organId) {
+        OrganDrugListDAO drugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
+        List<OrganDrugList> byOrganIdAndDrugIdList = drugListDAO.findByOrganIdAndDrugIdList(organId, drugIds);
+        List<OrganDrugList> collect = byOrganIdAndDrugIdList.stream().filter(OrganDrugList::getMedicalInsuranceControl).collect(Collectors.toList());
+        return collect;
     }
 }
