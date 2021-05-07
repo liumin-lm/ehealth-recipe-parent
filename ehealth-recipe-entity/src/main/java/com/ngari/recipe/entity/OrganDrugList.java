@@ -145,6 +145,11 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品嘱托")
     private String drugEntrust;
 
+    @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
+    private Boolean medicalInsuranceControl;
+
+    @ItemProperty(alias = "适应症 说明")
+    private String IndicationsDeclare;
 
     public OrganDrugList() {
     }
@@ -524,4 +529,21 @@ public class OrganDrugList implements java.io.Serializable {
         this.drugEntrust = drugEntrust;
     }
 
+    @Column(name = "medicalInsuranceControl")
+    public Boolean getMedicalInsuranceControl() {
+        return medicalInsuranceControl;
+    }
+
+    public void setMedicalInsuranceControl(Boolean medicalInsuranceControl) {
+        this.medicalInsuranceControl = medicalInsuranceControl;
+    }
+
+    @Column(name = "IndicationsDeclare")
+    public String getIndicationsDeclare() {
+        return IndicationsDeclare;
+    }
+
+    public void setIndicationsDeclare(String indicationsDeclare) {
+        IndicationsDeclare = indicationsDeclare;
+    }
 }
