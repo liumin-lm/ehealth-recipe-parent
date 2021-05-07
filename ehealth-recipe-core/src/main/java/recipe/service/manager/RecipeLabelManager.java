@@ -349,12 +349,12 @@ public class RecipeLabelManager {
         if (CollectionUtils.isEmpty(recipeMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeMap is null!");
         }
-        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
         //处理性别转化
         PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
         if (null != patientDTO && StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
             patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
         }
+        RecipeBean recipeBean = (RecipeBean) recipeMap.get("recipe");
         //药品金额
         RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeBean.getRecipeId());
         if (null != recipeOrder && null != recipeOrder.getRecipeFee()) {
@@ -379,15 +379,10 @@ public class RecipeLabelManager {
         }
         //机构名称替换
         if (!CollectionUtils.isEmpty(list)) {
-            String boxDesc = null;
             for (Scratchable scratchable : list) {
                 if ("recipe.organName".equals(scratchable.getBoxLink()) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-                    boxDesc = scratchable.getBoxDesc();
-                }
-            }
-            if (StringUtils.isNotEmpty(boxDesc)) {
-                if (null != recipeBean) {
-                    recipeBean.setOrganName(boxDesc);
+                    recipeBean.setOrganName(scratchable.getBoxDesc());
+                    break;
                 }
             }
         }
