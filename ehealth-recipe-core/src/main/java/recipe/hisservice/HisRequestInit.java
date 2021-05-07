@@ -526,6 +526,8 @@ public class HisRequestInit {
                         //产地名称
                         orderItem.setDrugManf(organDrug.getProducer());
                     }
+                    //设置单个药品医保类型
+                    orderItem.setDrugMedicalFlag(detail.getDrugMedicalFlag());
                     orderList.add(orderItem);
                 }
             } catch (Exception e) {

@@ -248,6 +248,9 @@ public class Recipedetail implements java.io.Serializable {
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
 
+	@ItemProperty(alias = "单个药品医保类型")
+	private Integer drugMedicalFlag;
+
 	@Column(name = "drugEntrustCode")
 	public String getDrugEntrustCode() {
 		return drugEntrustCode;
@@ -942,4 +945,13 @@ public class Recipedetail implements java.io.Serializable {
     public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
+
+    @Column(name = "drugMedicalFlag")
+	public Integer getDrugMedicalFlag() {
+		return drugMedicalFlag;
+	}
+
+	public void setDrugMedicalFlag(Integer drugMedicalFlag) {
+		this.drugMedicalFlag = drugMedicalFlag;
+	}
 }
