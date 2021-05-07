@@ -288,7 +288,6 @@ public class RecipeLabelManager {
             return;
         }
         redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
-
     }
 
     /**
