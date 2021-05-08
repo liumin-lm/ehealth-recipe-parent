@@ -1601,16 +1601,16 @@ public class RecipeService extends RecipeBaseService {
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
             // 药企有库存的情况下区分到店取药与药企配送
-            if (Integer.valueOf(1).equals(continueFlag)) {
-                List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-                LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} drugsEnterpriseContinue = {}", recipeBean.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
-                if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                    Map<String, Object> attMap = new HashMap<>();
-                    String join = StringUtils.join(drugsEnterpriseContinue, ",");
-                    attMap.put("recipeSupportGiveMode", join);
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
-                }
+
+            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan(), continueFlag);
+            LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} drugsEnterpriseContinue = {}", recipeBean.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
+            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
+                Map<String, Object> attMap = new HashMap<>();
+                String join = StringUtils.join(drugsEnterpriseContinue, ",");
+                attMap.put("recipeSupportGiveMode", join);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
+
 
             //第二步预校验
             if (continueFlag == 0) {
@@ -5904,7 +5904,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     *
      * 医保药品判定
      */
     @RpcService

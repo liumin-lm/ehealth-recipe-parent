@@ -29,7 +29,7 @@ public enum RecipeSupportGiveModeEnum {
     /**
      * downloadRecipe 下载处方笺
      */
-    DOWNLOAD_RECIPE("downloadRecipe",5),
+    DOWNLOAD_RECIPE("supportDownload",5),
 
     ;
 
