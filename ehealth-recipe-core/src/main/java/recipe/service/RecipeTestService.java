@@ -10,6 +10,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.session.ClientSession;
@@ -332,5 +333,8 @@ public class RecipeTestService {
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
         logisticsOnlineOrderService.onlineOrder(order, recipes);
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        hisService.recipeDrugTake(recipes.get(0).getRecipeId(), order.getPayFlag(), result);
     }
 }
