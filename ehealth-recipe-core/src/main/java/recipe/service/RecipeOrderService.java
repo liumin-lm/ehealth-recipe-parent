@@ -73,6 +73,7 @@ import recipe.drugsenterprise.*;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
+import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
@@ -130,6 +131,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private AfterPayBusService afterPayBusService;
+
+    @Autowired
+    private LogisticsOnlineOrderService logisticsOnlineOrderService;
 
     /**
      * 处方结算时创建临时订单
@@ -2096,7 +2100,9 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
-
+            if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
+                logisticsOnlineOrderService.onlineOrder(order, recipes);
+            }
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
