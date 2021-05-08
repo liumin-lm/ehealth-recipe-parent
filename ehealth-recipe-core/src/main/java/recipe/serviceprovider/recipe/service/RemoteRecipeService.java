@@ -1323,7 +1323,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (configBean==null){
             throw new DAOException("当前配置configBean不能为null");
         }
-        drugInfoReq.setOrganId(configBean.getOrganId());
+        if (drugInfoReq.getOrganId()==null){
+            drugInfoReq.setOrganId(configBean.getOrganId());
+        }
         //调用前置机接口进行数据返回
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
