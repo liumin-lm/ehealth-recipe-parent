@@ -1370,6 +1370,7 @@ public class RecipeServiceSub {
     @Deprecated
     public static PatientDTO convertPatientForRAP(PatientDTO patient) {
         PatientDTO p = new PatientDTO();
+        p.setPatientUserType(patient.getPatientUserType());
         p.setPatientName(patient.getPatientName());
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());
