@@ -1361,7 +1361,7 @@ public class RecipeServiceSub {
     }
 
     /**
-     * 兼容脱敏，做预备方案,
+     * 兼容脱敏，做预备方案,左手到右手 可以去除一些不希望前端展示的字段
      *
      * @param patient
      * @return
