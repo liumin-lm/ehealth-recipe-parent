@@ -7,7 +7,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.clientconfig.service.IClientConfigService;
+import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.common.ICommonService;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -21,6 +24,8 @@ import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.mode.weijianwei.DrugDetailResult;
+import com.ngari.his.recipe.mode.weijianwei.DrugInfoReq;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
@@ -49,6 +54,7 @@ import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
+import ctd.account.Client;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -119,6 +125,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
+    //限制分页大小
+    private static final Integer PAGESIZE=50;
+    //初始页码
+    private static final Integer PAGENUM=0;
 //    @Autowired
 //    private CommonCAFactory commonCAFactory;
 
@@ -1277,6 +1287,60 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return result;
     }
+
+    /**
+     * 获取创业第三方药品库存接口
+     * @param drugInfoReq
+     * @return
+     */
+    @Override
+    @RpcService
+    public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq){
+        LOGGER.info("remoteRecipeService getDrugStockForArea drugInfoReq={}", JSONUtils.toString(drugInfoReq));
+        if (drugInfoReq==null){
+            return null;
+        }
+
+        if (StringUtils.isEmpty(drugInfoReq.getDrugName())){
+            throw new DAOException("drugInfoReq drugName药品名不能为空");
+        }
+
+        if (drugInfoReq.getPageNum()==null){
+            drugInfoReq.setPageNum(PAGENUM);
+        }
+        //每页的条目数，最大为50条，改参数不填或设置超过50条，系统自动默认为50条
+        if (drugInfoReq.getPageSize()==null||drugInfoReq.getPageSize()>PAGESIZE){
+            drugInfoReq.setPageSize(PAGESIZE);
+        }
+
+        if (drugInfoReq.getOrganId()==null){
+            IClientConfigService clientConfigService = BaseAPI.getService(IClientConfigService.class);
+            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            Client currentClient = currentUserInfoService.getCurrentClient();
+            if (currentClient==null){
+                throw new DAOException("当前登录信息currentClient不能为null");
+            }
+            Integer clientConfigId = currentClient.getClientConfigId();
+            //获取当前区域公众号下的管理机构
+            ClientConfigBean configBean = clientConfigService.getByClientConfigId(clientConfigId);
+            if (configBean==null){
+                throw new DAOException("当前配置configBean不能为null");
+            }
+            drugInfoReq.setOrganId(configBean.getOrganId());
+            LOGGER.info("remoteRecipeService getDrugStockForArea configBean={},clientConfigId={},", JSONUtils.toString(configBean),clientConfigId);
+        }
+
+        //调用前置机接口进行数据返回
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
+        if (CollectionUtils.isNotEmpty((Collection) responseTO)){
+            return (List<DrugDetailResult>) responseTO;
+        }
+        LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
+        return null;
+    }
+
+
 
     private boolean valiSyncEinvoiceNumber(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO, HisResponseTO result) {
         boolean flag = true;
