@@ -1334,7 +1334,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
         if (CollectionUtils.isNotEmpty((Collection) responseTO)){
-            return (List<DrugDetailResult>) responseTO;
+            List<DrugDetailResult> data = responseTO.getData();
+            return ObjectCopyUtils.convert(data, DrugDetailResult.class);
         }
         LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
         return null;
