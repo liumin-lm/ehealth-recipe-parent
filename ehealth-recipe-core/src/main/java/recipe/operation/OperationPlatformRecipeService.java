@@ -121,6 +121,7 @@ public class OperationPlatformRecipeService {
     @RpcService
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
 
+        LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId,checkerId);
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -355,13 +356,22 @@ public class OperationPlatformRecipeService {
         //患者就诊卡信息
         HashMap<String, String> cardMap = Maps.newHashMap();
         if (extend != null) {
+            try {
+            //就诊卡卡号--只有复诊的患者才有就诊卡类型
             String cardNo = extend.getCardNo();
-            String cardTypeName = extend.getCardTypeName();
-            cardMap.put("cardNo", cardNo);
-            cardMap.put("cardTypeName", cardTypeName);
+            //就诊卡类型
+            String cardType = extend.getCardType();
+            //如果cardName存在，则取cardName,否则从字典中取，如果两者都没有的话，那就是没有
+            //就诊卡名称
+            String  cardTypeName=extend.getCardTypeName()==null?DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()):extend.getCardTypeName();
+                cardMap.put("cardType",cardType);
+                cardMap.put("cardNo", cardNo);
+                cardMap.put("cardTypeName", cardTypeName);
+                map.put("card", cardMap);
+            }catch (Exception e1){
+                LOGGER.error("findRecipeAndDetailsAndCheckById.error",e1);
+            }
         }
-        map.put("card", cardMap);
-
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("guardian", guardian);
 
@@ -397,7 +407,7 @@ public class OperationPlatformRecipeService {
                     recipeDanger.setDetailUrl(item.getDetailUrl());
                     recipeDangers.add(recipeDanger);
                 });
-                map.put("recipeDangers", recipeDangers); //返回处方分析数据
+                map.put("recipeDangers", recipeDangers);
             }
         }
 
@@ -426,6 +436,7 @@ public class OperationPlatformRecipeService {
         }
         ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
         map.put("apothecary", apothecaryVO);
+        LOGGER.info("findRecipeAndDetailsAndCheckById.map={}",JSONUtils.toString(map));
         return map;
     }
 
