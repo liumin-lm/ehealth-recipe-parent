@@ -1309,30 +1309,34 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             drugInfoReq.setPageNum(PAGENUM);
         }
         //每页的条目数，最大为50条，改参数不填或设置超过50条，系统自动默认为50条
-        drugInfoReq.setPageSize(PAGESIZE);
+        if (drugInfoReq.getPageSize()==null||drugInfoReq.getPageSize()>PAGESIZE){
+            drugInfoReq.setPageSize(PAGESIZE);
+        }
 
-        IClientConfigService clientConfigService = BaseAPI.getService(IClientConfigService.class);
-        ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-        Client currentClient = currentUserInfoService.getCurrentClient();
-        if (currentClient==null){
-            throw new DAOException("当前登录信息currentClient不能为null");
-        }
-        Integer clientConfigId = currentClient.getClientConfigId();
-        //获取当前区域公众号下的管理机构
-        ClientConfigBean configBean = clientConfigService.getByClientConfigId(clientConfigId);
-        if (configBean==null){
-            throw new DAOException("当前配置configBean不能为null");
-        }
         if (drugInfoReq.getOrganId()==null){
+            IClientConfigService clientConfigService = BaseAPI.getService(IClientConfigService.class);
+            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            Client currentClient = currentUserInfoService.getCurrentClient();
+            if (currentClient==null){
+                throw new DAOException("当前登录信息currentClient不能为null");
+            }
+            Integer clientConfigId = currentClient.getClientConfigId();
+            //获取当前区域公众号下的管理机构
+            ClientConfigBean configBean = clientConfigService.getByClientConfigId(clientConfigId);
+            if (configBean==null){
+                throw new DAOException("当前配置configBean不能为null");
+            }
             drugInfoReq.setOrganId(configBean.getOrganId());
+            LOGGER.info("remoteRecipeService getDrugStockForArea configBean={},clientConfigId={},", JSONUtils.toString(configBean),clientConfigId);
         }
+
         //调用前置机接口进行数据返回
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
         if (CollectionUtils.isNotEmpty((Collection) responseTO)){
             return (List<DrugDetailResult>) responseTO;
         }
-        LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={},configBean={}", JSONUtils.toString(responseTO),JSONUtils.toString(configBean));
+        LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
         return null;
     }
 
