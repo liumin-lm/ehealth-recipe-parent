@@ -4701,6 +4701,12 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getHisFormCode())) {
             drugListMatch.setHisFormCode(drug.getHisFormCode());
         }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceControl())) {
+            drugListMatch.setMedicalInsuranceControl(drug.getMedicalInsuranceControl());
+        }
+        if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
+            drugListMatch.setIndicationsDeclare(drug.getIndicationsDeclare());
+        }
 
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -4839,6 +4845,12 @@ public class RecipeService extends RecipeBaseService {
         //医保剂型编码
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceControl())) {
+            organDrug.setMedicalInsuranceControl(drug.getMedicalInsuranceControl());
+        }
+        if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
+            organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
@@ -4998,6 +5010,12 @@ public class RecipeService extends RecipeBaseService {
         //HIS剂型编码
         if (!ObjectUtils.isEmpty(drug.getDrugFormCode())) {
             organDrug.setDrugFormCode(drug.getDrugFormCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceControl())) {
+            organDrug.setMedicalInsuranceControl(drug.getMedicalInsuranceControl());
+        }
+        if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
+            organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
         //医保剂型编码
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
