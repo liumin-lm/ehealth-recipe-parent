@@ -440,10 +440,6 @@ public class DrugToolService implements IDrugToolService {
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(12)))) {
                     drug.setIndicationsDeclare(getStrFromCell(row.getCell(12)));
-                }else {
-                    if (("是").equals(getStrFromCell(row.getCell(11)))) {
-                        errMsg.append("医保控制为是 适应症说明必须要有 ").append(";");
-                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("适应症说明有误 ," + e.getMessage(), e);
