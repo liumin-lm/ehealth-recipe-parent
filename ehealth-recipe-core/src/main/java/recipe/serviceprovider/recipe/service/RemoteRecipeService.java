@@ -1333,7 +1333,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //调用前置机接口进行数据返回
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
-        if (CollectionUtils.isNotEmpty((Collection) responseTO)){
+        if (responseTO!=null){
             List<DrugDetailResult> data = responseTO.getData();
             return ObjectCopyUtils.convert(data, DrugDetailResult.class);
         }
