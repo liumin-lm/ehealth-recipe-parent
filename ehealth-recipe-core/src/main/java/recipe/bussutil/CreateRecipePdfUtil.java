@@ -293,6 +293,91 @@ public class CreateRecipePdfUtil {
     }
 
 
+
+    /**
+     * 在处方pdf上手动挂上医生药师图片
+     *
+     * @param pdfBase64String   pdf
+     * @param doctorSignImageId 医生的图片id
+     */
+    public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
+                                                         String pdfBase64String, String doctorSignImageId) throws Exception {
+        logger.info("generateDocSignImageInRecipePdf recipeId={}, doctorId={}", recipeId, doctorId);
+        float xPoint;
+        float yPoint;
+        if (isDoctor) {
+            xPoint = 55f;
+            yPoint = 76f;
+        } else {
+            xPoint = 190f;
+            yPoint = 76f;
+        }
+
+        String fileId = null;
+        @Cleanup OutputStream output = null;
+        @Cleanup InputStream input = null;
+        try {
+            //首先将产生的base64位的处方pdf生成读出流
+            BASE64Decoder d = new BASE64Decoder();
+            byte[] data = new byte[0];
+            try {
+                data = d.decodeBuffer(pdfBase64String);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            input = new ByteArrayInputStream(data);
+
+            IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+            IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+            byte[] doctorSignImageByte = fileDownloadService.downloadAsByte(doctorSignImageId);
+            File docSignImage = new File(doctorId + new Date().toString() + ".png");
+            getFileByBytes(doctorSignImageByte, docSignImage);
+            fileId = null;
+            if (doctorSignImageByte != null){
+                File file = new File(recipeId + new Date().toString() + ".pdf");
+                output = new FileOutputStream(file);
+                //获取图片url
+                URL url = docSignImage.toURI().toURL();
+                //添加图片
+                addBarCodeImgForRecipePdfByCoordinates(input, output, url, 50f, 20f, xPoint, yPoint, false);
+                //上传pdf文件
+                byte[] bytes = File2byte(file);
+                fileId = fileUploadService.uploadFileWithoutUrt(bytes, file.getName());
+                //删除本地文件
+                file.delete();
+            }
+            docSignImage.delete();
+        } catch (Exception e) {
+            logger.warn("当前处方pdf添加用户图片异常", e);
+        }
+        return fileId;
+
+    }
+
+
+    /**
+     * 所有ca模式医生签名完成后添加水印
+     * @param pdfId
+     * @param waterPrintText
+     * @return
+     * @throws IOException
+     * @throws DocumentException
+     */
+    public static String generateWaterPrintRecipePdf(String pdfId, String waterPrintText) throws IOException, DocumentException {
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            //因为导入包不同，放在此类调用一直报错，所以addWaterPrintForRecipePdf放在新建工具类
+            byte[] bytes = CreateRecipePdfUtilByLowagie.addWaterPrintForRecipePdf(fileDownloadService.downloadAsByte(pdfId), waterPrintText);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+        }
+        logger.info("generateWaterPrintRecipePdf newFileId:{}", fileId);
+        return fileId;
+    }
+
+
     /**
      * 处方签pdf添加收货人信息
      *
@@ -395,91 +480,6 @@ public class CreateRecipePdfUtil {
         return buffer;
     }
 
-
-
-
-    /**
-     * 在处方pdf上手动挂上医生药师图片
-     *
-     * @param pdfBase64String   pdf
-     * @param doctorSignImageId 医生的图片id
-     */
-    public static String generateDocSignImageInRecipePdf(Integer recipeId, Integer doctorId, Boolean isDoctor, Boolean isTcm,
-                                                         String pdfBase64String, String doctorSignImageId) throws Exception {
-        logger.info("generateDocSignImageInRecipePdf recipeId={}, doctorId={}", recipeId, doctorId);
-        float xPoint;
-        float yPoint;
-        if (isDoctor) {
-            xPoint = 55f;
-            yPoint = 76f;
-        } else {
-            xPoint = 190f;
-            yPoint = 76f;
-        }
-
-        String fileId = null;
-        @Cleanup OutputStream output = null;
-        @Cleanup InputStream input = null;
-        try {
-            //首先将产生的base64位的处方pdf生成读出流
-            BASE64Decoder d = new BASE64Decoder();
-            byte[] data = new byte[0];
-            try {
-                data = d.decodeBuffer(pdfBase64String);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            input = new ByteArrayInputStream(data);
-
-            IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-            IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-            byte[] doctorSignImageByte = fileDownloadService.downloadAsByte(doctorSignImageId);
-            File docSignImage = new File(doctorId + new Date().toString() + ".png");
-            getFileByBytes(doctorSignImageByte, docSignImage);
-            fileId = null;
-            if (doctorSignImageByte != null){
-                File file = new File(recipeId + new Date().toString() + ".pdf");
-                output = new FileOutputStream(file);
-                //获取图片url
-                URL url = docSignImage.toURI().toURL();
-                //添加图片
-                addBarCodeImgForRecipePdfByCoordinates(input, output, url, 50f, 20f, xPoint, yPoint, false);
-                //上传pdf文件
-                byte[] bytes = File2byte(file);
-                fileId = fileUploadService.uploadFileWithoutUrt(bytes, file.getName());
-                //删除本地文件
-                file.delete();
-            }
-            docSignImage.delete();
-        } catch (Exception e) {
-            logger.warn("当前处方pdf添加用户图片异常", e);
-        }
-        return fileId;
-
-    }
-
-
-    /**
-     * 所有ca模式医生签名完成后添加水印
-     * @param pdfId
-     * @param waterPrintText
-     * @return
-     * @throws IOException
-     * @throws DocumentException
-     */
-    public static String generateWaterPrintRecipePdf(String pdfId, String waterPrintText) throws IOException, DocumentException {
-        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-        String fileId = null;
-        if (fileMetaRecord != null) {
-            //因为导入包不同，放在此类调用一直报错，所以addWaterPrintForRecipePdf放在新建工具类
-            byte[] bytes = CreateRecipePdfUtilByLowagie.addWaterPrintForRecipePdf(fileDownloadService.downloadAsByte(pdfId), waterPrintText);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
-        }
-        logger.info("generateWaterPrintRecipePdf newFileId:{}", fileId);
-        return fileId;
-    }
 
     /**
      * 生成本地文件
