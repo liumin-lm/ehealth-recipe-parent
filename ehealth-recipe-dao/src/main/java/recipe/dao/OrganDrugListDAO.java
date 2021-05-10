@@ -1124,14 +1124,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @param organId
      * @return
      */
-    public Integer countIsSupperDownloadRecipeByDrugIds(Integer organId, Set<Integer> drugIds) {
+    public Integer countIsSupperDownloadRecipeByDrugIds(@DAOParam("organId") Integer organId, @DAOParam("drugIds") Set<Integer> drugIds) {
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("select count(1) from OrganDrugList where OrganID=:organId and drugId in:drugIds and supportDownloadPrescriptionPad=0 ");
                 Query query = ss.createQuery(String.valueOf(hql));
                 query.setParameter("organId", organId);
-                query.setParameter("drugIds", drugIds);
+                query.setParameterList("drugIds", drugIds);
                 Number number = (Number) query.uniqueResult();
                 setResult(number.intValue());
             }
@@ -1140,5 +1140,5 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    ;
+
 }
