@@ -121,6 +121,9 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "适应症 说明")
     private String indicationsDeclare;
 
+    @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
+    private Boolean supportDownloadPrescriptionPad;
+
     public OrganDrugListDTO() {
     }
 
@@ -394,5 +397,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setIndicationsDeclare(String indicationsDeclare) {
         this.indicationsDeclare = indicationsDeclare;
+    }
+
+    public Boolean getSupportDownloadPrescriptionPad() {
+        return supportDownloadPrescriptionPad;
+    }
+
+    public void setSupportDownloadPrescriptionPad(Boolean supportDownloadPrescriptionPad) {
+        this.supportDownloadPrescriptionPad = supportDownloadPrescriptionPad;
     }
 }
