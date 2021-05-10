@@ -1298,7 +1298,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq){
         LOGGER.info("remoteRecipeService getDrugStockForArea drugInfoReq={}", JSONUtils.toString(drugInfoReq));
         if (drugInfoReq==null){
-            return null;
+            throw new DAOException("drugInfoReq 请求参数不能为空");
         }
 
         if (StringUtils.isEmpty(drugInfoReq.getDrugName())){
@@ -1338,7 +1338,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return ObjectCopyUtils.convert(data, DrugDetailResult.class);
         }
         LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
-        return null;
+        return new ArrayList<DrugDetailResult>();
     }
 
 
