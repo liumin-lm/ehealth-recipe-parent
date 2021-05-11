@@ -254,15 +254,12 @@ public class OperationPlatformRecipeService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
-        //医生端获取处方扩展信息
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (recipeExtend != null) {
-            map.put("recipeExtend", recipeExtend);
-            r.setMedicalType(recipeExtend.getMedicalType());
-            r.setMedicalTypeText(recipeExtend.getMedicalTypeText());
+        if (extend != null) {
+            map.put("recipeExtend", extend);
+            r.setMedicalType(extend.getMedicalType());
+            r.setMedicalTypeText(extend.getMedicalTypeText());
         }
-        map.put("showAllergyMedical", (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getAllergyMedical())));
+        map.put("showAllergyMedical", (null != extend && StringUtils.isNotEmpty(extend.getAllergyMedical())));
         //date 20191111
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);
