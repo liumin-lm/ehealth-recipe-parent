@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +24,8 @@ import recipe.util.MapValueUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_PERFECT;
 
 /**
  * 处方明细
@@ -50,7 +53,9 @@ public class RecipeDetailService {
      * @param recipeDetails 处方明细
      * @return
      */
-    public List<RecipeDetailBean> continueRecipeValidateDrug(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
+    public List<RecipeDetailBean> continueRecipeValidateDrug(Integer organId, Integer recipeType
+            , List<RecipeDetailBean> recipeDetails, RecipeExtendBean recipeExtendBean) {
+
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
         //药房信息
@@ -67,7 +72,7 @@ public class RecipeDetailService {
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
         List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
-        //校验数据判断状态
+        /**校验药品数据判断状态*/
         recipeDetails.forEach(a -> {
             //校验机构药品
             OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
@@ -84,6 +89,42 @@ public class RecipeDetailService {
             recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrusts);
             //返回前端必须字段
             setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
+        });
+        /**校验处方扩展字段*/
+        recipeDetailValidateTool.validateDecoction(organId, recipeExtendBean);
+        recipeDetailValidateTool.validateMakeMethod(organId, recipeExtendBean);
+        return recipeDetails;
+    }
+
+    /**
+     * 校验处方药品配置时间
+     *
+     * @param organId       机构id
+     * @param recipeType    处方类型
+     * @param recipeDetails 处方药品明细
+     * @return 处方药品明细
+     */
+    public List<RecipeDetailBean> useDayValidate(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
+        //处方药物使用天数时间
+        String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
+        recipeDetails.forEach(a -> recipeDetailValidateTool.useDayValidate(recipeType, recipeDay, a));
+        return recipeDetails;
+    }
+
+    /**
+     * 校验中药嘱托
+     *
+     * @param organId       机构id
+     * @param recipeDetails 处方药品明细
+     * @return 处方药品明细
+     */
+    public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
+        //获取嘱托
+        List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+        recipeDetails.forEach(a -> {
+            if (recipeDetailValidateTool.entrustValidate(a, drugEntrusts)) {
+                a.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
         });
         return recipeDetails;
     }
@@ -112,4 +153,5 @@ public class RecipeDetailService {
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
     }
+
 }

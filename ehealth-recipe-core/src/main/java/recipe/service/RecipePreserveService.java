@@ -29,7 +29,6 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -59,7 +58,6 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
-import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
@@ -72,6 +70,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+
+import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 
 /**
@@ -290,9 +291,11 @@ public class RecipePreserveService {
             recipeBean.setRecipeMemo(StringUtils.isEmpty(recipeInfoTO.getRecipeMemo())?"":recipeInfoTO.getRecipeMemo());
             RecipeExtendBean recipeExtend = new RecipeExtendBean();
             if (recipeInfoTO.getRecipeExtendBean() != null) {
+                recipeExtend.setDecoctionCode(recipeInfoTO.getRecipeExtendBean().getDecoctionCode());
                 recipeExtend.setDecoctionText(recipeInfoTO.getRecipeExtendBean().getDecoctionText());
                 recipeExtend.setJuice(recipeInfoTO.getRecipeExtendBean().getJuice());
                 recipeExtend.setJuiceUnit(recipeInfoTO.getRecipeExtendBean().getJuiceUnit());
+                recipeExtend.setMakeMethod(recipeInfoTO.getRecipeExtendBean().getMakeMethod());
                 recipeExtend.setMakeMethodText(recipeInfoTO.getRecipeExtendBean().getMakeMethodText());
                 recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
                 recipeExtend.setMinorUnit(recipeInfoTO.getRecipeExtendBean().getMinorUnit());
