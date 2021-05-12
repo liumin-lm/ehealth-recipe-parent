@@ -1192,8 +1192,13 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setMedicalDrugFormCode(drugListMatch.getMedicalDrugFormCode());
                         organDrugList.setDrugFormCode(drugListMatch.getHisFormCode());
                         organDrugList.setDrugEntrust(drugListMatch.getDrugEntrust());
-                        organDrugList.setMedicalInsuranceControl(drugListMatch.getMedicalInsuranceControl());
+                        if (!ObjectUtils.isEmpty(drugListMatch.getMedicalInsuranceControl())) {
+                            organDrugList.setMedicalInsuranceControl(drugListMatch.getMedicalInsuranceControl());
+                        }else {
+                            organDrugList.setMedicalInsuranceControl(false);
+                        }
                         organDrugList.setIndicationsDeclare(drugListMatch.getIndicationsDeclare());
+                        organDrugList.setSupportDownloadPrescriptionPad(true);
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {

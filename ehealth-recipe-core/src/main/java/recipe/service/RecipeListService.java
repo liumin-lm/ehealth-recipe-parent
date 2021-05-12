@@ -289,12 +289,13 @@ public class RecipeListService extends RecipeBaseService {
 
 
     /**
-    * rpc接口不支持重载，线上异常，紧急处理bug#65156
-    **/
+     * rpc接口不支持重载，线上异常，紧急处理bug#65156
+     **/
     @RpcService
-    public List<PatientRecipeDTO> findPatientAllRecipes(String mpiId, Integer index, Integer limit){
-        return findAllRecipesForPatient(mpiId,index,limit);
+    public List<PatientRecipeDTO> findPatientAllRecipes(String mpiId, Integer index, Integer limit) {
+        return findAllRecipesForPatient(mpiId, index, limit);
     }
+
     /**
      * 获取所有处方单信息
      * 患者端没有用到
@@ -755,21 +756,22 @@ public class RecipeListService extends RecipeBaseService {
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
 
-                Set<Integer> integers = recipedetails.stream().collect(Collectors.groupingBy(Recipedetail::getPharmacyId)).keySet();
-                List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(integers);
-                Map<Integer, List<PharmacyTcm>> collect = null;
-                if(Objects.nonNull(pharmacyTcmByIds)) {
-                    collect = pharmacyTcmByIds.stream().collect(Collectors.groupingBy(PharmacyTcm::getPharmacyId));
+
+                Integer pharmacyId = recipedetails.get(0).getPharmacyId();
+                PharmacyTcm pharmacyTcm = null;
+                if (Objects.nonNull(pharmacyId)) {
+                    pharmacyTcm = pharmacyTcmDAO.get(pharmacyId);
                 }
-                Map<Integer, List<PharmacyTcm>> finalCollect = collect;
+
+                PharmacyTcm finalPharmacyTcm = pharmacyTcm;
                 List<HisRecipeDetailBean> collect1 = recipedetails.stream().map(recipeDetail -> {
                     HisRecipeDetailBean convert = ObjectCopyUtils.convert(recipeDetail, HisRecipeDetailBean.class);
-                    if(Objects.nonNull(finalCollect)) {
-                        convert.setPharmacyCode(finalCollect.get(recipeDetail.getPharmacyId()).get(0).getPharmacyCode());
-                    }
+                   if(Objects.nonNull(finalPharmacyTcm)) {
+                       convert.setPharmacyCode(finalPharmacyTcm.getPharmacyCode());
+                   }
                     return convert;
                 }).collect(Collectors.toList());
-                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe,collect1));
+                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1));
                 map.put("patient", patient);
                 //LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
