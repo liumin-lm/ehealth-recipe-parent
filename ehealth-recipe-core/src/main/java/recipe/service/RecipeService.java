@@ -711,7 +711,7 @@ public class RecipeService extends RecipeBaseService {
                         throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
                     }*/
                     //判断药房机构库配置
-                    if (!pharmacyIdList.contains(recipedetail.getPharmacyId())) {
+                    if (recipedetail.getPharmacyId() != null && !pharmacyIdList.contains(recipedetail.getPharmacyId())) {
                         throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
                     }
                     //判断药品归属药房
