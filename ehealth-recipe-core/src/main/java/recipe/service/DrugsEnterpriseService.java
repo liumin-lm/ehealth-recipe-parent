@@ -65,6 +65,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
+    @Resource
+    private RecipeService recipeService;
 
     /**
      * 有效药企查询 status为1
@@ -675,84 +677,84 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         return recipeSupportGiveModeList;
     }
 
+    /**
+     * 在药企有库存情况下 根据药企支持的购药方式与药企配送主体获取处方支持的购药方式
+     *
+     * @param recipeSupportGiveModeList
+     * @param recipeId
+     * @param organId
+     * @return
+     */
     private List<Integer> getGiveModeWhenContinueOne(List<Integer> recipeSupportGiveModeList, Integer recipeId, int organId) {
-        // 都支持
-        List<Integer> DrugsEnterpriseAll = new ArrayList<>();
-        DrugsEnterpriseAll.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
-        DrugsEnterpriseAll.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
-        DrugsEnterpriseAll.add(RecipeBussConstant.DEP_SUPPORT_ALL);
-        // 到店取药
-        List<Integer> DrugsEnterpriseTo = new ArrayList<>();
-        DrugsEnterpriseTo.add(RecipeBussConstant.DEP_SUPPORT_TFDS);
-        // 药企配送
-        List<Integer> DrugsEnterpriseSend = new ArrayList<>();
-        DrugsEnterpriseSend.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
-        DrugsEnterpriseSend.add(RecipeBussConstant.DEP_SUPPORT_COD);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         List<Integer> list = new ArrayList<>();
         list.add(recipeId);
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
         LOGGER.info("getGiveModeWhenContinueOne recipeId = {} ,supportDepList = {} ", recipeId, JSONUtils.toString(supportDepList));
         Set<Integer> sendTypes = new HashSet<>();
+        // 获取所有药企支持的购药方式
         if (CollectionUtils.isNotEmpty(supportDepList)) {
             Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
                 Integer payModeSupport = drugsEnterprise.getPayModeSupport();
                 Integer sendType = drugsEnterprise.getSendType();
                 sendTypes.add(sendType);
-                if (DrugsEnterpriseAll.contains(payModeSupport)) {
+                if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
                     return RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
-                } else if (DrugsEnterpriseTo.contains(payModeSupport)) {
+                } else if (RecipeDistributionFlagEnum.drugsEnterpriseTo.contains(payModeSupport)) {
                     return RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType();
-                } else if (DrugsEnterpriseSend.contains(payModeSupport)) {
+                } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(payModeSupport)) {
                     return RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
                 }
                 return null;
-            }).collect(Collectors.toSet());
+            }).filter(Objects::nonNull).collect(Collectors.toSet());
 
+            // 是否支持到店自取
+            boolean drugHaveTo = collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType());
+            // 是否支持配送
+            boolean drugHaveSend = collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType());
             // 根据药企的配送方式获取支持模式
-            if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()) ||
-                    (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType()) && collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType()))) {
-                if (CollectionUtils.isNotEmpty(sendTypes)) {
-                    if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType()) && sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-                    } else if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-                    } else if (sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-                    }
-                } else {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-                }
-            } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType())) {
+            if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()) || (drugHaveTo && drugHaveSend)) {
                 recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-            } else if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType())) {
+                sendTypes(sendTypes, recipeSupportGiveModeList);
+            } else if (drugHaveTo) {
+                recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+            } else if (drugHaveSend) {
                 // 根据配送主体区分医院配送还是药企配送
-                if (CollectionUtils.isNotEmpty(sendTypes)) {
-                    if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType()) && sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-                    } else if (sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-                    } else if (sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType())) {
-                        recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-                    }
-                } else {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-                }
+                sendTypes(sendTypes, recipeSupportGiveModeList);
             }
             LOGGER.info("getGiveModeWhenContinueOne  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
             return recipeSupportGiveModeList;
         } else {
-            LOGGER.info("getGiveModeWhenContinueOne recipeId = {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
+            LOGGER.info("getGiveModeWhenContinueOne 药企没有库存 recipeId = {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
             return recipeSupportGiveModeList;
+        }
+    }
+
+    /**
+     * 根据配送主体获取购药方式
+     *
+     * @param sendTypes
+     * @param recipeSupportGiveModeList
+     */
+    private void sendTypes(Set<Integer> sendTypes, List<Integer> recipeSupportGiveModeList) {
+        if (CollectionUtils.isEmpty(sendTypes)) {
+            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+            return;
+        }
+        boolean alReadyPay = sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
+        boolean noPay = sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType());
+        if (alReadyPay && noPay) {
+            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+            return;
+        }
+        if (alReadyPay) {
+            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+            return;
+        }
+        if (noPay) {
+            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
         }
     }
 
