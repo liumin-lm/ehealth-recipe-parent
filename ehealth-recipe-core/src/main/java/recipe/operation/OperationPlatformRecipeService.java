@@ -254,15 +254,12 @@ public class OperationPlatformRecipeService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
-        //医生端获取处方扩展信息
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (recipeExtend != null) {
-            map.put("recipeExtend", recipeExtend);
-            r.setMedicalType(recipeExtend.getMedicalType());
-            r.setMedicalTypeText(recipeExtend.getMedicalTypeText());
+        if (extend != null) {
+            map.put("recipeExtend", extend);
+            r.setMedicalType(extend.getMedicalType());
+            r.setMedicalTypeText(extend.getMedicalTypeText());
         }
-        map.put("showAllergyMedical", (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getAllergyMedical())));
+        map.put("showAllergyMedical", (null != extend && StringUtils.isNotEmpty(extend.getAllergyMedical())));
         //date 20191111
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);
@@ -410,11 +407,10 @@ public class OperationPlatformRecipeService {
                 map.put("recipeDangers", recipeDangers);
             }
         }
-
+        Integer one = 1;
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
-        if (null != checkResult && (checkResult == 1 || checkResult == 3) && null != r.getPayFlag() && r.getPayFlag() == 1
-                && null != r.getGiveMode() && r.getGiveMode() <= 2 || (e.getCreateType() != null && e.getCreateType() == 0)) {
-            map.put("editFlag", 1);
+        if (null != checkResult && (checkResult == 1 || checkResult == 3) && one.equals(r.getPayFlag()) && null != r.getGiveMode() && r.getGiveMode() <= 3) {
+            map.put("editFlag", one);
         } else {
             map.put("editFlag", 0);
         }

@@ -10,6 +10,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.session.ClientSession;
@@ -29,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
+import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
@@ -55,6 +57,10 @@ public class RecipeTestService {
     private OrganService organService;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private LogisticsOnlineOrderService logisticsOnlineOrderService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * logger
@@ -315,5 +321,20 @@ public class RecipeTestService {
         RecipeCancelService recipeCancelService = ApplicationUtils.getRecipeService(RecipeCancelService.class);
         HisResponseTO response = recipeCancelService.doCancelRecipeForEnterprise(recipe);
         return response;
+    }
+
+    /**
+     * 手动物流下单
+     * @param orderCode 订单编号
+     */
+    @RpcService
+    public void onlineOrder(String orderCode){
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        logisticsOnlineOrderService.onlineOrder(order, recipes);
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        hisService.recipeDrugTake(recipes.get(0).getRecipeId(), order.getPayFlag(), result);
     }
 }

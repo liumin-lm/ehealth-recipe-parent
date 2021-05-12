@@ -292,7 +292,7 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(21));
+                String retrievalCode = getStrFromCell(row.getCell(23));
                 if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
                     continue;
                 } else {
@@ -440,10 +440,6 @@ public class DrugToolService implements IDrugToolService {
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(12)))) {
                     drug.setIndicationsDeclare(getStrFromCell(row.getCell(12)));
-                }else {
-                    if (("是").equals(getStrFromCell(row.getCell(11)))) {
-                        errMsg.append("医保控制为是 适应症说明必须要有 ").append(";");
-                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("适应症说明有误 ," + e.getMessage(), e);
@@ -1196,8 +1192,13 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setMedicalDrugFormCode(drugListMatch.getMedicalDrugFormCode());
                         organDrugList.setDrugFormCode(drugListMatch.getHisFormCode());
                         organDrugList.setDrugEntrust(drugListMatch.getDrugEntrust());
-                        organDrugList.setMedicalInsuranceControl(drugListMatch.getMedicalInsuranceControl());
+                        if (!ObjectUtils.isEmpty(drugListMatch.getMedicalInsuranceControl())) {
+                            organDrugList.setMedicalInsuranceControl(drugListMatch.getMedicalInsuranceControl());
+                        }else {
+                            organDrugList.setMedicalInsuranceControl(false);
+                        }
                         organDrugList.setIndicationsDeclare(drugListMatch.getIndicationsDeclare());
+                        organDrugList.setSupportDownloadPrescriptionPad(true);
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {

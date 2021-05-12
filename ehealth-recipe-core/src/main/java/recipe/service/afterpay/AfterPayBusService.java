@@ -28,8 +28,6 @@ public class AfterPayBusService{
     @Autowired
     private KeepAccountService keepAccountService;
     @Autowired
-    private LogisticsOnlineOrderService logisticsOnlineOrderService;
-    @Autowired
     private PaySendMsgService paySendMsgService;
 
     public void handle(RecipeResultBean result, RecipeOrder recipeOrder, List<Recipe> recipes, Integer payFlag) {
@@ -41,8 +39,6 @@ public class AfterPayBusService{
         if (recipeOrder != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             //上传记账信息
             keepAccountService.uploadKeepAccount(recipeOrder, recipes);
-            //物流自动下单
-            logisticsOnlineOrderService.onlineOrder(recipeOrder, recipes);
             //发送支付后消息
             paySendMsgService.sendPayMsg(recipeOrder, recipes);
         }

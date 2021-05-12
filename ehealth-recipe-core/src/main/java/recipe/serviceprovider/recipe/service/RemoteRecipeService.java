@@ -126,9 +126,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
     //限制分页大小
-    private static final Integer PAGESIZE=50;
+    private static final Integer PAGESIZE = 50;
     //初始页码
-    private static final Integer PAGENUM=0;
+    private static final Integer PAGENUM = 0;
 //    @Autowired
 //    private CommonCAFactory commonCAFactory;
 
@@ -146,6 +146,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private PatientService patientService;
     @Autowired
     private DoctorClient doctorClient;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private IClientConfigService clientConfigService;
+    @Autowired
+    private IRecipeHisService hisService;
 
     @RpcService
     @Override
@@ -297,12 +303,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                               Integer recipeId, Integer enterpriseId, Integer checkStatus,
                                               Integer payFlag, Integer orderType, Integer refundNodeStatus) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        QueryResult<Map> result=recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
+        QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
                 checkStatus, payFlag, orderType, refundNodeStatus);
-        List<Map> records=result.getItems();
-        for(Map record:records) {
+        List<Map> records = result.getItems();
+        for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
             record.put("giveModeText", GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
             RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
@@ -454,6 +460,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 设置第三方审核结果返回给运营平台
+     *
      * @param thirdRefundStatus
      * @param recipePatientAndDoctorRefundVO
      */
@@ -473,6 +480,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 获取第三方审核状态
+     *
      * @param recipeId
      * @return
      */
@@ -664,7 +672,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @Deprecated
     public List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
-                                                    Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId) {
+                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId) {
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
@@ -695,7 +703,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
         LOGGER.info("配送订单导出-getRecipeOrder 开始查询");
         List<Object[]> objectList = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
-        LOGGER.info("配送订单导出-getRecipeOrder size={}",objectList.size());
+        LOGGER.info("配送订单导出-getRecipeOrder size={}", objectList.size());
         return objectList;
 
     }
@@ -1291,56 +1299,53 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      * 获取创业第三方药品库存接口
      * @param drugInfoReq
-     * @return
+     * @return  review 2021/5/11--fix
      */
     @Override
     @RpcService
-    public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq){
+    public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq) {
         LOGGER.info("remoteRecipeService getDrugStockForArea drugInfoReq={}", JSONUtils.toString(drugInfoReq));
-        if (drugInfoReq==null){
-            return null;
+        if (drugInfoReq == null) {
+            throw new DAOException("drugInfoReq 请求参数不能为空");
         }
 
-        if (StringUtils.isEmpty(drugInfoReq.getDrugName())){
-            throw new DAOException("drugInfoReq drugName药品名不能为空");
-        }
-
-        if (drugInfoReq.getPageNum()==null){
+        if (drugInfoReq.getPageNum() == null) {
             drugInfoReq.setPageNum(PAGENUM);
         }
+
         //每页的条目数，最大为50条，改参数不填或设置超过50条，系统自动默认为50条
-        if (drugInfoReq.getPageSize()==null||drugInfoReq.getPageSize()>PAGESIZE){
+        if (drugInfoReq.getPageSize() == null || drugInfoReq.getPageSize() > PAGESIZE) {
             drugInfoReq.setPageSize(PAGESIZE);
         }
 
-        if (drugInfoReq.getOrganId()==null){
-            IClientConfigService clientConfigService = BaseAPI.getService(IClientConfigService.class);
-            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+        if (drugInfoReq.getOrganId() == null) {
             Client currentClient = currentUserInfoService.getCurrentClient();
-            if (currentClient==null){
+            if (currentClient == null) {
                 throw new DAOException("当前登录信息currentClient不能为null");
             }
             Integer clientConfigId = currentClient.getClientConfigId();
             //获取当前区域公众号下的管理机构
             ClientConfigBean configBean = clientConfigService.getByClientConfigId(clientConfigId);
-            if (configBean==null){
+            if (configBean == null) {
                 throw new DAOException("当前配置configBean不能为null");
             }
             drugInfoReq.setOrganId(configBean.getOrganId());
-            LOGGER.info("remoteRecipeService getDrugStockForArea configBean={},clientConfigId={},", JSONUtils.toString(configBean),clientConfigId);
+            LOGGER.info("remoteRecipeService getDrugStockForArea configBean={},clientConfigId={},", JSONUtils.toString(configBean), clientConfigId);
+        }
+
+        if (StringUtils.isEmpty(drugInfoReq.getDrugName())) {
+            throw new DAOException("drugInfoReq drugName药品名不能为空");
         }
 
         //调用前置机接口进行数据返回
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
-        if (CollectionUtils.isNotEmpty((Collection) responseTO)){
+        if (responseTO != null) {
             List<DrugDetailResult> data = responseTO.getData();
             return ObjectCopyUtils.convert(data, DrugDetailResult.class);
         }
         LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
-        return null;
+        return new ArrayList<>();
     }
-
 
 
     private boolean valiSyncEinvoiceNumber(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO, HisResponseTO result) {
@@ -2016,7 +2021,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public Map<String, String> getPatientInfo(Integer busId){
+    public Map<String, String> getPatientInfo(Integer busId) {
         Map<String, String> map = new HashMap<>();
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -2039,7 +2044,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         stringBuilder.append(rec.getRecipeCode()).append(",");
                     }
                 }
-                String cfxhhj = stringBuilder.substring(0,stringBuilder.lastIndexOf(","));
+                String cfxhhj = stringBuilder.substring(0, stringBuilder.lastIndexOf(","));
                 map.put("cfxhhj", cfxhhj);
             }
             return map;
@@ -2051,7 +2056,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<String> findRecipeCodesByRecipeIds(List<Integer> recipeIds) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-        if (CollectionUtils.isNotEmpty(recipes)){
+        if (CollectionUtils.isNotEmpty(recipes)) {
             List<String> recipeCodes = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
             return recipeCodes;
         }
@@ -2077,7 +2082,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 深圳二院药房工作量统计报表服务
-     * @param organId 机构ID
+     *
+     * @param organId    机构ID
      * @param startDate
      * @param endDate
      * @param doctorName
@@ -2089,16 +2095,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @Date 20201222
      */
     @Override
-    public Map<String, Object> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, String recipeType, Integer start, Integer limit){
+    public Map<String, Object> workloadTop(Integer organId, Date startDate, Date endDate, String doctorName, String recipeType, Integer start, Integer limit) {
         LOGGER.info("workloadTop request is {}", organId + startDate.toString() + endDate.toLocaleString() + start + limit);
         List<WorkLoadTopDTO> result = new ArrayList<>();
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
         //先获取 已发药 配送中 已完成
-        List<WorkLoadTopDTO> workLoadTopListWithSuccess = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15",start,limit,startDateStr,endDateStr,doctorName,recipeType);
-        List<WorkLoadTopDTO> workLoadListWithFail = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "15", start, limit, startDateStr, endDateStr, doctorName,recipeType);
-        List<WorkLoadTopDTO> workLoadListWithRefuse = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14", start, limit, startDateStr, endDateStr, doctorName,recipeType);
-        List<WorkLoadTopDTO> workLoadListWithRefund = recipeDAO.findRecipeByOrderCodegroupByDisWithRefund(organId, "7", start, limit, startDateStr, endDateStr, doctorName,recipeType);
+        List<WorkLoadTopDTO> workLoadTopListWithSuccess = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "4,5,13,14,15", start, limit, startDateStr, endDateStr, doctorName, recipeType);
+        List<WorkLoadTopDTO> workLoadListWithFail = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "15", start, limit, startDateStr, endDateStr, doctorName, recipeType);
+        List<WorkLoadTopDTO> workLoadListWithRefuse = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "14", start, limit, startDateStr, endDateStr, doctorName, recipeType);
+        List<WorkLoadTopDTO> workLoadListWithRefund = recipeDAO.findRecipeByOrderCodegroupByDisWithRefund(organId, "7", start, limit, startDateStr, endDateStr, doctorName, recipeType);
         for (WorkLoadTopDTO loadTopListWithSuccess : workLoadTopListWithSuccess) {
             //退药 2个工作量
             WorkLoadTopDTO workLoadWithFail = getWorkLoadWithFail(workLoadListWithFail, loadTopListWithSuccess.getDispensingApothecaryName());
@@ -2147,8 +2153,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             totalMoney += workLoadTopDTO.getTotalMoney().doubleValue();
         }
         //判断是否最后一页
-        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId,"4,5,13,14,15", null, null, startDateStr, endDateStr, doctorName,recipeType).size();
-        size = size + recipeDAO.findRecipeByOrderCodegroupByDisWithRefund(organId, "7", null, null, startDateStr, endDateStr, doctorName,recipeType).size();
+        int size = recipeDAO.findRecipeByOrderCodegroupByDis(organId, "4,5,13,14,15", null, null, startDateStr, endDateStr, doctorName, recipeType).size();
+        size = size + recipeDAO.findRecipeByOrderCodegroupByDisWithRefund(organId, "7", null, null, startDateStr, endDateStr, doctorName, recipeType).size();
         if (start + limit >= size && workLoadTopListWithSuccess.size() > 0) {
             WorkLoadTopDTO workLoadTopDTO = new WorkLoadTopDTO();
             workLoadTopDTO.setDispensingApothecaryName("合计");
@@ -2186,6 +2192,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 深圳二院发药月报
+     *
      * @param organId
      * @param depart
      * @param startDate
@@ -2240,7 +2247,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private String getDepart(Integer departId, List<DepartmentDTO> departmentDTOS) {
         for (DepartmentDTO departmentDTO : departmentDTOS) {
-            if (departmentDTO.getDeptId().equals(departId) ) {
+            if (departmentDTO.getDeptId().equals(departId)) {
                 return departmentDTO.getName();
             }
         }
@@ -2248,17 +2255,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     /**
-     *发药排行
+     * 发药排行
+     *
      * @param organId
-     * @param orderStatus  0：全部 1.xi药 2.退药 3.拒发
+     * @param orderStatus 0：全部 1.xi药 2.退药 3.拒发
      * @param startDate
      * @param endDate
-     * @param order 排序方式
+     * @param order       排序方式
      * @param start
      * @param limit
      */
     @Override
-    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate,Integer order, Integer start, Integer limit){
+    public Map<String, Object> pharmacyTop(Integer organId, Integer drugType, Integer orderStatus, Date startDate, Date endDate, Integer order, Integer start, Integer limit) {
         LOGGER.info("pharmacyTop is {}", organId + drugType + startDate.toLocaleString() + endDate.toLocaleString() + order + start + limit + "");
         String endDateStr = DateConversion.formatDateTimeWithSec(endDate);
         String startDateStr = DateConversion.formatDateTimeWithSec(startDate);
@@ -2324,7 +2332,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             orderStatusStr = "15";
         }
         List<DepartmentDTO> allByOrganId = departmentService.findAllByOrganId(organId);
-        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr,drugName, cardNo, patientName, billNumber, recipeId,
+        List<RecipeDrugDetialReportDTO> recipeDrugDetialReport = recipeDAO.findRecipeDrugDetialReport(organId, startDateStr, endDateStr, drugName, cardNo, patientName, billNumber, recipeId,
                 orderStatusStr, depart, doctorName, dispensingApothecaryName, recipeType, start, limit);
         for (RecipeDrugDetialReportDTO recipeDrugDetialReportDTO : recipeDrugDetialReport) {
             if (getDepart(recipeDrugDetialReportDTO.getDepart(), allByOrganId) != null) {
@@ -2341,6 +2349,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 根据recipeId获取处方单详情
+     *
      * @param recipeId
      * @return
      */
@@ -2356,7 +2365,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             LOGGER.error("给药方式字典获取失败", e);
         }*/
         PatientDTO mpiid = patientService.getPatientByMpiId(String.valueOf(recipeDrugDetialByRecipeId.get(0).get("MPIID")));
-        recipeDrugDetialByRecipeId.get(0).put("patientSex", mpiid.getPatientSex().equals("1")?"男":"女");
+        recipeDrugDetialByRecipeId.get(0).put("patientSex", mpiid.getPatientSex().equals("1") ? "男" : "女");
         recipeDrugDetialByRecipeId.get(0).put("mobile", mpiid.getMobile());
         recipeDrugDetialByRecipeId.get(0).put("birthday", mpiid.getBirthday());
 
@@ -2371,46 +2380,47 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 复诊查询处方状态是否有效
+     *
      * @param bussSource
      * @param clinicId
-     * @param  statusCode
+     * @param statusCode
      * @return
      */
     @Override
     @RpcService
-    public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode){
+    public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode) {
         LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
         //查询处方记录
-        List<Recipe> recipeList =recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource,clinicId);
+        List<Recipe> recipeList = recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource, clinicId);
         //没有复诊的记录,无复诊状态
-        if (recipeList==null||recipeList.size()==0){
+        if (recipeList == null || recipeList.size() == 0) {
             LOGGER.info("judgeRecipeStatus size null is {}", false);
             return false;
         }
-        for (Recipe recipe:recipeList){
-                //类型2：处方开成功了（回写his成功），且不包含已退费状态或者已失效状态， 就当有效处方
-                //0未支付，1已支付，2退款中，3退款成功，4支付失败'
-                if (recipe.getRecipeCode()!=null&&statusCode==2){
-                    //校验处方单是否已退费
-                    String orderCode = recipe.getOrderCode();
-                    //未支付，未失效
-                    if (orderCode==null){
-                        List<Recipe> recipeStatusLoseByBussSourceAndClinicId = recipeDAO.findRecipeStatusLoseByBussSourceAndClinicId(bussSource, clinicId, recipe.getStatus());
-                        LOGGER.info("judgeRecipeStatus orderCode null is {}", (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true);
-                        return (recipeStatusLoseByBussSourceAndClinicId==null||recipeStatusLoseByBussSourceAndClinicId.size()==0)?false:true;
-                    }
-                    //根据订单编号查找对应的订单
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-                    //判断处方订单是否已经退费
-                    LOGGER.info("judgeRecipeStatus null is {}", (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true);
-                    return (recipeOrder.getPayFlag()==2||recipeOrder.getPayFlag()==3)?false:true;
+        for (Recipe recipe : recipeList) {
+            //类型2：处方开成功了（回写his成功），且不包含已退费状态或者已失效状态， 就当有效处方
+            //0未支付，1已支付，2退款中，3退款成功，4支付失败'
+            if (recipe.getRecipeCode() != null && statusCode == 2) {
+                //校验处方单是否已退费
+                String orderCode = recipe.getOrderCode();
+                //未支付，未失效
+                if (orderCode == null) {
+                    List<Recipe> recipeStatusLoseByBussSourceAndClinicId = recipeDAO.findRecipeStatusLoseByBussSourceAndClinicId(bussSource, clinicId, recipe.getStatus());
+                    LOGGER.info("judgeRecipeStatus orderCode null is {}", (recipeStatusLoseByBussSourceAndClinicId == null || recipeStatusLoseByBussSourceAndClinicId.size() == 0) ? false : true);
+                    return (recipeStatusLoseByBussSourceAndClinicId == null || recipeStatusLoseByBussSourceAndClinicId.size() == 0) ? false : true;
                 }
+                //根据订单编号查找对应的订单
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+                //判断处方订单是否已经退费
+                LOGGER.info("judgeRecipeStatus null is {}", (recipeOrder.getPayFlag() == 2 || recipeOrder.getPayFlag() == 3) ? false : true);
+                return (recipeOrder.getPayFlag() == 2 || recipeOrder.getPayFlag() == 3) ? false : true;
+            }
 
-                //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
-                if (recipe.getRecipeCode()!=null&&statusCode==1){
-                    LOGGER.info("judgeRecipeStatus recipe.getRecipeCode()!=null&&statusCode is {}", true);
-                    return true;
-                }
+            //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
+            if (recipe.getRecipeCode() != null && statusCode == 1) {
+                LOGGER.info("judgeRecipeStatus recipe.getRecipeCode()!=null&&statusCode is {}", true);
+                return true;
+            }
         }
         LOGGER.info("judgeRecipeStatus is {}", true);
         return false;
@@ -2426,6 +2436,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 深圳二院财务  处方费用
+     *
      * @param organId
      * @param depart
      * @param createTime
@@ -2433,8 +2444,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService
     @Override
-    public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime){
-        LOGGER.info("getRecipeFeeDetail organId={},depart={},createTime={},endTime ={}",organId,depart,createTime,endTime);
+    public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime) {
+        LOGGER.info("getRecipeFeeDetail organId={},depart={},createTime={},endTime ={}", organId, depart, createTime, endTime);
         List<DepartChargeReportResult> voList = recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
         return voList;
@@ -2444,17 +2455,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
-        return recipeCAService.getCATaskRecipeReq(recipeBean,detailBeanList);
+        return recipeCAService.getCATaskRecipeReq(recipeBean, detailBeanList);
     }
 
     @Override
     public void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request) {
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-        service.splicingBackRecipeData(ObjectCopyUtils.convert(recipeList,Recipe.class),request);
+        service.splicingBackRecipeData(ObjectCopyUtils.convert(recipeList, Recipe.class), request);
     }
 
     /**
      * 统计处方医疗费  自费+医保
+     *
      * @param organId
      * @param createTime
      * @param endTime
@@ -2462,217 +2474,217 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @Override
     @RpcService
-    public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime){
-        LOGGER.info("getRecipeMedAndCash organId ={},createTime={},endTime={}",organId,createTime,endTime);
+    public HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime) {
+        LOGGER.info("getRecipeMedAndCash organId ={},createTime={},endTime={}", organId, createTime, endTime);
         //统计机构的自费和医保的数据
-        List<HosBusFundsReportResult> hoList=recipeDAO.findRecipeByOrganIdAndCreateTime(organId,createTime,endTime);
-        LOGGER.info("getRecipeMedAndCash.hoList ={}",JSONUtils.toString(hoList));
+        List<HosBusFundsReportResult> hoList = recipeDAO.findRecipeByOrganIdAndCreateTime(organId, createTime, endTime);
+        LOGGER.info("getRecipeMedAndCash.hoList ={}", JSONUtils.toString(hoList));
         return hoList.get(0);
     }
 
 
     @Override
     public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
-        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId,organId,recipeCode,cardId,consultId,doctorId);
+        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId, organId, recipeCode, cardId, consultId, doctorId);
     }
-
 
 
     @Override
     public Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
-        return RecipeServiceSub.attachSealPic(clinicOrgan,doctorId,checker,recipeId);
+        return RecipeServiceSub.attachSealPic(clinicOrgan, doctorId, checker, recipeId);
     }
 
     /**
      * 用户判定机构配置支持的卡类型和终端配置支持的卡类型取交集
      * 机构配置：查下线下处方所需信息 2就诊卡  3医保卡
      * 终端配置:就诊人：展示到院取药凭证（2医保卡）   健康卡：就诊卡开关
+     *
      * @param organId
      * @param mpiid
      * @param remotePull
      * @return
      */
     @RpcService
-    public List<HealthCardBean> queryHealthCardFromHisAndMerge(final Integer organId, final String mpiid, final boolean remotePull){
-        LOGGER.info("queryHealthCardFromHisAndMerge.organId ={},Mpiid={}",organId,mpiid);
+    public List<HealthCardBean> queryHealthCardFromHisAndMerge(final Integer organId, final String mpiid, final boolean remotePull) {
+        LOGGER.info("queryHealthCardFromHisAndMerge.organId ={},Mpiid={}", organId, mpiid);
         IHealthCardService cardService = BaseAPI.getService(IHealthCardService.class);
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         try {
             //患者的所有卡
             List<HealthCardBean> cardDTOS = cardService.queryHealthCardFromHisAndMerge(organId, mpiid, remotePull);
-            LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
-            if (CollectionUtils.isEmpty(cardDTOS)){
+            LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS ={},Mpiid={}", JSONUtils.toString(cardDTOS), mpiid);
+            if (CollectionUtils.isEmpty(cardDTOS)) {
                 //没有卡的情况下--显示新增就诊卡
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.就诊卡列表为空.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.就诊卡列表为空.cardDTOS ={},Mpiid={}", JSONUtils.toString(cardDTOS), mpiid);
                 return new ArrayList<HealthCardBean>();
             }
             //运营平台终端配置   就诊卡开关打开--支持就诊卡   展示凭证存在医保卡展示支持医保卡
             //机构配置支持的卡类型 2 就诊卡  3 医保卡
-            String[] cardTypes=(String[]) configurationCenterUtilsService.getConfiguration(organId,"getCardTypeForHis");
-            if (cardTypes==null||cardTypes.length==0){
+            String[] cardTypes = (String[]) configurationCenterUtilsService.getConfiguration(organId, "getCardTypeForHis");
+            if (cardTypes == null || cardTypes.length == 0) {
                 //机构不配就诊卡和医保卡 返回空，默认身份证查询
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.机构配置列表为空.cardDTOS ={},Mpiid={}",JSONUtils.toString(cardDTOS),mpiid);
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardDTOS.机构配置列表为空.cardDTOS ={},Mpiid={}", JSONUtils.toString(cardDTOS), mpiid);
                 return new ArrayList<HealthCardBean>();
             }
-            LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.Array={}",JSONUtils.toString(cardTypes));
+            LOGGER.info("queryHealthCardFromHisAndMerge.cardTypes.Array={}", JSONUtils.toString(cardTypes));
 
             ICommonService serviceCard = BaseAPI.getService(ICommonService.class);
             Map<String, Object> configs = serviceCard.getAllClientConfigs();
             //获取终端配置  就诊卡开关
             Boolean patientCardFlag = (Boolean) configs.get("patientCard");
             //终端配置   展示就诊卡类型
-            String[] medCardList = (String[])configs.get("showCardType");
+            String[] medCardList = (String[]) configs.get("showCardType");
 
             //终端配置获取  终端管理-健康卡-就诊卡开关   配置 true 开启  false关闭
             /*Boolean patientCardFlag = (Boolean)configurationCenterUtilsService.getPropertyOfKey(organId, "patientCard", 1);*/
-            LOGGER.info("queryHealthCardFromHisAndMerge.patientCardFlag={}",patientCardFlag);
+            LOGGER.info("queryHealthCardFromHisAndMerge.patientCardFlag={}", patientCardFlag);
 
             //终端配置获取  终端管理-就诊人-展示就诊凭证类型，从凭证里面获取  showCardType   2
             /*String[] medCardList=(String[])configurationCenterUtilsService.getPropertyOfKey(organId, "showCardType", 1);*/
-            if (medCardList==null||medCardList.length==0){
+            if (medCardList == null || medCardList.length == 0) {
                 //机构只配置就诊卡不支持医保卡    终端配置就诊卡开关打开--交集（就诊卡）其他情况无
-                if (Arrays.asList(cardTypes).contains("2")&&!Arrays.asList(cardTypes).contains("3")&&patientCardFlag){
+                if (Arrays.asList(cardTypes).contains("2") && !Arrays.asList(cardTypes).contains("3") && patientCardFlag) {
                     //展示就诊卡--去掉医保卡
-                    List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                    for (HealthCardBean healthCardDTO:cardDTOS){
-                        if (healthCardDTO.getCardType().equals("2")){
+                    List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                    for (HealthCardBean healthCardDTO : cardDTOS) {
+                        if (healthCardDTO.getCardType().equals("2")) {
                             d.add(healthCardDTO);
                         }
                     }
                     cardDTOS.removeAll(d);
-                    LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端开启就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                    LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端开启就诊卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
                     return cardDTOS;
                 }
                 return new ArrayList<HealthCardBean>();//无交集[]
             }
-            LOGGER.info("queryHealthCardFromHisAndMerge.medCardList.Array={}",JSONUtils.toString(medCardList));
+            LOGGER.info("queryHealthCardFromHisAndMerge.medCardList.Array={}", JSONUtils.toString(medCardList));
             //终端：展示就诊卡凭证 -- 存在
-                //1.终端支持就诊卡--显示就诊卡    2.终端支持医保卡--显示医保卡
-                //机构支持就诊卡不支持医保卡    终端支持就诊卡和医保卡---显示就诊卡  筛选调医保卡 cardType=2
-               if (patientCardFlag&&Arrays.asList(medCardList).contains("2")&&Arrays.asList(cardTypes).contains("2")&&!Arrays.asList(cardTypes).contains("3")){
-                   List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                   for (HealthCardBean healthCardDTO:cardDTOS){
-                       if (healthCardDTO.getCardType().equals("2")){
-                           d.add(healthCardDTO);
-                       }
-                   }
-                   cardDTOS.removeAll(d);
-                   LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
-                   return cardDTOS;
-               }
-               //机构支持医保卡不支持就诊卡    终端支持就诊卡和医保卡---显示医保卡  筛选调就诊卡 cardType=1
-               if (patientCardFlag&&Arrays.asList(medCardList).contains("2")&&Arrays.asList(cardTypes).contains("3")&&!Arrays.asList(cardTypes).contains("2")){
-                   List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                   for (HealthCardBean healthCardDTO:cardDTOS){
-                       if (healthCardDTO.getCardType().equals("1")){
-                           d.add(healthCardDTO);
-                       }
-                   }
-                   cardDTOS.removeAll(d);
-                   LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持医保卡不支持就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
-                   return cardDTOS;
-               }
+            //1.终端支持就诊卡--显示就诊卡    2.终端支持医保卡--显示医保卡
+            //机构支持就诊卡不支持医保卡    终端支持就诊卡和医保卡---显示就诊卡  筛选调医保卡 cardType=2
+            if (patientCardFlag && Arrays.asList(medCardList).contains("2") && Arrays.asList(cardTypes).contains("2") && !Arrays.asList(cardTypes).contains("3")) {
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("2")) {
+                        d.add(healthCardDTO);
+                    }
+                }
+                cardDTOS.removeAll(d);
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
+                return cardDTOS;
+            }
+            //机构支持医保卡不支持就诊卡    终端支持就诊卡和医保卡---显示医保卡  筛选调就诊卡 cardType=1
+            if (patientCardFlag && Arrays.asList(medCardList).contains("2") && Arrays.asList(cardTypes).contains("3") && !Arrays.asList(cardTypes).contains("2")) {
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("1")) {
+                        d.add(healthCardDTO);
+                    }
+                }
+                cardDTOS.removeAll(d);
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持医保卡不支持就诊卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
+                return cardDTOS;
+            }
 
-               //终端：就诊卡和医保卡都不支持--展示新增就诊卡，取不到交集
-               if (!patientCardFlag&&!Arrays.asList(medCardList).contains("2")){
-                   return new ArrayList<HealthCardBean>();
-               }
+            //终端：就诊卡和医保卡都不支持--展示新增就诊卡，取不到交集
+            if (!patientCardFlag && !Arrays.asList(medCardList).contains("2")) {
+                return new ArrayList<HealthCardBean>();
+            }
 
-               //机构配置列表
+            //机构配置列表
             List<String> cardList = Arrays.asList(cardTypes);
             //判断终端：取药凭证中是否存在医保卡
-            Boolean medCardFlag = (Boolean)Arrays.asList(medCardList).contains("2");
+            Boolean medCardFlag = (Boolean) Arrays.asList(medCardList).contains("2");
             //终端支持就诊卡医保卡    机构支持就诊卡医保卡--返回就诊卡和医保卡
-            if (cardList.contains("2")&&cardList.contains("3")&&medCardFlag&&patientCardFlag){
+            if (cardList.contains("2") && cardList.contains("3") && medCardFlag && patientCardFlag) {
                 //支持就诊卡和医保卡
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持就诊卡医保卡且机构支持就诊卡医保卡.cardList={}",JSONUtils.toString(cardList));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持就诊卡医保卡且机构支持就诊卡医保卡.cardList={}", JSONUtils.toString(cardList));
                 return cardDTOS;
             }
 
             //终端配了就诊卡不支持医保卡   机构配了医保卡和就诊卡---就诊卡
-            if (cardList.contains("2")&&cardList.contains("3")&&!medCardFlag&&patientCardFlag){
+            if (cardList.contains("2") && cardList.contains("3") && !medCardFlag && patientCardFlag) {
                 //支持就诊卡和医保卡
-                List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                for (HealthCardBean healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("2")){
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("2")) {
                         d.add(healthCardDTO);
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持就诊卡不支持医保卡且机构支持医保卡和就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持就诊卡不支持医保卡且机构支持医保卡和就诊卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
             //终端配了医保卡不支持就诊卡    机构配了医保卡和就诊卡---医保卡
-            if (cardList.contains("2")&&!cardList.contains("3")&&medCardFlag&&!patientCardFlag){
+            if (cardList.contains("2") && !cardList.contains("3") && medCardFlag && !patientCardFlag) {
                 //支持就诊卡和医保卡
-                List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                for (HealthCardBean healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("1")){
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("1")) {
                         d.add(healthCardDTO);
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持医保卡不支持就诊卡且机构支持医保卡和就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.终端支持医保卡不支持就诊卡且机构支持医保卡和就诊卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
 
             //机构支持医保卡就诊卡   终端不支持医保卡和就诊卡--无交集：显示新增就诊卡
-            if (cardList.contains("3")&&!cardList.contains("2")&&!medCardFlag&&!patientCardFlag){
+            if (cardList.contains("3") && !cardList.contains("2") && !medCardFlag && !patientCardFlag) {
                 return new ArrayList<HealthCardBean>();
             }
 
             //机构支持就诊卡不支持医保卡   终端不支持医保卡支持就诊卡--就诊卡
-            if (!cardList.contains("3")&&cardList.contains("2")&&!medCardFlag&&patientCardFlag){
+            if (!cardList.contains("3") && cardList.contains("2") && !medCardFlag && patientCardFlag) {
                 //终端支持就诊卡  机构啥也不支持---无交集[]  展示就诊卡
-                List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                for (HealthCardBean healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("2")){
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("2")) {
                         d.add(healthCardDTO);
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡且终端不支持医保卡支持就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡且终端不支持医保卡支持就诊卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
 
             //机构支持医保卡不支持就就诊卡   终端不支持就诊卡不支持医保卡--无交集；显示新增
-            if (!cardList.contains("3")&&cardList.contains("2")&&!medCardFlag&&!patientCardFlag){
+            if (!cardList.contains("3") && cardList.contains("2") && !medCardFlag && !patientCardFlag) {
                 return new ArrayList<HealthCardBean>();
             }
 
             //机构支持医保卡不支持就诊卡   终端不支持就诊卡支持医保卡--展示医保卡
-            if (cardList.contains("3")&&!cardList.contains("2")&&!patientCardFlag&&medCardFlag){
+            if (cardList.contains("3") && !cardList.contains("2") && !patientCardFlag && medCardFlag) {
                 //终端支持就诊卡  机构支持就诊卡 不支持医保卡---  展示医保卡
-                List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                for (HealthCardBean healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("1")){
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("1")) {
                         d.add(healthCardDTO);
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持医保卡不支持就诊卡且终端不支持就诊卡支持医保卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持医保卡不支持就诊卡且终端不支持就诊卡支持医保卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
 
 
             //机构支持就诊卡不支持医保卡   终端支持医保卡和就诊卡--就诊卡
-            if (cardList.contains("2")&&!cardList.contains("3")&&medCardFlag&&patientCardFlag){
+            if (cardList.contains("2") && !cardList.contains("3") && medCardFlag && patientCardFlag) {
                 //终端支持就诊卡  机构支持就诊卡 不支持医保卡---  展示就诊卡
-                List<HealthCardBean> d=new ArrayList<HealthCardBean>();
-                for (HealthCardBean healthCardDTO:cardDTOS){
-                    if (healthCardDTO.getCardType().equals("2")){
+                List<HealthCardBean> d = new ArrayList<HealthCardBean>();
+                for (HealthCardBean healthCardDTO : cardDTOS) {
+                    if (healthCardDTO.getCardType().equals("2")) {
                         d.add(healthCardDTO);
                     }
                 }
                 cardDTOS.removeAll(d);
-                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡且终端支持医保卡和就诊卡.cardDTOS={}",JSONUtils.toString(cardDTOS));
+                LOGGER.info("queryHealthCardFromHisAndMerge.cardList.机构支持就诊卡不支持医保卡且终端支持医保卡和就诊卡.cardDTOS={}", JSONUtils.toString(cardDTOS));
                 return cardDTOS;
             }
-          return new ArrayList<HealthCardBean>();//其他情况无任何交集[]
+            return new ArrayList<HealthCardBean>();//其他情况无任何交集[]
         } catch (Exception e) {
-            LOGGER.error("queryHealthCardFromHisAndMerge.ExceptionError",e);
+            LOGGER.error("queryHealthCardFromHisAndMerge.ExceptionError", e);
         }
-        LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.mpiid={}.当前就诊人没有卡支持",organId,mpiid);
+        LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.mpiid={}.当前就诊人没有卡支持", organId, mpiid);
         return null;
     }
 }
