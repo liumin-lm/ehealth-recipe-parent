@@ -1,6 +1,9 @@
 package com.ngari.recipe.recipe.constant;
 
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @description：
@@ -66,6 +69,20 @@ public enum RecipeDistributionFlagEnum {
         }
         return null;
     }
+
+    /**
+     * 药企支持 所有购药方式
+     */
+    public static final List<Integer> drugsEnterpriseAll = Arrays.asList(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS, RecipeBussConstant.DEP_SUPPORT_COD_TFDS, RecipeBussConstant.DEP_SUPPORT_ALL);
+    /**
+     * 药企支持 到店取药
+     */
+    public static final List<Integer> drugsEnterpriseTo = Collections.singletonList(RecipeBussConstant.DEP_SUPPORT_TFDS);
+    /**
+     * 药企支持 配送
+     */
+    public static final List<Integer> drugsEnterpriseSend = Arrays.asList(RecipeBussConstant.DEP_SUPPORT_ONLINE, RecipeBussConstant.DEP_SUPPORT_COD);
+
 
     public String getText() {
         return text;

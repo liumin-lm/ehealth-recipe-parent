@@ -66,6 +66,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -1360,39 +1361,26 @@ public class RecipeServiceSub {
     }
 
     /**
-     * 兼容脱敏，做预备方案
+     * 兼容脱敏，做预备方案,左手到右手 可以去除一些不希望前端展示的字段
      *
      * @param patient
      * @return
-     * @author zhangx
-     * @create 2020-07-06 10:46
-     **/
-    @Deprecated
-    public static PatientDTO convertPatientForRAP(PatientDTO patient) {
-        PatientDTO p = new PatientDTO();
-        p.setPatientName(patient.getPatientName());
-        p.setPatientSex(patient.getPatientSex());
-        p.setBirthday(patient.getBirthday());
-        p.setPatientType(patient.getPatientType());
-        p.setStatus(patient.getStatus());
+     */
+    public static PatientDTO patientDesensitization(PatientDTO patient) {
+        PatientVO p = new PatientVO();
+        BeanUtils.copyProperties(patient, p);
         if (StringUtils.isNotEmpty(patient.getMobile())) {
             p.setMobile(LocalStringUtil.coverMobile((patient.getMobile())));
         }
         if (StringUtils.isNotEmpty(patient.getIdcard())) {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
         }
-        p.setWeight(patient.getWeight());
-        p.setAddress(patient.getAddress());
-        p.setMpiId(patient.getMpiId());
-        p.setPhoto(patient.getPhoto());
-        p.setSignFlag(patient.getSignFlag());
-        p.setRelationFlag(patient.getRelationFlag());
-        p.setLabelNames(patient.getLabelNames());
-        p.setGuardianFlag(patient.getGuardianFlag());
-        p.setGuardianCertificate(patient.getGuardianCertificate());
-        p.setGuardianName(patient.getGuardianName());
         p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
-        return p;
+        p.setIdcard2(null);
+        p.setCertificate(null);
+        PatientDTO patientDTO = new PatientDTO();
+        BeanUtils.copyProperties(p, patientDTO);
+        return patientDTO;
     }
 
     /**
@@ -1412,7 +1400,6 @@ public class RecipeServiceSub {
         p.setPatientType(patient.getPatientType());
         p.setIdcard(patient.getCertificate());
         p.setStatus(patient.getStatus());
-//        p.setMobile(patient.getMobile());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
         p.setSignFlag(patient.getSignFlag());
@@ -1550,7 +1537,7 @@ public class RecipeServiceSub {
         if (patientBean != null) {
             //添加患者标签和关注这些字段
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
-            patient = RecipeServiceSub.convertPatientForRAP(patientBean);
+            patient = RecipeServiceSub.patientDesensitization(patientBean);
             //判断该就诊人是否为儿童就诊人
             if (patient.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                 GuardianBean guardian = new GuardianBean();

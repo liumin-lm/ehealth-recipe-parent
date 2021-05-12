@@ -121,6 +121,7 @@ public class OperationPlatformRecipeService {
     @RpcService
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
 
+        LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId,checkerId);
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -253,15 +254,12 @@ public class OperationPlatformRecipeService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
-        //医生端获取处方扩展信息
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (recipeExtend != null) {
-            map.put("recipeExtend", recipeExtend);
-            r.setMedicalType(recipeExtend.getMedicalType());
-            r.setMedicalTypeText(recipeExtend.getMedicalTypeText());
+        if (extend != null) {
+            map.put("recipeExtend", extend);
+            r.setMedicalType(extend.getMedicalType());
+            r.setMedicalTypeText(extend.getMedicalTypeText());
         }
-        map.put("showAllergyMedical", (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getAllergyMedical())));
+        map.put("showAllergyMedical", (null != extend && StringUtils.isNotEmpty(extend.getAllergyMedical())));
         //date 20191111
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);
@@ -355,13 +353,22 @@ public class OperationPlatformRecipeService {
         //患者就诊卡信息
         HashMap<String, String> cardMap = Maps.newHashMap();
         if (extend != null) {
+            try {
+            //就诊卡卡号--只有复诊的患者才有就诊卡类型
             String cardNo = extend.getCardNo();
-            String cardTypeName = extend.getCardTypeName();
-            cardMap.put("cardNo", cardNo);
-            cardMap.put("cardTypeName", cardTypeName);
+            //就诊卡类型
+            String cardType = extend.getCardType();
+            //如果cardName存在，则取cardName,否则从字典中取，如果两者都没有的话，那就是没有
+            //就诊卡名称
+            String  cardTypeName=extend.getCardTypeName()==null?DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()):extend.getCardTypeName();
+                cardMap.put("cardType",cardType);
+                cardMap.put("cardNo", cardNo);
+                cardMap.put("cardTypeName", cardTypeName);
+                map.put("card", cardMap);
+            }catch (Exception e1){
+                LOGGER.error("findRecipeAndDetailsAndCheckById.error",e1);
+            }
         }
-        map.put("card", cardMap);
-
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("guardian", guardian);
 
@@ -397,14 +404,13 @@ public class OperationPlatformRecipeService {
                     recipeDanger.setDetailUrl(item.getDetailUrl());
                     recipeDangers.add(recipeDanger);
                 });
-                map.put("recipeDangers", recipeDangers); //返回处方分析数据
+                map.put("recipeDangers", recipeDangers);
             }
         }
-
+        Integer one = 1;
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
-        if (null != checkResult && (checkResult == 1 || checkResult == 3) && null != r.getPayFlag() && r.getPayFlag() == 1
-                && null != r.getGiveMode() && r.getGiveMode() <= 2 || (e.getCreateType() != null && e.getCreateType() == 0)) {
-            map.put("editFlag", 1);
+        if (null != checkResult && (checkResult == 1 || checkResult == 3) && one.equals(r.getPayFlag()) && null != r.getGiveMode() && r.getGiveMode() <= 3) {
+            map.put("editFlag", one);
         } else {
             map.put("editFlag", 0);
         }
@@ -426,6 +432,7 @@ public class OperationPlatformRecipeService {
         }
         ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
         map.put("apothecary", apothecaryVO);
+        LOGGER.info("findRecipeAndDetailsAndCheckById.map={}",JSONUtils.toString(map));
         return map;
     }
 
