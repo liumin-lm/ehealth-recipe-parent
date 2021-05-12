@@ -72,6 +72,11 @@ public class RecipeDetailService {
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
         List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+        /**校验处方扩展字段*/
+        //校验煎法
+        recipeDetailValidateTool.validateDecoction(organId, recipeExtendBean);
+        //校验制法
+        recipeDetailValidateTool.validateMakeMethod(organId, recipeExtendBean);
         /**校验药品数据判断状态*/
         recipeDetails.forEach(a -> {
             //校验机构药品
@@ -90,9 +95,6 @@ public class RecipeDetailService {
             //返回前端必须字段
             setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
         });
-        /**校验处方扩展字段*/
-        recipeDetailValidateTool.validateDecoction(organId, recipeExtendBean);
-        recipeDetailValidateTool.validateMakeMethod(organId, recipeExtendBean);
         return recipeDetails;
     }
 

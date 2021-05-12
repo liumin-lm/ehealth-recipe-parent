@@ -3,6 +3,7 @@ package recipe.drugTool.validate;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.drug.model.DecoctionWayBean;
+import com.ngari.recipe.drug.model.DrugMakingMethodBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
@@ -16,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.DrugDecoctionWayDao;
+import recipe.dao.DrugMakingMethodDao;
 import recipe.service.client.DrugClient;
+import recipe.service.client.IConfigurationClient;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
@@ -34,7 +37,17 @@ public class RecipeDetailValidateTool {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    DrugMakingMethodDao drugMakingMethodDao;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
+    /**
+     * 患者选择煎法
+     */
+    private final static String DECOCTION_DEPLOY_PATIENT = "2";
     /**
      * 校验药品状态 0:正常，1已失效，2未完善
      */
@@ -224,8 +237,6 @@ public class RecipeDetailValidateTool {
         }
     }
 
-    @Autowired
-    DrugDecoctionWayDao drugDecoctionWayDao;
 
     /**
      * 校验煎法
@@ -233,6 +244,10 @@ public class RecipeDetailValidateTool {
      * @param recipeExtendBean
      */
     public void validateDecoction(Integer organId, RecipeExtendBean recipeExtendBean) {
+        String decoctionDeploy = configurationClient.getValueEnumCatch(organId, "decoctionDeploy", null);
+        if (DECOCTION_DEPLOY_PATIENT.equals(decoctionDeploy)) {
+            return;
+        }
         if (StringUtils.isEmpty(recipeExtendBean.getDecoctionCode()) && StringUtils.isEmpty(recipeExtendBean.getDecoctionText())) {
             return;
         }
@@ -241,6 +256,7 @@ public class RecipeDetailValidateTool {
             recipeExtendBean.setDecoctionCode(null);
             recipeExtendBean.setDecoctionId(null);
             recipeExtendBean.setDecoctionText(null);
+            return;
         }
         if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionCode())) {
             boolean code = decoctionWayList.stream().noneMatch(a -> recipeExtendBean.getDecoctionCode().equals(a.getDecoctionCode()));
@@ -249,6 +265,7 @@ public class RecipeDetailValidateTool {
                 recipeExtendBean.setDecoctionId(null);
                 recipeExtendBean.setDecoctionText(null);
             }
+            return;
         }
         if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionText())) {
             boolean text = decoctionWayList.stream().noneMatch(a -> recipeExtendBean.getDecoctionText().equals(a.getDecoctionText()));
@@ -258,15 +275,41 @@ public class RecipeDetailValidateTool {
                 recipeExtendBean.setDecoctionText(null);
             }
         }
-
     }
 
     /**
-     * 校验制法编码
+     * 校验制法
      *
      * @param recipeExtendBean
      */
     public void validateMakeMethod(Integer organId, RecipeExtendBean recipeExtendBean) {
+        if (StringUtils.isEmpty(recipeExtendBean.getMakeMethod()) && StringUtils.isEmpty(recipeExtendBean.getMakeMethodText())) {
+            return;
+        }
+        List<DrugMakingMethodBean> drugMakingMethodList = drugMakingMethodDao.findAllDrugMakingMethodByOrganId(organId);
+        if (CollectionUtils.isEmpty(drugMakingMethodList)) {
+            recipeExtendBean.setMakeMethod(null);
+            recipeExtendBean.setMakeMethodText(null);
+            recipeExtendBean.setMakeMethodId(null);
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipeExtendBean.getMakeMethod())) {
+            boolean code = drugMakingMethodList.stream().noneMatch(a -> recipeExtendBean.getMakeMethod().equals(a.getMethodCode()));
+            if (code) {
+                recipeExtendBean.setMakeMethod(null);
+                recipeExtendBean.setMakeMethodText(null);
+                recipeExtendBean.setMakeMethodId(null);
+            }
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipeExtendBean.getMakeMethodText())) {
+            boolean text = drugMakingMethodList.stream().noneMatch(a -> recipeExtendBean.getMakeMethodText().equals(a.getMethodText()));
+            if (text) {
+                recipeExtendBean.setMakeMethod(null);
+                recipeExtendBean.setMakeMethodText(null);
+                recipeExtendBean.setMakeMethodId(null);
+            }
+        }
     }
 
 
