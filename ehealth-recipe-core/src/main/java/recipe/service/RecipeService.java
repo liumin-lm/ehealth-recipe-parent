@@ -5905,13 +5905,15 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 医保药品判定
+     * @param detailBeanList 处方单详情
+     * @param organId 机构ID
      */
     @RpcService
     public List<OrganDrugList> medicalCheck(List<RecipeDetailBean> detailBeanList, Integer organId) {
-        OrganDrugListDAO drugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
-        List<OrganDrugList> byOrganIdAndDrugIdList = drugListDAO.findByOrganIdAndDrugIdList(organId, drugIds);
-        List<OrganDrugList> collect = byOrganIdAndDrugIdList.stream().filter(OrganDrugList::getMedicalInsuranceControl).collect(Collectors.toList());
-        return collect;
+        LOGGER.info("medicalCheck request param:{}", JSONUtils.toString(detailBeanList));
+        List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).distinct().collect(Collectors.toList());
+        List<OrganDrugList> byOrganIdAndDrugIdList = organDrugListDAO.findByOrganIdAndDrugAndMedicalIdList(organId, drugIds);
+        LOGGER.info("medicalCheck response param:{}", JSONUtils.toString(byOrganIdAndDrugIdList));
+        return byOrganIdAndDrugIdList;
     }
 }
