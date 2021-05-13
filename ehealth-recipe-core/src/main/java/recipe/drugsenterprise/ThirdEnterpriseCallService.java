@@ -1901,10 +1901,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             String province = getAddressDic(recipeOrder.getAddress1());
             String city = getAddressDic(recipeOrder.getAddress2());
             String district = getAddressDic(recipeOrder.getAddress3());
+            String street = getAddressDic(recipeOrder.getStreetAddress());
             orderDetailBean.setProvince(convertParame(province));
             orderDetailBean.setCity(convertParame(city));
             orderDetailBean.setDistrict(convertParame(district));
-            orderDetailBean.setStreet(convertParame(recipeOrder.getAddress4()));
+            orderDetailBean.setStreet(convertParame(street));
             orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
             orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
             orderDetailBean.setRecAddress(convertParame(recipeOrder.getAddress4()));
