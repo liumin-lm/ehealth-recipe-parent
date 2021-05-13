@@ -5832,9 +5832,7 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}", JSONUtils.toString(revisitRequest));
-        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            getConsultIdForRecipeSource(recipe, registerNo);
-        }
+        getConsultIdForRecipeSource(recipe, registerNo);
         if (!registerNo) {
             return true;
         }
