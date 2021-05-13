@@ -1078,6 +1078,7 @@ public class HisRecipeService {
                 Map<String, Object> attMap = new HashMap<>();
                 String join = StringUtils.join(drugsEnterpriseContinue, ",");
                 attMap.put("recipeSupportGiveMode", join);
+                attMap.put("DistributionFlag", continueFlag);
                 recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
             }
         }
