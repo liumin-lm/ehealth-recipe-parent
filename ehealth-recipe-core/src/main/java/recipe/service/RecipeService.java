@@ -45,6 +45,7 @@ import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -142,6 +143,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -5914,7 +5916,14 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("medicalCheck request param:{}", JSONUtils.toString(detailBeanList));
         List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> byOrganIdAndDrugIdList = organDrugListDAO.findByOrganIdAndDrugAndMedicalIdList(organId, drugIds);
-        LOGGER.info("medicalCheck response param:{}", JSONUtils.toString(byOrganIdAndDrugIdList));
-        return byOrganIdAndDrugIdList;
+        Map<Integer, OrganDrugList> organDrugListMaps = byOrganIdAndDrugIdList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, Function.identity(), (o, o2) -> o));
+        List<OrganDrugList> result = new ArrayList<>();
+        for (RecipeDetailBean recipeDetailBean : detailBeanList) {
+            if (organDrugListMaps.containsKey(recipeDetailBean.getDrugId())) {
+                result.add(organDrugListMaps.get(recipeDetailBean.getDrugId()));
+            }
+        }
+        LOGGER.info("medicalCheck response param:{}", JSONUtils.toString(result));
+        return result;
     }
 }
