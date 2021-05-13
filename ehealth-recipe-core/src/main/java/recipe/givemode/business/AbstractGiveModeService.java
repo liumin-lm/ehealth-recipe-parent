@@ -224,6 +224,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
         List<String> list = new ArrayList<>();
         if (StringUtils.isEmpty(recipeSupportGiveMode)) {
+            list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             // 兼容老版本处方没有写入支持的购药方式 后期删除
             if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
                 list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
@@ -234,7 +235,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
             }
             // 线下转线上没有 配送标记
-            if(Objects.isNull(recipe.getDistributionFlag())){
+            if (Objects.isNull(recipe.getDistributionFlag())) {
                 list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
                 list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
                 list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());

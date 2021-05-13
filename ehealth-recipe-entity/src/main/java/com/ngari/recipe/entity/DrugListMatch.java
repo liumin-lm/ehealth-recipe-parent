@@ -510,7 +510,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.medicalInsuranceControl = medicalInsuranceControl;
     }
 
-    @Column(name = "IndicationsDeclare")
+    @Column(name = "indicationsDeclare")
     public String getIndicationsDeclare() {
         return IndicationsDeclare;
     }
