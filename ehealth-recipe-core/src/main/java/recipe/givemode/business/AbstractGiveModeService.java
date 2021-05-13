@@ -14,6 +14,7 @@ import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -353,8 +354,8 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText())) {
             list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
         }
-        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText())) {
-            list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText())) {
+            list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
         }
         if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText())) {
             list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
