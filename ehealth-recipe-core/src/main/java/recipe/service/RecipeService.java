@@ -707,9 +707,10 @@ public class RecipeService extends RecipeBaseService {
                 List<Integer> pharmacyIdList = pharmacyTcms.stream().map(PharmacyTcm::getPharmacyId).collect(Collectors.toList());
                 OrganDrugList organDrugList;
                 for (RecipeDetailBean recipedetail : detailBeans) {
-                    /*if (recipedetail.getPharmacyId() == null || recipedetail.getPharmacyId() == 0) {
-                        throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
-                    }*/
+                    if (recipedetail.getPharmacyId() == null || recipedetail.getPharmacyId() == 0) {
+                        //throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
+                        continue;
+                    }
                     //判断药房机构库配置
                     if (!pharmacyIdList.contains(recipedetail.getPharmacyId())) {
                         throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
