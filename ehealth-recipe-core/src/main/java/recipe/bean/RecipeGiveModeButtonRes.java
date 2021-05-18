@@ -2,6 +2,8 @@ package recipe.bean;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,5 +36,14 @@ public class RecipeGiveModeButtonRes {
     /**
      * 页面跳转类型 1：正常跳转，2：跳转门诊缴费，3：第三方页面
      */
-    private Integer jumpType;
+    private String jumpType;
+
+
+    public RecipeGiveModeButtonRes(String giveModeKey,String giveModeText,String jumpType) {
+        super();
+        this.giveModeKey = giveModeKey;
+        this.giveModeText = giveModeText;
+        this.jumpType = jumpType;
+    }
+
 }

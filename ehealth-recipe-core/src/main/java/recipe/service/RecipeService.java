@@ -48,6 +48,7 @@ import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
+import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
@@ -99,6 +100,7 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bean.RecipeInvalidDTO;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
@@ -5882,5 +5884,60 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.dtoList{}", JSONUtils.toString(dtoList));
         return dtoList;
+    }
+
+    /**
+     *  根据处方的id获取多个处方支持的购药方式
+     * @param recipeIds
+     * @return
+     */
+    public List<RecipeGiveModeButtonRes> getRecipeGiveModeButtonRes(List<Integer> recipeIds){
+        LOGGER.info("getRecipeGiveModeButtonRes.recipeIds{}", JSONUtils.toString(recipeIds));
+        List<RecipeGiveModeButtonRes> list = new ArrayList<>();
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        if(CollectionUtils.isEmpty(recipes)){
+            return list;
+        }
+        // 从运营平台获取所有的购药方式
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
+        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipes.get(0).getClinicOrgan());
+        // 获取跳转标志
+        String buttonSkipType = giveModeShowButtonVO.getListItem().getButtonSkipType();
+        Map<Integer, String> giveModesMap = recipes.stream().collect(Collectors.toMap(recipe -> recipe.getRecipeId(), recipe -> recipe.getRecipeSupportGiveMode()));
+        RecipeGiveModeButtonRes supportTFDSButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText(),"药店取药",buttonSkipType);
+        RecipeGiveModeButtonRes showSendHosButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText(),"医院配送",buttonSkipType);
+        RecipeGiveModeButtonRes showSendEnterpriseButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText(),"药企配送",buttonSkipType);
+        RecipeGiveModeButtonRes supportHosButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText(),"到院取药",buttonSkipType);
+        RecipeGiveModeButtonRes downloadRecipeButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText(),"下载处方",buttonSkipType);
+
+        List<Integer> supportTFDSButtonList = new ArrayList<>();
+        List<Integer> showSendHosButtonList = new ArrayList<>();
+        List<Integer> showSendEnterpriseList = new ArrayList<>();
+        List<Integer> supportHosList = new ArrayList<>();
+        giveModesMap.keySet().forEach(recipeId->{
+            String giveModeStr = giveModesMap.get(recipeId);
+            if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
+                supportTFDSButtonList.add(recipeId);
+            }
+            if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType()))) {
+                showSendHosButtonList.add(recipeId);
+            }
+            if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
+                showSendEnterpriseList.add(recipeId);
+            }
+            if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))) {
+                supportHosList.add(recipeId);
+            }
+        });
+        supportTFDSButton.setRecipeIds(supportTFDSButtonList);
+        showSendHosButton.setRecipeIds(showSendHosButtonList);
+        showSendEnterpriseButton.setRecipeIds(showSendEnterpriseList);
+        supportHosButton.setRecipeIds(supportHosList);
+        // 下载处方不支持合并支付
+        downloadRecipeButton.setRecipeIds(new ArrayList<>());
+
+        // 例外支付
+
+        return list;
     }
 }
