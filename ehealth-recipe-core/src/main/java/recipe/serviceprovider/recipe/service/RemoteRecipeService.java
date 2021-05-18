@@ -2477,9 +2477,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime) {
         LOGGER.info("getRecipeMedAndCash organId ={},createTime={},endTime={}", organId, createTime, endTime);
         //统计机构的自费和医保的数据
-        List<HosBusFundsReportResult> hoList = recipeDAO.findRecipeByOrganIdAndCreateTime(organId, createTime, endTime);
-        LOGGER.info("getRecipeMedAndCash.hoList ={}", JSONUtils.toString(hoList));
-        return hoList.get(0);
+        List<HosBusFundsReportResult> payList = recipeDAO.findRecipeByOrganIdAndPayTime(organId, createTime, endTime);
+        List<HosBusFundsReportResult> refundList = recipeDAO.findRecipeRefundByOrganIdAndRefundTime(organId, createTime, endTime);
+        HosBusFundsReportResult pay = payList.get(0);
+        HosBusFundsReportResult refund = refundList.get(0);
+        HosBusFundsReportResult ho = new HosBusFundsReportResult();
+        HosBusFundsReportResult.MedFundsDetail result = new HosBusFundsReportResult.MedFundsDetail();
+        result.setMedicalAmount(pay.getMedFee().getMedicalAmount().subtract(refund.getMedFee().getMedicalAmount()));
+        result.setPersonalAmount(pay.getMedFee().getPersonalAmount().subtract(refund.getMedFee().getMedicalAmount()));
+        result.setTotalAmount(pay.getMedFee().getTotalAmount().subtract(refund.getMedFee().getTotalAmount()));
+        LOGGER.info("getRecipeMedAndCash.hoList ={}", JSONUtils.toString(result));
+        ho.setMedFee(result);
+        return ho;
     }
 
 
