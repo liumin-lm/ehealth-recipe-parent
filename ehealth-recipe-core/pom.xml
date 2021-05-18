@@ -300,6 +300,11 @@
             <groupId>ngari</groupId>
             <artifactId>ehealth-basic-dto</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
     <profiles>
