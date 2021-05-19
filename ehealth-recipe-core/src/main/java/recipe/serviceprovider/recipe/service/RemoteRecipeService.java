@@ -2605,7 +2605,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
           return new ArrayList<HealthCardBean>();//其他情况无任何交集[]
         } catch (Exception e) {
-            LOGGER.error("queryHealthCardFromHisAndMerge.ExceptionError",e);
+            LOGGER.error("queryHealthCardFromHisAndMerge.ExceptionError    ",e);
         }
         LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.mpiid={}.当前就诊人没有卡支持",organId,mpiid);
         return null;
