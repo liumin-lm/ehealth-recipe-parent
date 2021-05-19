@@ -79,7 +79,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
         Map<String,Object> map=new HashMap<>();
         List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList=new ArrayList<RecipeGiveModeButtonRes>();
         RecipeGiveModeButtonRes recipeGiveModeButtonRes=new RecipeGiveModeButtonRes();
-        recipeGiveModeButtonRes.setJumpType(1);
+        recipeGiveModeButtonRes.setJumpType("1");
         recipeGiveModeButtonResList.add(recipeGiveModeButtonRes);
         map.put("recipeGiveModeButtonRes",recipeGiveModeButtonResList);
         return map;
