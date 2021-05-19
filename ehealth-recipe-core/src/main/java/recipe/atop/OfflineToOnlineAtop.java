@@ -2,17 +2,24 @@ package recipe.atop;
 
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.validation.annotation.Validated;
 import recipe.bean.RecipeGiveModeButtonRes;
+import recipe.bussutil.openapi.util.JSONUtils;
+import recipe.constant.ErrorCode;
+import recipe.factory.status.constant.OfflineToOnlineEnum;
+import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
+import recipe.factory.status.offlineToOnlineFactory.OfflineToOnlineFactory;
 import recipe.service.RecipeHisService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -21,6 +28,7 @@ import java.util.Map;
  * @Description 线下转线上服务入口类
  */
 @RpcBean("offlineToOnlineAtop")
+@Validated
 public class OfflineToOnlineAtop extends BaseAtop {
 
     @Autowired
@@ -70,19 +78,28 @@ public class OfflineToOnlineAtop extends BaseAtop {
 //    }
 
     /**
-     *
      * @param request
      * @return
+     * @Description 线下处方点够药、缴费点结算 1、线下转线上 2、获取购药按钮
+     * @Author liumin
      */
     @RpcService
-    public Map<String,Object> settleForOfflineToOnline(SettleForOfflineToOnlineVO request){
-        Map<String,Object> map=new HashMap<>();
-        List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList=new ArrayList<RecipeGiveModeButtonRes>();
-        RecipeGiveModeButtonRes recipeGiveModeButtonRes=new RecipeGiveModeButtonRes();
-        recipeGiveModeButtonRes.setJumpType("1");
-        recipeGiveModeButtonResList.add(recipeGiveModeButtonRes);
-        map.put("recipeGiveModeButtonRes",recipeGiveModeButtonResList);
-        return map;
+    @Validated
+    public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(@Valid SettleForOfflineToOnlineVO request) {
+        logger.info("{} request:{}", Thread.currentThread().getStackTrace()[1].getMethodName(), JSONUtils.toString(request));
+        if (request == null
+                || CollectionUtils.isEmpty(request.getRecipeCode())
+                || StringUtils.isEmpty(request.getOrganId())
+                || StringUtils.isEmpty(request.getBusType())
+                || StringUtils.isEmpty(request.getMpiId())
+        ) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+        OfflineToOnlineFactory offlineToOnlineFactory = new OfflineToOnlineFactory();
+        IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
+        List<RecipeGiveModeButtonRes> response = offlineToOnlineService.settleForOfflineToOnline(request);
+        logger.info("{} response:{}", Thread.currentThread().getStackTrace()[1].getMethodName(), JSONUtils.toString(response));
+        return response;
     }
 
 }

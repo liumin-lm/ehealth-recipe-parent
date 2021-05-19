@@ -7,11 +7,13 @@ import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.vo.FindHisRecipeDetailVO;
 import com.ngari.recipe.vo.FindHisRecipeListVO;
+import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
 import recipe.service.OfflineToOnlineService;
@@ -42,7 +44,7 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        List<HisRecipe> recipes=new ArrayList<>();
+        List<HisRecipe> recipes = new ArrayList<>();
         try {
             // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
             offlineToOnlineService.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 1);
@@ -57,14 +59,19 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
     @Override
     public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
         // 1.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
-        Integer recipeId=offlineToOnlineService.saveRecipeInfo(request.getHisRecipeId());
+        Integer recipeId = offlineToOnlineService.saveRecipeInfo(request.getHisRecipeId());
         // 2.通过cdrHisRecipeId返回数据详情
-        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(),recipeId);
+        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(), recipeId);
     }
 
     @Override
     public Integer getPayMode() {
         return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getType();
+    }
+
+    @Override
+    public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request) {
+        return null;
     }
 
 }

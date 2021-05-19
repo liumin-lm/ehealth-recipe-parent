@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.ExtInfoTO;
 import com.ngari.his.recipe.mode.MedicalInfo;
@@ -20,6 +21,7 @@ import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.FindHisRecipeListVO;
+import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -37,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
@@ -75,6 +78,11 @@ public class OfflineToOnlineService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeService recipeService;
+    @Autowired
+    private HisRecipeService hisRecipeService;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 线下处方转换成前端所需对象
@@ -1182,13 +1190,50 @@ public class OfflineToOnlineService {
         return map;
     }
 
-//    @Override
-//    public List<HisRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
-//        return null;
-//    }
 
-//    @Override
-//    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
-//        return null;
-//    }
+    /**
+     * 获取购药按钮
+     * @param recipeIds
+     * @return
+     */
+    public List<RecipeGiveModeButtonRes>  getRecipeGiveModeButtonRes(List<Integer> recipeIds) {
+        LOGGER.info("{} request:{}",Thread.currentThread().getStackTrace()[1].getMethodName(), recipe.bussutil.openapi.util.JSONUtils.toString(recipeIds));
+        List<RecipeGiveModeButtonRes> recipeGiveModeButtonRes=recipeService.getRecipeGiveModeButtonRes(recipeIds);
+        if(CollectionUtils.isEmpty(recipeGiveModeButtonRes)){
+            throw new DAOException(609, "“抱歉，当前处方没有可支持的购药方式”");
+        }
+        LOGGER.info("{} response:{}",Thread.currentThread().getStackTrace()[1].getMethodName(), recipe.bussutil.openapi.util.JSONUtils.toString(recipeGiveModeButtonRes));
+        return recipeGiveModeButtonRes;
+    }
+
+    /**
+     *
+     * @param request
+     * @Description 批量同步线下处方数据
+     * @Author liumin
+     * @return
+     */
+    public List<Integer>  batchSyncRecipeFromHis(SettleForOfflineToOnlineVO request) {
+        LOGGER.info("{} request:{}",Thread.currentThread().getStackTrace()[1].getMethodName(),JSONUtils.toString(request));
+        List<Integer> recipeIds=new ArrayList<>();
+        request.getRecipeCode().forEach(recipeCode ->{
+            // 1、删数据 当busType==2  [1：处方  2：缴费]
+            if("2".equals(request.getBusType())){
+                hisRecipeService.deleteSetRecipeCode(Integer.parseInt(request.getOrganId()), Collections.singleton(recipeCode));
+            }
+            // 2、线下转线上
+            Map<String,Object> map=hisRecipeService.getHisRecipeDetail(null,request.getMpiId(),recipeCode,request.getOrganId(),null,request.getCardId());
+            RecipeBean recipeBean= objectMapper.convertValue(map.get("recipe"),RecipeBean.class);
+            if(null!=recipeBean){
+                recipeIds.add(recipeBean.getRecipeId());
+            }
+        });
+
+        if(recipeIds.size()!=request.getRecipeCode().size()){
+            throw new DAOException(609, "“抱歉，当前处方没有可支持的购药方式”");
+        }
+        LOGGER.info("{} response:{}",Thread.currentThread().getStackTrace()[1].getMethodName(),JSONUtils.toString(recipeIds));
+        return recipeIds;
+    }
+
 }
