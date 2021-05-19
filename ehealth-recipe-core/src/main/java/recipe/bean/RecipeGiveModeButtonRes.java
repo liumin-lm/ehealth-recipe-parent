@@ -1,6 +1,9 @@
 package recipe.bean;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,6 +15,9 @@ import java.util.List;
  * @date： 2021-05-18 13:40
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RecipeGiveModeButtonRes {
     /**
      * 购药方式key
@@ -39,11 +45,10 @@ public class RecipeGiveModeButtonRes {
     private String jumpType;
 
 
-    public RecipeGiveModeButtonRes(String giveModeKey,String giveModeText,String jumpType) {
+    public RecipeGiveModeButtonRes(String giveModeKey,String giveModeText) {
         super();
         this.giveModeKey = giveModeKey;
         this.giveModeText = giveModeText;
-        this.jumpType = jumpType;
     }
 
 }

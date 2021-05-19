@@ -29,7 +29,13 @@ public enum RecipeSupportGiveModeEnum {
     /**
      * downloadRecipe 下载处方笺
      */
-    DOWNLOAD_RECIPE("downloadRecipe",5),
+    DOWNLOAD_RECIPE("supportDownload",5),
+
+
+    /**
+     * supportMedicalPayment 例外支付
+     */
+    SUPPORT_MEDICAL_PAYMENT("supportMedicalPayment",6)
 
     ;
 

@@ -5887,34 +5887,40 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     *  根据处方的id获取多个处方支持的购药方式
+     * 根据处方的id获取多个处方支持的购药方式
+     *
      * @param recipeIds
      * @return
      */
-    public List<RecipeGiveModeButtonRes> getRecipeGiveModeButtonRes(List<Integer> recipeIds){
+    @RpcService
+    public List<RecipeGiveModeButtonRes> getRecipeGiveModeButtonRes(List<Integer> recipeIds) {
         LOGGER.info("getRecipeGiveModeButtonRes.recipeIds{}", JSONUtils.toString(recipeIds));
         List<RecipeGiveModeButtonRes> list = new ArrayList<>();
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return list;
+        }
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-        if(CollectionUtils.isEmpty(recipes)){
+        if (CollectionUtils.isEmpty(recipes)) {
             return list;
         }
         // 从运营平台获取所有的购药方式
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipes.get(0).getClinicOrgan());
         // 获取跳转标志
-        String buttonSkipType = giveModeShowButtonVO.getListItem().getButtonSkipType();
         Map<Integer, String> giveModesMap = recipes.stream().collect(Collectors.toMap(recipe -> recipe.getRecipeId(), recipe -> recipe.getRecipeSupportGiveMode()));
-        RecipeGiveModeButtonRes supportTFDSButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText(),"药店取药",buttonSkipType);
-        RecipeGiveModeButtonRes showSendHosButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText(),"医院配送",buttonSkipType);
-        RecipeGiveModeButtonRes showSendEnterpriseButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText(),"药企配送",buttonSkipType);
-        RecipeGiveModeButtonRes supportHosButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText(),"到院取药",buttonSkipType);
-        RecipeGiveModeButtonRes downloadRecipeButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText(),"下载处方",buttonSkipType);
+        RecipeGiveModeButtonRes supportTFDSButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText(), "药店取药");
+        RecipeGiveModeButtonRes showSendHosButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText(), "医院配送");
+        RecipeGiveModeButtonRes showSendEnterpriseButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText(), "药企配送");
+        RecipeGiveModeButtonRes supportHosButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText(), "到院取药");
+        RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(), "例外支付");
+        RecipeGiveModeButtonRes downloadRecipeButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText(), "下载处方");
 
         List<Integer> supportTFDSButtonList = new ArrayList<>();
         List<Integer> showSendHosButtonList = new ArrayList<>();
         List<Integer> showSendEnterpriseList = new ArrayList<>();
         List<Integer> supportHosList = new ArrayList<>();
-        giveModesMap.keySet().forEach(recipeId->{
+        List<Integer> downloadRecipeButtonList = new ArrayList<>();
+        giveModesMap.keySet().forEach(recipeId -> {
             String giveModeStr = giveModesMap.get(recipeId);
             if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
                 supportTFDSButtonList.add(recipeId);
@@ -5928,16 +5934,74 @@ public class RecipeService extends RecipeBaseService {
             if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))) {
                 supportHosList.add(recipeId);
             }
+            if (giveModeStr.contains(String.valueOf(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType()))) {
+                downloadRecipeButtonList.add(recipeId);
+            }
         });
         supportTFDSButton.setRecipeIds(supportTFDSButtonList);
         showSendHosButton.setRecipeIds(showSendHosButtonList);
         showSendEnterpriseButton.setRecipeIds(showSendEnterpriseList);
         supportHosButton.setRecipeIds(supportHosList);
         // 下载处方不支持合并支付
-        downloadRecipeButton.setRecipeIds(new ArrayList<>());
+//        downloadRecipeButton.setRecipeIds(new ArrayList<>());
 
-        // 例外支付
+        List<GiveModeButtonBean> giveModeButtons = giveModeShowButtonVO.getGiveModeButtons();
+        LOGGER.info("getRecipeGiveModeButtonRes.giveModeButtons{}", JSONUtils.toString(giveModeButtons));
+        Integer size = recipeIds.size();
+        giveModeButtons.forEach(giveModeButtonBean -> {
+            if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(giveModeButtonBean.getShowButtonKey()) && CollectionUtils.isNotEmpty(supportTFDSButtonList)) {
+                supportTFDSButton.setJumpType(giveModeButtonBean.getButtonSkipType());
+                if (size.equals(supportTFDSButtonList.size())) {
+                    supportTFDSButton.setButtonFlag(true);
+                } else {
+                    supportTFDSButton.setButtonFlag(false);
+                }
+                list.add(supportTFDSButton);
+            }
+            if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText().equals(giveModeButtonBean.getShowButtonKey()) && CollectionUtils.isNotEmpty(showSendHosButtonList)) {
+                showSendHosButton.setJumpType(giveModeButtonBean.getButtonSkipType());
+                if (size.equals(showSendHosButtonList.size())) {
+                    showSendHosButton.setButtonFlag(true);
+                } else {
+                    showSendHosButton.setButtonFlag(false);
+                }
+                list.add(showSendHosButton);
+            }
+            if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText().equals(giveModeButtonBean.getShowButtonKey()) && CollectionUtils.isNotEmpty(showSendEnterpriseList)) {
+                showSendEnterpriseButton.setJumpType(giveModeButtonBean.getButtonSkipType());
+                if (size.equals(showSendEnterpriseList.size())) {
+                    showSendEnterpriseButton.setButtonFlag(true);
+                } else {
+                    showSendEnterpriseButton.setButtonFlag(false);
+                }
+                list.add(showSendEnterpriseButton);
+            }
+            if (RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(giveModeButtonBean.getShowButtonKey()) && CollectionUtils.isNotEmpty(supportHosList)) {
+                supportHosButton.setJumpType(giveModeButtonBean.getButtonSkipType());
+                if (size.equals(supportHosList.size())) {
+                    supportHosButton.setButtonFlag(true);
+                } else {
+                    supportHosButton.setButtonFlag(false);
+                }
+                list.add(supportHosButton);
+            }
+            // 例外支付 只要机构支持,所有处方都支持
+            if (RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText().equals(giveModeButtonBean.getShowButtonKey())) {
+                supportMedicalPaymentButton.setJumpType(giveModeButtonBean.getButtonSkipType());
+                supportMedicalPaymentButton.setButtonFlag(true);
+                supportMedicalPaymentButton.setRecipeIds(recipeIds);
+                list.add(supportMedicalPaymentButton);
+            }
+            // 下载处方不支持合并支付,只有单张处方查询才展示
+            if (RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText().equals(giveModeButtonBean.getShowButtonKey()) && size.equals(1) && CollectionUtils.isNotEmpty(downloadRecipeButtonList)) {
+                downloadRecipeButton.setJumpType(giveModeButtonBean.getButtonSkipType());
+                downloadRecipeButton.setButtonFlag(true);
+                downloadRecipeButton.setRecipeIds(recipeIds);
+                list.add(downloadRecipeButton);
+            }
+        });
 
+        LOGGER.info("getRecipeGiveModeButtonRes.List<RecipeGiveModeButtonRes> = {}", JSONUtils.toString(list));
         return list;
     }
 }
