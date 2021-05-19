@@ -882,5 +882,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     public  Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId);
 
+    @RpcService
+    public Boolean getRecipeOrderFlag(Integer organId, String recipeCode);
+
 }
 
