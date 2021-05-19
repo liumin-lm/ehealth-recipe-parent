@@ -45,6 +45,7 @@ import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -142,6 +143,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -707,9 +709,10 @@ public class RecipeService extends RecipeBaseService {
                 List<Integer> pharmacyIdList = pharmacyTcms.stream().map(PharmacyTcm::getPharmacyId).collect(Collectors.toList());
                 OrganDrugList organDrugList;
                 for (RecipeDetailBean recipedetail : detailBeans) {
-                    /*if (recipedetail.getPharmacyId() == null || recipedetail.getPharmacyId() == 0) {
-                        throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
-                    }*/
+                    if (recipedetail.getPharmacyId() == null || recipedetail.getPharmacyId() == 0) {
+                        //throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
+                        continue;
+                    }
                     //判断药房机构库配置
                     if (!pharmacyIdList.contains(recipedetail.getPharmacyId())) {
                         throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
@@ -5831,9 +5834,7 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}", JSONUtils.toString(revisitRequest));
-        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            getConsultIdForRecipeSource(recipe, registerNo);
-        }
+        getConsultIdForRecipeSource(recipe, registerNo);
         if (!registerNo) {
             return true;
         }
@@ -5913,7 +5914,14 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("medicalCheck request param:{}", JSONUtils.toString(detailBeanList));
         List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> byOrganIdAndDrugIdList = organDrugListDAO.findByOrganIdAndDrugAndMedicalIdList(organId, drugIds);
-        LOGGER.info("medicalCheck response param:{}", JSONUtils.toString(byOrganIdAndDrugIdList));
-        return byOrganIdAndDrugIdList;
+        Map<Integer, OrganDrugList> organDrugListMaps = byOrganIdAndDrugIdList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, Function.identity(), (o, o2) -> o));
+        List<OrganDrugList> result = new ArrayList<>();
+        for (RecipeDetailBean recipeDetailBean : detailBeanList) {
+            if (organDrugListMaps.containsKey(recipeDetailBean.getDrugId())) {
+                result.add(organDrugListMaps.get(recipeDetailBean.getDrugId()));
+            }
+        }
+        LOGGER.info("medicalCheck response param:{}", JSONUtils.toString(result));
+        return result;
     }
 }
