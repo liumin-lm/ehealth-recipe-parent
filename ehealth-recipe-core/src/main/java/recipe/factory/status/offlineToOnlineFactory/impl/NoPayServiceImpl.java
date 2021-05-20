@@ -1,31 +1,17 @@
 package recipe.factory.status.offlineToOnlineFactory.impl;
 
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.QueryHisRecipResTO;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.recipe.model.HisRecipeVO;
-import com.ngari.recipe.vo.FindHisRecipeDetailVO;
-import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
-import ctd.persistence.exception.DAOException;
-import ctd.util.event.GlobalEventExecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
 import recipe.service.OfflineToOnlineService;
-import recipe.service.RecipeHisService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author liumin
@@ -35,72 +21,19 @@ import java.util.Map;
 @Service
 public class NoPayServiceImpl implements IOfflineToOnlineService {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     OfflineToOnlineService offlineToOnlineService;
 
-    @Autowired
-    RecipeHisService recipeHisService;
-
-    @Autowired
-    @Qualifier("basic.patientService")
-    PatientService patientService;
-
-    protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-
-    @Override
-    public List<HisRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
-        //转换成前端所需对象
-        List<HisRecipeVO> noPayHisRecipeVO = offlineToOnlineService.covertToHisRecipeObjectForNoPay(hisRecipeInfos, patientDTO);
-        //异步删除his未返回数据数据
-        GlobalEventExecFactory.instance().getExecutor().execute(() -> {
-            offlineToOnlineService.deleteOnlyExistnoHisRecipeVOs(noPayHisRecipeVO, request);
-        });
-        return noPayHisRecipeVO;
-    }
-
-    @Override
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
-        // 1获取his数据
-        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
-        if (null == patientDTO) {
-            throw new DAOException(609, "患者信息不存在");
-        }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = new HisResponseTO<List<QueryHisRecipResTO>>();
-        //hisRecipeInfos=recipeHisService.queryHisRecipeInfo(request.getOrganId(),patientDTO,180,1,request.getCardId(),null);
-        try {
-            // 2更新数据校验
-            offlineToOnlineService.hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
-        } catch (Exception e) {
-            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
-        }
-        List<HisRecipe> recipes = new ArrayList<>();
-        try {
-            // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
-            recipes = offlineToOnlineService.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 1);
-        } catch (Exception e) {
-            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
-        }
-
-        // 4.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
-        Integer recipeId = offlineToOnlineService.saveRecipeInfo(recipes.get(0).getHisRecipeID());
-        // 5.通过cdrHisRecipeId返回数据详情
-        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(), recipeId);
-    }
-
     @Override
     public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request) {
-        LOGGER.info("{} request:{}", Thread.currentThread().getStackTrace()[1].getMethodName(), JSONUtils.toString(request));
-        List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList = new ArrayList<RecipeGiveModeButtonRes>();
-        //try{
+        logger.info("NoPayServiceImpl settleForOfflineToOnline request = {}",  JSONUtils.toString(request));
         // 1、线下转线上
         List<Integer> recipeIds = offlineToOnlineService.batchSyncRecipeFromHis(request);
         // 2、获取够药按钮
-        recipeGiveModeButtonResList = offlineToOnlineService.getRecipeGiveModeButtonRes(recipeIds);
-        //}catch (Exception e){
-        //LOGGER.error("{} error:{}",Thread.currentThread().getStackTrace()[1].getMethodName(), JSONUtils.toString(e));
-        //throw new DAOException("“抱歉，当前处方没有可支持的购药方式”");
-        //}
-        LOGGER.info("{} response:{}", Thread.currentThread().getStackTrace()[1].getMethodName(), JSONUtils.toString(recipeGiveModeButtonResList));
+        List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList = offlineToOnlineService.getRecipeGiveModeButtonRes(recipeIds);
+        logger.info("NoPayServiceImpl settleForOfflineToOnline response:{}", JSONUtils.toString(recipeGiveModeButtonResList));
         return recipeGiveModeButtonResList;
     }
 

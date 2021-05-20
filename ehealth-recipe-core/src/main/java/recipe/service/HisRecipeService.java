@@ -26,7 +26,6 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1777,6 +1776,10 @@ public class HisRecipeService {
         List<String> recipeCodeList = new ArrayList<>(deleteSetRecipeCode);
         List<HisRecipe> hisRecipeList = hisRecipeDAO.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, recipeCodeList);
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(hisRecipeIds)){
+            LOGGER.info("deleteSetRecipeCode 查找无处方");
+            return;
+        }
         hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
         hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
         hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
