@@ -165,6 +165,12 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "药品嘱托")
     private String drugEntrust;
 
+    @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
+    private Boolean medicalInsuranceControl;
+
+    @ItemProperty(alias = "适应症 说明")
+    private String IndicationsDeclare;
+
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
         return retrievalCode;
@@ -493,5 +499,23 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setDrugEntrust(String drugEntrust) {
         this.drugEntrust = drugEntrust;
+    }
+
+    @Column(name = "medicalInsuranceControl")
+    public Boolean getMedicalInsuranceControl() {
+        return medicalInsuranceControl;
+    }
+
+    public void setMedicalInsuranceControl(Boolean medicalInsuranceControl) {
+        this.medicalInsuranceControl = medicalInsuranceControl;
+    }
+
+    @Column(name = "indicationsDeclare")
+    public String getIndicationsDeclare() {
+        return IndicationsDeclare;
+    }
+
+    public void setIndicationsDeclare(String indicationsDeclare) {
+        IndicationsDeclare = indicationsDeclare;
     }
 }

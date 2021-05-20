@@ -4,6 +4,8 @@ import com.ngari.common.dto.DepartChargeReportResult;
 import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.his.recipe.mode.weijianwei.DrugDetailResult;
+import com.ngari.his.recipe.mode.weijianwei.DrugInfoReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
@@ -884,6 +886,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     public Boolean getRecipeOrderFlag(Integer organId, String recipeCode);
+
+    /**
+     * 查询第三方药品库存
+     * @param drugInfoReq
+     * @return
+     */
+    @RpcService
+    public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq);
 
 }
 

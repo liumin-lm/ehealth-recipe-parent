@@ -23,6 +23,9 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -576,6 +579,54 @@ public class RecipePatientService extends RecipeBaseService {
             req.setPatientName(patient.getPatientName());
             req.setCertificateType(patient.getCertificateType());
             req.setCertificate(patient.getCertificate());
+            LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
+            HisResponseTO<PatientQueryRequestTO> res = iPatientHisService.queryPatient(req);
+            LOGGER.info("queryPatientForHis res={}", JSONUtils.toString(res));
+            if (res != null && !("200".equals(res.getMsgCode()))) {
+                String msg = "查患者信息接口异常";
+                if (StringUtils.isNotEmpty(res.getMsg())) {
+                    msg = msg + ":" + res.getMsg();
+                }
+                throw new DAOException(609, msg);
+            }
+            if (res == null){
+                throw new DAOException(609, "查不到患者线下信息");
+            }
+            return res.getData();
+        } catch (Exception e) {
+            LOGGER.error("queryPatientForHis error", e);
+            throw new DAOException(609, "查患者信息异常:"+e.getMessage());
+        }
+    }
+
+    /**
+     * 查询线下患者信息接口
+     *
+     * @return
+     */
+    @RpcService
+    public PatientQueryRequestTO queryPatientForHisV1(Integer organId, String mpiId, Integer clinicId) {
+        LOGGER.info("queryPatientForHis organId={},mpiId={}", organId, mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        try {
+            PatientQueryRequestTO req = new PatientQueryRequestTO();
+            req.setOrgan(organId);
+            req.setPatientName(patient.getPatientName());
+            req.setCertificateType(patient.getCertificateType());
+            req.setCertificate(patient.getCertificate());
+            //添加复诊ID
+            IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+            if (clinicId != null) {
+                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
+                if (consultExDTO != null) {
+                    req.setPatientID(consultExDTO.getPatId());
+                }
+            }
             LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
             HisResponseTO<PatientQueryRequestTO> res = iPatientHisService.queryPatient(req);
             LOGGER.info("queryPatientForHis res={}", JSONUtils.toString(res));

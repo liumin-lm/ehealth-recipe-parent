@@ -1794,29 +1794,37 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //设置医院信息
             OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes organ:{} .", JSONUtils.toString(organ));
-            orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
-            orderDetailBean.setOrganId(organ.getOrganizeCode());
-            orderDetailBean.setOrganName(organ.getName());
+            if (null != organ) {
+                orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
+                orderDetailBean.setOrganId(organ.getOrganizeCode());
+                orderDetailBean.setOrganName(organ.getName());
+            }
             //设置医生信息
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
-            orderDetailBean.setDoctorNumber(convertParame(doctorDTO.getIdNumber()));
-            orderDetailBean.setDoctorName(convertParame(doctorDTO.getName()));
+            if (null != doctorDTO) {
+                orderDetailBean.setDoctorNumber(convertParame(doctorDTO.getIdNumber()));
+                orderDetailBean.setDoctorName(convertParame(doctorDTO.getName()));
+            }
 
             //设置科室信息
             DepartmentDTO department = departmentService.get(recipe.getDepart());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes department:{} .", JSONUtils.toString(department));
-            orderDetailBean.setDepartId(convertParame(department.getDeptId()));
-            orderDetailBean.setDepartName(convertParame(department.getName()));
+            if (null != department) {
+                orderDetailBean.setDepartId(convertParame(department.getDeptId()));
+                orderDetailBean.setDepartName(convertParame(department.getName()));
+            }
 
             //设置患者信息
             PatientDTO patient = patientService.get(recipe.getMpiid());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
-            orderDetailBean.setCertificateType("1");
-            orderDetailBean.setCertificate(convertParame(patient.getCertificate()));
-            orderDetailBean.setPatientName(convertParame(patient.getPatientName()));
-            orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
-            orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
+            if (null != patient) {
+                orderDetailBean.setCertificateType("1");
+                orderDetailBean.setCertificate(convertParame(patient.getCertificate()));
+                orderDetailBean.setPatientName(convertParame(patient.getPatientName()));
+                orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
+                orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
+            }
             orderDetailBean.setPatientNumber(convertParame(recipe.getPatientID()));
 
             //设置处方信息
@@ -1901,10 +1909,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             String province = getAddressDic(recipeOrder.getAddress1());
             String city = getAddressDic(recipeOrder.getAddress2());
             String district = getAddressDic(recipeOrder.getAddress3());
+            String street = getAddressDic(recipeOrder.getStreetAddress());
             orderDetailBean.setProvince(convertParame(province));
             orderDetailBean.setCity(convertParame(city));
             orderDetailBean.setDistrict(convertParame(district));
-            orderDetailBean.setStreet(convertParame(recipeOrder.getAddress4()));
+            orderDetailBean.setStreet(convertParame(street));
             orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
             orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
             orderDetailBean.setRecAddress(convertParame(recipeOrder.getAddress4()));
