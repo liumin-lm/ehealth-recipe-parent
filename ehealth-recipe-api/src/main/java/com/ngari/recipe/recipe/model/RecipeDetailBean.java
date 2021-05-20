@@ -233,6 +233,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
 
+    @ItemProperty(alias = "单个药品医保类型")
+    private Integer drugMedicalFlag;
+
     public String getEntrustmentId() {
         return entrustmentId;
     }
@@ -821,5 +824,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugEntrustCode(String drugEntrustCode) {
         this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public Integer getDrugMedicalFlag() {
+        return drugMedicalFlag;
+    }
+
+    public void setDrugMedicalFlag(Integer drugMedicalFlag) {
+        this.drugMedicalFlag = drugMedicalFlag;
     }
 }

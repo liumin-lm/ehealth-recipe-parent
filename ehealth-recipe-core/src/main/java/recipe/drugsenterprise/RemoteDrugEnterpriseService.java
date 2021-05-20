@@ -21,6 +21,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.revisit.RevisitAPI;
@@ -88,6 +89,9 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
+
+    @Resource
+    private OrganDrugListDAO organDrugListDAO;
     //手动推送给第三方
     @RpcService
     public void pushRecipeInfoForThirdSd(Integer recipeId, Integer depId){
@@ -799,7 +803,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 downLoadType.put("下载处方", downList);
             }
 
-            if (CollectionUtils.isNotEmpty(list)) {
+            // 查询药品是否不支持下载处方
+            Set<Integer> drugIds = drugsDataBean.getRecipeDetailBeans().stream().collect(Collectors.groupingBy(com.ngari.recipe.recipe.model.RecipeDetailBean::getDrugId)).keySet();
+            Integer integer = organDrugListDAO.countIsSupperDownloadRecipeByDrugIds(drugsDataBean.getOrganId(), drugIds);
+
+            if (CollectionUtils.isNotEmpty(list) || integer == 0) {
                 result.add(downLoadType);
             }
         }

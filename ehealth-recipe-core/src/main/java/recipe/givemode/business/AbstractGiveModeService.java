@@ -14,6 +14,7 @@ import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -221,33 +222,48 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //不支持配送，则按钮都不显示--包括药店取药
-        if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-            removeGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-            removeGiveModeData(giveModeButtonBeans, "showSendToHos");
-            removeGiveModeData(giveModeButtonBeans, "supportTFDS");
-        }
-        if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-            String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
-            List<String> list = new ArrayList<>();
-            if (StringUtils.isEmpty(recipeSupportGiveMode)) {
-                list.add("showSendToEnterprises");
-                list.add("showSendToHos");
-                list.add("supportTFDS");
-            } else {
-                List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
-
-                if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
-                    list.add("showSendToEnterprises");
-                }
-                if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType()))) {
-                    list.add("showSendToHos");
-                }
-                if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
-                    list.add("supportTFDS");
-                }
+        String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
+        List<String> list = new ArrayList<>();
+        if (StringUtils.isEmpty(recipeSupportGiveMode)) {
+            list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+            // 兼容老版本处方没有写入支持的购药方式 后期删除
+            if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
             }
-            saveGiveModeDatas(giveModeButtonBeans, list);
+            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
+            }
+            // 线下转线上没有 配送标记
+            if (Objects.isNull(recipe.getDistributionFlag())) {
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+            }
+        } else {
+            // 从处方中获取支持的购药方式
+            List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
+
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+            }
         }
+        saveGiveModeDatas(giveModeButtonBeans, list);
+
 
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
@@ -332,17 +348,20 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
 
     protected void saveGiveModeDatas(List<GiveModeButtonBean> giveModeButtonBeans, List<String> remoteGiveMode) {
         List<String> list = new ArrayList<>();
-        if (!remoteGiveMode.contains("supportToHos")) {
-            list.add("supportToHos");
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText())) {
+            list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
         }
-        if (!remoteGiveMode.contains("showSendToEnterprises")) {
-            list.add("showSendToEnterprises");
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText())) {
+            list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
         }
-        if (!remoteGiveMode.contains("showSendToHos")) {
-            list.add("showSendToHos");
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText())) {
+            list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
         }
-        if (!remoteGiveMode.contains("supportTFDS")) {
-            list.add("supportTFDS");
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText())) {
+            list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
+        }
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText())) {
+            list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
         }
         Iterator iterator = giveModeButtonBeans.iterator();
         while (iterator.hasNext()) {

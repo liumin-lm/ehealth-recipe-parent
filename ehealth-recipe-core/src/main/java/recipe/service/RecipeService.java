@@ -40,10 +40,12 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeDetailsBean;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -143,6 +145,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -709,7 +712,8 @@ public class RecipeService extends RecipeBaseService {
                 OrganDrugList organDrugList;
                 for (RecipeDetailBean recipedetail : detailBeans) {
                     if (recipedetail.getPharmacyId() == null || recipedetail.getPharmacyId() == 0) {
-                        throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
+                        //throw new DAOException(609, "您所在的机构已更新药房配置，需要重新开具处方");
+                        continue;
                     }
                     //判断药房机构库配置
                     if (!pharmacyIdList.contains(recipedetail.getPharmacyId())) {
@@ -1602,16 +1606,16 @@ public class RecipeService extends RecipeBaseService {
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
             // 药企有库存的情况下区分到店取药与药企配送
-            if (Integer.valueOf(1).equals(continueFlag)) {
-                List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-                LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} drugsEnterpriseContinue = {}", recipeBean.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
-                if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                    Map<String, Object> attMap = new HashMap<>();
-                    String join = StringUtils.join(drugsEnterpriseContinue, ",");
-                    attMap.put("recipeSupportGiveMode", join);
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
-                }
+
+            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan(), continueFlag);
+            LOGGER.info("RecipeService.doSignRecipeNew recipeId = {} drugsEnterpriseContinue = {}", recipeBean.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
+            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
+                Map<String, Object> attMap = new HashMap<>();
+                String join = StringUtils.join(drugsEnterpriseContinue, ",");
+                attMap.put("recipeSupportGiveMode", join);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
+
 
             //第二步预校验
             if (continueFlag == 0) {
@@ -4702,6 +4706,12 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getHisFormCode())) {
             drugListMatch.setHisFormCode(drug.getHisFormCode());
         }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceControl())) {
+            drugListMatch.setMedicalInsuranceControl(drug.getMedicalInsuranceControl());
+        }
+        if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
+            drugListMatch.setIndicationsDeclare(drug.getIndicationsDeclare());
+        }
 
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -4840,6 +4850,12 @@ public class RecipeService extends RecipeBaseService {
         //医保剂型编码
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceControl())) {
+            organDrug.setMedicalInsuranceControl(drug.getMedicalInsuranceControl());
+        }
+        if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
+            organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
@@ -4999,6 +5015,12 @@ public class RecipeService extends RecipeBaseService {
         //HIS剂型编码
         if (!ObjectUtils.isEmpty(drug.getDrugFormCode())) {
             organDrug.setDrugFormCode(drug.getDrugFormCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceControl())) {
+            organDrug.setMedicalInsuranceControl(drug.getMedicalInsuranceControl());
+        }
+        if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
+            organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
         //医保剂型编码
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
@@ -5814,9 +5836,7 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}", JSONUtils.toString(revisitRequest));
-        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            getConsultIdForRecipeSource(recipe, registerNo);
-        }
+        getConsultIdForRecipeSource(recipe, registerNo);
         if (!registerNo) {
             return true;
         }
@@ -5884,6 +5904,27 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info(" queryDrugEntrustByOrganIdAndDrugCode.dtoList{}", JSONUtils.toString(dtoList));
         return dtoList;
+    }
+
+    /**
+     * 医保药品判定
+     * @param detailBeanList 处方单详情
+     * @param organId 机构ID
+     */
+    @RpcService
+    public List<OrganDrugList> medicalCheck(List<RecipeDetailBean> detailBeanList, Integer organId) {
+        LOGGER.info("medicalCheck request param:{}", JSONUtils.toString(detailBeanList));
+        List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).distinct().collect(Collectors.toList());
+        List<OrganDrugList> byOrganIdAndDrugIdList = organDrugListDAO.findByOrganIdAndDrugAndMedicalIdList(organId, drugIds);
+        Map<Integer, OrganDrugList> organDrugListMaps = byOrganIdAndDrugIdList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, Function.identity(), (o, o2) -> o));
+        List<OrganDrugList> result = new ArrayList<>();
+        for (RecipeDetailBean recipeDetailBean : detailBeanList) {
+            if (organDrugListMaps.containsKey(recipeDetailBean.getDrugId())) {
+                result.add(organDrugListMaps.get(recipeDetailBean.getDrugId()));
+            }
+        }
+        LOGGER.info("medicalCheck response param:{}", JSONUtils.toString(result));
+        return result;
     }
 
     /**
