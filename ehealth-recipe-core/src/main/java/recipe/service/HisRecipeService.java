@@ -3,6 +3,7 @@ package recipe.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
@@ -21,6 +22,7 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -32,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
@@ -41,6 +44,7 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.dao.bean.HisRecipeListBean;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
@@ -88,6 +92,10 @@ public class HisRecipeService {
     private RecipeHisService hisService;
     @Resource
     private DrugsEnterpriseService drugsEnterpriseService;
+    @Resource
+    private RecipeService recipeService;
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
 
@@ -140,10 +148,182 @@ public class HisRecipeService {
         return result;
     }
 
-    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(List<HisRecipeVO> hisRecipeVOS, Integer start, Integer limit){
+    /**
+     * 查询当前账号下所有线下已处理处方列表
+     *
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, Integer start, Integer limit) {
+        LOGGER.info("findFinishHisRecipes mpiId:{} index:{} limit:{} ", mpiId, start, limit);
+        Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
+        checkUserHasPermissionByMpiId(mpiId);
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
+        // 获取当前用户下所有患者
+        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        if (CollectionUtils.isEmpty(allMpiIds)) {
+            allMpiIds.add(mpiId);
+        }
+        // 所有所有已处理的线下处方
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIIds(allMpiIds, start, limit);
+        if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
+            return result;
+        }
+        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+
+        Set<Integer> recipeIds = new HashSet<>();
+        hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
+            if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
+                String orderCode = hisRecipeListBean.getOrderCode();
+                HisPatientTabStatusMergeRecipeVO hisPatientTabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
+                // 获取合并处方的关键字
+                String mergeRecipeWay = getMergeRecipeWay();
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+                if("e.registerId".equals(mergeRecipeWay)){
+                    // 挂号序号
+                    hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
+                }else {
+                    // 慢病名称
+                    hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
+                }
+
+                if(Objects.isNull(orderCode)){
+                    List<HisRecipeVO> list = new ArrayList<>();
+                    HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVO.class);
+                    // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
+                    hisRecipeVO.setFromFlag(1);
+                    hisRecipeVO.setJumpPageType(0);
+
+                    hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
+                    // 获取药品详情
+                    List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean);
+                    hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+                    list.add(hisRecipeVO);
+                    recipeIds.add(hisRecipeListBean.getHisRecipeID());
+                    hisPatientTabStatusMergeRecipeVO.setRecipe(list);
+                    result.add(hisPatientTabStatusMergeRecipeVO);
+                }else{
+                    List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
+                    List<HisRecipeVO> list1 = new ArrayList<>();
+                    hisRecipeListBeans.forEach(hisRecipeListBean1 -> {
+                        HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean1, HisRecipeVO.class);
+                        // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
+                        hisRecipeVO.setFromFlag(1);
+                        // 有订单跳转订单
+                        hisRecipeVO.setJumpPageType(1);
+                        hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean1.getStatus()));
+                        List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
+                        hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+                        list1.add(hisRecipeVO);
+                        recipeIds.add(hisRecipeListBean1.getHisRecipeID());
+                    });
+                    hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
+                    result.add(hisPatientTabStatusMergeRecipeVO);
+                }
+            }
+
+        });
+        LOGGER.info("findFinishHisRecipes result:{} ", result);
         return result;
     }
+
+    private List<HisRecipeDetailVO> getHisRecipeDetailVOS(HisRecipeListBean hisRecipeListBean) {
+        List<HisRecipeDetailVO> recipeDetailVOS = new ArrayList<>();
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(hisRecipeListBean.getClinicOrgan(), hisRecipeListBean.getRecipeType()));
+        // 获取药品详情
+        List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeListBean.getHisRecipeID());
+        for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
+            HisRecipeDetailVO recipeDetailVO = ObjectCopyUtils.convert(hisRecipeDetail, HisRecipeDetailVO.class);
+            DrugListBean drugList = new DrugListBean();
+            drugList.setDrugName(recipeDetailVO.getDrugName());
+            drugList.setSaleName(recipeDetailVO.getSaleName());
+            drugList.setDrugSpec(recipeDetailVO.getDrugSpec());
+            drugList.setUnit(recipeDetailVO.getDrugUnit());
+            drugList.setDrugForm(recipeDetailVO.getDrugForm());
+            //前端展示的药品拼接名处理
+            recipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(hisRecipeListBean.getRecipeType())));
+
+            recipeDetailVOS.add(recipeDetailVO);
+        }
+
+        return recipeDetailVOS;
+    }
+
+
+    /**
+     * 获取合并处方关键字
+     * @return
+     */
+    private String getMergeRecipeWay(){
+        String mergeRecipeWayAfter = "e.registerId";
+        Boolean mergeRecipeFlag = false;
+        try {
+            //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
+            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("getMergeRecipeWay organIds={}", JSONUtils.toString(organIds));
+            if (CollectionUtils.isNotEmpty(organIds)) {
+                for (Integer organId : organIds) {
+                    //获取区域公众号
+                    mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
+                    if (mergeRecipeFlag == null || !mergeRecipeFlag) {
+                        mergeRecipeFlag = false;
+                        break;
+                    }
+                }
+            }
+            //再根据区域公众号里是否都支持同一种合并方式
+            if (mergeRecipeFlag) {
+                //获取合并处方分组方式
+                //e.registerId支持同一个挂号序号下的处方合并支付
+                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
+                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
+                //默认挂号序号分组
+                if (StringUtils.isEmpty(mergeRecipeWay)) {
+                    mergeRecipeWay = "e.registerId";
+                }
+                //如果只有一个就取第一个
+                if (organIds.size() == 1) {
+                    mergeRecipeWayAfter = mergeRecipeWay;
+                }
+                //从第二个开始进行比较
+                for (Integer organId : organIds) {
+                    mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
+                    if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
+                        mergeRecipeFlag = false;
+                        LOGGER.info("getMergeRecipeWay 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
+                        break;
+                    }
+                }
+                LOGGER.info("getMergeRecipeWay ,mergeRecipeFlag={},mergeRecipeWay={}", mergeRecipeFlag, mergeRecipeWay);
+            }
+        } catch (Exception e) {
+            LOGGER.error("getMergeRecipeWay error configService", e);
+        }
+        return mergeRecipeWayAfter;
+    }
+
+
+    /**
+     * 根据MpiId判断请求接口的患者是否是登录患者或者该患者下的就诊人
+     *
+     * @param mpiId
+     */
+    public static void checkUserHasPermissionByMpiId(String mpiId) {
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        if (!patientService.isPatientBelongUser(mpiId)){
+            LOGGER.error("当前用户没有权限调用mpiId[{}],methodName[{}]", mpiId ,methodName);
+            throw new DAOException("当前登录用户没有权限");
+        }
+    }
+
 
     /**
      * 待缴费非本人同步处方处理

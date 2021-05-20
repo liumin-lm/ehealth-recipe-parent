@@ -6034,10 +6034,14 @@ public class RecipeService extends RecipeBaseService {
                 list.add(supportMedicalPaymentButton);
             }
             // 下载处方不支持合并支付,只有单张处方查询才展示
-            if (RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText().equals(giveModeButtonBean.getShowButtonKey()) && size.equals(1) && CollectionUtils.isNotEmpty(downloadRecipeButtonList)) {
+            if (RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText().equals(giveModeButtonBean.getShowButtonKey()) && CollectionUtils.isNotEmpty(downloadRecipeButtonList)) {
                 downloadRecipeButton.setJumpType(giveModeButtonBean.getButtonSkipType());
-                downloadRecipeButton.setButtonFlag(true);
-                downloadRecipeButton.setRecipeIds(recipeIds);
+                if (size.equals(1)) {
+                    downloadRecipeButton.setButtonFlag(true);
+                } else {
+                    downloadRecipeButton.setButtonFlag(false);
+                }
+                downloadRecipeButton.setRecipeIds(downloadRecipeButtonList);
                 list.add(downloadRecipeButton);
             }
         });
