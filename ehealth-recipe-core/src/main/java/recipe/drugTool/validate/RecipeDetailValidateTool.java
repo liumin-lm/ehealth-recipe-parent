@@ -2,8 +2,8 @@ package recipe.drugTool.validate;
 
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
-import com.ngari.recipe.drug.model.DrugMakingMethodBean;
+import com.ngari.recipe.entity.DecoctionWay;
+import com.ngari.recipe.entity.DrugMakingMethod;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
@@ -251,7 +251,7 @@ public class RecipeDetailValidateTool {
         if (StringUtils.isEmpty(recipeExtendBean.getDecoctionCode()) && StringUtils.isEmpty(recipeExtendBean.getDecoctionText())) {
             return;
         }
-        List<DecoctionWayBean> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganId(organId);
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
         if (CollectionUtils.isEmpty(decoctionWayList)) {
             recipeExtendBean.setDecoctionCode(null);
             recipeExtendBean.setDecoctionId(null);
@@ -286,7 +286,7 @@ public class RecipeDetailValidateTool {
         if (StringUtils.isEmpty(recipeExtendBean.getMakeMethod()) && StringUtils.isEmpty(recipeExtendBean.getMakeMethodText())) {
             return;
         }
-        List<DrugMakingMethodBean> drugMakingMethodList = drugMakingMethodDao.findAllDrugMakingMethodByOrganId(organId);
+        List<DrugMakingMethod> drugMakingMethodList = drugMakingMethodDao.findByOrganId(organId);
         if (CollectionUtils.isEmpty(drugMakingMethodList)) {
             recipeExtendBean.setMakeMethod(null);
             recipeExtendBean.setMakeMethodText(null);
