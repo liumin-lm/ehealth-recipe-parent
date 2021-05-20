@@ -221,6 +221,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
     @Override
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        LOGGER.info("afterSetting recipeId={}  giveModeButtonBeans={}",recipe.getRecipeId(),JSONUtils.toString(giveModeButtonBeans));
         //不支持配送，则按钮都不显示--包括药店取药
         String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
         List<String> list = new ArrayList<>();
