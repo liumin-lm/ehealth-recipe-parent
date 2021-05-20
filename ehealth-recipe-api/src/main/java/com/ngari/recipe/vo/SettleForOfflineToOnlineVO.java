@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @Author liumin
@@ -15,7 +16,7 @@ public class SettleForOfflineToOnlineVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
     //机构
-    @NotNull
+    @NotNull(message = "organId 不能为空")
     private String organId;
 
     //mpiId
@@ -24,7 +25,7 @@ public class SettleForOfflineToOnlineVO implements Serializable {
 
     //处方号
     @NotNull
-    private String recipeCode;
+    private List<String> recipeCode;
 
     //卡号
     private String cardId;

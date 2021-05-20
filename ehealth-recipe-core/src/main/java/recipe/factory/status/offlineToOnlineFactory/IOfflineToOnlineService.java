@@ -6,7 +6,9 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.vo.FindHisRecipeDetailVO;
 import com.ngari.recipe.vo.FindHisRecipeListVO;
+import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
 import ctd.util.annotation.RpcService;
+import recipe.bean.RecipeGiveModeButtonRes;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ public interface IOfflineToOnlineService {
 
     /**
      * 获取线下处方列表
+     *
      * @param request
      * @return
      */
@@ -28,6 +31,7 @@ public interface IOfflineToOnlineService {
 
     /**
      * 获取线下处方详情
+     *
      * @param request
      * @return
      */
@@ -39,4 +43,12 @@ public interface IOfflineToOnlineService {
      * @return
      */
     Integer getPayMode();
+
+    /**
+     * 线下处方点够药、缴费点结算 1、线下转线上 2、获取购药按钮
+     *
+     * @param request
+     * @return
+     */
+    List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request);
 }

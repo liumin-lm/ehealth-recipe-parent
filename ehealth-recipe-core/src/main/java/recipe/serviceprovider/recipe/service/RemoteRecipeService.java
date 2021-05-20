@@ -2610,4 +2610,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.mpiid={}.当前就诊人没有卡支持",organId,mpiid);
         return null;
     }
+
+    @Override
+    public Boolean getRecipeOrderFlag(Integer organId, String recipeCode){
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        if (null == recipe) {
+            return false;
+        }
+        if (StringUtils.isEmpty(recipe.getOrderCode())) {
+            return false;
+        }
+        return true;
+    }
 }

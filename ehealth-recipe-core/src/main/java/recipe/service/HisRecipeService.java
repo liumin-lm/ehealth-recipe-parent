@@ -11,10 +11,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
-import com.ngari.recipe.recipe.model.HisRecipeVO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -129,6 +126,11 @@ public class HisRecipeService {
         //数据合并
         List<HisRecipeVO> result =mergeData(flag,noPayFeeRecipes,hisRecipes,patientDTO);
         LOGGER.info("findHisRecipe mergeData result:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(result), organId, mpiId, flag, start, limit);
+        return result;
+    }
+
+    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(List<HisRecipeVO> hisRecipeVOS, Integer start, Integer limit){
+        List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         return result;
     }
 

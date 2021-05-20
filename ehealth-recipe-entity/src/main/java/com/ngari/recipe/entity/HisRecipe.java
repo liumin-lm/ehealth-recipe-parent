@@ -129,6 +129,10 @@ public class HisRecipe implements Serializable {
     private String checkerName;
     @ItemProperty(alias = "药师工号")
     private String checkerCode;
+    @ItemProperty(alias = "病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "病种名称")
+    private String chronicDiseaseName;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -595,5 +599,22 @@ public class HisRecipe implements Serializable {
 
     public void setCheckerCode(String checkerCode) {
         this.checkerCode = checkerCode;
+    }
+
+    @Column(name = "chronicDiseaseCode")
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+    @Column(name = "chronicDiseaseName")
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
     }
 }
