@@ -65,7 +65,7 @@ public class RecipeDetailAtop extends BaseAtop {
                 , JSON.toJSONString(recipeDetails), organId, recipeType, JSON.toJSONString(recipeExtendBean));
 
         if (null == recipeExtendBean || null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
-            return null;
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {
             List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(organId, recipeType, recipeDetails, recipeExtendBean);
@@ -92,7 +92,7 @@ public class RecipeDetailAtop extends BaseAtop {
     public List<RecipeDetailBean> useDayValidate(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         logger.info("RecipeDetailAtop useDayValidate recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
         if (null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
-            return null;
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {
             List<RecipeDetailBean> result = recipeDetailService.useDayValidate(organId, recipeType, recipeDetails);
@@ -118,7 +118,7 @@ public class RecipeDetailAtop extends BaseAtop {
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
         logger.info("RecipeDetailAtop entrustValidate recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
         if (null == organId || CollectionUtils.isEmpty(recipeDetails)) {
-            return null;
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {
             List<RecipeDetailBean> result = recipeDetailService.entrustValidate(organId, recipeDetails);
