@@ -3218,5 +3218,34 @@ public class RecipeServiceSub {
         LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , response:{}",recipeCode,JSONUtils.toString(response));
         return response;
     }
+
+    /**
+     * 判断机构是否是配置的重庆监管平台
+     *
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean isCQOrgan(Integer clinicOrgan) {
+        LOGGER.info("isCQOrgan request:{}",clinicOrgan);
+        try {
+            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+            List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
+            if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
+                return false;
+            }
+            //判断机构是否关联了重庆监管平台
+            List<Integer> organList = serviceConfigResponseTOS.stream().filter(regulation -> regulation.getRegulationAppDomainId().startsWith("cqsjgpt")).map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
+            LOGGER.info("isCQOrgan organId={}", JSONUtils.toString(organList));
+            if (organList.contains(clinicOrgan)) {
+                LOGGER.info("isCQOrgan response true");
+                return true;
+            }
+        } catch (Exception e) {
+            LOGGER.error("isCQOrgan response false cause error", e);
+            return false;
+        }
+        LOGGER.info("isCQOrgan response false ");
+        return false;
+    }
 }
 
