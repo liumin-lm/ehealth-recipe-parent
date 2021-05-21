@@ -372,8 +372,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select d From DrugList d where "
-                        + "d.status=1  ");
+                StringBuilder hql = new StringBuilder("select d From DrugList d where sourceOrgan is null  "
+                        + " and d.status=1  ");
 
                 if (!StringUtils.isEmpty(saleName)) {
                     hql.append("and d.drugName =:drugName and d.saleName =:saleName ");
@@ -403,6 +403,55 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
+    /**
+     * 自动匹配搜索 机构
+     * renfuhao
+     *
+     * @return
+     */
+    public List<DrugList> findDrugMatchAutomaticOrgan(final String drugName, final String saleName, final String drugSpec, final String unit, final String drugForm, final  String producer,final  Integer sourceOrgan) {
+        check(drugName,drugSpec, unit, drugForm, producer);
+        //查询出所有有效药品 根据药品分类drugClass进行分组
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select d From DrugList d where   "
+                        + "  d.status=1  ");
+
+                if (!StringUtils.isEmpty(saleName)) {
+                    hql.append("and d.drugName =:drugName and d.saleName =:saleName ");
+                }else {
+                    hql.append("and d.drugName =:drugName ");
+                }
+                hql.append("and d.drugSpec=:drugSpec  and d.unit=:unit  and d.producer=:producer ");
+                if (!StringUtils.isEmpty(drugForm)) {
+                    hql.append(" and d.drugForm=:drugForm ");
+                }
+
+                if (!ObjectUtils.isEmpty(sourceOrgan)) {
+                    hql.append(" and d.sourceOrgan=:sourceOrgan ");
+                }
+                Query q = ss.createQuery(hql.toString());
+                if (!StringUtils.isEmpty(saleName)) {
+                    q.setParameter("saleName", saleName );
+                }
+                q.setParameter("drugName", drugName );
+                q.setParameter("drugSpec", drugSpec);
+                q.setParameter("unit", unit);
+                if (!StringUtils.isEmpty(drugForm)) {
+                    q.setParameter("drugForm", drugForm);
+                }
+                if (!ObjectUtils.isEmpty(sourceOrgan)) {
+                    q.setParameter("sourceOrgan", sourceOrgan);
+                }
+                q.setParameter("producer", producer);
+                List<DrugList> drugListList = q.list();
+                setResult(drugListList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
 
     /**
