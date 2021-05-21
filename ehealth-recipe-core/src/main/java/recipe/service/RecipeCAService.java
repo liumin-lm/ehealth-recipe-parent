@@ -780,7 +780,7 @@ public class RecipeCAService {
      * @param recipeId
      */
     @RpcService
-    public void testGetBussDataFromCQ(Integer recipeId) {
+    public void testGetBussDataFromCQ(Integer recipeId,boolean isDoctor) {
         getBussDataFromCQ(recipeId, isDoctor);
     }
 }
