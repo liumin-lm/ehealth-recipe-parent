@@ -239,6 +239,10 @@ public class RecipeRefundService extends RecipeBaseService{
                         orderAttrMap.put("refundFlag", 1);
                         orderAttrMap.put("refundTime", new Date());
                         recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                        //修改处方状态
+                        recipe.setStatus(RecipeStatusConstant.REVOKE);
+                        recipe.setLastModify(new Date());
+                        recipeDAO.update(recipe);
 
                         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_SUCC);
                         //HIS消息发送
