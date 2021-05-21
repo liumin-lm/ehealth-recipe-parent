@@ -163,10 +163,8 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         String detailsDataToString = JSONUtils.toString(detailsData);
         int funId = 1006;
         LOGGER.info("analysisImpl funId={}, baseDate={}, detailsDate={}", funId, baseDateToString, detailsDataToString);
-        String invokeUrl = "http://103.38.233.27:820/PAWebService.asmx";
-        java.net.URL endpoint = new java.net.URL(invokeUrl);
         try {
-            binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12(endpoint);
+            binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12();
             if (binding != null) {
                 // Time out after a minute
                 binding.setTimeout(20000);
@@ -174,7 +172,7 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             }
 
             Boolean invokeRecipeAnalysis = (Boolean)configService.getConfiguration(recipe.getClinicOrgan(),"InvokeRecipeAnalysis");
-
+            String invokeUrl = "http://103.38.233.27:820/PAWebService.asmx";
 
             OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
             if (null != organ.getHospitalCode()) {
@@ -187,7 +185,7 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             }
 
             if(invokeRecipeAnalysis){
-//                java.net.URL endpoint;
+                java.net.URL endpoint;
                 endpoint = new java.net.URL(invokeUrl);
                 binding2 = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12(endpoint);
                 if (binding2 != null) {
