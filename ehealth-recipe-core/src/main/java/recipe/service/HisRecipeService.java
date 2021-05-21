@@ -1255,14 +1255,14 @@ public class HisRecipeService {
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
             // 线下转线上处理处方支持的购药按钮
-            Integer continueFlag = getContinueFlag(recipe);
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan(), continueFlag);
+//            Integer continueFlag = getContinueFlag(recipe);
+            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
             LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
             if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
                 Map<String, Object> attMap = new HashMap<>();
                 String join = StringUtils.join(drugsEnterpriseContinue, ",");
                 attMap.put("recipeSupportGiveMode", join);
-                attMap.put("DistributionFlag", continueFlag);
+//                attMap.put("DistributionFlag", continueFlag);
                 recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
             }
         }
