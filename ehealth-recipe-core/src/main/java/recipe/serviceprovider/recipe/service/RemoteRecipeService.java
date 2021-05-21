@@ -2689,14 +2689,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public Boolean getRecipeOrderFlag(Integer organId, String recipeCode){
+    public String getOrderCodeByRecipeCode(Integer organId, String recipeCode){
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
         if (null == recipe) {
-            return false;
+            return null;
         }
-        if (StringUtils.isEmpty(recipe.getOrderCode())) {
-            return false;
-        }
-        return true;
+        return recipe.getOrderCode();
     }
 }

@@ -885,7 +885,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     public  Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId);
 
     @RpcService
-    public Boolean getRecipeOrderFlag(Integer organId, String recipeCode);
+    public String getOrderCodeByRecipeCode(Integer organId, String recipeCode);
 
     /**
      * 查询第三方药品库存
