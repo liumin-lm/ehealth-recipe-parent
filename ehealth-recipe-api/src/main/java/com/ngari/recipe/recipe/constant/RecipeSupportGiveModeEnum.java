@@ -9,35 +9,33 @@ public enum RecipeSupportGiveModeEnum {
     /**
      * 到店取药
      */
-    SUPPORT_TFDS("supportTFDS",1),
+    SUPPORT_TFDS("supportTFDS", 1, "到店取药"),
 
     /**
      * showSendToHos 医院配送
      */
-    SHOW_SEND_TO_HOS("showSendToHos",2),
+    SHOW_SEND_TO_HOS("showSendToHos", 2, "医院配送"),
 
     /**
      * showSendToEnterprises 药企配送
      */
-    SHOW_SEND_TO_ENTERPRISES("showSendToEnterprises",3),
+    SHOW_SEND_TO_ENTERPRISES("showSendToEnterprises", 3, "药企配送"),
 
     /**
      * supportToHos 到院取药
      */
-    SUPPORT_TO_HOS("supportToHos",4),
+    SUPPORT_TO_HOS("supportToHos", 4, "到院取药"),
 
     /**
      * downloadRecipe 下载处方笺
      */
-    DOWNLOAD_RECIPE("supportDownload",5),
+    DOWNLOAD_RECIPE("supportDownload", 5, "下载处方笺"),
 
 
     /**
      * supportMedicalPayment 例外支付
      */
-    SUPPORT_MEDICAL_PAYMENT("supportMedicalPayment",6)
-
-    ;
+    SUPPORT_MEDICAL_PAYMENT("supportMedicalPayment", 6, "例外支付");
 
 
     /**
@@ -49,10 +47,15 @@ public enum RecipeSupportGiveModeEnum {
      */
     private Integer type;
 
-    RecipeSupportGiveModeEnum(String text, Integer type) {
+    private String name;
+
+
+    RecipeSupportGiveModeEnum(String text, Integer type, String name) {
         this.text = text;
         this.type = type;
+        this.name = name;
     }
+
     public static RecipeSupportGiveModeEnum getRecipeSupportGiveModeEnum(Integer type) {
         for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {
             if (e.getType().equals(type)) {
@@ -70,4 +73,7 @@ public enum RecipeSupportGiveModeEnum {
         return type;
     }
 
+    public String getName() {
+        return name;
+    }
 }
