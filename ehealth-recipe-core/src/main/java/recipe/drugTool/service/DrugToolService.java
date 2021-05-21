@@ -1639,6 +1639,12 @@ public class DrugToolService implements IDrugToolService {
     public Integer automaticDrugMatch(DrugListMatch drugListMatch,String operator) {
         List<DrugList> drugLists = drugListDAO.findDrugMatchAutomatic(drugListMatch.getDrugName(), drugListMatch.getSaleName(), drugListMatch.getDrugSpec(),
                 drugListMatch.getUnit(), drugListMatch.getDrugForm(), drugListMatch.getProducer());
+        if (ObjectUtils.isEmpty(drugLists)){
+            if (drugListMatch.getSourceOrgan() != null){
+                drugLists=drugListDAO.findDrugMatchAutomaticOrgan(drugListMatch.getDrugName(), drugListMatch.getSaleName(), drugListMatch.getDrugSpec(),
+                        drugListMatch.getUnit(), drugListMatch.getDrugForm(), drugListMatch.getProducer(),drugListMatch.getSourceOrgan());
+            }
+        }
         Integer status = 0;
         if (drugListMatch.getStatus() != DrugMatchConstant.ALREADY_MATCH && drugListMatch.getStatus() != DrugMatchConstant.SUBMITED){
             if (drugLists != null && drugLists.size() > 0){
