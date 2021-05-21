@@ -237,7 +237,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
             }
             // 线下转线上没有 配送标记
-            if (Objects.isNull(recipe.getDistributionFlag())) {
+            if (Objects.isNull(recipe.getDistributionFlag()) || recipe.getDistributionFlag() == 0) {
                 list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
                 list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
                 list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
