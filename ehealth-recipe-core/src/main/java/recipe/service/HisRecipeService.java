@@ -618,12 +618,14 @@ public class HisRecipeService {
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
                 hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
-                hisRecipe.setRegisteredId(queryHisRecipResTO.getRegisteredId());
+                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId())?queryHisRecipResTO.getRegisteredId():"");
                 hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
                 hisRecipe.setDepartCode(queryHisRecipResTO.getDepartCode());
                 hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
+                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode())?queryHisRecipResTO.getChronicDiseaseCode():"");
+                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName())?queryHisRecipResTO.getChronicDiseaseName():"");
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 if (new Integer(2).equals(queryHisRecipResTO.getMedicalType())) {
                     hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
