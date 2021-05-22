@@ -277,19 +277,21 @@ public class HisRecipeService {
                         //表示挂号序号为空,不能进行处方合并
                         setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                     } else {
-                        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(0).getRecipeCode(), recipes.get(0).getClinicOrgan());
-                        if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                            continue;
+                        for (int i = 0; i < recipes.size(); i++) {
+                            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(i).getRecipeCode(), recipes.get(i).getClinicOrgan());
+                            if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                                continue;
+                            }
+                            //可以进行合并支付
+                            HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                            tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
+                            tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                            tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                            tabStatusMergeRecipeVO.setRecipe(recipes);
+                            tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
+                            tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
+                            result.add(tabStatusMergeRecipeVO);
                         }
-                        //可以进行合并支付
-                        HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                        tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
-                        tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                        tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                        tabStatusMergeRecipeVO.setRecipe(recipes);
-                        tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                        tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
-                        result.add(tabStatusMergeRecipeVO);
                     }
                 }
             } else {
@@ -312,18 +314,20 @@ public class HisRecipeService {
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
                                 setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                             } else {
-                                Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(0).getRecipeCode(), recipes.get(0).getClinicOrgan());
-                                if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                                    continue;
+                                for (int i = 0; i < recipes.size(); i++) {
+                                    Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(i).getRecipeCode(), recipes.get(0).getClinicOrgan());
+                                    if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                                        continue;
+                                    }
+                                    //可以进行合并支付
+                                    HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                                    tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
+                                    tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                                    tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                                    tabStatusMergeRecipeVO.setRecipe(recipes);
+                                    tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
+                                    result.add(tabStatusMergeRecipeVO);
                                 }
-                                //可以进行合并支付
-                                HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                                tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
-                                tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                                tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                                tabStatusMergeRecipeVO.setRecipe(recipes);
-                                tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                                result.add(tabStatusMergeRecipeVO);
                             }
                         }
                     }
@@ -749,7 +753,7 @@ public class HisRecipeService {
     private void setOtherInfo(HisRecipeVO hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
         if (recipe == null) {
-            hisRecipeVO.setStatusText("待支付");
+            hisRecipeVO.setStatusText("待处理");
             hisRecipeVO.setFromFlag(1);
             hisRecipeVO.setJumpPageType(0);
         } else {
@@ -758,7 +762,7 @@ public class HisRecipeService {
             if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                 //表示该处方来源于HIS
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    hisRecipeVO.setStatusText("待支付");
+                    hisRecipeVO.setStatusText("待处理");
                     hisRecipeVO.setJumpPageType(0);
                 } else {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
