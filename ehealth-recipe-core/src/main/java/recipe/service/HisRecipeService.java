@@ -145,19 +145,19 @@ public class HisRecipeService {
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         //获取机构配制的购药按钮
         GiveModeShowButtonVO giveModeShowButtons = giveModeBase.getGiveModeSettingFromYypt(organId);
-        Map<String, String> configurations = giveModeShowButtons.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getButtonSkipType));
+        GiveModeButtonBean giveModeButtonBean = giveModeShowButtons.getListItem();
         //表示获取待缴费或者已处理的处方,此时需要查询HIS
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status),null);
         if ("ongoing".equals(status)) {
             //表示为进行中的处方
-            return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO, configurations, start, limit);
+            return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
         } else {
             if ("onready".equals(findHisRecipeListVO.getStatus())) {
                 List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeObject(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
-                return findOnReadyHisRecipe(noPayFeeHisRecipeVO, configurations);
+                return findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
             } else {
                 checkHisRecipeAndSave(status, patientDTO, hisResponseTO);
-                return findFinishHisRecipes(mpiId, configurations, start, limit);
+                return findFinishHisRecipes(mpiId, giveModeButtonBean, start, limit);
             }
         }
     }
@@ -168,7 +168,7 @@ public class HisRecipeService {
      * @return      前端需要展示的进行中的处方单集合,先获取进行中的处方返回给前端展示,然后对处方数据进行校验,处方发生
      *              变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, Map<String, String> configurations, Integer start, Integer limit) {
+    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
         List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
         // 获取当前用户下所有患者
@@ -189,7 +189,7 @@ public class HisRecipeService {
                 String orderCode = hisRecipeListBean.getOrderCode();
                 HisPatientTabStatusMergeRecipeVO hisPatientTabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
-                hisPatientTabStatusMergeRecipeVO.setListSkipType(configurations.get("listItem"));
+                hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
                 String mergeRecipeWay = (String)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
                 Boolean mergeRecipeFlag = (Boolean)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
@@ -258,7 +258,7 @@ public class HisRecipeService {
      * @param request  his的处方单集合
      * @return         前端需要的处方单集合
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, Map<String, String> configurations){
+    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean){
         LOGGER.info("hisRecipeService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
 
         //查询线下待缴费处方
@@ -284,7 +284,7 @@ public class HisRecipeService {
                         tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
                         tabStatusMergeRecipeVO.setRecipe(recipes);
                         tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                        tabStatusMergeRecipeVO.setListSkipType(configurations.get("listItem"));
+                        tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                         result.add(tabStatusMergeRecipeVO);
                     }
                 }
@@ -350,7 +350,7 @@ public class HisRecipeService {
      * @return
      */
     @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, Map<String, String> configurations, Integer start, Integer limit) {
+    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("findFinishHisRecipes mpiId:{} index:{} limit:{} ", mpiId, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         checkUserHasPermissionByMpiId(mpiId);
@@ -374,7 +374,7 @@ public class HisRecipeService {
                 HisPatientTabStatusMergeRecipeVO hisPatientTabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(true);
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
-                hisPatientTabStatusMergeRecipeVO.setListSkipType(configurations.get("listItem"));
+                hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
                 String mergeRecipeWay = (String)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
