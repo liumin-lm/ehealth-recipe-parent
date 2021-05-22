@@ -106,6 +106,8 @@ public class HisRecipeVO implements Serializable{
     private String chronicDiseaseCode;
     @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
 
     public boolean isHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
@@ -481,5 +483,13 @@ public class HisRecipeVO implements Serializable{
 
     public void setChronicDiseaseName(String chronicDiseaseName) {
         this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 }

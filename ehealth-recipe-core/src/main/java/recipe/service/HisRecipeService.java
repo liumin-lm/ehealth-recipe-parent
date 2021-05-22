@@ -2,8 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Joiner;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
@@ -23,7 +22,6 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -49,11 +47,8 @@ import recipe.dao.bean.HisRecipeListBean;
 import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeFactory;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.MergeRecipeManager;
-import recipe.thread.QueryHisRecipeCallable;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -84,13 +79,10 @@ public class HisRecipeService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
-
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-
     @Autowired
     private EmrRecipeManager emrRecipeManager;
-
     @Resource
     private RecipeHisService hisService;
     @Resource
@@ -110,8 +102,8 @@ public class HisRecipeService {
      * timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
      * status 1 未处理 2 已处理
      *
-     * @param findHisRecipeListVO
-     * @return
+     * @param findHisRecipeListVO  入参
+     * @return 前端展示
      */
     @RpcService
     public List<HisPatientTabStatusMergeRecipeVO> findHisRecipe(FindHisRecipeListVO findHisRecipeListVO) {
@@ -141,6 +133,7 @@ public class HisRecipeService {
      * @return  线下处方列表
      */
     private List<HisPatientTabStatusMergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO){
+        LOGGER.info("hisRecipeService findHisRecipe findHisRecipeListVO:{}", JSONUtils.toString(findHisRecipeListVO));
         String status = findHisRecipeListVO.getStatus();
         String mpiId = findHisRecipeListVO.getMpiId();
         String carId = findHisRecipeListVO.getCardId();
@@ -155,7 +148,7 @@ public class HisRecipeService {
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status),null);
         if ("ongoing".equals(status)) {
             //表示为进行中的处方
-
+            return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO);
         } else {
             if ("onready".equals(findHisRecipeListVO.getStatus())) {
                 List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeObject(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
@@ -165,19 +158,34 @@ public class HisRecipeService {
                 return findFinishHisRecipes(mpiId, start, limit);
             }
         }
-        return new ArrayList<>();
     }
 
     /**
-     * 患者获取已完成处方列表,我们先进行数据校验,比如是否要
-     * @param status
-     * @param patientDTO
-     * @param hisResponseTO
+     *
+     * @param data  当前获取HIS的处方单集合
+     * @return      前端需要展示的进行中的处方单集合
+     */
+    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO) {
+        LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
+        List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
+        try {
+            //更新数据校验
+            hisRecipeInfoCheck(data, patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+        }
+        return result;
+    }
+
+    /**
+     * 患者获取已完成处方列表,我们先进行数据校验,需要校验是否被其他人绑定了,是否线下的诊断药品等变化了
+     * @param status          待处理  进行中  已完成
+     * @param patientDTO      患者信息
+     * @param hisResponseTO   当前获取HIS的处方单集合
      */
     private void checkHisRecipeAndSave(String status, PatientDTO patientDTO, HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO) {
-        //查询已缴费
         try {
-            /** 更新数据校验*/
+            //更新数据校验
             hisRecipeInfoCheck(hisResponseTO.getData(), patientDTO);
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
@@ -196,6 +204,7 @@ public class HisRecipeService {
      * @return         前端需要的处方单集合
      */
     private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request){
+        LOGGER.info("hisRecipeService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
@@ -256,6 +265,7 @@ public class HisRecipeService {
                 }
             }
         }
+        LOGGER.info("hisRecipeService findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
@@ -837,6 +847,7 @@ public class HisRecipeService {
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
                 //设置其它信息
                 hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
+                hisRecipeVO.setRecipeMode("ngarihealth");
                 setOtherInfo(hisRecipeVO, hisRecipe.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
 
                 if (null != queryHisRecipResTO.getDrugList()) {
@@ -869,6 +880,7 @@ public class HisRecipeService {
                     HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
                     setOtherInfo(hisRecipeVO, hisRecipe1.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
                     hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
+                    hisRecipeVO.setRecipeMode("ngarihealth");
                     if (null != queryHisRecipResTO.getDrugList()) {
                         List<HisRecipeDetailVO> hisRecipeDetailVOs = new ArrayList<>();
                         for (RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
@@ -895,8 +907,8 @@ public class HisRecipeService {
                     hisRecipeVOs.add(hisRecipeVO);
                 }
             }
-
         }
+        LOGGER.info("covertHisRecipeObject hisRecipeVOs:" + JSONUtils.toString(hisRecipeVOs));
         return hisRecipeVOs;
     }
 
