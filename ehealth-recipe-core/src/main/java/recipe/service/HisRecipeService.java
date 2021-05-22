@@ -194,9 +194,9 @@ public class HisRecipeService {
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         //默认
-        Boolean mergeRecipeFlag = false;
+        Boolean mergeRecipeFlag = true;
         String mergeRecipeWayAfter = "e.registerId";
-        mergeRecipeManager.setMergeRecipeFlag(mergeRecipeFlag, mergeRecipeWayAfter);
+        //mergeRecipeManager.setMergeRecipeFlag(mergeRecipeFlag, mergeRecipeWayAfter);
         if (mergeRecipeFlag) {
             //获取合并的处方
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
