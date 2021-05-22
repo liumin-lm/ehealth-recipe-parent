@@ -331,6 +331,10 @@ public class HisRecipeService {
 
     private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean){
         for (HisRecipeVO hisRecipeVO : recipes) {
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                continue;
+            }
             HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
             tabStatusMergeRecipeVO.setGroupField(hisRecipeVO.getChronicDiseaseName());
             tabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
