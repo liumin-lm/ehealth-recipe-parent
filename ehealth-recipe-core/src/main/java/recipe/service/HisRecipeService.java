@@ -277,6 +277,10 @@ public class HisRecipeService {
                         //表示挂号序号为空,不能进行处方合并
                         setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                     } else {
+                        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(0).getRecipeCode(), recipes.get(0).getClinicOrgan());
+                        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                            continue;
+                        }
                         //可以进行合并支付
                         HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
                         tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
@@ -308,6 +312,10 @@ public class HisRecipeService {
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
                                 setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                             } else {
+                                Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(0).getRecipeCode(), recipes.get(0).getClinicOrgan());
+                                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                                    continue;
+                                }
                                 //可以进行合并支付
                                 HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
                                 tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
