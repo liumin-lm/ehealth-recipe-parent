@@ -278,7 +278,7 @@ public class HisRecipeService {
                         setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                     } else {
                         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(0).getRecipeCode(), recipes.get(0).getClinicOrgan());
-                        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
                             continue;
                         }
                         //可以进行合并支付
@@ -313,7 +313,7 @@ public class HisRecipeService {
                                 setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                             } else {
                                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(0).getRecipeCode(), recipes.get(0).getClinicOrgan());
-                                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                                if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
                                     continue;
                                 }
                                 //可以进行合并支付
@@ -340,7 +340,7 @@ public class HisRecipeService {
     private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean){
         for (HisRecipeVO hisRecipeVO : recipes) {
             Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
-            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 continue;
             }
             HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
