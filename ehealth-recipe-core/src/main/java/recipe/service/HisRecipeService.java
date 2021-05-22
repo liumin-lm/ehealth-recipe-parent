@@ -190,13 +190,17 @@ public class HisRecipeService {
         }
     }
 
+    /**
+     * 获取待处理的线下的处方单
+     * @param request  his的处方单集合
+     * @return         前端需要的处方单集合
+     */
     private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request){
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
-        //默认
-        Boolean mergeRecipeFlag = true;
-        String mergeRecipeWayAfter = "e.registerId";
-        //mergeRecipeManager.setMergeRecipeFlag(mergeRecipeFlag, mergeRecipeWayAfter);
+        Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = (Boolean)mergeSettings.get("mergeRecipeFlag");
+        String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
         if (mergeRecipeFlag) {
             //获取合并的处方
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
@@ -301,7 +305,7 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(true);
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = getMergeRecipeWay();
+                String mergeRecipeWay = (String)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
                 if("e.registerId".equals(mergeRecipeWay)){
                     // 挂号序号
@@ -373,61 +377,6 @@ public class HisRecipeService {
 
         return recipeDetailVOS;
     }
-
-
-    /**
-     * 获取合并处方关键字
-     * @return
-     */
-    private String getMergeRecipeWay(){
-        String mergeRecipeWayAfter = "e.registerId";
-        Boolean mergeRecipeFlag = false;
-        try {
-            //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
-            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-            List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-            LOGGER.info("getMergeRecipeWay organIds={}", JSONUtils.toString(organIds));
-            if (CollectionUtils.isNotEmpty(organIds)) {
-                for (Integer organId : organIds) {
-                    //获取区域公众号
-                    mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
-                    if (mergeRecipeFlag == null || !mergeRecipeFlag) {
-                        mergeRecipeFlag = false;
-                        break;
-                    }
-                }
-            }
-            //再根据区域公众号里是否都支持同一种合并方式
-            if (mergeRecipeFlag) {
-                //获取合并处方分组方式
-                //e.registerId支持同一个挂号序号下的处方合并支付
-                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
-                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
-                //默认挂号序号分组
-                if (StringUtils.isEmpty(mergeRecipeWay)) {
-                    mergeRecipeWay = "e.registerId";
-                }
-                //如果只有一个就取第一个
-                if (organIds.size() == 1) {
-                    mergeRecipeWayAfter = mergeRecipeWay;
-                }
-                //从第二个开始进行比较
-                for (Integer organId : organIds) {
-                    mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
-                    if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
-                        mergeRecipeFlag = false;
-                        LOGGER.info("getMergeRecipeWay 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
-                        break;
-                    }
-                }
-                LOGGER.info("getMergeRecipeWay ,mergeRecipeFlag={},mergeRecipeWay={}", mergeRecipeFlag, mergeRecipeWay);
-            }
-        } catch (Exception e) {
-            LOGGER.error("getMergeRecipeWay error configService", e);
-        }
-        return mergeRecipeWayAfter;
-    }
-
 
     /**
      * 根据MpiId判断请求接口的患者是否是登录患者或者该患者下的就诊人

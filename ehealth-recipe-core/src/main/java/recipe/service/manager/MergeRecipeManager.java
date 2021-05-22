@@ -1,5 +1,6 @@
 package recipe.service.manager;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import ctd.spring.AppDomainContext;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yinsheng
@@ -24,7 +26,11 @@ public class MergeRecipeManager {
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
-    public void setMergeRecipeFlag(Boolean mergeRecipeFlag, String mergeRecipeWayAfter){
+    public Map<String, Object> getMergeRecipeSetting(){
+        Map<String, Object> result = Maps.newHashMap();
+        //默认
+        Boolean mergeRecipeFlag = true;
+        String mergeRecipeWayAfter = "e.registerId";
         try {
             //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
             ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
@@ -63,10 +69,13 @@ public class MergeRecipeManager {
                         break;
                     }
                 }
+                result.put("mergeRecipeFlag", mergeRecipeFlag);
+                result.put("mergeRecipeWayAfter", mergeRecipeWayAfter);
                 LOGGER.info("MergeRecipeManager mergeRecipeFlag={},mergeRecipeWay={}", mergeRecipeFlag, mergeRecipeWay);
             }
         } catch (Exception e) {
             LOGGER.error("MergeRecipeManager error configService", e);
         }
+        return result;
     }
 }
