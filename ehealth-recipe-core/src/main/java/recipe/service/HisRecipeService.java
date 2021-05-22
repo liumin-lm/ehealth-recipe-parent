@@ -16,6 +16,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -45,10 +46,12 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
+import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.MergeRecipeManager;
 import recipe.thread.QueryHisRecipeCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
@@ -96,6 +99,8 @@ public class HisRecipeService {
     private RecipeService recipeService;
     @Autowired
     private IConfigurationCenterUtilsService configService;
+    @Autowired
+    private MergeRecipeManager mergeRecipeManager;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
 
@@ -105,47 +110,161 @@ public class HisRecipeService {
      * timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
      * status 1 未处理 2 已处理
      *
-     * @param request
+     * @param findHisRecipeListVO
      * @return
      */
     @RpcService
-    public List<HisRecipeVO> findHisRecipe(Map<String, Object> request) {
-        LOGGER.info("hisRecipeService.findHisRecipe.request={}", JSONUtils.toString(request));
-        Integer organId = (Integer) request.get("organId");
-        String mpiId = (String) request.get("mpiId");
-        Integer timeQuantum = (Integer) request.get("timeQuantum");
-        String status = (String) request.get("status");
-        String cardId = (String) request.get("cardId");
-        Integer start = (Integer) request.get("start");
-        Integer limit = (Integer) request.get("limit");
-        start = 0;
-        limit = 1000;
-        Integer flag = 1;
-        if (!"ongoing".equals(status)) {
-            flag = 2;
+    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipe(FindHisRecipeListVO findHisRecipeListVO) {
+        LOGGER.info("hisRecipeService findHisRecipe request:{}", JSONUtils.toString(findHisRecipeListVO));
+        if (null == findHisRecipeListVO
+                || findHisRecipeListVO.getOrganId() == null
+                || StringUtils.isEmpty(findHisRecipeListVO.getMpiId())
+                || StringUtils.isEmpty(findHisRecipeListVO.getStatus())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
+        try {
+            List<HisPatientTabStatusMergeRecipeVO> result = findHisRecipeEnter(findHisRecipeListVO);
+            LOGGER.info("hisRecipeService findHisRecipe result:{}", JSONUtils.toString(result));
+            return result;
+        } catch (DAOException e1) {
+            LOGGER.error("hisRecipeService findHisRecipe error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("hisRecipeService findHisRecipe error", e);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 线下处方列表获取入口,根据前端传的状态onready（待处理）ongoing（进行中）isover（已完成）返回具体列表
+     * @param findHisRecipeListVO  请求入参
+     * @return  线下处方列表
+     */
+    private List<HisPatientTabStatusMergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO){
+        String status = findHisRecipeListVO.getStatus();
+        String mpiId = findHisRecipeListVO.getMpiId();
+        String carId = findHisRecipeListVO.getCardId();
+        Integer organId = findHisRecipeListVO.getOrganId();
+        Integer timeQuantum = findHisRecipeListVO.getTimeQuantum();
+        Integer start = findHisRecipeListVO.getStart();
+        Integer limit = findHisRecipeListVO.getLimit();
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
-        if (StringUtils.isNotEmpty(cardId)) {
-            patientDTO.setCardId(cardId);
+        patientDTO.setCardId(StringUtils.isNotEmpty(carId)?carId:"");
+        //表示获取待缴费或者已处理的处方,此时需要查询HIS
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status),null);
+        if ("ongoing".equals(status)) {
+            //表示为进行中的处方
+
         } else {
-            patientDTO.setCardId("");
+            if ("onready".equals(findHisRecipeListVO.getStatus())) {
+                List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeObject(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
+                return findOnReadyHisRecipe(noPayFeeHisRecipeVO);
+            } else {
+                checkHisRecipeAndSave(status, patientDTO, hisResponseTO);
+                return findFinishHisRecipes(mpiId, start, limit);
+            }
         }
-        if (null == patientDTO) {
-            throw new DAOException(609, "患者信息不存在");
+        return new ArrayList<>();
+    }
+
+    /**
+     * 患者获取已完成处方列表,我们先进行数据校验,比如是否要
+     * @param status
+     * @param patientDTO
+     * @param hisResponseTO
+     */
+    private void checkHisRecipeAndSave(String status, PatientDTO patientDTO, HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO) {
+        //查询已缴费
+        try {
+            /** 更新数据校验*/
+            hisRecipeInfoCheck(hisResponseTO.getData(), patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        //同步查询待缴费处方[只查询，不存储]
-        HisResponseTO<List<QueryHisRecipResTO>> noPayFeeRecipes = queryData(organId, patientDTO, timeQuantum, 1, null);
-        //待缴费非本人同步处方处理
-        dealPatientInfo(noPayFeeRecipes, patientDTO);
-        //异步获取已缴费处方
-        RecipeBusiThreadPool.submit(new QueryHisRecipeCallable(organId, mpiId, timeQuantum, 2, patientDTO));
-        List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
-        LOGGER.info("findHisRecipe  hisRecipes:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(hisRecipes), organId, mpiId, flag, start, limit);
-        //数据合并
-        List<HisRecipeVO> result = mergeData(flag, noPayFeeRecipes, hisRecipes, patientDTO);
-        LOGGER.info("findHisRecipe mergeData result:{},organId:{},mpiId:{},flag:{},start:{},limit:{}", JSONUtils.toString(result), organId, mpiId, flag, start, limit);
+        try {
+            //数据入库
+            saveHisRecipeInfo(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
+    }
+
+    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request){
+        //查询线下待缴费处方
+        List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
+        //默认
+        Boolean mergeRecipeFlag = false;
+        String mergeRecipeWayAfter = "e.registerId";
+        mergeRecipeManager.setMergeRecipeFlag(mergeRecipeFlag, mergeRecipeWayAfter);
+        if (mergeRecipeFlag) {
+            //获取合并的处方
+            if ("e.registerId".equals(mergeRecipeWayAfter)) {
+                //表示根据挂号序号分组
+                Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
+                for (Map.Entry<String, List<HisRecipeVO>> entry : registerIdRelation.entrySet()) {
+                    List<HisRecipeVO> recipes = entry.getValue();
+                    if (StringUtils.isEmpty(entry.getKey())) {
+                        //表示挂号序号为空,不能进行处方合并
+                        setMergeRecipeVO(recipes, mergeRecipeWayAfter, result);
+                    } else {
+                        //可以进行合并支付
+                        HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                        tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
+                        tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                        tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                        tabStatusMergeRecipeVO.setRecipe(recipes);
+                        tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
+                        result.add(tabStatusMergeRecipeVO);
+                    }
+                }
+            } else {
+                //表示根据相同挂号序号下的同一病种分组
+                Map<String, Map<String, List<HisRecipeVO>>> map = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId, Collectors.groupingBy(HisRecipeVO::getChronicDiseaseName)));
+                for (Map.Entry<String, Map<String, List<HisRecipeVO>>> entry : map.entrySet()) {
+                    //挂号序号为空表示不能进行处方合并
+                    if (StringUtils.isEmpty(entry.getKey())){
+                        Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
+                        for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
+                            List<HisRecipeVO> recipes = recipeEntry.getValue();
+                            setMergeRecipeVO(recipes, mergeRecipeWayAfter, result);
+                        }
+                    } else {
+                        //表示挂号序号不为空,需要根据当前病种
+                        Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
+                        for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
+                            //如果病种为空不能进行合并
+                            List<HisRecipeVO> recipes = recipeEntry.getValue();
+                            if (StringUtils.isEmpty(recipeEntry.getKey())) {
+                                setMergeRecipeVO(recipes, mergeRecipeWayAfter, result);
+                            } else {
+                                //可以进行合并支付
+                                HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                                tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
+                                tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                                tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                                tabStatusMergeRecipeVO.setRecipe(recipes);
+                                tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
+                                result.add(tabStatusMergeRecipeVO);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return result;
+    }
+
+    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter,List<HisPatientTabStatusMergeRecipeVO> result){
+        for (HisRecipeVO hisRecipeVO : recipes) {
+            HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+            tabStatusMergeRecipeVO.setGroupField(hisRecipeVO.getChronicDiseaseName());
+            tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+            tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+            tabStatusMergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
+            tabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeVO.getHisRecipeID());
+            result.add(tabStatusMergeRecipeVO);
+        }
     }
 
     /**
