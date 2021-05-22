@@ -736,7 +736,7 @@ public class HisRecipeService {
     private void setOtherInfo(HisRecipeVO hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
         if (recipe == null) {
-            hisRecipeVO.setOrderStatusText("待支付");
+            hisRecipeVO.setStatusText("待支付");
             hisRecipeVO.setFromFlag(1);
             hisRecipeVO.setJumpPageType(0);
         } else {
@@ -745,15 +745,15 @@ public class HisRecipeService {
             if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                 //表示该处方来源于HIS
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    hisRecipeVO.setOrderStatusText("待支付");
+                    hisRecipeVO.setStatusText("待支付");
                     hisRecipeVO.setJumpPageType(0);
                 } else {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     if (recipeOrder != null) {
                         if (new Integer(0).equals(recipeOrder.getPayFlag())) {
-                            hisRecipeVO.setOrderStatusText("待支付");
+                            hisRecipeVO.setStatusText("待支付");
                         } else {
-                            hisRecipeVO.setOrderStatusText("已完成");
+                            hisRecipeVO.setStatusText("已完成");
                         }
                         hisRecipeVO.setJumpPageType(1);//跳转到订单详情页
                         hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
@@ -763,7 +763,7 @@ public class HisRecipeService {
                 hisRecipeVO.setFromFlag(recipe.getRecipeSourceType() == 2 ? 1 : 0);
             } else {
                 //表示该处方来源于平台
-                hisRecipeVO.setOrderStatusText("待支付");
+                hisRecipeVO.setStatusText("待支付");
                 hisRecipeVO.setFromFlag(0);
                 hisRecipeVO.setJumpPageType(0);
                 hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
