@@ -275,7 +275,7 @@ public class HisRecipeService {
                     List<HisRecipeVO> recipes = entry.getValue();
                     if (StringUtils.isEmpty(entry.getKey())) {
                         //表示挂号序号为空,不能进行处方合并
-                        setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result);
+                        setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                     } else {
                         //可以进行合并支付
                         HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
@@ -297,7 +297,7 @@ public class HisRecipeService {
                         Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
                         for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
-                            setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result);
+                            setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                         }
                     } else {
                         //表示挂号序号不为空,需要根据当前病种
@@ -306,7 +306,7 @@ public class HisRecipeService {
                             //如果病种为空不能进行合并
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
-                                setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result);
+                                setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                             } else {
                                 //可以进行合并支付
                                 HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
@@ -323,13 +323,13 @@ public class HisRecipeService {
             }
         } else {
             //不开启合并支付开关
-            setMergeRecipeVO(request, mergeRecipeWayAfter, false, result);
+            setMergeRecipeVO(request, mergeRecipeWayAfter, false, result, giveModeButtonBean);
         }
         LOGGER.info("hisRecipeService findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
-    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result){
+    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean){
         for (HisRecipeVO hisRecipeVO : recipes) {
             HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
             tabStatusMergeRecipeVO.setGroupField(hisRecipeVO.getChronicDiseaseName());
@@ -337,6 +337,7 @@ public class HisRecipeService {
             tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
             tabStatusMergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
             tabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeVO.getHisRecipeID());
+            tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
             result.add(tabStatusMergeRecipeVO);
         }
     }
