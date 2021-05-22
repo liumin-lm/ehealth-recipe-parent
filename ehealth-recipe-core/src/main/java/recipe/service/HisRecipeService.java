@@ -840,7 +840,9 @@ public class HisRecipeService {
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
                 hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
-                hisRecipe.setRegisteredId(queryHisRecipResTO.getRegisteredId());
+                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId())?queryHisRecipResTO.getRegisteredId():"");
+                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode())?queryHisRecipResTO.getChronicDiseaseCode():"");
+                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName())?queryHisRecipResTO.getChronicDiseaseName():"");
                 hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
                 hisRecipe.setDepartCode(queryHisRecipResTO.getDepartCode());
                 hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
@@ -1182,6 +1184,8 @@ public class HisRecipeService {
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
+        recipeExtend.setChronicDiseaseCode(hisRecipe.getChronicDiseaseCode());
+        recipeExtend.setChronicDiseaseName(hisRecipe.getChronicDiseaseName());
         //设置煎法
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
