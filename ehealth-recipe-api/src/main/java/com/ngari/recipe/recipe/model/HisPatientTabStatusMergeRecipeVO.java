@@ -36,4 +36,7 @@ public class HisPatientTabStatusMergeRecipeVO implements Serializable{
      * e.registerId,e.chronicDiseaseName 支持同一个挂号序号且同一个病种的处方合并支付
      */
     private String mergeRecipeWay;
+
+    //列表跳转
+    private String listSkipType;
 }
