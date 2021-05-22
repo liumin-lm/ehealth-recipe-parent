@@ -45,7 +45,8 @@ import recipe.dao.bean.HisRecipeListBean;
 import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.givemode.business.commonGiveModeService;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.MergeRecipeManager;
 import recipe.util.MapValueUtil;
@@ -90,8 +91,6 @@ public class HisRecipeService {
     private IConfigurationCenterUtilsService configService;
     @Autowired
     private MergeRecipeManager mergeRecipeManager;
-    @Autowired
-    private commonGiveModeService commonGiveModeService;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
 
@@ -143,8 +142,9 @@ public class HisRecipeService {
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
         patientDTO.setCardId(StringUtils.isNotEmpty(carId)?carId:"");
+        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         //获取机构配制的购药按钮
-        GiveModeShowButtonVO giveModeShowButtons = commonGiveModeService.getGiveModeSettingFromYypt(organId);
+        GiveModeShowButtonVO giveModeShowButtons = giveModeBase.getGiveModeSettingFromYypt(organId);
         Map<String, String> configurations = giveModeShowButtons.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getButtonSkipType));
         //表示获取待缴费或者已处理的处方,此时需要查询HIS
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status),null);
