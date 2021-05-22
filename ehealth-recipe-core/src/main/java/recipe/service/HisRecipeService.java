@@ -174,7 +174,7 @@ public class HisRecipeService {
         }
         //先查询进行中处方(目前仅指的是待支付的处方单)
         //查询所有进行中的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIIds(allMpiIds, start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIIds(allMpiIds, start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
@@ -205,7 +205,9 @@ public class HisRecipeService {
                     hisRecipeVO.setFromFlag(1);
                     // 有订单跳转订单
                     hisRecipeVO.setJumpPageType(1);
-                    hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean1.getStatus()));
+                    Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
+                    hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                     List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
                     hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
                     list.add(hisRecipeVO);
@@ -400,7 +402,9 @@ public class HisRecipeService {
                         hisRecipeVO.setFromFlag(1);
                         // 有订单跳转订单
                         hisRecipeVO.setJumpPageType(1);
-                        hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean1.getStatus()));
+                        Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
+                        hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                         List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
                         hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
                         list1.add(hisRecipeVO);
