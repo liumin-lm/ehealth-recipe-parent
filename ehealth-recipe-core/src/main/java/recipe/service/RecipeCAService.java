@@ -42,7 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.cqJgptBussData.AdditionalDiagnosis;
+import recipe.bean.cqJgptBussData.Drug;
+import recipe.bean.cqJgptBussData.RecipeDocSignatureXML;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.XstreamUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
@@ -202,6 +206,76 @@ public class RecipeCAService {
         return caRequest;
     }
 
+    private String getBussDataFromCQ(Integer recipeId, Boolean isDoctor) {
+        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
+        if (null == recipeBean) {
+            LOGGER.warn("当前处方{}信息为空", recipeId);
+            return null;
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipeBean.getMpiid());
+
+        RecipeDocSignatureXML xml = new RecipeDocSignatureXML();
+        List<AdditionalDiagnosis> DiagnosisList = new ArrayList();
+        xml.setMedicalRecordNo(recipeExtend.getRegisterID());
+        LOGGER.info("Q310***** 开方xml挂号序号" + recipeExtend.getRegisterID());
+        xml.setDoctorCode(recipeBean.getDoctor()+"");
+        xml.setDoctorName(recipeBean.getDoctorName());
+        //如果是药师，添加药师信息
+        if(!isDoctor){
+            xml.setTrialPharmCode(recipeBean.getChecker()+"");
+            xml.setTrialPharmName(recipeBean.getCheckerText());
+        }
+        xml.setPatientName(recipeBean.getPatientName());
+        xml.setPatientSFZH(patientDTO.getIdcard());
+        String organDiseaseId="";
+        if (null != recipeBean.getOrganDiseaseId()) {
+            organDiseaseId=recipeBean.getOrganDiseaseId().replaceAll("；", "|");
+        }
+        String diagnosisName="";
+
+        if (null != recipeBean.getOrganDiseaseId()) {
+            diagnosisName=recipeBean.getOrganDiseaseName().replaceAll("；", "|");
+        }
+        AdditionalDiagnosis add = new AdditionalDiagnosis();
+        add.setDiagnosisCode(organDiseaseId);
+        add.setDiagnosisName(diagnosisName);
+        DiagnosisList.add(add);
+        xml.setDiagnosisList(DiagnosisList);
+
+        try {
+            List<Drug> drugs = new ArrayList<>();
+            for (Recipedetail recipeDetail : recipedetails) {
+                try {
+                    OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCodeAndDrugId(recipeBean.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
+
+                    String drCode = "";
+                    if (organDrugList == null) {
+                        drCode = recipeDetail.getOrganDrugCode();
+                    } else {
+                        drCode = StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode();
+                    }
+
+                    Drug drug = new Drug();
+                    drug.setHospitalDrugCode(drCode);
+                    drug.setDrugCommonName(organDrugList.getDrugName());
+                    drug.setPrice(organDrugList.getSalePrice().setScale(4).toString());
+                    drug.setDeliverNumUnit(organDrugList.getUnit());
+                    drug.setMoney(new BigDecimal(recipeDetail.getUseTotalDose()).setScale(4).toString());
+                    drugs.add(drug);
+
+                } catch (Exception e) {
+                }
+            }
+            xml.setDrugList(drugs);
+        } catch (Exception e) {
+        }
+        String xmlStr = XstreamUtil.objectToXml(xml);
+        LOGGER.info("RecipeCAService getBussDataFromCQ response:{}",xmlStr);
+        return xmlStr;
+    }
+
     /**
      * 获取重庆签名原文（需跟重庆监管平台数据格式保持严格一致）
      * null时不要标签名 ""需要标签名[时间紧急，先写死标签]
@@ -211,7 +285,7 @@ public class RecipeCAService {
      * @return
      * @Author liumin
      */
-    private String getBussDataFromCQ(Integer recipeId, Boolean isDoctor) {
+    private String getBussDataFromCQ2(Integer recipeId, Boolean isDoctor) {
         RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
         if (null == recipeBean) {
             LOGGER.warn("当前处方{}信息为空", recipeId);
@@ -239,10 +313,10 @@ public class RecipeCAService {
         //如果是药师，添加药师信息
         if(!isDoctor){
             if (null != recipeBean.getChecker()) {
-                cqCABussData.append("<TrialPharmCode>" + recipeBean.getDoctor() + "</TrialPharmCode>");
+                cqCABussData.append("<TrialPharmCode>" + recipeBean.getChecker() + "</TrialPharmCode>");
             }
             if (null != recipeBean.getCheckerText()) {
-                cqCABussData.append("<TrialPharmName>" + recipeBean.getDoctor() + "</TrialPharmName>");
+                cqCABussData.append("<TrialPharmName>" + recipeBean.getCheckerText() + "</TrialPharmName>");
             }
         }
         if (null != recipeBean.getPatientName()) {
