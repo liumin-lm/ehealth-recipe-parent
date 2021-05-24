@@ -139,13 +139,16 @@ public class HisRecipeService {
         Integer timeQuantum = findHisRecipeListVO.getTimeQuantum();
         Integer start = findHisRecipeListVO.getStart();
         Integer limit = findHisRecipeListVO.getLimit();
+
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
         patientDTO.setCardId(StringUtils.isNotEmpty(carId)?carId:"");
+
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         //获取机构配制的购药按钮
         GiveModeShowButtonVO giveModeShowButtons = giveModeBase.getGiveModeSettingFromYypt(organId);
         GiveModeButtonBean giveModeButtonBean = giveModeShowButtons.getListItem();
+
         //表示获取待缴费或者已处理的处方,此时需要查询HIS
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status),null);
         if ("ongoing".equals(status)) {
@@ -204,20 +207,7 @@ public class HisRecipeService {
                 }
                 List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                 List<HisRecipeVO> list = new ArrayList<>();
-                hisRecipeListBeans.forEach(hisRecipeListBean1 -> {
-                    HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean1, HisRecipeVO.class);
-                    // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
-                    hisRecipeVO.setFromFlag(1);
-                    // 有订单跳转订单
-                    hisRecipeVO.setJumpPageType(1);
-                    Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
-                    hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
-                    List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
-                    hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
-                    list.add(hisRecipeVO);
-                    recipeIds.add(hisRecipeListBean1.getHisRecipeID());
-                });
+                setPatientTabStatusMerge(recipeIds, hisRecipeListBeans, list);
                 hisPatientTabStatusMergeRecipeVO.setRecipe(list);
                 result.add(hisPatientTabStatusMergeRecipeVO);
             }
@@ -230,6 +220,23 @@ public class HisRecipeService {
         }
         LOGGER.info("hisRecipeService findOngoingHisRecipe result:{}", JSONUtils.toString(result));
         return result;
+    }
+
+    private void setPatientTabStatusMerge(Set<Integer> recipeIds, List<HisRecipeListBean> hisRecipeListBeans, List<HisRecipeVO> list) {
+        hisRecipeListBeans.forEach(hisRecipeListBean1 -> {
+            HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean1, HisRecipeVO.class);
+            // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
+            hisRecipeVO.setFromFlag(1);
+            // 有订单跳转订单
+            hisRecipeVO.setJumpPageType(1);
+            Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
+            hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+            List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
+            hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+            list.add(hisRecipeVO);
+            recipeIds.add(hisRecipeListBean1.getHisRecipeID());
+        });
     }
 
     /**
@@ -367,7 +374,6 @@ public class HisRecipeService {
     public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("findFinishHisRecipes mpiId:{} index:{} limit:{} ", mpiId, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
-        checkUserHasPermissionByMpiId(mpiId);
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         // 获取当前用户下所有患者
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
@@ -418,20 +424,7 @@ public class HisRecipeService {
                 }else{
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
-                    hisRecipeListBeans.forEach(hisRecipeListBean1 -> {
-                        HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean1, HisRecipeVO.class);
-                        // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
-                        hisRecipeVO.setFromFlag(1);
-                        // 有订单跳转订单
-                        hisRecipeVO.setJumpPageType(1);
-                        Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
-                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
-                        hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
-                        List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
-                        hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
-                        list1.add(hisRecipeVO);
-                        recipeIds.add(hisRecipeListBean1.getHisRecipeID());
-                    });
+                    setPatientTabStatusMerge(recipeIds, hisRecipeListBeans, list1);
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
                     result.add(hisPatientTabStatusMergeRecipeVO);
                 }
