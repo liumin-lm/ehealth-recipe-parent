@@ -9,7 +9,7 @@ public enum OfflineToOnlineEnum {
 
     OFFLINE_TO_ONLINE_NO_PAY(1, "onready", "待处理"),
     OFFLINE_TO_ONLINE_ALREADY_PAY(2, "onready", "已处理"),
-    OFFLINE_TO_ONLINE_ONGOING(3, "ongoing", "进行中")
+    OFFLINE_TO_ONLINE_ONGOING(1, "ongoing", "进行中")
     ;
     private Integer type;
     private String name;
@@ -45,6 +45,6 @@ public enum OfflineToOnlineEnum {
                 return e.type;
             }
         }
-        return 0;
+        return 1;
     }
 }
