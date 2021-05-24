@@ -264,7 +264,7 @@ public class HisRecipeService {
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = (Boolean)mergeSettings.get("mergeRecipeFlag");
+        Boolean mergeRecipeFlag = (Boolean) mergeSettings.get("mergeRecipeFlag");
         String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
         if (mergeRecipeFlag) {
             //获取合并的处方
@@ -277,21 +277,15 @@ public class HisRecipeService {
                         //表示挂号序号为空,不能进行处方合并
                         setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                     } else {
-                        for (int i = 0; i < recipes.size(); i++) {
-                            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(i).getRecipeCode(), recipes.get(i).getClinicOrgan());
-                            if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                                continue;
-                            }
-                            //可以进行合并支付
-                            HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                            tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
-                            tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                            tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                            tabStatusMergeRecipeVO.setRecipe(recipes);
-                            tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                            tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
-                            result.add(tabStatusMergeRecipeVO);
-                        }
+                        //可以进行合并支付
+                        HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                        tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
+                        tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                        tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                        tabStatusMergeRecipeVO.setRecipe(recipes);
+                        tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
+                        tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
+                        result.add(tabStatusMergeRecipeVO);
                     }
                 }
             } else {
@@ -314,20 +308,14 @@ public class HisRecipeService {
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
                                 setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
                             } else {
-                                for (int i = 0; i < recipes.size(); i++) {
-                                    Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipes.get(i).getRecipeCode(), recipes.get(0).getClinicOrgan());
-                                    if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                                        continue;
-                                    }
-                                    //可以进行合并支付
-                                    HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                                    tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
-                                    tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                                    tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                                    tabStatusMergeRecipeVO.setRecipe(recipes);
-                                    tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                                    result.add(tabStatusMergeRecipeVO);
-                                }
+                                //可以进行合并支付
+                                HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
+                                tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
+                                tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
+                                tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                                tabStatusMergeRecipeVO.setRecipe(recipes);
+                                tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
+                                result.add(tabStatusMergeRecipeVO);
                             }
                         }
                     }
