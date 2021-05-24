@@ -59,10 +59,8 @@ public class OfflineToOnlineService {
     public List<Integer> batchSyncRecipeFromHis(SettleForOfflineToOnlineVO request) {
         logger.info("OfflineToOnlineService batchSyncRecipeFromHis request = {}", JSONUtils.toString(request));
         List<Integer> recipeIds = new ArrayList<>();
-        // 1、删数据 当busType==2  [1：处方  2：缴费]
-        if ("2".equals(request.getBusType())) {
-            hisRecipeService.deleteSetRecipeCode(Integer.parseInt(request.getOrganId()), new HashSet<>(request.getRecipeCode()));
-        }
+        // 1、删数据
+        hisRecipeService.deleteSetRecipeCode(Integer.parseInt(request.getOrganId()), new HashSet<>(request.getRecipeCode()));
         request.getRecipeCode().forEach(recipeCode -> {
             // 2、线下转线上
             Map<String, Object> map = hisRecipeService.getHisRecipeDetail(null, request.getMpiId(), recipeCode, request.getOrganId(), null, request.getCardId());
