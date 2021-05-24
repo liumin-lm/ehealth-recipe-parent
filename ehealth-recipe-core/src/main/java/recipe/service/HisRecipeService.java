@@ -186,6 +186,14 @@ public class HisRecipeService {
             return result;
         }
         Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+        Set<Integer> recipes = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() == null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
+        Map<Integer, List<Recipe>> collect = byRecipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
+
+        Set<String> orderCodes = orderCodeMap.keySet();
+        List<RecipeOrder> byOrderCode = recipeOrderDAO.findByOrderCode(orderCodes);
+        Map<String, List<RecipeOrder>> collect1 = byOrderCode.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
+
         Set<Integer> recipeIds = new HashSet<>();
         hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
@@ -207,7 +215,8 @@ public class HisRecipeService {
                 }
                 List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                 List<HisRecipeVO> list = new ArrayList<>();
-                setPatientTabStatusMerge(recipeIds, hisRecipeListBeans, list);
+                RecipeOrder recipeOrder = collect1.get(orderCode).get(0);
+                setPatientTabStatusMerge(collect,recipeIds, recipeOrder,hisRecipeListBeans, list);
                 hisPatientTabStatusMergeRecipeVO.setRecipe(list);
                 result.add(hisPatientTabStatusMergeRecipeVO);
             }
@@ -222,15 +231,14 @@ public class HisRecipeService {
         return result;
     }
 
-    private void setPatientTabStatusMerge(Set<Integer> recipeIds, List<HisRecipeListBean> hisRecipeListBeans, List<HisRecipeVO> list) {
+    private void setPatientTabStatusMerge(Map<Integer, List<Recipe>> collect,Set<Integer> recipeIds, RecipeOrder recipeOrder,List<HisRecipeListBean> hisRecipeListBeans, List<HisRecipeVO> list) {
         hisRecipeListBeans.forEach(hisRecipeListBean1 -> {
             HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean1, HisRecipeVO.class);
             // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
             hisRecipeVO.setFromFlag(1);
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
-            Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
-            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
+            Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
             hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
             List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
@@ -385,8 +393,14 @@ public class HisRecipeService {
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
-        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() == null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+        Set<Integer> recipes = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() == null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
+        Map<Integer, List<Recipe>> collect = byRecipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
 
+        Set<String> orderCodes = orderCodeMap.keySet();
+        List<RecipeOrder> byOrderCode = recipeOrderDAO.findByOrderCode(orderCodes);
+        Map<String, List<RecipeOrder>> collect1 = byOrderCode.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
         Set<Integer> recipeIds = new HashSet<>();
         hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
@@ -424,7 +438,8 @@ public class HisRecipeService {
                 }else{
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
-                    setPatientTabStatusMerge(recipeIds, hisRecipeListBeans, list1);
+                    RecipeOrder recipeOrder = collect1.get(orderCode).get(0);
+                    setPatientTabStatusMerge(collect,recipeIds,recipeOrder, hisRecipeListBeans, list1);
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
                     result.add(hisPatientTabStatusMergeRecipeVO);
                 }

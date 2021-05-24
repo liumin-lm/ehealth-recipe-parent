@@ -204,7 +204,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      */
     @DAOMethod(sql = "from Recipe where recipeId in :recipeIds order by recipeId desc", limit = 0)
-    public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+    public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") Collection<Integer> recipeIds);
 
     /**
      * 查询所有处方
