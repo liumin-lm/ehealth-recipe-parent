@@ -28,6 +28,8 @@ import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.CompactWriter;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -36,6 +38,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -59,6 +62,9 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -272,6 +278,9 @@ public class RecipeCAService {
         } catch (Exception e) {
         }
         String xmlStr = XstreamUtil.objectToXml(xml);
+        if(StringUtils.isNotEmpty(xmlStr)){
+            xmlStr=xmlStr.replaceAll("\n","").replaceAll(" ","");
+        }
         LOGGER.info("RecipeCAService getBussDataFromCQ response:{}",xmlStr);
         return xmlStr;
     }
