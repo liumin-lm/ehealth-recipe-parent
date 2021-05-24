@@ -100,7 +100,7 @@ public class HisRecipeService {
      * timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
      * status 1 未处理 2 已处理
      *
-     * @param findHisRecipeListVO  入参
+     * @param findHisRecipeListVO 入参
      * @return 前端展示
      */
     @RpcService
@@ -127,10 +127,11 @@ public class HisRecipeService {
 
     /**
      * 线下处方列表获取入口,根据前端传的状态onready（待处理）ongoing（进行中）isover（已完成）返回具体列表
-     * @param findHisRecipeListVO  请求入参
-     * @return  线下处方列表
+     *
+     * @param findHisRecipeListVO 请求入参
+     * @return 线下处方列表
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO){
+    private List<HisPatientTabStatusMergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO) {
         LOGGER.info("hisRecipeService findHisRecipe findHisRecipeListVO:{}", JSONUtils.toString(findHisRecipeListVO));
         String status = findHisRecipeListVO.getStatus();
         String mpiId = findHisRecipeListVO.getMpiId();
@@ -142,7 +143,7 @@ public class HisRecipeService {
 
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
-        patientDTO.setCardId(StringUtils.isNotEmpty(carId)?carId:"");
+        patientDTO.setCardId(StringUtils.isNotEmpty(carId) ? carId : "");
 
         IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         //获取机构配制的购药按钮
@@ -150,7 +151,7 @@ public class HisRecipeService {
         GiveModeButtonBean giveModeButtonBean = giveModeShowButtons.getListItem();
 
         //表示获取待缴费或者已处理的处方,此时需要查询HIS
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status),null);
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status), null);
         if ("ongoing".equals(status)) {
             //表示为进行中的处方
             return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
@@ -166,10 +167,9 @@ public class HisRecipeService {
     }
 
     /**
-     *
-     * @param data  当前获取HIS的处方单集合
-     * @return      前端需要展示的进行中的处方单集合,先获取进行中的处方返回给前端展示,然后对处方数据进行校验,处方发生
-     *              变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
+     * @param data 当前获取HIS的处方单集合
+     * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
+     * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
     private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
@@ -186,6 +186,9 @@ public class HisRecipeService {
             return result;
         }
         Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+        Map<Integer, List<Recipe>> recipeMap = getRecipeMap(hisRecipeListByMPIIds);
+        Map<String, List<RecipeOrder>> recipeOrderMap = getRecipeOrderMap(orderCodeMap.keySet());
+
         Set<Integer> recipeIds = new HashSet<>();
         hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
@@ -194,20 +197,21 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = (String)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
-                Boolean mergeRecipeFlag = (Boolean)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
+                String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
+                Boolean mergeRecipeFlag = (Boolean) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
-                if("e.registerId".equals(mergeRecipeWay)){
+                if ("e.registerId".equals(mergeRecipeWay)) {
                     // 挂号序号
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
-                }else {
+                } else {
                     // 慢病名称
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
                 }
                 List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                 List<HisRecipeVO> list = new ArrayList<>();
-                setPatientTabStatusMerge(recipeIds, hisRecipeListBeans, list);
+                RecipeOrder recipeOrder = recipeOrderMap.get(orderCode).get(0);
+                setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list);
                 hisPatientTabStatusMergeRecipeVO.setRecipe(list);
                 result.add(hisPatientTabStatusMergeRecipeVO);
             }
@@ -222,15 +226,14 @@ public class HisRecipeService {
         return result;
     }
 
-    private void setPatientTabStatusMerge(Set<Integer> recipeIds, List<HisRecipeListBean> hisRecipeListBeans, List<HisRecipeVO> list) {
+    private void setPatientTabStatusMerge(Map<Integer, List<Recipe>> collect, Set<Integer> recipeIds, RecipeOrder recipeOrder, List<HisRecipeListBean> hisRecipeListBeans, List<HisRecipeVO> list) {
         hisRecipeListBeans.forEach(hisRecipeListBean1 -> {
             HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean1, HisRecipeVO.class);
             // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
             hisRecipeVO.setFromFlag(1);
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
-            Recipe recipe = recipeDAO.getByRecipeId(hisRecipeListBean1.getRecipeId());
-            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(hisRecipeListBean1.getOrderCode());
+            Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
             hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
             List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
             hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
@@ -241,9 +244,10 @@ public class HisRecipeService {
 
     /**
      * 患者获取已完成处方列表,我们先进行数据校验,需要校验是否被其他人绑定了,是否线下的诊断药品等变化了
-     * @param status          待处理  进行中  已完成
-     * @param patientDTO      患者信息
-     * @param hisResponseTO   当前获取HIS的处方单集合
+     *
+     * @param status        待处理  进行中  已完成
+     * @param patientDTO    患者信息
+     * @param hisResponseTO 当前获取HIS的处方单集合
      */
     private void checkHisRecipeAndSave(String status, PatientDTO patientDTO, HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO) {
         try {
@@ -262,10 +266,11 @@ public class HisRecipeService {
 
     /**
      * 获取待处理的线下的处方单
-     * @param request  his的处方单集合
-     * @return         前端需要的处方单集合
+     *
+     * @param request his的处方单集合
+     * @return 前端需要的处方单集合
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean){
+    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
         LOGGER.info("hisRecipeService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
 
         //查询线下待缴费处方
@@ -309,7 +314,7 @@ public class HisRecipeService {
                 Map<String, Map<String, List<HisRecipeVO>>> map = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId, Collectors.groupingBy(HisRecipeVO::getChronicDiseaseName)));
                 for (Map.Entry<String, Map<String, List<HisRecipeVO>>> entry : map.entrySet()) {
                     //挂号序号为空表示不能进行处方合并
-                    if (StringUtils.isEmpty(entry.getKey())){
+                    if (StringUtils.isEmpty(entry.getKey())) {
                         Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
                         for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
@@ -345,7 +350,7 @@ public class HisRecipeService {
         return result;
     }
 
-    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean){
+    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean) {
         for (HisRecipeVO hisRecipeVO : recipes) {
             Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
             if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
@@ -385,8 +390,9 @@ public class HisRecipeService {
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
-        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
-
+        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() == null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+        Map<Integer, List<Recipe>> recipeMap = getRecipeMap(hisRecipeListByMPIIds);
+        Map<String, List<RecipeOrder>> recipeOrderMap = getRecipeOrderMap(orderCodeMap.keySet());
         Set<Integer> recipeIds = new HashSet<>();
         hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
@@ -396,17 +402,17 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = (String)mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
+                String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
-                if("e.registerId".equals(mergeRecipeWay)){
+                if ("e.registerId".equals(mergeRecipeWay)) {
                     // 挂号序号
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
-                }else {
+                } else {
                     // 慢病名称
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
                 }
 
-                if(Objects.isNull(orderCode)){
+                if (Objects.isNull(orderCode)) {
                     List<HisRecipeVO> list = new ArrayList<>();
                     HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVO.class);
                     // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
@@ -421,10 +427,11 @@ public class HisRecipeService {
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list);
                     result.add(hisPatientTabStatusMergeRecipeVO);
-                }else{
+                } else {
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
-                    setPatientTabStatusMerge(recipeIds, hisRecipeListBeans, list1);
+                    RecipeOrder recipeOrder = recipeOrderMap.get(orderCode).get(0);
+                    setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list1);
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
                     result.add(hisPatientTabStatusMergeRecipeVO);
                 }
@@ -433,6 +440,26 @@ public class HisRecipeService {
         });
         LOGGER.info("findFinishHisRecipes result:{} ", result);
         return result;
+    }
+
+    private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMPIIds){
+        Set<Integer> recipes = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
+        Map<Integer, List<Recipe>> collect = null;
+        if(CollectionUtils.isNotEmpty(byRecipes)) {
+            collect = byRecipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
+        }
+        return collect;
+    }
+    private Map<String, List<RecipeOrder>> getRecipeOrderMap(Set<String> orderCodes){
+        Map<String, List<RecipeOrder>> collect1 = null;
+        if (CollectionUtils.isNotEmpty(orderCodes)) {
+            List<RecipeOrder> byOrderCode = recipeOrderDAO.findByOrderCode(orderCodes);
+            if(CollectionUtils.isNotEmpty(byOrderCode)) {
+                collect1 = byOrderCode.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
+            }
+        }
+        return collect1;
     }
 
     private List<HisRecipeDetailVO> getHisRecipeDetailVOS(HisRecipeListBean hisRecipeListBean) {
@@ -466,8 +493,8 @@ public class HisRecipeService {
     public static void checkUserHasPermissionByMpiId(String mpiId) {
         String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        if (!patientService.isPatientBelongUser(mpiId)){
-            LOGGER.error("当前用户没有权限调用mpiId[{}],methodName[{}]", mpiId ,methodName);
+        if (!patientService.isPatientBelongUser(mpiId)) {
+            LOGGER.error("当前用户没有权限调用mpiId[{}],methodName[{}]", mpiId, methodName);
             throw new DAOException("当前登录用户没有权限");
         }
     }
@@ -602,14 +629,14 @@ public class HisRecipeService {
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
                 hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
-                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId())?queryHisRecipResTO.getRegisteredId():"");
+                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId()) ? queryHisRecipResTO.getRegisteredId() : "");
                 hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
                 hisRecipe.setDepartCode(queryHisRecipResTO.getDepartCode());
                 hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
-                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode())?queryHisRecipResTO.getChronicDiseaseCode():"");
-                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName())?queryHisRecipResTO.getChronicDiseaseName():"");
+                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode()) ? queryHisRecipResTO.getChronicDiseaseCode() : "");
+                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName()) ? queryHisRecipResTO.getChronicDiseaseName() : "");
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 if (new Integer(2).equals(queryHisRecipResTO.getMedicalType())) {
                     hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
@@ -824,9 +851,9 @@ public class HisRecipeService {
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
                 hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
-                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId())?queryHisRecipResTO.getRegisteredId():"");
-                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode())?queryHisRecipResTO.getChronicDiseaseCode():"");
-                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName())?queryHisRecipResTO.getChronicDiseaseName():"");
+                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId()) ? queryHisRecipResTO.getRegisteredId() : "");
+                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode()) ? queryHisRecipResTO.getChronicDiseaseCode() : "");
+                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName()) ? queryHisRecipResTO.getChronicDiseaseName() : "");
                 hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
                 hisRecipe.setDepartCode(queryHisRecipResTO.getDepartCode());
                 hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
@@ -1789,7 +1816,7 @@ public class HisRecipeService {
         List<String> recipeCodeList = new ArrayList<>(deleteSetRecipeCode);
         List<HisRecipe> hisRecipeList = hisRecipeDAO.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, recipeCodeList);
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(hisRecipeIds)){
+        if (CollectionUtils.isEmpty(hisRecipeIds)) {
             LOGGER.info("deleteSetRecipeCode 查找无处方");
             return;
         }
