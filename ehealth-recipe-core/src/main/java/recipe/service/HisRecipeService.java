@@ -266,6 +266,15 @@ public class HisRecipeService {
         Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
         Boolean mergeRecipeFlag = (Boolean) mergeSettings.get("mergeRecipeFlag");
         String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
+        //移除正在进行中的处方单
+        Iterator<HisRecipeVO> iterator = request.iterator();
+        while (iterator.hasNext()) {
+            HisRecipeVO hisRecipeVO = iterator.next();
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
+            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                iterator.remove();
+            }
+        }
         if (mergeRecipeFlag) {
             //获取合并的处方
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
