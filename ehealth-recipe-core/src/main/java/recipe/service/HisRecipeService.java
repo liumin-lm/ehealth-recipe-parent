@@ -390,7 +390,7 @@ public class HisRecipeService {
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
-        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() == null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
+        Map<String, List<HisRecipeListBean>> orderCodeMap = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
         Map<Integer, List<Recipe>> recipeMap = getRecipeMap(hisRecipeListByMPIIds);
         Map<String, List<RecipeOrder>> recipeOrderMap = getRecipeOrderMap(orderCodeMap.keySet());
         Set<Integer> recipeIds = new HashSet<>();
@@ -430,7 +430,8 @@ public class HisRecipeService {
                 } else {
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
-                    RecipeOrder recipeOrder = recipeOrderMap.get(orderCode).get(0);
+                    List<RecipeOrder> recipeOrders = recipeOrderMap.get(orderCode);
+                    RecipeOrder recipeOrder = recipeOrders.get(0);
                     setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list1);
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
                     result.add(hisPatientTabStatusMergeRecipeVO);
