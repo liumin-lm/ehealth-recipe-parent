@@ -47,6 +47,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.cdr.api.service.IDocIndexService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -79,10 +80,7 @@ import recipe.retry.RecipeRetryService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.DateConversion;
-import recipe.util.DigestUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
+import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -110,20 +108,18 @@ public class RecipeHisService extends RecipeBaseService {
     @Resource
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
-    private DrugListDAO drugListDAO;
-    @Autowired
     private IRecipeHisService recipeHisService;
     @Autowired
     private IRevisitService consultService;
-
     @Autowired
     private IUsingRateService usingRateService;
     @Autowired
     private IUsePathwaysService usePathwaysService;
 
     @Resource
+    private IDocIndexService docIndexService;
+    @Resource
     RecipeRetryService recipeRetryService;
-
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
 
@@ -206,6 +202,14 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
+        try {
+            if (!ValidateUtil.integerIsEmpty(recipeExtend.getDocIndexId())) {
+                Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+                request.setMedicalInfoBean(medicalInfoBean);
+            }
+        } catch (Exception e) {
+            LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
+        }
         LOGGER.info("recipeHisService recipeId:{} request:{}", recipeId, JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);

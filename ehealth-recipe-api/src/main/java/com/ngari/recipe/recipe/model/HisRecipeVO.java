@@ -102,6 +102,12 @@ public class HisRecipeVO implements Serializable{
     private boolean isHiddenRecipeDetail;
     @ItemProperty(alias = "是否缓存在平台")
     private Integer isCachePlatform;
+    @ItemProperty(alias = "病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "病种名称")
+    private String chronicDiseaseName;
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
 
     public boolean isHiddenRecipeDetail() {
         return isHiddenRecipeDetail;
@@ -461,5 +467,29 @@ public class HisRecipeVO implements Serializable{
 
     public void setIsHiddenRecipeDetail(boolean isHiddenRecipeDetail) {
         this.isHiddenRecipeDetail = isHiddenRecipeDetail;
+    }
+
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 }

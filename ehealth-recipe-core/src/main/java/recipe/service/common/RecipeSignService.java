@@ -407,7 +407,7 @@ public class RecipeSignService {
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
 
             // 药企有库存的情况下区分到店取药与药企配送
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan(), continueFlag);
+            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
             Map<String, Object> mapAttr = new HashMap<>();
             if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
                 mapAttr.put("recipeSupportGiveMode", StringUtils.join(drugsEnterpriseContinue, ","));

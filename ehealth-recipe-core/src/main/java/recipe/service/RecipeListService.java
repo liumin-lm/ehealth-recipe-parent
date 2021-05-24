@@ -57,6 +57,7 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.MergeRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -110,6 +111,8 @@ public class RecipeListService extends RecipeBaseService {
     private IConfigurationCenterUtilsService configService;
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
+    @Autowired
+    private MergeRecipeManager mergeRecipeManager;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
@@ -961,52 +964,9 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return new ArrayList<>();
         }
-        //默认
-        Boolean mergeRecipeFlag = false;
-        String mergeRecipeWayAfter = "e.registerId";
-        try {
-            //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
-            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-            List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-            LOGGER.info("findRecipesForPatientAndTabStatusNew organIds={}", JSONUtils.toString(organIds));
-            if (CollectionUtils.isNotEmpty(organIds)) {
-                for (Integer organId : organIds) {
-                    //获取区域公众号
-                    mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
-                    if (mergeRecipeFlag == null || !mergeRecipeFlag) {
-                        mergeRecipeFlag = false;
-                        break;
-                    }
-                }
-            }
-            //再根据区域公众号里是否都支持同一种合并方式
-            if (mergeRecipeFlag) {
-                //获取合并处方分组方式
-                //e.registerId支持同一个挂号序号下的处方合并支付
-                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
-                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
-                //默认挂号序号分组
-                if (StringUtils.isEmpty(mergeRecipeWay)) {
-                    mergeRecipeWay = "e.registerId";
-                }
-                //如果只有一个就取第一个
-                if (organIds.size() == 1) {
-                    mergeRecipeWayAfter = mergeRecipeWay;
-                }
-                //从第二个开始进行比较
-                for (Integer organId : organIds) {
-                    mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
-                    if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
-                        mergeRecipeFlag = false;
-                        LOGGER.info("findRecipesForPatientAndTabStatusNew 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
-                        break;
-                    }
-                }
-                LOGGER.info("findRecipesForPatientAndTabStatusNew mpiId={},mergeRecipeFlag={},mergeRecipeWay={}", mpiId, mergeRecipeFlag, mergeRecipeWay);
-            }
-        } catch (Exception e) {
-            LOGGER.error("findRecipesForPatientAndTabStatusNew error configService", e);
-        }
+        Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = (Boolean)mergeSettings.get("mergeRecipeFlag");
+        String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
         try {
             if (mergeRecipeFlag) {
                 //返回合并处方

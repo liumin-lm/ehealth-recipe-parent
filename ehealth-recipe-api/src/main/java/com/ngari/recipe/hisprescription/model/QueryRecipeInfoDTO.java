@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 浙江互联网医院查询处方详情dto
@@ -145,7 +146,18 @@ public class QueryRecipeInfoDTO implements Serializable {
     private Integer status;
 
     @ItemProperty(alias = "收费项目-处方（药品）")
-    private  String charge;
+    private String charge;
+
+    @ItemProperty(alias = "电子病历返回")
+    private Map<String, Object> medicalInfoBean;
+
+    public Map<String, Object> getMedicalInfoBean() {
+        return medicalInfoBean;
+    }
+
+    public void setMedicalInfoBean(Map<String, Object> medicalInfoBean) {
+        this.medicalInfoBean = medicalInfoBean;
+    }
 
     public String getCharge() {
         return charge;

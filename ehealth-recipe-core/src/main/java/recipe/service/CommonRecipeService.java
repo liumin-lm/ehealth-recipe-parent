@@ -372,8 +372,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         }
 
         // 常用方名称校验
-        CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
-        CommonRecipe dbCommonRecipe = commonRecipeDAO.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipeName);
+        CommonRecipe dbCommonRecipe = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipeName);
         if (null != dbCommonRecipe && !dbCommonRecipe.getCommonRecipeId().equals(commonRecipe.getCommonRecipeId())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }

@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.CARecipeTypeConstant;
-import recipe.dao.RecipeDAO;
 import recipe.service.client.DoctorClient;
 import recipe.service.client.IConfigurationClient;
 import recipe.sign.SignRecipeInfoService;
@@ -99,8 +98,6 @@ public class SignManager {
         return attachSealPicDTO;
     }
 
-    @Autowired
-    private RecipeDAO recipeDAO;
 
     /**
      * 签名图片取值规则：根据运营平台-机构配置里面"处方单和处方笺签名取值配置"来定，拿不到在拿平台
@@ -116,18 +113,8 @@ public class SignManager {
         recipe.setRecipeId(recipeId);
         recipe.setGiveUser(ByteUtils.objValueOf(doctorId));
         recipe.setClinicOrgan(organId);
-        //todo 第三方ca特殊处理  等CA在表中增加doctorId后修改
-        String sealDataFrom = configurationClient.getValueCatch(organId, "sealDataFrom", CA_SEAL_PLAT_FORM);
-        if (CA_SEAL_THIRD.equals(sealDataFrom)) {
-            Recipe recipeChecker = recipeDAO.getByRecipeId(recipeId);
-            if (null == recipeChecker.getChecker() || !recipeChecker.getChecker().equals(doctorId)) {
-                ApothecaryVO giveUserDefault = doctorClient.getGiveUser(recipe);
-                apothecaryVO.setGiveUserSignImg(giveUserDefault.getGiveUserSignImg());
-                return apothecaryVO;
-            }
-        }
         //获取签名图片
-        String signImg = signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
+        String signImg = getSignImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA);
         if (StringUtils.isNotEmpty(signImg)) {
             apothecaryVO.setGiveUserSignImg(signImg);
         } else {
@@ -165,11 +152,39 @@ public class SignManager {
     }
 
     /**
+     * 获取手签图片
+     *
+     * @param organId  机构id
+     * @param doctorId 医生/药师id
+     * @param recipeId 处方id
+     * @param type     职业类型：医生/药师
+     * @return
+     */
+    private String getSignImg(Integer organId, Integer doctorId, Integer recipeId, Integer type) {
+        logger.info("SignManager giveUser param organId:{},doctorId:{},recipeId:{},type:{}", organId, doctorId, recipeId, type);
+        if (ValidateUtil.integerIsEmpty(organId)) {
+            return null;
+        }
+        //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
+        String sealDataFrom = configurationClient.getValueCatch(organId, "sealDataFrom", CA_SEAL_PLAT_FORM);
+        if (CA_SEAL_THIRD.equals(sealDataFrom)) {
+            return thirdSealV1(recipeId, doctorId, type);
+        } else if (CA_SEAL_OFFLINE.equals(sealDataFrom)) {
+            return offlineSeal(doctorId);
+        } else {
+            //平台手签
+            return doctorClient.getDoctor(doctorId).getSignImage();
+        }
+    }
+
+    /**
+     * todo 新方法：thirdSealV1
      * 获取第三方手签图片
      *
      * @param recipeId 处方id
      * @return
      */
+    @Deprecated
     private String thirdSeal(Integer recipeId, Integer type) {
         if (ValidateUtil.integerIsEmpty(recipeId) || ValidateUtil.integerIsEmpty(type)) {
             logger.info("SignManager thirdSeal 使用第三方签名，recipeId:{},type:{}", recipeId, type);
@@ -183,6 +198,23 @@ public class SignManager {
             return docInfo.getSignPictureDoc();
         } catch (Exception e) {
             logger.warn("SignManager thirdSeal 使用第三方签名，recipeId:{},type:{}", recipeId, type, e);
+            return null;
+        }
+    }
+
+    private String thirdSealV1(Integer recipeId, Integer doctorId, Integer type) {
+        if (ValidateUtil.integerIsEmpty(recipeId) || ValidateUtil.integerIsEmpty(type) || ValidateUtil.integerIsEmpty(doctorId)) {
+            logger.info("SignManager thirdSealV1 使用第三方签名，recipeId:{},type:{},doctorId:{}", recipeId, type, doctorId);
+            return null;
+        }
+        try {
+            SignDoctorRecipeInfo docInfo = signRecipeInfoService.getSignInfoByRecipeIdAndDoctorId(recipeId, doctorId, type);
+            if (null == docInfo) {
+                return null;
+            }
+            return docInfo.getSignPictureDoc();
+        } catch (Exception e) {
+            logger.warn("SignManager thirdSealV1 使用第三方签名，recipeId:{},type:{}", recipeId, type, e);
             return null;
         }
     }

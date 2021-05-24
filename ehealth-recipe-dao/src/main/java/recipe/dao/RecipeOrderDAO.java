@@ -74,7 +74,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @return
      */
     @DAOMethod(sql = "from RecipeOrder where orderCode in (:orderCodeList)")
-    public abstract List<RecipeOrder> findByOrderCode(@DAOParam("orderCodeList") List<String> orderCodeList);
+    public abstract List<RecipeOrder> findByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
 
     /**
      * 根据流水号获取订单

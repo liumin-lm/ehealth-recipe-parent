@@ -26,6 +26,7 @@ import recipe.ApplicationUtils;
 import recipe.audit.bean.*;
 import recipe.audit.pawebservice.PAWebServiceLocator;
 import recipe.audit.pawebservice.PAWebServiceSoap12Stub;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;

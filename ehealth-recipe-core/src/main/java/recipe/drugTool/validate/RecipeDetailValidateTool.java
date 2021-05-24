@@ -2,10 +2,13 @@ package recipe.drugTool.validate;
 
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.recipe.entity.DecoctionWay;
+import com.ngari.recipe.entity.DrugMakingMethod;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,7 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
+import recipe.dao.DrugDecoctionWayDao;
+import recipe.dao.DrugMakingMethodDao;
 import recipe.service.client.DrugClient;
+import recipe.service.client.IConfigurationClient;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
@@ -31,13 +37,23 @@ public class RecipeDetailValidateTool {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    DrugMakingMethodDao drugMakingMethodDao;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
+    /**
+     * 患者选择煎法
+     */
+    private final static String DECOCTION_DEPLOY_PATIENT = "2";
     /**
      * 校验药品状态 0:正常，1已失效，2未完善
      */
     private final static int VALIDATE_STATUS_YES = 0;
     public final static Integer VALIDATE_STATUS_FAILURE = 1;
-    private final static int VALIDATE_STATUS_PERFECT = 2;
+    public final static Integer VALIDATE_STATUS_PERFECT = 2;
 
     /**
      * 校验比对药品
@@ -130,7 +146,8 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }
-        
+        //开药天数
+        useDayValidate(recipeType, recipeDay, recipeDetail);
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
@@ -142,7 +159,6 @@ public class RecipeDetailValidateTool {
             }
             //用药频次，用药途径是否在机构字典范围内
             medicationsValidate(organDrug.getOrganId(), recipeDetail);
-            useDayValidate(recipeDay, recipeDetail);
         } else {
             /**校验西药 数据是否完善*/
             //每次剂量
@@ -157,20 +173,17 @@ public class RecipeDetailValidateTool {
             if (medicationsValidate(organDrug.getOrganId(), recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
-            if (useDayValidate(recipeDay, recipeDetail)) {
-                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
         }
     }
 
     /**
      * 校验中药嘱托
      *
-     * @param drugEntrusts 机构嘱托
      * @param recipeDetail 处方明细数据
+     * @param drugEntrusts 机构嘱托
      * @return
      */
-    private boolean entrustValidate(RecipeDetailBean recipeDetail, List<DrugEntrustDTO> drugEntrusts) {
+    public boolean entrustValidate(RecipeDetailBean recipeDetail, List<DrugEntrustDTO> drugEntrusts) {
         if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
             return true;
         }
@@ -195,19 +208,116 @@ public class RecipeDetailValidateTool {
             }
         }
         if (entrusts) {
+            recipeDetail.setDrugEntrustCode(null);
             recipeDetail.setEntrustmentId(null);
             recipeDetail.setMemo(null);
-            recipeDetail.setDrugEntrustCode(null);
             return true;
         }
         return false;
     }
 
     /**
+     * 判断药品开药天数
+     *
+     * @param recipeType   处方类型
+     * @param recipeDay    处方药物使用天数时间
+     * @param recipeDetail 处方药品明细
+     * @return
+     */
+    public void useDayValidate(Integer recipeType, String[] recipeDay, RecipeDetailBean recipeDetail) {
+        // 校验中药
+        if (RecipeUtil.isTcmType(recipeType)) {
+            useDayValidate(recipeDay, recipeDetail);
+            return;
+        }
+        // 校验西药
+        boolean useDayValidate = useDayValidate(recipeDay, recipeDetail);
+        if (useDayValidate) {
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+    }
+
+
+    /**
+     * 校验煎法
+     *
+     * @param recipeExtendBean
+     */
+    public void validateDecoction(Integer organId, RecipeExtendBean recipeExtendBean) {
+        String decoctionDeploy = configurationClient.getValueEnumCatch(organId, "decoctionDeploy", null);
+        if (DECOCTION_DEPLOY_PATIENT.equals(decoctionDeploy)) {
+            return;
+        }
+        if (StringUtils.isEmpty(recipeExtendBean.getDecoctionCode()) && StringUtils.isEmpty(recipeExtendBean.getDecoctionText())) {
+            return;
+        }
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(decoctionWayList)) {
+            recipeExtendBean.setDecoctionCode(null);
+            recipeExtendBean.setDecoctionId(null);
+            recipeExtendBean.setDecoctionText(null);
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionCode())) {
+            boolean code = decoctionWayList.stream().noneMatch(a -> recipeExtendBean.getDecoctionCode().equals(a.getDecoctionCode()));
+            if (code) {
+                recipeExtendBean.setDecoctionCode(null);
+                recipeExtendBean.setDecoctionId(null);
+                recipeExtendBean.setDecoctionText(null);
+            }
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionText())) {
+            boolean text = decoctionWayList.stream().noneMatch(a -> recipeExtendBean.getDecoctionText().equals(a.getDecoctionText()));
+            if (text) {
+                recipeExtendBean.setDecoctionCode(null);
+                recipeExtendBean.setDecoctionId(null);
+                recipeExtendBean.setDecoctionText(null);
+            }
+        }
+    }
+
+    /**
+     * 校验制法
+     *
+     * @param recipeExtendBean
+     */
+    public void validateMakeMethod(Integer organId, RecipeExtendBean recipeExtendBean) {
+        if (StringUtils.isEmpty(recipeExtendBean.getMakeMethod()) && StringUtils.isEmpty(recipeExtendBean.getMakeMethodText())) {
+            return;
+        }
+        List<DrugMakingMethod> drugMakingMethodList = drugMakingMethodDao.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(drugMakingMethodList)) {
+            recipeExtendBean.setMakeMethod(null);
+            recipeExtendBean.setMakeMethodText(null);
+            recipeExtendBean.setMakeMethodId(null);
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipeExtendBean.getMakeMethod())) {
+            boolean code = drugMakingMethodList.stream().noneMatch(a -> recipeExtendBean.getMakeMethod().equals(a.getMethodCode()));
+            if (code) {
+                recipeExtendBean.setMakeMethod(null);
+                recipeExtendBean.setMakeMethodText(null);
+                recipeExtendBean.setMakeMethodId(null);
+            }
+            return;
+        }
+        if (StringUtils.isNotEmpty(recipeExtendBean.getMakeMethodText())) {
+            boolean text = drugMakingMethodList.stream().noneMatch(a -> recipeExtendBean.getMakeMethodText().equals(a.getMethodText()));
+            if (text) {
+                recipeExtendBean.setMakeMethod(null);
+                recipeExtendBean.setMakeMethodText(null);
+                recipeExtendBean.setMakeMethodId(null);
+            }
+        }
+    }
+
+
+    /**
      * 开药天数是否在当前机构配置项天数范围内
      *
      * @param recipeDay    处方药物使用天数时间
-     * @param recipeDetail
+     * @param recipeDetail 处方药品明细
      * @return
      */
     private boolean useDayValidate(String[] recipeDay, RecipeDetailBean recipeDetail) {
@@ -262,4 +372,5 @@ public class RecipeDetailValidateTool {
         }
         return us;
     }
+
 }
