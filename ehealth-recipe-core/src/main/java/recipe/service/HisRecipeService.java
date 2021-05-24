@@ -544,29 +544,6 @@ public class HisRecipeService {
         LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
         LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
-        //测试用 别删
-//        if(responseTO!=null){
-//            List<QueryHisRecipResTO> queryHisRecipResTOs=responseTO.getData();
-//            if(!CollectionUtils.isEmpty(queryHisRecipResTOs)){
-//                for(QueryHisRecipResTO queryHisRecipResTO:queryHisRecipResTOs){
-////                    if(1==queryHisRecipResTO.getStatus()){
-////                        queryHisRecipResTO.setRecipeCode("444");
-////                    }
-////                    if(2==queryHisRecipResTO.getStatus()){
-////                        queryHisRecipResTO.setRecipeCode("111");
-////                        queryHisRecipResTO.setStatus(1);
-////                    }
-//                    queryHisRecipResTO.setRecipeCostNumber("111");
-//                    queryHisRecipResTO.setDecoctionFee(new BigDecimal(20));
-//                    queryHisRecipResTO.setTcmFee(new BigDecimal(19));
-//                    List<RecipeDetailTO> recipeDetailTOS=queryHisRecipResTO.getDrugList();
-//                    for(RecipeDetailTO recipeDetailTO:recipeDetailTOS){
-//                        recipeDetailTO.setPharmacyCode("zx-yf001");
-//                        recipeDetailTO.setPharmacyName("药房名称");
-//                    }
-//                }
-//            }
-//        }
         //过滤数据
         responseTO = filterData(responseTO);
         LOGGER.info("queryHisRecipeInfo queryData:{}.", JSONUtils.toString(responseTO));
