@@ -92,7 +92,7 @@ public class HisRecipeService {
     @Autowired
     private MergeRecipeManager mergeRecipeManager;
 
-    private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<String>();
+    private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
     /**
      * organId 机构编码
