@@ -73,7 +73,7 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/4/20.
  */
-@RpcBean("takeDrugService")
+@RpcBean(value = "takeDrugService")
 public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdEnterpriseCallService.class);
@@ -1984,11 +1984,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @RpcService
     public StandardResultDTO  synchronizeInventory(Map<String, Object> parames){
+        LOGGER.info("ThirdEnterpriseCallService synchronizeInventory parames:{}", JSONUtils.toString(parames));
         StandardResultDTO standardResult = new StandardResultDTO();
         String appKey = (String)parames.get("appKey");
-        String hospitalCode = (String)parames.get("hospitalCode");
         List<Map<String,Object>> synchronizeDrugBeans = (List)parames.get("drugList");
-        LOGGER.info("ThirdEnterpriseCallService.synchronizeInventory appKey:{},hospitalCode:{},synchronizeDrugBeans:{}", appKey, hospitalCode, JSONUtils.toString(synchronizeDrugBeans));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
         if (drugsEnterprise == null) {
@@ -2001,11 +2000,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         for (Map<String,Object> synchronizeDrugBean : synchronizeDrugBeans) {
             String drugCode = (String)synchronizeDrugBean.get("drugCode");
             int inventory = (Integer)synchronizeDrugBean.get("inventory");
-            SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
-            if (saleDrugList != null) {
-                saleDrugListDAO.updateDrugInventory(saleDrugList.getDrugId(), drugsEnterprise.getId(), new BigDecimal(inventory));
-            } else {
-                LOGGER.info("ThirdEnterpriseCallService.synchronizeInventory 未查询到配送药品：{},{}", drugsEnterprise.getName(), drugCode);
+            try {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
+                if (saleDrugList != null) {
+                    saleDrugListDAO.updateDrugInventory(saleDrugList.getDrugId(), drugsEnterprise.getId(), new BigDecimal(inventory));
+                } else {
+                    LOGGER.info("ThirdEnterpriseCallService synchronizeInventory 未查询到配送药品：{},{}", drugsEnterprise.getName(), drugCode);
+                }
+            } catch (Exception e) {
+                LOGGER.error("ThirdEnterpriseCallService synchronizeInventory error:", e);
             }
         }
         return standardResult;
