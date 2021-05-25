@@ -204,7 +204,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      */
     @DAOMethod(sql = "from Recipe where recipeId in :recipeIds order by recipeId desc", limit = 0)
-    public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+    public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") Collection<Integer> recipeIds);
 
     /**
      * 查询所有处方
@@ -1259,7 +1259,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             patientBean = new PatientDTO();
                         }
                         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                        RecipeOrder order = recipeOrderDAO.getOrderByRecipeIdQuery(recipe.getRecipeId());
+                        RecipeOrder order = recipeOrderDAO.getRecipeOrderByRecipeId(recipe.getRecipeId());
                         if (order == null) {
                             order = new RecipeOrder();
                             //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型

@@ -118,7 +118,7 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
+@RpcBean(value = "remoteRecipeService")
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -355,7 +355,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeIdWithoutCheck(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(recipeId);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
         //
         if (recipeOrder != null) {
@@ -1338,12 +1338,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
         //调用前置机接口进行数据返回
+        LOGGER.info("remoteRecipeService getDrugStockForArea his drugInfoReq={}", JSONUtils.toString(drugInfoReq));
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
+        LOGGER.info("remoteRecipeService getDrugStockForArea his responseTO={}", JSONUtils.toString(responseTO));
         if (responseTO != null) {
             List<DrugDetailResult> data = responseTO.getData();
             return ObjectCopyUtils.convert(data, DrugDetailResult.class);
         }
-        LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
         return new ArrayList<>();
     }
 
@@ -2695,5 +2696,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         LOGGER.info("queryHealthCardFromHisAndMerge.organId{}.mpiid={}.当前就诊人没有卡支持", organId, mpiid);
         return null;
+    }
+
+    @Override
+    public String getOrderCodeByRecipeCode(Integer organId, String recipeCode){
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        if (null == recipe) {
+            return null;
+        }
+        return recipe.getOrderCode();
     }
 }

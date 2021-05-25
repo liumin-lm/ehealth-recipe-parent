@@ -267,7 +267,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         //判断当前处方是不是有审核通过的患者手动弄退费信息，有的话设置处方和订单的状态
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeIdQuery(busId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(busId);
         if(null == recipeOrder){
             LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
             return;

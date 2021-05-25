@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 
@@ -44,53 +45,41 @@ import java.util.stream.Collectors;
  * @date:2017/9/12.
  */
 public class RecipeToHisService {
-
-    /**
-     * LOGGER
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisService.class);
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-
     @Autowired
     private SyncDrugExcDAO syncDrugExcDAO;
-
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private IRecipeHisService hisService;
+
 
     public void recipeSend(RecipeSendRequestTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        LOGGER.info("RecipeToHisService recipeSend  request={}", JSONUtils.toString(request));
         Integer recipeId = Integer.valueOf(request.getRecipeID());
-        LOGGER.info("recipeSend recipeId={}, request={}", recipeId, JSONUtils.toString(request));
-
-        //放在异步发送前就更新状态
-//        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
-
         try {
             hisService.recipeSend(request);
-            LOGGER.info("recipeSend 调用前置机处方写入服务成功! recipeId=" + request.getRecipeID());
+            LOGGER.info("recipeSend 调用前置机处方写入服务成功! recipeId={}", recipeId);
         } catch (Exception e) {
             LOGGER.error("recipeSend HIS接口调用失败. request={}", JSONUtils.toString(request), e);
-            Recipe recipe= recipeDAO.get(recipeId);
-            if(recipe != null && recipe.getStatus() != null && recipe.getStatus() == RecipeStatusConstant.CHECKING_HOS){
-                //失败发送系统消息
-                recipeDAO.updateStatusByRecipeIdAndStatus(recipeId, RecipeStatusConstant.HIS_FAIL, RecipeStatusConstant.CHECKING_HOS);
-                //日志记录
-                RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS,
-                    RecipeStatusConstant.HIS_FAIL, "his写入失败，调用前置机处方写入服务失败");
-                LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务异常!，更改处方状态", recipeId);
-            } else{
-                //非医院确认中的状态不做更改（避免已经回调成功了，这再报超时异常）
-                if(recipe != null){
-                    //日志记录
-                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
-                        recipe.getStatus(), "his写入失败，调用前置机处方写入服务失败,状态不变");
-                    LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务异常! status={}", recipeId, recipe.getStatus());
-                }
+            Recipe recipe = recipeDAO.get(recipeId);
+            if (null == recipe) {
+                return;
             }
-
+            if (RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType().equals(recipe.getStatus())) {
+                //失败发送系统消息
+                recipeDAO.updateStatusByRecipeIdAndStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType(), recipe.getStatus());
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType(), "his写入失败，调用前置机处方写入服务失败");
+            } else {
+                //非医院确认中的状态不做更改（避免已经回调成功了，这再报超时异常）
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "his写入失败，调用前置机处方写入服务失败,状态不变");
+            }
         }
     }
 

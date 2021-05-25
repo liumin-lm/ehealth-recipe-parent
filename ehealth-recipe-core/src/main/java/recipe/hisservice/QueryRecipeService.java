@@ -33,6 +33,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
+import eh.cdr.api.service.IDocIndexService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -49,17 +50,18 @@ import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
-
-import static recipe.dao.DrugMakingMethodDao.log;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static recipe.dao.DrugMakingMethodDao.log;
+import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -72,6 +74,8 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Resource
     private RecipeExtendDAO recipeExtendDAO;
+    @Resource
+    private IDocIndexService docIndexService;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -212,6 +216,15 @@ public class QueryRecipeService implements IQueryRecipeService {
         try {
             Integer recipeId = recipe.getRecipeId();
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            try {
+                if (!ValidateUtil.integerIsEmpty(recipeExtend.getDocIndexId())) {
+                    Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+                    recipeDTO.setMedicalInfoBean(medicalInfoBean);
+                }
+            } catch (Exception e) {
+                LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
+            }
+
             getMedicalInfo(recipe, recipeExtend);
             recipeDTO = new QueryRecipeInfoDTO();
             //拼接处方信息

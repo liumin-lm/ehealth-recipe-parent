@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.CommonRecipeExt;
 import com.ngari.recipe.entity.OrganDrugList;
+import ctd.persistence.exception.DAOException;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.ErrorCode;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
@@ -205,5 +207,22 @@ public class CommonRecipeManager {
         });
         LOGGER.info("CommonRecipeManager commonDrugGroup commonDrugGroup={}", JSON.toJSONString(commonDrugGroup));
         return commonDrugGroup;
+    }
+
+    /**
+     * 根据医生id和常用方名查找
+     *
+     * @param doctorId
+     * @param commonRecipeName
+     * @return
+     */
+    public CommonRecipe getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
+        LOGGER.info("CommonRecipeManager validateParam getByDoctorIdAndName doctorId:{},commonRecipeName:{}", doctorId, commonRecipeName);
+        try {
+            return commonRecipeDAO.getByDoctorIdAndName(doctorId, commonRecipeName);
+        } catch (Exception e) {
+            LOGGER.error("CommonRecipeManager validateParam error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
+        }
     }
 }

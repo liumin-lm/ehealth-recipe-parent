@@ -1,6 +1,8 @@
 package recipe.service.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +36,28 @@ public class IConfigurationClient extends BaseClient {
         }
         try {
             return (String) configService.getConfiguration(organId, key);
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 根据配置获取  枚举类型 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public String getValueEnumCatch(Integer organId, String key, String defaultValue) {
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            Object invalidInfoObject = configService.getConfiguration(organId, key);
+            JSONArray jsonArray = JSON.parseArray(JSONObject.toJSONString(invalidInfoObject));
+            return jsonArray.getString(0);
         } catch (Exception e) {
             logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
             return defaultValue;

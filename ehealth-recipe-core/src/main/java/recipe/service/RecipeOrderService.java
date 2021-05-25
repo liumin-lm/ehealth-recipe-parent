@@ -659,7 +659,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
                         //说明线下处方有代煎费
-                        decoctionFee = hisRecipe.getDecoctionFee();
+                        decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
                     } else {
                         //说明线下无代煎费传入,需要判断是否线下传入了贴数
                         if (needCalDecFee && recipe.getCopyNum() != null ) {

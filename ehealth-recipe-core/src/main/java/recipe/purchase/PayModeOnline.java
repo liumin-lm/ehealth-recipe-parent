@@ -75,7 +75,6 @@ public class PayModeOnline implements IPurchaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         //todo---暂时写死上海六院---配送到家判断是否是医保患者

@@ -2,7 +2,6 @@ package recipe.dao;
 
 import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.DrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -17,7 +16,6 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -29,6 +27,7 @@ import java.util.List;
 @RpcSupportDAO
 public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<DecoctionWay> {
     public static final Logger log = LoggerFactory.getLogger(DecoctionWay.class);
+
     public DrugDecoctionWayDao() {
         super();
         this.setEntityName(DecoctionWay.class.getName());
@@ -37,15 +36,18 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
 
 
     @DAOMethod(sql = "from DecoctionWay where organId =:organId order by sort", limit = 0)
-    public abstract List<DecoctionWayBean> findAllDecoctionWayByOrganId(@DAOParam("organId")Integer organId);
+    public abstract List<DecoctionWayBean> findAllDecoctionWayByOrganId(@DAOParam("organId") Integer organId);
+
+    @DAOMethod
+    public abstract List<DecoctionWay> findByOrganId(Integer organId);
 
     @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionCode = :decoctionCode")
-    public abstract DecoctionWay getDecoctionWayByOrganIdAndCode(@DAOParam("organId")Integer organId
-                                                                ,@DAOParam("decoctionCode")String decoctionCode);
+    public abstract DecoctionWay getDecoctionWayByOrganIdAndCode(@DAOParam("organId") Integer organId
+            , @DAOParam("decoctionCode") String decoctionCode);
 
     @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionText = :decoctionText")
-    public abstract DecoctionWay getDecoctionWayByOrganIdAndText(@DAOParam("organId")Integer organId
-                                                                ,@DAOParam("decoctionText")String decoctionText);
+    public abstract DecoctionWay getDecoctionWayByOrganIdAndText(@DAOParam("organId") Integer organId
+            , @DAOParam("decoctionText") String decoctionText);
 
     @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
     public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId")Integer decoctionId);

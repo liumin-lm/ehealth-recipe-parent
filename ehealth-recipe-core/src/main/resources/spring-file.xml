@@ -10,6 +10,10 @@
 		<constructor-arg name="endpoint" value="${oss.endpoint}"/>
 		<constructor-arg name="suffix" value="${oss.suffix}"/>
 	</bean>
+	<bean id="localFileRepository" class="ctd.mvc.upload.support.LocalFileRepository">
+		<constructor-arg name="repositoryPath" value="${file.repositoryPath}"/>
+	</bean>
+
 	<bean class="ctd.util.FileAuth" id="fileAuth">
 		<constructor-arg name="accessKey" value="${fileauth.accesskey}"/>
 		<constructor-arg name="secret" value="${fileauth.secret}"/>
@@ -17,7 +21,7 @@
 	<ngari:reference id="fileserver.fileRegistry" interface="ctd.mvc.upload.FileRegistry"/>
 	<bean id="fileService" class="ctd.mvc.upload.FileService">
 		<property name="registry" ref="fileserver.fileRegistry"/>
-		<property name="repository" ref="fileRespository"/>
+		<property name="repository" ref="${file.bean.name:fileRespository}"/>
 	</bean>
 
 	<bean id="mvcUploadFileManager" class="ctd.mvc.controller.support.UploadFileManager">

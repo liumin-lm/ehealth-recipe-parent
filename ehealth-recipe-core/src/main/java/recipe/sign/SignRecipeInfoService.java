@@ -436,8 +436,18 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         }
     }
 
+    public SignDoctorRecipeInfo getSignInfoByRecipeIdAndDoctorId(Integer recipeId, Integer doctorId, Integer serverType) {
+        List<SignDoctorRecipeInfo> resultList = signDoctorRecipeInfoDAO.getSignInfoByRecipeIdAndDoctorId(recipeId, doctorId, serverType);
+        if (CollectionUtils.isNotEmpty(resultList)) {
+            return resultList.get(0);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * 获取线下维护的CA签名
+     *
      * @param doctorId
      * @return
      */

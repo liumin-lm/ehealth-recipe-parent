@@ -13,7 +13,7 @@
 	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
 	<import resource="spring-hibernate.xml"/>
 	<import resource="spring-controller.xml"/>
-	<import resource="spring-mq.xml"/>
+	<import resource="${spring.mq.file:spring-mq.xml}"/>
 	<import resource="spring-service.xml"/>
 	<import resource="spring-redis.xml"/>
 	<import resource="spring-service-base.xml"/>
