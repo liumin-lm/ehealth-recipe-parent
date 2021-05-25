@@ -5952,19 +5952,16 @@ public class RecipeService extends RecipeBaseService {
         List<GiveModeButtonBean> giveModeButtons = giveModeShowButtonVO.getGiveModeButtons();
         LOGGER.info("getRecipeGiveModeButtonRes.giveModeButtons{}", JSONUtils.toString(giveModeButtons));
         Map<String, List<GiveModeButtonBean>> buttonsMap = giveModeButtons.stream().collect(Collectors.groupingBy(GiveModeButtonBean::getShowButtonKey));
-        Integer size = recipeIds.size();
         // 例外支付单独处理 只要机构配置了例外支付,所有处方都支持
         List<GiveModeButtonBean> giveModeButtonBeans = buttonsMap.get(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
-            RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(), RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
-            supportMedicalPaymentButton.setJumpType(giveModeButtonBeans.get(0).getButtonSkipType());
-            supportMedicalPaymentButton.setButtonFlag(true);
-            supportMedicalPaymentButton.setRecipeIds(recipeIds);
+            RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(),
+                    RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName(),recipeIds,true,giveModeButtonBeans.get(0).getButtonSkipType());
             list.add(supportMedicalPaymentButton);
         }
         RecipeSupportGiveModeEnum[] values = RecipeSupportGiveModeEnum.values();
         for (RecipeSupportGiveModeEnum value : values) {
-            getGiveModeButton(value, recipes, buttonsMap, list, size);
+            getGiveModeButton(value, recipes, buttonsMap, list, recipeIds.size());
         }
 
         LOGGER.info("getRecipeGiveModeButtonRes.List<RecipeGiveModeButtonRes> = {}", JSONUtils.toString(list));
