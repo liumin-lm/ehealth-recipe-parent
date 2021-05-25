@@ -1213,7 +1213,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             patientBean = new PatientDTO();
                         }
                         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                        RecipeOrder order = recipeOrderDAO.getOrderByRecipeIdQuery(recipe.getRecipeId());
+                        RecipeOrder order = recipeOrderDAO.getRecipeOrderByRecipeId(recipe.getRecipeId());
                         if (order == null) {
                             order = new RecipeOrder();
                             //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
