@@ -76,6 +76,7 @@ public class MergeRecipeManager {
         }
         result.put("mergeRecipeFlag", mergeRecipeFlag);
         result.put("mergeRecipeWayAfter", mergeRecipeWayAfter);
+        LOGGER.info("MergeRecipeManager result={}", JSONUtils.toString(result));
         return result;
     }
 }
