@@ -437,7 +437,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     }
 
     public SignDoctorRecipeInfo getSignInfoByRecipeIdAndDoctorId(Integer recipeId, Integer doctorId, Integer serverType) {
-        List<SignDoctorRecipeInfo> resultList = signDoctorRecipeInfoDAO.getSignInfoByRecipeIdAndDoctorId(recipeId, doctorId, serverType);
+        List<SignDoctorRecipeInfo> resultList = signDoctorRecipeInfoDAO.findSignInfoByRecipeIdAndDoctorId(recipeId, doctorId, serverType);
         if (CollectionUtils.isNotEmpty(resultList)) {
             return resultList.get(0);
         } else {
