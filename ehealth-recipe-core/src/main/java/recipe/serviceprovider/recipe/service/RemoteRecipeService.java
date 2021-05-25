@@ -118,7 +118,7 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
+@RpcBean(value = "remoteRecipeService")
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -1338,12 +1338,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
         //调用前置机接口进行数据返回
+        LOGGER.info("remoteRecipeService getDrugStockForArea his drugInfoReq={}", JSONUtils.toString(drugInfoReq));
         HisResponseTO<List<DrugDetailResult>> responseTO = hisService.drugStockQuery(drugInfoReq);
+        LOGGER.info("remoteRecipeService getDrugStockForArea his responseTO={}", JSONUtils.toString(responseTO));
         if (responseTO != null) {
             List<DrugDetailResult> data = responseTO.getData();
             return ObjectCopyUtils.convert(data, DrugDetailResult.class);
         }
-        LOGGER.info("remoteRecipeService getDrugStockForArea responseTO={}", JSONUtils.toString(responseTO));
         return new ArrayList<>();
     }
 
