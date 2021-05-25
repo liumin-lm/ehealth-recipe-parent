@@ -405,7 +405,9 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
                 String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
+                Boolean mergeRecipeFlag = (Boolean) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 if ("e.registerId".equals(mergeRecipeWay)) {
                     // 挂号序号
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
