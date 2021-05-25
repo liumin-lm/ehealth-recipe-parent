@@ -33,5 +33,5 @@ public abstract class SignDoctorRecipeInfoDAO extends HibernateSupportDelegateDA
     public abstract List<SignDoctorRecipeInfo> findRecipeInfoByRecipeIdAndServerType(@DAOParam("recipeId") Integer recipeId, @DAOParam("serverType") Integer serverType);
 
     @DAOMethod(sql = " from SignDoctorRecipeInfo where recipeId=:recipeId and serverType =:serverType and signDoctor =:doctorId  order by id desc")
-    public abstract List<SignDoctorRecipeInfo> getSignInfoByRecipeIdAndDoctorId(@DAOParam("recipeId") Integer recipeId, @DAOParam("doctorId") Integer doctorId, @DAOParam("serverType") Integer serverType);
+    public abstract List<SignDoctorRecipeInfo> findSignInfoByRecipeIdAndDoctorId(@DAOParam("recipeId") Integer recipeId, @DAOParam("doctorId") Integer doctorId, @DAOParam("serverType") Integer serverType);
 }
