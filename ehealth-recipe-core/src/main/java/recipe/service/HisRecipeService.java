@@ -1766,8 +1766,8 @@ public class HisRecipeService {
                     LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
                     continue;
                 }
-                Integer useDays = hisRecipeDetail.getUseDays();
-                if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
+                String useDaysB = hisRecipeDetail.getUseDaysB();
+                if ((StringUtils.isEmpty(useDaysB) && recipeDetailTO.getUseDaysB() != null) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
                     continue;
