@@ -152,7 +152,7 @@ public class HisRecipeService {
 
         //表示获取待缴费或者已处理的处方,此时需要查询HIS
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status), null);
-        if (hisResponseTO == null) {
+        if (null == hisResponseTO) {
             return new ArrayList<>();
         }
         if ("ongoing".equals(status)) {
