@@ -238,8 +238,8 @@ public class HisRecipeService {
             hisRecipeVO.setJumpPageType(1);
             Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
             hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
-            List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
-            hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+//            List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
+//            hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
             list.add(hisRecipeVO);
             recipeIds.add(hisRecipeListBean1.getHisRecipeID());
         });
@@ -428,8 +428,8 @@ public class HisRecipeService {
 
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
                     // 获取药品详情
-                    List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean);
-                    hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+//                    List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean);
+//                    hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
                     list.add(hisRecipeVO);
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list);
