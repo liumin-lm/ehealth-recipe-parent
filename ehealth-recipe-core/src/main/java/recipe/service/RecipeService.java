@@ -5979,7 +5979,7 @@ public class RecipeService extends RecipeBaseService {
         if (CollectionUtils.isEmpty(giveModeButtonBeans) || RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText().equals(giveModeButtonBeans.get(0).getShowButtonKey())) {
             return;
         }
-        RecipeGiveModeButtonRes button = new RecipeGiveModeButtonRes(recipeSupportGiveModeEnum.getText(), recipeSupportGiveModeEnum.getName());
+        RecipeGiveModeButtonRes button = new RecipeGiveModeButtonRes(recipeSupportGiveModeEnum.getText(), giveModeButtonBeans.get(0).getShowButtonName());
         List<Integer> buttonList = new ArrayList<>();
         recipes.forEach(recipe -> {
             String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
