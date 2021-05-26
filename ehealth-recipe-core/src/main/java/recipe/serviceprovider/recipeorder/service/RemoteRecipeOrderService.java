@@ -290,9 +290,13 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     return;
                 }
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
-                //修改处方单状态
-                recipeDAO.updateRecipeInfoByRecipeId(busId, RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
-                LOGGER.info("退款完成修改处方状态：{}",recipe.getRecipeId());
+                //修改处方单状态 处理合并支付
+                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+                recipes.forEach(recipe1 -> {
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
+                    LOGGER.info("退款完成修改处方状态：{}",recipe1.getRecipeId());
+                });
                 //订单状态修改
                 Map<String, Object> orderAttrMap = Maps.newHashMap();
                 orderAttrMap.put("effective", 0);

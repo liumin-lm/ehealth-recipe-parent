@@ -478,7 +478,7 @@ public class HisRecipeService {
     public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
         List<HisRecipe> recipes = new ArrayList<>();
         //查询数据
-        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId, patientDTO, timeQuantum, flag, null);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId, patientDTO, timeQuantum, flag, recipeCodeThreadLocal.get());
         if (null == responseTO || CollectionUtils.isEmpty(responseTO.getData())) {
             return null;
         }
