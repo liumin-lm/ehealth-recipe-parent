@@ -8,6 +8,7 @@ import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
+import com.ngari.recipe.vo.ValidateDetailVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,15 +50,17 @@ public class RecipeDetailService {
     /**
      * 校验线上线下 药品数据 用于续方需求
      *
-     * @param organId       机构id
-     * @param recipeDetails 处方明细
+     * @param validateDetailVO 机构id
      * @return
      */
-    public List<RecipeDetailBean> continueRecipeValidateDrug(Integer organId, Integer recipeType
-            , List<RecipeDetailBean> recipeDetails, RecipeExtendBean recipeExtendBean) {
+    public List<RecipeDetailBean> continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
+        Integer organId = validateDetailVO.getOrganId();
+        Integer recipeType = validateDetailVO.getRecipeType();
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        RecipeExtendBean recipeExtendBean = validateDetailVO.getRecipeExtendBean();
 
         //处方药物使用天数时间
-        String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
+        String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getIsLongRecipe());
         //药房信息
         List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
@@ -101,15 +104,14 @@ public class RecipeDetailService {
     /**
      * 校验处方药品配置时间
      *
-     * @param organId       机构id
-     * @param recipeType    处方类型
-     * @param recipeDetails 处方药品明细
+     * @param validateDetailVO 药品数据VO
      * @return 处方药品明细
      */
-    public List<RecipeDetailBean> useDayValidate(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
+    public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
         //处方药物使用天数时间
-        String[] recipeDay = configurationClient.recipeDay(organId, recipeType);
-        recipeDetails.forEach(a -> recipeDetailValidateTool.useDayValidate(recipeType, recipeDay, a));
+        String[] recipeDay = configurationClient.recipeDay(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getIsLongRecipe());
+        recipeDetails.forEach(a -> recipeDetailValidateTool.useDayValidate(validateDetailVO.getRecipeType(), recipeDay, a));
         return recipeDetails;
     }
 
