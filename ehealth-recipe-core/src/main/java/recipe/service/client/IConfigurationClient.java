@@ -70,7 +70,7 @@ public class IConfigurationClient extends BaseClient {
      * @param organId 机构id
      * @return
      */
-    public String[] recipeDay(Integer organId, Integer recipeType) {
+    public String[] recipeDay(Integer organId, Integer recipeType, Boolean isLongRecipe) {
         logger.info("IConfigurationClient recipeDay organId= {},organId= {}", organId, recipeType);
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "organId is null");
@@ -87,7 +87,11 @@ public class IConfigurationClient extends BaseClient {
                 if (null == yesLongRecipe) {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
                 }
-                recipeDay = yesLongRecipe.toString().split(ByteUtils.COMMA);
+                if (isLongRecipe) {
+                    recipeDay = yesLongRecipe.toString().split(ByteUtils.COMMA);
+                } else {
+                    recipeDay = useDaysRange(organId);
+                }
             } else {
                 recipeDay = useDaysRange(organId);
             }
@@ -108,15 +112,15 @@ public class IConfigurationClient extends BaseClient {
      */
     private String[] useDaysRange(Integer organId) {
         Object isLimitUseDays = configService.getConfiguration(organId, "isLimitUseDays");
-        if (null != isLimitUseDays && (boolean) isLimitUseDays) {
-            Object useDaysRange = configService.getConfiguration(organId, "useDaysRange");
-            if (null == useDaysRange) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "useDaysRange is null");
-            }
-            return useDaysRange.toString().split(ByteUtils.COMMA);
-        } else {
+        if (null == isLimitUseDays || !(boolean) isLimitUseDays) {
             return new String[]{"1", "99"};
         }
+        Object useDaysRange = configService.getConfiguration(organId, "useDaysRange");
+        if (null == useDaysRange) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "useDaysRange is null");
+        }
+        return useDaysRange.toString().split(ByteUtils.COMMA);
+
     }
 
 }

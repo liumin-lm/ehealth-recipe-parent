@@ -9,7 +9,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
