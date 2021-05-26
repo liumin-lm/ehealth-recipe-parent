@@ -348,7 +348,7 @@ public class HisRecipeService {
             setMergeRecipeVO(request, mergeRecipeWayAfter, false, result, giveModeButtonBean);
         }
         //按处方id从大到小排列
-        result.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
+        //result.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
         LOGGER.info("hisRecipeService findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
