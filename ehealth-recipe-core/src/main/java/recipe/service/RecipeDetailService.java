@@ -60,7 +60,7 @@ public class RecipeDetailService {
         RecipeExtendBean recipeExtendBean = validateDetailVO.getRecipeExtendBean();
 
         //处方药物使用天数时间
-        String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getIsLongRecipe());
+        String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getLongRecipe());
         //药房信息
         List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
@@ -110,7 +110,7 @@ public class RecipeDetailService {
     public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
         //处方药物使用天数时间
-        String[] recipeDay = configurationClient.recipeDay(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getIsLongRecipe());
+        String[] recipeDay = configurationClient.recipeDay(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getLongRecipe());
         recipeDetails.forEach(a -> recipeDetailValidateTool.useDayValidate(validateDetailVO.getRecipeType(), recipeDay, a));
         return recipeDetails;
     }

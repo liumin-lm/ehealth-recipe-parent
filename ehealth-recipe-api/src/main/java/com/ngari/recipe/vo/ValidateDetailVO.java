@@ -39,6 +39,6 @@ public class ValidateDetailVO {
     /**
      * 是否长处方 是： true  否：false
      */
-    private Boolean isLongRecipe;
+    private Boolean longRecipe;
 
 }
