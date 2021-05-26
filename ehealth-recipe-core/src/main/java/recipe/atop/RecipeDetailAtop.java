@@ -25,6 +25,10 @@ public class RecipeDetailAtop extends BaseAtop {
 
     @Autowired
     private RecipeDetailService recipeDetailService;
+    /**
+     * 长处方标识 0 不是
+     */
+    private static final String IS_LONG_RECIPE_FALSE = "0";
 
     /**
      * todo 过期方法新调用 使用： validateDetailV1
@@ -68,9 +72,7 @@ public class RecipeDetailAtop extends BaseAtop {
                 null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
-        if (null == validateDetailVO.getLongRecipe()) {
-            validateDetailVO.setLongRecipe(true);
-        }
+        validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
             List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
             logger.info("RecipeDetailAtop validateDetailV1 result = {}", JSON.toJSONString(result));
@@ -93,13 +95,11 @@ public class RecipeDetailAtop extends BaseAtop {
     @RpcService
     public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
         logger.info("RecipeDetailAtop useDayValidate validateDetailVO {}", JSON.toJSONString(validateDetailVO));
-        if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType())
-                || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
+                null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
-        if (null == validateDetailVO.getLongRecipe()) {
-            validateDetailVO.setLongRecipe(true);
-        }
+        validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
             List<RecipeDetailBean> result = recipeDetailService.useDayValidate(validateDetailVO);
             logger.info("RecipeDetailAtop useDayValidate result = {}", JSON.toJSONString(result));
