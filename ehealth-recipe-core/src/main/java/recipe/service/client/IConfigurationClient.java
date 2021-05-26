@@ -83,14 +83,18 @@ public class IConfigurationClient extends BaseClient {
             //西药
             Object isCanOpenLongRecipe = configService.getConfiguration(organId, "isCanOpenLongRecipe");
             if (null != isCanOpenLongRecipe && (boolean) isCanOpenLongRecipe) {
-                Object yesLongRecipe = configService.getConfiguration(organId, "yesLongRecipe");
-                if (null == yesLongRecipe) {
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
-                }
                 if (isLongRecipe) {
+                    Object yesLongRecipe = configService.getConfiguration(organId, "yesLongRecipe");
+                    if (null == yesLongRecipe) {
+                        throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
+                    }
                     recipeDay = yesLongRecipe.toString().split(ByteUtils.COMMA);
                 } else {
-                    recipeDay = useDaysRange(organId);
+                    Object noLongRecipe = configService.getConfiguration(organId, "noLongRecipe");
+                    if (null == noLongRecipe) {
+                        throw new DAOException(ErrorCode.SERVICE_ERROR, "yesLongRecipe is null");
+                    }
+                    recipeDay = noLongRecipe.toString().split(ByteUtils.COMMA);
                 }
             } else {
                 recipeDay = useDaysRange(organId);
