@@ -68,8 +68,8 @@ public class RecipeDetailAtop extends BaseAtop {
                 null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
-        if (null == validateDetailVO.getIsLongRecipe()) {
-            validateDetailVO.setIsLongRecipe(true);
+        if (null == validateDetailVO.getLongRecipe()) {
+            validateDetailVO.setLongRecipe(true);
         }
         try {
             List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
@@ -97,8 +97,8 @@ public class RecipeDetailAtop extends BaseAtop {
                 || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
-        if (null == validateDetailVO.getIsLongRecipe()) {
-            validateDetailVO.setIsLongRecipe(true);
+        if (null == validateDetailVO.getLongRecipe()) {
+            validateDetailVO.setLongRecipe(true);
         }
         try {
             List<RecipeDetailBean> result = recipeDetailService.useDayValidate(validateDetailVO);
