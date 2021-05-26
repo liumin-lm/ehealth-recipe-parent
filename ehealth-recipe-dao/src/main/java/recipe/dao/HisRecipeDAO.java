@@ -107,7 +107,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId in (:allMpiIds) ORDER BY h.createDate DESC");
+                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId in (:allMpiIds) ORDER BY h.createDate DESC");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("allMpiIds", allMpiIds);
                 q.setMaxResults(limit);
