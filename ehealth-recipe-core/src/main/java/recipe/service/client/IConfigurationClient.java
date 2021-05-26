@@ -67,7 +67,9 @@ public class IConfigurationClient extends BaseClient {
     /**
      * 获取用药天数
      *
-     * @param organId 机构id
+     * @param organId      机构id
+     * @param recipeType   处方类型
+     * @param isLongRecipe 西药-是否勾选长处方
      * @return
      */
     public String[] recipeDay(Integer organId, Integer recipeType, Boolean isLongRecipe) {
