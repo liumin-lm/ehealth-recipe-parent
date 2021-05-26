@@ -235,6 +235,7 @@ public class HisRecipeService {
             hisRecipeVO.setFromFlag(1);
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
+            hisRecipeVO.setOrganDiseaseName(hisRecipeListBean1.getDiseaseName());
             Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
             hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
             list.add(hisRecipeVO);
@@ -422,7 +423,7 @@ public class HisRecipeService {
                     // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
                     hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
-
+                    hisRecipeVO.setOrganDiseaseName(hisRecipeListBean.getDiseaseName());
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
                     list.add(hisRecipeVO);
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());
