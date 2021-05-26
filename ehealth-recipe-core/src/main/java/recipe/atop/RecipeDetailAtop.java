@@ -3,6 +3,7 @@ package recipe.atop;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.vo.ValidateDetailVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -10,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.service.RecipeDetailService;
+import recipe.util.ValidateUtil;
 
 import java.util.List;
 
@@ -23,6 +25,10 @@ public class RecipeDetailAtop extends BaseAtop {
 
     @Autowired
     private RecipeDetailService recipeDetailService;
+    /**
+     * 长处方标识 0 不是
+     */
+    private static final String IS_LONG_RECIPE_FALSE = "0";
 
     /**
      * todo 过期方法新调用 使用： validateDetailV1
@@ -39,8 +45,9 @@ public class RecipeDetailAtop extends BaseAtop {
         if (null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
+        ValidateDetailVO validateDetailVO = new ValidateDetailVO(organId, recipeType, recipeDetails, new RecipeExtendBean(), true);
         try {
-            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(organId, recipeType, recipeDetails, new RecipeExtendBean());
+            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
             logger.info("RecipeDetailAtop validateDetail result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
@@ -55,20 +62,19 @@ public class RecipeDetailAtop extends BaseAtop {
     /**
      * 校验线上线下 药品数据 用于续方需求
      *
-     * @param organId       机构id
-     * @param recipeDetails 处方明细
+     * @param validateDetailVO 药品数据VO
      * @return 处方明细
      */
     @RpcService
-    public List<RecipeDetailBean> validateDetailV1(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails, RecipeExtendBean recipeExtendBean) {
-        logger.info("RecipeDetailAtop validateDetailV1 recipeDetails = {}，organId= {}，recipeType= {}，recipeExtendBean= {}"
-                , JSON.toJSONString(recipeDetails), organId, recipeType, JSON.toJSONString(recipeExtendBean));
-
-        if (null == recipeExtendBean || null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
+    public List<RecipeDetailBean> validateDetailV1(ValidateDetailVO validateDetailVO) {
+        logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO {}", JSON.toJSONString(validateDetailVO));
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
+                null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
+        validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
-            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(organId, recipeType, recipeDetails, recipeExtendBean);
+            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
             logger.info("RecipeDetailAtop validateDetailV1 result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
@@ -83,19 +89,19 @@ public class RecipeDetailAtop extends BaseAtop {
     /**
      * 校验处方药品配置时间
      *
-     * @param organId       机构id
-     * @param recipeType    处方类型
-     * @param recipeDetails 处方药品明细
+     * @param validateDetailVO 药品数据VO
      * @return
      */
     @RpcService
-    public List<RecipeDetailBean> useDayValidate(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
-        logger.info("RecipeDetailAtop useDayValidate recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
-        if (null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
+    public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
+        logger.info("RecipeDetailAtop useDayValidate validateDetailVO {}", JSON.toJSONString(validateDetailVO));
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
+                null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
+        validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
-            List<RecipeDetailBean> result = recipeDetailService.useDayValidate(organId, recipeType, recipeDetails);
+            List<RecipeDetailBean> result = recipeDetailService.useDayValidate(validateDetailVO);
             logger.info("RecipeDetailAtop useDayValidate result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {

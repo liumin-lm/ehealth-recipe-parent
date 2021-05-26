@@ -9,7 +9,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -380,7 +379,7 @@ public class HisRecipeService {
      */
     @RpcService
     public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
-        LOGGER.info("findFinishHisRecipes mpiId:{} index:{} limit:{} ", mpiId, start, limit);
+        LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         // 获取当前用户下所有患者
@@ -445,21 +444,21 @@ public class HisRecipeService {
         return result;
     }
 
-    private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMPIIds){
+    private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMPIIds) {
         Set<Integer> recipes = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
         List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
         Map<Integer, List<Recipe>> collect = null;
-        if(CollectionUtils.isNotEmpty(byRecipes)) {
+        if (CollectionUtils.isNotEmpty(byRecipes)) {
             collect = byRecipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
         }
         return collect;
     }
 
-    private Map<String, List<RecipeOrder>> getRecipeOrderMap(Set<String> orderCodes){
+    private Map<String, List<RecipeOrder>> getRecipeOrderMap(Set<String> orderCodes) {
         Map<String, List<RecipeOrder>> collect1 = null;
         if (CollectionUtils.isNotEmpty(orderCodes)) {
             List<RecipeOrder> byOrderCode = recipeOrderDAO.findByOrderCode(orderCodes);
-            if(CollectionUtils.isNotEmpty(byOrderCode)) {
+            if (CollectionUtils.isNotEmpty(byOrderCode)) {
                 collect1 = byOrderCode.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
             }
         }
