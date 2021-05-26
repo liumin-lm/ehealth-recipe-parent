@@ -235,6 +235,7 @@ public class HisRecipeService {
             hisRecipeVO.setFromFlag(1);
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
+            hisRecipeVO.setOrganDiseaseName(hisRecipeListBean1.getDiseaseName());
             Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
             hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
             list.add(hisRecipeVO);
@@ -379,7 +380,7 @@ public class HisRecipeService {
      */
     @RpcService
     public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
-        LOGGER.info("findFinishHisRecipes mpiId:{} index:{} limit:{} ", mpiId, start, limit);
+        LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         // 获取当前用户下所有患者
@@ -422,7 +423,7 @@ public class HisRecipeService {
                     // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
                     hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
-
+                    hisRecipeVO.setOrganDiseaseName(hisRecipeListBean.getDiseaseName());
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
                     list.add(hisRecipeVO);
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());
@@ -444,21 +445,21 @@ public class HisRecipeService {
         return result;
     }
 
-    private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMPIIds){
+    private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMPIIds) {
         Set<Integer> recipes = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
         List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
         Map<Integer, List<Recipe>> collect = null;
-        if(CollectionUtils.isNotEmpty(byRecipes)) {
+        if (CollectionUtils.isNotEmpty(byRecipes)) {
             collect = byRecipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
         }
         return collect;
     }
 
-    private Map<String, List<RecipeOrder>> getRecipeOrderMap(Set<String> orderCodes){
+    private Map<String, List<RecipeOrder>> getRecipeOrderMap(Set<String> orderCodes) {
         Map<String, List<RecipeOrder>> collect1 = null;
         if (CollectionUtils.isNotEmpty(orderCodes)) {
             List<RecipeOrder> byOrderCode = recipeOrderDAO.findByOrderCode(orderCodes);
-            if(CollectionUtils.isNotEmpty(byOrderCode)) {
+            if (CollectionUtils.isNotEmpty(byOrderCode)) {
                 collect1 = byOrderCode.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
             }
         }
