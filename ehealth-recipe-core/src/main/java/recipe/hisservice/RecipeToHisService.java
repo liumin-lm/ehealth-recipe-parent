@@ -277,11 +277,11 @@ public class RecipeToHisService {
             LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
             if (null != response && Integer.valueOf(200).equals(response.getMsgCode())) {
                 return (null != response.getData()) ? response.getData() : new ArrayList<>();
-            }else if (ObjectUtils.isEmpty(response)){
+            }/*else if (ObjectUtils.isEmpty(response)){
                 if (drugInfoList.size()>0 && drugInfoList!=null){
                     syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
                 }
-            }
+            }*/
         } catch (Exception e) {
             if (drugInfoList.size()>0 && drugInfoList!=null){
                 syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
@@ -296,9 +296,9 @@ public class RecipeToHisService {
             throw new DAOException(DAOException.VALUE_NEEDED, "定时异常数据转换对象为空!");
         }
         SyncDrugExc syncDrugExc=new SyncDrugExc();
-        OrganDrugList byOrganIdAndOrganDrugCode = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, drug.getDrcode());
+        List<OrganDrugList> byOrganIdAndOrganDrugCode = organDrugListDAO.findByOrganDrugCodeAndOrganId( drug.getDrcode(),organId);
         if (byOrganIdAndOrganDrugCode != null){
-            syncDrugExc.setOrganDrugId(byOrganIdAndOrganDrugCode.getOrganDrugId());
+            syncDrugExc.setOrganDrugId(byOrganIdAndOrganDrugCode.get(0).getOrganDrugId());
         }
         //获取金额
         if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
