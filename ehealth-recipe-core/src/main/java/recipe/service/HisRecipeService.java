@@ -238,8 +238,6 @@ public class HisRecipeService {
             hisRecipeVO.setJumpPageType(1);
             Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
             hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
-            List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean1);
-            hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
             list.add(hisRecipeVO);
             recipeIds.add(hisRecipeListBean1.getHisRecipeID());
         });
@@ -427,9 +425,6 @@ public class HisRecipeService {
                     hisRecipeVO.setJumpPageType(0);
 
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
-                    // 获取药品详情
-                    List<HisRecipeDetailVO> hisRecipeDetailVOS = getHisRecipeDetailVOS(hisRecipeListBean);
-                    hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
                     list.add(hisRecipeVO);
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list);
@@ -459,6 +454,7 @@ public class HisRecipeService {
         }
         return collect;
     }
+
     private Map<String, List<RecipeOrder>> getRecipeOrderMap(Set<String> orderCodes){
         Map<String, List<RecipeOrder>> collect1 = null;
         if (CollectionUtils.isNotEmpty(orderCodes)) {
@@ -468,43 +464,6 @@ public class HisRecipeService {
             }
         }
         return collect1;
-    }
-
-    private List<HisRecipeDetailVO> getHisRecipeDetailVOS(HisRecipeListBean hisRecipeListBean) {
-        List<HisRecipeDetailVO> recipeDetailVOS = new ArrayList<>();
-        //药品名拼接配置
-        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(hisRecipeListBean.getClinicOrgan(), hisRecipeListBean.getRecipeType()));
-        // 获取药品详情
-        List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeListBean.getHisRecipeID());
-        for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
-            HisRecipeDetailVO recipeDetailVO = ObjectCopyUtils.convert(hisRecipeDetail, HisRecipeDetailVO.class);
-            DrugListBean drugList = new DrugListBean();
-            drugList.setDrugName(recipeDetailVO.getDrugName());
-            drugList.setSaleName(recipeDetailVO.getSaleName());
-            drugList.setDrugSpec(recipeDetailVO.getDrugSpec());
-            drugList.setUnit(recipeDetailVO.getDrugUnit());
-            drugList.setDrugForm(recipeDetailVO.getDrugForm());
-            //前端展示的药品拼接名处理
-            recipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(hisRecipeListBean.getRecipeType())));
-
-            recipeDetailVOS.add(recipeDetailVO);
-        }
-
-        return recipeDetailVOS;
-    }
-
-    /**
-     * 根据MpiId判断请求接口的患者是否是登录患者或者该患者下的就诊人
-     *
-     * @param mpiId
-     */
-    public static void checkUserHasPermissionByMpiId(String mpiId) {
-        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        if (!patientService.isPatientBelongUser(mpiId)) {
-            LOGGER.error("当前用户没有权限调用mpiId[{}],methodName[{}]", mpiId, methodName);
-            throw new DAOException("当前登录用户没有权限");
-        }
     }
 
     /**
@@ -623,8 +582,6 @@ public class HisRecipeService {
         }
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
-            //药品名拼接配置
-            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeType()));
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
             //数据库不存在处方信息，则新增
@@ -693,7 +650,6 @@ public class HisRecipeService {
                 hisRecipeVO.setRecipeMode("ngarihealth");
                 setOtherInfo(hisRecipeVO, hisRecipe.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
 
-                setHisDetailVO(queryHisRecipResTO, configDrugNameMap, hisRecipeVO);
                 hisRecipeVOs.add(hisRecipeVO);
             } else {
                 //如果为已支付，不予返回
@@ -702,7 +658,6 @@ public class HisRecipeService {
                     setOtherInfo(hisRecipeVO, hisRecipe1.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
                     hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
                     hisRecipeVO.setRecipeMode("ngarihealth");
-                    setHisDetailVO(queryHisRecipResTO, configDrugNameMap, hisRecipeVO);
                     hisRecipeVOs.add(hisRecipeVO);
                 }
             }
@@ -723,32 +678,6 @@ public class HisRecipeService {
             if (!ObjectUtils.isEmpty(medicalInfo.getTotalAmount())) {
                 hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
             }
-        }
-    }
-
-    private void setHisDetailVO(QueryHisRecipResTO queryHisRecipResTO, Map<String, Integer> configDrugNameMap, HisRecipeVO hisRecipeVO) {
-        if (null != queryHisRecipResTO.getDrugList()) {
-            List<HisRecipeDetailVO> hisRecipeDetailVOs = new ArrayList<>();
-            for (RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
-                HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetail.class);
-                detail.setDrugName(recipeDetailTO.getDrugName());
-                detail.setDrugSpec(recipeDetailTO.getDrugSpec());
-                detail.setDrugUnit(recipeDetailTO.getDrugUnit());
-                detail.setPack(recipeDetailTO.getPack());
-                detail.setUseTotalDose(recipeDetailTO.getUseTotalDose());
-                HisRecipeDetailVO hisRecipeDetailVO = ObjectCopyUtils.convert(detail, HisRecipeDetailVO.class);
-                DrugListBean drugList = new DrugListBean();
-                drugList.setDrugName(hisRecipeDetailVO.getDrugName());
-                drugList.setSaleName(hisRecipeDetailVO.getSaleName());
-                drugList.setDrugSpec(hisRecipeDetailVO.getDrugSpec());
-                drugList.setUnit(hisRecipeDetailVO.getDrugUnit());
-                drugList.setDrugForm(hisRecipeDetailVO.getDrugForm());
-                //前端展示的药品拼接名处理
-                hisRecipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(queryHisRecipResTO.getRecipeType())));
-
-                hisRecipeDetailVOs.add(hisRecipeDetailVO);
-            }
-            hisRecipeVO.setRecipeDetail(hisRecipeDetailVOs);
         }
     }
 
@@ -998,32 +927,6 @@ public class HisRecipeService {
             }
         }
         return hisRecipes;
-    }
-
-    /**
-     * @param flag 根据flag转化日期 查询标志 0-近一个月数据;1-近三个月;2-近半年;3-近一年
-     *             1 代表一个月  3 代表三个月 6 代表6个月
-     * @return
-     */
-    private Date tranDateByFlagNew(String flag) {
-        Date beginTime = new Date();
-        Calendar ca = Calendar.getInstance();
-        //得到当前日期
-        ca.setTime(new Date());
-        if ("6".equals(flag)) {  //近半年数据
-            ca.add(Calendar.MONTH, -6);//月份减6
-            Date resultDate = ca.getTime(); //结果
-            beginTime = resultDate;
-        } else if ("3".equals(flag)) {  //近三个月数据
-            ca.add(Calendar.MONTH, -3);//月份减3
-            Date resultDate = ca.getTime(); //结果
-            beginTime = resultDate;
-        } else if ("1".equals(flag)) { //近一个月数据
-            ca.add(Calendar.MONTH, -1);//月份减1
-            Date resultDate = ca.getTime(); //结果
-            beginTime = resultDate;
-        }
-        return beginTime;
     }
 
     private List<HisRecipeDetailVO> getHisRecipeDetailVOS(Recipe recipe) {
@@ -1348,27 +1251,6 @@ public class HisRecipeService {
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
         return recipeDAO.saveRecipe(recipe);
 
-    }
-
-    public static RecipeResultBean validateRecipeSendDrugMsg(Recipe recipe) {
-        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
-        try {
-            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
-            if (new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))) {
-                return resultBean;
-            } else {
-                //处方药品能否配送以及能否开具同一张处方上
-                RecipeServiceSub.canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
-            }
-        } catch (Exception e) {
-            LOGGER.error("canOpenRecipeDrugs error", e);
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg(e.getMessage());
-            return resultBean;
-        }
-        return resultBean;
     }
 
     private void savaRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
@@ -1884,5 +1766,4 @@ public class HisRecipeService {
         });
         return hisRecipeMap;
     }
-
 }
