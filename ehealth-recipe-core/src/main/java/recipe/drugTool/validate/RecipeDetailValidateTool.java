@@ -325,15 +325,15 @@ public class RecipeDetailValidateTool {
         Double minUseDay = Double.valueOf(recipeDay[0]);
         Double maxUseDay = Double.valueOf(recipeDay[1]);
         if (null == recipeDetail.getUseDays() || recipeDetail.getUseDays() < minUseDay || recipeDetail.getUseDays() > maxUseDay) {
-            recipeDetail.setUseDays(null);
+            recipeDetail.setUseDays(0);
             useDay = true;
         }
         if (StringUtils.isEmpty(recipeDetail.getUseDaysB())) {
-            recipeDetail.setUseDaysB(null);
+            recipeDetail.setUseDaysB("0");
             useDay = true;
         }
         if (StringUtils.isNotEmpty(recipeDetail.getUseDaysB()) && (Double.valueOf(recipeDetail.getUseDaysB()) < minUseDay || Double.valueOf(recipeDetail.getUseDaysB()) > maxUseDay)) {
-            recipeDetail.setUseDaysB(null);
+            recipeDetail.setUseDaysB("0");
             useDay = true;
         }
         return useDay;
