@@ -1178,6 +1178,7 @@ public class HisRecipeService {
             recipe.setDepart(appointDepartDTO.getDepartId());
         } else {
             LOGGER.info("HisRecipeService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "挂号科室维护错误");
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
@@ -1186,7 +1187,7 @@ public class HisRecipeService {
                 recipe.setDoctor(employmentDTO.getDoctorId());
             } else {
                 LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "医生工号维护错误");
             }
         }
 
@@ -1197,7 +1198,7 @@ public class HisRecipeService {
                 recipe.setCheckerText(hisRecipe.getCheckerName());
             } else {
                 LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "医生工号维护错误");
             }
         } else {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
