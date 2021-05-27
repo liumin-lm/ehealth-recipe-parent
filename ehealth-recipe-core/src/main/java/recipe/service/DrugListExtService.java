@@ -898,26 +898,29 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setPrice1(null == drugList.getPrice1() ? drugListNow.getPrice1() : drugList.getPrice1());
                     drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
                 }
-                List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
-                boolean drugEntrustName = drugEntrusts.stream().anyMatch(a -> "无特殊煎法".equals(a.getDrugEntrustName()));
-                if (drugEntrustName) {
-                    //查询嘱托Id
-                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo2:{}", drugInfo);
-                    String drugEntrustId = organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(), organId);
-                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo3:{}", drugInfo);
-                    //西药存储的是中文备注信息  中药存储的是嘱托Id
-                    if (StringUtils.isNotEmpty(drugEntrustId)) {
-                        drugList.setDrugEntrust(null == drugList.getDrugEntrust() ? drugEntrustId : drugList.getDrugEntrust());
+                if (null != organId) {
+                    List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+                    boolean drugEntrustName = drugEntrusts.stream().anyMatch(a -> "无特殊煎法".equals(a.getDrugEntrustName()));
+                    if (drugEntrustName) {
+                        //查询嘱托Id
+                        LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo2:{}", drugInfo);
+                        String drugEntrustId = organDrugListDAO.getDrugEntrustById(drugList.getOrganDrugCode(), organId);
+                        LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo3:{}", drugInfo);
+                        //西药存储的是中文备注信息  中药存储的是嘱托Id
+                        if (StringUtils.isNotEmpty(drugEntrustId)) {
+                            drugList.setDrugEntrust(null == drugList.getDrugEntrust() ? drugEntrustId : drugList.getDrugEntrust());
+                        }
+                        LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo4:{}", drugInfo);
+                        //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
+                        if (new Integer(3).equals(drugType) && StringUtils.isEmpty(drugEntrustId)) {
+                            drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
+                            drugList.setDrugEntrustCode("sos");
+                            drugList.setDrugEntrust("无特殊煎法");
+                        }
                     }
-                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo4:{}", drugInfo);
-                    //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
-                    if (new Integer(3).equals(drugType) && StringUtils.isEmpty(drugEntrustId)) {
-                        drugList.setDrugEntrustId(String.valueOf(new Integer(56)));
-                        drugList.setDrugEntrustCode("sos");
-                        drugList.setDrugEntrust("无特殊煎法");
-                    }
+                    LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo5:{}", drugInfo);
                 }
-                LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo5:{}", drugInfo);
+
                 //药品库存标志-是否查药企库存
                 if (organId != null) {
                     drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, drugList.getDrugId());
