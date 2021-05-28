@@ -283,9 +283,9 @@ public class RecipeToHisService {
                 }
             }*/
         } catch (Exception e) {
-            if (drugInfoList.size()>0 && drugInfoList!=null){
+            /*if (drugInfoList.size()>0 && drugInfoList!=null){
                 syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
-            }
+            }*/
             LOGGER.error("queryDrugInfo error ", e);
         }
         return null;

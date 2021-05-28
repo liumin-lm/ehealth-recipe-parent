@@ -13,6 +13,7 @@ import eh.recipeaudit.model.Intelligent.IssueBean;
 import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -55,6 +56,7 @@ public class SaveAutoReviewRunable implements Runnable {
             List<AuditMedicinesBean> auditMedicinesList = Lists.newArrayList();
             List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
             List<PAWebRecipeDangerBean> recipeDangers = autoAuditResult.getRecipeDangers();
+            LOGGER.info("SaveAutoReviewRunnable paResultList:{},paResultList:{}", JSON.toJSONString(paResultList), JSON.toJSONString(recipeDangers));
             if (CollectionUtils.isNotEmpty(recipeDangers)) {
                 recipeDangers.forEach(item -> {
                     AuditMedicineIssueBean auditMedicineIssue = new AuditMedicineIssueBean();
@@ -73,7 +75,7 @@ public class SaveAutoReviewRunable implements Runnable {
             if (CollectionUtils.isEmpty(paResultList)) {
                 AuditMedicinesBean auditMedicinesDTO = new AuditMedicinesBean();
                 auditMedicinesDTO.setRecipeId(recipeId);
-                auditMedicinesDTO.setRemark(autoAuditResult.getMsg());
+                auditMedicinesDTO.setRemark(StringUtils.isNotEmpty(autoAuditResult.getMsg())?autoAuditResult.getMsg():"系统预审未发现处方问题");
                 auditMedicinesList.add(auditMedicinesDTO);
                 iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
             } else if (CollectionUtils.isNotEmpty(paResultList)) {
@@ -86,6 +88,7 @@ public class SaveAutoReviewRunable implements Runnable {
                     auditMedicinesDTO.setRecipeId(recipeId);
                     auditMedicinesDTO.setCode(paMedicine.getCode());
                     auditMedicinesDTO.setName(paMedicine.getName());
+                    auditMedicinesDTO.setRemark(StringUtils.isNotEmpty(autoAuditResult.getMsg())?autoAuditResult.getMsg():"系统预审未发现处方问题");
                     issueList = paMedicine.getIssues();
                     if (CollectionUtils.isNotEmpty(issueList)) {
                         auditMedicineIssues = new ArrayList<>(issueList.size());
