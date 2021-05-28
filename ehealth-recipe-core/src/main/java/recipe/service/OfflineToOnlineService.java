@@ -71,7 +71,7 @@ public class OfflineToOnlineService {
         });
 
         if (recipeIds.size() != request.getRecipeCode().size()) {
-            throw new DAOException(609, "“抱歉，当前处方没有可支持的购药方式”");
+            throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
         }
         logger.info("OfflineToOnlineService batchSyncRecipeFromHis response = {}",  JSONUtils.toString(recipeIds));
         return recipeIds;
