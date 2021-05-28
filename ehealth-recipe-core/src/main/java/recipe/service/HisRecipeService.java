@@ -176,14 +176,9 @@ public class HisRecipeService {
     private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
         List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
-        // 获取当前用户下所有患者
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(patientDTO.getMpiId());
-        if (CollectionUtils.isEmpty(allMpiIds)) {
-            allMpiIds.add(patientDTO.getMpiId());
-        }
         //先查询进行中处方(目前仅指的是待支付的处方单)
         //查询所有进行中的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIIds(allMpiIds, start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIId(patientDTO.getMpiId(), start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
@@ -383,13 +378,8 @@ public class HisRecipeService {
         LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
-        // 获取当前用户下所有患者
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
-        if (CollectionUtils.isEmpty(allMpiIds)) {
-            allMpiIds.add(mpiId);
-        }
         // 所有所有已处理的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIIds(allMpiIds, start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIId(mpiId, start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
