@@ -1639,11 +1639,21 @@ public class HisRecipeService {
                     LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
                     continue;
                 }
-                String useDaysB = hisRecipeDetail.getUseDaysB();
-                if ((StringUtils.isEmpty(useDaysB) && StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB())) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
-                    deleteSetRecipeCode.add(recipeCode);
-                    LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
-                    continue;
+                if (StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() == null){
+                    String useDaysB = hisRecipeDetail.getUseDaysB();
+                    if ((StringUtils.isEmpty(useDaysB) && StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB())) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
+                        continue;
+                    }
+                }
+                if (StringUtils.isEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() != null) {
+                    Integer useDays = hisRecipeDetail.getUseDays();
+                    if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}",recipeCode);
+                        continue;
+                    }
                 }
                 String usingRate = hisRecipeDetail.getUsingRate();
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
