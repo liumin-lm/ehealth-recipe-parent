@@ -66,7 +66,7 @@ public class RecipeDetailAtop extends BaseAtop {
      * @return 处方明细
      */
     @RpcService
-    public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
+    public List<RecipeDetailBean> validateDetailV1(ValidateDetailVO validateDetailVO) {
         logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO {}", JSON.toJSONString(validateDetailVO));
         if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
                 null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
@@ -74,7 +74,8 @@ public class RecipeDetailAtop extends BaseAtop {
         }
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
-            ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
+            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO).getRecipeDetails();
+            // ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
             logger.info("RecipeDetailAtop validateDetailV1 result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
