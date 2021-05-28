@@ -98,18 +98,18 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
     /**
      * 批量查询已处理his处方
-     * @param allMpiIds
+     * @param mpiId
      * @param start
      * @param limit
      */
-    public List<HisRecipeListBean> findHisRecipeListByMPIIds(List<String> allMpiIds, Integer start, Integer limit){
+    public List<HisRecipeListBean> findHisRecipeListByMPIId(String mpiId, Integer start, Integer limit){
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId in (:allMpiIds) ORDER BY h.createDate DESC");
+                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId ORDER BY h.createDate DESC");
                 Query q = ss.createQuery(hql.toString());
-                q.setParameterList("allMpiIds", allMpiIds);
+                q.setParameter("mpiId", mpiId);
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
 
@@ -123,18 +123,18 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
     /**
      * 批量查询进行中的his处方
-     * @param allMpiIds
+     * @param mpiId
      * @param start
      * @param limit
      */
-    public List<HisRecipeListBean> findOngoingHisRecipeListByMPIIds(List<String> allMpiIds, Integer start, Integer limit){
+    public List<HisRecipeListBean> findOngoingHisRecipeListByMPIId(String mpiId, Integer start, Integer limit){
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 1 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId in (:allMpiIds) and r.orderCode is not null ORDER BY h.createDate DESC");
+                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 1 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId and r.orderCode is not null ORDER BY h.createDate DESC");
                 Query q = ss.createQuery(hql.toString());
-                q.setParameterList("allMpiIds", allMpiIds);
+                q.setParameter("mpiId", mpiId);
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
 
