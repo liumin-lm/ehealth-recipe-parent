@@ -5,11 +5,27 @@
        			http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <!-- service register center -->
-    <ngari:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+<!--    <ngari:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe" region="recipe-whf"/>-->
+<!--    <ngari:connector url="${url}">-->
+<!--        <ngari:filter id="json"/>-->
+<!--        <ngari:filter id="urt"/>-->
+<!--    </ngari:connector>-->
+
+    <!-- service register center -->
+    <ngari:applicationDomain name="eh" registryAddress="zookeeper://172.20.1.58:7181" serverId="recipe" region="recipe-whf"/>
     <ngari:connector url="${url}">
         <ngari:filter id="json"/>
         <ngari:filter id="urt"/>
     </ngari:connector>
+
+
+    <!-- log -->
+    <ngari:logger type="kafka">
+        <ngari:serverNodeExDataBuilder id="datasourceExData"/>
+        <ngari:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
+    </ngari:logger>
+
+    <ngari:mvcServer port="8899"/>
 
     <!--zookeeper代理地址：
     zookeeper://zk.ngarihealth.com:1111  f1环境
