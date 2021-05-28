@@ -48,6 +48,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * HIS系统业务回调方法
@@ -472,6 +473,7 @@ public class HisCallBackService {
         }
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("chooseFlag", 1);
@@ -481,8 +483,6 @@ public class HisCallBackService {
         //以免进行处方失效前提醒
         attrMap.put("remindFlag", 1);
 
-        String logMemo = "HIS返回状态：医院取药已完成";
-        Integer msgStatus = RecipeStatusConstant.PATIENT_GETGRUG_FINISH;
 
         for (String recipeCode : recipeCodes) {
             if (StringUtils.isNotEmpty(recipeCode)) {
@@ -493,36 +493,62 @@ public class HisCallBackService {
                     LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
                 }
                 if (null != recipe) {
-                    Integer recipeId = recipe.getRecipeId();
-                    Integer beforeStatus = recipe.getStatus();
-                    if (null != recipeId) {
-                        if (null == recipe.getPayDate()) {
-                            attrMap.put("payDate", DateTime.now().toDate());
-                        }
-                        attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
-                        attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
-                        attrMap.put("enterpriseId", null);
+                    // 已支付,只对到院取药的数据更新 未支付,全部都更新
+                    String orderCode = recipe.getOrderCode();
+                    if(Objects.isNull(orderCode)){
+                        finishForHis(recipe,attrMap,recipeDAO);
+                        return;
+                    }
+                    RecipeOrder byOrderCode = recipeOrderDAO.getByOrderCode(orderCode);
+                    if(Objects.isNull(byOrderCode)){
+                        finishForHis(recipe,attrMap,recipeDAO);
+                        return;
+                    }
+                    if(Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())){
+                        finishForHis(recipe,attrMap,recipeDAO);
+                        return;
+                    }
+                    if(Integer.valueOf(0).equals(byOrderCode.getPayFlag())){
+                        finishForHis(recipe,attrMap,recipeDAO);
+                        return;
+                    }
 
-                        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
-                        if (rs) {
-                            //线下支付完成后结束订单
-                            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                            orderService.finishOrder(recipe.getOrderCode(), null);
-                            //保存至电子病历
+                }
+            }
+        }
+    }
+
+    private static void finishForHis(Recipe recipe,Map<String, Object> attrMap,RecipeDAO recipeDAO){
+        Integer recipeId = recipe.getRecipeId();
+        Integer beforeStatus = recipe.getStatus();
+
+        String logMemo = "HIS返回状态：医院取药已完成";
+        Integer msgStatus = RecipeStatusConstant.PATIENT_GETGRUG_FINISH;
+        if (null != recipeId) {
+            if (null == recipe.getPayDate()) {
+                attrMap.put("payDate", DateTime.now().toDate());
+            }
+            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+            attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
+            attrMap.put("enterpriseId", null);
+
+            Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+            if (rs) {
+                //线下支付完成后结束订单
+                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                orderService.finishOrder(recipe.getOrderCode(), null);
+                //保存至电子病历
 //                            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //                            recipeService.saveRecipeDocIndex(recipe);
-                            //日志记录
-                            RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
-                            //消息推送
-                            RecipeMsgService.batchSendMsg(recipeId, msgStatus);
-                            //更新pdf
-                            CommonOrder.finishGetDrugUpdatePdf(recipeId);
-                            //监管平台核销上传
-                            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-                            syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
-                        }
-                    }
-                }
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
+                //消息推送
+                RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                //更新pdf
+                CommonOrder.finishGetDrugUpdatePdf(recipeId);
+                //监管平台核销上传
+                SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
             }
         }
     }

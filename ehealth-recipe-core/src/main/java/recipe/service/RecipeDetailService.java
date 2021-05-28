@@ -6,7 +6,6 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.ValidateDetailVO;
 import org.apache.commons.collections.CollectionUtils;
@@ -53,12 +52,9 @@ public class RecipeDetailService {
      * @param validateDetailVO 机构id
      * @return
      */
-    public List<RecipeDetailBean> continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
+    public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
         Integer organId = validateDetailVO.getOrganId();
         Integer recipeType = validateDetailVO.getRecipeType();
-        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
-        RecipeExtendBean recipeExtendBean = validateDetailVO.getRecipeExtendBean();
-
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getLongRecipe());
         //药房信息
@@ -67,7 +63,7 @@ public class RecipeDetailService {
         Map<String, PharmacyTcm> pharmacyCodeMap = Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
         //查询机构药品
-        List<String> organDrugCodeList = recipeDetails.stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
+        List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
         logger.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
@@ -77,11 +73,11 @@ public class RecipeDetailService {
         List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
         /**校验处方扩展字段*/
         //校验煎法
-        recipeDetailValidateTool.validateDecoction(organId, recipeExtendBean);
+        recipeDetailValidateTool.validateDecoction(organId, validateDetailVO.getRecipeExtendBean());
         //校验制法
-        recipeDetailValidateTool.validateMakeMethod(organId, recipeExtendBean);
+        recipeDetailValidateTool.validateMakeMethod(organId, validateDetailVO.getRecipeExtendBean());
         /**校验药品数据判断状态*/
-        recipeDetails.forEach(a -> {
+        validateDetailVO.getRecipeDetails().forEach(a -> {
             //校验机构药品
             OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
@@ -98,7 +94,7 @@ public class RecipeDetailService {
             //返回前端必须字段
             setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
         });
-        return recipeDetails;
+        return validateDetailVO;
     }
 
     /**
