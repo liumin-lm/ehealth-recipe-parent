@@ -548,7 +548,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param endTime
      * @return
      */
-    public List<HosBusFundsReportResult> findRecipeByOrganIdAndCreateTime(Integer organId, Date createTime, Date endTime) {
+    public List<HosBusFundsReportResult> findRecipeByOrganIdAndPayTime(Integer organId, Date createTime, Date endTime) {
         final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
         final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
         AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>> action = new AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>>() {
@@ -556,8 +556,54 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select IFNULL(sum(o.cashAmount),0),IFNULL(sum(o.fundAmount),0) from cdr_recipe r left join cdr_recipeorder o");
-                hql.append(" on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan=" + organId);
-                hql.append(" and (r.signDate between '" + start + "' and  '" + end + "')");
+                hql.append(" on r.orderCode=o.orderCode where r.clinicOrgan=" + organId);
+                hql.append(" and (o.payTime between '" + start + "' and  '" + end + "')");
+                LOGGER.info(hql.toString());
+                Query q = ss.createSQLQuery(hql.toString());
+                List<Object[]> result = q.list();
+                List<HosBusFundsReportResult> backList = new ArrayList<>();
+
+                if (CollectionUtils.isNotEmpty(result)) {
+                    HosBusFundsReportResult ho;
+                    HosBusFundsReportResult.MedFundsDetail medFee;
+                    for (Object[] objs : result) {
+                        ho = new HosBusFundsReportResult();
+                        //参数组装
+                        medFee = new HosBusFundsReportResult.MedFundsDetail();
+                        //自费
+                        medFee.setPersonalAmount(new BigDecimal(objs[0].toString()));
+                        //医保
+                        medFee.setMedicalAmount(new BigDecimal(objs[1].toString()));
+                        medFee.setTotalAmount(medFee.getPersonalAmount().add(medFee.getMedicalAmount()));
+                        ho.setMedFee(medFee);
+                        backList.add(ho);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 处方医疗费
+     *
+     * @param organId
+     * @param createTime
+     * @param endTime
+     * @return
+     */
+    public List<HosBusFundsReportResult> findRecipeRefundByOrganIdAndRefundTime(Integer organId, Date createTime, Date endTime) {
+        final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
+        final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
+        AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>> action = new AbstractHibernateStatelessResultAction<List<HosBusFundsReportResult>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select IFNULL(sum(o.cashAmount),0),IFNULL(sum(o.fundAmount),0) from cdr_recipe r left join cdr_recipeorder o");
+                hql.append(" on r.orderCode=o.orderCode where r.clinicOrgan=" + organId);
+                hql.append(" and (o.refundTime between '" + start + "' and  '" + end + "')");
                 Query q = ss.createSQLQuery(hql.toString());
                 List<Object[]> result = q.list();
                 List<HosBusFundsReportResult> backList = new ArrayList<>();
@@ -3434,7 +3480,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param Status
      * @return
      */
-    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status not in(9,13,14)")
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
     public abstract List<Recipe> findRecipeStatusLoseByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId, @DAOParam("status") Integer Status);
 
     @DAOMethod

@@ -1,5 +1,7 @@
 package recipe.hisservice.syncdata;
 
+import ca.service.ISignRecipeInfoService;
+import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -77,6 +79,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
     private DoctorClient doctorClient;
+    @Autowired
+    ISignRecipeInfoService signRecipeInfoService;
     /**
      * logger
      */
@@ -177,7 +181,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
         RevisitExDTO consultExDTO;
-        SignDoctorRecipeInfo caInfo;
+        SignDoctorRecipeInfoDTO caInfo;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
         for (Recipe recipe : recipeList) {
@@ -246,7 +250,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             req.setDoctorProTitle(doctorDTO.getProTitle());
             //江苏ca用到
-            caInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipe.getRecipeId());
+            caInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),1);
             if (caInfo != null) {
                 //医生签名值
                 req.setDoctorSign(caInfo.getSignCodeDoc());

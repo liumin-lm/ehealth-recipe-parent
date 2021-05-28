@@ -4005,6 +4005,9 @@ public class RecipeService extends RecipeBaseService {
             Integer depId = dep.getId();
             //不支持在线支付跳过该药企
             if (Integer.valueOf(1).equals(dep.getPayModeSupport()) && !onlinePay) {
+                DrugEnterpriseResult result = new DrugEnterpriseResult(RecipeResultBean.FAIL);
+                result.setObject(null);
+                backList.add(result);
                 continue;
             }
             //药品匹配成功标识
@@ -4022,6 +4025,9 @@ public class RecipeService extends RecipeBaseService {
             }
             if (!succFlag) {
                 LOGGER.error("findUnSupportDepList 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
+                DrugEnterpriseResult result = new DrugEnterpriseResult(RecipeResultBean.FAIL);
+                result.setObject(null);
+                backList.add(result);
                 continue;
             } else {
                 //通过查询该药企库存，最终确定能否配送
