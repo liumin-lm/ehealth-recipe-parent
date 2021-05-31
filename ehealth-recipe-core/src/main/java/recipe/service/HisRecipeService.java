@@ -1757,4 +1757,23 @@ public class HisRecipeService {
         });
         return hisRecipeMap;
     }
+
+    /**
+     * 删除未支付处方，同时判断是否存在已缴费处方 若存在 返回true
+     * @param organId
+     * @param recipeCodes
+     * @return
+     */
+    public void deleteRecipeByRecipeCodes(String organId, List<String> recipeCodes) {
+        boolean isExistPayRecipe=false;//默认不存在
+        List<Recipe> recipes=recipeDAO.findRecipeByRecipeCodeAndClinicOrgan(Integer.parseInt(organId),recipeCodes);
+        if(CollectionUtils.isNotEmpty(recipes)&&recipes.size()>0){
+            isExistPayRecipe=true;//存在已支付处方出现在（待处理列表） 提示用户刷新列表
+        }
+        if(isExistPayRecipe){
+            throw new DAOException(609, "处方单已经缴费，请刷新重试");
+        }
+        //2 删除数据
+        deleteSetRecipeCode(Integer.parseInt(organId), new HashSet<>(recipeCodes));
+    }
 }
