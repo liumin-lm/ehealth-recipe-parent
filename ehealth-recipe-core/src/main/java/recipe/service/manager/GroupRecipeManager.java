@@ -76,10 +76,13 @@ public class GroupRecipeManager {
      */
     public GroupRecipeConf getMergeRecipeSetting() {
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        GroupRecipeConf result = new GroupRecipeConf(false, "e.registerId");
         logger.info("GroupRecipeManager getMergeRecipeSetting organIds={}", JSON.toJSONString(organIds));
+        if (CollectionUtils.isEmpty(organIds)) {
+            return result;
+        }
         Boolean mergeRecipeFlag = organIds.stream().anyMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
 
-        GroupRecipeConf result = new GroupRecipeConf();
         result.setMergeRecipeFlag(mergeRecipeFlag);
         if (!mergeRecipeFlag) {
             result.setMergeRecipeWayAfter("e.registerId");
