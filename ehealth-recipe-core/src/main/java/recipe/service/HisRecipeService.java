@@ -197,9 +197,9 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = groupRecipeManager.getMergeRecipeSetting().getMergeRecipeWayAfter();
-                Boolean mergeRecipeFlag = groupRecipeManager.getMergeRecipeSetting().getMergeRecipeFlag();
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
+                GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+                String mergeRecipeWay = groupRecipeConf.getMergeRecipeWayAfter();
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(groupRecipeConf.getMergeRecipeFlag());
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
                 if ("e.registerId".equals(mergeRecipeWay)) {
                     // 挂号序号
@@ -1226,7 +1226,7 @@ public class HisRecipeService {
             recipe.setStatus(6);
         } else {
             //判断获取的线下处方是否已经在3天有效期
-            try {
+            /*try {
                 int betweenDays = DateConversion.daysBetween(new Date(), hisRecipe.getCreateDate());
                 if (betweenDays <= -3) {
                     //表示已经失效
@@ -1237,7 +1237,8 @@ public class HisRecipeService {
             } catch (ParseException e) {
                 LOGGER.info("HisRecipeService getHisRecipeDetailByHisRecipeId 日期比较失败 recipeId:{}.", recipe.getRecipeId());
                 recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
-            }
+            }*/
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         }
 
         recipe.setReviewType(0);
