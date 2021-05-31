@@ -301,8 +301,12 @@ public class RecipeUtil {
         }
         
         //默认剂数为1
-        if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {
-            recipe.setCopyNum(1);
+        if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {
+            recipe.setCopyNum(0);
+        } else {
+            if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {
+                recipe.setCopyNum(1);
+            }
         }
 
         //默认无法医保支付
