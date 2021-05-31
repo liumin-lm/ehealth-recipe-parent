@@ -207,7 +207,11 @@ public class HisRecipeService {
                 }
                 List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                 List<HisRecipeVO> list = new ArrayList<>();
-                RecipeOrder recipeOrder = recipeOrderMap.get(orderCode).get(0);
+                List<RecipeOrder> recipeOrders = recipeOrderMap.get(orderCode);
+                RecipeOrder recipeOrder = null;
+                if(CollectionUtils.isNotEmpty(recipeOrders)) {
+                     recipeOrder = recipeOrders.get(0);
+                }
                 setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list);
                 hisPatientTabStatusMergeRecipeVO.setRecipe(list);
                 result.add(hisPatientTabStatusMergeRecipeVO);
@@ -232,7 +236,9 @@ public class HisRecipeService {
             hisRecipeVO.setJumpPageType(1);
             hisRecipeVO.setOrganDiseaseName(hisRecipeListBean1.getDiseaseName());
             Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
-            hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+            if(Objects.nonNull(recipeOrder)) {
+                hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+            }
             list.add(hisRecipeVO);
             recipeIds.add(hisRecipeListBean1.getHisRecipeID());
         });
@@ -423,7 +429,10 @@ public class HisRecipeService {
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
                     List<RecipeOrder> recipeOrders = recipeOrderMap.get(orderCode);
-                    RecipeOrder recipeOrder = recipeOrders.get(0);
+                    RecipeOrder recipeOrder = null;
+                    if(CollectionUtils.isNotEmpty(recipeOrders)) {
+                        recipeOrder = recipeOrders.get(0);
+                    }
                     setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list1);
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
                     result.add(hisPatientTabStatusMergeRecipeVO);
@@ -1639,11 +1648,21 @@ public class HisRecipeService {
                     LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
                     continue;
                 }
-                String useDaysB = hisRecipeDetail.getUseDaysB();
-                if ((StringUtils.isEmpty(useDaysB) && recipeDetailTO.getUseDaysB() != null) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
-                    deleteSetRecipeCode.add(recipeCode);
-                    LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
-                    continue;
+                if (StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() == null){
+                    String useDaysB = hisRecipeDetail.getUseDaysB();
+                    if ((StringUtils.isEmpty(useDaysB) && StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB())) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
+                        continue;
+                    }
+                }
+                if (StringUtils.isEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() != null) {
+                    Integer useDays = hisRecipeDetail.getUseDays();
+                    if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}",recipeCode);
+                        continue;
+                    }
                 }
                 String usingRate = hisRecipeDetail.getUsingRate();
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
