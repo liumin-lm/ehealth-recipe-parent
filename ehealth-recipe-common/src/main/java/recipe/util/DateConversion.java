@@ -668,7 +668,7 @@ public class DateConversion
 	}
 
 	public static int daysBetween(Date smdate,Date bdate) throws ParseException {
-		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf=new SimpleDateFormat(DEFAULT_DATE_TIME);
 		smdate=sdf.parse(sdf.format(smdate));
 		bdate=sdf.parse(sdf.format(bdate));
 		Calendar cal = Calendar.getInstance();
