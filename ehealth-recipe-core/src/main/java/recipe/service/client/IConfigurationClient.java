@@ -35,7 +35,11 @@ public class IConfigurationClient extends BaseClient {
             return defaultValue;
         }
         try {
-            return (String) configService.getConfiguration(organId, key);
+            String value = (String) configService.getConfiguration(organId, key);
+            if (StringUtils.isEmpty(value)) {
+                return defaultValue;
+            }
+            return value;
         } catch (Exception e) {
             logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
             return defaultValue;
@@ -57,6 +61,9 @@ public class IConfigurationClient extends BaseClient {
         try {
             Object invalidInfoObject = configService.getConfiguration(organId, key);
             JSONArray jsonArray = JSON.parseArray(JSONObject.toJSONString(invalidInfoObject));
+            if (null == jsonArray) {
+                return defaultValue;
+            }
             return jsonArray.getString(0);
         } catch (Exception e) {
             logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);

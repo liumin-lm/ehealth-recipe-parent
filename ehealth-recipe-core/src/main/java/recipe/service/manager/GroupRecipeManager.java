@@ -31,8 +31,8 @@ public class GroupRecipeManager {
     /**
      * 按照订单id更新同组处方状态
      *
-     * @param recipe
-     * @param orderId
+     * @param recipe  处方
+     * @param orderId 机构id
      */
     public void updateGroupRecipe(Recipe recipe, Integer orderId) {
         logger.info("GroupRecipeManager updateGroupRecipe recipe={},orderId={}", JSON.toJSONString(recipe), orderId);
@@ -46,9 +46,9 @@ public class GroupRecipeManager {
     /**
      * 按照订单code更新同组处方状态
      *
-     * @param recipeId
-     * @param orderCode
-     * @param status
+     * @param recipeId  处方id
+     * @param orderCode 订单编号
+     * @param status    修改目标处方状态
      */
     public void updateGroupRecipe(Integer recipeId, String orderCode, Integer status) {
         logger.info("GroupRecipeManager updateGroupRecipe recipe={},orderId={},status={}", recipeId, orderCode, status);
@@ -62,9 +62,9 @@ public class GroupRecipeManager {
     /**
      * 更新同组处方状态
      *
-     * @param recipeIdListStr
-     * @param outRecipeId
-     * @param status
+     * @param recipeIdListStr 处方id
+     * @param outRecipeId     不修改的处方id
+     * @param status          修改目标处方状态
      */
     private void updateGroupRecipe(String recipeIdListStr, Integer outRecipeId, Integer status) {
         if (StringUtils.isEmpty(recipeIdListStr) || null == outRecipeId || null == status) {

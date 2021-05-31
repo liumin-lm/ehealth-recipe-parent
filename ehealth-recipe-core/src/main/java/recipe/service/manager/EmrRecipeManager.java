@@ -71,7 +71,7 @@ public class EmrRecipeManager {
     /**
      * 根据病历id 获取 电子病例明细对象
      *
-     * @param docIndexId
+     * @param docIndexId 电子病历id
      * @return
      */
     public MedicalDetailBean getEmrDetails(Integer docIndexId) {
@@ -89,7 +89,7 @@ public class EmrRecipeManager {
     /**
      * 根据复诊id 获取 电子病例明细对象
      *
-     * @param clinicId
+     * @param clinicId 复诊id
      * @return
      */
     public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId) {
@@ -148,8 +148,8 @@ public class EmrRecipeManager {
     /**
      * 保存电子病历 主要用于兼容老数据结构
      *
-     * @param recipe
-     * @param recipeExt
+     * @param recipe    处方
+     * @param recipeExt 处方扩展
      */
     public void saveMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager saveMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
@@ -170,8 +170,8 @@ public class EmrRecipeManager {
     /**
      * 批量处理老数据接口 只用发布时处理一次
      *
-     * @param recipe
-     * @param recipeExt
+     * @param recipe    处方
+     * @param recipeExt 处方扩展
      */
     public void saveDocList(Recipe recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager saveDocList recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
@@ -198,8 +198,8 @@ public class EmrRecipeManager {
     /**
      * 更新电子病例 用于相同处方多次暂存或者修改时 兼容新老版本
      *
-     * @param recipe
-     * @param recipeExt
+     * @param recipe    处方
+     * @param recipeExt 处方扩展
      */
     public void updateMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt) {
         logger.info("EmrRecipeManager updateMedicalInfo recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
@@ -280,6 +280,11 @@ public class EmrRecipeManager {
         logger.info("EmrRecipeManager updateDocStatus docId={} boo={},recipeUpdate={}", docId, result, JSON.toJSONString(recipeUpdate));
     }
 
+    /**
+     * 将药品信息移出病历
+     *
+     * @param recipeId 处方
+     */
     public void deleteRecipeDetailsFromDoc(Integer recipeId) {
         logger.info("EmrRecipeManager deleteRecipeDetailsFromDoc recipeId={}", recipeId);
         //将药品信息移出病历
@@ -293,8 +298,8 @@ public class EmrRecipeManager {
     /**
      * 查询电子病例，主要用于兼容老数据结构
      *
-     * @param recipeBean
-     * @param recipeExtend
+     * @param recipeBean   处方
+     * @param recipeExtend 处方扩展
      */
     public static void getMedicalInfo(RecipeBean recipeBean, RecipeExtend recipeExtend) {
         Recipe recipe = new Recipe();
@@ -308,8 +313,8 @@ public class EmrRecipeManager {
     /**
      * 查询电子病例，主要用于兼容老数据结构
      *
-     * @param recipe
-     * @param recipeExtend
+     * @param recipe       处方
+     * @param recipeExtend 处方扩展
      */
     public static void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
         if (null == recipeExtend) {
@@ -381,7 +386,7 @@ public class EmrRecipeManager {
     /**
      * 获取 电子病例明细对象
      *
-     * @param docIndexId
+     * @param docIndexId 电子病历id
      * @return
      */
     private static List<EmrConfigRes> getEmrDetailDTO(Integer docIndexId) {
@@ -416,7 +421,7 @@ public class EmrRecipeManager {
     /**
      * 新增电子病历 主要用于兼容老数据结构
      *
-     * @param recipeExt
+     * @param recipeExt 处方扩展
      */
     private void addMedicalInfo(RecipeBean recipe, RecipeExtend recipeExt, Integer docStatus) {
         if (null == recipeExt) {
