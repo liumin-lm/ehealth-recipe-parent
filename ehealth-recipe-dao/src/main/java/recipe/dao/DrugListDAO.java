@@ -16,6 +16,7 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
@@ -697,6 +698,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
                 List<DrugList> lists = query.list();
+                LOGGER.info("查寻通用药品001:{}"+ JSONUtils.toString(lists));
                 List<DrugList> lists2 = Lists.newArrayList();
                 if (lists != null && lists.size() > 0){
                     for (DrugList list : lists) {
@@ -714,6 +716,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                         lists2.add(list);
                     }
                 }
+                LOGGER.info("查寻通用药品002:{}"+JSONUtils.toString(lists2));
                 setResult(new QueryResult<DrugList>(total, query.getFirstResult(), query.getMaxResults(), lists2));
             }
         };
