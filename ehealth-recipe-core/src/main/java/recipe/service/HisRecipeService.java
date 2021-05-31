@@ -1226,7 +1226,7 @@ public class HisRecipeService {
             recipe.setStatus(6);
         } else {
             //判断获取的线下处方是否已经在3天有效期
-            try {
+            /*try {
                 int betweenDays = DateConversion.daysBetween(new Date(), hisRecipe.getCreateDate());
                 if (betweenDays <= -3) {
                     //表示已经失效
@@ -1237,7 +1237,8 @@ public class HisRecipeService {
             } catch (ParseException e) {
                 LOGGER.info("HisRecipeService getHisRecipeDetailByHisRecipeId 日期比较失败 recipeId:{}.", recipe.getRecipeId());
                 recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
-            }
+            }*/
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         }
 
         recipe.setReviewType(0);
