@@ -387,13 +387,17 @@ public class DrugListService extends BaseService<DrugListBean> {
                                                                               final Integer status,final Integer drugSourcesId,Integer type,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status,drugSourcesId,type, start, limit);
+        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type, start, limit);
+        QueryResult<DrugListBean> result2=new QueryResult<>();
         List items = result.getItems();
         if (items != null && items.size() > 0 ){
-            List<DrugListBean> list = getList(result.getItems(), DrugListBean.class);
-            result.setItems(list);
+            List<DrugListBean> list = ObjectCopyUtils.convert(items, DrugListBean.class);
+            result2.setLimit((int) result.getLimit());
+            result2.setStart( result.getStart());
+            result2.setTotal( result.getTotal());
+            result2.setItems(list);
         }
-        return result;
+        return result2;
     }
 
     /**

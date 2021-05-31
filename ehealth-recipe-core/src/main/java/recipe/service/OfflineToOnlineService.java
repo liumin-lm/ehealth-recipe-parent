@@ -60,7 +60,8 @@ public class OfflineToOnlineService {
         logger.info("OfflineToOnlineService batchSyncRecipeFromHis request = {}", JSONUtils.toString(request));
         List<Integer> recipeIds = new ArrayList<>();
         // 1、删数据
-        hisRecipeService.deleteSetRecipeCode(Integer.parseInt(request.getOrganId()), new HashSet<>(request.getRecipeCode()));
+        hisRecipeService.deleteRecipeByRecipeCodes(request.getOrganId(),request.getRecipeCode());
+
         request.getRecipeCode().forEach(recipeCode -> {
             // 2、线下转线上
             Map<String, Object> map = hisRecipeService.getHisRecipeDetail(null, request.getMpiId(), recipeCode, request.getOrganId(), null, request.getCardId());

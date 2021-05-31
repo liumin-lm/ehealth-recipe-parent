@@ -3878,4 +3878,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select new Recipe(recipeId,clinicOrgan,recipeType) from Recipe where  checkMode<2 and status =8 and  createDate>:date",limit = 0)
     public abstract List<Recipe>  findToAuditPlatformRecipe(@DAOParam("date") Date date);
 
+    /**
+     * 查询已经支付过的处方
+     * @param clinicOrgan
+     * @param recipeCodeList
+     * @return
+     */
+    @DAOMethod(sql = " From Recipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList) and payFlag in(1,2,3) ")
+    public abstract List<Recipe> findRecipeByRecipeCodeAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
+
+
 }
