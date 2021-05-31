@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -610,8 +611,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                          final Integer status,final Integer sourceOrgan,Integer type,
-                                                                          final int start, final int limit) {
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,
+                                                                              final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
             @Override

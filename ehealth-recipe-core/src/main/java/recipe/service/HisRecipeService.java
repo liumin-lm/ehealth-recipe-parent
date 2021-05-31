@@ -49,10 +49,12 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.GroupRecipeManager;
+import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1223,7 +1225,19 @@ public class HisRecipeService {
         if (hisRecipe.getStatus() == 2) {
             recipe.setStatus(6);
         } else {
-            recipe.setStatus(2);
+            //判断获取的线下处方是否已经在3天有效期
+            try {
+                int betweenDays = DateConversion.daysBetween(new Date(), hisRecipe.getCreateDate());
+                if (betweenDays <= -3) {
+                    //表示已经失效
+                    recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_NO_OPERATOR.getType());
+                } else {
+                    recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+                }
+            } catch (ParseException e) {
+                LOGGER.info("HisRecipeService getHisRecipeDetailByHisRecipeId 日期比较失败 recipeId:{}.", recipe.getRecipeId());
+                recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+            }
         }
 
         recipe.setReviewType(0);
