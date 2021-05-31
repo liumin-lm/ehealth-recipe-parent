@@ -91,7 +91,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return jsonArray.getString(0);
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueEnumCatch organId:{}, recipeId:{}", organId, key, e);
             return defaultValue;
         }
     }
