@@ -81,11 +81,10 @@ public class GroupRecipeManager {
         if (CollectionUtils.isEmpty(organIds)) {
             return result;
         }
-        Boolean mergeRecipeFlag = organIds.stream().anyMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
+        Boolean mergeRecipeFlag = organIds.stream().allMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
 
         result.setMergeRecipeFlag(mergeRecipeFlag);
         if (!mergeRecipeFlag) {
-            result.setMergeRecipeWayAfter("e.registerId");
             return result;
         }
 
