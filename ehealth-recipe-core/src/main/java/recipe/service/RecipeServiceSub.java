@@ -39,6 +39,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -91,6 +92,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
 import recipe.service.manager.RecipeLabelManager;
 import recipe.service.manager.SignManager;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -124,6 +126,8 @@ public class RecipeServiceSub {
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private RecipeLabelManager recipeLabelManager;
+
+    private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
 
     private static HisRecipeService hisRecipeService=ApplicationUtils.getRecipeService(HisRecipeService.class);
 
@@ -1726,22 +1730,9 @@ public class RecipeServiceSub {
             //返回前端是否能合并支付的按钮--提示可以合并支付----可能患者从消息进去到处方详情时
             Boolean mergeRecipeFlag = false;
             try {
-                if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
-                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                    ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-                    List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-                    if (CollectionUtils.isNotEmpty(organIds)) {
-                        for (Integer organId : organIds) {
-                            //获取区域公众号
-                            mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
-                            if (mergeRecipeFlag == null) {
-                                mergeRecipeFlag = false;
-                            }
-                            if (!mergeRecipeFlag) {
-                                break;
-                            }
-                        }
-                    }
+                if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID()) && !RecipeStatusEnum.RECIPE_STATUS_NO_OPERATOR.getType().equals(recipe.getStatus())) {
+                    GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+                    mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
                     if (mergeRecipeFlag) {
                         String mergeRecipeWay = (String) configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
                         Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipe.getMpiid(), recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
