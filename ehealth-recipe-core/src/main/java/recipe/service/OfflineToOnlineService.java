@@ -85,7 +85,7 @@ public class OfflineToOnlineService {
         List<Recipe> recipes=recipeDAO.findRecipeByRecipeIdAndClinicOrgan(Integer.parseInt(request.getOrganId()),recipeIds);
         if(CollectionUtils.isNotEmpty(recipes)&& recipes.size()>0){
             logger.info("batchSyncRecipeFromHis 存在已失效处方");
-            throw new DAOException(609, "处方单过期已失效");
+            throw new DAOException(600, "处方单过期已失效");
         }
         logger.info("OfflineToOnlineService batchSyncRecipeFromHis response = {}",  JSONUtils.toString(recipeIds));
         return recipeIds;
