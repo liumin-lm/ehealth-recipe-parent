@@ -378,12 +378,12 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     public List<HisDrugListBean> findDrugList(Integer start, Integer limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<HisDrugListBean> hisDrugListBeen = Lists.newArrayList();
-        QueryResult<DrugListBean> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,null,null,start,limit);
-        List<DrugListBean> lists = queryResult.getItems();
+        QueryResult<DrugList> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,null,null,start,limit);
+        List<DrugList> lists = queryResult.getItems();
         if (CollectionUtils.isEmpty(lists)){
             return hisDrugListBeen;
         }
-        for (DrugListBean drugList : lists){
+        for (DrugList drugList : lists){
             HisDrugListBean hisDrugListBean = new HisDrugListBean();
             hisDrugListBean.setDrugId(drugList.getDrugId());
             hisDrugListBean.setDrugName(drugList.getDrugName());
