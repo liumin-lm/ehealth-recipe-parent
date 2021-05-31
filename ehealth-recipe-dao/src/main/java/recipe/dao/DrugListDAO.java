@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -609,10 +610,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @return QueryResult<DrugList>
      * @author houxr
      */
-    public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                          final Integer status,final Integer sourceOrgan,Integer type,
-                                                                          final int start, final int limit) {
-        HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
+    public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,
+                                                                              final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<DrugListBean>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListBean>>() {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
@@ -695,10 +696,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
-                List<DrugList> lists = query.list();
-                List<DrugList> lists2 = Lists.newArrayList();
+                List<DrugListBean> lists = query.list();
+                List<DrugListBean> lists2 = Lists.newArrayList();
                 if (lists != null && lists.size() > 0){
-                    for (DrugList list : lists) {
+                    for (DrugListBean list : lists) {
                         DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                         if (list.getSourceOrgan() != null){
                             List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(list.getSourceOrgan());
@@ -713,7 +714,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                         lists2.add(list);
                     }
                 }
-                setResult(new QueryResult<DrugList>(total, query.getFirstResult(), query.getMaxResults(), lists2));
+                setResult(new QueryResult<DrugListBean>(total, query.getFirstResult(), query.getMaxResults(), lists2));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
