@@ -15,9 +15,9 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.client.IConfigurationClient;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +69,39 @@ public class GroupRecipeManager {
     }
 
     /**
+     * 获取机构是否合并支付的配制
+     * 和配制的合并支付的方式（挂号序号合并还是同一挂号序号相同病种）
+     *
+     * @return 合并支付的配制项
+     */
+    public GroupRecipeConf getMergeRecipeSetting() {
+        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        logger.info("GroupRecipeManager getMergeRecipeSetting organIds={}", JSON.toJSONString(organIds));
+        Boolean mergeRecipeFlag = organIds.stream().anyMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
+
+        GroupRecipeConf result = new GroupRecipeConf();
+        result.setMergeRecipeFlag(mergeRecipeFlag);
+        if (!mergeRecipeFlag) {
+            result.setMergeRecipeWayAfter("e.registerId");
+            return result;
+        }
+
+        Set<String> set = new HashSet<>();
+        for (Integer a : organIds) {
+            String mergeRecipeWay = configurationClient.getValueCatch(a, "mergeRecipeWay", "e.registerId");
+            set.add(mergeRecipeWay);
+            if (set.size() > 1) {
+                result.setMergeRecipeFlag(false);
+                result.setMergeRecipeWayAfter(mergeRecipeWay);
+                break;
+            }
+            result.setMergeRecipeWayAfter(mergeRecipeWay);
+        }
+        logger.info("GroupRecipeManager getMergeRecipeSetting result={}", JSON.toJSONString(result));
+        return result;
+    }
+
+    /**
      * 更新同组处方状态
      *
      * @param recipeIdListStr 处方id
@@ -90,40 +123,6 @@ public class GroupRecipeManager {
             recipeUpdate.setRecipeId(a);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         });
-    }
-
-    /**
-     * 获取机构是否合并支付的配制
-     * 和配制的合并支付的方式（挂号序号合并还是同一挂号序号相同病种）
-     *
-     * @return 合并支付的配制项
-     */
-    public GroupRecipeConf getMergeRecipeSetting() {
-        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-        logger.info("GroupRecipeManager getMergeRecipeSetting organIds={}", JSON.toJSONString(organIds));
-        Boolean mergeRecipeFlag = organIds.stream().anyMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
-
-        GroupRecipeConf result = new GroupRecipeConf();
-        result.setMergeRecipeFlag(mergeRecipeFlag);
-        result.setMergeRecipeWayAfter("e.registerId");
-
-        if (!mergeRecipeFlag) {
-            return result;
-        }
-
-        Set<String> set = new TreeSet<>();
-        for (Integer a : organIds) {
-            String mergeRecipeWay = configurationClient.getValueCatch(a, "mergeRecipeWay", "e.registerId");
-            set.add(mergeRecipeWay);
-            if (set.size() > 1) {
-                result.setMergeRecipeFlag(false);
-                result.setMergeRecipeWayAfter(mergeRecipeWay);
-                break;
-            }
-            result.setMergeRecipeWayAfter(mergeRecipeWay);
-        }
-        logger.info("GroupRecipeManager getMergeRecipeSetting result={}", JSON.toJSONString(result));
-        return result;
     }
 
 }
