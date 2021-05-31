@@ -1,4 +1,4 @@
-package recipe.atop;
+package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -9,6 +9,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.service.RecipeDetailService;
 import recipe.util.ValidateUtil;
