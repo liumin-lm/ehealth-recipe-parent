@@ -1,6 +1,7 @@
 package recipe.drugsenterprise.bean;
 
 import com.ngari.recipe.common.anno.Verify;
+import lombok.Data;
 import org.springframework.beans.factory.wiring.BeanWiringInfo;
 import recipe.constant.GetDrugChangeStatusSceneConstant;
 

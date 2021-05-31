@@ -1,8 +1,13 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
+import ctd.spring.AppDomainContext;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,6 +30,8 @@ public class GroupRecipeManager {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
 
     /**
      * 按照订单id更新同组处方状态
@@ -79,6 +86,68 @@ public class GroupRecipeManager {
             recipeUpdate.setRecipeId(a);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         });
+    }
+
+    /**
+     * 获取机构是否合并支付的配制
+     * 和配制的合并支付的方式（挂号序号合并还是同一挂号序号相同病种）
+     *
+     * @return 合并支付的配制项
+     */
+    public GroupRecipeConf getMergeRecipeSetting(){
+        GroupRecipeConf result = new GroupRecipeConf();
+        //默认
+        Boolean mergeRecipeFlag = false;
+        String mergeRecipeWayAfter = "e.registerId";
+        try {
+            //获取是否合并处方的配置--区域公众号如果有一个没开就默认全部关闭
+            ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+            logger.info("MergeRecipeManager organIds={}", JSONUtils.toString(organIds));
+            if (CollectionUtils.isNotEmpty(organIds)) {
+                for (Integer organId : organIds) {
+                    //TODO 配制项获取的修改
+                    //获取区域公众号
+                    mergeRecipeFlag = (Boolean) configService.getConfiguration(organId, "mergeRecipeFlag");
+                    if (mergeRecipeFlag == null || !mergeRecipeFlag) {
+                        mergeRecipeFlag = false;
+                        break;
+                    }
+                }
+            }
+            //再根据区域公众号里是否都支持同一种合并方式
+            if (mergeRecipeFlag) {
+                //TODO 配制项获取的修改
+                //获取合并处方分组方式
+                //e.registerId支持同一个挂号序号下的处方合并支付
+                //e.registerId,e.chronicDiseaseName支持同一个挂号序号且同一个病种的处方合并支付
+                String mergeRecipeWay = (String) configService.getConfiguration(organIds.get(0), "mergeRecipeWay");
+                //默认挂号序号分组
+                if (StringUtils.isEmpty(mergeRecipeWay)) {
+                    mergeRecipeWay = "e.registerId";
+                }
+                //如果只有一个就取第一个
+                if (organIds.size() == 1) {
+                    mergeRecipeWayAfter = mergeRecipeWay;
+                }
+                //从第二个开始进行比较
+                for (Integer organId : organIds) {
+                    mergeRecipeWayAfter = (String) configService.getConfiguration(organId, "mergeRecipeWay");
+                    if (!mergeRecipeWay.equals(mergeRecipeWayAfter)) {
+                        mergeRecipeFlag = false;
+                        logger.info("MergeRecipeManager 区域公众号存在机构配置不一致:organId={},mergeRecipeWay={}", organId, mergeRecipeWay);
+                        break;
+                    }
+                }
+                logger.info("MergeRecipeManager mergeRecipeFlag={},mergeRecipeWay={}", mergeRecipeFlag, mergeRecipeWay);
+            }
+        } catch (Exception e) {
+            logger.error("MergeRecipeManager error configService", e);
+        }
+        result.setMergeRecipeFlag(mergeRecipeFlag);
+        result.setMergeRecipeWayAfter(mergeRecipeWayAfter);
+        logger.info("MergeRecipeManager result={}", JSONUtils.toString(result));
+        return result;
     }
 
 }

@@ -11,6 +11,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.revisit.RevisitAPI;
@@ -47,7 +48,7 @@ import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.MergeRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -89,7 +90,7 @@ public class HisRecipeService {
     @Autowired
     private IConfigurationCenterUtilsService configService;
     @Autowired
-    private MergeRecipeManager mergeRecipeManager;
+    private GroupRecipeManager groupRecipeManager;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -194,8 +195,8 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
-                Boolean mergeRecipeFlag = (Boolean) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
+                String mergeRecipeWay = groupRecipeManager.getMergeRecipeSetting().getMergeRecipeWayAfter();
+                Boolean mergeRecipeFlag = groupRecipeManager.getMergeRecipeSetting().getMergeRecipeFlag();
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
                 if ("e.registerId".equals(mergeRecipeWay)) {
@@ -277,9 +278,9 @@ public class HisRecipeService {
 
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
-        Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = (Boolean) mergeSettings.get("mergeRecipeFlag");
-        String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
+        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
         //移除正在进行中的处方单
         Iterator<HisRecipeVO> iterator = request.iterator();
         while (iterator.hasNext()) {
@@ -401,11 +402,12 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
-                Boolean mergeRecipeFlag = (Boolean) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+                GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+                Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+                String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
-                if ("e.registerId".equals(mergeRecipeWay)) {
+                if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
                 } else {
