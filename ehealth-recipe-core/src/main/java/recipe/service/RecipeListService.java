@@ -17,6 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -57,7 +58,7 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.MergeRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -112,7 +113,7 @@ public class RecipeListService extends RecipeBaseService {
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
-    private MergeRecipeManager mergeRecipeManager;
+    private GroupRecipeManager groupRecipeManager;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
@@ -964,9 +965,9 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return new ArrayList<>();
         }
-        Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = (Boolean)mergeSettings.get("mergeRecipeFlag");
-        String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
+        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
         try {
             if (mergeRecipeFlag) {
                 //返回合并处方

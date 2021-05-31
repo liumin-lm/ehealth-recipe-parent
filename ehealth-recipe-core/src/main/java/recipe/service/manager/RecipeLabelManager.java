@@ -74,7 +74,7 @@ public class RecipeLabelManager {
     /**
      * 更新 pdf 核对发药
      *
-     * @param recipe
+     * @param recipe 处方
      * @return
      */
     public Recipe giveUserUpdate(Recipe recipe) {
