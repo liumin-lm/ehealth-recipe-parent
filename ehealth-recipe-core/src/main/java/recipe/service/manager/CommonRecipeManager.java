@@ -136,8 +136,8 @@ public class CommonRecipeManager {
     /**
      * 查询常用方药品，与机构药品关联返回
      *
-     * @param organId
-     * @param commonRecipeIdList
+     * @param organId            机构id
+     * @param commonRecipeIdList 常用方id
      * @return
      */
     public Map<Integer, List<CommonRecipeDrugDTO>> commonDrugGroup(Integer organId, List<Integer> commonRecipeIdList) {
@@ -212,8 +212,8 @@ public class CommonRecipeManager {
     /**
      * 根据医生id和常用方名查找
      *
-     * @param doctorId
-     * @param commonRecipeName
+     * @param doctorId         医生id
+     * @param commonRecipeName 常用方名
      * @return
      */
     public CommonRecipe getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {

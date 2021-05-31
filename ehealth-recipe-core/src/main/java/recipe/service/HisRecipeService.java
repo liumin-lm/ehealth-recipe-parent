@@ -11,6 +11,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.revisit.RevisitAPI;
@@ -47,11 +48,13 @@ import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.MergeRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
+import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,7 +92,7 @@ public class HisRecipeService {
     @Autowired
     private IConfigurationCenterUtilsService configService;
     @Autowired
-    private MergeRecipeManager mergeRecipeManager;
+    private GroupRecipeManager groupRecipeManager;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -194,8 +197,8 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
-                Boolean mergeRecipeFlag = (Boolean) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
+                String mergeRecipeWay = groupRecipeManager.getMergeRecipeSetting().getMergeRecipeWayAfter();
+                Boolean mergeRecipeFlag = groupRecipeManager.getMergeRecipeSetting().getMergeRecipeFlag();
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
                 if ("e.registerId".equals(mergeRecipeWay)) {
@@ -207,7 +210,11 @@ public class HisRecipeService {
                 }
                 List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                 List<HisRecipeVO> list = new ArrayList<>();
-                RecipeOrder recipeOrder = recipeOrderMap.get(orderCode).get(0);
+                List<RecipeOrder> recipeOrders = recipeOrderMap.get(orderCode);
+                RecipeOrder recipeOrder = null;
+                if(CollectionUtils.isNotEmpty(recipeOrders)) {
+                     recipeOrder = recipeOrders.get(0);
+                }
                 setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list);
                 hisPatientTabStatusMergeRecipeVO.setRecipe(list);
                 result.add(hisPatientTabStatusMergeRecipeVO);
@@ -232,7 +239,9 @@ public class HisRecipeService {
             hisRecipeVO.setJumpPageType(1);
             hisRecipeVO.setOrganDiseaseName(hisRecipeListBean1.getDiseaseName());
             Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
-            hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+            if(Objects.nonNull(recipeOrder)) {
+                hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+            }
             list.add(hisRecipeVO);
             recipeIds.add(hisRecipeListBean1.getHisRecipeID());
         });
@@ -271,9 +280,9 @@ public class HisRecipeService {
 
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
-        Map<String, Object> mergeSettings = mergeRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = (Boolean) mergeSettings.get("mergeRecipeFlag");
-        String mergeRecipeWayAfter = MapValueUtil.getString(mergeSettings, "mergeRecipeWayAfter");
+        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
         //移除正在进行中的处方单
         Iterator<HisRecipeVO> iterator = request.iterator();
         while (iterator.hasNext()) {
@@ -395,11 +404,12 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                String mergeRecipeWay = (String) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeWayAfter");
-                Boolean mergeRecipeFlag = (Boolean) mergeRecipeManager.getMergeRecipeSetting().get("mergeRecipeFlag");
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+                GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+                Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+                String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
-                if ("e.registerId".equals(mergeRecipeWay)) {
+                if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
                     hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
                 } else {
@@ -423,7 +433,10 @@ public class HisRecipeService {
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
                     List<RecipeOrder> recipeOrders = recipeOrderMap.get(orderCode);
-                    RecipeOrder recipeOrder = recipeOrders.get(0);
+                    RecipeOrder recipeOrder = null;
+                    if(CollectionUtils.isNotEmpty(recipeOrders)) {
+                        recipeOrder = recipeOrders.get(0);
+                    }
                     setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list1);
                     hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
                     result.add(hisPatientTabStatusMergeRecipeVO);
@@ -1212,7 +1225,19 @@ public class HisRecipeService {
         if (hisRecipe.getStatus() == 2) {
             recipe.setStatus(6);
         } else {
-            recipe.setStatus(2);
+            //判断获取的线下处方是否已经在3天有效期
+            try {
+                int betweenDays = DateConversion.daysBetween(new Date(), hisRecipe.getCreateDate());
+                if (betweenDays <= -3) {
+                    //表示已经失效
+                    recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_NO_OPERATOR.getType());
+                } else {
+                    recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+                }
+            } catch (ParseException e) {
+                LOGGER.info("HisRecipeService getHisRecipeDetailByHisRecipeId 日期比较失败 recipeId:{}.", recipe.getRecipeId());
+                recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+            }
         }
 
         recipe.setReviewType(0);
@@ -1639,11 +1664,21 @@ public class HisRecipeService {
                     LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
                     continue;
                 }
-                String useDaysB = hisRecipeDetail.getUseDaysB();
-                if ((StringUtils.isEmpty(useDaysB) && recipeDetailTO.getUseDaysB() != null) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
-                    deleteSetRecipeCode.add(recipeCode);
-                    LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
-                    continue;
+                if (StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() == null){
+                    String useDaysB = hisRecipeDetail.getUseDaysB();
+                    if ((StringUtils.isEmpty(useDaysB) && StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB())) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
+                        continue;
+                    }
+                }
+                if (StringUtils.isEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() != null) {
+                    Integer useDays = hisRecipeDetail.getUseDays();
+                    if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}",recipeCode);
+                        continue;
+                    }
                 }
                 String usingRate = hisRecipeDetail.getUsingRate();
                 if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {

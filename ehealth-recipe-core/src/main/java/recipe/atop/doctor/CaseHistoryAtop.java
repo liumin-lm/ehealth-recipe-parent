@@ -1,4 +1,4 @@
-package recipe.atop;
+package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.CaseHistoryVO;
@@ -10,6 +10,7 @@ import ctd.util.annotation.RpcService;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.service.CaseHistoryService;
 import recipe.util.ValidateUtil;

@@ -5962,7 +5962,7 @@ public class RecipeService extends RecipeBaseService {
         List<GiveModeButtonBean> giveModeButtonBeans = buttonsMap.get(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
             RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(),
-                    RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName(),recipeIds,true,giveModeButtonBeans.get(0).getButtonSkipType());
+                    giveModeButtonBeans.get(0).getShowButtonName(),recipeIds,true,giveModeButtonBeans.get(0).getButtonSkipType());
             list.add(supportMedicalPaymentButton);
         }
         RecipeSupportGiveModeEnum[] values = RecipeSupportGiveModeEnum.values();

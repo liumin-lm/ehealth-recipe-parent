@@ -90,7 +90,7 @@ public class DoctorClient extends BaseClient {
     /**
      * 获取医生信息
      *
-     * @param doctorId
+     * @param doctorId 医生id
      * @return
      */
     public DoctorDTO getDoctor(Integer doctorId) {
@@ -113,7 +113,7 @@ public class DoctorClient extends BaseClient {
     /**
      * 获取 机构默认发药药师
      *
-     * @param organId
+     * @param organId 机构id
      * @return
      */
     public DoctorDTO oragnDefaultDispensingApothecary(Integer organId) {
