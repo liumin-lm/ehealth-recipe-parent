@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * 同组处方处理
+ *
  * @author fuzi
  */
 @Service
