@@ -1,4 +1,4 @@
-package recipe.atop;
+package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.service.IConfigStatusService;
@@ -6,6 +6,7 @@ import com.ngari.recipe.vo.ConfigStatusCheckVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.atop.BaseAtop;
 
 import java.util.List;
 

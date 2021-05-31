@@ -1,4 +1,4 @@
-package recipe.atop;
+package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -9,6 +9,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.service.RecipeDetailService;
 import recipe.util.ValidateUtil;
@@ -66,7 +67,7 @@ public class RecipeDetailAtop extends BaseAtop {
      * @return 处方明细
      */
     @RpcService
-    public List<RecipeDetailBean> validateDetailV1(ValidateDetailVO validateDetailVO) {
+    public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO {}", JSON.toJSONString(validateDetailVO));
         if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
                 null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
@@ -74,8 +75,7 @@ public class RecipeDetailAtop extends BaseAtop {
         }
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
-            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO).getRecipeDetails();
-            // ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
+            ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
             logger.info("RecipeDetailAtop validateDetailV1 result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
