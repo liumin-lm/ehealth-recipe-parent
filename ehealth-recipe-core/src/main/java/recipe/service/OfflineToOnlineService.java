@@ -1,16 +1,19 @@
 package recipe.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bean.RecipeGiveModeButtonRes;
+import recipe.dao.RecipeDAO;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,6 +36,9 @@ public class OfflineToOnlineService {
     private HisRecipeService hisRecipeService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * 获取购药按钮
@@ -70,9 +76,16 @@ public class OfflineToOnlineService {
                 recipeIds.add(recipeBean.getRecipeId());
             }
         });
-
+        logger.info("batchSyncRecipeFromHis recipeIds:{}", JSONUtils.toString(recipeIds));
+        //部分处方线下转线上成功
         if (recipeIds.size() != request.getRecipeCode().size()) {
             throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
+        }
+        //存在已失效处方
+        List<Recipe> recipes=recipeDAO.findRecipeByRecipeIdAndClinicOrgan(Integer.parseInt(request.getOrganId()),recipeIds);
+        if(CollectionUtils.isNotEmpty(recipes)&& recipes.size()>0){
+            logger.info("batchSyncRecipeFromHis 存在已失效处方");
+            throw new DAOException(609, "处方单过期已失效");
         }
         logger.info("OfflineToOnlineService batchSyncRecipeFromHis response = {}",  JSONUtils.toString(recipeIds));
         return recipeIds;
