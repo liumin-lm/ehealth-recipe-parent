@@ -47,6 +47,31 @@ public class IConfigurationClient extends BaseClient {
     }
 
     /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public Boolean getValueBooleanCatch(Integer organId, String key, Boolean defaultValue) {
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            Boolean value = (Boolean) configService.getConfiguration(organId, key);
+            if (null == value) {
+                return defaultValue;
+            }
+            return value;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueBooleanCatch organId:{}, recipeId:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+
+    /**
      * 根据配置获取  枚举类型 配置项值，捕获异常时返回默认值
      *
      * @param organId      机构id

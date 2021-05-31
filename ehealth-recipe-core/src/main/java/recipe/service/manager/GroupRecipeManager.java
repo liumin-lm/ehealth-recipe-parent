@@ -16,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.client.IConfigurationClient;
 
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -149,6 +152,40 @@ public class GroupRecipeManager {
         result.setMergeRecipeFlag(mergeRecipeFlag);
         result.setMergeRecipeWayAfter(mergeRecipeWayAfter);
         logger.info("MergeRecipeManager result={}", JSONUtils.toString(result));
+        return result;
+    }
+
+
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private IConfigurationClient configurationClient;
+
+    public GroupRecipeConf getMergeRecipeSettingV1() {
+        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        logger.info("GroupRecipeManager getMergeRecipeSettingV1 organIds={}", JSON.toJSONString(organIds));
+        Boolean mergeRecipeFlag = organIds.stream().anyMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
+
+        GroupRecipeConf result = new GroupRecipeConf();
+        result.setMergeRecipeFlag(mergeRecipeFlag);
+        result.setMergeRecipeWayAfter("e.registerId");
+
+        if (!mergeRecipeFlag) {
+            return result;
+        }
+
+        Set<String> set = new TreeSet<>();
+        for (Integer a : organIds) {
+            String mergeRecipeWay = configurationClient.getValueCatch(a, "mergeRecipeWay", "e.registerId");
+            set.add(mergeRecipeWay);
+            if (set.size() > 1) {
+                result.setMergeRecipeFlag(false);
+                result.setMergeRecipeWayAfter(mergeRecipeWay);
+                break;
+            }
+            result.setMergeRecipeWayAfter(mergeRecipeWay);
+        }
+        logger.info("GroupRecipeManager getMergeRecipeSettingV1 result={}", JSON.toJSONString(result));
         return result;
     }
 
