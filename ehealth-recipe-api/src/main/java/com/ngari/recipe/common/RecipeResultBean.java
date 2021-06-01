@@ -20,6 +20,10 @@ public class RecipeResultBean implements Serializable {
 
     public static final Integer NO_ADDRESS = -1;
 
+    public static final Integer CHECKFAIL = 5;
+
+    public static final Integer PUSHSUCCESS = 6;
+
     private static final long serialVersionUID = 8407331602023924130L;
 
     private Integer code;
@@ -34,7 +38,7 @@ public class RecipeResultBean implements Serializable {
 
     private String extendValue;
 
-    private Map<String, String> ext;
+    private Map<String, Object> ext;
 
     private DepStyleBean style;
 
@@ -101,11 +105,11 @@ public class RecipeResultBean implements Serializable {
         this.extendValue = extendValue;
     }
 
-    public Map<String, String> getExt() {
+    public Map<String, Object> getExt() {
         return ext;
     }
 
-    public void setExt(Map<String, String> ext) {
+    public void setExt(Map<String, Object> ext) {
         this.ext = ext;
     }
 

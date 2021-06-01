@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:context="http://www.springframework.org/schema/context"
-	   xmlns:apollo="http://www.ctrip.com/schema/apollo"
+	   xmlns:apollo="http://www.ctrip.com/schema/apollo" xmlns:ngari="http://www.ngarihealth.com/schema/ngari"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-	http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd">
+
+	http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
 	<!--<context:property-placeholder location="classpath:config.properties" file-encoding="UTF-8" />-->
-	<apollo:config />
+	<apollo:config/>
 	<apollo:config namespaces="DEV.publicUrl"/>
 
 	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
-	<import resource="spring-hibernate.xml" />
+	<import resource="spring-hibernate.xml"/>
 	<import resource="spring-controller.xml"/>
-	<import resource="spring-mq.xml"/>
-	<import resource="spring-service.xml" />
+	<import resource="${spring.mq.file:spring-mq.xml}"/>
+	<import resource="spring-service.xml"/>
 	<import resource="spring-redis.xml"/>
-	<import resource="spring-service-base.xml" />
-    <import resource="spring-service-basic.xml" />
-    <import resource="spring-service-consult.xml" />
-	<import resource="spring-service-his-center.xml" />
+	<import resource="spring-service-base.xml"/>
+	<import resource="spring-service-basic.xml"/>
+	<import resource="spring-service-consult.xml"/>
+	<import resource="spring-service-messsage.xml"/>
+	<import resource="spring-service-his-center.xml"/>
+	<import resource="spring-service-miscellany.xml"/>
 	<import resource="spring-service-opbase.xml"/>
+	<import resource="spring-file.xml"/>
+	<import resource="spring-service-casign.xml"/>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
@@ -29,17 +32,17 @@
 	<!--钥世圈对接实现-->
 	<bean id="ysqRemoteService" class="recipe.drugsenterprise.YsqRemoteService"></bean>
 
-    <!--支付宝对接实现-->
-    <bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
+	<!--支付宝对接实现-->
+	<bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
 
-    <!--测试药企-->
-    <bean id="aldyfRemoteService" class="recipe.drugsenterprise.AldyfRemoteService"></bean>
+	<!--测试药企-->
+	<bean id="aldyfRemoteService" class="recipe.drugsenterprise.AldyfRemoteService"></bean>
 
-    <!--九州通对接实现-->
+	<!--九州通对接实现-->
 	<bean id="jztdyfRemoteService" class="recipe.drugsenterprise.JztdyfRemoteService"></bean>
 
-    <!--测试药店对接实现-->
-    <bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
+	<!--测试药店对接实现-->
+	<bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
 
 	<!--测试药企-->
 	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>
@@ -67,31 +70,74 @@
 	<!--华润药企-->
 	<bean id="hrRemoteService" class="recipe.drugsenterprise.HrRemoteService"/>
 
-	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
+	<!--自定义药企-->
+	<bean id="commonSelfRemoteService" class="recipe.drugsenterprise.CommonSelfRemoteService"/>
+
+	<!--以大药企-->
+	<bean id="ydRemoteService" class="recipe.drugsenterprise.YdRemoteService"/>
+
+	<!--易复诊药企-->
+	<bean id="byRemoteService" class="recipe.drugsenterprise.ByRemoteService"/>
+
+	<!--武汉六院英克药企-->
+	<bean id="ykRemoteService" class="recipe.drugsenterprise.YkRemoteService"/>
+
+	<!--云南省医药有限公司-->
+	<bean id="ynsRemoteService" class="recipe.drugsenterprise.YnsRemoteService"/>
+
+	<bean id="shyyRemoteService" class="recipe.drugsenterprise.ShyyRemoteService"/>
+
+	<!--昆明市第一人民医院-->
+	<bean id="kmsRemoteService" class="recipe.drugsenterprise.KmsRemoteService"/>
+
+	<!--纳里罗欣 临沂-->
+	<bean id="lxRemoteService" class="recipe.drugsenterprise.LxRemoteService"/>
+
+	<!--ebs药企对接-->
+	<bean id="ebsRemoteService" class="recipe.drugsenterprise.EbsRemoteService"/>
+
+	<!--临沐国药药企对接-->
+	<bean id="lmgyRemoteService" class="recipe.drugsenterprise.LmgyRemoteService"/>
+
+	<!--华宇药企对接-->
+	<bean id="hyRemoteService" class="recipe.drugsenterprise.HyRemoteService"/>
+
+	<bean id="ysqnRemoteService" class="recipe.drugsenterprise.YsqnRemoteService"/>
+
+	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
+		  destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
-		<property name="corePoolSize" value="5" />
+		<property name="corePoolSize" value="5"/>
 		<!-- 线程池最大活跃的线程数 -->
-		<property name="maxPoolSize" value="100" />
+		<property name="maxPoolSize" value="100"/>
 		<!-- 队列的最大容量 -->
-		<property name="queueCapacity" value="300" />
+		<property name="queueCapacity" value="100"/>
+		<!-- 是否允许空闲核心线程超时 一旦超时便销毁线程 -->
+		<property name="allowCoreThreadTimeOut" value="true"/>
+		<!-- 线程池中空闲线程等待工作的超时时间300s -->
+		<property name="keepAliveSeconds" value="300"/>
 	</bean>
 
-    <!--合理用药设置-->
+	<!--合理用药设置-->
 	<bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
 		<property name="wnPaServiceUrl" value="${wnpa.url}"/>
-        <property name="wnPaHosCode" value="${wnpa.hoscode}"/>
+		<property name="wnPaHosCode" value="${wnpa.hoscode}"/>
 	</bean>
 
-    <bean id="onsConfig" class="recipe.mq.OnsConfig" >
-        <property name="onsSwitch" value="${ons.switch.on}"/>
-        <property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
-        <property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
-        <property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
-    </bean>
+	<bean id="onsConfig" class="recipe.mq.OnsConfig">
+		<property name="onsSwitch" value="${ons.switch.on}"/>
+		<property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
+		<property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
+		<property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
+		<property name="emrRecipe" value="${ons_emr_recipe}"/>
+		<property name="recipeDelayTopic" value="${ons_delay_topic_recipe}"/>
+		<property name="sessionTopic" value="${ons_topic_session}"/>
+	</bean>
 
-	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit" ></bean>
+	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit"></bean>
 
-	<bean id = "alihealthHospitalServiceImpl" class="com.alijk.bqhospital.alijk.service.impl.AlihealthHospitalServiceImpl">
+	<bean id="alihealthHospitalServiceImpl"
+		  class="com.alijk.bqhospital.alijk.service.impl.AlihealthHospitalServiceImpl">
 		<property name="taobaoConf" ref="taobaoConf"/>
 	</bean>
 
@@ -99,8 +145,8 @@
 		<property name="appkey" value="25761410"/>
 		<property name="secret" value="f4511d0b3a0aa1bb349c9767270c14ef"/>
 		<property name="url" value="${taobao.buss.url}"/>
-        <property name="msgUrl" value="${taobao.buss.msgUrl}" />
-        <property name="msgGroup" value="default" />
+		<property name="msgUrl" value="${taobao.buss.msgUrl}"/>
+		<property name="msgGroup" value="default"/>
 	</bean>
 	<!--注入处方审核的消息-->
     <bean id="bqHospitalTmcServer" class="com.alijk.bqhospital.alijk.message.BqHospitalTmcServer">
@@ -110,5 +156,9 @@
 	<bean id="bqHospitalMsgHandler" class="recipe.drugsenterprise.BqHospitalMsgHandlerImpl"/>
 	<bean class="ctd.util.DesensitizationsUtil" id="desensitizationsUtil">
 		<property name="pattern" value="${des.patterns}"/>
+	</bean>
+	<ngari:reference interface="ctd.account.thirdparty.loader.ThirdPartyMappingLoader" id="eh.thirdPartyMappingRemoteLoader"/>
+	<bean class="ctd.account.thirdparty.ThirdPartyMappingController">
+		<property name="loader" ref="eh.thirdPartyMappingRemoteLoader"/>
 	</bean>
 </beans>

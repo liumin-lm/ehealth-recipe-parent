@@ -21,7 +21,7 @@ public class HdRecipeDTO implements Serializable{
      * 门店机构编码
      *  药店下的code
      */
-    private String pharmacyId;
+    private String pharmacyCode;
     /**
      * 患者的证件类型
      * recipe下Mpiid对应的patientCertificateType
@@ -68,6 +68,12 @@ public class HdRecipeDTO implements Serializable{
      * 非必填
      */
     private String patientAddress;
+
+    //收件人姓名
+    private String recipientName;
+
+    //收件人电话
+    private String recipientTel;
     /**
      * 患者医院病历号
      * 非必填
@@ -289,12 +295,12 @@ public class HdRecipeDTO implements Serializable{
         this.sourceId = sourceId;
     }
 
-    public String getPharmacyId() {
-        return pharmacyId;
+    public String getPharmacyCode() {
+        return pharmacyCode;
     }
 
-    public void setPharmacyId(String pharmacyId) {
-        this.pharmacyId = pharmacyId;
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
     }
 
     public String getCertificateType() {
@@ -679,6 +685,22 @@ public class HdRecipeDTO implements Serializable{
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getRecipientTel() {
+        return recipientTel;
+    }
+
+    public void setRecipientTel(String recipientTel) {
+        this.recipientTel = recipientTel;
     }
 
     public List<HdDrugDTO> getDrugList() {

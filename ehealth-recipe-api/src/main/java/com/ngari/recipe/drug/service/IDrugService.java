@@ -1,12 +1,16 @@
 package com.ngari.recipe.drug.service;
 
+import com.ngari.platform.recipe.mode.HisDrugListBean;
+import com.ngari.platform.recipe.mode.HisOrganDrugListBean;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -99,5 +103,16 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      */
     @RpcService
     QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
-                                                                        Integer status, int start, int limit);
+                                                                       Integer status, Integer drugSourcesId,Integer type, int start, int limit);
+    @RpcService
+    DispensatoryDTO getByDrugId(Integer drugId);
+
+    @RpcService
+    List<HisDrugListBean> findDrugList(Integer start, Integer limit);
+
+    @RpcService
+    Boolean saveCompareDrugListData(List<HisOrganDrugListBean> listBeen);
+
+    @RpcService
+    DrugListBean deleteDrugList(Integer drugId);
 }

@@ -18,9 +18,10 @@ import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,7 +35,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.RecipeCheckService;
 import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.MapValueUtil;
 
@@ -149,9 +149,9 @@ public class RecipeSingleService {
                 recipeInfo.put("other", other);
                 //审核不通过设置数据
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == dbRecipe.getStatus()) {
-                    RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                    IRecipeAuditService recipeAuditService=  RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
                     //获取审核不通过详情
-                    List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
+                    List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
                     recipeInfo.put("reasonAndDetails", mapList);
                 }
                 recipeInfo.put("notation", getNotation(dbRecipe));

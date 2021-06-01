@@ -1,6 +1,7 @@
 package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -27,6 +28,7 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
+    
 
     @ItemProperty(alias = "订单编号")
     private String orderCode;
@@ -80,6 +82,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
+    private Integer expressFeePayWay;
+
     @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
@@ -127,6 +132,10 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "地址（区县）")
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address3;
+
+    @ItemProperty(alias = "地址（区县）")
+    @Dictionary(id = "eh.base.dictionary.AddrArea")
+    private String streetAddress;
 
     @ItemProperty(alias = "详细地址")
     private String address4;
@@ -200,6 +209,146 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "药企电话")
+    private String tel;
+
+    @ItemProperty(alias = "期望配送日期")
+    private String expectSendDate;
+
+    @ItemProperty(alias = "期望配送时间")
+    private String expectSendTime;
+
+    @ItemProperty(alias = "运费细则图片ID")
+    @FileToken(expires = 3600)
+    private String transFeeDetail;
+
+    @ItemProperty(alias = "医保结算订单号")
+    private String settleOrderNo;
+
+    @ItemProperty(alias = "医保结算人脸识别token")
+    private String smkFaceToken;
+
+    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保 5医院自费")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
+    private Integer orderType;
+
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private Double preSettleTotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private Double fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private Double cashAmount;
+
+    @ItemProperty(alias = "处方预结算返回门诊挂号序号")
+    private String registerNo;
+
+    @ItemProperty(alias = "处方预结算返回HIS收据号")
+    private String hisSettlementNo;
+
+    //date 20200311
+    //存储his预校验的用户选中的药企code
+    @ItemProperty(alias = "his推送药企code")
+    private String hisEnterpriseCode;
+
+    //date 20200311
+    //存储his预校验的用户选中的药企名
+    @ItemProperty(alias = "his推送药企名")
+    private String hisEnterpriseName;
+
+    @ItemProperty(alias = "订单所属配送方式")
+    private String giveModeKey;
+
+    @ItemProperty(alias = "订单所属配送方式的文案")
+    private String giveModeText;
+
+    @Column(name = "HisEnterpriseCode")
+    public String getHisEnterpriseCode() {
+        return hisEnterpriseCode;
+    }
+
+    public void setHisEnterpriseCode(String hisEnterpriseCode) {
+        this.hisEnterpriseCode = hisEnterpriseCode;
+    }
+
+    @Column(name = "HisEnterpriseName")
+    public String getHisEnterpriseName() {
+        return hisEnterpriseName;
+    }
+
+    public void setHisEnterpriseName(String hisEnterpriseName) {
+        this.hisEnterpriseName = hisEnterpriseName;
+    }
+
+    @ItemProperty(alias = "订单退款标识 0未退费 1已退费")
+    private Integer refundFlag;
+
+    @ItemProperty(alias = "订单退款时间")
+    private Date refundTime;
+
+    @ItemProperty(alias = "医保结算信息串")
+    private String medicalSettleInfo;
+
+    @ItemProperty(alias = "医保代码")
+    private String medicalSettleCode;
+
+    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
+    private String wnPayWay;
+
+    @ItemProperty(alias = "发药药师姓名")
+    @Deprecated
+    private String dispensingApothecaryName;
+
+    @ItemProperty(alias = "发药药师身份证")
+    @Deprecated
+    private String dispensingApothecaryIdCard;
+
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+
+    @ItemProperty(alias = "支付平台回写支付信息")
+    private String payBackInfo;
+
+    @ItemProperty(alias = "配送主体类型 1医院配送 2药企配送")
+    private Integer sendType;
+
+    @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
+
+    private Integer payeeCode;
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    private Integer isShowExpectSendDate;
+
+    @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
+    private Integer expectSendDateIsContainsWeekend;
+
+    @ItemProperty(alias = "配送时间说明文案")
+    private String sendDateText;
+
+    @ItemProperty(alias = "处方费用支付方式 1 线上支付 2 线下支付")
+    private Integer payMode;
+
+    @ItemProperty(alias = "发药标示：0:无需发药，1：已发药，2:已退药")
+    private Integer dispensingFlag;
+
+    @ItemProperty(alias = "已发药时间")
+    private Date dispensingTime;
+
+    @ItemProperty(alias = "发药状态修改时间")
+    private Date dispensingStatusAlterTime;
+
+    @ItemProperty(alias = "医保支付内容")
+    private String healthInsurancePayContent;
+
+    @Column(name = "healthInsurancePayContent")
+    public String getHealthInsurancePayContent() {
+        return healthInsurancePayContent;
+    }
+
+    public void setHealthInsurancePayContent(String healthInsurancePayContent) {
+        this.healthInsurancePayContent = healthInsurancePayContent;
+    }
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -209,6 +358,12 @@ public class RecipeOrder implements Serializable {
         this.cancelReason = cancelReason;
     }
 
+    public RecipeOrder(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    //todo 默认构造器不要给init默认值啊 此方法慎用
+    @Deprecated
     public RecipeOrder() {
         initData();
     }
@@ -222,6 +377,7 @@ public class RecipeOrder implements Serializable {
         this.setCouponFee(zero);
         this.setExpressFee(zero);
         this.setDecoctionFee(zero);
+        this.setTcmFee(zero);
         this.setTotalFee(zero);
         this.setActualPrice(0d);
         this.setPushFlag(0);
@@ -230,6 +386,14 @@ public class RecipeOrder implements Serializable {
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+    @Column(name = "payeeCode")
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
     }
 
     public String getCouponDesc() {
@@ -548,6 +712,15 @@ public class RecipeOrder implements Serializable {
         this.address3 = address3;
     }
 
+    @Column(name = "streetAddress")
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
+    }
+
     @Column(name = "Address4")
     public String getAddress4() {
         return address4;
@@ -674,6 +847,24 @@ public class RecipeOrder implements Serializable {
         this.decoctionFee = decoctionFee;
     }
 
+    @Column(name = "ExpectSendDate")
+    public String getExpectSendDate() {
+        return expectSendDate;
+    }
+
+    public void setExpectSendDate(String expectSendDate) {
+        this.expectSendDate = expectSendDate;
+    }
+
+    @Column(name = "ExpectSendTime")
+    public String getExpectSendTime() {
+        return expectSendTime;
+    }
+
+    public void setExpectSendTime(String expectSendTime) {
+        this.expectSendTime = expectSendTime;
+    }
+
     @Transient
     public BigDecimal getDecoctionUnitPrice() {
         return decoctionUnitPrice;
@@ -735,5 +926,273 @@ public class RecipeOrder implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    @Transient
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
+    @Column(name = "settleOrderNo")
+    public String getSettleOrderNo() {
+        return settleOrderNo;
+    }
+
+    public void setSettleOrderNo(String settleOrderNo) {
+        this.settleOrderNo = settleOrderNo;
+    }
+
+    @Column(name = "smkFaceToken")
+    public String getSmkFaceToken() {
+        return smkFaceToken;
+    }
+
+    public void setSmkFaceToken(String smkFaceToken) {
+        this.smkFaceToken = smkFaceToken;
+    }
+
+    @Column(name = "transFeeDetail")
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
+    }
+
+    @Column(name = "orderType")
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
+    }
+
+    @Column(name = "preSettleTotalAmount")
+    public Double getPreSettletotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettletotalAmount(Double preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    @Column(name = "fundAmount")
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    @Column(name = "cashAmount")
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
+    }
+
+    @Column(name = "refundFlag")
+    public Integer getRefundFlag() {
+        return refundFlag;
+    }
+
+    public void setRefundFlag(Integer refundFlag) {
+        this.refundFlag = refundFlag;
+    }
+
+    @Column(name = "refundTime")
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
+    }
+
+    @Column(name = "medicalSettleInfo")
+    public String getMedicalSettleInfo() {
+        return medicalSettleInfo;
+    }
+
+    public void setMedicalSettleInfo(String medicalSettleInfo) {
+        this.medicalSettleInfo = medicalSettleInfo;
+    }
+
+    @Column(name = "medicalSettleCode")
+    public String getMedicalSettleCode() {
+        return medicalSettleCode;
+    }
+
+    public void setMedicalSettleCode(String medicalSettleCode) {
+        this.medicalSettleCode = medicalSettleCode;
+    }
+
+    @Column(name = "WnPayWay")
+    public String getWnPayWay() {
+        return wnPayWay;
+    }
+
+
+    public void setWnPayWay(String wnPayWay) {
+        this.wnPayWay = wnPayWay;
+    }
+
+    @Deprecated
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    @Deprecated
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    @Deprecated
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    @Deprecated
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    @Column(name = "expressFeePayWay")
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
+    }
+
+    @Column(name = "TCMFee")
+    public BigDecimal getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
+    }
+
+    @Column(name = "payBackInfo")
+    public String getPayBackInfo() {
+        return payBackInfo;
+    }
+
+    public void setPayBackInfo(String payBackInfo) {
+        this.payBackInfo = payBackInfo;
+    }
+
+    @Column(name = "send_type")
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
+    }
+
+     public Integer getIsShowExpectSendDate() {
+        return isShowExpectSendDate;
+    }
+
+    public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
+        this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+    @Transient
+    public Integer getExpectSendDateIsContainsWeekend() {
+        return expectSendDateIsContainsWeekend;
+    }
+
+    public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
+        this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
+    }
+    @Transient
+    public String getSendDateText() {
+        return sendDateText;
+    }
+
+    public void setSendDateText(String sendDateText) {
+        this.sendDateText = sendDateText;
+    }
+
+    @Column(name = "payMode")
+    public Integer getPayMode() {
+        return payMode;
+    }
+
+    public void setPayMode(Integer payMode) {
+        this.payMode = payMode;
+    }
+
+    @Column(name = "dispensing_flag")
+    public Integer getDispensingFlag() {
+        return dispensingFlag;
+    }
+
+    public void setDispensingFlag(Integer dispensingFlag) {
+        this.dispensingFlag = dispensingFlag;
+    }
+
+    public String getRegisterNo() {
+        return registerNo;
+    }
+
+    public void setRegisterNo(String registerNo) {
+        this.registerNo = registerNo;
+    }
+
+    public String getHisSettlementNo() {
+        return hisSettlementNo;
+    }
+
+    public void setHisSettlementNo(String hisSettlementNo) {
+        this.hisSettlementNo = hisSettlementNo;
+    }
+
+    @Column(name = "dispensingTime")
+    public Date getDispensingTime() {
+        return dispensingTime;
+    }
+
+    public void setDispensingTime(Date dispensingTime) {
+        this.dispensingTime = dispensingTime;
+    }
+
+    @Column(name = "dispensingStatusAlterTime")
+    public Date getDispensingStatusAlterTime() {
+        return dispensingStatusAlterTime;
+    }
+
+    public void setDispensingStatusAlterTime(Date dispensingStatusAlterTime) {
+        this.dispensingStatusAlterTime = dispensingStatusAlterTime;
+    }
+
+    @Column(name = "giveModeKey")
+    public String getGiveModeKey() {
+        return giveModeKey;
+    }
+
+    public void setGiveModeKey(String giveModeKey) {
+        this.giveModeKey = giveModeKey;
+    }
+
+    @Column(name = "giveModeText")
+    public String getGiveModeText() {
+        return giveModeText;
+    }
+
+    public void setGiveModeText(String giveModeText) {
+        this.giveModeText = giveModeText;
     }
 }

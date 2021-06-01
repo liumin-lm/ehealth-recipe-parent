@@ -1,23 +1,19 @@
 package recipe.service;
 
-import com.itextpdf.text.DocumentException;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.session.ClientSession;
-import ctd.mvc.upload.exception.FileRegistryException;
-import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
@@ -29,16 +25,22 @@ import eh.msg.constant.MqConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
-import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
+import recipe.service.afterpay.LogisticsOnlineOrderService;
+import recipe.service.manager.EmrRecipeManager;
+import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -47,6 +49,18 @@ import java.util.*;
  */
 @RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+    @Resource
+    private OrganService organService;
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private LogisticsOnlineOrderService logisticsOnlineOrderService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * logger
@@ -152,46 +166,6 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public void updateCheckerName(){
-        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
-        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        List<RecipeCheck> recipeChecks = recipeCheckDAO.findAllRecipeCheck();
-        for (RecipeCheck recipeCheck : recipeChecks) {
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipeCheck.getChecker());
-            if (doctorDTO != null) {
-                recipeCheck.setCheckerName(doctorDTO.getName());
-                recipeCheckDAO.update(recipeCheck);
-            }
-        }
-    }
-
-    @RpcService
-    public String testChangePdf(String ossid){
-
-        try {
-            String s = CreateRecipePdfUtil.transPdfIdForRecipePdf(ossid);
-            return s;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        } catch (FileRegistryException e) {
-            e.printStackTrace();
-        } catch (FileRepositoryException e) {
-            e.printStackTrace();
-        }
-        return null;
-
-
-    }
-
-    @RpcService
-    public boolean insertSaleDrugListBySql(String sql){
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        return saleDrugListDAO.insertSaleDrugListBySql(sql);
-    }
-
-    @RpcService
     public void insertDrugCategoryByOrganId(Integer organId, String createDate){
         List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
         IRegulationService hisService =
@@ -263,4 +237,104 @@ public class RecipeTestService {
         return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(organId, drugId, totalDose);
     }
 
+    @RpcService
+    public void insertOrganDrugList(Integer organId, Integer targetOrganId, String date){
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganId(organId);
+        for (OrganDrugList organDrugList : organDrugLists) {
+            organDrugList.setOrganId(targetOrganId);
+            organDrugList.setCreateDt(DateConversion.getCurrentDate(date, DateConversion.DEFAULT_DATE_TIME));
+            organDrugList.setLastModify(DateConversion.getCurrentDate(date, DateConversion.DEFAULT_DATE_TIME));
+            organDrugListDAO.save(organDrugList);
+        }
+        insertDrugCategoryByOrganId(targetOrganId, date);
+    }
+
+    @RpcService
+    public void saveOrUpdateRecipeParames(RecipeParameter recipeParameter, Integer flag){
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        if (1 == flag) {
+            recipeParameterDao.save(recipeParameter);
+        } else {
+            recipeParameterDao.update(recipeParameter);
+        }
+    }
+
+    @RpcService
+    public void updateRecipeOrder(String orderCode){
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        Map map = new HashMap<>();
+        map.put("status", 1);
+        map.put("effective", 0);
+        map.put("payFlag", 0);
+        recipeOrderDAO.updateByOrdeCode(orderCode, map);
+    }
+
+    /**
+     * 处理处方电子病历的历史数据
+     *
+     * @param organId 机构ID
+     */
+    @RpcService
+    public void saveDoc(Integer organId) {
+        LOGGER.info("RecipeTestService saveDoc start organId= {}", organId);
+        List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
+        if (CollectionUtils.isEmpty(recipes)) {
+            LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
+            return;
+        }
+        for (Recipe recipe : recipes) {
+            try {
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if (null == recipeExtend || null == recipeExtend.getDocIndexId() || 0 == recipeExtend.getDocIndexId()) {
+                    continue;
+                }
+                emrRecipeManager.saveDocList(recipe, recipeExtend);
+            } catch (Exception e) {
+                LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
+            }
+        }
+        LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
+    }
+
+    /**
+     * 处理处方电子病历的历史数据 仅用于同步老数据 执行一次
+     */
+    @RpcService
+    public void saveDocList() {
+        LOGGER.info("RecipeTestService saveDocList start ");
+        List<OrganDTO> organList = organService.findOrgans();
+        List<Integer> organIds = organList.stream().map(OrganDTO::getOrganId).distinct().collect(Collectors.toList());
+        organIds.forEach(this::saveDoc);
+        LOGGER.info("RecipeTestService saveDocList end");
+    }
+
+    /**
+     * 处方退费应该按取消处方处理通知给药企--test
+     *
+     * @param
+     */
+    @RpcService
+    public HisResponseTO doCancelRecipeForEnterprise(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeCancelService recipeCancelService = ApplicationUtils.getRecipeService(RecipeCancelService.class);
+        HisResponseTO response = recipeCancelService.doCancelRecipeForEnterprise(recipe);
+        return response;
+    }
+
+    /**
+     * 手动物流下单
+     * @param orderCode 订单编号
+     */
+    @RpcService
+    public void onlineOrder(String orderCode){
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        logisticsOnlineOrderService.onlineOrder(order, recipes);
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        hisService.recipeDrugTake(recipes.get(0).getRecipeId(), order.getPayFlag(), result);
+    }
 }

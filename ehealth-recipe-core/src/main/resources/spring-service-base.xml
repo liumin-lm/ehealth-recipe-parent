@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <s:beans xmlns:s="http://www.springframework.org/schema/beans"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ssdev"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ngari"
          xsi:schemaLocation="http://www.springframework.org/schema/beans
 				http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.ngarihealth.com/schema/ssdev
-						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+						http://www.ngarihealth.com/schema/ngari
+						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <!--base-api -->
     <reference interface="com.ngari.base.organconfig.service.IOrganConfigService" id="eh.organConfigService"/>
@@ -17,10 +17,15 @@
     <reference interface="com.ngari.base.esign.service.IESignBaseService" id="eh.eSignService"/>
     <reference interface="com.ngari.base.cdr.service.IDiseaseService" id="eh.diseasService"/>
     <reference interface="com.ngari.upload.service.IFileUploadService" id="eh.remoteFileUploadService"/>
+    <reference interface="com.ngari.base.qrinfo.service.INgariQrInfoService" id="eh.ngariQrInfoService"/>
+    <reference interface="com.ngari.upload.service.IUrlResourceService" id="eh.urlResourceService"/>
+    <reference id="eh.remoteClientConfigService" interface="com.ngari.base.clientconfig.service.IClientConfigService"/>
+    <!--频次用法字典接口 -->
+    <reference id="eh.usingRateService" interface="com.ngari.bus.op.service.IUsingRateService"/>
+    <reference id="eh.usePathwaysService" interface="com.ngari.bus.op.service.IUsePathwaysService"/>
     <!-- 首页待办事件处理-->
     <reference id="eh.remoteAsynDoBussService" interface="com.ngari.home.asyn.service.IAsynDoBussService" />
 
-    <reference interface="com.ngari.base.address.service.IAddressService" id="eh.remoteAddressService"/>
     <reference interface="com.ngari.base.hisconfig.service.IHisConfigService" id="eh.remoteHisConfigService"/>
     <reference interface="com.ngari.base.operationrecords.service.IOperationRecordsService"
                id="eh.remoteOperationRecordsService"/>
@@ -31,6 +36,7 @@
     <reference interface="com.ngari.base.hisservice.service.IRecipeHisService" id="eh.remoteRecipeHisService"/>
     <reference interface="com.ngari.base.searchservice.service.ISearchService" id="eh.remoteSearchService"/>
     <reference interface="com.ngari.base.patient.service.IPatientExtendService" id="eh.remotePatientExtendService"/>
+    <reference interface="com.ngari.base.patient.service.IHealthCardService" id="eh.remoteHealthCardService"/>
     <reference interface="com.ngari.wxpay.service.IUnifiedPayService" id="eh.unifiedPayService"/>
     <reference interface="com.ngari.wxpay.service.INgariPayService" id="eh.payService"/>
     <reference interface="com.ngari.wxpay.service.INgariRefundService" id="eh.refundService"/>
@@ -43,5 +49,9 @@
     <reference id="eh.remoteFileDownloadService" interface="recipe.third.IFileDownloadService"/>
     <reference id="eh.configurationCenterUtils" interface="com.ngari.base.property.service.IConfigurationCenterUtilsService" />
     <reference id="eh.remoteCurrentUserInfoService" interface="com.ngari.base.currentuserinfo.service.ICurrentUserInfoService"/>
+    <!--健康卡数据上传-->
+    <reference id="eh.wholesomeService" interface="com.ngari.base.healthcard.service.IWholesomeService"/>
+    <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>
 
+    <reference id="eh.commonService" interface="com.ngari.base.common.ICommonService"/>
 </s:beans>

@@ -9,21 +9,21 @@
 		<property name="filters" value="mergeStat,config,log4j" />
 		<property name="connectionProperties" value="config.decrypt=true;druid.stat.slowSqlMillis=3000;druid.stat.logSlowSql=true" />
 
-		<property name="maxActive" value="${db.maxActive}" />
-		<property name="initialSize" value="${db.initialSize}" />
+        <property name="maxActive" value="${db.maxActive}"/>
+        <property name="initialSize" value="${db.initialSize}"/>
 		<property name="maxWait" value="60000" />
 		<property name="minIdle" value="1" />
 		<property name="timeBetweenEvictionRunsMillis" value="60000" />
 		<property name="minEvictableIdleTimeMillis" value="300000" />
 		<property name="validationQuery" value="SELECT 'x'" />
-		<property name="testWhileIdle" value="true" />
-		<property name="testOnBorrow" value="false" />
-		<property name="testOnReturn" value="false" />
-        <property name="proxyFilters">
-            <list>
-                <bean class="ctd.persistence.rw.druid.filter.DaoExecuteMonitorFilter"/>
-            </list>
-        </property>
+		<property name="testWhileIdle" value="true"/>
+		<property name="testOnBorrow" value="false"/>
+		<property name="testOnReturn" value="false"/>
+		<property name="proxyFilters">
+			<list>
+				<bean class="ctd.persistence.rw.druid.filter.DaoExecuteMonitorFilter"/>
+			</list>
+		</property>
 		<!--<property name="poolPreparedStatements" value="true" />-->
 		<!--<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />-->
 	</bean>
@@ -35,7 +35,6 @@
                 <value>ctd.net.rpc.logger</value>
                 <value>ctd.account.thirdparty</value>
                 <value>com.ngari.base.*.model</value>
-                <value>com.ngari.recipe.entity</value>
                 <value>com.ngari.recipe</value>
                 <value>com.ngari.patient.dto</value>
                 <value>com.ngari.consult</value>

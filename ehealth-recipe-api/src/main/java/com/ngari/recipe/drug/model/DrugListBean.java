@@ -6,6 +6,7 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
 
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -16,7 +17,7 @@ import java.util.List;
  * @author yuyun
  */
 @Schema
-public class DrugListBean implements Serializable {
+public class DrugListBean implements IDrugInventory, Serializable {
 
     public static final long serialVersionUID = -3983203173007645688L;
 
@@ -49,16 +50,36 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "一次剂量")
     private Double useDose;
 
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -81,6 +102,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "使用状态")
     @Dictionary(id = "eh.base.dictionary.DrugListStatus")
     private Integer status;
+
+    @ItemProperty(alias = "药品来源机构，null表示基础库数据")
+    private Integer sourceOrgan;
 
     @ItemProperty(alias = "适用症状")
     private String indications;
@@ -117,6 +141,116 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "是否是匹配的药品(药品工具返回前端用)")
     private boolean isMatched = false;
 
+    @ItemProperty(alias = "基药标识")
+    private Integer baseDrug;
+
+    @ItemProperty(alias = "药品编码")
+    private String drugCode;
+    @ItemProperty(alias = "药品库存")
+    private BigDecimal inventory;
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+    @ItemProperty(alias = "药品库存标志")
+    private boolean drugInventoryFlag;
+
+    @ItemProperty(alias = "药品本位码")
+    private String standardCode;
+
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
+
+    @ItemProperty(alias = "标志（浙江），1-是，0-否")
+    private Integer isRegulation;
+
+
+    @ItemProperty(alias = "标志（审方），1-是，0-否")
+    private Integer isPrescriptions;
+
+
+    @ItemProperty(alias = "医院库存、药企库存等列表信息")
+    private List<DrugInventoryInfo> inventories;
+
+    @ItemProperty(alias = "his药品商保保险比例")
+    private String hisciReimburseRate;
+
+    @ItemProperty(alias = "his药品是否商保标识")
+    private Integer hisciIsClaim;
+
+    @ItemProperty(alias = "来源渠道名称")
+    private String sourceOrganText;
+
+    @ItemProperty(alias = "前端展示的药品名拼接名")
+    private String drugDisplaySplicedName;
+    @ItemProperty(alias = "前端展示的药品商品名拼接名")
+    private String drugDisplaySplicedSaleName;
+
+    @ItemProperty(alias = "库存有无")
+    private boolean inventoriesFlag;
+
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrust;
+
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode;
+
+    @ItemProperty(alias = "药品嘱托Id")
+    private String drugEntrustId;
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public String getDrugEntrustId() {
+        return drugEntrustId;
+    }
+
+    public void setDrugEntrustId(String drugEntrustId) {
+        this.drugEntrustId = drugEntrustId;
+    }
+
+    public String getDrugEntrust() {
+        return drugEntrust;
+    }
+
+    public void setDrugEntrust(String drugEntrust) {
+        this.drugEntrust = drugEntrust;
+    }
+
+    public DrugListBean() {
+    }
+
+    public DrugListBean(Integer drugId) {
+        this.drugId = drugId;
+    }
+
+    public String getHisciReimburseRate() {
+        return hisciReimburseRate;
+    }
+
+    public void setHisciReimburseRate(String hisciReimburseRate) {
+        this.hisciReimburseRate = hisciReimburseRate;
+    }
+
+    public Integer getHisciIsClaim() {
+        return hisciIsClaim;
+    }
+
+    public void setHisciIsClaim(Integer hisciIsClaim) {
+        this.hisciIsClaim = hisciIsClaim;
+    }
+
+    public Integer getBaseDrug() {
+        return baseDrug;
+    }
+
+    public void setBaseDrug(Integer baseDrug) {
+        this.baseDrug = baseDrug;
+    }
+
     public boolean getIsMatched() {
         return isMatched;
     }
@@ -125,12 +259,7 @@ public class DrugListBean implements Serializable {
         isMatched = matched;
     }
 
-    @ItemProperty(alias = "药品库存")
-    private BigDecimal inventory;
-
-    public DrugListBean() {
-    }
-
+    @Override
     public Integer getDrugId() {
         return drugId;
     }
@@ -368,6 +497,7 @@ public class DrugListBean implements Serializable {
         return JSONUtils.toString(this);
     }
 
+    @Override
     public String getOrganDrugCode() {
         return organDrugCode;
     }
@@ -382,5 +512,159 @@ public class DrugListBean implements Serializable {
 
     public void setInventory(BigDecimal inventory) {
         this.inventory = inventory;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
+
+    public boolean isDrugInventoryFlag() {
+        return drugInventoryFlag;
+    }
+
+    public void setDrugInventoryFlag(boolean drugInventoryFlag) {
+        this.drugInventoryFlag = drugInventoryFlag;
+    }
+
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
+    }
+
+    public Integer getSourceOrgan() {
+        return sourceOrgan;
+    }
+
+    public void setSourceOrgan(Integer sourceOrgan) {
+        this.sourceOrgan = sourceOrgan;
+    }
+
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
+    public Integer getIsRegulation() {
+        return isRegulation;
+    }
+
+    public void setIsRegulation(Integer isRegulation) {
+        this.isRegulation = isRegulation;
+    }
+
+    public Integer getIsPrescriptions() {
+        return isPrescriptions;
+    }
+
+    public void setIsPrescriptions(Integer isPrescriptions) {
+        this.isPrescriptions = isPrescriptions;
+    }
+
+    public List<DrugInventoryInfo> getInventories() {
+        return inventories;
+    }
+
+    @Override
+    public void setInventories(List<DrugInventoryInfo> inventories) {
+        this.inventories = inventories;
+    }
+
+    @Transient
+    public String getSourceOrganText() {
+        return sourceOrganText;
+    }
+
+    public void setSourceOrganText(String sourceOrganText) {
+        this.sourceOrganText = sourceOrganText;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
+    }
+
+    public boolean isInventoriesFlag() {
+        return inventoriesFlag;
+    }
+
+    public void setInventoriesFlag(boolean inventoriesFlag) {
+        this.inventoriesFlag = inventoriesFlag;
     }
 }

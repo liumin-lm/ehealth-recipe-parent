@@ -6,6 +6,8 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 
+import java.util.Date;
+
 import static javax.persistence.GenerationType.IDENTITY;
 
 /**
@@ -35,6 +37,12 @@ public class EnterpriseAddress implements java.io.Serializable{
 
     @ItemProperty(alias = "配送地址状态")
     private Integer status;
+
+    @ItemProperty(alias = "创建时间")
+    private Date createTime;
+
+    @ItemProperty(alias = "最近修改时间")
+    private Date lastModify;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -72,5 +80,23 @@ public class EnterpriseAddress implements java.io.Serializable{
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    @Column(name = "createTime")
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    @Column(name = "lastModify")
+    public Date getLastModify() {
+        return lastModify;
+    }
+
+    public void setLastModify(Date lastModify) {
+        this.lastModify = lastModify;
     }
 }

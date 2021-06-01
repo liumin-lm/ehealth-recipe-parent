@@ -1,32 +1,24 @@
 package recipe.purchase;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import recipe.ApplicationUtils;
-import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +36,7 @@ public class PayModeDownload implements IPurchaseService{
         //提示信息； 3。ext中存入特应性弹窗的识别特性
         //页面的弹窗信息根据处方信息中，根据配置的审核方式的不同谈处方不同的弹窗
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        Map<String, String> ext = new HashedMap();
+        Map<String, Object> ext = new HashedMap();
         //当不需要审核的时候弹出特性弹窗
         if(ReviewTypeConstant.Not_Need_Check == dbRecipe.getReviewType()){
             ext.put("popupFeature", "noCheck");
@@ -56,13 +48,14 @@ public class PayModeDownload implements IPurchaseService{
     }
 
     @Override
-    public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
+    public OrderCreateResult order(List<Recipe> reicpes, Map<String, String> extInfo) {
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeOrder order = new RecipeOrder();
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
+        Recipe dbRecipe = reicpes.get(0);
         Integer recipeId = dbRecipe.getRecipeId();
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
@@ -90,6 +83,12 @@ public class PayModeDownload implements IPurchaseService{
 
         //设置为有效订单
         order.setEffective(1);
+        // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
+        Integer payModeNew = payMode;
+        if(!payMode.equals(1)){
+            payModeNew = 2;
+        }
+        order.setPayMode(payModeNew);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
@@ -148,5 +147,12 @@ public class PayModeDownload implements IPurchaseService{
     @Override
     public Integer getOrderStatus(Recipe recipe) {
         return OrderStatusConstant.READY_GET_DRUG;
+    }
+
+    @Override
+    public void setRecipePayWay(RecipeOrder recipeOrder) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        recipeOrder.setPayMode(2);
+        recipeOrderDAO.update(recipeOrder);
     }
 }

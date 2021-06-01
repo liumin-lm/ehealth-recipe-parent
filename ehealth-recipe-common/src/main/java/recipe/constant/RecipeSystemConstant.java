@@ -77,4 +77,31 @@ public class RecipeSystemConstant {
 
     public static final String ORGAN_DISEASE_SPLIT = ";";
 
+
+    /**
+     * 使用类型-用药频次
+     */
+    public static final Integer USAGE_TYPE_RATE = 1;
+
+    /**
+     * 使用类型-用药途径
+     */
+    public static final Integer USAGE_TYPE_PATHWAY = 2;
+
+    /**
+     * 记账业务 平台编码
+     */
+    public static final String SPLIT_NO_PLATFORM = "NL";
+
+    /**
+     * 记账业务  平台名称
+     */
+    public static final String SPLIT_NAME_PLATFORM = "纳里平台";
+
+    public static final String RECIPE_INVALID_TOPIC_TAG = "recipe_invalid_tag";
+
+    public static final String RECIPE_INVALID_LOCK_KEY = "recipe_invalid_lock_redis_";
+
+    public static final Long RECIPE_INVALID_LOCK_TIMEOUT = 10L;
+
 }

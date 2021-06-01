@@ -16,6 +16,11 @@ public class GuardianBean implements Serializable {
     private String name;
     private Integer age;
     private String sex;
+    /**
+     * 证件号
+     */
+    private String guardianCertificate;
+    private String mobile;
 
     public String getName() {
         return name;
@@ -39,5 +44,21 @@ public class GuardianBean implements Serializable {
 
     public void setSex(String sex) {
         this.sex = sex;
+    }
+
+    public String getGuardianCertificate() {
+        return guardianCertificate;
+    }
+
+    public void setGuardianCertificate(String guardianCertificate) {
+        this.guardianCertificate = guardianCertificate;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
     }
 }

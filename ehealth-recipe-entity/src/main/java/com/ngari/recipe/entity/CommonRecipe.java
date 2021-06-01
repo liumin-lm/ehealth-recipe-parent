@@ -44,6 +44,49 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias="机构代码")
     private Integer organId;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
+    @ItemProperty(alias = "常用方中的药品信息")
+    @Deprecated
+    private String recipeDetailJsonConfig;
+
+    @ItemProperty(alias = "是否是长处方")
+    private String isLongRecipe;
+
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+
+    @Column(name = "pharmacyCode")
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    @Column(name = "recipeDetailJsonConfig")
+    public String getRecipeDetailJsonConfig() {
+        return recipeDetailJsonConfig;
+    }
+
+    public void setRecipeDetailJsonConfig(String recipeDetailJsonConfig) {
+        this.recipeDetailJsonConfig = recipeDetailJsonConfig;
+    }
+
+    @Column(name = "isLongRecipe")
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
+    }
+
     @Column(name = "OrganId")
     public Integer getOrganId() {
         return organId;
@@ -52,6 +95,10 @@ public class CommonRecipe implements Serializable{
     public void setOrganId(Integer organId) {
         this.organId = organId;
     }
+
+    //开当前处方的配置项信息
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    private String recipeJsonConfig;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -109,15 +156,45 @@ public class CommonRecipe implements Serializable{
         this.lastModify = lastModify;
     }
 
+    public String getRecipeJsonConfig() {
+        return recipeJsonConfig;
+    }
+
+    public void setRecipeJsonConfig(String recipeJsonConfig) {
+        this.recipeJsonConfig = recipeJsonConfig;
+    }
+
+    @Column(name = "pharmacyId")
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    @Column(name = "pharmacyName")
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
     @Override
     public String toString() {
         return "CommonRecipe{" +
                 "doctorId=" + doctorId +
                 ", commonRecipeName='" + commonRecipeName + '\'' +
                 ", commonRecipeId=" + commonRecipeId +
-                ", recipeType='" + recipeType + '\'' +
+                ", recipeType=" + recipeType +
                 ", createDt=" + createDt +
                 ", lastModify=" + lastModify +
+                ", organId=" + organId +
+                ", pharmacyId=" + pharmacyId +
+                ", pharmacyName='" + pharmacyName + '\'' +
+                ", recipeJsonConfig='" + recipeJsonConfig + '\'' +
                 '}';
     }
 }

@@ -66,7 +66,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "参考价格")
     private BigDecimal price;
 
-    @ItemProperty(alias = "状态")//0未匹配 1已匹配 2已提交
+    @ItemProperty(alias = "状态")//0未匹配 1已匹配 2已提交 4匹配中
     private Integer status;
 
     @ItemProperty(alias = "适用症状")
@@ -143,6 +143,33 @@ public class DrugListMatch implements java.io.Serializable {
 
     @ItemProperty(alias = "监管平台药品编码")
     private String regulationDrugCode;
+
+    @ItemProperty(alias = "药品产地名称编码")
+    private String drugManfCode;
+
+    @ItemProperty(alias = "医保药品编码")
+    private String medicalDrugCode;
+
+    @ItemProperty(alias = "医保剂型代码")
+    private String medicalDrugFormCode;
+
+    @ItemProperty(alias = "HIS剂型代码")
+    private String hisFormCode;
+
+    @ItemProperty(alias = "平台药品编码")
+    private Integer platformDrugId;
+
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
+
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrust;
+
+    @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
+    private Boolean medicalInsuranceControl;
+
+    @ItemProperty(alias = "适应症 说明")
+    private String IndicationsDeclare;
 
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
@@ -409,5 +436,86 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setRegulationDrugCode(String regulationDrugCode) {
         this.regulationDrugCode = regulationDrugCode;
+    }
+
+    @Column(name = "drugManfCode", length = 30)
+    public String getDrugManfCode() {
+        return drugManfCode;
+    }
+
+    public void setDrugManfCode(String drugManfCode) {
+        this.drugManfCode = drugManfCode;
+    }
+
+    @Column(name = "medicalDrugCode", length = 100)
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
+
+    @Column(name = "medicalDrugFormCode", length = 30)
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    @Column(name = "hisFormCode", length = 30)
+    public String getHisFormCode() {
+        return hisFormCode;
+    }
+
+    public void setHisFormCode(String hisFormCode) {
+        this.hisFormCode = hisFormCode;
+    }
+
+    @Column(name = "platformDrugId",length = 11)
+    public Integer getPlatformDrugId() {
+        return platformDrugId;
+    }
+
+    public void setPlatformDrugId(Integer platformDrugId) {
+        this.platformDrugId = platformDrugId;
+    }
+
+    @Column(name = "pharmacy",length = 12)
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
+    }
+
+    @Column(name = "drugEntrust")
+    public String getDrugEntrust() {
+        return drugEntrust;
+    }
+
+    public void setDrugEntrust(String drugEntrust) {
+        this.drugEntrust = drugEntrust;
+    }
+
+    @Column(name = "medicalInsuranceControl")
+    public Boolean getMedicalInsuranceControl() {
+        return medicalInsuranceControl;
+    }
+
+    public void setMedicalInsuranceControl(Boolean medicalInsuranceControl) {
+        this.medicalInsuranceControl = medicalInsuranceControl;
+    }
+
+    @Column(name = "indicationsDeclare")
+    public String getIndicationsDeclare() {
+        return IndicationsDeclare;
+    }
+
+    public void setIndicationsDeclare(String indicationsDeclare) {
+        IndicationsDeclare = indicationsDeclare;
     }
 }

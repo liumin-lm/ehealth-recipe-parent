@@ -1,44 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ssdev="http://www.ngarihealth.com/schema/ssdev"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ngari="http://www.ngarihealth.com/schema/ngari"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+       			http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <!-- service register center -->
-    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
-    <ssdev:connector url="${url}">
-        <ssdev:filter id="json"/>
-        <ssdev:filter id="urt"/>
-    </ssdev:connector>
+    <ngari:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+    <ngari:connector url="${url}">
+        <ngari:filter id="json"/>
+        <ngari:filter id="urt"/>
+    </ngari:connector>
+
+    <!--zookeeper代理地址：
+    zookeeper://zk.ngarihealth.com:1111  f1环境
+    zookeeper://zk.ngarihealth.com:2222  f2环境
+    zookeeper://zk.ngarihealth.com:3333  f3环境
+    zookeeper://172.20.1.58:4181 FAT
+    zookeeper://zk.ngarihealth.com:6666 UAT
+    zookeeper://172.20.1.58:7181  f5环境
+    zookeeper://172.20.1.58:5181  devtest环境
+    zookeeper://zk.ngarihealth.com:8888  shishi环境
+    zookeeper://zk.ngarihealth.com:7777  f6环境
+    zookeeper://zk.ngarihealth.com:8899  f7环境
+    zookeeper://zk.ngarihealth.com:9009  f8环境
+    zookeeper://172.20.1.58:2181 f9环境 -->
+    <!--http://localhost:8899//*.jsonRequest-->
+
+    <!--<ngari:mvcServer port="8899"/>-->
 
     <!-- pub/sub -->
-    <ssdev:publisher id="publisher"/>
+    <ngari:publisher id="publisher"/>
 
     <!-- log -->
-    <ssdev:logger type="kafka">
-        <ssdev:serverNodeExDataBuilder id="datasourceExData"/>
-        <ssdev:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
-    </ssdev:logger>
+    <ngari:logger type="kafka">
+        <ngari:serverNodeExDataBuilder id="datasourceExData"/>
+        <ngari:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
+    </ngari:logger>
 
     <!-- remote loader -->
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.userRemoteLoader"/>
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.roleRemoteLoader"/>
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.accessTokenRemoteLoader"/>
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.dictionaryRemoteLoader"/>
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.appRemoteLoader"/>
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.categoryNodeRemoteLoader"/>
-    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.schemaRemoteLoader"/>
-    <ssdev:reference id="eh.tenantRemoteLoader" interface="ctd.controller.ConfigurableLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.userRemoteLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.roleRemoteLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.accessTokenRemoteLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.dictionaryRemoteLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.appRemoteLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.categoryNodeRemoteLoader"/>
+    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.schemaRemoteLoader"/>
+    <ngari:reference id="eh.tenantRemoteLoader" interface="ctd.controller.ConfigurableLoader"/>
+    <ngari:reference id="eh.dictionaryService" interface="ctd.dictionary.service.DictionaryLocalService" />
 
     <!-- remote updater -->
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.userUpdater"/>
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.roleUpdater"/>
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.accessTokenUpdater"/>
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.dictionaryUpdater"/>
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.applicationUpdater"/>
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.categoryNodeUpdater"/>
-    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.schemaUpdater"/>
-    <ssdev:reference id="eh.tenantUpdater" interface="ctd.controller.updater.ConfigurableItemUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.userUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.roleUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.accessTokenUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.dictionaryUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.applicationUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.categoryNodeUpdater"/>
+    <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.schemaUpdater"/>
+    <ngari:reference id="eh.tenantUpdater" interface="ctd.controller.updater.ConfigurableItemUpdater"/>
 
     <!-- user -->
     <bean id="userController" class="ctd.account.user.UserController">
@@ -114,4 +132,13 @@
 
     <!-- session updater -->
     <bean class="ctd.account.session.SessionItemManager"/>
+    <!-- parameter store -->
+    <ngari:reference id="eh.paramLoader" interface="eh.utils.params.ParamLoader"/>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="eh.utils.params.ParamUtils.setParamLoader"/>
+        <property name="arguments">
+            <list><ref bean="eh.paramLoader"/></list>
+        </property>
+    </bean>
 </beans>

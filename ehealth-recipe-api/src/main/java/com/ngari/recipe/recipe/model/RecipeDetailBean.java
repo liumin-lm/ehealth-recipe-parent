@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
@@ -7,6 +8,7 @@ import ctd.schema.annotation.Schema;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -34,6 +36,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物名称")
     private String drugName;
 
+    @ItemProperty(alias = "药品商品名")
+    private String saleName;
+
     @ItemProperty(alias="药物规格")
     private String drugSpec;
 
@@ -49,7 +54,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="默认每次剂量")
     private Double defaultUseDose;
 
-    @ItemProperty(alias="药物使用规格单位")
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
+    @ItemProperty(alias="药物使用规格单位或者最小单位")
     private String useDoseUnit;
 
     @ItemProperty(alias="药物剂量单位")
@@ -63,25 +71,48 @@ public class RecipeDetailBean implements java.io.Serializable {
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
+    @ItemProperty(
+            alias = "机构的频次代码"
+    )
+    private String organUsingRate;
+    @ItemProperty(
+            alias = "机构的用法代码"
+    )
+    private String organUsePathways;
+
+    //用药频率说明（来源his）
+    @ItemProperty(alias="用药频率说明")
+    private String usingRateTextFromHis;
+
+    //用药方式说明（来源his）
+    @ItemProperty(alias="用药方式说明")
+    private String usePathwaysTextFromHis;
+
     @ItemProperty(alias="药物使用总数量")
     private Double useTotalDose;
 
     @ItemProperty(alias="药物发放数量")
     private Double sendNumber;
 
-    @ItemProperty(alias="药物使用天数")
+    @ItemProperty(alias = "药物使用天数")
     private Integer useDays;
 
-    @ItemProperty(alias="药物金额")
+    @ItemProperty(alias = "药物金额")
     private BigDecimal drugCost;
 
-    @ItemProperty(alias="备注信息")
+    @ItemProperty(alias = "药品嘱托Id")
+    private String entrustmentId;
+
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode;
+
+    @ItemProperty(alias = "药品嘱托信息")
     private String memo;
 
-    @ItemProperty(alias="药品效期")
+    @ItemProperty(alias = "药品效期")
     private Date validDate;
 
-    @ItemProperty(alias="药品批号")
+    @ItemProperty(alias = "药品批号")
     private String drugBatch;
 
     @ItemProperty(alias="创建时间")
@@ -135,6 +166,100 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="医院给患者开票日期")
     private Date patientInvoiceDate;
 
+    @ItemProperty(alias="处方明细单号")
+    private String recipedtlno;
+
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
+    //date 20200225
+    //同步机构药品信息新添字段
+    @ItemProperty(alias = "生产厂家")
+    private String producer;
+
+    //date 20200225
+    //同步机构药品信息新添字段
+    @ItemProperty(alias = "批准文号")
+    private String licenseNumber;
+
+    //date 20200225
+    //同步机构药品信息新添字段
+    @ItemProperty(alias = "生产厂家代码")
+    private String producerCode;
+
+    @ItemProperty(alias="药物使用天数小数型")
+    private String useDaysB;
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
+
+    @ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
+    private String drugUnitdoseAndUnit;
+
+    @ItemProperty(alias = "实际销售价格")
+    private BigDecimal actualSalePrice;
+
+    @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+    private Integer settlementMode;
+
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+    private Integer tcmContraindicationType;
+
+    @ItemProperty(alias = "中药禁忌原因")
+    private String tcmContraindicationCause;
+
+    @ItemProperty(alias = "药企药品编码")
+    private String saleDrugCode;
+
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
+
+    @ItemProperty(alias = "前端展示的药品拼接名")
+    private String drugDisplaySplicedName;
+
+    @ItemProperty(alias = "前端展示的商品拼接名")
+    private String drugDisplaySplicedSaleName;
+
+    @ItemProperty(alias = "单个药品医保类型")
+    private Integer drugMedicalFlag;
+
+    public String getEntrustmentId() {
+        return entrustmentId;
+    }
+
+    public void setEntrustmentId(String entrustmentId) {
+        this.entrustmentId = entrustmentId;
+    }
+
+    public String getSaleDrugCode() {
+        return saleDrugCode;
+    }
+
+    public void setSaleDrugCode(String saleDrugCode) {
+        this.saleDrugCode = saleDrugCode;
+    }
+
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
+
     public RecipeDetailBean() {
     }
 
@@ -183,6 +308,30 @@ public class RecipeDetailBean implements java.io.Serializable {
         this.ratePrice = ratePrice;
     }
 
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    public String getProducerCode() {
+        return producerCode;
+    }
+
+    public void setProducerCode(String producerCode) {
+        this.producerCode = producerCode;
+    }
+
     public Integer getRecipeDetailId() {
         return this.recipeDetailId;
     }
@@ -197,6 +346,22 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
+    }
+
+    public Integer getTcmContraindicationType() {
+        return tcmContraindicationType;
+    }
+
+    public void setTcmContraindicationType(Integer tcmContraindicationType) {
+        this.tcmContraindicationType = tcmContraindicationType;
+    }
+
+    public String getTcmContraindicationCause() {
+        return tcmContraindicationCause;
+    }
+
+    public void setTcmContraindicationCause(String tcmContraindicationCause) {
+        this.tcmContraindicationCause = tcmContraindicationCause;
     }
 
     public String getDrugGroup() {
@@ -491,5 +656,181 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setPatientInvoiceDate(Date patientInvoiceDate) {
         this.patientInvoiceDate = patientInvoiceDate;
+    }
+
+    public String getRecipedtlno() {
+        return recipedtlno;
+    }
+
+    public void setRecipedtlno(String recipedtlno) {
+        this.recipedtlno = recipedtlno;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
+
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
+
+    public String getUsingRateTextFromHis() {
+        return usingRateTextFromHis;
+    }
+
+    public void setUsingRateTextFromHis(String usingRateTextFromHis) {
+        this.usingRateTextFromHis = usingRateTextFromHis;
+    }
+
+    public String getUsePathwaysTextFromHis() {
+        return usePathwaysTextFromHis;
+    }
+
+    public void setUsePathwaysTextFromHis(String usePathwaysTextFromHis) {
+        this.usePathwaysTextFromHis = usePathwaysTextFromHis;
+    }
+
+    public String getOrganUsingRate() {
+        return organUsingRate;
+    }
+
+    public void setOrganUsingRate(String organUsingRate) {
+        this.organUsingRate = organUsingRate;
+    }
+
+    public String getOrganUsePathways() {
+        return organUsePathways;
+    }
+
+    public void setOrganUsePathways(String organUsePathways) {
+        this.organUsePathways = organUsePathways;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
+    public String getDrugUnitdoseAndUnit() {
+        return drugUnitdoseAndUnit;
+    }
+
+    public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
+        this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+    }
+
+    public BigDecimal getActualSalePrice() {
+        return actualSalePrice;
+    }
+
+    public void setActualSalePrice(BigDecimal actualSalePrice) {
+        this.actualSalePrice = actualSalePrice;
+    }
+
+    public Integer getSettlementMode() {
+        return settlementMode;
+    }
+
+    public void setSettlementMode(Integer settlementMode) {
+        this.settlementMode = settlementMode;
+    }
+
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
+    }
+
+    public Integer getValidateStatus() {
+        return validateStatus;
+    }
+
+    public void setValidateStatus(Integer validateStatus) {
+        this.validateStatus = validateStatus;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public Integer getDrugMedicalFlag() {
+        return drugMedicalFlag;
+    }
+
+    public void setDrugMedicalFlag(Integer drugMedicalFlag) {
+        this.drugMedicalFlag = drugMedicalFlag;
     }
 }

@@ -23,6 +23,8 @@ public class DateConversion
 {
 
     public static final String YYYY_MM_DD = "yyyy-MM-dd";
+    public static final String YYYY = "yyyy";
+    public static final String YYYY__MM__DD = "yyyy/MM/dd";
 
     public static final String DEFAULT_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
 
@@ -666,7 +668,7 @@ public class DateConversion
 	}
 
 	public static int daysBetween(Date smdate,Date bdate) throws ParseException {
-		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf=new SimpleDateFormat(DEFAULT_DATE_TIME);
 		smdate=sdf.parse(sdf.format(smdate));
 		bdate=sdf.parse(sdf.format(bdate));
 		Calendar cal = Calendar.getInstance();
@@ -763,5 +765,31 @@ public class DateConversion
 			return null;
 		}
 		return date;
+	}
+
+	/**
+	 * 今天的前几天，格式yyyyMMdd
+	 * @param past
+	 * @return
+     */
+	public static String getPastDate(int past) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) - past);
+		Date today = calendar.getTime();
+		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+		String result = format.format(today);
+		return result;
+	}
+
+	/**
+	 * 今天，格式yyyyMMdd
+	 * @return
+     */
+	public static String getToDayDate() {
+		Calendar calendar = Calendar.getInstance();
+		Date today = calendar.getTime();
+		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+		String result = format.format(today);
+		return result;
 	}
 }

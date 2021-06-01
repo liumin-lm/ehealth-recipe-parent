@@ -10,6 +10,7 @@
 				<prop key="ProducerId">${ons_pid}</prop>
 				<prop key="AccessKey">${ons_ak}</prop>
 				<prop key="SecretKey">${ons_sk}</prop>
+				<prop key="NAMESRV_ADDR">${namesrv_addr}</prop>
 			</props>
 		</property>
 	</bean>
@@ -23,9 +24,10 @@
 	<bean id="consumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
 		<property name="properties" >
 			<props>
-				<prop key="ConsumerId">${ons_cid}</prop>
+				<prop key="ConsumerId">#{ systemProperties['ngari.region'] == 'gray' ? '${ons_cid}' + '_gray' : '${ons_cid}' }</prop>
 				<prop key="AccessKey">${ons_ak}</prop>
 				<prop key="SecretKey">${ons_sk}</prop>
+				<prop key="NAMESRV_ADDR">${namesrv_addr}</prop>
 				<!--将消费者线程数固定为50个.
                 <prop key="ConsumeThreadNums">50</prop>
                 -->

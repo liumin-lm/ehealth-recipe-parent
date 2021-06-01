@@ -53,6 +53,9 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="药物使用次剂量")
     private Double useDose;
 
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
     @ItemProperty(alias="默认每次剂量")
     private Double defaultUseDose;
 
@@ -65,8 +68,14 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="总药物金额")
     private BigDecimal drugCost;
 
-    @ItemProperty(alias="备注信息")
+    @ItemProperty(alias="药品嘱托信息")
     private String memo;
+
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode ;
+
+    @ItemProperty(alias = "药品嘱托Id")
+    private String drugEntrustId ;
 
     @ItemProperty(alias="创建时间")
     private Date createDt;
@@ -87,6 +96,62 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     @ItemProperty(alias="剂量单位")
     private String useDoseUnit;
+
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+
+    @ItemProperty(alias = "药品包装数量")
+    private Integer pack;
+
+
+    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+    private Integer tcmContraindicationType;
+
+    @ItemProperty(alias = "中药禁忌原因")
+    private String tcmContraindicationCause;
+
+    @ItemProperty(alias = "前端展示的药品拼接名")
+    private String drugDisplaySplicedName;
+
+    @ItemProperty(alias = "前端展示的商品拼接名")
+    private String drugDisplaySplicedSaleName;
+
+    @Column(name = "pack")
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
+    }
+
+    @Column(name = "usingRateId")
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Column(name = "usePathwaysId")
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
 
     @Column(name = "UseDoseUnit")
     public String getUseDoseUnit() {
@@ -289,19 +354,51 @@ public class CommonRecipeDrug implements java.io.Serializable{
         this.saleName = saleName;
     }
 
+    @Column(name = "useDoseStr")
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
+
+    @Column(name = "tcm_contraindication_type")
+    public Integer getTcmContraindicationType() {
+        return tcmContraindicationType;
+    }
+
+    public void setTcmContraindicationType(Integer tcmContraindicationType) {
+        this.tcmContraindicationType = tcmContraindicationType;
+    }
+
+    @Column(name = "tcm_contraindication_cause")
+    public String getTcmContraindicationCause() {
+        return tcmContraindicationCause;
+    }
+
+    public void setTcmContraindicationCause(String tcmContraindicationCause) {
+        this.tcmContraindicationCause = tcmContraindicationCause;
+    }
+
     @Override
     public String toString() {
         return "CommonRecipeDrug{" +
                 "id=" + id +
+                ", drugStatus=" + drugStatus +
                 ", commonRecipeId=" + commonRecipeId +
-                ", drugId='" + drugId + '\'' +
+                ", drugId=" + drugId +
+                ", organDrugCode='" + organDrugCode + '\'' +
                 ", drugName='" + drugName + '\'' +
+                ", saleName='" + saleName + '\'' +
                 ", drugUnit='" + drugUnit + '\'' +
                 ", drugSpec='" + drugSpec + '\'' +
                 ", useTotalDose=" + useTotalDose +
                 ", useDose=" + useDose +
+                ", useDoseStr='" + useDoseStr + '\'' +
                 ", defaultUseDose=" + defaultUseDose +
                 ", salePrice=" + salePrice +
+                ", price1=" + price1 +
                 ", drugCost=" + drugCost +
                 ", memo='" + memo + '\'' +
                 ", createDt=" + createDt +
@@ -309,6 +406,62 @@ public class CommonRecipeDrug implements java.io.Serializable{
                 ", usingRate='" + usingRate + '\'' +
                 ", usePathways='" + usePathways + '\'' +
                 ", useDays=" + useDays +
+                ", useDoseUnit='" + useDoseUnit + '\'' +
+                ", pharmacyId=" + pharmacyId +
+                ", pharmacyName='" + pharmacyName + '\'' +
+                ", usingRateId='" + usingRateId + '\'' +
+                ", usePathwaysId='" + usePathwaysId + '\'' +
+                ", pack=" + pack +
                 '}';
+    }
+
+    public Integer getPharmacyId() {
+        return pharmacyId;
+    }
+
+    public void setPharmacyId(Integer pharmacyId) {
+        this.pharmacyId = pharmacyId;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
+    public String getDrugDisplaySplicedName() {
+        return drugDisplaySplicedName;
+    }
+
+    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
+        this.drugDisplaySplicedName = drugDisplaySplicedName;
+    }
+
+    public String getDrugDisplaySplicedSaleName() {
+        return drugDisplaySplicedSaleName;
+    }
+
+    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
+        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
+    }
+
+    @Column(name = "drugEntrustCode")
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    @Column(name = "drugEntrustId")
+    public String getDrugEntrustId() {
+        return drugEntrustId;
+    }
+
+    public void setDrugEntrustId(String drugEntrustId) {
+        this.drugEntrustId = drugEntrustId;
     }
 }

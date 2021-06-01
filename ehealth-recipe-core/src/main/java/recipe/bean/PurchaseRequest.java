@@ -23,7 +23,7 @@ public class PurchaseRequest implements Serializable {
     @Verify(desc = "购药方式", isInt = true)
     private Integer type;
 
-    @Verify(desc = "应用ID")
+    @Verify(desc = "应用ID", isNotNull = false)
     private String appId;
 
     @Verify(desc = "药企ID", isNotNull = false)

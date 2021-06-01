@@ -7,10 +7,7 @@ import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.platform.sync.mode.RecipeDetailIndicatorsReq;
 import com.ngari.platform.sync.mode.RecipeIndicatorsReq;
 import com.ngari.platform.sync.mode.RecipeVerificationIndicatorsReq;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -27,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -36,8 +34,10 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -59,6 +59,8 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSyncSupervisionService.class);
 
     private static String HIS_SUCCESS = "200";
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 处方核销接口
@@ -259,6 +261,8 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
         for (Recipe recipe : recipeList) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RecipeIndicatorsReq();
             //TODO 此处与互联网分支不一致，应填复诊ID LocalStringUtil.toString(recipe.getClinicId())
             req.setBussID(recipe.getRecipeId().toString());
@@ -376,7 +380,14 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
             req.setVerificationStatus(getVerificationStatus(recipe));
-
+            //处方pdfId
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                req.setRecipeFileId(recipe.getChemistSignFile());
+            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                req.setRecipeFileId(recipe.getSignFile());
+            } else {
+                LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
+            }
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {

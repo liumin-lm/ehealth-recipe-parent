@@ -6,15 +6,15 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
-import com.taobao.api.response.AlibabaAlihealthRxPrescriptionGetResponse;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.beanutils.BeanUtils;
@@ -32,12 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.bean.DeptOrderDTO;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.constant.CacheConstant;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ParameterConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.ZfbDrugDTO;
 import recipe.drugsenterprise.bean.ZfbRecipeDTO;
@@ -50,8 +48,10 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -124,6 +124,16 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return null;
+    }
+
+    @Override
     public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
         tmdyfRemoteService.getJumpUrl(response, recipe, drugsEnterprise);
     }
@@ -156,7 +166,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
 
             Recipe dbRecipe = recipeList.get(0);
-
+            getMedicalInfo(dbRecipe);
             String organCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
             if (StringUtils.isNotEmpty(organCode)) {
                 zfbRecipe.setOrganId(organCode);
@@ -207,7 +217,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             zfbRecipe.setOrganDiseaseName(dbRecipe.getOrganDiseaseName());
             zfbRecipe.setOrganDiseaseId(dbRecipe.getOrganDiseaseId());
             zfbRecipe.setMemo(dbRecipe.getMemo());
-            zfbRecipe.setPayMode(null != dbRecipe.getPayMode() ? dbRecipe.getPayMode().toString() : "0");
+//            zfbRecipe.setPayMode(null != dbRecipe.getPayMode() ? dbRecipe.getPayMode().toString() : "0");
             zfbRecipe.setGiveMode(null != dbRecipe.getGiveMode() ? dbRecipe.getGiveMode().toString() : "0");
             zfbRecipe.setPayFlag(dbRecipe.getPayFlag().toString());
             zfbRecipe.setGiveUser(dbRecipe.getGiveUser());
@@ -352,6 +362,11 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         }
 
         return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

@@ -11,15 +11,15 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
-import eh.utils.MapValueUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +27,14 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.hisservice.RecipeToHisService;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,10 +52,35 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        List<String> result = new ArrayList<>();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                result.add(recipeDetailBean.getDrugName());
+            }
+        }
+        return result;
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         //0医院取药 1物流配送 2药店取药 3未知
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
         Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
+        RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+        //如果走杭州市医保预结算了就不走这里去做his结算了
+        if (order != null && order.getPreSettletotalAmount()!=null) {
+            return DrugEnterpriseResult.getSuccess();
+        }
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
@@ -71,6 +101,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
         //医院处方号
         updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
+        updateTakeDrugWayReqTO.setNgarRecipeId(String.valueOf(recipe.getRecipeId()));
         updateTakeDrugWayReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
         //审方药师工号和姓名
         if (recipe.getChecker()!=null){
@@ -96,13 +127,11 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
             //商户订单号
             updateTakeDrugWayReqTO.setOutTradeNo(recipe.getOutTradeNo());
             if (StringUtils.isNotEmpty(recipe.getOrderCode())){
-                RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
-                RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
                 if (order!=null){
                     //收货人
                     updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
                     //联系电话
-                    updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
+                    updateTakeDrugWayReqTO.setContactTel(order.getRecMobile());
                     //收货地址
                     CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                     updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
@@ -114,8 +143,22 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         }
         //流转到这里来的属于物流配送，市三无药店取药
         updateTakeDrugWayReqTO.setDeliveryType("1");
+        LOGGER.info("华东虚拟药企-取药方式更新通知his. req={}",JSONUtils.toString(updateTakeDrugWayReqTO));
         HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
-        LOGGER.info("华东虚拟药企-取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
+        LOGGER.info("华东虚拟药企-取药方式更新通知his. res={}",JSONUtils.toString(hisResult));
+        if (hisResult!=null && !("200".equals(hisResult.getMsgCode()))){
+            //推送不成功就退款
+            //退款
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            recipeService.wxPayRefundForRecipe(1, recipe.getRecipeId(), null);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "更新取药方式失败，his返回原因：" + hisResult.getMsg());
+
+        }
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
 

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<s:beans xmlns:s="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ngari"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.ngarihealth.com/schema/ngari
+						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
+
+    <reference interface="com.ngari.ca.api.service.ICaRemoteService" id="mi.caRemoteService"/>
+    <reference id="mi.authExtraService" interface="com.ngari.auth.api.service.IAuthExtraService"/>
+
+</s:beans>

@@ -65,6 +65,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  deliveryType;//	处方配送方式 0医院取药 1物流配送 2药店取药
     private String  deliveryFirm;//	配送厂商名称
     private Date    deliveryDate;//	配送时间
+    private Date sendTime; //配送开始时间
+    private Date finishTime; //配送结束时间
+    private Integer deliveryStatus; //配送状态
     private Double  totalFee;//	处方金额
     private String  isPay;//	是否支付
     private String  tradeNo;//	第三方支付交易流水号
@@ -72,6 +75,14 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private Date    verificationTime;//	处方核销时间
     private String  verificationUnit;//	处方核销单位
     private Date  updateTime;//	最后更新时间
+
+    private Integer  recipeStatus;//处方状态
+
+    private String payFlag; //支付标识 0未支付 1已支付
+
+    private String signRecipeCode; //处方开具签名
+
+    private String signCADate; //可信时间戳（医生处方签名生成时间戳）
 
 //    private String  satisfaction; //满意度
 //    private String  scoring;//评分
@@ -96,7 +107,36 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private FirstVisitRecord firstVisitRecord;//初诊列表数据集
 
+    //发药药师姓名
+    private String dispensingApothecaryName;
+    //发药药师身份证号
+    private String dispensingApothecaryIdCard;
 
+    /**
+     * 商户订单号
+     */
+    private String outTradeNo;
+
+    /**
+     * 支付时间
+     */
+    private Date payTime;
+
+    public String getOutTradeNo() {
+        return outTradeNo;
+    }
+
+    public void setOutTradeNo(String outTradeNo) {
+        this.outTradeNo = outTradeNo;
+    }
+
+    public Date getPayTime() {
+        return payTime;
+    }
+
+    public void setPayTime(Date payTime) {
+        this.payTime = payTime;
+    }
 
     public String getUnitID() {
         return unitID;
@@ -640,5 +680,77 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setFirstVisitRecord(FirstVisitRecord firstVisitRecord) {
         this.firstVisitRecord = firstVisitRecord;
+    }
+
+    public Integer getRecipeStatus() {
+        return recipeStatus;
+    }
+
+    public void setRecipeStatus(Integer recipeStatus) {
+        this.recipeStatus = recipeStatus;
+    }
+
+    public String getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(String payFlag) {
+        this.payFlag = payFlag;
+    }
+
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    public Date getSendTime() {
+        return sendTime;
+    }
+
+    public void setSendTime(Date sendTime) {
+        this.sendTime = sendTime;
+    }
+
+    public Date getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(Date finishTime) {
+        this.finishTime = finishTime;
+    }
+
+    public Integer getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(Integer deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
     }
 }

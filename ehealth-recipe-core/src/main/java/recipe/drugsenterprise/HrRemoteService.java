@@ -5,8 +5,10 @@ import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -62,8 +64,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     @Resource
     private RecipeOrderDAO recipeOrderDAO;
 
-    @Resource
-    private RecipeCheckDAO recipeCheckDAO;
 
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
@@ -80,6 +80,16 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return null;
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (ObjectUtils.isEmpty(recipeIds)) {
@@ -91,6 +101,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         HrPushRecipeInfo hrPushRecipeInfo = new HrPushRecipeInfo();
         if (!ObjectUtils.isEmpty(recipeList)) {
             Recipe recipe = recipeList.get(0);
+            getMedicalInfo(recipe);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
@@ -229,8 +240,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 String usingRate ;
                 String usePathways ;
                 try {
-                    usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetails.get(i).getUsingRate());
-                    usePathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetails.get(i).getUsePathways());
+                    usingRate = recipedetails.get(i).getUsingRateTextFromHis()!=null?recipedetails.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetails.get(i).getUsingRate());
+                    usePathways = recipedetails.get(i).getUsePathwaysTextFromHis()!=null?recipedetails.get(i).getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetails.get(i).getUsePathways());
                 } catch (ControllerException e) {
                     return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                 }
@@ -241,6 +252,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 detail.setPerDosageQuantity(recipedetails.get(i).getUseDose());
                 detail.setPerDosageUnit(recipedetails.get(i).getUseDoseUnit());
                 detail.setDays(recipedetails.get(i).getUseDays());
+                //date 20200526
+                //修改推给华润药企的天数big->int
 
                 detail.setCommonName(saleDrugList.getDrugName());
                 detail.setSpecs(saleDrugList.getDrugSpec());
@@ -316,6 +329,11 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         return result;
     }
 
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
     @RpcService
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
@@ -378,10 +396,15 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("HrRemoteService.findScanStockStores.responseStr: {}.", responseStr);
-            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
-                List<HrStoreResponse> hrStoreResponses = JSONObject.parseArray(responseStr, HrStoreResponse.class);
-                LOGGER.info("HrRemoteService.findAllStores.HrStoreResponse: {}.", JSONUtils.toString(hrStoreResponses));
-                return hrStoreResponses;
+            if (StringUtils.isNotEmpty(responseStr) && responseStr.contains("!DOCTYPE")) {
+                //说明华润的服务器出现问题
+                return new ArrayList<>();
+            } else {
+                if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
+                    List<HrStoreResponse> hrStoreResponses = JSONObject.parseArray(responseStr, HrStoreResponse.class);
+                    LOGGER.info("HrRemoteService.findAllStores.HrStoreResponse: {}.", JSONUtils.toString(hrStoreResponses));
+                    return hrStoreResponses;
+                }
             }
         } catch (IOException e) {
             LOGGER.warn("findScanStockStores error.", e);
@@ -411,10 +434,15 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("HrRemoteService.findStoreByPosintion.responseStr: {}.", responseStr);
-            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode() && responseStr.contains("StoreName")){
-                List<HrStoreBean> hrStoreBeans = JSONObject.parseArray(responseStr, HrStoreBean.class);
-                LOGGER.info("HrRemoteService.findStoreByPosintion.hrStoreBean: {}.", JSONUtils.toString(hrStoreBeans));
-                return hrStoreBeans;
+            if (StringUtils.isNotEmpty(responseStr) && responseStr.contains("!DOCTYPE")) {
+                //说明华润的服务器出现问题
+                return new ArrayList<>();
+            } else {
+                if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode() && responseStr.contains("StoreName")){
+                    List<HrStoreBean> hrStoreBeans = JSONObject.parseArray(responseStr, HrStoreBean.class);
+                    LOGGER.info("HrRemoteService.findStoreByPosintion.hrStoreBean: {}.", JSONUtils.toString(hrStoreBeans));
+                    return hrStoreBeans;
+                }
             }
         }catch (Exception e){
             LOGGER.warn("findStoreByPosintion error.", e);
@@ -437,10 +465,15 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("HrRemoteService.findAllStores.responseStr: {}.", responseStr);
-            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
-                List<HrStoreBean> hrStoreBeans = JSONObject.parseArray(responseStr, HrStoreBean.class);
-                LOGGER.info("HrRemoteService.findAllStores.hrStoreBean: {}.", JSONUtils.toString(hrStoreBeans));
-                return hrStoreBeans;
+            if (StringUtils.isNotEmpty(responseStr) && responseStr.contains("!DOCTYPE")) {
+                //说明华润的服务器出现问题
+                return new ArrayList<>();
+            } else {
+                if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
+                    List<HrStoreBean> hrStoreBeans = JSONObject.parseArray(responseStr, HrStoreBean.class);
+                    LOGGER.info("HrRemoteService.findAllStores.hrStoreBean: {}.", JSONUtils.toString(hrStoreBeans));
+                    return hrStoreBeans;
+                }
             }
         } catch (IOException e) {
             LOGGER.warn("findAllStores error.", e);
@@ -466,7 +499,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         String time = getTime(new Date());
 
         String signStr = userName + DigestUtil.md5For32(password) + path + queryString + body + time;
-        System.out.println(userName + "/" + DigestUtil.md5For32(signStr) + "/" + time);
         return userName + "/" + DigestUtil.md5For32(signStr) + "/" + time;
     }
 
@@ -579,7 +611,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             try {
                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";
@@ -590,7 +622,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         try {
             query = new String(queryString.getBytes("ISO-8859-1"), "utf-8");
         } catch (Exception e) {
-            LOGGER.info("getUtf8Str error.");
+            LOGGER.info("getUtf8Str error.",e);
         }
         return query;
     }

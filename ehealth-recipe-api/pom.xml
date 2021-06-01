@@ -6,7 +6,7 @@
     <parent>
         <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.15.4.master-SNAPSHOT</version>
+        <version>3.5.3.1.master-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
@@ -16,9 +16,63 @@
 
     <dependencies>
         <dependency>
-            <groupId>ssdev</groupId>
-            <artifactId>ssdev-mixins</artifactId>
-            <version>${ssdev.version}</version>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-mixins</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>okhttp</artifactId>
+                    <groupId>com.squareup.okhttp3</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>okio</artifactId>
+                    <groupId>com.squareup.okio</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>aspectjweaver</artifactId>
+                    <groupId>org.aspectj</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xml-apis</artifactId>
+                    <groupId>xml-apis</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-bill-api</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>aspectjweaver</artifactId>
+                    <groupId>org.aspectj</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xml-apis</artifactId>
+                    <groupId>xml-apis</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-his-api</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>ehealth-patient-api</artifactId>
+                    <groupId>ngari</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-basic-dto</artifactId>
         </dependency>
     </dependencies>
 </project>

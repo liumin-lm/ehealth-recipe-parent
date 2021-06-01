@@ -15,6 +15,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +30,8 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
 
     public RecipeExtendDAO() {
         super();
-        this.setEntityName(RecipeExtend.class.getName());
-        this.setKeyField("recipeId");
+        setEntityName(RecipeExtend.class.getName());
+        setKeyField("recipeId");
     }
 
     /**
@@ -45,6 +46,9 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
 
     public void saveRecipeExtend(RecipeExtend recipeExtend) {
         LOGGER.info("处方扩展表保存：" + JSONUtils.toString(recipeExtend));
+        if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+            recipeExtend.setCanUrgentAuditRecipe(0);
+        }
         super.save(recipeExtend);
     }
 
@@ -74,10 +78,13 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         if(null == recipeExtend.getRecipeId()){
             return;
         }
-        if (ObjectUtils.isEmpty(this.getByRecipeId(recipeExtend.getRecipeId()))) {
-            this.save(recipeExtend);
+        if (recipeExtend.getCanUrgentAuditRecipe() == null) {
+            recipeExtend.setCanUrgentAuditRecipe(0);
+        }
+        if (ObjectUtils.isEmpty(getByRecipeId(recipeExtend.getRecipeId()))) {
+            save(recipeExtend);
         } else {
-            this.update(recipeExtend);
+            update(recipeExtend);
         }
     }
 
@@ -127,5 +134,73 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "select recipeId from RecipeExtend where rxNo=:rxNo")
     public abstract List<Integer> findRecipeIdsByRxNo(@DAOParam("rxNo") String rxNo);
 
+
+    /**
+     * 删除 电子病例处方关联
+     *
+     * @param docIndexId
+     */
+    @DAOMethod(sql = "update RecipeExtend set docIndexId=0 where docIndexId=:docIndexId")
+    public abstract void updateDocIndexId(@DAOParam("docIndexId") int docIndexId);
+
+    /**
+     * 根据处方id批量删除
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "delete from RecipeExtend where recipeId in (:recipeIds)")
+    public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+
+    /**
+     * 根据处方id批量查询
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)",limit = 0)
+    public abstract List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+
+    /**
+     * 新处方详情自定义字段 by recipeIds
+     *
+     * @param recipeIds
+     * @param changeAttr
+     * @return
+     */
+    public Boolean updateRecipeExtByRecipeIdS(List<Integer> recipeIds, Map<String, Object> changeAttr) {
+        return updateRecipeExtByKeyS("recipeId", recipeIds, changeAttr);
+    }
+
+    private Boolean updateRecipeExtByKeyS(final String keyName, final Object keyValue, final Map<String, Object> changeAttr) {
+        if (null == changeAttr || changeAttr.isEmpty()) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update RecipeExtend set ");
+                StringBuilder keyHql = new StringBuilder();
+                for (String key : changeAttr.keySet()) {
+                    keyHql.append("," + key + "=:" + key);
+                }
+                hql.append(keyHql.toString().substring(1)).append(" where " + keyName + " in (:" + keyName + ")");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameterList(keyName, (List<Object>)keyValue);
+                Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
+                while (it.hasNext()){
+                    Map.Entry<String, Object> m = it.next();
+                    q.setParameter(m.getKey(), m.getValue());
+                }
+
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
 }

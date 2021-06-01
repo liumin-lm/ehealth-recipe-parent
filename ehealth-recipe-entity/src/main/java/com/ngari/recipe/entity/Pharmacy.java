@@ -40,6 +40,9 @@ public class Pharmacy implements Serializable {
     @ItemProperty(alias = "药店纬度")
     private String pharmacyLatitude;
 
+    @ItemProperty(alias = "药店电话号")
+    private String pharmacyPhone;
+
     @ItemProperty(alias = "启动状态")
     private Integer status;
 
@@ -106,6 +109,14 @@ public class Pharmacy implements Serializable {
 
     public void setPharmacyLatitude(String pharmacyLatitude) {
         this.pharmacyLatitude = pharmacyLatitude;
+    }
+
+    public String getPharmacyPhone() {
+        return pharmacyPhone;
+    }
+
+    public void setPharmacyPhone(String pharmacyPhone) {
+        this.pharmacyPhone = pharmacyPhone;
     }
 
     public Integer getStatus() {

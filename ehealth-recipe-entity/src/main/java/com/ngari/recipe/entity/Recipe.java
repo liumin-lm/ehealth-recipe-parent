@@ -2,15 +2,15 @@ package com.ngari.recipe.entity;
 
 import ctd.account.session.ClientSession;
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author yuyun
@@ -29,10 +29,13 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "订单编号")
     private String orderCode;
 
-    @ItemProperty(alias = "就诊序号")
+    @ItemProperty(alias = "开处方来源 1问诊 2复诊(在线续方) 3网络门诊")
+    private Integer bussSource;
+
+    @ItemProperty(alias = "就诊序号(对应来源的业务id)")
     private Integer clinicId;
 
-    @ItemProperty(alias = "主索引")
+    @ItemProperty(alias = "主索引（患者编号）")
     private String mpiid;
 
     @ItemProperty(alias = "患者医院病历号")
@@ -52,13 +55,13 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer originClinicOrgan;
 
-    @ItemProperty(alias = "处方号码")
+    @ItemProperty(alias = "处方号码，处方回写")
     private String recipeCode;
 
     @ItemProperty(alias = "处方来源源处方号")
     private String originRecipeCode;
 
-    @ItemProperty(alias = "处方类型")
+    @ItemProperty(alias = "处方类型 1 西药 2 中成药")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
@@ -69,7 +72,7 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
 
-    @ItemProperty(alias = "开方医生")
+    @ItemProperty(alias = "开方医生（医生Id）")
     @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer doctor;
 
@@ -117,8 +120,10 @@ public class Recipe implements Serializable {
     private Date checkDate;
 
     @ItemProperty(alias = "审核人")
-    @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer checker;
+
+    @ItemProperty(alias = "审核药师姓名")
+    private String checkerText;
 
     @ItemProperty(alias = "人工审核日期")
     private Date checkDateYs;
@@ -131,16 +136,17 @@ public class Recipe implements Serializable {
     private Integer payMode;
 
     @ItemProperty(alias = "发药方式")
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
 
     @ItemProperty(alias = "发药人姓名")
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
+    @FileToken(expires = 3600)
     private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
+    @FileToken(expires = 3600)
     private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
@@ -289,19 +295,20 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
     private Integer takeMedicine;
 
-    @ItemProperty(alias = "处方发起者id")
+    @ItemProperty(alias = "处方发起者id,用户标识")
     private String requestMpiId;
 
     @ItemProperty(alias = "处方发起者urt")
     private Integer requestUrt;
 
-    @ItemProperty(alias="当前clientId")
+    @ItemProperty(alias = "当前clientId")
     private Integer currentClient;
 
-    @ItemProperty(alias="监管平台同步标记: 0未同步，1已同步")
+    @ItemProperty(alias = "监管平台同步标记: 0未同步，1已同步")
     private Integer syncFlag;
 
     @ItemProperty(alias = "签名的处方img")
+    @FileToken(expires = 3600)
     private String signImg;
     /**
      * 添加属性 2019/08/29
@@ -310,6 +317,13 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核模式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "审核途径 1平台审核 2his审核")
+    private Integer checkMode;
+
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    private Integer recipeSourceType;
+
+
     /**
      * 添加属性 2019/10/10
      * 审核状态标记位，暂时标记一次审核不通过
@@ -317,6 +331,45 @@ public class Recipe implements Serializable {
      */
     @ItemProperty(alias = "审核状态标记位")
     private Integer checkStatus;
+
+    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
+    private Integer recipeSource;
+
+    @ItemProperty(alias = "医生处方数字签名值")
+    private String signRecipeCode;
+
+    @ItemProperty(alias = "药师处方数字签名值")
+    private String signPharmacistCode;
+
+    @ItemProperty(alias = "医生处方数字签名可信服务器时间")
+    private String signCADate;
+
+    @ItemProperty(alias = "药师处方数字签名可信服务器时间")
+    private String signPharmacistCADate;
+
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
+    @ItemProperty(alias = "调配人")
+    private String dispensPeople;
+
+    @ItemProperty(alias = "失效时间")
+    private Date invalidTime;
+
+    @ItemProperty(alias = "是否被接方 0 未接方 1已接方")
+    private Integer grabOrderStatus;
+
+    @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
+    private String recipeSupportGiveMode;
+
+    @Column(name = "recipeSupportGiveMode")
+    public String getRecipeSupportGiveMode() {
+        return recipeSupportGiveMode;
+    }
+
+    public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
+        this.recipeSupportGiveMode = recipeSupportGiveMode;
+    }
 
     public Recipe() {
     }
@@ -457,6 +510,15 @@ public class Recipe implements Serializable {
         this.sendDate = sendDate;
         this.signDate = signDate;
         this.memo = memo;
+    }
+
+    @Column(name = "invalidTime")
+    public Date getInvalidTime() {
+        return invalidTime;
+    }
+
+    public void setInvalidTime(Date invalidTime) {
+        this.invalidTime = invalidTime;
     }
 
     @Column(name = "checkStatus")
@@ -738,6 +800,15 @@ public class Recipe implements Serializable {
 
     public void setChecker(Integer checker) {
         this.checker = checker;
+    }
+
+    @Column(name = "CheckerText")
+    public String getCheckerText() {
+        return checkerText;
+    }
+
+    public void setCheckerText(String checkerText) {
+        this.checkerText = checkerText;
     }
 
     @Column(name = "CheckDateYs")
@@ -1284,4 +1355,114 @@ public class Recipe implements Serializable {
     public void setReviewType(Integer reviewType) {
         this.reviewType = reviewType;
     }
+
+    @Column(name = "bussSource")
+    public Integer getBussSource() {
+        return bussSource;
+    }
+
+    public void setBussSource(Integer bussSource) {
+        this.bussSource = bussSource;
+    }
+
+    @Column(name = "recipeSource")
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
+    }
+
+    @Column(name = "checkMode")
+    public Integer getCheckMode() {
+        return checkMode;
+    }
+
+    public void setCheckMode(Integer checkMode) {
+        this.checkMode = checkMode;
+    }
+
+    @Column(name = "signRecipeCode")
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    @Column(name = "signPharmacistCode")
+    public String getSignPharmacistCode() {
+        return signPharmacistCode;
+    }
+
+    public void setSignPharmacistCode(String signPharmacistCode) {
+        this.signPharmacistCode = signPharmacistCode;
+    }
+
+    @Column(name = "signCADate")
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    @Column(name = "signPharmacistCADate")
+    public String getSignPharmacistCADate() {
+        return signPharmacistCADate;
+    }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) {
+        this.signPharmacistCADate = signPharmacistCADate;
+    }
+
+    @Column(name = "recipeSourceType")
+    public Integer getRecipeSourceType() {
+        return recipeSourceType;
+    }
+
+    public void setRecipeSourceType(Integer recipeSourceType) {
+        this.recipeSourceType = recipeSourceType;
+    }
+
+    @Column(name = "recipePayType")
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
+    }
+
+    @Column(name = "dispens_people")
+    public String getDispensPeople() {
+        return dispensPeople;
+    }
+
+    public void setDispensPeople(String dispensPeople) {
+        this.dispensPeople = dispensPeople;
+    }
+
+    @Column(name = "grabOrderStatus")
+    public Integer getGrabOrderStatus() {
+        return grabOrderStatus;
+    }
+    public void setGrabOrderStatus(Integer grabOrderStatus) {
+        this.grabOrderStatus = grabOrderStatus;
+    }
+
+    public Recipe(Integer recipeId, String supplementaryMemo) {
+        this.recipeId = recipeId;
+        this.supplementaryMemo = supplementaryMemo;
+    }
+
+    public Recipe(Integer recipeId, Integer clinicOrgan, Integer recipeType) {
+        this.recipeId = recipeId;
+        this.clinicOrgan = clinicOrgan;
+        this.recipeType = recipeType;
+    }
 }
+

@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
 
+import com.ngari.patient.dto.PatientDTO;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -40,6 +41,10 @@ public class PatientRecipeDTO implements Serializable {
 
     private Date signDate;
 
+    private String doctorName;
+
+    private String departName;
+
     private BigDecimal totalMoney;
 
     private String statusText;
@@ -68,7 +73,11 @@ public class PatientRecipeDTO implements Serializable {
 
     private Integer giveMode;
 
+    private String signFile;
+
     private List<RecipeDetailBean> recipeDetail;
+
+    private RecipeExtendBean recipeExtend;
 
     /**
      * 药师签名的处方PDF
@@ -79,6 +88,35 @@ public class PatientRecipeDTO implements Serializable {
      * 处方的取药窗口
      */
     private String getDrugWindow;
+
+    private Integer payFlag;//支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败
+
+    private boolean isHiddenRecipeDetail;//是否隐方
+
+    private String recipeCode;
+
+    /**订单详情页用到*/
+    private RecipeBean recipe;
+    /**订单详情页用到*/
+    private PatientDTO patient;
+
+    private String qrName;
+
+    public boolean getIsHiddenRecipeDetail() {
+        return isHiddenRecipeDetail;
+    }
+
+    public void setIsHiddenRecipeDetail(boolean hiddenRecipeDetail) {
+        isHiddenRecipeDetail = hiddenRecipeDetail;
+    }
+
+    public Integer getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(Integer payFlag) {
+        this.payFlag = payFlag;
+    }
 
     public PatientRecipeDTO() {
     }
@@ -297,5 +335,69 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setGiveMode(Integer giveMode) {
         this.giveMode = giveMode;
+    }
+
+    public String getSignFile() {
+        return signFile;
+    }
+
+    public void setSignFile(String signFile) {
+        this.signFile = signFile;
+    }
+
+    public RecipeExtendBean getRecipeExtend() {
+        return recipeExtend;
+    }
+
+    public void setRecipeExtend(RecipeExtendBean recipeExtendBean) {
+        this.recipeExtend = recipeExtendBean;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
+    }
+
+    public RecipeBean getRecipe() {
+        return recipe;
+    }
+
+    public void setRecipe(RecipeBean recipe) {
+        this.recipe = recipe;
+    }
+
+    public PatientDTO getPatient() {
+        return patient;
+    }
+
+    public void setPatient(PatientDTO patient) {
+        this.patient = patient;
+    }
+
+    public String getQrName() {
+        return qrName;
+    }
+
+    public void setQrName(String qrName) {
+        this.qrName = qrName;
     }
 }

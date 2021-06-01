@@ -1,9 +1,11 @@
 package com.ngari.recipe.recipeorder.model;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.Column;
 import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -79,6 +81,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
+    @ItemProperty(alias = "需支付费用")
+    private BigDecimal needFee;
+
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
+    private Integer expressFeePayWay;
+
     @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
@@ -127,6 +135,10 @@ public class RecipeOrderBean implements Serializable {
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address3;
 
+    @ItemProperty(alias = "地址（区县）")
+    @Dictionary(id = "eh.base.dictionary.AddrArea")
+    private String streetAddress;
+
     @ItemProperty(alias = "详细地址")
     private String address4;
 
@@ -172,6 +184,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "机构代煎单价")
     private BigDecimal decoctionUnitPrice;
 
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+
     @ItemProperty(alias = "剂数")
     private Integer copyNum;
 
@@ -187,10 +202,153 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "药企电话")
+    private String tel;
+
     //date 2019/10/18
     //添加优惠卷信息
     @ItemProperty(alias = "优惠券描述")
     private String couponDesc;
+
+    @ItemProperty(alias = "取消原因")
+    private String cancelReason;
+
+    @ItemProperty(alias = "期望配送日期")
+    private String expectSendDate;
+
+    @ItemProperty(alias = "期望配送时间")
+    private String expectSendTime;
+
+    @ItemProperty(alias = "运费细则图片ID")
+    @FileToken(expires = 3600)
+    private String transFeeDetail;
+
+    @ItemProperty(alias = "医保结算订单号")
+    private String settleOrderNo;
+
+    @ItemProperty(alias = "医保结算人脸识别token")
+    private String smkFaceToken;
+
+    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
+    private Integer orderType;
+
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private Double preSettleTotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private Double fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private Double cashAmount;
+
+    @ItemProperty(alias = "处方预结算返回门诊挂号序号")
+    private String registerNo;
+
+    @ItemProperty(alias = "处方预结算返回HIS收据号")
+    private String hisSettlementNo;
+
+    @ItemProperty(alias = "订单退款标识")
+    private Integer refundFlag;
+
+    @ItemProperty(alias = "订单退款时间")
+    private Date refundTime;
+
+    @ItemProperty(alias = "医保结算信息串")
+    private String medicalSettleInfo;
+
+    @ItemProperty(alias = "医保代码")
+    private String medicalSettleCode;
+
+    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
+    private String wnPayWay;
+
+    @ItemProperty(alias = "his推送药企名")
+    private String hisEnterpriseName;
+
+    @ItemProperty(alias = "支付平台回写支付信息")
+    private String payBackInfo;
+
+    @ItemProperty(alias = "配送主体类型 1医院配送 2药企配送")
+    private Integer sendType;
+
+    @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
+    private Integer payeeCode;
+
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
+    private Integer storePayFlag;
+
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    private Integer isShowExpectSendDate;
+
+    @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
+    private Integer expectSendDateIsContainsWeekend;
+
+    @ItemProperty(alias = "配送时间说明文案")
+    private String sendDateText;
+
+    @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    @ItemProperty(alias = "已发药时间")
+    private Date dispensingTime;
+
+    @ItemProperty(alias = "发药状态修改时间")
+    private Date dispensingStatusAlterTime;
+
+    @Deprecated
+    /**
+     * 发药药师姓名 废弃字段兼容老版本暂时保留
+     */
+    private String dispensingApothecaryName;
+    @Deprecated
+    /**
+     * 发药药师身份证 废弃字段兼容老版本暂时保留
+     */
+    private String dispensingApothecaryIdCard;
+
+    @ItemProperty(alias = "订单备注")
+    private String orderMemo;
+
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
+
+    public Integer getIsShowExpectSendDate() {
+        return isShowExpectSendDate;
+    }
+
+    public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
+        this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+
+    public Integer getExpectSendDateIsContainsWeekend() {
+        return expectSendDateIsContainsWeekend;
+    }
+
+    public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
+        this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
+    }
+
+    public String getSendDateText() {
+        return sendDateText;
+    }
+
+    public void setSendDateText(String sendDateText) {
+        this.sendDateText = sendDateText;
+    }
+
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
+    }
 
     public RecipeOrderBean() {
         initData();
@@ -204,6 +362,7 @@ public class RecipeOrderBean implements Serializable {
         this.setCouponFee(zero);
         this.setExpressFee(zero);
         this.setDecoctionFee(zero);
+        this.setTcmFee(zero);
         this.setTotalFee(zero);
         this.setActualPrice(0d);
         this.setPushFlag(0);
@@ -211,6 +370,22 @@ public class RecipeOrderBean implements Serializable {
         this.setCreateTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public String getHisEnterpriseName() {
+        return hisEnterpriseName;
+    }
+
+    public void setHisEnterpriseName(String hisEnterpriseName) {
+        this.hisEnterpriseName = hisEnterpriseName;
+    }
+
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
     }
 
     public String getCouponDesc() {
@@ -445,6 +620,14 @@ public class RecipeOrderBean implements Serializable {
         this.addressID = addressID;
     }
 
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
+    }
+
     public String getReceiver() {
         return receiver;
     }
@@ -491,6 +674,14 @@ public class RecipeOrderBean implements Serializable {
 
     public void setAddress3(String address3) {
         this.address3 = address3;
+    }
+
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
     }
 
     public String getAddress4() {
@@ -651,5 +842,224 @@ public class RecipeOrderBean implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
+    }
+
+    public String getExpectSendDate() {
+        return expectSendDate;
+    }
+
+    public String getExpectSendTime() {
+        return expectSendTime;
+    }
+
+    public void setExpectSendDate(String expectSendDate) {
+        this.expectSendDate = expectSendDate;
+    }
+
+    public void setExpectSendTime(String expectSendTime) {
+        this.expectSendTime = expectSendTime;
+    }
+
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
+    }
+
+    public String getSettleOrderNo() {
+        return settleOrderNo;
+    }
+
+    public void setSettleOrderNo(String settleOrderNo) {
+        this.settleOrderNo = settleOrderNo;
+    }
+
+    public String getSmkFaceToken() {
+        return smkFaceToken;
+    }
+
+    public void setSmkFaceToken(String smkFaceToken) {
+        this.smkFaceToken = smkFaceToken;
+    }
+
+    public Double getPreSettletotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettletotalAmount(Double preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
+    }
+
+    public Integer getRefundFlag() {
+        return refundFlag;
+    }
+
+    public void setRefundFlag(Integer refundFlag) {
+        this.refundFlag = refundFlag;
+    }
+
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
+    }
+
+    public String getMedicalSettleInfo() {
+        return medicalSettleInfo;
+    }
+
+    public void setMedicalSettleInfo(String medicalSettleInfo) {
+        this.medicalSettleInfo = medicalSettleInfo;
+    }
+
+    public String getMedicalSettleCode() {
+        return medicalSettleCode;
+    }
+
+    public void setMedicalSettleCode(String medicalSettleCode) {
+        this.medicalSettleCode = medicalSettleCode;
+    }
+
+    public String getWnPayWay() {
+        return wnPayWay;
+    }
+
+    public void setWnPayWay(String wnPayWay) {
+        this.wnPayWay = wnPayWay;
+    }
+
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
+    }
+
+    public String getPayBackInfo() {
+        return payBackInfo;
+    }
+
+    public void setPayBackInfo(String payBackInfo) {
+        this.payBackInfo = payBackInfo;
+    }
+
+    public BigDecimal getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
+    }
+
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
+    }
+
+    @Transient
+    public BigDecimal getNeedFee() {
+        return needFee;
+    }
+
+    public void setNeedFee(BigDecimal needFee) {
+        this.needFee = needFee;
+    }
+
+    public String getRegisterNo() {
+        return registerNo;
+    }
+
+    public void setRegisterNo(String registerNo) {
+        this.registerNo = registerNo;
+    }
+
+    public String getHisSettlementNo() {
+        return hisSettlementNo;
+    }
+
+    public void setHisSettlementNo(String hisSettlementNo) {
+        this.hisSettlementNo = hisSettlementNo;
+    }
+
+    @Column(name = "dispensingTime")
+    public Date getDispensingTime() {
+        return dispensingTime;
+    }
+
+    public void setDispensingTime(Date dispensingTime) {
+        this.dispensingTime = dispensingTime;
+    }
+
+    @Column(name = "dispensingStatusAlterTime")
+    public Date getDispensingStatusAlterTime() {
+        return dispensingStatusAlterTime;
+    }
+
+    public void setDispensingStatusAlterTime(Date dispensingStatusAlterTime) {
+        this.dispensingStatusAlterTime = dispensingStatusAlterTime;
+    }
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    public String getOrderMemo() {
+        return orderMemo;
+    }
+
+    public void setOrderMemo(String orderMemo) {
+        this.orderMemo = orderMemo;
     }
 }

@@ -49,6 +49,9 @@ public class AuditMedicineIssue implements Serializable {
     @ItemProperty(alias = "逻辑删除")
     private Integer logicalDeleted;
 
+    @ItemProperty(alias = "处方分析明细")
+    private String detailUrl;
+
     @Column(name = "createTime")
     public Date getCreateTime() {
         return createTime;
@@ -139,5 +142,14 @@ public class AuditMedicineIssue implements Serializable {
 
     public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
+    }
+
+    @Column(name = "detailUrl")
+    public String getDetailUrl() {
+        return detailUrl;
+    }
+
+    public void setDetailUrl(String detailUrl) {
+        this.detailUrl = detailUrl;
     }
 }

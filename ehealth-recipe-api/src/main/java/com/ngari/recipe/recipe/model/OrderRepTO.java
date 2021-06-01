@@ -64,9 +64,28 @@ public class OrderRepTO implements Serializable {
     private String price;
 
     /**
+     * 药品规格
+     */
+    private String drugSpec;
+    /**
+     * 医保药品编码
+     */
+    private String medicalDrugCode;
+
+    /**
      * 取药窗口
      */
     private String pharmNo;
+
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
 
     /**
      * 备注
@@ -78,6 +97,11 @@ public class OrderRepTO implements Serializable {
     private String drugName;
 
     private String sendFlag;
+
+    /**
+     * 药品包装数量
+     */
+    private Integer pack;
 
     public String getIsDrugStock() {
         return isDrugStock;
@@ -197,5 +221,45 @@ public class OrderRepTO implements Serializable {
 
     public void setRegisterID(String registerID) {
         this.registerID = registerID;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
+    }
+
+    public String getDrugSpec() {
+        return drugSpec;
+    }
+
+    public void setDrugSpec(String drugSpec) {
+        this.drugSpec = drugSpec;
+    }
+
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
+
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
     }
 }

@@ -1,13 +1,14 @@
 package com.ngari.recipe.recipeorder.service;
 
 import com.ngari.recipe.IBaseService;
-import com.ngari.recipe.common.RecipeBussResTO;
-import com.ngari.recipe.common.RecipeListReqTO;
-import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.common.*;
+import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
+import eh.billcheck.vo.*;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -79,6 +80,15 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     RecipeOrderBean getByOutTradeNo(String outTradeNo);
 
     /**
+     * 根据订单编号获取订单
+     *
+     * @param orderCode 订单号
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    RecipeOrderBean getByOrderCode(String orderCode);
+
+    /**
      * 查询某一支付状态下的订单
      *
      * @param request 查询条件
@@ -106,4 +116,99 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     RecipeOrderBean getRelationOrderByRecipeId(int recipeId);
+
+    /**
+     * 根据日期获取一天的订单支付信息
+     *
+     * @param request 日期
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    public RecipeBillResponse<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request);
+
+    /**
+     * 根据日期获取电子处方药企配送订单明细
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, Integer recipeId, Integer payType, int start, int limit);
+
+    /**
+     * 电子处方药企配送药品统计
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit);
+
+    @RpcService
+    List<BillBusFeeVo> findRecipeFeeList(RecipeBillRequest recipeBillRequest);
+
+    @RpcService
+    List<BillDrugFeeVo> findDrugFeeList(RecipeBillRequest recipeBillRequest);
+
+    @RpcService
+    public RecipeRefundBean getRecipeRefundByRecipeIdAndNode(Integer recipeId, Integer node);
+
+    //有退费结果回调接口，修改处方和订单的状态，推送消息
+    @RpcService
+    public void refundCallback(Integer busId, Integer refundStatus, String msg);
+
+    /**
+     * 更新取药窗口
+     *
+     * @param recipeId
+     * @param pharmNo
+     */
+    @RpcService
+    Boolean updatePharmNo(Integer recipeId, String pharmNo);
+
+
+    /**
+     * 更新取药窗口(多个处方同时更新)
+     *
+     * @param recipeId
+     * @param pharmNo
+     */
+    @RpcService
+    Boolean updatePharmNoS(List<Integer> recipeId, String pharmNo);
+
+    /**
+     * 基础服务更新处方物流状态
+     *
+     * @param trannckingReqTO
+     * @return
+     */
+    @RpcService
+    Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO);
+
+
+    /**
+     * 保存处方订单电子票据信息
+     *
+     * @param orderBillReqTO
+     * @return
+     */
+    @RpcService
+    Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO);
+
+
+
+    /**
+     * 更新取药窗口(多个处方同时更新) ext表
+     *  @param recipeId 处方订单ID
+     * @param pharmNo 取药窗口
+     */
+    @RpcService
+    Boolean updateExtPharmNoS(List<Integer> recipeId, String pharmNo);
+
 }

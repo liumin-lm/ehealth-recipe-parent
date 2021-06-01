@@ -1,14 +1,21 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.opbase.base.mode.ScratchableTempDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.service.IOrganDrugListService;
+import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugSources;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -25,6 +32,9 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
+import recipe.dao.DrugSourcesDAO;
+import recipe.dao.SaleDrugListDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
 import java.util.*;
@@ -95,14 +105,14 @@ public class DrugListService extends BaseService<DrugListBean> {
     /**
      * 添加药品
      *
-     * @param d
+     * @param drugListBean
      * @return
      * @author zhongzx
      */
     @RpcService
     public DrugListBean addDrugList(DrugListBean drugListBean) {
         DrugList d = ObjectCopyUtils.convert(drugListBean, DrugList.class);
-        logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(d));
+        logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(drugListBean));
         if (null == d) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugList is null");
         }
@@ -138,6 +148,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         if(null != drugListBean.getDispensatory()) {
             DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
             DispensatoryDTO dispensatoryDTO = drugListBean.getDispensatory();
+            dispensatoryDTO.setName(d.getDrugName()+"("+d.getSaleName()+")");
             dispensatoryDTO.setDrugId(d.getDrugId());
             dispensatoryDTO.setDrugName(d.getDrugName());
             dispensatoryDTO.setSaleName(d.getSaleName());
@@ -180,10 +191,36 @@ public class DrugListService extends BaseService<DrugListBean> {
         }
     }
 
+    @RpcService
+    public int isExistDrugId(Integer depId,Integer drugId, Integer organDrugId){
+        if (drugId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
+        }
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        DrugList drugList = dao.getById(drugId);
+
+        if (drugList == null) {
+            return 1;
+        } else {
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            //说明用户修改药品ID
+            SaleDrugList tagersaleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+            if (tagersaleDrugList == null) {
+                return 0;
+            }
+            logger.info("DrugListSerevice.isExistDrugId tagersaleDrugList:{"+JSONUtils.toString(tagersaleDrugList)+"},organDrugId:{"+organDrugId+"}.");
+            if (tagersaleDrugList.getOrganDrugId().equals(organDrugId)) {
+                return 0;
+            } else {
+                return 2;
+            }
+        }
+    }
+
     /**
      * 更新药品信息
      *
-     * @param drugList
+     * @param drugListBean
      * @return
      * @author zhongzx
      */
@@ -200,18 +237,138 @@ public class DrugListService extends BaseService<DrugListBean> {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
         } else {
             drugList.setLastModify(new Date());
-            BeanUtils.map(drugList, target);
-            target = dao.update(target);
+            if(null == drugList.getAllPyCode()){
+                drugList.setAllPyCode(target.getAllPyCode());
+            }
+            if(null == drugList.getApprovalNumber()){
+                drugList.setApprovalNumber(target.getApprovalNumber());
+            }
+            if(null == drugList.getBaseDrug()){
+                drugList.setBaseDrug(target.getBaseDrug());
+            }
+            if(null == drugList.getCreateDt()){
+                drugList.setCreateDt(target.getCreateDt());
+            }
+            if(null == drugList.getDrugClass()){
+                drugList.setDrugClass(target.getDrugClass());
+            }
+            if(null == drugList.getDrugForm()){
+                drugList.setDrugForm(target.getDrugForm());
+            }
+            if(null == drugList.getDrugId()){
+                drugList.setDrugId(target.getDrugId());
+            }
+            if(null == drugList.getDrugName()){
+                drugList.setDrugName(target.getDrugName());
+            }
+            if(null == drugList.getDrugPic()){
+                drugList.setDrugPic(target.getDrugPic());
+            }
+            if(null == drugList.getDrugSpec()){
+                drugList.setDrugSpec(target.getDrugSpec());
+            }
+            if(null == drugList.getDrugType()){
+                drugList.setDrugType(target.getDrugType());
+            }
+            if(null == drugList.getHighlightedField()){
+                drugList.setHighlightedField(target.getHighlightedField());
+            }
+            if(null == drugList.getHighlightedFieldForIos()){
+                drugList.setHighlightedFieldForIos(target.getHighlightedFieldForIos());
+            }
+            if(null == drugList.getHospitalPrice()){
+                drugList.setHospitalPrice(target.getHospitalPrice());
+            }
+            if(null == drugList.getIndications()){
+                drugList.setIndications(target.getIndications());
+            }
+            if(null == drugList.getLastModify()){
+                drugList.setLastModify(target.getLastModify());
+            }
+            if(null == drugList.getOrganDrugCode()){
+                drugList.setOrganDrugCode(target.getOrganDrugCode());
+            }
+            if(null == drugList.getPack()){
+                drugList.setPack(target.getPack());
+            }
+            if(null == drugList.getPrice1()){
+                drugList.setPrice1(target.getPrice1());
+            }
+            if(null == drugList.getPrice2()){
+                drugList.setPrice2(target.getPrice2());
+            }
+            if(null == drugList.getPyCode()){
+                drugList.setPyCode(target.getPyCode());
+            }
+            if(null == drugList.getSaleName()){
+                drugList.setSaleName(target.getSaleName());
+            }
+            if(null == drugList.getSourceOrgan()){
+                drugList.setSourceOrgan(target.getSourceOrgan());
+            }
+            if(null == drugList.getStandardCode()){
+                drugList.setStandardCode(target.getStandardCode());
+            }
+            if(null == drugList.getStatus()){
+                drugList.setStatus(target.getStatus());
+            }
+            if(null == drugList.getUnit()){
+                drugList.setUnit(target.getUnit());
+            }
+            if(null == drugList.getUseDose()){
+                drugList.setUseDose(target.getUseDose());
+            }
+            if(null == drugList.getUseDoseUnit()){
+                drugList.setUseDoseUnit(target.getUseDoseUnit());
+            }
+            if(null == drugList.getUsePathways()){
+                drugList.setUsePathways(target.getUsePathways());
+            }
+            if(null == drugList.getUsingRate()){
+                drugList.setUsingRate(target.getUsingRate());
+            }
+            if(null == drugList.getUsePathwaysId()){
+                drugList.setUsePathwaysId(target.getUsePathwaysId());
+            }
+            if(null == drugList.getUsingRateId()){
+                drugList.setUsingRateId(target.getUsingRateId());
+            }
+            if(null == drugList.getProducer()){
+                drugList.setProducer(target.getProducer());
+            }
+            if(null == drugList.getInstructions()){
+                drugList.setInstructions(target.getInstructions());
+            }
 
+           /*BeanUtils.map(drugList, target);*/
+            drugList = dao.update(drugList);
             if(null != drugListBean.getDispensatory()) {
                 DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
-                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());
+                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugList.getDrugId());
                 dispensatory.setLastModifyTime(new Date());
                 BeanUtils.map(drugListBean.getDispensatory(), dispensatory);
                 dispensatoryDAO.update(dispensatory);
             }
         }
-        return getBean(target, DrugListBean.class);
+        return getBean(drugList, DrugListBean.class);
+    }
+
+    /**
+     * 药品来源渠道查询
+     * @param name
+     * @return
+     */
+    @RpcService
+    public  List<DrugSources>  findDrugSources(String name){
+        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+
+        if (StringUtils.isEmpty(name)){
+            List<DrugSources> all = dao.findAll();
+            return all;
+        }
+         String name2="%"+name+"%";
+        List<DrugSources> byInput = dao.findByInput(name2);
+        return byInput;
     }
 
     /**
@@ -227,13 +384,20 @@ public class DrugListService extends BaseService<DrugListBean> {
      */
     @RpcService
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status,
+                                                                              final Integer status,final Integer drugSourcesId,Integer type,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, start, limit);
-        List<DrugListBean> list = getList(result.getItems(), DrugListBean.class);
-        result.setItems(list);
-        return result;
+        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type, start, limit);
+        QueryResult<DrugListBean> result2=new QueryResult<>();
+        List items = result.getItems();
+        if (items != null && items.size() > 0 ){
+            List<DrugListBean> list = ObjectCopyUtils.convert(items, DrugListBean.class);
+            result2.setLimit((int) result.getLimit());
+            result2.setStart( result.getStart());
+            result2.setTotal( result.getTotal());
+            result2.setItems(list);
+        }
+        return result2;
     }
 
     /**
@@ -341,7 +505,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
-        return drugListExtService.searchDrugListWithES(null, null, drugName, start, limit);
+        return drugListExtService.searchDrugListWithES(null, null, drugName,null, start, limit);
     }
 
     /**
@@ -357,7 +521,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     public List<SearchDrugDetailDTO> searchDrugByNameOrPyCodeForPC(
             final int organId, final int drugType, final String drugName, final int start, final int limit) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
-        return drugListExtService.searchDrugListWithES(organId, drugType, drugName, start, limit);
+        return drugListExtService.searchDrugListWithES(organId, drugType, drugName,null, start, limit);
     }
 
     @RpcService
@@ -433,10 +597,44 @@ public class DrugListService extends BaseService<DrugListBean> {
         DrugListDAO drugListDAO = getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
                 limit);
-        // 添加医院价格
-        if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(organId, dList);
+        //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次，分页可能有问题时间紧急后面再说
+        Boolean isMergeRecipeType = null;
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            isMergeRecipeType = (Boolean) configurationService.getConfiguration(organId, "isMergeRecipeType");
+        } catch (Exception e) {
+            logger.error("获取运营平台处方支付配置异常:isMergeRecipeType。",e);
         }
-        return getList(dList, DrugListBean.class);
+        if(isMergeRecipeType != null && isMergeRecipeType == true){
+            if(1 == drugType){
+                drugType = 2;
+            } else if(2 == drugType){
+                drugType = 1;
+            }else {
+                isMergeRecipeType = false;
+            }
+            if (isMergeRecipeType){
+                List<DrugList> dList2 = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start, limit-dList.size());
+                if(dList != null && dList2 != null && dList2.size() != 0){
+                    dList.addAll(dList2);
+                }
+            }
+        }
+        List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
+        // 添加医院价格
+        if (!drugListBeans.isEmpty()) {
+            RecipeUtil.getHospitalPrice(organId, drugListBeans);
+        }
+        return drugListBeans;
+    }
+
+    @RpcService
+    public Map<String, Object> getDrugInventory(Integer depId, Integer drugId){
+        Map<String, Object> map = new HashMap<>();
+        RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        String inventory = enterpriseService.getDrugInventory(depId, drugId, -1);
+        //根据药企ID查询该药企该药品的库存数量
+        map.put("inventory", inventory);
+        return map;
     }
 }

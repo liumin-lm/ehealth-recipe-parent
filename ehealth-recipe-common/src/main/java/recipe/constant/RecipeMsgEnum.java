@@ -8,11 +8,11 @@ package recipe.constant;
  */
 public enum RecipeMsgEnum {
     /**
-     *
      * 参考 RecipeStatusConstant
      */
     RECIPE_CHECK_NOT_PASS(-1, "RecipeCheckNotPass"),
     RECIPE_CHECK_PASS(2, "RecipeCheckPass"),
+    RECIPE_HAVE_PAY(3, "RecipeHavePay"),
     RECIPE_IN_SEND(4, "RecipeInSend"),
     RECIPE_CHECK_PASS_YS(7, "RecipeCheckPassYs"),
     RECIPE_READY_CHECK_YS(8, "RecipeReadyCheckYs"),
@@ -95,6 +95,60 @@ public enum RecipeMsgEnum {
      * 药店取药-已完成
      */
     RECIPE_TAKE_MEDICINE_FINISH(124, "RecipeTakeMedicineFinish"),
+
+    /**
+     * 药师撤销处方
+     */
+    RECIPE_REVOKE_YS(125, "RecipeRevokeYs"),
+
+    /**
+     * 处方未支付运费提醒
+     */
+    RECIPE_EXPRESSFEE_REMIND_NOPAY(126, "RecipeExpressFeeRemindNoPay"),
+
+    /**
+     * 提交审核推送
+     */
+    RECIPE_REFUND_APPLY(130, "RecipRefundApply"),
+    /**
+     * 退费失败
+     */
+    RECIPE_REFUND_FAIL(131, "RecipeRefundFail"),
+    /**
+     * 退费成功
+     */
+    RECIPE_REFUND_SUCC(132, "RecipeRefundSucc"),
+    /**
+     * 医生审核不通过
+     */
+    RECIPE_REFUND_AUDIT_FAIL(133, "RecipeRefundAuditFail"),
+
+    /**
+     * 药师审核通过
+     */
+    RECIPE_APPROVED(134, "RecipeApproved"),
+    /**
+     * 第三方审核不通过
+     */
+    HIS_OR_PHARMACEUTICAL_REFUND_FAIL(135, "HisOrPharmaceuticalRefundFail"),
+    /**
+     * 第三方审核通过
+     */
+    HIS_OR_PHARMACEUTICAL_REFUND_SUCCESS(136, "HisOrPharmaceuticalRefundSuccess"),
+
+    /**
+     * 处方开方成功
+     */
+    PRESCRIBE_SUCCESS(137, "PrescribeSuccess"),
+    /**
+     * 推送快递信息
+     */
+    EXPRESSINFO_REMIND(138, "ExpressInfoRemind"),
+
+    /**
+     * 到院取药
+     */
+    RECIPE_HOS_TAKE_MEDICINE(139,"RecipeHosTakeMedicine"),
 
     /**
      * 默认消息

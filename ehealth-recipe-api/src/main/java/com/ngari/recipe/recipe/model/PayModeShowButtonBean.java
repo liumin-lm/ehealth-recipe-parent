@@ -29,6 +29,11 @@ public class PayModeShowButtonBean implements Serializable{
      * 到院取药购药方式（平台）
      */
     private Boolean supportToHos = false;
+
+    /**
+     * 用药指导显示按钮
+     */
+    private Boolean supportMedicationGuide = false;
     /**
      * 是否可选择（平台）
      */
@@ -37,6 +42,16 @@ public class PayModeShowButtonBean implements Serializable{
      * 按钮的展示形势(互联网+平台)
      */
     private Integer buttonType;
+
+    /**
+     * 配送到家药企配送
+     */
+    private Boolean showSendToEnterprises = false;
+
+    /**
+     * 配送到家医院配送
+     */
+    private Boolean showSendToHos = false;
 
     public PayModeShowButtonBean() {
     }
@@ -59,6 +74,24 @@ public class PayModeShowButtonBean implements Serializable{
         setSupportTFDS(false);
         setSupportToHos(false);
         setButtonType(0);
+        setShowSendToEnterprises(false);
+        setShowSendToHos(false);
+    }
+
+    public Boolean getShowSendToEnterprises() {
+        return showSendToEnterprises;
+    }
+
+    public void setShowSendToEnterprises(Boolean showSendToEnterprises) {
+        this.showSendToEnterprises = showSendToEnterprises;
+    }
+
+    public Boolean getShowSendToHos() {
+        return showSendToHos;
+    }
+
+    public void setShowSendToHos(Boolean showSendToHos) {
+        this.showSendToHos = showSendToHos;
     }
 
     public Integer getButtonType() {
@@ -107,6 +140,14 @@ public class PayModeShowButtonBean implements Serializable{
 
     public void setOptional(Boolean optional) {
         this.optional = optional;
+    }
+
+    public Boolean getSupportMedicationGuide() {
+        return supportMedicationGuide;
+    }
+
+    public void setSupportMedicationGuide(Boolean supportMedicationGuide) {
+        this.supportMedicationGuide = supportMedicationGuide;
     }
 
     @Override

@@ -1,6 +1,8 @@
 package recipe.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseAddress;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
@@ -15,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.EnterpriseAddressDAO;
 import recipe.dao.RecipeDAO;
 import recipe.serviceprovider.BaseService;
@@ -117,13 +120,17 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
     @RpcService
     public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) {
         EnterpriseAddressDAO enterpriseAddressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         //查询对应药企配送的地址
         //没有子订单而且配送药企为空，则提示
         if (null == depId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药企ID为空");
         }
-
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if (drugsEnterprise != null && drugsEnterprise.getOrderType() == 0) {
+            //标识跳转到第三方支付,不需要对配送地址进行校验
+            return 0;
+        }
         List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(depId);
         if (CollectionUtils.isEmpty(list)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该药企没有配送地址");
@@ -160,7 +167,6 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
         EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
         return getBean(address, EnterpriseAddressDTO.class);
     }
-
 
     /**
      * 更新药企配送地址
@@ -201,10 +207,11 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @param enterpriseId 药企Id
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 60)
     public List<EnterpriseAddressDTO> findByEnterPriseId(Integer enterpriseId) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        return getList(dao.findByEnterPriseId(enterpriseId), EnterpriseAddressDTO.class);
+        List<EnterpriseAddressDTO> result = ObjectCopyUtils.convert(dao.findByEnterpriseIdAndStatus(enterpriseId, 1), EnterpriseAddressDTO.class);
+        return result;
     }
 
     /**

@@ -1,6 +1,11 @@
 package recipe.mq;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.common.dto.TempMsgType;
+import com.ngari.home.asyn.model.BussCancelEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import ctd.net.broadcast.MQHelper;
 import ctd.net.broadcast.MQSubscriber;
 import ctd.net.broadcast.Observer;
@@ -8,14 +13,24 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.cdr.constant.OrderStatusConstant;
 import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.constant.MsgTypeEnum;
+import recipe.constant.*;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
+import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 @RpcBean
 public class BusMsgConsumer {
@@ -63,7 +78,22 @@ public class BusMsgConsumer {
         subscriber.attach(OnsConfig.dbModifyTopic, "base_druglist||base_organdruglist",
                 new DrugSyncObserver());
 
+        /**
+         * 接收电子病历删除发送
+         */
+        subscriber.attach(OnsConfig.emrRecipe, "emrDeleted_recipe", new MqEmrRecipeServer());
+
+        /**
+         * 接收处方失效延迟消息
+         */
+        subscriber.attach(OnsConfig.recipeDelayTopic, RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, new RecipeInvalidMsgConsumer());
+
+        /*
+        subscriber.attach(OnsConfig.hisCdrinfo, "recipeMedicalInfoFromHis",
+                new RecipeMedicalInfoFromHisObserver());*/
+
     }
+
 
     @RpcService
     public void invalidPatient(TempMsgType tMsg) {

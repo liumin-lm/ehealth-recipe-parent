@@ -31,6 +31,9 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "患者id")
     private String mpiId;
 
+    @Verify(isNotNull = false, desc = "医院患者编号")
+    private String patientId;
+
     @Verify(isNotNull = false,desc = "患者证件类型")
     private String certificateType;
 
@@ -67,8 +70,8 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
-    @Verify(isNotNull = false, desc = "配送模式，1:支付宝外配 2:九州通外延")
-    private String distributionMode;
+    @Verify(isNotNull = false,desc = "科室名称")
+    private String departName;
 
     @Verify(desc = "开方科室")
     private String departId;
@@ -166,16 +169,16 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "帖数", isInt = true)
     private String tcmNum;
 
+    //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
+    private Integer reqType;
+
+    private Boolean noSaveRecipeFlag;  //此标记位是否是第三方跳转链接
+
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
 
-    public String getDistributionMode() {
-        return distributionMode;
-    }
-
-    public void setDistributionMode(String distributionMode) {
-        this.distributionMode = distributionMode;
-    }
+    @Verify(isNotNull = false, desc = "处方来源类型 1：住院, 2：门诊")
+    private String recipeSourceFlag;
 
     public String getClinicId() {
         return clinicId;
@@ -191,6 +194,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setMpiId(String mpiId) {
         this.mpiId = mpiId;
+    }
+
+    public String getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 
     public String getCertificateType() {
@@ -279,6 +290,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setRecipeType(String recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 
     public String getDepartId() {
@@ -553,7 +572,31 @@ public class HospitalRecipeDTO implements Serializable {
         this.registerId = registerId;
     }
 
-    public static HospitalRecipeDTO getTestObject(){
+    public Integer getReqType() {
+        return reqType;
+    }
+
+    public void setReqType(Integer reqType) {
+        this.reqType = reqType;
+    }
+
+    public Boolean getNoSaveRecipeFlag() {
+        return noSaveRecipeFlag;
+    }
+
+    public void setNoSaveRecipeFlag(Boolean noSaveRecipeFlag) {
+        this.noSaveRecipeFlag = noSaveRecipeFlag;
+    }
+
+    public String getRecipeSourceFlag() {
+        return recipeSourceFlag;
+    }
+
+    public void setRecipeSourceFlag(String recipeSourceFlag) {
+        this.recipeSourceFlag = recipeSourceFlag;
+    }
+
+    public static HospitalRecipeDTO getTestObject() {
         HospitalRecipeDTO recipe = new HospitalRecipeDTO();
         recipe.setCertificateType("1");
         recipe.setCertificate("12420106441364790P");

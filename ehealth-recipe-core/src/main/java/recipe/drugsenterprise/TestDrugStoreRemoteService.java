@@ -1,10 +1,13 @@
 package recipe.drugsenterprise;
 
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.slf4j.Logger;
@@ -14,6 +17,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -28,7 +32,7 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     /**
      * logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestRemoteService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestDrugStoreRemoteService.class);
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("TestDrugStoreRemoteService tokenUpdateImpl not implement.");
@@ -37,7 +41,23 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestDrugStoreRemoteService pushRecipeInfo not implement.");
+        RecipeLogService.saveRecipeLog(recipeIds.get(0), 2, 2, "处方推送药企成功");
         return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return "有库存";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return null;
     }
 
     @Override

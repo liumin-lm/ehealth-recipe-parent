@@ -39,6 +39,11 @@ public class RecipeBussConstant {
     public static Integer PAYMODE_ONLINE = 1;
 
     /**
+     * 线下支付
+     */
+    public static Integer PAYMODE_OFFLINE = 2;
+
+    /**
      * 货到付款
      */
     public static Integer PAYMODE_COD = 2;
@@ -79,6 +84,11 @@ public class RecipeBussConstant {
     public static Integer DEP_SUPPORT_TFDS = 3;
 
     /**
+     * 药企配送模式-配送到家+药店取药
+     */
+    public static Integer DEP_SUPPORT_ONLINE_TFDS = 7;
+
+    /**
      * 药企配送模式-货到付款+药店取药
      */
     public static Integer DEP_SUPPORT_COD_TFDS = 8;
@@ -92,6 +102,11 @@ public class RecipeBussConstant {
      * 处方类型-西药  Western medicine
      */
     public static Integer RECIPETYPE_WM = 1;
+
+    /**
+     * 处方类型-中成药  chinese patent medicine.
+     */
+    public static Integer RECIPETYPE_CPM = 2;
 
     /**
      * 处方类型-中药  traditional Chinese medicine
@@ -139,10 +154,45 @@ public class RecipeBussConstant {
      */
     public static Integer GIVEMODE_DOWNLOAD_RECIPE = 5;
 
+    /**reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）*/
+    public static Integer REQ_TYPE_QRCODE = 1;
+    public static Integer REQ_TYPE_AUTO = 2;
 
     /**
-     * 武昌项目配送模式--2九州通外延模式
+     * 处方业务来源-无-医生直接开处方
      */
-    public static String WUCHANG_JZT = "2";
+    public static Integer BUSS_SOURCE_NONE = 0;
+    /**
+     * 处方业务来源-问诊
+     */
+    public static Integer BUSS_SOURCE_WZ = 1;
+    /**
+     * 处方业务来源-在线复诊
+     */
+    public static Integer BUSS_SOURCE_FZ = 2;
+    /**
+     * 处方业务来源-网络咨询
+     */
+    public static Integer BUSS_SOURCE_WLZX = 3;
+
+    /**
+     * 处方来源类型-线下转线上
+     */
+    public static Integer OFFLINE_TO_ONLINE = 2;
+
+    /**
+     * 处方订单类型-自费
+     */
+    public static Integer ORDERTYPE_ZF = 0;
+
+    /**
+     * 处方订单类型-省医保
+     */
+    public static Integer ORDERTYPE_ZJS = 1;
+
+    /**
+     * 处方订单类型-杭州市医保
+     */
+    public static Integer ORDERTYPE_HZS = 2;
 
 }

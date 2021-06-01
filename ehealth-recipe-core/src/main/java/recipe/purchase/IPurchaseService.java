@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,11 +29,11 @@ public interface IPurchaseService {
     /**
      * 下单提交方法
      *
-     * @param dbRecipe
+     * @param dbRecipes
      * @param extInfo
      * @return
      */
-    OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo);
+    OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo);
 
     /**
      * RecipeBussConstant 中常量值，前端约定值
@@ -62,4 +63,10 @@ public interface IPurchaseService {
      * @return 订单状态
      */
     Integer getOrderStatus(Recipe recipe);
+
+    /**
+     * 设置处方药品费用的支付方式 0 线上支付 1 线下支付
+     * @param recipeOrder 订单信息
+     */
+    void setRecipePayWay(RecipeOrder recipeOrder);
 }

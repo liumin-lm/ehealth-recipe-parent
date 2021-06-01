@@ -59,7 +59,7 @@ public abstract class RecipeDetailDAO extends
      * @return List<Recipedetail>
      * @author luf
      */
-    @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1")
+    @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1", limit = 0)
     public abstract List<Recipedetail> findByRecipeId(@DAOParam("recipeId") int recipeId);
 
     /**
@@ -67,7 +67,7 @@ public abstract class RecipeDetailDAO extends
      * @param recipeIds
      * @return
      */
-    @DAOMethod(sql = "from Recipedetail where recipeId in :recipeIds and status=1")
+    @DAOMethod(sql = "from Recipedetail where recipeId in :recipeIds and status=1", limit = 0)
     public abstract List<Recipedetail> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
@@ -106,6 +106,15 @@ public abstract class RecipeDetailDAO extends
     public abstract Double getUseTotalDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
+     * 获取处方总剂量
+     *
+     * @param recipeIds
+     * @return
+     */
+    @DAOMethod(sql = "select recipeId, sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1 group by recipeId", limit = 0)
+    public abstract List<Object[]> findUseTotalsDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+    /**
      * 新处方详情自定义字段 by recipeId
      *
      * @param recipeId
@@ -114,6 +123,17 @@ public abstract class RecipeDetailDAO extends
      */
     public Boolean updateRecipeDetailByRecipeId(int recipeId, Map<String, Object> changeAttr) {
         return updateRecipeDetailByKey("recipeId", recipeId, changeAttr);
+    }
+
+    /**
+     * 新处方详情自定义字段 by recipeIds
+     *
+     * @param recipeIds
+     * @param changeAttr
+     * @return
+     */
+    public Boolean updateRecipeDetailByRecipeIdS(List<Integer> recipeIds, Map<String, Object> changeAttr) {
+        return updateRecipeDetailByKeyS("recipeId", recipeIds, changeAttr);
     }
 
     /**
@@ -157,6 +177,38 @@ public abstract class RecipeDetailDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    private Boolean updateRecipeDetailByKeyS(final String keyName, final Object keyValue, final Map<String, Object> changeAttr) {
+        if (null == changeAttr || changeAttr.isEmpty()) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update Recipedetail set ");
+                StringBuilder keyHql = new StringBuilder();
+                for (String key : changeAttr.keySet()) {
+                    keyHql.append("," + key + "=:" + key);
+                }
+                hql.append(keyHql.toString().substring(1)).append(" where " + keyName + " in (:" + keyName + ")");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameterList(keyName, (List<Object>)keyValue);
+                Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
+                while (it.hasNext()){
+                    Map.Entry<String, Object> m = it.next();
+                    q.setParameter(m.getKey(), m.getValue());
+                }
+
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     /**
      * 通过处方明细ID获取处方明细
@@ -207,5 +259,60 @@ public abstract class RecipeDetailDAO extends
      */
     @DAOMethod(sql = "select count(*) from Recipedetail where recipeId=:recipeId and status=1")
     public abstract Long getCountByRecipeId(@DAOParam("recipeId") int recipeId);
+
+    /**
+     * 根据id删除无用的处方单关联的详情
+     *
+     * @param recipeId
+     * @return
+     */
+    @DAOMethod(sql = "delete from Recipedetail where recipeId =:recipeId")
+    public abstract void deleteByRecipeId(@DAOParam("recipeId") int recipeId);
+
+    /**
+     * 根据处方id批量删除
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "delete from Recipedetail where recipeId in (:recipeIds)")
+    public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+    /**
+     * 根据机构id和HIS结算单据号查询对应处方id
+     *
+     * @return
+     */
+    public Integer getRecipeIdByOrganIdAndInvoiceNo(final int organId, final String invoiceNo) {
+        StringBuilder drugNames = new StringBuilder();
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select cd.* From cdr_recipedetail cd left join cdr_recipe cr on cd.RecipeID = cr.RecipeID " +
+                        "where cr.clinicOrgan =:organId and cd.status=1 and cd.invoiceNo = :invoiceNo");
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipedetail.class);
+                q.setParameter("organId", organId);
+                q.setParameter("invoiceNo", invoiceNo);
+                List<Recipedetail> list = q.list();
+                Integer recipeId = null;
+                if (null != list && 0 < list.size()) {
+                    recipeId = list.get(0).getRecipeId();
+                }
+                setResult(recipeId);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 供 处方单详情服务 调用
+     *
+     * @param recipeIds 处方序号
+     * @return List<Recipedetail>
+     * @author luf
+     */
+    @DAOMethod(sql = "from Recipedetail where recipeId in (:recipeIds) and status=1",limit = 0)
+    public abstract List<Recipedetail> findByRecipeIdList(@DAOParam("recipeIds") List<Integer> recipeIds);
+
 
 }

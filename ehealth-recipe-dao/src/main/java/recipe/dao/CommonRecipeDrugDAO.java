@@ -34,6 +34,16 @@ public abstract class CommonRecipeDrugDAO extends HibernateSupportDelegateDAO<Co
     @DAOMethod(sql = "from CommonRecipeDrug where commonRecipeId=:commonRecipeId")
     public abstract List<CommonRecipeDrug> findByCommonRecipeId(@DAOParam("commonRecipeId") Integer commonRecipeId);
 
+
+    /**
+     * 根据常用方id进行批量获取常用方药品信息
+     *
+     * @param commonRecipeIdList
+     * @return
+     */
+    @DAOMethod(sql = "from CommonRecipeDrug where commonRecipeId in :commonRecipeIdList", limit = 0)
+    public abstract List<CommonRecipeDrug> findByCommonRecipeIdList(@DAOParam("commonRecipeIdList") List<Integer> commonRecipeIdList);
+
     /**
      * 根据常用方id删除药品
      * @param commonRecipeId

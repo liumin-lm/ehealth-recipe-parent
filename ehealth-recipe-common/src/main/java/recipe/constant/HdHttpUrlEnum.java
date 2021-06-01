@@ -11,8 +11,9 @@ public enum HdHttpUrlEnum {
 
     SCAN_STOCK("scanStock", "drugstore/getAvailableDrugstoreList", "查询药品库存请求"),
 
-    FIND_SUPPORT_DEP("findSupportDep", "drugstore/getAvailableDrugstoreList", "查询可用药店请求");
+    FIND_SUPPORT_DEP("findSupportDep", "drugstore/getAvailableDrugstoreList", "查询可用药店请求"),
 
+    SEND_SCAN_STOCK("sendScanStock", "inventory/getAvailableSumSww", "查询药品库存请求");
     private String methodName;
 
     private String url;

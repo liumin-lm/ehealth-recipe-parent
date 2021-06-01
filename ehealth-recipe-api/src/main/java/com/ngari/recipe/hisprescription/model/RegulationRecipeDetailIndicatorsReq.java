@@ -11,7 +11,8 @@ public class RegulationRecipeDetailIndicatorsReq implements Serializable {
     private String  drcode;//	药品代码
     private String  drname;//	药品名称
     private String  drmodel;//	药品规格
-    private String  dosageForm;//药物剂型代码
+    private String  dosageForm;//药物剂型
+    private String  dosageFormCode;// 药物剂型代码
     private Integer pack;//	药品包装
     private String  packUnit;//	药品包装单位
     private String  drugManf;//	药品产地名称
@@ -204,5 +205,13 @@ public class RegulationRecipeDetailIndicatorsReq implements Serializable {
 
     public void setTcmDescribe(String tcmDescribe) {
         this.tcmDescribe = tcmDescribe;
+    }
+
+    public String getDosageFormCode() {
+        return dosageFormCode;
+    }
+
+    public void setDosageFormCode(String dosageFormCode) {
+        this.dosageFormCode = dosageFormCode;
     }
 }

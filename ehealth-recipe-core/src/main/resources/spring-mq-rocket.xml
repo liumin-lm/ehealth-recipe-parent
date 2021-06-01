@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="producer" class="org.apache.rocketmq.client.producer.DefaultMQProducer" init-method="start" destroy-method="shutdown">
+		<property name="namesrvAddr" value="${rocketmq.namesrv}"/>
+		<property name="producerGroup" value="${ons_pid}"/>
+	</bean>
+
+	<bean class="ctd.net.broadcast.rocketmq.RocketMQPublisher" id="rocketMQPublisher">
+		<property name="producer" ref="producer"/>
+	</bean>
+
+	<bean id="consumer" class="org.apache.rocketmq.client.consumer.DefaultMQPushConsumer" init-method="start" destroy-method="shutdown">
+		<property name="namesrvAddr" value="${rocketmq.namesrv}"/>
+		<property name="consumerGroup" value="${ons_cid}"/>
+		<property name="messageListener">
+			<bean class="ctd.net.broadcast.rocketmq.listener.ObserverRegisterListener"></bean>
+		</property>
+	</bean>
+
+	<bean class="ctd.net.broadcast.rocketmq.RocketMQSubscriber" id="subscriber">
+		<property name="consumer" ref="consumer"/>
+	</bean>
+
+</beans>

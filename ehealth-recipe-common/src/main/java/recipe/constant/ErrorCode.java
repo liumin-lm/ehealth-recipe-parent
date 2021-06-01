@@ -6,6 +6,10 @@ package recipe.constant;
  * @author wnw
  */
 public class ErrorCode {
+    /**
+     * 服务成功
+     */
+    public static final int SERVICE_SUCCEED = 200;
 
     /**
      * 服务异常，提示消息

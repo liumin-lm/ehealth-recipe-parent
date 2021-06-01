@@ -65,7 +65,7 @@ public class JztRecipeDTO implements Serializable{
 
     private String memo;
 
-    private String payMode;
+//    private String payMode;
 
     private String payFlag;
 
@@ -304,14 +304,14 @@ public class JztRecipeDTO implements Serializable{
     public void setMemo(String memo) {
         this.memo = memo;
     }
-
-    public String getPayMode() {
-        return payMode;
-    }
-
-    public void setPayMode(String payMode) {
-        this.payMode = payMode;
-    }
+//
+//    public String getPayMode() {
+//        return payMode;
+//    }
+//
+//    public void setPayMode(String payMode) {
+//        this.payMode = payMode;
+//    }
 
     public String getPayFlag() {
         return payFlag;

@@ -1,5 +1,6 @@
 package recipe.serviceprovider.his.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
@@ -9,10 +10,16 @@ import com.ngari.his.visit.service.IVisitService;
 import com.ngari.recipe.common.RecipeCommonReqTO;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.his.service.IRecipeToHisService;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +63,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         try {
             hisResponse = hisService.canVisit(hisRequest);
         } catch (Exception e) {
-            LOGGER.warn("canVisit his error. request={}", JSONUtils.toString(hisRequest), e);
+            LOGGER.error("canVisit his error. request={}", JSONUtils.toString(hisRequest), e);
         }
         LOGGER.info("canVisit response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
@@ -78,6 +85,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @RpcService
     @Override
     public RecipeCommonResTO visitRegist(RecipeCommonReqTO request) {
+        LOGGER.info("visitRegist请求入参：{}", JSONUtils.toString(request));
         IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
         Map<String, Object> map = request.getConditions();
         VisitRegistRequestTO hisRequest = new VisitRegistRequestTO();
@@ -96,6 +104,35 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setPlatRegisterId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
         //科室代码
         hisRequest.setDeptCode(MapValueUtil.getString(map,"deptCode"));
+        hisRequest.setRegType(2);
+        Integer consultId = MapValueUtil.getInteger(map, "consultId");
+        if(null != consultId){
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(consultId);
+            if (null == revisitBean) {
+                LOGGER.error("visitRegist当前咨询id对应的咨询不存在{}", consultId);
+            }else{
+                if (null != revisitBean.getPreSettletotalAmount()) {
+                    hisRequest.setTotalAmount(new BigDecimal(revisitBean.getPreSettletotalAmount()).setScale(2, BigDecimal.ROUND_HALF_UP));
+                }
+                if (null != revisitBean.getFundAmount()) {
+                    hisRequest.setFundAmount(new BigDecimal(revisitBean.getFundAmount()).setScale(2, BigDecimal.ROUND_HALF_UP));
+                }
+                if (null != revisitBean.getCashAmount()) {
+                    hisRequest.setCashAmount(new BigDecimal(revisitBean.getCashAmount()).setScale(2, BigDecimal.ROUND_HALF_UP));
+                }
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO exDTO = iRevisitExService.getByConsultId(consultId);
+                if(null != exDTO){
+                    hisRequest.setMedicalPayFlag(null == exDTO.getMedicalFlag() ? 0 : exDTO.getMedicalFlag());
+                }else{
+                    LOGGER.error("visitRegist当前咨询id对应的咨询补充信息不存在{}", consultId);
+                }
+            }
+        }else{
+            LOGGER.error("当前咨询id传参为空");
+        }
+
         Double consultPrice = MapValueUtil.getDouble(map, "consultPrice");
         if (consultPrice !=null){
             //复诊金额
@@ -103,12 +140,23 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         }
         //支付状态
         hisRequest.setPayFlag(MapValueUtil.getInteger(map,"payFlag"));
+        hisRequest.setOrganName(MapValueUtil.getString(map,"organName"));
+        // 复诊就诊类型
+        hisRequest.setRegType(MapValueUtil.getInteger(map,"regType"));
+        hisRequest.setFundAmount(MapValueUtil.getBigDecimal(map,"fundAmount"));
+        hisRequest.setCashAmount(MapValueUtil.getBigDecimal(map,"cashAmount"));
+        hisRequest.setMedicalPayFlag(MapValueUtil.getInteger(map,"medicalPayFlag"));
+
+        //支付流水号
+        hisRequest.setTradeNo(MapValueUtil.getString(map,"tradeNo"));
+        //商户订单号
+        hisRequest.setOutTradeNo(MapValueUtil.getString(map,"outTradeNo"));
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
         HisResponseTO<VisitRegistResponseTO> hisResponse = null;
         try {
             hisResponse = hisService.visitRegist(hisRequest);
         } catch (Exception e) {
-            LOGGER.warn("visitRegist his error. request={}", JSONUtils.toString(hisRequest), e);
+            LOGGER.error("visitRegist his error. request={}", JSONUtils.toString(hisRequest), e);
         }
         LOGGER.info("visitRegist response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
@@ -117,7 +165,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         HosrelationBean hosrelationBean = new HosrelationBean();
         hosrelationBean.setBusId(Integer.valueOf(map.get("consultId").toString()));
         hosrelationBean.setOrganId(Integer.valueOf(map.get("organId").toString()));
-        hosrelationBean.setBusType(BusTypeEnum.CONSULT.getId());
+        hosrelationBean.setBusType(100);
         hosrelationBean.setRequestUrt(Integer.valueOf(map.get("urt").toString()));
         hosrelationBean.setPatientName(MapValueUtil.getString(map, "patientName"));
         hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
@@ -134,11 +182,22 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             if ("200".equals(hisResponse.getMsgCode())) {
                 response.setCode(RecipeCommonResTO.SUCCESS);
                 VisitRegistResponseTO resDate = hisResponse.getData();
+                //更新复诊挂号序号
+                if (StringUtils.isNotEmpty(resDate.getRegisterId())){
+                    IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                    RevisitExDTO consultExDTO = exService.getByConsultId(hosrelationBean.getBusId());
+                    if (consultExDTO!=null && StringUtils.isEmpty(consultExDTO.getRegisterNo())) {
+                        exService.updateConsultExInfoByConsultId(hosrelationBean.getBusId(), ImmutableMap.of("registerNo", resDate.getRegisterId()));
+                    }
+                }
                 hosrelationBean.setRegisterId(resDate.getRegisterId());
                 hosrelationBean.setClinicNo(resDate.getClinicNo());
                 hosrelationBean.setPatId(resDate.getPatId());
                 hosrelationBean.setExtendsParam(resDate.getExtendsParam());
                 hosrelationBean.setStatus(1);
+                //date 20200323
+                //添加设置HIS结算单据号
+                hosrelationBean.setInvoiceNo(resDate.getHisSettlementNo());
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg(hisResponse.getMsg());
@@ -190,7 +249,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             try {
                 hisResponse = hisService.queryVisitStatus(hisRequest);
             } catch (Exception e) {
-                LOGGER.info("queryVisitStatus his error. request={}", JSONUtils.toString(hisRequest), e);
+                LOGGER.error("queryVisitStatus his error. request={}", JSONUtils.toString(hisRequest), e);
             }
             LOGGER.info("queryVisitStatus response={}", JSONUtils.toString(hisResponse));
             if(null == hisResponse){
@@ -269,7 +328,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         try {
             cancelResponse = hisService.cancelVisit(cancelRequest);
         } catch (Exception e) {
-            LOGGER.warn("cancelVisit his error. request={}", JSONUtils.toString(cancelRequest));
+            LOGGER.error("cancelVisit his error. request={}", JSONUtils.toString(cancelRequest));
         }
         LOGGER.info("cancelVisit response={}", JSONUtils.toString(cancelResponse));
         if(null == cancelResponse){

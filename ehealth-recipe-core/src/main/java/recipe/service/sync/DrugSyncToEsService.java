@@ -32,7 +32,7 @@ public class DrugSyncToEsService {
     /**
      * 单线程数据处理量
      **/
-    protected static final int ONCETIME_DEAL_NUM = 2000;
+    protected static final int ONCETIME_DEAL_NUM = 200;
 
     /**
      * 同步base_drugList基础库数据，用于患者检索
@@ -54,7 +54,7 @@ public class DrugSyncToEsService {
                 try {
                     RecipeBusiThreadPool.execute(new SyncDrugToEsRunable(start, end));
                 } catch (Exception e) {
-                    LOG.error("syncDrugList 线程池异常");
+                    LOG.error("syncDrugList 线程池异常",e);
                 }
             }
         }
@@ -87,7 +87,7 @@ public class DrugSyncToEsService {
                 try {
                     RecipeBusiThreadPool.submitList(callableList);
                 } catch (InterruptedException e) {
-                    LOG.error("syncOrganDrugList 线程池异常");
+                    LOG.error("syncOrganDrugList 线程池异常",e);
                 }
             }
         }

@@ -77,7 +77,51 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
         return action.getResult();
     }
 
+    /**
+     * 商品名匹配省平台药品 搜索专用
+     * @return
+     */
+    public List<ProvinceDrugList> findByProvinceSaleNameLikeSearch( final String address, final int start, final int limit,  String input, String producer) {
+        HibernateStatelessResultAction<List<ProvinceDrugList>> action = new AbstractHibernateStatelessResultAction<List<ProvinceDrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 ");
+                if(null != input){
+                    hql.append(" and (saleName like :input OR drugName like :input or provinceDrugId like :input ) ");
+                }
+                if(null != producer){
+                    hql.append(" and producer like :producer ");
+                }
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameter("address", address);
+                if(null != input){
+                    q.setParameter("input", "%" + input + "%");
+                }
+                if(null != producer){
+                    q.setParameter("producer", "%" + producer + "%");
+                }
+                q.setMaxResults(limit);
+                q.setFirstResult(start);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     /*根据关联省的省药品列表数据导入量*/
     @DAOMethod(sql = "select count(*) from ProvinceDrugList pd where pd.provinceId = :provinceId and pd.status = :status)", limit = 0)
     public abstract Long getCountByProvinceIdAndStatus(@DAOParam("provinceId")String provinceId, @DAOParam("status")int status);
+
+    @DAOMethod(sql = " delete from ProvinceDrugList where provinceId =:provinceId")
+    public abstract void deleteByProvinceId(@DAOParam("provinceId")String id);
+
+    @DAOMethod(sql = " delete from ProvinceDrugList where provinceDrugId =:provinceDrugId")
+    public abstract void deleteByProvinceDrugId(@DAOParam("provinceDrugId")Integer provinceDrugId);
+
+    @DAOMethod(sql = "from ProvinceDrugList where provinceId =:provinceId and provinceDrugCode =:provinceDrugCode and status=:status")
+    public abstract ProvinceDrugList getByProvinceIdAndDrugId(@DAOParam("provinceId")String id,
+                                                  @DAOParam("provinceDrugCode")String provinceDrugId,
+                                                  @DAOParam("status")Integer status);
 }

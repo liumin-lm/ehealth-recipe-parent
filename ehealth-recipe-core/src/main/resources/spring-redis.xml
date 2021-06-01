@@ -2,11 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:cache="http://www.springframework.org/schema/cache"
-       xmlns:ssdev="http://www.ngarihealth.com/schema/ssdev"
+       xmlns:ngari="http://www.ngarihealth.com/schema/ngari"
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
         http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd
-        http://www.ngarihealth.com/schema/ssdev	http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+        http://www.ngarihealth.com/schema/ngari	http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <cache:annotation-driven cache-manager="redisCacheManager"/>
     <!-- jedis 配置 -->
@@ -68,5 +68,5 @@
         </property>
         <property name="redisTemplate" ref="redisTemplate" />
     </bean>
-    <!--<ssdev:service ref="invokeLimiter"/>-->
+    <!--<ngari:service ref="invokeLimiter"/>-->
 </beans>

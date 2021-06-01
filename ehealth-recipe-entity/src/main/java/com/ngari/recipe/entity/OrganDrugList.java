@@ -49,22 +49,39 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品包装单位")
     private String unit;
 
-    @ItemProperty(alias = "实际单次剂量")
+    @ItemProperty(alias = "实际单次剂量（规格单位）")
     private Double useDose;
 
-    @ItemProperty(alias = "推荐单次剂量")
+    @ItemProperty(alias = "推荐单次剂量（规格单位）")
     private Double recommendedUseDose;
 
-    @ItemProperty(alias = "单次剂量单位")
+    @ItemProperty(alias = "单次剂量单位（规格单位）")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -105,6 +122,37 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "是否基药")
     private Integer baseDrug;
+
+    @ItemProperty(alias = "批准文号")
+    private String licenseNumber;
+
+    @ItemProperty(alias = "包装材料")
+    private String packingMaterials;
+
+    @ItemProperty(alias = "医保药品编码")
+    private String medicalDrugCode;
+    @ItemProperty(alias = "HIS剂型编码")
+    private String drugFormCode;
+    @ItemProperty(alias = "医保剂型编码")
+    private String medicalDrugFormCode;
+
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
+
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
+
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrust;
+
+    @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
+    private Boolean medicalInsuranceControl;
+
+    @ItemProperty(alias = "适应症 说明")
+    private String indicationsDeclare;
+
+    @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
+    private Boolean supportDownloadPrescriptionPad;
 
     public OrganDrugList() {
     }
@@ -196,7 +244,7 @@ public class OrganDrugList implements java.io.Serializable {
         this.salePrice = salePrice;
     }
 
-    @Column(name = "ProducerCode", length = 20)
+    @Column(name = "ProducerCode", length = 30)
     public String getProducerCode() {
         return producerCode;
     }
@@ -365,5 +413,149 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setBaseDrug(Integer baseDrug) {
         this.baseDrug = baseDrug;
+    }
+
+    @Column(name = "licenseNumber")
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    @Column(name = "medicalDrugCode")
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
+
+    @Column(name = "drugFormCode")
+    public String getDrugFormCode() {
+        return drugFormCode;
+    }
+
+    public void setDrugFormCode(String drugFormCode) {
+        this.drugFormCode = drugFormCode;
+    }
+
+    @Column(name = "MedicalDrugFormCode")
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    @Column(name = "packingMaterials")
+    public String getPackingMaterials() {
+        return packingMaterials;
+    }
+
+    public void setPackingMaterials(String packingMaterials) {
+        this.packingMaterials = packingMaterials;
+    }
+
+    @Column(name = "disableReason")
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
+    }
+
+    @Column(name = "smallestUnitUseDose")
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    @Column(name = "defaultSmallestUnitUseDose")
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    @Column(name = "useDoseSmallestUnit")
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    @Column(name = "usingRateId")
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Column(name = "usePathwaysId")
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
+    @Column(name = "pharmacy")
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
+    }
+
+    @Column(name = "drugEntrust")
+    public String getDrugEntrust() {
+        return drugEntrust;
+    }
+
+    public void setDrugEntrust(String drugEntrust) {
+        this.drugEntrust = drugEntrust;
+    }
+
+    @Column(name = "medicalInsuranceControl")
+    public Boolean getMedicalInsuranceControl() {
+        return medicalInsuranceControl;
+    }
+
+    public void setMedicalInsuranceControl(Boolean medicalInsuranceControl) {
+        this.medicalInsuranceControl = medicalInsuranceControl;
+    }
+
+    @Column(name = "indicationsDeclare")
+    public String getIndicationsDeclare() {
+        return indicationsDeclare;
+    }
+
+    public void setIndicationsDeclare(String indicationsDeclare) {
+        this.indicationsDeclare = indicationsDeclare;
+    }
+
+    @Column(name = "supportDownloadPrescriptionPad")
+    public Boolean getSupportDownloadPrescriptionPad() {
+        return supportDownloadPrescriptionPad;
+    }
+
+    public void setSupportDownloadPrescriptionPad(Boolean supportDownloadPrescriptionPad) {
+        this.supportDownloadPrescriptionPad = supportDownloadPrescriptionPad;
     }
 }

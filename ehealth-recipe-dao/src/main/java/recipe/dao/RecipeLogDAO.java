@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.RecipeLog;
 import ctd.persistence.annotation.DAOMethod;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
@@ -56,5 +57,23 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
      */
     @DAOMethod(orderBy = " id asc")
     public abstract List<RecipeLog> findByRecipeId(Integer recipeId);
+
+    /**
+     * 根据处方id和后状态查询
+     *
+     * @param recipeId
+     * @return
+     */
+    @DAOMethod(orderBy = " id asc")
+    public abstract List<RecipeLog> findByRecipeIdAndAfterStatus(Integer recipeId, Integer afterStatus);
+
+    /**
+     * 根据处方id和后状态查询
+     *
+     * @param recipeId
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeLog where recipeId =:recipeId and afterStatus =:afterStatus order by id desc")
+    public abstract List<RecipeLog> findByRecipeIdAndAfterStatusDesc(@DAOParam("recipeId") Integer recipeId, @DAOParam("afterStatus") Integer afterStatus);
 
 }

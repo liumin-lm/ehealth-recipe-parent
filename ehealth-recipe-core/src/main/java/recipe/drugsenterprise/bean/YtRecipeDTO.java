@@ -104,6 +104,9 @@ public class YtRecipeDTO implements Serializable{
      * 默认
      */
     private Integer costType = 1;
+
+    //医保支付金额
+    private Double fundAmount;
     /**
      * 病历号
      * recipe的patientID
@@ -124,6 +127,14 @@ public class YtRecipeDTO implements Serializable{
      * 非必填
      */
     private Double transFee;
+
+    //药事服务费
+    private Double serviceFree;
+
+    //审方费
+    private Double prescriptionChecking;
+
+    private int giveModel;
     /**
      * 是否支付
      * 1是2否
@@ -153,6 +164,12 @@ public class YtRecipeDTO implements Serializable{
      * 非必填
      */
     private String recipientTel;
+
+    private String province;
+
+    private String city;
+
+    private String district;
     /**
      * 邮编
      * 非必填
@@ -169,6 +186,18 @@ public class YtRecipeDTO implements Serializable{
      * 默认4
      */
     private Integer source;
+
+    //处方单id
+    private Integer recipeId;
+
+    //诊断名称
+    private String diagnose;
+
+    //处方类型
+    private int recipeType;
+
+    private String orderNo;
+
     /**
      * 商品明细
      */
@@ -302,6 +331,14 @@ public class YtRecipeDTO implements Serializable{
         this.costType = costType;
     }
 
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
     public String getRecordNo() {
         return recordNo;
     }
@@ -398,12 +435,92 @@ public class YtRecipeDTO implements Serializable{
         this.source = source;
     }
 
+    public Integer getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(Integer recipeId) {
+        this.recipeId = recipeId;
+    }
+
     public List<YtDrugDTO> getItemList() {
         return itemList;
     }
 
     public void setItemList(List<YtDrugDTO> itemList) {
         this.itemList = itemList;
+    }
+
+    public Double getServiceFree() {
+        return serviceFree;
+    }
+
+    public void setServiceFree(Double serviceFree) {
+        this.serviceFree = serviceFree;
+    }
+
+    public Double getPrescriptionChecking() {
+        return prescriptionChecking;
+    }
+
+    public void setPrescriptionChecking(Double prescriptionChecking) {
+        this.prescriptionChecking = prescriptionChecking;
+    }
+
+    public int getGiveModel() {
+        return giveModel;
+    }
+
+    public void setGiveModel(int giveModel) {
+        this.giveModel = giveModel;
+    }
+
+    public String getDiagnose() {
+        return diagnose;
+    }
+
+    public void setDiagnose(String diagnose) {
+        this.diagnose = diagnose;
+    }
+
+    public int getRecipeType() {
+        return recipeType;
+    }
+
+    public void setRecipeType(int recipeType) {
+        this.recipeType = recipeType;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
     }
 
     @Override
@@ -430,6 +547,15 @@ public class YtRecipeDTO implements Serializable{
                 ", category='" + category + '\'' +
                 ", totalAmount=" + totalAmount +
                 ", transFee=" + transFee +
+                ", giveModel=" + giveModel +
+                ", recipeType=" + recipeType +
+                ", diagnose=" + diagnose +
+                ", giveModel=" + giveModel +
+                ", province=" + province +
+                ", city=" + city +
+                ", district=" + district +
+                ", serviceFree=" + serviceFree +
+                ", prescriptionChecking=" + prescriptionChecking +
                 ", ifPay=" + ifPay +
                 ", payMode=" + payMode +
                 ", recipientName='" + recipientName + '\'' +

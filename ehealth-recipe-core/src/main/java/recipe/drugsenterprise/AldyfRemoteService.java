@@ -1,20 +1,21 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.alijk.bqhospital.alijk.dto.BaseResult;
 import com.alijk.bqhospital.alijk.service.AlihealthHospitalService;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
-import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.taobao.api.FileItem;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionAddRequest;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionGetRequest;
@@ -32,7 +33,16 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +58,10 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.third.IFileDownloadService;
+import recipe.util.Md5Utils;
 import sun.misc.BASE64Decoder;
 
-import javax.annotation.Nullable;
-import java.io.OutputStream;
+import javax.annotation.Resource;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,6 +92,12 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     @Autowired
     private TaobaoConf taobaoConf;
 
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
+
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
+
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("AldyfRemoteService tokenUpdateImpl not implement.");
@@ -101,6 +117,12 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 //            LOGGER.warn("purchase queryPrescription retunr null. recipeId={}", recipe.getRecipeId());
 //            LOGGER.info("purchase 重新发起推送. recipeId={}", recipe.getRecipeId());
 //            PurchaseResponse subResponse = purchase(request);
+        }
+        while (null == result.getObject()) {
+            result = queryPrescription(recipe.getRecipeCode(), true);
+            if (null != result.getObject()) {
+                break;
+            }
         }
         AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
         AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
@@ -221,6 +243,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                     return getDrugEnterpriseResult(result, "医生不存在");
                 }
                 prescriptionAddRequest.setDoctorParam(doctorParam);
+                // 签名图片
                 String ossId = dbRecipe.getSignImg();
                 String ossKey ;
                 try{
@@ -236,6 +259,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         AlibabaAlihealthRxPrescriptionImageUploadRequest imageUploadRequest = new AlibabaAlihealthRxPrescriptionImageUploadRequest();
                         imageUploadRequest.setImage(new FileItem("处方图片", img));
                         BaseResult<AlibabaAlihealthRxPrescriptionImageUploadResponse> baseResult = alihealthHospitalService.uploadPrescriptionImg(imageUploadRequest);
+                        LOGGER.info("aldyremoteservice上传图片，recipeid={},结果={}",dbRecipe.getRecipeId(),JSONObject.toJSONString(baseResult));
                         if (StringUtils.isEmpty(baseResult.getErrCode())) {
                             //上传成功
                             ossKey = baseResult.getData().getOssKey();
@@ -259,13 +283,15 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionParam.setOssKey(ossKey);
                 prescriptionParam.setOutHospitalId(organizeCode);
                 prescriptionParam.setCreateTime(dbRecipe.getSignDate());
+                prescriptionParam.setAttribute("{\"hospitalId\":\""+organizeCode+"\"}");
                 LOGGER.info("prescriptionParam 处方信息:{}.", getJsonLog(prescriptionParam));
                 prescriptionAddRequest.setPrescriptionParam(prescriptionParam);
 
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+                getMedicalInfo(dbRecipe, recipeExtend);
                 //DiagnosticParam 患者主诉
                 AlibabaAlihealthRxPrescriptionAddRequest.DiagnosticParam diagnosticParam = new AlibabaAlihealthRxPrescriptionAddRequest.DiagnosticParam();
-                diagnosticParam.setComplaints(dbRecipe.getMemo());               //诊断
+                diagnosticParam.setComplaints(StringUtils.isEmpty(dbRecipe.getMemo()) ? "无" : dbRecipe.getMemo());               //诊断
                 diagnosticParam.setDiagnosis(recipeExtend.getHistoryOfPresentIllness());   //患者主诉
                 diagnosticParam.setDisease(dbRecipe.getOrganDiseaseName());      //疾病
                 LOGGER.info("DiagnosticParam 患者主诉:{}.", getJsonLog(diagnosticParam));
@@ -291,13 +317,13 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         drugParam.setDoseUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
                         drugParam.setDrugName(saleDrugList.getSaleName());    //商品名称
                         try {
-                            drugParam.setDoseUsageAdvice(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
-                            drugParam.setDoseUsage(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
+                            drugParam.setDoseUsageAdvice(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
+                            drugParam.setDoseUsage(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
                         } catch (ControllerException e) {
                             return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                         }
                         drugParam.setNum((new Double(detailList.get(i).getUseTotalDose())).longValue());  //药品数量
-
+                        drugParam.setSpuId(saleDrugList.getOrganDrugCode());
                         drugParams.add(drugParam);
                         prescriptionAddRequest.setDrugList(drugParams);
                     }
@@ -319,6 +345,21 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
         }
 
         return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        return null;
     }
 
     @Override
@@ -471,5 +512,65 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     private static String getJsonLog(Object object) {
         return JSONUtils.toString(object);
+    }
+
+    public static void main(String[] args) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        // 校验参数组装
+        List<Map<String, Object>> paramList = new ArrayList<>();
+        Map<String, Object> drugMap = new HashedMap();
+        drugMap.put("drugCode","1519309");
+        drugMap.put("total","10");
+        drugMap.put("unit","片");
+        paramList.add(drugMap);
+
+        String signKey = "hydee";
+        String compid = "1402";
+        String signStr = "compid=" + compid + "&" + "drugList=" + JSONObject.toJSONString(paramList)+"&" + "key=" + signKey;
+        String signResult = Md5Utils.crypt(signStr);
+        Map<String, Object> paramMap = new HashedMap();
+        paramMap.put("compid",compid);
+        paramMap.put("drugList",paramList);
+        paramMap.put("sign",signResult);
+        // 校验请求
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        try {
+            String requestUrl = "http://10.153.184.78:58081/ht/zxcf_store";
+            HttpPost httpPost = new HttpPost(requestUrl);
+            httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramMap), ContentType.APPLICATION_JSON));
+            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramMap));
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            LOGGER.info("AldyfRemoteService.scanStock res={}",JSONObject.toJSONString(httpResponse));
+            HttpEntity entity = httpResponse.getEntity();
+            String response = EntityUtils.toString(entity);
+            JSONObject responseObject = JSON.parseObject(response);
+            String code = responseObject.getString("code");
+            if ("1".equals(code)){
+                JSONArray drugArray = responseObject.getJSONArray("drugList");
+                if (null != drugArray && drugArray.size() > 0){
+                    for (int i = 0; i < drugArray.size(); i++){
+                        JSONObject drug = drugArray.getJSONObject(i);
+                        if ("false".equals(drug.getString("inventory"))){
+                            result.setMsg("库存校验不通过");
+                            result.setCode(DrugEnterpriseResult.FAIL);
+                        }
+                    }
+                }
+            }else {
+                result.setMsg("库存校验返回失败");
+                result.setCode(DrugEnterpriseResult.FAIL);
+            }
+        } catch (Exception e) {
+            LOGGER.error("AldyfRemoteService.scanStock 库存校验异常：", e);
+            result.setMsg("库存校验异常");
+            result.setCode(DrugEnterpriseResult.FAIL);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                LOGGER.warn("资源关闭失败：", e);
+            }
+        }
     }
 }

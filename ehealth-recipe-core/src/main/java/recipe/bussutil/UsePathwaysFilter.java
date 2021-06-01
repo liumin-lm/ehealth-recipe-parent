@@ -13,6 +13,9 @@ import recipe.util.RedisClient;
 public class UsePathwaysFilter {
 
     public static String filter(int organId, String field) {
+        if (StringUtils.isEmpty(field)){
+            return "";
+        }
         String val =  RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, field);
         /**
          * 根据医院的编码，匹配平台的值，一般用于医院处方写入平台使用
@@ -30,6 +33,9 @@ public class UsePathwaysFilter {
      * @return
      */
     public static String filterNgari(int organId, String field){
+        if (StringUtils.isEmpty(field)){
+            return "";
+        }
         String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, field);
         /**
          * 查不到的原因

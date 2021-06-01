@@ -17,6 +17,7 @@ import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,13 +33,13 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
 
     /**
      * 根据id和地址获取药企配送地址
+     *
      * @param enterpriseId
      * @param address
      * @return
      */
-    @DAOMethod(sql = "From EnterpriseAddress where enterpriseId=:enterpriseId and address=:address")
-    public abstract List<EnterpriseAddress> findByEnterpriseIdAndAddress(@DAOParam("enterpriseId") Integer enterpriseId,
-                                                                         @DAOParam("address") String address);
+    @DAOMethod(sql = "select count(*) from EnterpriseAddress where enterpriseId=:enterpriseId and address=:address")
+    public abstract Long getCountByEnterpriseIdAndAddress(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("address") String address);
 
     /**
      * 添加药企配送地址
@@ -58,11 +59,12 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         if (ObjectUtils.isEmpty(enterpriseAddress.getAddress())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "Address is null");
         }
-        List<EnterpriseAddress> addressList = findByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(),
-                enterpriseAddress.getAddress());
-        if (addressList.size() != 0) {
+        Long size = getCountByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), enterpriseAddress.getAddress());
+        if (null != size && size > 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "Enterprise Address exist");
         }
+        enterpriseAddress.setCreateTime(new Date());
+        enterpriseAddress.setLastModify(new Date());
         return this.save(enterpriseAddress);
     }
 
@@ -82,6 +84,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
             target.setEnterpriseId(enterpriseAddress.getEnterpriseId());
             target.setStatus(enterpriseAddress.getStatus());
             target.setAddress(enterpriseAddress.getAddress());
+            target.setLastModify(new Date());
             target = this.update(target);
             newList.add(target);
         }
@@ -100,6 +103,8 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         this.remove(enterpriseId);
     }
 
+    @DAOMethod(sql="delete from EnterpriseAddress  where enterpriseId=:enterpriseId")
+    public abstract void deleteByEnterpriseId(@DAOParam("enterpriseId") Integer enterpriseId);
     /**
      * 删除药企配送区域地址
      *
@@ -113,6 +118,16 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
             this.remove(id);
         }
     }
+
+    /**
+     * 根据药企Id  + 使用状态 查询能够配送的地址
+     *
+     * @param enterpriseId
+     * @param status
+     * @return
+     */
+    @DAOMethod(sql = "From EnterpriseAddress where enterpriseId=:enterpriseId and Status=:status", limit = 0)
+    public abstract List<EnterpriseAddress> findByEnterpriseIdAndStatus(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("status") Integer status);
 
     /**
      * 根据药企Id 查询能够配送的地址

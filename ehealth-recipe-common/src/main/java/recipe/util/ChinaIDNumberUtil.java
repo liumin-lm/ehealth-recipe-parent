@@ -2,7 +2,9 @@ package recipe.util;
 
 import ctd.schema.exception.ValidateException;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Days;
 import org.joda.time.LocalDate;
+import org.joda.time.Months;
 import org.joda.time.Years;
 import org.joda.time.format.DateTimeFormat;
 
@@ -137,11 +139,14 @@ public class ChinaIDNumberUtil
 		} catch (RuntimeException e) {
 			throw new ValidateException("BirthdayDateInvaid[" + birth + "]");
 		}
-		
+
 		return age;
 	}
-	
-	private static void isValidIDNumber(String idNumber) throws ValidateException {
+
+	public static void isValidIDNumber(String idNumber) throws ValidateException {
+		if (StringUtils.isEmpty(idNumber)) {
+			throw new ValidateException("idNumber is null");
+		}
 		int len = idNumber.length();
 		int len18 = 18;
 		if (len != len18) {
@@ -159,11 +164,80 @@ public class ChinaIDNumberUtil
 		if (StringUtils.isEmpty(idCard)) {
 			return "";
 		}
-		//显示前1-3位
-		String str1 = idCard.substring(0, 3);
-		//显示后15-18位
-		String str2 = idCard.substring(14, 18);
-		idCard = str1 + "***********" + str2;
-		return idCard;
+        try {
+            //显示前1-3位
+            String str1 = idCard.substring(0, 3);
+            //显示后15-18位
+            String str2 = idCard.substring(14, 18);
+            idCard = str1 + "***********" + str2;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return idCard;
 	}
+
+    /**
+     * 传入18或15位身份证,获取年龄 小于一岁时传递值xx月xx天 大于一岁直接数值字符串类型
+     * @param idNumber 18或15位位身份证号
+     * @throws ValidateException  校验异常，身份证必须18位
+     */
+    public static String getStringAgeFromIDNumber(String idNumber) throws ValidateException{
+        int len = idNumber.length();
+        int len18 = 18;
+        if (len != len18) {
+            idNumber = convert15To18(idNumber);
+        }
+        int age120 = 120;
+        String birth = idNumber.substring(6, 14);
+        Integer age;
+        try {
+            LocalDate birthDay = DateTimeFormat.forPattern("yyyyMMdd")
+                    .parseLocalDate(birth);
+            LocalDate now = new LocalDate();
+            age = Years.yearsBetween(birthDay, now).getYears();
+            if (age < 0 || age > age120) {
+                throw new ValidateException("BirthdayOverflow[" + birth + "]");
+            }
+            if (age == 0){
+                int months = Months.monthsBetween(birthDay, now).getMonths();
+                int days = Days.daysBetween(birthDay, now).getDays();
+                if (months == 0){
+                    return days+"天";
+                }else {
+                    days = days - months*30;
+                    return months+"月"+days+"天";
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new ValidateException("BirthdayDateInvaid[" + birth + "]");
+        }
+        return String.valueOf(age);
+    }
+
+	/**
+	 * 根据出生日期,获取年龄
+	 * @author liumin
+	 * @date 2020-7-28 上午11:47:36
+	 * @throws
+	 */
+	public static Integer getAgeFromBirth(String birth) throws ValidateException {
+		int age120 = 120;
+		Integer age;
+		try {
+			LocalDate birthDay = DateTimeFormat.forPattern("yyyy-MM-dd")
+					.parseLocalDate(birth);
+			LocalDate now = new LocalDate();
+			age = Years.yearsBetween(birthDay, now).getYears();
+			if (age < 0 || age > age120) {
+				throw new ValidateException("getAgeFromBirth ageOverflageow[" + birth + "]");
+			}
+		} catch (RuntimeException | ValidateException e) {
+			throw new ValidateException("getAgeFromBirth[" + birth + "]");
+		}
+
+		return age;
+	}
+    public static void main(String[] args) throws Exception{
+        System.out.println(getAgeFromBirth("2012-01-01"));
+    }
 }

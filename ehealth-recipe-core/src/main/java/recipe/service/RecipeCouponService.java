@@ -34,12 +34,12 @@ public class RecipeCouponService {
         LOGGER.info("RecipeCouponService-unuseCouponByRecipeId:{}.", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe != null && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+        if (recipe != null) {
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 LOGGER.info("RecipeCouponService-unuseCouponByRecipeId recipeOrder:{}.", JSONUtils.toString(recipeOrder));
-                if (recipeOrder.getCouponId() != null && recipeOrder.getCouponId() > 0) {
+                if (recipeOrder.getCouponId() != null && recipeOrder.getCouponId() > 0 && RecipeBussConstant.PAYMODE_ONLINE.equals(recipeOrder.getPayMode())) {
                     //返还优惠券
                     ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
                     couponService.unuseCouponById(recipeOrder.getCouponId());

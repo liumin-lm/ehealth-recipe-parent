@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:beans xmlns:s="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ngari"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.ngarihealth.com/schema/ngari
+						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
+
+
+    <!-- message  基础项目-->
+
+    <reference interface="com.ngari.message.api.service.ConsultMessageService" id="msg.consultMessageService"/>
+    <reference interface="com.ngari.message.api.service.INetworkclinicMsgService" id="msg.networkclinicMsgService"/>
+    <reference interface="com.ngari.message.api.service.IRevisitMessageService" id="msg.revisitMessageService"/>
+</s:beans>

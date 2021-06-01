@@ -1,7 +1,6 @@
 package recipe.hisservice.syncdata;
 
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.opbase.base.mode.MinkeOrganDTO;
 import com.ngari.opbase.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -24,40 +23,55 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
-import recipe.dao.*;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeOrderDAO;
+import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author： 0184/yu_yun
  * @date： 2019/2/14
- * @description： 同步监管数据 (RPC同环境内调用)
+ * @description： 同步监管数据 (RPC同环境内调用)----原本互联网平台上传互联网平台用 现已废弃 合并到HisSyncSupervisionService
  * @version： 1.0
  */
 @RpcBean("commonSyncSupervisionForIHosService")
+@Deprecated
 public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisionService {
-
     /**
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSyncSupervisionForIHosService.class);
 
     private static String HIS_SUCCESS = "200";
+
+    @Autowired
+    private IAuditMedicinesService iAuditMedicinesService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 处方核销接口
@@ -216,9 +230,6 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         PatientService patientService = BasicAPI.getService(PatientService.class);
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-
-        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
         List<RecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
@@ -243,26 +254,29 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         DepartmentDTO departmentDTO;
         DoctorDTO doctorDTO;
         PatientDTO patientDTO;
-        List<AuditMedicines> medicineList;
-        AuditMedicines medicine;
+        List<AuditMedicinesBean> medicineList;
+        AuditMedicinesBean medicine;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
-        List<Integer> consultIds;
-        Integer consultId = null;
+        Map<String, RecipeOrder> recipeOrderMap = new HashMap<>();
+        List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(orderCodeList)) {
+            List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
+            recipeOrderMap = recipeOrderList.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
+        }
         for (Recipe recipe : recipeList) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RecipeIndicatorsReq();
-            if (recipe.getClinicId() != null){
+            if (recipe.getClinicId() != null) {
                 req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
                 //处方来源 1-问诊 4复诊
-                req.setBussSource("4");
-            }else {
-                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                        recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
-                if (CollectionUtils.isNotEmpty(consultIds)) {
-                    consultId = consultIds.get(0);
-                    req.setBussID(LocalStringUtil.toString(consultId));
-                    //处方来源 1-问诊 4复诊
-                    req.setBussSource("1");
+                if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                        req.setBussSource("4");
+                    } else {
+                        req.setBussSource("1");
+                    }
                 }
             }
 
@@ -364,7 +378,8 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             req.setRecipeUniqueID(recipe.getRecipeId().toString());
             //互联网医院处方都是经过合理用药审查
             req.setRationalFlag("1");
-            medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+//            medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+            medicineList =  iAuditMedicinesService.findMedicinesByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(medicineList)) {
                 req.setRationalFlag("0");
             } else if (1 == medicineList.size()) {
@@ -396,13 +411,28 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             req.setUpdateTime(now);
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
-            req.setVerificationStatus(getVerificationStatus(recipe));
 
+            req.setVerificationStatus(getVerificationStatus(recipe));
+            //处方pdfId
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                req.setRecipeFileId(recipe.getChemistSignFile());
+            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                req.setRecipeFileId(recipe.getSignFile());
+            } else {
+                LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
+            }
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
                 LOGGER.warn("uploadRecipeIndicators detail is null. recipe.id={}", recipe.getRecipeId());
                 continue;
+            }
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
+                if (null != recipeOrder) {
+                    req.setOutTradeNo(recipeOrder.getOutTradeNo());
+                    req.setPayTime(recipeOrder.getPayTime());
+                }
             }
             setDetail(req, detailList, usingRateDic, usePathwaysDic);
 
@@ -469,10 +499,10 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
      * @param recipeId
      */
     private String setRationalDrug(Integer recipeId) {
-        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-        List<AuditMedicineIssue> issueList = issueDAO.findIssueByRecipeId(recipeId);
+//        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+        List<AuditMedicineIssueBean> issueList = iAuditMedicinesService.findIssueByRecipeId(recipeId);
         StringBuilder sb = new StringBuilder();
-        for (AuditMedicineIssue issue : issueList) {
+        for (AuditMedicineIssueBean issue : issueList) {
             sb.append(issue.getDetail());
         }
 
@@ -482,7 +512,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
     /**
      * 处方核销状态判断，处方完成及开始配送都当做已核销处理
      *
-     * @param status 0未核销 1已核销
+     * status 0未核销 1已核销
      * @return
      */
     private String getVerificationStatus(Recipe recipe) {

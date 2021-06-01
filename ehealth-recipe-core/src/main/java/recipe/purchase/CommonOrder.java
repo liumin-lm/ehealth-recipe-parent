@@ -3,21 +3,26 @@ package recipe.purchase;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
+import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.IGiveModeBase;
 import recipe.service.RecipeOrderService;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author yinsheng
@@ -25,11 +30,17 @@ import java.util.Map;
  */
 public class CommonOrder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonOrder.class);
+
     public static void createDefaultOrder(Map<String, String> extInfo, OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport, List<Recipe> recipeList, Integer calculateFee) {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        Recipe recipe = recipeList.get(0);
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        //设置确认订单页购药方式的key
+        String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
+        order.setGiveModeKey(giveModeKey);
+        order.setGiveModeText(getGiveModeText(recipeList.get(0).getClinicOrgan(), giveModeKey));
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            orderService.setOrderFee(result, order, Arrays.asList(recipe.getRecipeId()), recipeList, payModeSupport, extInfo, 1);
+            orderService.setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, 1);
         } else {
             //设置默认值
             order.setExpressFee(BigDecimal.ZERO);
@@ -57,5 +68,17 @@ public class CommonOrder {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String getGiveModeText(Integer organId, String key){
+        try {
+            IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
+            GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
+            Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+            return (String)configurations.get(key);
+        } catch (Exception e) {
+            LOGGER.error("getGiveModeText organId:{}, key:{}.", organId, key);
+        }
+        return "";
     }
 }

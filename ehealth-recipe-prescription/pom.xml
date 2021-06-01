@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.15.4.master-SNAPSHOT</version>
+        <version>3.5.3.1.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -14,17 +14,6 @@
     <description>开处方</description>
     <artifactId>ehealth-recipe-prescription</artifactId>
     <dependencies>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-api</artifactId>
-            <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ssdev</groupId>
-                    <artifactId>ssdev-mixins</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-dao</artifactId>

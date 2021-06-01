@@ -1,26 +1,40 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
+import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.AuditDrugListBean;
 import com.ngari.recipe.drug.model.UpDownDrugBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.DrugListForThreeBean;
+import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -28,14 +42,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
+import recipe.common.CommonConstant;
+import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.hisservice.HisRequestInit;
+import recipe.hisservice.RecipeToHisService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
+import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
 import recipe.serviceprovider.BaseService;
+import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -49,7 +73,7 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/4/20.
  */
-@RpcBean("takeDrugService")
+@RpcBean(value = "takeDrugService")
 public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdEnterpriseCallService.class);
@@ -77,8 +101,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private static final Integer CHECK_RECIPE = 1;
 
     @Autowired
-    private YsqRemoteService ysqRemoteService;
+    private GroupRecipeManager groupRecipeManager;
+    private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
+    static ThreadLocal<Map> drugInventoryRequestMap = new ThreadLocal<>();
+
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     /**
      * 待配送状态
      *
@@ -91,7 +123,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         Recipe recipe = getRecipe(paramMap);
         int code ;
-        if (recipe.getReviewType() == 2) {
+        if (recipe.getReviewType() == ReviewTypeConstant.Postposition_Check) {
             //为审方后置
             code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND, CHECK_RECIPE);
         } else {
@@ -344,27 +376,140 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
             orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
             orderAttr.put("trackingNumber", trackingNumber);
-            orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
+            //BUG#50679 【电子处方】配送中的订单详情页展示了完成时间 配送中不需要调用完成订单的接口
+            //orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
             LOGGER.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
-
+            try {
+                // 更新处方、处方订单成功：药企对接物流的运单信息同步基础服务
+                sendLogisticsInfoToBase(recipeId, logisticsCompany, trackingNumber);
+            } catch (Exception e) {
+                LOGGER.error("药企对接物流通知处方运单号，同步运单信息至基础服务异常=",e);
+            }
+            RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             String company = logisticsCompany;
             try {
                 company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(logisticsCompany);
             } catch (ControllerException e) {
-                LOGGER.warn("toSend get logisticsCompany error. logisticsCompany=" + logisticsCompany);
+                LOGGER.warn("toSend get logisticsCompany error. logisticsCompany={}", logisticsCompany,e);
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND, "配送中,配送人：" + sender
                     + ",快递公司：" + company + ",快递单号：" + trackingNumber);
             //信息推送
             RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.IN_SEND);
+            //将快递公司快递单号信息用更新配送方式接口更新至his
+            if (StringUtils.isNotEmpty(logisticsCompany)&&StringUtils.isNotEmpty(trackingNumber)){
+                RecipeBusiThreadPool.submit(()->{
+                    RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+                    RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+                    List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
+                    PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+                    DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
+                    service.drugTakeChange(request);
+                    return null;
+                });
+                //监管平台上传配送信息(派药)
+                RecipeBusiThreadPool.submit(()->{
+                    HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                    CommonResponse response= hisSyncService.uploadSendMedicine(recipeId);
+                    if (CommonConstant.SUCCESS.equals(response.getCode())){
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
+                                "监管平台配送信息[派药]上传成功");
+                    } else{
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
+                                "监管平台配送信息[派药]上传失败："+response.getMsg());
+                    }
+                    return null;
+                });
+            }
         } else {
             thirdResultBean.setCode(ErrorCode.SERVICE_ERROR);
             thirdResultBean.setMsg("电子处方更新失败");
         }
 
         thirdResultBean.setRecipe(null);
+    }
+
+    /**
+     * 药企对接物流，同步运单信息至基础服务
+     *
+     * @param recipeId
+     * @param logisticsCompany
+     * @param trackingNumber
+     */
+    public static void sendLogisticsInfoToBase(Integer recipeId, String logisticsCompany, String trackingNumber) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipeInfo = recipeDAO.getByRecipeId(recipeId);
+        if (StringUtils.isNotBlank(recipeInfo.getOrderCode())){
+            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getByOrderCode(recipeInfo.getOrderCode());
+            if (null != order && order.getEnterpriseId() != null){
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
+                    WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
+                    // 机构id
+                    logisticsOrder.setOrganId(recipeInfo.getClinicOrgan());
+                    // 平台用户id
+                    logisticsOrder.setUserId(recipeInfo.getMpiid());
+                    // 业务类型
+                    logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
+                    // 业务编码
+                    logisticsOrder.setBusinessNo(order.getOrderCode());
+                    // 快递编码
+                    logisticsOrder.setLogisticsCode(logisticsCompany);
+                    // 运单号
+                    logisticsOrder.setWaybillNo(trackingNumber);
+                    // 运单费
+                    logisticsOrder.setWaybillFee(order.getExpressFee());
+                    // 收件人名称
+                    logisticsOrder.setAddresseeName(order.getReceiver());
+                    // 收件人手机号
+                    logisticsOrder.setAddresseePhone(order.getRecMobile());
+                    // 收件省份
+                    logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
+                    // 收件城市
+                    logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
+                    // 收件镇/区
+                    logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+                    // 收件人街道
+                    logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
+                    // 收件详细地址
+                    logisticsOrder.setAddresseeAddress(order.getAddress4());
+                    // 寄托物名称
+                    logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+                    IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+                    PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
+                    if (patientBean != null ){
+                        // 就诊人名称
+                        logisticsOrder.setPatientName(patientBean.getPatientName());
+                        // 就诊人手机号
+                        logisticsOrder.setPatientPhone(patientBean.getMobile());
+                        // 就诊人身份证
+                        String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
+                        if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18){
+                            cardNo = null;
+                        }
+                        logisticsOrder.setPatientIdentityCardNo(cardNo);
+                    }
+                    // 挂号序号
+                    if (recipeInfo.getClinicId() != null) {
+                        IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                        RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipeInfo.getClinicId());
+                        if (consultExDTO != null) {
+                            logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
+                        }
+                    }
+                    LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
+                    ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+                    String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
+                    LOGGER.info("药企对接物流运单信息回写基础服务，结果={}", writeResult);
+                }
+            }
+        }
     }
 
     /**
@@ -401,9 +546,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
-        attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
-        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(order.getPayMode())) {
             attrMap.put("payFlag", 1);
             attrMap.put("payDate", new Date());
         }
@@ -421,7 +566,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
             updateRecipeDetainInfo(recipe, paramMap);
             Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
-            orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
+            orderService.finishOrder(recipe.getOrderCode(),  orderAttr);
             //保存至电子病历
 //            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //            recipeService.saveRecipeDocIndex(recipe);
@@ -435,6 +580,22 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             }
             //更新pdf
             CommonOrder.finishGetDrugUpdatePdf(recipeId);
+            //监管平台上传配送信息(配送到家-处方完成)
+            RecipeBusiThreadPool.submit(()->{
+                HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                CommonResponse response= hisSyncService.uploadFinishMedicine(recipeId);
+                if (CommonConstant.SUCCESS.equals(response.getCode())){
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
+                            "监管平台配送信息[配送到家-处方完成]上传成功");
+                } else{
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
+                            "监管平台配送信息[配送到家-处方完成]上传失败："+response.getMsg());
+                }
+                return null;
+            });
+
         } else {
             code = ErrorCode.SERVICE_ERROR;
             errorMsg = "电子处方更新失败";
@@ -444,6 +605,79 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
         LOGGER.info("finishRecipe:" + JSONUtils.toString(backMsg));
+
+        return backMsg;
+    }
+
+    /**
+     * 配送到家-处方完成方法
+     *
+     * @param paramMap
+     * @return
+     */
+    @RpcService
+    public ThirdResultBean RecipeFall(Map<String, Object> paramMap) {
+        LOGGER.info("RecipeFall param : " + JSONUtils.toString(paramMap));
+
+        ThirdResultBean backMsg = ThirdResultBean.getFail();
+        int code = validateRecipe(paramMap, backMsg, null, OrderStatusConstant.FAIL, CHECK_ORDER);
+
+        if (REQUEST_ERROR_REAPET == code) {
+            backMsg.setCode(REQUEST_OK);
+            return backMsg;
+        } else if (REQUEST_ERROR == code) {
+            LOGGER.warn("recipeId=[{}], RecipeFall:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            return backMsg;
+        }
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        Recipe recipe = backMsg.getRecipe();
+        Integer recipeId = recipe.getRecipeId();
+        String errorMsg = "";
+        String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
+        //此处为配送人
+        String sender = MapValueUtil.getString(paramMap, "sender");
+
+        Map<String, Object> attrMap = Maps.newHashMap();
+        attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
+                DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
+        attrMap.put("giveFlag", 1);
+        String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
+        if (StringUtils.isNotEmpty(recipeFeeStr)) {
+            attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
+        }
+        //更新处方信息
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
+        if (rs) {
+            //患者未取药
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            Map<String, Object> orderAttrMap = new HashMap();
+
+            orderAttrMap.put("status", OrderStatusConstant.FAIL);
+            orderAttrMap.put("cancelReason", MapValueUtil.getString(paramMap, "cancelReason"));
+            orderAttrMap.put("effective", 0);
+            RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
+
+//            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
+            if(RecipeResultBean.FAIL == result.getCode()){
+                code = ErrorCode.SERVICE_ERROR;
+                errorMsg = "处方订单更新失败";
+            } else {
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.RECIPE_FAIL, "取药失败，原因:" + MapValueUtil.getString(paramMap, "cancelReason"));
+                //发送取药失败消息
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
+            }
+
+            groupRecipeManager.updateGroupRecipe(recipeId, recipe.getOrderCode(), RecipeStatusConstant.RECIPE_FAIL);
+        } else {
+            code = ErrorCode.SERVICE_ERROR;
+            errorMsg = "电子处方更新失败";
+        }
+        backMsg.setCode(code);
+        backMsg.setMsg(errorMsg);
+        backMsg.setRecipe(null);
+        LOGGER.info("RecipeFall:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -649,6 +883,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
         String result = MapValueUtil.getString(paramMap, "result");
         String result1 = "1";
+        int status;
         if (result1.equals(result)) {
             //取药成功
             //修改处方单信息
@@ -663,11 +898,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             }
             //更新处方信息
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+            status = RecipeStatusConstant.FINISH;
             if (rs) {
                 updateRecipeDetainInfo(recipe, paramMap);
                 Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
                 //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
-                orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
+                orderService.finishOrder(recipe.getOrderCode(),orderAttr);
                 //保存至电子病历
 //                recipeService.saveRecipeDocIndex(recipe);
                 //记录日志
@@ -689,6 +925,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
+            status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
                 orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
@@ -696,12 +933,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
             }
         }
-
+        groupRecipeManager.updateGroupRecipe(recipeId, recipe.getOrderCode(), status);
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
         LOGGER.info("recordDrugStoreResult:" + JSONUtils.toString(backMsg));
-
         return backMsg;
     }
 
@@ -872,7 +1108,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                             backMsg.setMsg(appid+"://?module=orderList");
                         }else {
                             //微信跳转
-                            IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
+                            IWXServiceInterface wxService = AppContextHolder.getBean("wx.wxService", IWXServiceInterface.class);
                             Map<String, String> paramsMap = Maps.newHashMap();
                             paramsMap.put("module", "orderList");
 //                            paramsMap.put("cid", order.getOrderId().toString());
@@ -926,12 +1162,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
-
+        if(order == null){
+            code = REQUEST_ERROR;
+            errorMsg = "处方未获取到有效订单";
+        }
         //配送到家-处方完成方法，处方准备并配送接口，该处方改成配送中，待配送状态
         //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
         if (REQUEST_OK == code && null != beforeStatus) {
             if(CHECK_ORDER.equals(checkStatus)){
-                if (!order.getStatus().equals(beforeStatus)) {
+                /*if (!order.getStatus().equals(beforeStatus)) {
                     if (order.getStatus().equals(afterStatus)) {
                         code = REQUEST_ERROR_REAPET;
                     } else {
@@ -942,7 +1181,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                             errorMsg = "该处方单不是配送中的处方";
                         }
                     }
-                }
+                }*/
             }else{
                 if (!recipe.getStatus().equals(beforeStatus)) {
                     if (recipe.getStatus().equals(afterStatus)) {
@@ -951,11 +1190,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         code = REQUEST_ERROR;
                         if (RecipeStatusConstant.CHECK_PASS_YS == beforeStatus) {
                             errorMsg = "该处方单不是药师审核通过的处方";
-                        } else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
+                        }
+                        /*else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
                             errorMsg = "该处方单不是待配送的处方";
                         } else if (RecipeStatusConstant.IN_SEND == beforeStatus) {
                             errorMsg = "该处方单不是配送中的处方";
-                        }
+                        }*/
                     }
                 }
             }
@@ -1014,7 +1254,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private Map getOrderInfoMap(Recipe recipe, Map<String, Object> paramMap) {
         Map<String, Object> attrMap = Maps.newHashMap();
         // 由于只有钥世圈在用，所以实际支付价格跟总价一致，无需考虑优惠券
-        if (!RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) && !RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+        if (!RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) &&
+                !RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
             return attrMap;
         }
         String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
@@ -1151,9 +1392,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        Integer organId=null;
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType,organId, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
         result.setItems(list);
         return result;
@@ -1164,6 +1406,20 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> list = drugsEnterpriseDAO.findByOrganId(organId);
         return getList(list, DrugsEnterpriseBean.class);
+    }
+
+    @RpcService
+    public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
+        if(Objects.isNull(drugsEnterprise)){
+            throw new DAOException(ErrorCode.SERVICE_SUCCEED, "DrugsEnterprise is null");
+        }
+        DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
+        BeanUtils.copy(drugsEnterprise,drugsEnterpriseDTO);
+        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
+        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+        return drugsEnterpriseDTO;
     }
 
     /**
@@ -1201,7 +1457,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 result.setCode(StandardResultDTO.SUCCESS);
                 result.setMsg("更新药品信息成功");
             } catch (Exception e){
-                LOGGER.info("更新药品信息失败,{} {}.", auditDrugListBean.getOrganDrugCode(), e.getMessage());
+                LOGGER.error("更新药品信息失败,{} {}.", auditDrugListBean.getOrganDrugCode(), e.getMessage(),e);
             }
             return result;
         }
@@ -1335,5 +1591,530 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             return result;
         }
         return result;
+    }
+
+    @RpcService
+    public StandardResultDTO  recipeDownloadConfirmation(String appKey, List<Integer> recipeIds){
+        StandardResultDTO result = new StandardResultDTO();
+        LOGGER.info("ThirdEnterpriseCallService.recipeDownloadConfirmation appKey:{}, recipeIds", appKey, JSONUtils.toString(recipeIds));
+        result.setCode(StandardResultDTO.SUCCESS);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        if (drugsEnterprises == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("未匹配到药企");
+            return result;
+        }
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            for (Integer recipeId : recipeIds) {
+                Recipe recipe = recipeDAO.getByRecipeIdAndEnterpriseId(drugsEnterprise.getId(), recipeId);
+                if (recipe != null) {
+                    recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), Arrays.asList(recipeId));
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param paramMap
+     * @return
+     */
+    @RpcService
+    public Integer scanStockEnterpriseForHis(Map<String, Object> paramMap) {
+        LOGGER.info("scanStockEnterpriseForHis:{}.", JSONUtils.toString(paramMap));
+        Integer organId = (Integer)paramMap.get("organId");
+        String enterpriseCode = (String)paramMap.get("enterpriseCode");
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseCode);
+        if (drugsEnterprise == null) {
+            LOGGER.info("scanStockEnterpriseForHis 没有查询到对应的药企");
+            return 0;
+        }
+        List data = (List)paramMap.get("data");
+        if (data != null) {
+            for (int i = 0; i < data.size(); i++) {
+                Map map = (Map)data.get(i);
+                String drugCode = (String)map.get("drugCode");
+                String total = (String)map.get("total");
+                if (StringUtils.isEmpty(drugCode) || StringUtils.isEmpty(total)) {
+                    return 0;
+                }
+                OrganDrugList organDrugList = null;
+                try {
+                    //TODO 2 drugCode含义
+                    organDrugList = organDrugListDAO.getByOrganIdAndProducerCode(organId, drugCode);
+                } catch (Exception e) {
+                    LOGGER.error("scanStockEnterpriseForHis 查询机构药品错误 drugCode:{}.", drugCode , e);
+                    return 0;
+                }
+                //TODO 1约定的enterpriseCode=》appKey
+//                if("12345".equals(enterpriseCode)){//除马路以外的其他药企库存查询
+//                    map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
+//                    drugInventoryRequestMap.set(map);
+//                    return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
+//                }else{//马路
+                    return execScanStockEnterpriseForMaLu(organDrugList,drugsEnterprise,total);
+//                }
+
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 提供给his查询库存
+     * @return
+     */
+    private Integer execScanStockEnterpriseForOther(Integer depId, Integer drugId, Integer organId) {
+        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        String getDrugInventoryResponse="";
+        int result=0;//默认无库存
+            //TODO 2 实现类返回多样化 处理问题
+            try{
+                getDrugInventoryResponse=service.getDrugInventory(depId, drugId, organId);
+                if("有库存".equals(getDrugInventoryResponse)){
+                    result=1;
+                }else if("无库存".equals(getDrugInventoryResponse)||"暂无库存".equals(getDrugInventoryResponse)){
+                    result=0;
+                }else if("暂不支持库存查询".equals(getDrugInventoryResponse)){
+                    result=-1;
+                }else if(Integer.parseInt(getDrugInventoryResponse)>0){//返回库存数兼容
+                    result=1;
+                }
+            }catch (Exception e){
+                LOGGER.error("execScanStockEnterpriseForOther error: {}",e);
+            }finally {
+                drugInventoryRequestMap.remove();
+            }
+        return result;
+    }
+
+    /**
+     * 马陆扣库存操作
+     * @param organDrugList
+     * @param drugsEnterprise
+     * @param total
+     * @return
+     */
+    private Integer execScanStockEnterpriseForMaLu(OrganDrugList organDrugList,DrugsEnterprise drugsEnterprise,String total) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        Integer result = 1;
+        if (organDrugList != null) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                if (saleDrugList.getInventory() != null) {
+                    if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
+                        result = 0;
+                    } else {
+                        try{
+                            saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), saleDrugList.getDrugId(), new BigDecimal(total));
+                        }catch(Exception e){
+                            LOGGER.error("scanStockEnterpriseForHis 扣库存失败,msg:{}.", e.getMessage(), e);
+                        }
+                    }
+                } else {
+                    return 0;
+                }
+            } else {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+        return result;
+    }
+
+    @RpcService
+    public StandardResultDTO downLoadRecipes(Map<String,Object> parames){
+        StandardResultDTO standardResult = new StandardResultDTO();
+        standardResult.setCode(StandardResultDTO.SUCCESS);
+        String imgHead = "data:image/jpeg;base64,";
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes parames:{}.", JSONUtils.toString(parames));
+        if (parames == null) {
+            standardResult.setCode(StandardResultDTO.FAIL);
+            standardResult.setMsg("参数不能为空");
+            return standardResult;
+        }
+        String appKey = (String)parames.get("appKey");
+        String lastUpdateTime = (String)parames.get("lastUpdateTime");
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprises));
+        if (CollectionUtils.isEmpty(drugsEnterprises)) {
+            standardResult.setCode(StandardResultDTO.FAIL);
+            standardResult.setMsg("无法匹配到药企");
+            return standardResult;
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+
+        List<Integer> drugsEnterpriseIds = new ArrayList<>();
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            drugsEnterpriseIds.add(drugsEnterprise.getId());
+        }
+        //查找指定药企已支付完成的处方单
+        List<RecipeOrder> recipeOrders = new ArrayList<>();
+        try{
+            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterpriseIds, lastUpdateTime);
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
+        }catch (Exception e){
+            e.printStackTrace();
+            LOGGER.error("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{} error : {}.", JSONUtils.toString(recipeOrders), e.getMessage(),e);
+        }
+
+        List<RecipeAndOrderDetailBean> result = new ArrayList<>();
+        for (RecipeOrder recipeOrder : recipeOrders) {
+            RecipeAndOrderDetailBean orderDetailBean = new RecipeAndOrderDetailBean();
+            String orderCode = recipeOrder.getOrderCode();
+            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
+            Recipe recipe = recipes.get(0);
+
+            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
+                    && new Integer(1).equals(recipeOrder.getPayMode())) {
+                //表示不是医保患者并且没有优惠券并且是线上支付的,那他一定要支付钱
+                if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
+                    continue;
+                }
+            }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+            //设置医院信息
+            OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes organ:{} .", JSONUtils.toString(organ));
+            if (null != organ) {
+                orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
+                orderDetailBean.setOrganId(organ.getOrganizeCode());
+                orderDetailBean.setOrganName(organ.getName());
+            }
+            //设置医生信息
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
+            if (null != doctorDTO) {
+                orderDetailBean.setDoctorNumber(convertParame(doctorDTO.getIdNumber()));
+                orderDetailBean.setDoctorName(convertParame(doctorDTO.getName()));
+            }
+
+            //设置科室信息
+            DepartmentDTO department = departmentService.get(recipe.getDepart());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes department:{} .", JSONUtils.toString(department));
+            if (null != department) {
+                orderDetailBean.setDepartId(convertParame(department.getDeptId()));
+                orderDetailBean.setDepartName(convertParame(department.getName()));
+            }
+
+            //设置患者信息
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
+            if (null != patient) {
+                orderDetailBean.setCertificateType("1");
+                orderDetailBean.setCertificate(convertParame(patient.getCertificate()));
+                orderDetailBean.setPatientName(convertParame(patient.getPatientName()));
+                orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
+                orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
+            }
+            orderDetailBean.setPatientNumber(convertParame(recipe.getPatientID()));
+
+            //设置处方信息
+            orderDetailBean.setRecipeId(convertParame(recipe.getRecipeId()));
+            orderDetailBean.setRecipeType(convertParame(recipe.getRecipeType()));
+            orderDetailBean.setRecipeCode(recipe.getRecipeCode());
+            orderDetailBean.setCreateDate(convertParame(recipe.getCreateDate()));
+            orderDetailBean.setOrganDiseaseId(convertParame(recipe.getOrganDiseaseId()));
+            orderDetailBean.setOrganDiseaseName(convertParame(recipe.getOrganDiseaseName()));
+            orderDetailBean.setRecipeMemo(convertParame(recipe.getRecipeMemo()));
+            orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
+            orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
+            if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
+                orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+            } else {
+                orderDetailBean.setTcmNum("");
+            }
+            if (recipeOrder.getPayMode() == 1) {
+                orderDetailBean.setDistributionFlag("1");
+            } else {
+                orderDetailBean.setDistributionFlag("0");
+            }
+
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            if (drugsEnterprise.getDownSignImgType() != null && drugsEnterprise.getDownSignImgType() == 1) {
+                //获取处方签链接
+                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                String signImgFile = recipeParameterDao.getByName("fileImgUrl");
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    orderDetailBean.setRecipeSignImgUrl(signImgFile + recipe.getChemistSignFile());
+                } else {
+                    orderDetailBean.setRecipeSignImgUrl(signImgFile + recipe.getSignFile());
+                }
+            } else {
+                //设置处方笺base
+                String ossId = recipe.getSignImg();
+                if(null != ossId){
+                    try {
+                        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                        String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
+                        if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
+                            LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                        }
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                        orderDetailBean.setRecipeSignImg(imgStr);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        LOGGER.error("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
+                    }
+                }
+            }
+
+            //设置订单信息
+            orderDetailBean.setRecipeFee(convertParame(recipeOrder.getRecipeFee()));
+            orderDetailBean.setActualFee(convertParame(recipeOrder.getActualPrice()));
+            orderDetailBean.setCouponFee(convertParame(recipeOrder.getCouponFee()));
+            orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
+            orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
+            orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
+            //代煎费
+            orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
+            //设置中医辨证论治费
+            orderDetailBean.setTcmFee(convertParame(recipeOrder.getTcmFee()));
+
+            if (recipe.getRecipeType() == 3 && recipeOrder.getDecoctionFee() != null && recipeOrder.getDecoctionFee().compareTo(BigDecimal.ZERO) == 1 ) {
+                orderDetailBean.setDecoctionFlag("1");
+            } else {
+                orderDetailBean.setDecoctionFlag("0");
+            }
+            if (recipeOrder.getFundAmount() != null) {
+                orderDetailBean.setMedicalFee(convertParame(recipeOrder.getFundAmount()));
+            } else {
+                orderDetailBean.setMedicalFee("0");
+            }
+            orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
+            if (recipeOrder.getExpressFee() == null) {
+                orderDetailBean.setExpressFee("0");
+            } else {
+                orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
+            }
+            orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
+            String province = getAddressDic(recipeOrder.getAddress1());
+            String city = getAddressDic(recipeOrder.getAddress2());
+            String district = getAddressDic(recipeOrder.getAddress3());
+            String street = getAddressDic(recipeOrder.getStreetAddress());
+            orderDetailBean.setProvince(convertParame(province));
+            orderDetailBean.setCity(convertParame(city));
+            orderDetailBean.setDistrict(convertParame(district));
+            orderDetailBean.setStreet(convertParame(street));
+            orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
+            orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
+            orderDetailBean.setRecAddress(convertParame(recipeOrder.getAddress4()));
+            orderDetailBean.setOutTradeNo(convertParame(recipeOrder.getOutTradeNo()));
+            orderDetailBean.setTradeNo(convertParame(recipeOrder.getTradeNo()));
+            orderDetailBean.setPayMode(convertParame(convertParame(recipeOrder.getPayMode())));
+            orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
+            orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
+            orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
+            orderDetailBean.setMemo(convertParame(recipe.getMemo()));
+            orderDetailBean.setStatus(convertParame(recipe.getStatus()));
+
+            List<DrugListForThreeBean> drugLists = new ArrayList<>();
+            //设置药品信息
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipedetails.");
+            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipedetails:{} .", JSONUtils.toString(recipedetails));
+            for (Recipedetail recipedetail : recipedetails) {
+                DrugListForThreeBean drugList = new DrugListForThreeBean();
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                if (saleDrugList == null) {
+                    standardResult.setCode(StandardResultDTO.FAIL);
+                    standardResult.setMsg("配送药品目录为空");
+                    return standardResult;
+                }
+                drugList.setDrugCode(saleDrugList.getOrganDrugCode());
+                drugList.setDrugName(recipedetail.getDrugName());
+                drugList.setSpecification(convertParame(recipedetail.getDrugSpec()));
+                drugList.setProducer(convertParame(recipedetail.getProducer()));
+                drugList.setTotal(convertParame(recipedetail.getUseTotalDose()));
+                drugList.setUseDose(convertParame(recipedetail.getUseDose()));
+                drugList.setDrugFee(convertParame(saleDrugList.getPrice()));
+                drugList.setUesDays(convertParame(recipedetail.getUseDays()));
+                drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
+                drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
+                if (recipe.getRecipeType() == 3 || recipe.getRecipeType() == 4) {
+                    orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathwaysTextFromHis()));
+                    orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRateTextFromHis()));
+                } else {
+                    orderDetailBean.setTcmUsePathways("");
+                    orderDetailBean.setTcmUsingRate("");
+                }
+                drugList.setDrugUnit(convertParame(recipedetail.getDrugUnit()));
+                drugList.setPack(convertParame(recipedetail.getPack()));
+                drugList.setLicenseNumber(convertParame(recipedetail.getLicenseNumber()));
+                drugList.setStandardCode("");
+                if (saleDrugList.getPrice() != null && recipedetail.getUseTotalDose() != null) {
+                    drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
+                }
+                try {
+                    String usingRate = recipedetail.getUsingRateTextFromHis()!=null?recipedetail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
+                    String usingPathways = recipedetail.getUsePathwaysTextFromHis()!=null?recipedetail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
+                    drugList.setUsingRateText(usingRate);
+                    drugList.setUsePathwaysText(usingPathways);
+                } catch (ControllerException e) {
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId(),e);
+                }
+                drugList.setMemo(convertParame(recipedetail.getMemo()));
+                drugLists.add(drugList);
+            }
+            orderDetailBean.setDrugList(drugLists);
+            result.add(orderDetailBean);
+        }
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes result:{}.", JSONUtils.toString(result));
+        standardResult.setData(result);
+        return standardResult;
+    }
+
+    @RpcService
+    public StandardResultDTO  synchronizeInventory(Map<String, Object> parames){
+        LOGGER.info("ThirdEnterpriseCallService synchronizeInventory parames:{}", JSONUtils.toString(parames));
+        StandardResultDTO standardResult = new StandardResultDTO();
+        String appKey = (String)parames.get("appKey");
+        List<Map<String,Object>> synchronizeDrugBeans = (List)parames.get("drugList");
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
+        if (drugsEnterprise == null) {
+            standardResult.setCode(StandardResultDTO.FAIL);
+            standardResult.setMsg("未匹配到药企");
+            return standardResult;
+        }
+        standardResult.setCode(StandardResultDTO.SUCCESS);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for (Map<String,Object> synchronizeDrugBean : synchronizeDrugBeans) {
+            String drugCode = (String)synchronizeDrugBean.get("drugCode");
+            int inventory = (Integer)synchronizeDrugBean.get("inventory");
+            try {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
+                if (saleDrugList != null) {
+                    saleDrugListDAO.updateDrugInventory(saleDrugList.getDrugId(), drugsEnterprise.getId(), new BigDecimal(inventory));
+                } else {
+                    LOGGER.info("ThirdEnterpriseCallService synchronizeInventory 未查询到配送药品：{},{}", drugsEnterprise.getName(), drugCode);
+                }
+            } catch (Exception e) {
+                LOGGER.error("ThirdEnterpriseCallService synchronizeInventory error:", e);
+            }
+        }
+        return standardResult;
+    }
+
+    private String convertParame(Object o){
+        if (o == null) {
+            return "";
+        } else {
+            return o.toString();
+        }
+    }
+
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    public static String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 生成完整地址
+     *
+     * @param order 订单
+     * @return
+     */
+    public String getCompleteAddress(RecipeOrder order) {
+        StringBuilder address = new StringBuilder();
+        if (null != order) {
+            this.getAddressDic(address, order.getAddress1());
+            this.getAddressDic(address, order.getAddress2());
+            this.getAddressDic(address, order.getAddress3());
+            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
+        }
+        return address.toString();
+    }
+
+    public void getAddressDic(StringBuilder address, String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+    }
+
+    /**
+     * 1.2	同步药企药品库存接口返回给his并异步更新销售药品目录药品价格
+     * @param paramMap
+     * @return
+     */
+    @RpcService
+    public List<Map<String,Object>> finEnterpriseStockByOrganIdForHisAndUpdateSale(Map<String, Object> paramMap) {
+        String organId = (String)paramMap.get("organ");
+        Integer start = (Integer)paramMap.get("start");
+        Integer limit = (Integer)paramMap.get("limit");
+        if (StringUtils.isEmpty(organId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
+        }
+        if (start==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "start is needed");
+        }
+        if (limit==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "limit is needed");
+        }
+        if (limit>100) {
+            limit=100;
+        }
+        //1 同步药企药品库存给HIS
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<Map<String,Object>> res=remoteDrugEnterpriseService.findEnterpriseStockByPage(organId,start,limit);
+        //2 异步更新零售价格
+        GlobalEventExecFactory.instance().getExecutor().execute(()->{
+             updateSaleDrugList(res,organId);
+        });
+        return res;
+    }
+
+    /**
+     * 更新零售价格
+     * @param res
+     * @param organ
+     */
+    private void updateSaleDrugList(List<Map<String, Object>> res,String organ) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        if(res!=null){
+            Integer organId=Integer.parseInt(organ);
+            for(Map<String,Object> map :res){
+                SaleDrugList saleDrugList=new SaleDrugList();
+                saleDrugList=saleDrugListDAO.getByOrganIdAndDrugCode(organId,map.get("PROC_ID").toString());
+                if(saleDrugList!=null){
+                    saleDrugList.setPrice(new BigDecimal( (String) map.get("RETAIL_PRICE")));
+                    saleDrugListDAO.update(saleDrugList);
+                }
+            }
+        }
+
     }
 }

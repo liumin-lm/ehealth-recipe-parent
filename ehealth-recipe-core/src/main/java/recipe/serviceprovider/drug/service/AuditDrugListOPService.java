@@ -11,7 +11,6 @@ import com.ngari.recipe.drug.service.IAuditDrugListService;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +156,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         try{
             str = DrugMatchUtil.match(drugName);
         } catch (Exception e) {
-            LOGGER.warn("药品目录匹配分词出现问题,{},{}.", drugName, e.getMessage());
+            LOGGER.warn("药品目录匹配分词出现问题,{},{}.", drugName, e.getMessage(),e);
             str = drugName;
         }
 
@@ -166,7 +165,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         try {
             drugLists = drugListDAO.findDrugListByNameOrSpec(str, saleName, drugSpec, producer);
         } catch (Exception e) {
-            LOGGER.error("drugMatch:" + e.getMessage());
+            LOGGER.error("drugMatch:" + e.getMessage(),e);
         }
         return ObjectCopyUtils.convert(drugLists, DrugListBean.class);
     }

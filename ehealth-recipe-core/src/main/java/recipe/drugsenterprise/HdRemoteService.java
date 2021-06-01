@@ -1,13 +1,19 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -27,14 +33,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.constant.*;
+import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.HdFindSupportDepStatusEnum;
+import recipe.constant.HdHttpUrlEnum;
+import recipe.constant.HdPushRecipeStatusEnum;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.service.RecipeLogService;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
 import recipe.util.DistanceUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -81,7 +92,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     private static final String payFlagDefault = "1";
 
-    private static final String payModeDefault = "4";
+    private static final String payModeDefault = "2";
 
     private static final String recipeTypeDefault = "1";
 
@@ -152,14 +163,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
+            LOGGER.error("HdRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
             getFailResult(result, "更新token异常");
         } finally {
             try {
                 httpclient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -252,6 +263,13 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         request.setGrantType(GRANTTYPE);
         return true;
     }
+    @RpcService
+    public void tests(Integer recipeId){
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(224);
+        pushRecipeInfo(recipeIds, drugsEnterprise);
+    }
 
     @Override
     @RpcService
@@ -261,6 +279,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         //组装处方和处方下药品信息，发送推送请求
         pushRecipe(recipeIds, enterprise, result);
         return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
     }
 
     /**
@@ -295,6 +318,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         if (CollectionUtils.isNotEmpty(recipeList)) {
             try {
                 Recipe nowRecipe = recipeList.get(0);
+                getMedicalInfo(nowRecipe);
                 assemblePushRecipeMessage(result, sendHdRecipe, nowRecipe, enterprise);
                 if (DrugEnterpriseResult.FAIL == result.getCode())
                     return;
@@ -326,7 +350,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     return;
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.pushRecipeInfo:推送异常:{}", e.getMessage());
+                LOGGER.error("HdRemoteService.pushRecipeInfo:推送异常:{}", e.getMessage(),e);
                 getFailResult(result, "组装数据异常");
             }
         }else{
@@ -351,6 +375,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         HdPushRecipeResponse pushRecipeResponse = null;
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HdHttpUrlEnum httpUrl;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = null;
+        if (sendHdRecipe != null && sendHdRecipe.getRecipeId() != null) {
+            recipe = recipeDAO.getByRecipeId(Integer.parseInt(sendHdRecipe.getRecipeId()));
+        }
         try {
             if (enterprise.getBusinessUrl().contains("http:")) {
 
@@ -367,16 +396,26 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 String responseStr =  EntityUtils.toString(httpEntity);
                 pushRecipeResponse =
                         JSONUtils.parse(responseStr, HdPushRecipeResponse.class);
-                if(null == pushRecipeResponse){
+                if(null == pushRecipeResponse || null == pushRecipeResponse.getSuccess()){
                     LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}]处方推送没有响应", enterprise.getId(), enterprise.getName());
                     getFailResult(result, "处方推送没有响应");
                 }
                 if(pushRecipeResponse.getSuccess()) {
-                    LOGGER.info("HdRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName());
+                    if (recipe != null) {
+                        LOGGER.info("HdRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送成功，请求返回:{}", sendHdRecipe.getRecipeId(),enterprise.getId(), enterprise.getName());
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+                    } else {
+                        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
+                    }
                 }else if(HdPushRecipeStatusEnum.TOKEN_EXPIRE.equals(HdPushRecipeStatusEnum.fromCode(pushRecipeResponse.getCode()))){
                     LOGGER.info("HdRemoteService.pushRecipeInfo:处方推送请求鉴权失败需要重新获取token");
                 }else{
-                    LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}]处方推送失败, 失败原因: {}", enterprise.getId(), enterprise.getName(), pushRecipeResponse.getMessage());
+                    if (recipe != null) {
+                        LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送失败, 失败原因: {}", sendHdRecipe.getRecipeId(),enterprise.getId(), enterprise.getName(), pushRecipeResponse.getMessage());
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败,失败信息："+pushRecipeResponse.getMessage());
+                    } else {
+                        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
+                    }
                     getFailResult(result, HdFindSupportDepStatusEnum.fromCode(pushRecipeResponse.getCode()).getMean());
                 }
                 //关闭 HttpEntity 输入流
@@ -386,13 +425,13 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", enterprise.getId(), enterprise.getName(), e.getMessage());
+            LOGGER.error("HdRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", enterprise.getId(), enterprise.getName(), e.getMessage(),e);
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("HdRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
             return pushRecipeResponse;
         }
@@ -479,7 +518,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 sendHdRecipe.setImage(imgStr);
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.warn("HdRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage() );
+                LOGGER.warn("HdRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage(),e );
                 getFailResult(result, "下载处方笺服务异常");
                 return result;
             }
@@ -506,20 +545,71 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setRecipeMemo(nowRecipe.getRecipeMemo());
         sendHdRecipe.setMemo(nowRecipe.getMemo());
         sendHdRecipe.setOrganDiseaseName(nowRecipe.getOrganDiseaseName());
-        sendHdRecipe.setMedicalPay(null == nowRecipe.getMedicalPayFlag() ? medicalPayDefault : nowRecipe.getMedicalPayFlag().toString());
+        //sendHdRecipe.setMedicalPay(null == nowRecipe.getMedicalPayFlag() ? medicalPayDefault : nowRecipe.getMedicalPayFlag().toString());
         sendHdRecipe.setOrganDiseaseId(nowRecipe.getOrganDiseaseId());
-        sendHdRecipe.setAudiDate(getNewTime(nowRecipe.getCheckDateYs(), hdTimeCheck));
+        if (nowRecipe.getCheckDateYs() != null) {
+            sendHdRecipe.setAudiDate(getNewTime(nowRecipe.getCheckDateYs(), hdTimeCheck));
+        } else {
+            sendHdRecipe.setAudiDate(getNewTime(new Date(), hdTimeCheck));
+        }
+
         sendHdRecipe.setCreateDate(getNewTime(nowRecipe.getCreateDate(), hdTimeCheck));
         sendHdRecipe.setTcmUsePathways(nowRecipe.getTcmUsePathways());
         sendHdRecipe.setTcmUsingRate(nowRecipe.getTcmUsingRate());
-        sendHdRecipe.setDistributionFlag(null == nowRecipe.getDistributionFlag() ? distributionFlagDefault : nowRecipe.getDistributionFlag().toString());
-        sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
+
+        //sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
+
         sendHdRecipe.setGiveUser(nowRecipe.getGiveUser());
-        sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
-        sendHdRecipe.setPayMode(null == nowRecipe.getPayMode() ? payModeDefault : nowRecipe.getPayMode().toString());
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+        //sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
+        sendHdRecipe.setPayMode(null == order.getPayMode() ? payModeDefault : order.getPayMode().toString());
         sendHdRecipe.setRecipeType(null == nowRecipe.getRecipeType() ? recipeTypeDefault : nowRecipe.getRecipeType().toString());
         sendHdRecipe.setRecipeId(null == nowRecipe.getRecipeId() ? recipeIdDefault : nowRecipe.getRecipeId().toString());
         sendHdRecipe.setPatientNumber(nowRecipe.getPatientID());
+
+        //添加医保金额
+        if (order != null && order.getOrderType() == 1) {
+            if (order.getFundAmount() != null) {
+                sendHdRecipe.setMedicalFee(String.valueOf(order.getFundAmount()));
+                sendHdRecipe.setMedicalPay("1");
+            } else {
+                sendHdRecipe.setMedicalFee("0");
+                sendHdRecipe.setMedicalPay("1");
+            }
+        } else {
+            sendHdRecipe.setMedicalFee("0");
+            sendHdRecipe.setMedicalPay("0");
+        }
+
+        if (nowRecipe.getGiveMode() == 1) {
+            sendHdRecipe.setPatientAddress(getCompleteAddress(order));
+            sendHdRecipe.setDistributionFlag("1");
+            sendHdRecipe.setGiveMode("1");
+        } else {
+            sendHdRecipe.setDistributionFlag(distributionFlagDefault);
+        }
+        if (order != null && nowRecipe.getGiveMode() == 3 && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+            sendHdRecipe.setGiveMode("3");
+            sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
+        }
+        if (order.getPayMode() == 1 && order != null) {
+            sendHdRecipe.setPayFlag(order.getPayFlag().toString());
+        }
+        if (order.getPayMode() == 2 ) {
+            sendHdRecipe.setPayFlag("0");
+        }
+        //对浙四进行个性化处理,推送到指定药店配送
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
+        String organStore = recipeParameterDao.getByName(storeOrganName);
+
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
+            LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
+            sendHdRecipe.setGiveMode("4");
+            sendHdRecipe.setPharmacyCode(organStore);
+        }
     }
 
     /**
@@ -556,10 +646,19 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             nowHdDrugDTO.setSpecification(nowDetail.getDrugSpec());
             nowHdDrugDTO.setTotal(null == nowDetail.getUseTotalDose() ? useTotalDoseDefault : nowDetail.getUseTotalDose().toString());
             nowHdDrugDTO.setUsingDays(null == nowDetail.getUseDays() ? useMsgDefault : nowDetail.getUseDays().toString());
-            nowHdDrugDTO.setUsingRate(null == nowDetail.getUsingRate() ? useMsgDefault : nowDetail.getUsingRate().toString());
+            //nowHdDrugDTO.setUsingRate(null == nowDetail.getUsingRate() ? useMsgDefault : nowDetail.getUsingRate().toString());
             nowHdDrugDTO.setUsePathways(null == nowDetail.getUsePathways() ? useMsgDefault : nowDetail.getUsePathways().toString());
             nowHdDrugDTO.setMemo(nowDetail.getMemo());
             nowHdDrugDTO.setUseDose(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
+
+            try {
+                String usingRate = StringUtils.isNotEmpty(nowDetail.getUsingRateTextFromHis())?nowDetail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(nowDetail.getUsingRate());
+                nowHdDrugDTO.setUsingRate(usingRate);
+            } catch (ControllerException e) {
+                LOGGER.warn("HdRemoteService.pushRecipeInfo:处方细节ID为{}.", nowDetail.getRecipeDetailId(),e);
+                getFailResult(result, "药品频率出错");
+                return result;
+            }
 
             if(null == nowDetail.getRecipeDetailId()){
                 LOGGER.warn("HdRemoteService.pushRecipeInfo:当前处方细节id不存在");
@@ -660,11 +759,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setRecipeFee(null == order.getRecipeFee() ?  feeDefault : order.getRecipeFee().toString());
         sendHdRecipe.setActualFee(null == order.getActualPrice() ?  feeDefault : order.getActualPrice().toString());
         sendHdRecipe.setCouponFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
-        sendHdRecipe.setOrderTotalFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
+        sendHdRecipe.setOrderTotalFee(null == order.getTotalFee() ?  feeDefault : order.getTotalFee().toString());
         sendHdRecipe.setExpressFee(null == order.getExpressFee() ?  feeDefault : order.getExpressFee().toString());
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
-
-        sendHdRecipe.setPharmacyId(order.getDrugStoreCode());
+        sendHdRecipe.setRecipientName(order.getReceiver());
+        sendHdRecipe.setRecipientTel(order.getRecMobile());
         return null;
     }
 
@@ -723,6 +822,22 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setPatientTelpatient(patient.getMobile());
         sendHdRecipe.setCertificate(patient.getCertificate());
         sendHdRecipe.setCertificateType(null == patient.getCertificateType() ? certificateTypeDefault : patient.getCertificateType().toString());
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        try{
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+            if (recipeOrder != null) {
+                String province = getAddressDic(recipeOrder.getAddress1());
+                String city = getAddressDic(recipeOrder.getAddress2());
+                String district = getAddressDic(recipeOrder.getAddress3());
+                String street = recipeOrder.getAddress4();
+                sendHdRecipe.setProvince(province);
+                sendHdRecipe.setCity(city);
+                sendHdRecipe.setDistrict(district);
+                sendHdRecipe.setAddress(street);
+            }
+        }catch(Exception e){
+            LOGGER.info("HdRemoteService.assemblePatientMsg error:{}.", e.getMessage(),e);
+        }
 
         return result;
     }
@@ -758,17 +873,150 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     @Override
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        tokenUpdateImpl(drugsEnterprise);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStoreFlag = recipeParameterDao.getByName("hdStoreFlag");
+        if ("1".equals(hdStoreFlag)) {
+            //根据处方信息发送药企库存查询请求，判断有药店是否满足库存
+            HdPharmacyAndStockResponse response = getHdStockResponse(recipeId, drugsEnterprise, result);
+            if(response != null) {
+                //判断有没有符合药品量的药店
+                if(null == response.getData() || (null != response.getData() && 0 >= response.getData().size())){
+                    getFailResult(result, "当前药企下没有药店的药品库存足够");
+                }
+            }
 
-        //根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-        HdPharmacyAndStockResponse response = getHdStockResponse(recipeId, drugsEnterprise, result);
-        if(DrugEnterpriseResult.FAIL == result.getCode())
-            return result;
-        //判断有没有符合药品量的药店
-        if(null == response.getData() || (null != response.getData() && 0 >= response.getData().size())){
-            getFailResult(result, "当前药企下没有药店的药品库存足够");
+            LOGGER.info("HdRemoteService-scanStock 药店取药药品库存:{}.", JSONUtils.toString(response));
+        } else {
+            result = DrugEnterpriseResult.getFail();
+        }
+        //处方配送到家的库存校验
+        boolean flag = sendScanStock(recipeId, drugsEnterprise, result);
+        if ( DrugEnterpriseResult.SUCCESS.equals(result.getCode()) || flag) {
+            result.setCode(DrugEnterpriseResult.SUCCESS);
+            result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:"+recipeId+".");
         }
         return result;
+    }
+
+    public boolean sendScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Map<String, Object> map = new HashMap<>();
+        String methodName = "sendScanStock";
+        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
+        Map<String, BigDecimal> drugCodes = new HashMap<>();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        drugsEnterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
+        StringBuilder msg = new StringBuilder("药企名称:" + drugsEnterprise.getName() + ",");
+        try{
+            for (Recipedetail recipedetail : detailList) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                if (saleDrugList == null) {
+                    LOGGER.error("HdRemoteService.sendScanStock {}药品不在华东配送药品目录，recipeId:{}.", recipedetail.getDrugId(), recipe.getRecipeId());
+                    return false;
+                }
+                LOGGER.info("HdRemoteService.sendScanStock.saleDrugList:{}.", JSONUtils.toString(saleDrugList));
+                Map<String, String> drug = new HashMap<>();
+                drug.put("drugCode", saleDrugList.getOrganDrugCode());
+                LOGGER.info("HdRemoteService.sendScanStock.drug:{}.", JSONUtils.toString(drug));
+                hdDrugCodes.add(drug);
+                drugCodes.put(saleDrugList.getOrganDrugCode(), BigDecimal.valueOf(recipedetail.getUseTotalDose()));
+                LOGGER.info("HdRemoteService.sendScanStock.drugCodes:{}.", JSONUtils.toString(drugCodes));
+                if (recipe != null && recipe.getStatus() == 0) {
+                    msg.append(" 药企药品编码:" + saleDrugList.getOrganDrugCode());
+                    msg.append(",药品名称:" + recipedetail.getDrugName() + ",药品编码:"+ recipedetail.getDrugId());
+                }
+            }
+            msg.append(",处方单号:" + recipeId);
+            LOGGER.info("HdRemoteService.scanStock:{}", msg.toString());
+            if (recipe != null && recipe.getStatus() == 0) {
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
+            }
+        }catch(Exception e){
+            LOGGER.error("HdRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage(),e);
+            return false;
+        }
+
+        map.put("drugList", hdDrugCodes);
+        //对浙四进行个性化处理,推送到指定药店配送
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String storeOrganName = recipe.getClinicOrgan() + "_" + "hd_organ_store";
+        String organStore = recipeParameterDao.getByName(storeOrganName);
+
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(recipe.getClinicOrgan().toString(),hdStores)) {
+            LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+            map.put("pharmacyCode", organStore);
+        }
+        String requestStr = JSONUtils.toString(map);
+        //访问库存足够的药店列表以及药店下的药品的信息
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HdHttpUrlEnum httpUrl;
+        try {
+            if (drugsEnterprise.getBusinessUrl().contains("http:")) {
+
+                httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+
+                CloseableHttpResponse response = sendHttpRequest(drugsEnterprise, httpClient, requestStr, httpUrl);
+
+                //当相应状态为200时返回json
+                HttpEntity httpEntity = response.getEntity();
+                String responseStr = EntityUtils.toString(httpEntity);
+                if (StringUtils.isNotEmpty(requestStr) && responseStr.contains("401") && responseStr.contains("false")) {
+                    LOGGER.info("HdRemoteService-scanStock 重新获取token .");
+                    tokenUpdateImpl(drugsEnterprise);
+                    sendScanStock(recipeId,drugsEnterprise,result);
+                }
+                LOGGER.info("HdRemoteService-scanStock sendScanStock responseStr:{}.", responseStr);
+                JSONObject jsonObject = JSONObject.parseObject(responseStr);
+                List drugList = (List)jsonObject.get("drugList");
+                if (drugList != null && drugList.size() > 0) {
+                    boolean scanStock = true;
+                    if (drugList.size() != hdDrugCodes.size()) {
+                        return false;
+                    }
+                    for (Object drug : drugList) {
+                        Map<String, Object> drugMap = (Map<String, Object>) drug;
+                        String drugCode = (String)drugMap.get("drugCode");
+                        try{
+                            BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                            LOGGER.info(drugCode + ":" + availableSumQty);
+                            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药企药品编码:"+drugCode + ",库存:" + availableSumQty);
+                            BigDecimal num = drugCodes.get(drugCode);
+                            if (num.compareTo(availableSumQty) == 1) {
+                                LOGGER.info("HdRemoteService-scanStock sendScanStock drugCode:{} 库存不足.", drugCode);
+                                //库存不足
+                                return false;
+                            }
+                        }catch (Exception e){
+                            Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
+                            LOGGER.info(drugCode + ":" + availableSumQty);
+                            LOGGER.error("HdRemoteService-scanStock sendScanStock drugCode:{} 库存为0.", drugCode,e);
+                            return false;
+                        }
+                    }
+                    return scanStock;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
+            getFailResult(result, "请求异常");
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage(),e);
+                getFailResult(result, "http请求资源关闭异常");
+            }
+        }
+        return false;
     }
 
     /**
@@ -799,6 +1047,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
 
         HdPharmacyAndStockResponse responseResult = checkPharmacyAndDrugMsgRequest(drugsEnterprise, hdPharmacyAndStockRequest, result, "scanStock");
+        if(DrugEnterpriseResult.FAIL == result.getCode())
+            return null;
+
         //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         HdTokenRequest request;
@@ -860,7 +1111,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 responseResult = JSONUtils.parse(responseStr, HdPharmacyAndStockResponse.class);
-                if(null == responseResult){
+                LOGGER.info("HdRemoteService." + methodName + "请求返回:{}", responseStr);
+                //date 20191121
+                //添加判断请求是否正常（是否返回成功失败标志位success）
+                if(null == responseResult || null == responseResult.getSuccess()){
                     LOGGER.warn("HdRemoteService.findSupportDep:查询可用的药店及其药品信息,请求没有响应结果");
                     getFailResult(result, "请求没有响应结果");
                     return responseResult;
@@ -880,14 +1134,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage());
+            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
             getFailResult(result, "请求异常");
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -926,7 +1180,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 responseResult = JSONUtils.parse(responseStr, HdPharmacyAndStockResponse.class);
-                if(null == responseResult){
+                if(null == responseResult || null == responseResult.getSuccess()){
                     LOGGER.warn("HdRemoteService.scanStock:查询可用的药店及其药品信息,请求没有响应结果");
                     getFailResult(result, "请求没有响应结果");
                     return responseResult;
@@ -946,14 +1200,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService.scanStock:查询可用的药店及其药品信息请求异常：{}", e.getMessage());
+            LOGGER.error("HdRemoteService.scanStock:查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
             getFailResult(result, "请求异常");
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -1117,6 +1371,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
         //根据请求返回的药店列表，获取对应药店下药品需求的总价格
         HdPharmacyAndStockResponse responseResult = checkPharmacyAndDrugMsgRequest(enterprise, hdPharmacyAndStockRequest, result, "findSupportDep");
+        if(DrugEnterpriseResult.FAIL == result.getCode())
+            return null;
+
         //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         HdTokenRequest request;
@@ -1174,13 +1431,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
             newDepDetailBean.setSendMethod(hdSendMethod);
             newDepDetailBean.setPayMethod(hdPayMethod);
-            newDepDetailBean.setPharmacyCode(pharmacyMsg.getPharmacyId());
+            newDepDetailBean.setPharmacyCode(pharmacyMsg.getPharmacyCode());
             newDepDetailBean.setAddress(pharmacyMsg.getAddress());
+            LOGGER.info("HdRemoteService.findSupportDep pharmacyMsg:{}.", JSONUtils.toString(pharmacyMsg));
             //设置药店的坐标
             position = new Position();
             if(!HdPosition.checkParameter(pharmacyMsg.getPosition())){
                 LOGGER.warn("HdRemoteService.findSupportDep:当前药店[{}][{}]坐标信息不健全",
-                        pharmacyMsg.getPharmacyId(), pharmacyMsg.getPharmacyName());
+                        pharmacyMsg.getPharmacyCode(), pharmacyMsg.getPharmacyName());
                 continue;
             }
             position.setLatitude(Double.parseDouble(pharmacyMsg.getPosition().getLatitude()));
@@ -1197,7 +1455,240 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         return pharmacyDetailPage;
     }
 
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+        return "";
+    }
+
     public String getDrugEnterpriseCallSys() {
         return DrugEnterpriseConstant.COMPANY_HDDYF;
     }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        tokenUpdateImpl(drugsEnterprise);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        String methodName = "sendScanStock";
+        Map<String, Object> map = new HashMap<>();
+        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
+        Map<String, String> drug = new HashMap<>();
+        drug.put("drugCode", saleDrugList.getOrganDrugCode());
+        hdDrugCodes.add(drug);
+        map.put("drugList", hdDrugCodes);
+
+        //对浙四进行个性化处理,推送到指定药店配送
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String storeOrganName = organId + "_" + "hd_organ_store";
+        String organStore = recipeParameterDao.getByName(storeOrganName);
+
+        if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
+            LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+            map.put("pharmacyCode", organStore);
+        }
+
+        String requestParames = JSONUtils.toString(map);
+        //访问库存足够的药店列表以及药店下的药品的信息
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HdHttpUrlEnum httpUrl;
+        try {
+            httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+            CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+            //当相应状态为200时返回json
+            HttpEntity httpEntity = response.getEntity();
+            String responseStr = EntityUtils.toString(httpEntity);
+            JSONObject jsonObject = JSONObject.parseObject(responseStr);
+            List drugList = (List)jsonObject.get("drugList");
+
+            if (drugList != null && drugList.size() > 0) {
+                for (Object drugs : drugList) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                    try{
+                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                        return availableSumQty.intValue() + "";
+                    }catch(Exception e){
+                        Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
+                        return availableSumQty.toString();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
+        }
+        return "暂不支持库存查询";
+    }
+
+    @Override
+    public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        tokenUpdateImpl(drugsEnterprise);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        Map<String, Object> map = new HashMap<>();
+        List<Map<String, Object>> hdDrugCodes = new ArrayList<>();
+        Map<String, Object> drug = new HashMap<>();
+        Map<String, String> drugData = new HashMap<>();
+        for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
+            if (saleDrugList != null) {
+                drug.put("drugCode", saleDrugList.getOrganDrugCode());
+                drug.put("total", recipeDetailBean.getUseTotalDose().intValue()+"");
+                hdDrugCodes.add(drug);
+                drugData.put(saleDrugList.getOrganDrugCode(), recipeDetailBean.getUseTotalDose() + "&&" + recipeDetailBean.getDrugName());
+            }
+        }
+        map.put("drugList", hdDrugCodes);
+        List<String> result = new ArrayList<>();
+        if (new Integer(1).equals(flag)) {
+            //配送到家
+            String methodName = "sendScanStock";
+
+            //对浙四进行个性化处理,推送到指定药店配送
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+            String storeOrganName = drugsDataBean.getOrganId() + "_" + "hd_organ_store";
+            String organStore = recipeParameterDao.getByName(storeOrganName);
+
+            if (StringUtils.isNotEmpty(hdStores) && drugsDataBean.getOrganId() != null && hasOrgan(drugsDataBean.getOrganId().toString(),hdStores)) {
+                LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+                map.put("pharmacyCode", organStore);
+            }
+
+            String requestParames = JSONUtils.toString(map);
+            //访问库存足够的药店列表以及药店下的药品的信息
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HdHttpUrlEnum httpUrl;
+            try {
+                httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+                CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+                //当相应状态为200时返回json
+                HttpEntity httpEntity = response.getEntity();
+                String responseStr = EntityUtils.toString(httpEntity);
+                JSONObject jsonObject = JSONObject.parseObject(responseStr);
+                List drugList = (List)jsonObject.get("drugList");
+
+                if (drugList != null && drugList.size() > 0) {
+                    for (Object drugs : drugList) {
+                        Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                        try{
+                            BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                            String drugCode = (String)drugMap.get("drugCode");
+                            String drugValue = drugData.get(drugCode);
+                            if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
+                                String[] values = drugValue.split("&&");
+                                double useTotalDose = Double.parseDouble(values[0]);
+                                if (availableSumQty.doubleValue() > useTotalDose) {
+                                    result.add(values[1]);
+                                }
+                            }
+                        }catch(Exception e){
+                            LOGGER.info("getDrugInventoryForApp 配送处理数据 error msg:{}.", e.getMessage(), e);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.info("getDrugInventoryForApp 配送解析数据 error msg:{}.", e.getMessage(), e);
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                }
+            }
+        } else {
+            //到店取药
+            String methodName = "findSupportDep";
+            map.put("range", "0");
+            String requestParames = JSONUtils.toString(map);
+            LOGGER.info("requestParames :{}.", requestParames);
+            //访问库存足够的药店列表以及药店下的药品的信息
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HdHttpUrlEnum httpUrl;
+            try {
+                httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+                CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+                //当相应状态为200时返回json
+                HttpEntity httpEntity = response.getEntity();
+                String responseStr = EntityUtils.toString(httpEntity);
+                JSONObject jsonObject = JSONObject.parseObject(responseStr);
+                List datas = (List)jsonObject.get("data");
+                LOGGER.info("responseStr :{}.", responseStr);
+                if (CollectionUtils.isNotEmpty(datas)) {
+                    for (Object data : datas) {
+                        Map<String, Object> drugMap = (Map<String, Object>)data;
+                        List drugInvs = (List)drugMap.get("drugInvs");
+                        for (Object drugs : drugInvs) {
+                            Map<String, Object> drugResult = (Map<String, Object>) drugs;
+                            try{
+                                Double availableSumQty = Double.parseDouble((String)drugResult.get("invQty"));
+                                String drugCode = (String)drugResult.get("drugCode");
+                                String drugValue = drugData.get(drugCode);
+                                if (StringUtils.isNotEmpty(drugValue) && drugValue.contains("&&")) {
+                                    String[] values = drugValue.split("&&");
+                                    double useTotalDose = Double.parseDouble(values[0]);
+                                    if (availableSumQty > useTotalDose) {
+                                        result.add(values[1]);
+                                    }
+                                }
+                            }catch(Exception e){
+                                LOGGER.info("getDrugInventoryForApp 药店解析数据 error msg:{}.", e.getMessage(), e);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.info("getDrugInventoryForApp 药店处理数据 error msg:{}.", e.getMessage(), e);
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
+    }
+
+    private static CloseableHttpResponse sendHttpRequest(CloseableHttpClient httpClient, String requestStr, HdHttpUrlEnum httpUrl, DrugsEnterprise drugsEnterprise) throws IOException {
+        HttpPost httpPost = new HttpPost(drugsEnterprise.getBusinessUrl() + httpUrl.getUrl());
+        //组装请求参数(组装权限验证部分)
+        httpPost.setHeader(requestHeadJsonKey, requestHeadJsonValue);
+        httpPost.setHeader(requestHeadAuthorizationKey, requestAuthorizationValueHead + drugsEnterprise.getToken());
+
+        StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntry);
+        //获取响应消息
+        return httpClient.execute(httpPost);
+    }
+
+    private static boolean hasOrgan(String organ, String parames){
+        if (StringUtils.isNotEmpty(parames)) {
+            String[] organs = parames.split(",");
+            for (String o : organs) {
+                if (organ.equals(o)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }

@@ -12,6 +12,8 @@ import recipe.ApplicationUtils;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.RedisClient;
 
+import java.util.Set;
+
 /**
  * @author： 0184/yu_yun
  * @date： 2019/1/7
@@ -111,6 +113,15 @@ public class RecipeCacheService {
     @RpcService
     public Long deleteCacheKey() {
         return redisClient.del(RECIPE_CACHE_KEY);
+    }
+
+    @RpcService
+    public Set<String> findDrugByDiseaseName(String field) {
+        LOGGER.info("recipeCacheService getDiseaseAndDrugParam field={}", field);
+        //先从缓存获取
+        Set<String> val = redisClient.sMembers(field);
+        LOGGER.info("recipeCacheService getDiseaseAndDrugParam value={}", val);
+        return val;
     }
 
 }

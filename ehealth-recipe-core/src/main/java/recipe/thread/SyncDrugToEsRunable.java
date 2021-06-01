@@ -69,7 +69,7 @@ public class SyncDrugToEsRunable implements Runnable {
                         try {
                             b = searchService.updatePatientDrugDetail(updateList);
                         } catch (Exception e) {
-                            LOG.warn("SyncDrugToEsRunable update exception! updateList={}", JSONUtils.toString(updateList), e);
+                            LOG.error("SyncDrugToEsRunable update exception! updateList={}", JSONUtils.toString(updateList), e);
                         }
                         if (!b) {
                             LOG.warn("SyncDrugToEsRunable update error! updateList={}", JSONUtils.toString(updateList));

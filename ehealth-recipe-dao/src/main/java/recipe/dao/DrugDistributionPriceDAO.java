@@ -29,7 +29,7 @@ public abstract class DrugDistributionPriceDAO extends HibernateSupportDelegateD
      * @param enterpriseId
      * @return
      */
-    @DAOMethod(sql = " from DrugDistributionPrice where enterpriseId =:enterpriseId order by addrArea desc")
+    @DAOMethod(sql = " from DrugDistributionPrice where enterpriseId =:enterpriseId order by addrArea desc", limit=0)
     public abstract List<DrugDistributionPrice> findByEnterpriseId(@DAOParam("enterpriseId") Integer enterpriseId);
 
     /**
@@ -48,6 +48,7 @@ public abstract class DrugDistributionPriceDAO extends HibernateSupportDelegateD
 
     /**
      * 根据地区和药品序号获取
+     *
      * @param enterpriseId
      * @param addrArea
      * @return
@@ -55,5 +56,11 @@ public abstract class DrugDistributionPriceDAO extends HibernateSupportDelegateD
     @DAOMethod
     public abstract DrugDistributionPrice getByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea);
 
-
+    /**
+     * 根据药品序号删除
+     *
+     * @param enterpriseId
+     */
+    @DAOMethod(sql = " delete from DrugDistributionPrice where enterpriseId =:enterpriseId and addrArea=:addrArea")
+    public abstract void deleteByEnterpriseIdAddr(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrArea") String addrArea);
 }

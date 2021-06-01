@@ -12,6 +12,22 @@ public class OnsConfig {
 
     public static String dbModifyTopic;
 
+    public static String sessionTopic;
+    /**
+     * 电子病历删除Topic
+     */
+    public static String emrRecipe;
+
+    /**
+     * 处方失效延迟消息topic
+     */
+    public static String recipeDelayTopic;
+
+
+    public void setRecipeDelayTopic(String recipeDelayTopic) {
+        OnsConfig.recipeDelayTopic = recipeDelayTopic;
+    }
+
     public void setBasicInfoTopic(String basicInfoTopic) {
         OnsConfig.basicInfoTopic = basicInfoTopic;
     }
@@ -27,5 +43,13 @@ public class OnsConfig {
 
     public void setDbModifyTopic(String dbModifyTopic) {
         OnsConfig.dbModifyTopic = dbModifyTopic;
+    }
+
+    public void setEmrRecipe(String emrRecipe) {
+        OnsConfig.emrRecipe = emrRecipe;
+    }
+
+    public void setSessionTopic(String sessionTopic) {
+        OnsConfig.sessionTopic = sessionTopic;
     }
 }

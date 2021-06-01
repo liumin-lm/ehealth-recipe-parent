@@ -1,10 +1,14 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -28,6 +32,16 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     @ItemProperty(alias = "药企名称")
     private String name;
+
+    @ItemProperty(alias = "药企固定编码")
+    private String enterpriseCode;
+
+    @ItemProperty(alias = "药企关键机构")
+    @Dictionary(id = "eh.base.dictionary.Organ")
+    private Integer organId;
+
+    @ItemProperty(alias = "药企分配appKey从开放平台获取")
+    private String appKey;
 
     @ItemProperty(alias = "药企在平台的账户")
     private String account;
@@ -77,8 +91,152 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "排序，1最前，越往后越小")
     private Integer sort;
 
-    @ItemProperty(alias = "校验药品库存标志0 不需要校验 1 需要校验")
+    @ItemProperty(alias = "校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存")
     private Integer checkInventoryFlag;
+
+    @ItemProperty(alias = "创建类型：1：非自建  0：自建")
+    @Dictionary(id = "eh.cdr.dictionary.DepType")
+    private Integer createType;
+
+    @ItemProperty(alias = "运费细则图片ID")
+    @FileToken(expires = 3600)
+    private String transFeeDetail;
+
+    @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
+    private Integer isHosDep;
+
+    @ItemProperty(alias = "药企备注")
+    private String memo;
+
+    @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
+    private Integer medicalInsuranceSupport;
+
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
+    private Integer storePayFlag;
+
+    @ItemProperty(alias = "配送主体类型 1医院配送 2 药企配送")
+    private Integer sendType;
+
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    private Integer expressFeePayWay;
+
+    @ItemProperty(alias = "管理单元")
+    private String manageUnit;
+
+    @ItemProperty(alias = "展示配送药店标识")
+    private Integer showStoreFlag;
+
+    @ItemProperty(alias = "药企下载处方签类型")
+    private Integer downSignImgType;
+
+    @ItemProperty(alias = "运费的获取方式 0 平台 1 第三方")
+    private Integer expressFeeType;
+
+    @ItemProperty(alias = "药企对接方式 0 平台 1 前置机")
+    private Integer operationType;
+
+    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:显示非必填，2显示必填")
+    private Integer isShowExpectSendDate;
+
+    @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
+    private Integer expectSendDateIsContainsWeekend;
+
+    @ItemProperty(alias = "配送时间说明文案")
+    private String sendDateText;
+
+    @ItemProperty(alias = "物流公司")
+    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "物流类型 1-平台 2-药企 3-药企(His)")
+    private Integer logisticsType;
+
+    @ItemProperty(alias = "寄件人名称")
+    private String consignorName;
+
+    @ItemProperty(alias = "寄件人手机号")
+    private String consignorMobile;
+
+    @ItemProperty(alias = "寄件人省份编码")
+    private String consignorProvince;
+
+    @ItemProperty(alias = "寄件人城市编码")
+    private String consignorCity;
+
+    @ItemProperty(alias = "寄件人区域编码")
+    private String consignorDistrict;
+
+    @ItemProperty(alias = "寄件人详细地址")
+    private String consignorAddress;
+
+    @ItemProperty(alias = "寄件人街道编码")
+    private String consignorStreet;
+
+    @ItemProperty(alias = "订单备注")
+    private String orderMemo;
+
+    @Column(name = "consignorStreet")
+    public String getConsignorStreet() {
+        return consignorStreet;
+    }
+
+    public void setConsignorStreet(String consignorStreet) {
+        this.consignorStreet = consignorStreet;
+    }
+
+    @Column(name = "consignorName")
+    public String getConsignorName() {
+        return consignorName;
+    }
+
+    public void setConsignorName(String consignorName) {
+        this.consignorName = consignorName;
+    }
+
+    @Column(name = "consignorMobile")
+    public String getConsignorMobile() {
+        return consignorMobile;
+    }
+
+    public void setConsignorMobile(String consignorMobile) {
+        this.consignorMobile = consignorMobile;
+    }
+
+    @Column(name = "consignorProvince")
+    public String getConsignorProvince() {
+        return consignorProvince;
+    }
+
+    public void setConsignorProvince(String consignorProvince) {
+        this.consignorProvince = consignorProvince;
+    }
+
+    @Column(name = "consignorCity")
+    public String getConsignorCity() {
+        return consignorCity;
+    }
+
+    public void setConsignorCity(String consignorCity) {
+        this.consignorCity = consignorCity;
+    }
+
+    @Column(name = "consignorDistrict")
+    public String getConsignorDistrict() {
+        return consignorDistrict;
+    }
+
+    public void setConsignorDistrict(String consignorDistrict) {
+        this.consignorDistrict = consignorDistrict;
+    }
+
+    @Column(name = "consignorAddress")
+    public String getConsignorAddress() {
+        return consignorAddress;
+    }
+
+    public void setConsignorAddress(String consignorAddress) {
+        this.consignorAddress = consignorAddress;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -98,6 +256,24 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Column(name = "enterpriseCode")
+    public String getEnterpriseCode() {
+        return enterpriseCode;
+    }
+
+    public void setEnterpriseCode(String enterpriseCode) {
+        this.enterpriseCode = enterpriseCode;
+    }
+
+    @Column(name = "appKey")
+    public String getAppKey() {
+        return appKey;
+    }
+
+    public void setAppKey(String appKey) {
+        this.appKey = appKey;
     }
 
     @Column(name = "Account", length = 20)
@@ -253,6 +429,131 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.checkInventoryFlag = checkInventoryFlag;
     }
 
+    public Integer getCreateType() {
+        return createType;
+    }
+
+    public void setCreateType(Integer createType) {
+        this.createType = createType;
+    }
+
+    @Column(name = "TransFeeDetail")
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
+    }
+
+    @Column(name = "isHosDep")
+    public Integer getIsHosDep() {
+        return isHosDep;
+    }
+
+    public void setIsHosDep(Integer isHosDep) {
+        this.isHosDep = isHosDep;
+    }
+
+    @Column(name = "memo")
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    @Column(name = "MedicalInsuranceSupport")
+    public Integer getMedicalInsuranceSupport() {
+        return medicalInsuranceSupport;
+    }
+
+    public void setMedicalInsuranceSupport(Integer medicalInsuranceSupport) {
+        this.medicalInsuranceSupport = medicalInsuranceSupport;
+    }
+
+    @Column(name = "storePayFlag")
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
+    }
+
+    @Column(name = "sendType")
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
+    }
+
+    @Column(name = "expressFeePayWay")
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
+    }
+
+    @Column(name = "manageUnit")
+    public String getManageUnit() {
+        return manageUnit;
+    }
+
+    public void setManageUnit(String manageUnit) {
+        this.manageUnit = manageUnit;
+    }
+
+    @Column(name = "showStoreFlag")
+    public Integer getShowStoreFlag() {
+        return showStoreFlag;
+    }
+
+    public void setShowStoreFlag(Integer showStoreFlag) {
+        this.showStoreFlag = showStoreFlag;
+    }
+
+    @Column(name = "downSignImgType")
+    public Integer getDownSignImgType() {
+        return downSignImgType;
+    }
+
+    public void setDownSignImgType(Integer downSignImgType) {
+        this.downSignImgType = downSignImgType;
+    }
+
+    @Column(name = "expressFeeType")
+    public Integer getExpressFeeType() {
+        return expressFeeType;
+    }
+
+    public void setExpressFeeType(Integer expressFeeType) {
+        this.expressFeeType = expressFeeType;
+    }
+
+    @Column(name = "operationType")
+    public Integer getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(Integer operationType) {
+        this.operationType = operationType;
+    }
+
+    @Column(name = "organId")
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {return true;}
@@ -268,5 +569,56 @@ public class DrugsEnterprise implements java.io.Serializable {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    public Integer getIsShowExpectSendDate() {
+        return isShowExpectSendDate;
+    }
+
+    public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
+        this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+
+    public Integer getExpectSendDateIsContainsWeekend() {
+        return expectSendDateIsContainsWeekend;
+    }
+
+    public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
+        this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
+    }
+
+    public String getSendDateText() {
+        return sendDateText;
+    }
+
+    public void setSendDateText(String sendDateText) {
+        this.sendDateText = sendDateText;
+    }
+
+    @Column(name = "logisticsCompany")
+    public Integer getLogisticsCompany() {
+        return logisticsCompany;
+    }
+
+    public void setLogisticsCompany(Integer logisticsCompany) {
+        this.logisticsCompany = logisticsCompany;
+    }
+
+    @Column(name = "logisticsType")
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
+
+    @Column(name = "orderMemo")
+    public String getOrderMemo() {
+        return orderMemo;
+    }
+
+    public void setOrderMemo(String orderMemo) {
+        this.orderMemo = orderMemo;
     }
 }

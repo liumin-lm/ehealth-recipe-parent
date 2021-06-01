@@ -56,13 +56,17 @@ public class RecipeLogService {
     }
 
     public static void saveRecipeLog(Integer recipeId, Integer beforeStatus, Integer afterStatus, String memo) {
-        RecipeLog recipeLog = new RecipeLog();
-        recipeLog.setRecipeId(recipeId);
-        recipeLog.setModifyDate(DateTime.now().toDate());
-        recipeLog.setBeforeStatus(beforeStatus);
-        recipeLog.setAfterStatus(afterStatus);
-        recipeLog.setMemo(memo);
-        saveRecipeLog(recipeLog);
+        try {
+            RecipeLog recipeLog = new RecipeLog();
+            recipeLog.setRecipeId(recipeId);
+            recipeLog.setModifyDate(DateTime.now().toDate());
+            recipeLog.setBeforeStatus(beforeStatus);
+            recipeLog.setAfterStatus(afterStatus);
+            recipeLog.setMemo(memo);
+            saveRecipeLog(recipeLog);
+        } catch (Exception e) {
+            LOGGER.error("保存日志出错",e);
+        }
     }
 
     @RpcService

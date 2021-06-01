@@ -29,6 +29,15 @@ public class SaleDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "机构药品名称")
+    private String drugName;
+
+    @ItemProperty(alias = "商品名称")
+    private String saleName;
+
+    @ItemProperty(alias = "机构药品规格")
+    private String drugSpec;
+
     @ItemProperty(alias = "库存")
     private BigDecimal inventory;
 
@@ -50,6 +59,9 @@ public class SaleDrugListDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "最后修改时间")
     private Date lastModify;
+
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
 
 
     public SaleDrugListDTO() {
@@ -141,5 +153,37 @@ public class SaleDrugListDTO implements java.io.Serializable {
 
     public void setLastModify(Date lastModify) {
         this.lastModify = lastModify;
+    }
+
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
+    }
+
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
+    }
+
+    public String getDrugSpec() {
+        return drugSpec;
+    }
+
+    public void setDrugSpec(String drugSpec) {
+        this.drugSpec = drugSpec;
+    }
+
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
     }
 }

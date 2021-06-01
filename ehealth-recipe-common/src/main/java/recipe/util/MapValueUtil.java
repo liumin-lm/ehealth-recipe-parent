@@ -2,10 +2,14 @@ package recipe.util;
 
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +19,7 @@ import java.util.Map;
  * @date:2016/6/2.
  */
 public class MapValueUtil {
-
+    private static final Logger logger = LoggerFactory.getLogger(MapValueUtil.class);
     public static String getString(Map<String, ? extends Object> map, String key) {
         Object obj = getObject(map, key);
         if (null == obj) {
@@ -23,6 +27,10 @@ public class MapValueUtil {
         }
 
         if (obj instanceof String) {
+            return obj.toString();
+        }
+
+        if (obj instanceof Integer) {
             return obj.toString();
         }
 
@@ -208,6 +216,65 @@ public class MapValueUtil {
             e.printStackTrace();
         }
         return localhostIP;
+    }
+
+
+    /**
+     * 根据字段名获取 对象中的get值
+     *
+     * @param fieldName 字段名
+     * @param o         对象
+     * @return
+     */
+    public static String getFieldValueByName(String fieldName, Object o) {
+        if (StringUtils.isEmpty(fieldName) || null == o) {
+            logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toString(o));
+            return null;
+        }
+        try {
+            String getter = "get" + captureName(fieldName.trim());
+            Method method = o.getClass().getMethod(getter);
+            Object value = method.invoke(o);
+            if (null == value) {
+                return "";
+            }
+            if (value instanceof Date) {
+                return ByteUtils.dateToSting((Date) value);
+            }
+            return value.toString();
+        } catch (Exception e) {
+            logger.warn("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 首字母转大写，性能比java自带工具类转大写方法略好
+     *
+     * @param str
+     * @return
+     */
+    public static String captureName(String str) {
+        char[] cs = str.toCharArray();
+        cs[0] -= 32;
+        return String.valueOf(cs);
+    }
+
+    /**
+     * 将string数组根据下标转成map
+     *
+     * @param strArray
+     * @return
+     */
+    public static Map<String, Integer> strArraytoMap(String[] strArray) {
+        if (strArray == null) {
+            return null;
+        }
+        Map<String, Integer> map = new HashMap<>(strArray.length);
+        for (int i = 0; i < strArray.length; i++) {
+            map.put(strArray[i], i);
+        }
+        return map;
     }
 
 }

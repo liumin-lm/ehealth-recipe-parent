@@ -1,22 +1,48 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <s:beans xmlns:s="http://www.springframework.org/schema/beans"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ssdev"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ngari"
          xsi:schemaLocation="http://www.springframework.org/schema/beans
 				http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.ngarihealth.com/schema/ssdev
-						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+						http://www.ngarihealth.com/schema/ngari
+						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <component-scan base-package="recipe.dao, recipe.service.**, recipe.unloginservice, recipe.drugsenterprise,
         recipe.hisservice.**, recipe.serviceprovider.*,recipe.audit.*,recipe.prescription,recipe.mq,recipe.drugTool,
-        recipe.purchase"/>
+        recipe.purchase,recipe.medicationguide,recipe.logistics,recipe.ca,recipe.recipecheck,recipe.regulation,recipe.sign,
+        recipe.comment,recipe.presettle,recipe.caNew,recipe.atop,recipe.operation,recipe.factory.status.*,recipe.givemode.business,recipe.retry,
+        recipe.openapi.*,recipe.service.afterpay"/>
 
-    <reference interface="recipe.third.IWXServiceInterface" id="eh.wxService"/>
+    <!--微信服务-->
+    <reference interface="recipe.third.IWXServiceInterface" id="wx.wxService"/>
+    <!--微信杭州通服务-->
+    <reference interface="recipe.third.HztServiceInterface" id="wx.hangztSmkService"/>
 
     <!--药品搜索服务-->
     <reference id="es.drugSearchService" interface="es.api.DrugSearchService"/>
-
+    <!--监管平台-->
     <reference id="jgpt.minkeOrganService" interface="com.ngari.jgpt.zjs.service.IMinkeOrganService"/>
 
     <!--优惠券-->
     <reference id="voucher.couponBaseService" interface="coupon.api.service.ICouponBaseService"/>
+    <!--网络门诊-->
+    <reference id="nc.networkclinicMsgService" interface="networkclinic.api.service.INetworkclinicMsgService"/>
+    <!--随访-->
+    <reference interface="com.ngari.follow.service.IRelationPatientService" id="pm.remoteRelationPatientService"/>
+    <reference id="pm.remoteRelationLabelService" interface="com.ngari.follow.service.IRelationLabelService"/>
+    <!--电子病历-->
+    <reference id="ecdr.docIndexService" interface="eh.cdr.api.service.IDocIndexService"/>
+
+    <!--审方-->
+    <reference id="recipeaudit.recipeAuditServiceImpl" interface="eh.recipeaudit.api.IRecipeAuditService"/>
+    <reference id="recipeaudit.recipeCheckDetailServiceImpl" interface="eh.recipeaudit.api.IRecipeCheckDetailService"/>
+    <reference id="recipeaudit.recipeCheckServiceImpl" interface="eh.recipeaudit.api.IRecipeCheckService"/>
+    <reference id="recipeaudit.remoteAuditMedicinesService" interface="eh.recipeaudit.api.IAuditMedicinesService"/>
+    <!--视频-->
+    <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
+    <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
+    <!--物流基础服务-->
+    <reference id="infra.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
+    <!--支付平台记账-->
+    <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService" />
+    <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>
 </s:beans>

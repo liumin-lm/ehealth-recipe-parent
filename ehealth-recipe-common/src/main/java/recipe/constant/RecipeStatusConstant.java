@@ -2,11 +2,13 @@ package recipe.constant;
 
 /**
  * 处方状态常量
+ * todo 废弃常量 改用枚举 RecipeStatusEnum
  * company: ngarihealth
  *
  * @author: 0184/yu_yun
  * date:2016/4/27.
  */
+@Deprecated
 public class RecipeStatusConstant {
 
     /**
@@ -116,6 +118,11 @@ public class RecipeStatusConstant {
     public static final int RECIPE_DOWNLOADED = 18;
 
     /**
+     * 取消：医保上传失败
+     */
+    public static final int RECIPE_MEDICAL_FAIL = 19;
+
+    /**
      * 天猫可使用
      */
     public static final int EFFECTIVE = 2;
@@ -135,6 +142,53 @@ public class RecipeStatusConstant {
      */
     public static final int RETURNED = 23;
 
+    /**
+     * 医保上传确认中
+     */
+    public static final int CHECKING_MEDICAL_INSURANCE = 24;
+    /**
+     * 取消:医保上传确认中--三天未回传-已取消
+     */
+    public static final int NO_MEDICAL_INSURANCE_RETURN = 25;
+
+    /**
+     * 签名失败-医生
+     */
+    public static final int SIGN_ERROR_CODE_DOC = 26;
+
+    /**
+     * 签名失败-药师
+     */
+    public static final int SIGN_ERROR_CODE_PHA = 27;
+
+    /**
+     * 签名成功-医生
+     */
+    public static final int SIGN_SUCCESS_CODE_DOC = 28;
+
+    /**
+     * 签名成功-药师
+     */
+    public static final int SIGN_SUCCESS_CODE_PHA = 29;
+
+    /**
+     * 签名中-医生
+     */
+    public static final int SIGN_ING_CODE_DOC = 30;
+
+    /**
+     * 由于审方平台接口异常，处方单已取消
+     */
+    public static final int REVIEW_DRUG_FAIL = 43;
+    /**
+     * 签名中-药师
+     */
+    public static final int SIGN_ING_CODE_PHA = 31;
+
+    /**
+     * 未签名-药师
+     */
+    public static final int SIGN_NO_CODE_PHA = 32;
     /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
@@ -214,5 +268,46 @@ public class RecipeStatusConstant {
      * 不存在的状态，药店取药-完成
      */
     public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
+
+    /**
+     * 不存在的状态，用于微信发送,患者提交审核推送,医生系统消息
+     */
+    public static final int RECIPE_REFUND_APPLY = 130;
+
+    /**
+     * 不存在的状态，用于微信发送,患者退费失败
+     */
+    public static final int RECIPE_REFUND_FAIL = 131;
+
+    /**
+     * 不存在的状态，用于微信发送,患者退费成功
+     */
+    public static final int RECIPE_REFUND_SUCC = 132;
+
+    /**
+     * 不存在的状态，用于微信发送,医生审核不通过
+     */
+    public static final int RECIPE_REFUND_AUDIT_FAIL = 133;
+
+
+    /**
+     * His或者药企审核不通过
+     */
+    public static final int RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL = 135;
+    /**
+     * His或者药企审核通过
+     */
+    public static final int RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_SUCCESS = 136;
+
+    /**
+     * 处方开方成功,提醒患者
+     */
+    public static final int PRESCRIBE_SUCCESS = 137;
+
+    /**
+     * 当药企/物流/运营平台配置返回了处方单的快递单号时，将给收货人的手机号码推送短信
+     */
+    public static final int EXPRESSINFO_REMIND = 138;
+
 
 }

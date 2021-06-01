@@ -1,13 +1,14 @@
 package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -20,10 +21,16 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方序号")
     private Integer recipeId;
 
+    @ItemProperty(alias = "处方序号(加密后)")
+    private String recipeIdE;
+
     @ItemProperty(alias = "订单编号")
     private String orderCode;
 
-    @ItemProperty(alias = "就诊序号")
+    @ItemProperty(alias = "开处方来源 1问诊 2复诊(在线续方) 3网络门诊")
+    private Integer bussSource;
+
+    @ItemProperty(alias = "就诊序号(对应来源的业务id)")
     private Integer clinicId;
 
     @ItemProperty(alias = "主索引")
@@ -111,8 +118,10 @@ public class RecipeBean implements Serializable {
     private Date checkDate;
 
     @ItemProperty(alias = "审核人")
-    @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer checker;
+
+    @ItemProperty(alias = "审核药师姓名")
+    private String checkerText;
 
     @ItemProperty(alias = "人工审核日期")
     private Date checkDateYs;
@@ -125,16 +134,20 @@ public class RecipeBean implements Serializable {
     private Integer payMode;
 
     @ItemProperty(alias = "发药方式")
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
+
+    @ItemProperty(alias = "发药方式文案")
+    private String giveModeText;
 
     @ItemProperty(alias = "发药人姓名")
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
+    @FileToken(expires = 3600)
     private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
+    @FileToken(expires = 3600)
     private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
@@ -253,7 +266,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "医保支付标志，1：可以用医保")
     private Integer medicalPayFlag;
 
-    @ItemProperty(alias = "配送处方标记 默认0，1: 只能配送")
+    @ItemProperty(alias = "配送处方标记 默认0，1: 只能配送,2:只能到院取药")
     private Integer distributionFlag;
 
     @ItemProperty(alias = "处方备注")
@@ -301,8 +314,93 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="处方审核方式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "审核途径 1平台审核 2his审核")
+    private Integer checkMode;
+
     @ItemProperty(alias="处方审核状态")
     private Integer checkStatus;
+
+    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
+    private Integer recipeSource;
+
+    @ItemProperty(alias = "CA密码")
+    private String caPassword;
+
+    @ItemProperty(alias = "药师处方签名生成的时间戳结构体，由院方服务器获取")
+    private String signPharmacistCADate;
+
+    @ItemProperty(alias = "医生处方数字签名值")
+    private String signRecipeCode;
+
+    @ItemProperty(alias = "医生处方签名生成的时间戳结构体，由院方服务器获取")
+    private String signCADate;
+
+    @ItemProperty(alias = "主诉")
+    private String mainDieaseDescribe;
+
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    private Integer recipeSourceType;
+
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
+    private List<HisRecipeDetailBean> detailData;
+
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
+
+    @ItemProperty(alias = "过敏源")
+    private List<AllergieBean> allergies;
+    /**
+     * 挂号序号
+     */
+    private String registerId;
+
+    private Integer queryStatus;
+    private String serialNumber;
+    @ItemProperty(alias = "his处方付费序号合集")
+    private String recipeCostNumber;
+
+    @ItemProperty(alias = "是否被接方 0 未接方 1已接方")
+    private Integer grabOrderStatus;
+
+    @ItemProperty(alias = "his中药处方代煎费")
+    private BigDecimal decoctionFee;
+
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
+    /**
+     * 电子病例是否更新 true 不更新
+     */
+    private Boolean emrStatus;
+
+    public Integer getQueryStatus() {
+        return queryStatus;
+    }
+
+    public void setQueryStatus(Integer queryStatus) {
+        this.queryStatus = queryStatus;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
 
     public RecipeBean() {
     }
@@ -370,9 +468,9 @@ public class RecipeBean implements Serializable {
         }
 
         //判断诊断备注是否为空，若为空则显示“无”
-        if (StringUtils.isEmpty(this.getMemo())) {
-            this.setMemo("无");
-        }
+//        if (StringUtils.isEmpty(this.getMemo())) {
+//            this.setMemo("无");
+//        }
 
         if (null == this.getPayFlag()) {
             this.setPayFlag(0);
@@ -398,6 +496,22 @@ public class RecipeBean implements Serializable {
             this.setTakeMedicine(0);
         }
 
+    }
+
+    public String getRegisterId() {
+        return registerId;
+    }
+
+    public void setRegisterId(String registerId) {
+        this.registerId = registerId;
+    }
+
+    public String getRecipeIdE() {
+        return recipeIdE;
+    }
+
+    public void setRecipeIdE(String recipeIdE) {
+        this.recipeIdE = recipeIdE;
     }
 
     public Integer getReviewType() {
@@ -595,6 +709,10 @@ public class RecipeBean implements Serializable {
     public Integer getGiveFlag() {
         return giveFlag;
     }
+
+    public String getGiveModeText() { return giveModeText; }
+
+    public void setGiveModeText(String giveModeText) { this.giveModeText = giveModeText; }
 
     public void setGiveFlag(Integer giveFlag) {
         this.giveFlag = giveFlag;
@@ -1123,5 +1241,145 @@ public class RecipeBean implements Serializable {
     public boolean canMedicalPay() {
         Integer useMedicalFlag = 1;
         return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
+    }
+
+    public Integer getBussSource() {
+        return bussSource;
+    }
+
+    public void setBussSource(Integer bussSource) {
+        this.bussSource = bussSource;
+    }
+
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
+    }
+
+    public String getCaPassword() {
+        return caPassword;
+    }
+
+    public void setCaPassword(String caPassword) {
+        this.caPassword = caPassword;
+    }
+
+    public Integer getCheckMode() {
+        return checkMode;
+    }
+
+    public void setCheckMode(Integer checkMode) {
+        this.checkMode = checkMode;
+    }
+
+    public String getSignPharmacistCADate() { return signPharmacistCADate; }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
+
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    public String getMainDieaseDescribe() {
+        return mainDieaseDescribe;
+    }
+
+    public void setMainDieaseDescribe(String mainDieaseDescribe) {
+        this.mainDieaseDescribe = mainDieaseDescribe;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
+    }
+
+    public Integer getRecipeSourceType() {
+        return recipeSourceType;
+    }
+
+    public void setRecipeSourceType(Integer recipeSourceType) {
+        this.recipeSourceType = recipeSourceType;
+    }
+
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
+    }
+
+    public List<HisRecipeDetailBean> getDetailData() {
+        return detailData;
+    }
+
+    public void setDetailData(List<HisRecipeDetailBean> detailData) {
+        this.detailData = detailData;
+    }
+
+    public List<AllergieBean> getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(List<AllergieBean> allergies) {
+        this.allergies = allergies;
+    }
+
+    public Boolean getEmrStatus() {
+        return emrStatus;
+    }
+
+    public void setEmrStatus(Boolean emrStatus) {
+        this.emrStatus = emrStatus;
+    }
+
+    public String getCheckerText() {
+        return checkerText;
+    }
+
+    public void setCheckerText(String checkerText) {
+        this.checkerText = checkerText;
+    }
+
+    public Integer getGrabOrderStatus() {
+        return grabOrderStatus;
+    }
+
+    public void setGrabOrderStatus(Integer grabOrderStatus) {
+        this.grabOrderStatus = grabOrderStatus;
+    }
+
+    public BigDecimal getDecoctionFee() {
+        return decoctionFee;
+    }
+
+    public void setDecoctionFee(BigDecimal decoctionFee) {
+        this.decoctionFee = decoctionFee;
     }
 }

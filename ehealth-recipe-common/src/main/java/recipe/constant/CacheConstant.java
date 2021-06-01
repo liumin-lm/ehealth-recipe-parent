@@ -34,18 +34,28 @@ public class CacheConstant {
     /**
      * 支持HIS处方检查功能的机构列表
      */
-    public static final String KEY_HIS_CHECK_LIST = "RCP_HIS_CHECK_LIST";
+    public static final String KEY_HIS_CHECK_LIST = "RCP_HIS_CHECK_No。LIST";
 
     /**
      * 互联网医院支持机构以平台模式推送处方的机构列表
      */
     public static final String KEY_NGARI_SENDRECIPETOHIS_LIST = "KEY_NGARI_SENDRECIPETOHIS_LIST";
 
+    /**
+     * 个性化医院处方笺生成条形码
+     */
+    public static final String KEY_BARCODEFORRECIPE_ORGAN_LIST = "KEY_BARCODEFORRECIPE_ORGAN_LIST";
+
 
     /**
      * 开处方跳过his对接organId列表
      */
     public static final String KEY_SKIP_HISRECIPE_LIST = "RCP_SKIP_HISRECIPE_LIST";
+
+    /**
+     * 开处方智能审方重要警示弹窗处理organId列表
+     */
+    public static final String KEY_AUDIT_TIP_LIST = "RCP_AUDIT_TIP_LIST";
 
     /**
      * 上传监管平台 开完处方就上传organId列表
@@ -82,6 +92,11 @@ public class CacheConstant {
     public static final String KEY_NGARI_USINGRATE = "RCP_NGARI_USINGRATE_";
 
     /**
+     * 平台医保用药频次前缀，缓存中key实际为 RCP_MEDICAL_NGARI_USINGRATE_100100
+     */
+    public static final String KEY_MEDICAL_NGARI_USINGRATE = "RCP_MEDICAL_NGARI_USINGRATE_";
+
+    /**
      * 平台用药方式前缀，缓存中key实际为 RCP_NGARI_USEPATHWAYS_100100
      */
     public static final String KEY_NGARI_USEPATHWAYS = "RCP_NGARI_USEPATHWAYS_";
@@ -113,5 +128,10 @@ public class CacheConstant {
      */
     public static final String KEY_RCP_BUSS_PURCHASE_LOCK = "RCP_BUSS_PURCHASE_";
 
+    /**
+     * 醫保結算申請key
+     */
+    public static final String KEY_MEDIC_INSURSETTLE_APPlY = "MEDIC_INSURSETTLE_APPlY_";
 
+    public static final String KEY_RECIPE_LABEL = "KEY_RECIPE_LABEL_";
 }

@@ -1,15 +1,18 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <s:beans xmlns:s="http://www.springframework.org/schema/beans"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ssdev"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ngari"
          xsi:schemaLocation="http://www.springframework.org/schema/beans
 				http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.ngarihealth.com/schema/ssdev
-						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+						http://www.ngarihealth.com/schema/ngari
+						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <reference interface="com.ngari.his.recipe.service.IRecipeHisService" id="his.iRecipeHisService"/>
     <reference interface="com.ngari.his.visit.service.IVisitService" id="his.visitService"/>
     <reference interface="com.ngari.platform.sync.service.IProvinceIndicatorsDateUpdateService" id="his.provinceDataUploadService"/>
     <reference id="his.regulationService" interface="com.ngari.his.regulation.service.IRegulationService" />
     <reference id="his.hisServiceConfig" interface="com.ngari.base.serviceconfig.service.IHisServiceConfigService" />
+    <reference id="his.iPatientHisService" interface="com.ngari.his.patient.service.IPatientHisService" />
+    <reference id="his.iCaHisService" interface="com.ngari.his.ca.service.ICaHisService" />
+    <reference id="his.iRecipeEnterpriseService" interface="com.ngari.his.recipe.service.IRecipeEnterpriseService" />
 
 </s:beans>

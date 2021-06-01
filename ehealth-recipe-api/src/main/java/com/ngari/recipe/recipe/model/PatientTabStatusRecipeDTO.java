@@ -40,6 +40,10 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     private String organDiseaseName;
 
+    private String doctorName;
+
+    private String departName;
+
     private Date signDate;
 
     private BigDecimal totalMoney;
@@ -70,12 +74,26 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     private Integer giveMode;
 
+    /**
+     * 处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null
+     */
+    private Integer recipeSource;
+
+    private Integer payFlag;//支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败
+
+    private boolean isHiddenRecipeDetail;//是否隐方
+
     private List<RecipeDetailBean> recipeDetail;
 
     /**
      * 页面展示的按钮对象
      */
     private PayModeShowButtonBean buttons;
+
+    /**
+     * 页面展示的按钮集合
+     */
+    private GiveModeShowButtonVO giveModeShowButtonVO;
 
     /**
      * 签名通过处方笺文件
@@ -101,6 +119,55 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      * 当前处方对应的开方医院
      */
     private Integer clinicOrgan;
+
+    /**
+     * 药企编码
+     */
+    private Integer enterpriseId;
+
+    /**
+     * 第三方跳转url
+     */
+    private String thirdUrl;
+
+    @ItemProperty(alias = "物流对接类型 1-平台 2-药企")
+    private Integer logisticsType;
+
+    private String recipeCode;
+
+    private String recipeNumber;
+
+    public String getRecipeNumber() {
+        return recipeNumber;
+    }
+
+    public void setRecipeNumber(String recipeNumber) {
+        this.recipeNumber = recipeNumber;
+    }
+
+    public Integer getLogisticsType() {
+        return logisticsType;
+    }
+
+    public void setLogisticsType(Integer logisticsType) {
+        this.logisticsType = logisticsType;
+    }
+
+    public boolean getIsHiddenRecipeDetail() {
+        return isHiddenRecipeDetail;
+    }
+
+    public void setIsHiddenRecipeDetail(boolean hiddenRecipe) {
+        isHiddenRecipeDetail = hiddenRecipe;
+    }
+
+    public Integer getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(Integer payFlag) {
+        this.payFlag = payFlag;
+    }
 
     public PatientTabStatusRecipeDTO() {
     }
@@ -143,6 +210,14 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setButtons(PayModeShowButtonBean buttons) {
         this.buttons = buttons;
+    }
+
+    public GiveModeShowButtonVO getGiveModeShowButtonVO() {
+        return giveModeShowButtonVO;
+    }
+
+    public void setGiveModeShowButtonVO(GiveModeShowButtonVO giveModeShowButtonVO) {
+        this.giveModeShowButtonVO = giveModeShowButtonVO;
     }
 
     public int getRecipeId() {
@@ -351,5 +426,53 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setClinicOrgan(Integer clinicOrgan) {
         this.clinicOrgan = clinicOrgan;
+    }
+
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
+    }
+
+    public Integer getEnterpriseId() {
+        return enterpriseId;
+    }
+
+    public void setEnterpriseId(Integer enterpriseId) {
+        this.enterpriseId = enterpriseId;
+    }
+
+    public String getThirdUrl() {
+        return thirdUrl;
+    }
+
+    public void setThirdUrl(String thirdUrl) {
+        this.thirdUrl = thirdUrl;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 }

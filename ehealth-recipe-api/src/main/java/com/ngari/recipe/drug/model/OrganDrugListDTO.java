@@ -55,6 +55,75 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "外带药标志 1:外带药")
     private Integer takeMedicine;
 
+    @ItemProperty(alias = "院内检索关键字")
+    private String retrievalCode;
+
+    @ItemProperty(alias = "医院药房名字")
+    private String pharmacyName;
+
+    @ItemProperty(alias = "监管平台药品编码")
+    private String regulationDrugCode;
+
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
+    @ItemProperty(alias = "是否基药")
+    private Integer baseDrug;
+
+    @ItemProperty(alias = "批准文号")
+    private String licenseNumber;
+
+    @ItemProperty(alias = "包装材料")
+    private String packingMaterials;
+
+    @ItemProperty(alias = "医保药品编码")
+    private String medicalDrugCode;
+    @ItemProperty(alias = "HIS剂型编码")
+    private String drugFormCode;
+    @ItemProperty(alias = "医保剂型编码")
+    private String medicalDrugFormCode;
+
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
+
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
+    @ItemProperty(alias = "转换系数")
+    private Integer pack;
+
+    @ItemProperty(alias = "药品包装单位")
+    private String unit;
+
+    @ItemProperty(alias = "使用频率")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
+    private String usingRate;
+
+    @ItemProperty(alias = "用药途径")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
+    private String usePathways;
+
+    @ItemProperty(alias = "单次剂量单位")
+    private String useDoseUnit;
+
+    @ItemProperty(alias = "生产厂家")
+    private String producer;
+
+    @ItemProperty(alias = "药房")
+    private String pharmacy;
+
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrust;
+
+    @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
+    private Boolean medicalInsuranceControl;
+
+    @ItemProperty(alias = "适应症 说明")
+    private String indicationsDeclare;
+
+    @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
+    private Boolean supportDownloadPrescriptionPad;
+
     public OrganDrugListDTO() {
     }
 
@@ -152,5 +221,189 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setTakeMedicine(Integer takeMedicine) {
         this.takeMedicine = takeMedicine;
+    }
+
+    public String getRetrievalCode() {
+        return retrievalCode;
+    }
+
+    public void setRetrievalCode(String retrievalCode) {
+        this.retrievalCode = retrievalCode;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
+    public String getRegulationDrugCode() {
+        return regulationDrugCode;
+    }
+
+    public void setRegulationDrugCode(String regulationDrugCode) {
+        this.regulationDrugCode = regulationDrugCode;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
+
+    public Integer getBaseDrug() {
+        return baseDrug;
+    }
+
+    public void setBaseDrug(Integer baseDrug) {
+        this.baseDrug = baseDrug;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    public String getPackingMaterials() {
+        return packingMaterials;
+    }
+
+    public void setPackingMaterials(String packingMaterials) {
+        this.packingMaterials = packingMaterials;
+    }
+
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
+
+    public String getDrugFormCode() {
+        return drugFormCode;
+    }
+
+    public void setDrugFormCode(String drugFormCode) {
+        this.drugFormCode = drugFormCode;
+    }
+
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getUsingRate() {
+        return usingRate;
+    }
+
+    public void setUsingRate(String usingRate) {
+        this.usingRate = usingRate;
+    }
+
+    public String getUsePathways() {
+        return usePathways;
+    }
+
+    public void setUsePathways(String usePathways) {
+        this.usePathways = usePathways;
+    }
+
+    public String getUseDoseUnit() {
+        return useDoseUnit;
+    }
+
+    public void setUseDoseUnit(String useDoseUnit) {
+        this.useDoseUnit = useDoseUnit;
+    }
+
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
+    }
+
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
+    }
+
+    public String getDrugEntrust() {
+        return drugEntrust;
+    }
+
+    public void setDrugEntrust(String drugEntrust) {
+        this.drugEntrust = drugEntrust;
+    }
+
+    public Boolean getMedicalInsuranceControl() {
+        return medicalInsuranceControl;
+    }
+
+    public void setMedicalInsuranceControl(Boolean medicalInsuranceControl) {
+        this.medicalInsuranceControl = medicalInsuranceControl;
+    }
+
+    public String getIndicationsDeclare() {
+        return indicationsDeclare;
+    }
+
+    public void setIndicationsDeclare(String indicationsDeclare) {
+        this.indicationsDeclare = indicationsDeclare;
+    }
+
+    public Boolean getSupportDownloadPrescriptionPad() {
+        return supportDownloadPrescriptionPad;
+    }
+
+    public void setSupportDownloadPrescriptionPad(Boolean supportDownloadPrescriptionPad) {
+        this.supportDownloadPrescriptionPad = supportDownloadPrescriptionPad;
     }
 }

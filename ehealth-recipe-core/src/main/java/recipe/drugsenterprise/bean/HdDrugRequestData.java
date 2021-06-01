@@ -17,6 +17,10 @@ public class HdDrugRequestData implements Serializable {
      * 开药总数
      */
     private String total;
+    /**
+     * 单位
+     */
+    private String unit;
 
     public String getDrugCode() {
         return drugCode;
@@ -32,6 +36,14 @@ public class HdDrugRequestData implements Serializable {
 
     public void setTotal(String total) {
         this.total = total;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     @Override

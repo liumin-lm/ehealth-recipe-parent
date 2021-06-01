@@ -62,6 +62,9 @@ public class YtDrugDTO implements Serializable{
      */
     private String dosage;
 
+    //detail的UsePathways
+    private String peroral;
+
     public String getSourceSerialNumber() {
         return sourceSerialNumber;
     }
@@ -132,5 +135,29 @@ public class YtDrugDTO implements Serializable{
 
     public void setDosage(String dosage) {
         this.dosage = dosage;
+    }
+
+    public String getPeroral() {
+        return peroral;
+    }
+
+    public void setPeroral(String peroral) {
+        this.peroral = peroral;
+    }
+
+    @Override
+    public String toString() {
+        return "YtDrugDTO{" +
+                "sourceSerialNumber='" + sourceSerialNumber + '\'' +
+                ", hospitalCode='" + hospitalCode + '\'' +
+                ", itemNo='" + itemNo + '\'' +
+                ", code='" + code + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                ", amount=" + amount +
+                ", usage='" + usage + '\'' +
+                ", dosage='" + dosage + '\'' +
+                ", peroral='" + peroral + '\'' +
+                '}';
     }
 }

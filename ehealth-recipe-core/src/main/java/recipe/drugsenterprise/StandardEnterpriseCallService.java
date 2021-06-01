@@ -9,14 +9,19 @@ import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.his.recipe.mode.RecipeStatusUpdateReqTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
+import com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -30,6 +35,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -39,6 +45,7 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -257,15 +264,15 @@ public class StandardEnterpriseCallService {
                 case RecipeStatusConstant.USING:
                 case RecipeStatusConstant.FINISH:
                     recipeAttrMap.put("chooseFlag", 1);
-                    Boolean rsTao = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
+                    recipeAttrMap.put("payFlag", PayConstant.PAY_FLAG_PAY_SUCCESS);
+                    Boolean rsTao2 = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
                         status, recipeAttrMap);
-                    if (!rsTao){
+                    if (!rsTao2){
                         result.setMsg("[" + recipeCode + "]处方单更新失败");
                         LOGGER.warn("changeState HOS处方单状态变更失败，recipeCode={}, status={}", recipeCode, status);
                         return result;
                     }
                     break;
-
                 default:
                     result.setMsg("[" + stateDTO.getRecipeCode() + "]不支持变更的状态");
                     return result;
@@ -335,7 +342,6 @@ public class StandardEnterpriseCallService {
                 attrMap.put("giveDate", StringUtils.isEmpty(finishDTO.getDate()) ? DateTime.now().toDate() :
                         DateConversion.parseDate(finishDTO.getDate(), DateConversion.DEFAULT_DATE_TIME));
                 attrMap.put("giveFlag", 1);
-                attrMap.put("giveUser", finishDTO.getSender());
                 attrMap.put("payFlag", 1);
                 attrMap.put("payDate", DateTime.now().toDate());
                 //更新处方信息
@@ -345,7 +351,7 @@ public class StandardEnterpriseCallService {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
                     //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
-                    orderService.finishOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode(), null);
+                    orderService.finishOrder(dbRecipe.getOrderCode(),  null);
                     //记录日志
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(),
                             RecipeStatusConstant.FINISH, "处方单配送完成,配送人：" + finishDTO.getSender());
@@ -646,6 +652,11 @@ public class StandardEnterpriseCallService {
         LOGGER.info("updateStatusByPatientGetDrug 药企调用接口更新状态. param = {}", list);
         StandardResultDTO result = new StandardResultDTO();
         result.setCode(StandardResultDTO.SUCCESS);
+        if (CollectionUtils.isEmpty(list)) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("入参信息不能为空");
+            return result;
+        }
         //校验提交修改状态的处方信息是否和
         for (ChangeStatusByGetDrugDTO changeStatusByGetDrugDTO : list) {
             //校验药企传输数据安全性
@@ -720,7 +731,7 @@ public class StandardEnterpriseCallService {
      */
     private void failChangeRecipe(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
         //修改处方的状态，为失败（失败有多种失败的情况状态）
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.NO_DRUG, null);
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), changeStatus.getChangeStatus(), null);
         if (rs) {
             //更新处方状态后，结束当前订单的状态
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -728,38 +739,100 @@ public class StandardEnterpriseCallService {
         }
 
         //记录日志,处方的状态变更为失败的状态，记录失败的原因
-        RecipeLogService.saveRecipeLog(changeStatus.getRecipeId(), nowRecipe.getStatus(), RecipeStatusConstant.NO_DRUG,
+        RecipeLogService.saveRecipeLog(changeStatus.getRecipeId(), nowRecipe.getStatus(), changeStatus.getChangeStatus(),
                  changeStatus.getFailureReason());
 
     }
 
+    /**
+     * 同步药企药品价格
+     * @param readjustDrugDTOS      药企标识
+     * @return             000 成功
+     */
     @RpcService
-    public StandardResultDTO readjustDrugPrice(String account, String drugCode, double price){
-        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice storeId:{}, drugCode:{}.", account, drugCode);
-        StandardResultDTO result = new StandardResultDTO();
-        result.setCode(StandardResultDTO.SUCCESS);
-        if (StringUtils.isEmpty(account) || StringUtils.isEmpty(drugCode) || price < 0.0) {
-            result.setCode(StandardResultDTO.FAIL);
-            result.setMsg("参数不能为空");
-            return result;
-        }
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(account);
-        if (drugsEnterprise == null) {
-            result.setCode(StandardResultDTO.FAIL);
-            result.setMsg("药企不存在");
-            return result;
-        }
+    public List<StandardResultDTO> readjustDrugPrice(List<ReadjustDrugDTO> readjustDrugDTOS){
+        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice readjustDrugDTOS:{}.", JSONUtils.toString(readjustDrugDTOS));
+        List<StandardResultDTO> standardResultDTOS = new ArrayList<>();
+        for (ReadjustDrugDTO readjustDrugDTO : readjustDrugDTOS) {
+            StandardResultDTO result = new StandardResultDTO();
+            result.setCode(StandardResultDTO.SUCCESS);
+            String account = readjustDrugDTO.getAccount();
+            Integer hospitalId = readjustDrugDTO.getHospitalId();
+            String drugCode = readjustDrugDTO.getDrugCode();
+            Double price = readjustDrugDTO.getPrice();
+            if (StringUtils.isEmpty(account) && StringUtils.isNotEmpty(readjustDrugDTO.getAppKey())) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAppKey(readjustDrugDTO.getAppKey());
+                if (enterprise == null) {
+                    result.setCode(StandardResultDTO.FAIL);
+                    result.setMsg("未查到对应的药企");
+                    result.setData(readjustDrugDTO);
+                    standardResultDTOS.add(result);
+                    return standardResultDTOS;
+                }
+                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(enterprise.getId(), drugCode);
+                if (saleDrugList == null) {
+                    result.setCode(StandardResultDTO.FAIL);
+                    result.setMsg("未查到待调价的药品");
+                    result.setData(readjustDrugDTO);
+                    standardResultDTOS.add(result);
+                } else {
+                    saleDrugList.setPrice(new BigDecimal(price));
+                    saleDrugListDAO.update(saleDrugList);
+                    result.setData(readjustDrugDTO);
+                    standardResultDTOS.add(result);
+                }
+            } else {
+                OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(hospitalId, 1);
+                for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                    if (account.equals(drugsEnterprise.getAccount())) {
+                        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                        SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
+                        if (saleDrugList == null) {
+                            result.setCode(StandardResultDTO.FAIL);
+                            result.setMsg("未查到待调价的药品");
+                            result.setData(readjustDrugDTO);
+                            standardResultDTOS.add(result);
+                        } else {
+                            saleDrugList.setPrice(new BigDecimal(price));
+                            saleDrugListDAO.update(saleDrugList);
+                            result.setData(readjustDrugDTO);
+                            standardResultDTOS.add(result);
+                        }
+                    }
+                }
+            }
 
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
-        if (saleDrugList == null) {
+        }
+        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice standardResultDTOS:{}.", JSONUtils.toString(standardResultDTOS));
+        return standardResultDTOS;
+    }
+
+    @RpcService
+    public StandardResultDTO recipeStatusupdate(RecipeStatusUpdateReqTO request) {
+        LOGGER.info("distributionService-recipeStatusupdate request:{}.", JSONUtils.toString(request));
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        StandardResultDTO result = new StandardResultDTO();
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getOrganByOrganizeCode(request.getOrganizeCode());
+        if (organDTO == null) {
             result.setCode(StandardResultDTO.FAIL);
-            result.setMsg("未查到待调价的药品");
+            result.setMsg("机构不存在");
             return result;
+        }
+        request.setOrganID(organDTO.getOrganId().toString());  //固定写死
+        request.setOrganizeCode(organDTO.getOrganizeCode());
+        request.setOuthospno("");
+        request.setExplain("无");
+        request.setRecipeRecordStatus(2);
+        request.setRecipeStatus("1");
+        Boolean flag = service.recipeUpdate(request);
+        if (flag) {
+            result.setCode(StandardResultDTO.SUCCESS);
         } else {
-            saleDrugList.setPrice(new BigDecimal(price));
-            saleDrugListDAO.update(saleDrugList);
+            result.setCode(StandardResultDTO.FAIL);
         }
         return result;
     }

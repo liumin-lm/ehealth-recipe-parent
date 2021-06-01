@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <s:beans xmlns:s="http://www.springframework.org/schema/beans"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ssdev"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ngari"
          xsi:schemaLocation="http://www.springframework.org/schema/beans
 				http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.ngarihealth.com/schema/ssdev
-						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+						http://www.ngarihealth.com/schema/ngari
+						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
 
     <reference id="basic.doctorService" interface="com.ngari.patient.service.DoctorService"/>
@@ -17,7 +17,7 @@
     <reference id="basic.doctorTabService" interface="com.ngari.patient.service.DoctorTabService"/>
     <reference id="basic.organConfigService" interface="com.ngari.patient.service.OrganConfigService"/>
     <reference id="basic.doctorExtendService" interface="com.ngari.patient.service.DoctorExtendService"/>
-    <reference id="basic.serverPriceService" interface="com.ngari.patient.service.ServerPriceService"/>
+    <!--<reference id="basic.serverPriceService" interface="com.ngari.patient.service.ServerPriceService"/>-->
     <reference id="basic.doctorGroupService" interface="com.ngari.patient.service.DoctorGroupService"/>
     <reference id="basic.organConfigExtService" interface="com.ngari.patient.service.OrganConfigExtService"/>
     <reference id="basic.subCodeService" interface="com.ngari.patient.service.zjs.SubCodeService"/>
@@ -25,4 +25,9 @@
     <reference id="basic.appointDepartService" interface="com.ngari.patient.service.AppointDepartService"/>
     <reference id="basic.clientConfigService" interface="com.ngari.patient.service.ClientConfigService"/>
     <reference id="basic.healthCardService" interface="com.ngari.patient.service.HealthCardService"/>
+    <reference id="basic.addressService" interface="com.ngari.patient.service.AddressService"/>
+    <reference id="basic.proTitleService" interface="com.ngari.patient.service.ProTitleService"/>
+    <reference id="basic.thirdPartyMappingService" interface="com.ngari.patient.service.ThirdPartyMappingService"/>
+    <reference id="basic.usingRateService" interface="com.ngari.patient.service.IUsingRateService"/>
+    <reference id="basic.usePathwaysService" interface="com.ngari.patient.service.IUsePathwaysService"/>
 </s:beans>

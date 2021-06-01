@@ -68,6 +68,16 @@ public class ParameterConstant {
     public static final String KEY_ALI_O2O_ADDR = "ALI_O2O_ADDR";
 
     /**
+     * 淘宝下单新跳转地址---NEW 根据浙一和衢化医院做了区分----仅配送到家使用
+     */
+    public static final String KEY_ALI_O2O_NEW_ADDR = "ALI_O2O_NEW_ADDR";
+
+    /**
+     * 给天猫大药房的-医院渠道固定值
+     */
+    public static final String KEY_ORGAN_CHANNEL_CODE = "ORGAN_CHANNEL_CODE";
+
+    /**
      * 淘宝授权跳转地址
      */
     public static final String KEY_TAOBAO_AUTHORIZATION_ADDR = "TAOBAO_AUTHORIZATION_ADDR";

@@ -90,7 +90,7 @@ public class PushRecipToEpCallable implements Callable<String> {
                         backMsg = HttpHelper.doPost(busUrl, sendInfoStr);
                         logger.info("调用[{}][{}]结果返回={}", de.getName(), method, backMsg);
                     } catch (IOException e) {
-                        logger.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, de.getName(), method);
+                        logger.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, de.getName(), method,e);
                         backMsg = null;
                     }
 
@@ -109,7 +109,7 @@ public class PushRecipToEpCallable implements Callable<String> {
                                 keyword = (Map) backMap.get("keyword");
                             } catch (Exception e) {
                                 keyword = null;
-                                logger.error(logPrefix + "药企返回信息keyword解析失败");
+                                logger.error(logPrefix + "药企返回信息keyword解析失败",e);
                             }
                             if (null != keyword) {
                                 List<Integer> drugsIdList = null;
@@ -195,7 +195,7 @@ public class PushRecipToEpCallable implements Callable<String> {
                 backMsg = HttpHelper.doPost(de.getBusinessUrl(), sendInfoStr);
                 logger.info("调用[{}][{}]结果返回={}", de.getName(), method, backMsg);
             } catch (IOException e) {
-                logger.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, de.getName(), method);
+                logger.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, de.getName(), method,e);
                 backMsg = "";
             }
 

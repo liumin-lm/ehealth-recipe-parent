@@ -3,7 +3,7 @@ package com.ngari.recipe.drugsenterprise.model;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * company: ngarihealth
@@ -99,6 +99,42 @@ public class DepDetailBean {
 
     //是否跳转第三方
     private Integer orderType;
+
+    //是否是还是返回的药企
+    private Boolean hisDep;
+
+    //his的药企code
+    private String hisDepCode;
+
+    //his的药企处方金额
+    private BigDecimal hisDepFee;
+
+    public BigDecimal getHisDepFee() {
+        return hisDepFee;
+    }
+
+    public void setHisDepFee(BigDecimal hisDepFee) {
+        this.hisDepFee = hisDepFee;
+    }
+
+    public String getHisDepCode() {
+        return hisDepCode;
+    }
+
+    public void setHisDepCode(String hisDepCode) {
+        this.hisDepCode = hisDepCode;
+    }
+
+    public Boolean getHisDep() {
+        return hisDep;
+    }
+
+    public void setHisDep(Boolean hisDep) {
+        this.hisDep = hisDep;
+    }
+
+    //药企备注
+    private String memo;
 
     public Integer getDepId() {
         return depId;
@@ -266,5 +302,30 @@ public class DepDetailBean {
 
     public void setOrderType(Integer orderType) {
         this.orderType = orderType;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DepDetailBean that = (DepDetailBean) o;
+        return Objects.equals(depId, that.depId) && Objects.equals(depName, that.depName) && Objects.equals(payMode, that.payMode) && Objects.equals(giveModeText, that.giveModeText) && Objects.equals(payModeText, that.payModeText);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(depId, depName, payMode, giveModeText, payModeText);
     }
 }

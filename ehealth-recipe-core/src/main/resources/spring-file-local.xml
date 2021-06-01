@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:ngari="http://www.ngarihealth.com/schema/ngari"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
+
+	<bean id="localFileRepository" class="ctd.mvc.upload.support.LocalFileRepository">
+		<constructor-arg name="repositoryPath" value="${file.repositoryPath}"/>
+	</bean>
+	<bean class="ctd.util.FileAuth" id="fileAuth">
+		<constructor-arg name="accessKey" value="${fileauth.accesskey}"/>
+		<constructor-arg name="secret" value="${fileauth.secret}"/>
+	</bean>
+	<ngari:reference id="fileserver.fileRegistry" interface="ctd.mvc.upload.FileRegistry"/>
+	<bean id="fileService" class="ctd.mvc.upload.FileService">
+		<property name="registry" ref="fileserver.fileRegistry" />
+		<property name="repository" ref="localFileRepository" />
+	</bean>
+
+	<bean id="mvcUploadFileManager" class="ctd.mvc.controller.support.UploadFileManager">
+		<property name="fileService" ref="fileService" />
+		<property name="maxUploadFileSize" value="83886080" />
+		<property name="expiresSeconds">
+			<util:constant static-field="ctd.util.ServletUtils.ONE_WEEK_SECONDS" />
+		</property>
+		<property name="fileAuth" ref="fileAuth"/>
+	</bean>
+
+</beans>

@@ -56,13 +56,21 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -124,6 +132,21 @@ public class DrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "基药标识")
     private Integer baseDrug;
+
+    @ItemProperty(alias = "药品编码")
+    private String drugCode;
+
+    @ItemProperty(alias = "标志（浙江），1-是，0-否")
+    private Integer isRegulation;
+
+
+    @ItemProperty(alias = "标志（审方），1-是，0-否")
+    private Integer isPrescriptions;
+
+    @ItemProperty(alias = "来源渠道名称")
+    private String sourceOrganText;
+
+
 
     public DrugList() {
     }
@@ -482,5 +505,59 @@ public class DrugList implements java.io.Serializable {
 
     public void setBaseDrug(Integer baseDrug) {
         this.baseDrug = baseDrug;
+    }
+
+    @Column(name = "drugCode")
+    public String getDrugCode() {
+        return drugCode;
+}
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
+    }
+
+    @Column(name = "usingRateId")
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Column(name = "usePathwaysId")
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
+    @Column(name = "isRegulation")
+    public Integer getIsRegulation() {
+        return isRegulation;
+    }
+
+    public void setIsRegulation(Integer isRegulation) {
+        this.isRegulation = isRegulation;
+    }
+
+    @Column(name = "isPrescriptions")
+    public Integer getIsPrescriptions() {
+        return isPrescriptions;
+    }
+
+    public void setIsPrescriptions(Integer isPrescriptions) {
+        this.isPrescriptions = isPrescriptions;
+    }
+
+    @Transient
+    public String getSourceOrganText() {
+        return sourceOrganText;
+    }
+
+    public void setSourceOrganText(String sourceOrganText) {
+        this.sourceOrganText = sourceOrganText;
     }
 }

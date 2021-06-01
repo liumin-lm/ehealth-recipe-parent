@@ -29,9 +29,27 @@ public class HisSendResTO implements java.io.Serializable {
     private String msg;
 
     /**
+     * 患者类型（1自费 2医保）
+     */
+    private String patientType;
+
+    /**
      * 返回医嘱列表数据
      */
     private List<OrderRepTO> data;
+
+    /**
+     * 处方收费序号合集（多个用逗号拼接）
+     */
+    private String recipeCostNumber;
+
+    public String getRecipeCostNumber() {
+        return recipeCostNumber;
+    }
+
+    public void setRecipeCostNumber(String recipeCostNumber) {
+        this.recipeCostNumber = recipeCostNumber;
+    }
 
     public String getRecipeId() {
         return recipeId;
@@ -63,5 +81,13 @@ public class HisSendResTO implements java.io.Serializable {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public String getPatientType() {
+        return patientType;
+    }
+
+    public void setPatientType(String patientType) {
+        this.patientType = patientType;
     }
 }
