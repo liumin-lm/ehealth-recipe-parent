@@ -7,8 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.dto.UsePathwaysDTO;
-import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
@@ -29,7 +27,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
@@ -1530,190 +1527,6 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException("前置机调用失败");
         }
         return hisResponseTO.getData();
-    }
-
-    @RpcService
-    @Deprecated
-    public List<RecipeDetailBean> validateOfflineDrug(Integer organId, String mpiId, String recipeCode) {
-        try {
-            LOGGER.info("validateOfflineDrug organId={}, mpiId={},recipeCode={}", organId, mpiId, recipeCode);
-            List<RecipeInfoTO> recipeInfoTO = recipeListInfos(organId, mpiId);
-            if (CollectionUtils.isEmpty(recipeInfoTO)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方数据为空");
-            }
-            RecipeInfoTO recipeInfo = recipeInfoTO.stream().filter(a -> recipeCode.equals(a.getRecipeCode())).findAny().orElse(null);
-            if (null == recipeInfo) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取处方代码数据为空");
-            }
-            //获取线下处方药品
-            List<RecipeDetailTO> detailData = recipeInfo.getDetailData();
-            if (CollectionUtils.isEmpty(detailData)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "获取药品数据为空");
-            }
-            List<String> drugCodes = detailData.stream().map(RecipeDetailTO::getDrugCode).distinct().collect(Collectors.toList());
-            //获取药品比对信息
-            List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodes);
-            if (CollectionUtils.isEmpty(organDrugs)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单上的药品不在医院线上药品清单内，无法正常续方");
-            }
-            return offlineDrugs(organId, organDrugs, detailData);
-        } catch (DAOException e) {
-            throw new DAOException(e.getCode(), e.getMessage());
-        } catch (Exception e1) {
-            LOGGER.error("validateOfflineDrug error ", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        }
-    }
-
-    /**
-     * @param organId    机构id
-     * @param organDrugs 机构药品
-     * @param detailData 线下处方药品
-     * @return
-     */
-    @Deprecated
-    private List<RecipeDetailBean> offlineDrugs(Integer organId, List<OrganDrugList> organDrugs, List<RecipeDetailTO> detailData) {
-        LOGGER.info("offlineDrugs organId = {},organDrugs={},detailData={}", organId, JSONUtils.toString(organDrugs), JSONUtils.toString(detailData));
-        Map<String, OrganDrugList> organDrugMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
-
-        List<RecipeDetailBean> backDetailList = new ArrayList<>();
-        StringBuilder msg = new StringBuilder();
-        for (RecipeDetailTO recipeDetail : detailData) {
-            /**线下处方 续方逻辑校验*/
-            OrganDrugList organDrug = organDrugMap.get(recipeDetail.getDrugCode());
-            if (null == organDrug) {
-                continue;
-            }
-            if (null == recipeDetail.getAmount() || StringUtils.isAnyEmpty(recipeDetail.getUsePathwaysCode(), recipeDetail.getUsingRateCode(), recipeDetail.getUseDose(), recipeDetail.getUseDoseUnit(), recipeDetail.getDays())) {
-                msg.append(recipeDetail.getDrugName()).append(",");
-                continue;
-            }
-            RecipeDetailBean mapDetail = new RecipeDetailBean();
-            StringBuilder str = new StringBuilder();
-            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, recipeDetail.getUsingRateCode());
-            if (null == usingRateDTO) {
-                LOGGER.warn("validateOfflineDrug usingRateDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetail));
-                str.append("用药频次");
-            } else {
-                mapDetail.setUsingRate(usingRateDTO.getText());
-                mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-            }
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), recipeDetail.getUsePathwaysCode());
-            if (null == usePathwaysDTO) {
-                LOGGER.warn("validateOfflineDrug usePathwaysDTO organId={} recipeDetailTO={}", organId, JSONUtils.toString(recipeDetail));
-                if (StringUtils.isNotEmpty(str)) {
-                    str.append("、");
-                }
-                str.append("用药途径");
-            } else {
-                mapDetail.setUsePathways(usePathwaysDTO.getText());
-                mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-            }
-
-            if (StringUtils.isNotEmpty(str)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "该医院" + str.toString() + "未在线上做维护，无法正常续方。");
-            }
-
-            //设置医生端每次剂量和剂量单位联动关系
-            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
-            //用药单位不为空时才返回给前端
-            if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-            }
-            if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
-            }
-            //组织处方药品续方参数
-            mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-            mapDetail.setDrugForm(organDrug.getDrugForm());
-            mapDetail.setStatus(organDrug.getStatus());
-            mapDetail.setDrugId(organDrug.getDrugId());
-            try {
-                mapDetail.setDefaultUseDose(Double.valueOf(recipeDetail.getUseDose()));
-            } catch (Exception e) {
-                LOGGER.warn("validateOfflineDrug usePathwaysDTO UseDose={} DrugName={}", recipeDetail.getUseDose(), recipeDetail.getDrugName());
-            }
-            mapDetail.setDrugCost(recipeDetail.getTotalPrice());
-            mapDetail.setDrugName(recipeDetail.getDrugName());
-            mapDetail.setDrugSpec(recipeDetail.getDrugSpec());
-            mapDetail.setOrganDrugCode(recipeDetail.getDrugCode());
-            mapDetail.setOrganUsePathways(recipeDetail.getUsePathwaysCode());
-            mapDetail.setOrganUsingRate(recipeDetail.getUsingRateCode());
-            mapDetail.setPack(recipeDetail.getPack());
-            mapDetail.setPrice(recipeDetail.getPrice());
-            mapDetail.setRatePrice(recipeDetail.getPrice());
-            mapDetail.setSalePrice(recipeDetail.getPrice());
-            mapDetail.setSendNumber(recipeDetail.getAmount());
-            mapDetail.setUseDays(recipeDetail.getUseDays());
-            mapDetail.setDrugUnit(recipeDetail.getUnit());
-            mapDetail.setMemo(recipeDetail.getMemo());
-            if (null == recipeDetail.getUseDays()) {
-                mapDetail.setUseDays(Integer.valueOf(recipeDetail.getDays()));
-            }
-            if (StringUtils.isNotEmpty(recipeDetail.getUseDose())) {
-                mapDetail.setUseDose(Double.valueOf(recipeDetail.getUseDose()));
-            }
-            mapDetail.setUseDoseStr(recipeDetail.getUseDose());
-            mapDetail.setUseDoseUnit(recipeDetail.getUseDoseUnit());
-            mapDetail.setUsePathwaysTextFromHis(recipeDetail.getUsePathwaysText());
-            if (null != recipeDetail.getUseTotalDose()) {
-                mapDetail.setUseTotalDose(recipeDetail.getUseTotalDose().doubleValue());
-            }
-            mapDetail.setUsingRateTextFromHis(recipeDetail.getUsingRateText());
-            backDetailList.add(mapDetail);
-        }
-        if (CollectionUtils.isEmpty(backDetailList) && StringUtils.isNotEmpty(msg)) {
-            String msgStr = msg.toString();
-            msgStr = msgStr.substring(0, msgStr.length() - 1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, msgStr + "药品信息不全，无法正常续方。");
-        }
-        LOGGER.info("offlineDrugs backDetailList = {}", JSONUtils.toString(backDetailList));
-        return backDetailList;
-    }
-
-    /**
-     * 获取线下处方
-     *
-     * @param organId 机构id
-     * @param mpiId   患者id
-     * @return
-     */
-    @Deprecated
-    private List<RecipeInfoTO> recipeListInfos(Integer organId, String mpiId) {
-        if (StringUtils.isEmpty(mpiId)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者id为空");
-        }
-        PatientDTO patientDTO = patientService.get(mpiId);
-        if (patientDTO == null) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该患者");
-        }
-        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        RevisitExDTO consultExDTO = getConsultBean(null, organId, mpiId);
-        if (null != consultExDTO) {
-            patientBaseInfo.setPatientID(consultExDTO.getCardId());
-            patientBaseInfo.setCardID(consultExDTO.getCardId());
-            patientBaseInfo.setCardType(consultExDTO.getCardType());
-        }
-        patientBaseInfo.setPatientName(patientDTO.getPatientName());
-        patientBaseInfo.setCertificate(patientDTO.getCertificate());
-        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
-
-        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
-        request.setPatientInfo(patientBaseInfo);
-        request.setStartDate(DateConversion.getDateTimeDaysAgo(100));
-        request.setEndDate(DateTime.now().toDate());
-        request.setOrgan(organId);
-        try {
-            QueryRecipeResponseTO response = recipeHisService.queryRecipeListInfo(request);
-            LOGGER.info("recipeListInfos request={}，response={}", JSONUtils.toString(request), JSONUtils.toString(response));
-            if (null == response) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "查询数据为空");
-            }
-            return response.getData();
-        } catch (Exception e) {
-            LOGGER.error("recipeListInfos request={}，e", JSONUtils.toString(request), e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "查询数据出错");
-        }
     }
 
     /**

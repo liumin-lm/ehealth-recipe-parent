@@ -62,11 +62,24 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      * @param drugListDTO     常用方药品
      */
     @RpcService
+    @Deprecated
     public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO) {
         LOGGER.info("CommonRecipeService addCommonRecipe commonRecipe:{},drugList:{}", JSONUtils.toString(commonRecipeDTO), JSONUtils.toString(drugListDTO));
         if (null == commonRecipeDTO || CollectionUtils.isEmpty(drugListDTO)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方数据不完整，请重试");
         }
+        addCommonRecipe(commonRecipeDTO, commonRecipeDTO.getCommonRecipeExt(), drugListDTO);
+    }
+
+    /**
+     * 新增或更新常用方
+     *
+     * @param commonRecipeDTO 常用方
+     * @param commonRecipeExt 中药扩展信息
+     * @param drugListDTO     常用方药品
+     * @return
+     */
+    public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, CommonRecipeExtDTO commonRecipeExt, List<CommonRecipeDrugDTO> drugListDTO) {
         //id不为空则删除 重新add数据
         Integer commonRecipeId = commonRecipeDTO.getCommonRecipeId();
         //常用方参数校验
@@ -74,7 +87,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(drugListDTO, CommonRecipeDrug.class);
         validateParam(commonRecipe, drugList);
         try {
-            commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeDTO.getCommonRecipeExt(), drugList);
+            commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
             commonRecipeManager.removeCommonRecipe(commonRecipeId);
         } catch (DAOException e) {
             LOGGER.error("addCommonRecipe error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe), JSONUtils.toString(drugList), e);
@@ -82,43 +95,17 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         }
     }
 
-
     /**
      * 删除常用方
+     * todo 需要删除 RpcService标签
      *
      * @param commonRecipeId
      */
     @RpcService
+    @Deprecated
     public void deleteCommonRecipe(Integer commonRecipeId) {
         LOGGER.info("CommonRecipeService.deleteCommonRecipe  commonRecipeId = " + commonRecipeId);
         commonRecipeManager.removeCommonRecipe(commonRecipeId);
-    }
-
-    /**
-     * 获取常用方列表
-     *
-     * @param doctorId
-     * @param recipeType 0：获取全部常用方  其他：按类型获取
-     * @param start
-     * @param limit
-     * @return
-     */
-    @Deprecated
-    @RpcService
-    public List<CommonRecipeDTO> getCommonRecipeList(Integer organId, Integer doctorId, String recipeType, int start, int limit) {
-        CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
-        LOGGER.info("getCommonRecipeList  recipeType={}, doctorId={}, organId={} ", recipeType, doctorId, organId);
-
-        if (null != doctorId) {
-            if (StringUtils.isNotEmpty(recipeType) && !"0".equals(recipeType)) {
-                List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(Arrays.asList(Integer.valueOf(recipeType)), doctorId, start, limit);
-                return getList(list, CommonRecipeDTO.class);
-            } else {
-                List<CommonRecipe> list = commonRecipeDAO.findByDoctorId(doctorId, start, limit);
-                return getList(list, CommonRecipeDTO.class);
-            }
-        }
-        return null;
     }
 
     /**
@@ -180,32 +167,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         });
         return commonRecipeList;
     }
-
-
-
-    /**
-     * 根据常用方类型检查是否存在常用方
-     *
-     * @param doctorId
-     * @param recipeType
-     * @return
-     */
-    @RpcService
-    public Boolean checkCommonRecipeExist(Integer doctorId, String recipeType) {
-        CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
-        if (null != doctorId && StringUtils.isNotEmpty(recipeType)) {
-            List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(Arrays.asList(Integer.valueOf(recipeType)), doctorId, 0, 1);
-            LOGGER.info("checkCommonRecipeExist the doctorId={}, recipeType={} ", doctorId, recipeType);
-            if (CollectionUtils.isEmpty(list)) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    
     /**
      * 查询常用方和常用方下的药品列表信息  查询常用方的详细信息
      * 新版废弃/保留兼容老app版本
