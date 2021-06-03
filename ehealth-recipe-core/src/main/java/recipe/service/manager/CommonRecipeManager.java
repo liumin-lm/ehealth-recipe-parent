@@ -2,6 +2,7 @@ package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
@@ -26,6 +27,7 @@ import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.service.client.DrugClient;
+import recipe.service.client.OfflineRecipeClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -54,6 +56,8 @@ public class CommonRecipeManager {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
 
     /**
      * 新增常用方信息
@@ -224,5 +228,10 @@ public class CommonRecipeManager {
             LOGGER.error("CommonRecipeManager validateParam error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }
+    }
+
+    public List<CommonDTO> offlineCommon(Integer doctorId) {
+        List<CommonDTO> list = offlineRecipeClient.offlineCommonRecipe(doctorId);
+        return list;
     }
 }

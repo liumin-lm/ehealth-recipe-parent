@@ -7,6 +7,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
@@ -167,7 +168,13 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         });
         return commonRecipeList;
     }
-    
+
+
+    public List<CommonDTO> offlineCommon(Integer doctorId) {
+        List<CommonDTO> list = commonRecipeManager.offlineCommon(doctorId);
+        return list;
+    }
+
     /**
      * 查询常用方和常用方下的药品列表信息  查询常用方的详细信息
      * 新版废弃/保留兼容老app版本

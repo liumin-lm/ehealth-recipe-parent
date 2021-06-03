@@ -4,6 +4,8 @@ import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -11,13 +13,26 @@ import java.util.List;
 
 /**
  * Created by  on 2017/5/23.
+ * 常用方药品
  *
  * @author jiangtingfeng
  */
 @Schema
+@Getter
+@Setter
 public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -4535607360492071383L;
+
+    @ItemProperty(alias = "常用方编码-医院唯一主键字段")
+    private String commonRecipeCode;
+
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+    @ItemProperty(alias = "药房类型：中药,西药,中成药,膏方")
+    private String[] pharmacyCategray;
+
 
     @ItemProperty(alias = "自增id")
     private Integer id;
@@ -68,6 +83,7 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     private BigDecimal drugCost;
 
     @ItemProperty(alias = "备注信息")
+    /**药品嘱托test*/
     private String memo;
 
     @ItemProperty(alias = "药品嘱托编码")
@@ -121,22 +137,6 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;
 
-    public String getDrugEntrustCode() {
-        return drugEntrustCode;
-    }
-
-    public void setDrugEntrustCode(String drugEntrustCode) {
-        this.drugEntrustCode = drugEntrustCode;
-    }
-
-    public String getDrugEntrustId() {
-        return drugEntrustId;
-    }
-
-    public void setDrugEntrustId(String drugEntrustId) {
-        this.drugEntrustId = drugEntrustId;
-    }
-
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
 
@@ -157,313 +157,4 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
-
-
-
-    public Integer getPack() {
-        return pack;
-    }
-
-    public void setPack(Integer pack) {
-        this.pack = pack;
-    }
-
-    public CommonRecipeDrugDTO() {
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getDrugStatus() {
-        return drugStatus;
-    }
-
-    public void setDrugStatus(Integer drugStatus) {
-        this.drugStatus = drugStatus;
-    }
-
-    public Integer getCommonRecipeId() {
-        return commonRecipeId;
-    }
-
-    public void setCommonRecipeId(Integer commonRecipeId) {
-        this.commonRecipeId = commonRecipeId;
-    }
-
-    public Integer getDrugId() {
-        return drugId;
-    }
-
-    public void setDrugId(Integer drugId) {
-        this.drugId = drugId;
-    }
-
-    public String getDrugName() {
-        return drugName;
-    }
-
-    public void setDrugName(String drugName) {
-        this.drugName = drugName;
-    }
-
-    public String getDrugUnit() {
-        return drugUnit;
-    }
-
-    public void setDrugUnit(String drugUnit) {
-        this.drugUnit = drugUnit;
-    }
-
-    public String getDrugSpec() {
-        return drugSpec;
-    }
-
-    public void setDrugSpec(String drugSpec) {
-        this.drugSpec = drugSpec;
-    }
-
-    public Double getUseTotalDose() {
-        return useTotalDose;
-    }
-
-    public void setUseTotalDose(Double useTotalDose) {
-        this.useTotalDose = useTotalDose;
-    }
-
-    public Double getUseDose() {
-        return useDose;
-    }
-
-    public void setUseDose(Double useDose) {
-        this.useDose = useDose;
-    }
-
-    public Double getDefaultUseDose() {
-        return defaultUseDose;
-    }
-
-    public void setDefaultUseDose(Double defaultUseDose) {
-        this.defaultUseDose = defaultUseDose;
-    }
-
-    public BigDecimal getSalePrice() {
-        return salePrice;
-    }
-
-    public void setSalePrice(BigDecimal salePrice) {
-        this.salePrice = salePrice;
-    }
-
-    public Double getPrice1() {
-        return price1;
-    }
-
-    public void setPrice1(Double price1) {
-        this.price1 = price1;
-    }
-
-    public BigDecimal getDrugCost() {
-        return drugCost;
-    }
-
-    public void setDrugCost(BigDecimal drugCost) {
-        this.drugCost = drugCost;
-    }
-
-    public String getMemo() {
-        return memo;
-    }
-
-    public void setMemo(String memo) {
-        this.memo = memo;
-    }
-
-    public Date getCreateDt() {
-        return createDt;
-    }
-
-    public void setCreateDt(Date createDt) {
-        this.createDt = createDt;
-    }
-
-    public Date getLastModify() {
-        return lastModify;
-    }
-
-    public void setLastModify(Date lastModify) {
-        this.lastModify = lastModify;
-    }
-
-    public String getUsingRate() {
-        return usingRate;
-    }
-
-    public void setUsingRate(String usingRate) {
-        this.usingRate = usingRate;
-    }
-
-    public String getUsePathways() {
-        return usePathways;
-    }
-
-    public void setUsePathways(String usePathways) {
-        this.usePathways = usePathways;
-    }
-
-    public Integer getUseDays() {
-        return useDays;
-    }
-
-    public void setUseDays(Integer useDays) {
-        this.useDays = useDays;
-    }
-
-    public String getUseDoseUnit() {
-        return useDoseUnit;
-    }
-
-    public void setUseDoseUnit(String useDoseUnit) {
-        this.useDoseUnit = useDoseUnit;
-    }
-
-    public String getSaleName() {
-        return saleName;
-    }
-
-    public void setSaleName(String saleName) {
-        this.saleName = saleName;
-    }
-
-    public String getPlatformSaleName() {
-        return platformSaleName;
-    }
-
-    public void setPlatformSaleName(String platformSaleName) {
-        this.platformSaleName = platformSaleName;
-    }
-
-    public String getOrganDrugCode() {
-        return organDrugCode;
-    }
-
-    public void setOrganDrugCode(String organDrugCode) {
-        this.organDrugCode = organDrugCode;
-    }
-
-    public String getDrugForm() {
-        return drugForm;
-    }
-
-    public void setDrugForm(String drugForm) {
-        this.drugForm = drugForm;
-    }
-
-    public String getUseDoseStr() {
-        return useDoseStr;
-    }
-
-    public void setUseDoseStr(String useDoseStr) {
-        this.useDoseStr = useDoseStr;
-    }
-
-    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
-        return useDoseAndUnitRelation;
-    }
-
-    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
-        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
-    }
-
-    public String getUsingRateId() {
-        return usingRateId;
-    }
-
-    public void setUsingRateId(String usingRateId) {
-        this.usingRateId = usingRateId;
-    }
-
-    public String getUsePathwaysId() {
-        return usePathwaysId;
-    }
-
-    public void setUsePathwaysId(String usePathwaysId) {
-        this.usePathwaysId = usePathwaysId;
-    }
-
-    public Integer getPharmacyId() {
-        return pharmacyId;
-    }
-
-    public void setPharmacyId(Integer pharmacyId) {
-        this.pharmacyId = pharmacyId;
-    }
-
-    public String getPharmacyName() {
-        return pharmacyName;
-    }
-
-    public void setPharmacyName(String pharmacyName) {
-        this.pharmacyName = pharmacyName;
-    }
-
-    public String getOrganPharmacyId() {
-        return organPharmacyId;
-    }
-
-    public void setOrganPharmacyId(String organPharmacyId) {
-        this.organPharmacyId = organPharmacyId;
-    }
-
-    public Integer getTcmContraindicationType() {
-        return tcmContraindicationType;
-    }
-
-    public void setTcmContraindicationType(Integer tcmContraindicationType) {
-        this.tcmContraindicationType = tcmContraindicationType;
-    }
-
-    public String getTcmContraindicationCause() {
-        return tcmContraindicationCause;
-    }
-
-    public void setTcmContraindicationCause(String tcmContraindicationCause) {
-        this.tcmContraindicationCause = tcmContraindicationCause;
-    }
-
-    public String getUsingRateEnglishNames() {
-        return usingRateEnglishNames;
-    }
-
-    public void setUsingRateEnglishNames(String usingRateEnglishNames) {
-        this.usingRateEnglishNames = usingRateEnglishNames;
-    }
-
-    public String getUsePathEnglishNames() {
-        return usePathEnglishNames;
-    }
-
-    public void setUsePathEnglishNames(String usePathEnglishNames) {
-        this.usePathEnglishNames = usePathEnglishNames;
-    }
-
-    public String getDrugDisplaySplicedName() {
-        return drugDisplaySplicedName;
-    }
-
-    public void setDrugDisplaySplicedName(String drugDisplaySplicedName) {
-        this.drugDisplaySplicedName = drugDisplaySplicedName;
-    }
-
-    public String getDrugDisplaySplicedSaleName() {
-        return drugDisplaySplicedSaleName;
-    }
-
-    public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
-        this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
-    }
 }

@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import ctd.persistence.exception.DAOException;
@@ -95,6 +96,25 @@ public class CommonRecipeAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("CommonRecipeAtop deleteCommonRecipe error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+
+    public List<CommonDTO> offlineCommon(Integer doctorId) {
+        logger.info("CommonRecipeAtop offlineCommon doctorId = {}", doctorId);
+        if (ValidateUtil.integerIsEmpty(doctorId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+        try {
+            List<CommonDTO> result = commonRecipeService.offlineCommon(doctorId);
+            logger.info("CommonRecipeAtop offlineCommon result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("CommonRecipeAtop offlineCommon error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("CommonRecipeAtop offlineCommon error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
