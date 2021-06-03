@@ -1571,6 +1571,18 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /**
+     * 批量操作机构 上传机构药品数据到监管平台备案
+     *
+     * @param organIds
+     */
+    @RpcService
+    public void uploadOrgansDrugToRegulation(List<Integer> organIds) {
+        for (Integer organId : organIds) {
+            uploadDrugToRegulation(organId);
+        }
+    }
+
+    /**
      * 上传机构药品数据到监管平台备案
      *
      * @param organId
