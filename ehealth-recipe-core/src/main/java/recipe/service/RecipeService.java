@@ -3026,13 +3026,13 @@ public class RecipeService extends RecipeBaseService {
                         addHisDrug(organDrugInfoTO, organId, operator);
                     } catch (Exception e) {
                         syncDrugExcDAO.save(convertSyncExc(organDrugInfoTO, organId, way));
-                        LOGGER.info("drugInfoSynMovement 新增失败,", organDrugInfoTO);
+                        LOGGER.info("drugInfoSynMovement 新增失败,{}", JSONUtils.toString(organDrugInfoTO)+"Exception:{}"+e);
                     }
                 }
                 if (commit != null) {
                     if (!commit) {
                         drugToolService.drugCommit(null, organId);
-                        LOGGER.info("drugInfoSynMovement 自动提交完成,organID=", organId);
+                        LOGGER.info("drugInfoSynMovement 自动提交完成,organID={}", organId);
                     }
                 }
             } else if (way == 2) {
@@ -3042,7 +3042,7 @@ public class RecipeService extends RecipeBaseService {
                         updateHisOrganDrug(organDrugInfoTO, byOrganIdAndOrganDrugCode, organId);
                     } catch (Exception e) {
                         syncDrugExcDAO.save(convertSyncExc(organDrugInfoTO, organId, way));
-                        LOGGER.info("drugInfoSynMovement 修改失败,", organDrugInfoTO);
+                        LOGGER.info("drugInfoSynMovement 修改失败,{}", JSONUtils.toString(organDrugInfoTO)+"Exception:{}"+e);
                     }
                 }
             }
