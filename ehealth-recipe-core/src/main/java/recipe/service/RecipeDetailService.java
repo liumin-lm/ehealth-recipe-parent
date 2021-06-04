@@ -20,9 +20,12 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.service.client.IConfigurationClient;
+import recipe.service.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_PERFECT;
@@ -45,6 +48,8 @@ public class RecipeDetailService {
     private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
     private IDrugEntrustService drugEntrustService;
+    @Autowired
+    private PharmacyManager pharmacyManager;
 
     /**
      * 校验线上线下 药品数据 用于续方需求
@@ -58,10 +63,7 @@ public class RecipeDetailService {
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getLongRecipe());
         //药房信息
-        List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
-        Map<String, PharmacyTcm> pharmacyCodeMap = Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
-                .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
+        Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
         //查询机构药品
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
@@ -84,7 +86,7 @@ public class RecipeDetailService {
                 return;
             }
             //校验药品药房是否变动
-            if (recipeDetailValidateTool.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+            if (pharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;

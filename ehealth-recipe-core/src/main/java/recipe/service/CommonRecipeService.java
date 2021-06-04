@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.dto.UsePathwaysDTO;
@@ -13,6 +14,7 @@ import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.ValidateOrganDrugVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -30,6 +32,8 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.service.manager.CommonRecipeManager;
+import recipe.service.manager.OrganDrugListManager;
+import recipe.service.manager.PharmacyManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -200,17 +204,52 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         return offlineCommonList;
     }
 
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private PharmacyManager pharmacyManager;
+
     /**
      * 添加线下常用方到线上
      *
      * @param commonList 线下常用方数据集合
      * @return boolean
      */
-    public boolean addOfflineCommon(List<CommonDTO> commonList) {
+    public boolean addOfflineCommon(Integer organId, List<CommonDTO> commonList) {
+        Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
         //数据比对转线上数据
+        commonList.forEach(a -> {
+            List<CommonRecipeDrugDTO> commonRecipeDrugList = a.getCommonRecipeDrugList();
+            if (CollectionUtils.isEmpty(commonRecipeDrugList)) {
+                return;
+            }
+            List<String> organDrugCodeList = commonRecipeDrugList.stream().map(CommonRecipeDrugDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
+            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
+            LOGGER.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
+            Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
 
-        //写入表
-        //commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
+            
+            commonRecipeDrugList.forEach(b -> {
+                ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(b.getOrganDrugCode(), null, null);
+                OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+                if (null == organDrug) {
+                    return;
+                }
+                //校验药品药房变动
+                if (pharmacyManager.pharmacyVariation(null, b.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+                    LOGGER.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", b.getOrganDrugCode());
+                    return;
+                }
+
+            });
+
+            //写入表
+            CommonRecipe commonRecipe = ObjectCopyUtils.convert(a.getCommonRecipeDTO(), CommonRecipe.class);
+            List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(commonRecipeDrugList, CommonRecipeDrug.class);
+            commonRecipeManager.saveCommonRecipe(commonRecipe, a.getCommonRecipeExt(), drugList);
+        });
         return true;
     }
 

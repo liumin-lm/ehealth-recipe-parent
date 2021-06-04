@@ -5,10 +5,10 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugMakingMethod;
 import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.ValidateOrganDrugVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,10 +20,9 @@ import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
 import recipe.service.client.DrugClient;
 import recipe.service.client.IConfigurationClient;
-import recipe.util.ByteUtils;
+import recipe.service.manager.OrganDrugListManager;
 import recipe.util.ValidateUtil;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +43,8 @@ public class RecipeDetailValidateTool {
     DrugMakingMethodDao drugMakingMethodDao;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
 
     /**
      * 患者选择煎法
@@ -64,73 +65,21 @@ public class RecipeDetailValidateTool {
      * @return
      */
     public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup) {
-        recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
-        //校验药品存在
-        if (StringUtils.isEmpty(recipeDetailBean.getOrganDrugCode())) {
+        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO();
+        validateOrganDrugVO.setDrugId(recipeDetailBean.getDrugId());
+        validateOrganDrugVO.setOrganDrugCode(recipeDetailBean.getOrganDrugCode());
+        OrganDrugList organDrugList = organDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+        if (validateOrganDrugVO.getValidateStatus()) {
+            recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
+        } else {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
-            return null;
         }
-        List<OrganDrugList> organDrugs = organDrugGroup.get(recipeDetailBean.getOrganDrugCode());
-        if (CollectionUtils.isEmpty(organDrugs)) {
-            recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
-            return null;
+        if (null != organDrugList) {
+            //设置剂型
+            recipeDetailBean.setDrugForm(organDrugList.getDrugForm());
         }
-        //校验比对药品
-        OrganDrugList organDrug = null;
-        if (ValidateUtil.integerIsEmpty(recipeDetailBean.getDrugId()) && 1 == organDrugs.size()) {
-            organDrug = organDrugs.get(0);
-        }
-        if (!ValidateUtil.integerIsEmpty(recipeDetailBean.getDrugId())) {
-            for (OrganDrugList drug : organDrugs) {
-                if (drug.getDrugId().equals(recipeDetailBean.getDrugId())) {
-                    organDrug = drug;
-                    break;
-                }
-            }
-        }
-        if (null == organDrug) {
-            recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
-            logger.info("RecipeDetailService validateDrug organDrug is null OrganDrugCode ：  {}", recipeDetailBean.getOrganDrugCode());
-            return null;
-        }
-        //设置剂型
-        recipeDetailBean.setDrugForm(organDrug.getDrugForm());
-        return organDrug;
+        return organDrugList;
     }
-
-    /**
-     * 校验药品药房是否变动
-     *
-     * @param commonPharmacyId 续房药房id
-     * @param pharmacyCode     续方药房code
-     * @param pharmacy         机构药房id
-     * @param pharmacyCodeMap  药房表信息
-     * @return true 不一致
-     */
-    public boolean pharmacyVariation(Integer commonPharmacyId, String pharmacyCode, String pharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
-        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isEmpty(pharmacyCode) && StringUtils.isNotEmpty(pharmacy)) {
-            return true;
-        }
-        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacyCode)) {
-            PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(pharmacyCode);
-            if (null == pharmacyTcm) {
-                return true;
-            }
-            commonPharmacyId = pharmacyTcm.getPharmacyId();
-        }
-        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy)) {
-            return true;
-        }
-        if (!ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isEmpty(pharmacy)) {
-            return true;
-        }
-        if (!ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy) &&
-                !Arrays.asList(pharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(commonPharmacyId))) {
-            return true;
-        }
-        return false;
-    }
-
 
     /**
      * 校验药 数据是否完善
@@ -259,14 +208,14 @@ public class RecipeDetailValidateTool {
         }
         Map<String, DecoctionWay> mapCode = decoctionWayList.stream().collect(Collectors.toMap(DecoctionWay::getDecoctionCode, a -> a, (k1, k2) -> k1));
         DecoctionWay decoctionWay = mapCode.get(recipeExtendBean.getDecoctionCode());
-        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionCode())) {
+        if (null != decoctionWay) {
             decoctionWay(decoctionWay, recipeExtendBean);
             return;
         }
 
         Map<String, DecoctionWay> mapText = decoctionWayList.stream().collect(Collectors.toMap(DecoctionWay::getDecoctionText, a -> a, (k1, k2) -> k1));
         decoctionWay = mapText.get(recipeExtendBean.getDecoctionText());
-        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionText())) {
+        if (null != decoctionWay) {
             decoctionWay(decoctionWay, recipeExtendBean);
         }
     }
