@@ -1508,6 +1508,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
+            String decoctionId = "";
+            String decoctionText = "";
+            boolean decoctionFlag = true;
             //更新处方recipe的status
 
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
@@ -1599,6 +1602,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty( recipeExtend.getPharmNo())) {
                         prb.setGetDrugWindow(organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
                     }
+                    //获取煎法
+                    if (new Integer(3).equals(recipe.getRecipeType()) && decoctionFlag) {
+                        decoctionId = recipeExtend.getDecoctionId();
+                        decoctionText = recipeExtend.getDecoctionText();
+                        decoctionFlag = false;
+                    }
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
@@ -1657,7 +1666,8 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
-
+            orderBean.setDecoctionId(decoctionId);
+            orderBean.setDecoctionText(decoctionText);
             BigDecimal needFee = new BigDecimal(0.00);
             //当处方状态为已完成时
             if (RecipeStatusConstant.FINISH == recipeList.get(0).getStatus()) {
