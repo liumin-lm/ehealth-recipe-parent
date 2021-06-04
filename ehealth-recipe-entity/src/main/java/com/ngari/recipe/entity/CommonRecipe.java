@@ -22,26 +22,33 @@ public class CommonRecipe implements Serializable{
 
     private static final long serialVersionUID = 1500970890296225446L;
 
-    @ItemProperty(alias="医生身份ID")
+    @ItemProperty(alias = "医生身份ID")
     private Integer doctorId;
 
-    @ItemProperty(alias="常用方名称")
+    @ItemProperty(alias = "常用方名称")
     private String commonRecipeName;
 
-    @ItemProperty(alias="常用方Id")
+    @ItemProperty(alias = "常用方Id")
     private Integer commonRecipeId;
 
-    @ItemProperty(alias="处方类型")
+    @ItemProperty(alias = "常用方编码-医院唯一主键字段")
+    private String commonRecipeCode;
+
+    @ItemProperty(alias = "常用方类型：0平台，1协定方，2....")
+    private Integer commonRecipeType;
+
+
+    @ItemProperty(alias = "处方类型")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
-    @ItemProperty(alias="创建时间")
+    @ItemProperty(alias = "创建时间")
     private Date createDt;
 
-    @ItemProperty(alias="最后修改时间")
+    @ItemProperty(alias = "最后修改时间")
     private Date lastModify;
 
-    @ItemProperty(alias="机构代码")
+    @ItemProperty(alias = "机构代码")
     private Integer organId;
 
     @ItemProperty(alias = "药房id主键")
@@ -182,19 +189,21 @@ public class CommonRecipe implements Serializable{
         this.pharmacyName = pharmacyName;
     }
 
-    @Override
-    public String toString() {
-        return "CommonRecipe{" +
-                "doctorId=" + doctorId +
-                ", commonRecipeName='" + commonRecipeName + '\'' +
-                ", commonRecipeId=" + commonRecipeId +
-                ", recipeType=" + recipeType +
-                ", createDt=" + createDt +
-                ", lastModify=" + lastModify +
-                ", organId=" + organId +
-                ", pharmacyId=" + pharmacyId +
-                ", pharmacyName='" + pharmacyName + '\'' +
-                ", recipeJsonConfig='" + recipeJsonConfig + '\'' +
-                '}';
+    @Column(name = "common_recipe_code")
+    public String getCommonRecipeCode() {
+        return commonRecipeCode;
+    }
+
+    public void setCommonRecipeCode(String commonRecipeCode) {
+        this.commonRecipeCode = commonRecipeCode;
+    }
+
+    @Column(name = "common_recipe_type")
+    public Integer getCommonRecipeType() {
+        return commonRecipeType;
+    }
+
+    public void setCommonRecipeType(Integer commonRecipeType) {
+        this.commonRecipeType = commonRecipeType;
     }
 }

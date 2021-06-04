@@ -30,8 +30,14 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药房编码")
     private String pharmacyCode;
 
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
+
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
     @ItemProperty(alias = "药房类型：中药,西药,中成药,膏方")
-    private String[] pharmacyCategray;
+    private List<String> pharmacyCategray;
 
 
     @ItemProperty(alias = "自增id")
@@ -133,12 +139,6 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
     private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
-
-    @ItemProperty(alias = "药房id主键")
-    private Integer pharmacyId;
-
-    @ItemProperty(alias = "药房名称")
-    private String pharmacyName;
 
     @ItemProperty(alias = "药品包装数量")
     private Integer pack;

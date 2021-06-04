@@ -1,6 +1,7 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
@@ -26,6 +27,7 @@ import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.client.DoctorClient;
 import recipe.service.client.DrugClient;
 import recipe.service.client.OfflineRecipeClient;
 
@@ -56,6 +58,8 @@ public class CommonRecipeManager {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private DoctorClient doctorClient;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
 
@@ -231,7 +235,13 @@ public class CommonRecipeManager {
     }
 
     public List<CommonDTO> offlineCommon(Integer doctorId) {
-        List<CommonDTO> list = offlineRecipeClient.offlineCommonRecipe(doctorId);
-        return list;
+        DoctorDTO doctorDTO = doctorClient.getDoctor(doctorId);
+        List<CommonDTO> commonList = offlineRecipeClient.offlineCommonRecipe(doctorId, doctorDTO.getJobNumber(), doctorDTO.getName());
+        return commonList;
+    }
+
+    public List<CommonRecipe> commonRecipeList(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(organId, doctorId, 0, 1000);
+        return commonRecipeList;
     }
 }

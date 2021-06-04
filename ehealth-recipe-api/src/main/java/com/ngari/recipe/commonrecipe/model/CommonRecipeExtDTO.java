@@ -19,6 +19,8 @@ import java.io.Serializable;
 public class CommonRecipeExtDTO implements Serializable {
 
     private static final long serialVersionUID = 2099193306225724304L;
+    @ItemProperty(alias = "常用方编码-医院唯一主键字段")
+    private String commonRecipeCode;
     @ItemProperty(alias = "常用方Id")
     private Integer commonRecipeId;
     @ItemProperty(alias = "制法")
@@ -44,6 +46,6 @@ public class CommonRecipeExtDTO implements Serializable {
     private String minorUnit;
     @ItemProperty(alias = "剂数")
     private Integer copyNum;
-    @ItemProperty(alias = "嘱托")
+    @ItemProperty(alias = "嘱托=备注")
     private String entrust;
 }
