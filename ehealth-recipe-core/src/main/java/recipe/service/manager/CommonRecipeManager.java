@@ -141,6 +141,20 @@ public class CommonRecipeManager {
         return ObjectCopyUtils.convert(commonRecipeList, CommonRecipeDTO.class);
     }
 
+
+    /**
+     * 查询常用方列表
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @return
+     */
+    public List<CommonRecipe> commonRecipeList(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(organId, doctorId, 0, 1000);
+        LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}，organId={}，doctorId={}", JSON.toJSONString(commonRecipeList), organId, doctorId);
+        return commonRecipeList;
+    }
+
     /**
      * 查询常用方药品，与机构药品关联返回
      *
@@ -234,14 +248,17 @@ public class CommonRecipeManager {
         }
     }
 
+    /**
+     * 获取线下常用方
+     *
+     * @param doctorId 医生id
+     * @return
+     */
     public List<CommonDTO> offlineCommon(Integer doctorId) {
         DoctorDTO doctorDTO = doctorClient.getDoctor(doctorId);
         List<CommonDTO> commonList = offlineRecipeClient.offlineCommonRecipe(doctorId, doctorDTO.getJobNumber(), doctorDTO.getName());
         return commonList;
     }
 
-    public List<CommonRecipe> commonRecipeList(Integer organId, Integer doctorId) {
-        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(organId, doctorId, 0, 1000);
-        return commonRecipeList;
-    }
+
 }

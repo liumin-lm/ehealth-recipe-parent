@@ -34,7 +34,7 @@ public class PharmacyManager {
      * @param pharmacyCodeMap 药房表信息
      * @return true 不一致
      */
-    public boolean pharmacyVariation(Integer pharmacyId, String pharmacyCode, String organPharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
+    public static boolean pharmacyVariation(Integer pharmacyId, String pharmacyCode, String organPharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
         if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isEmpty(pharmacyCode) && StringUtils.isNotEmpty(organPharmacy)) {
             return true;
         }
@@ -62,14 +62,28 @@ public class PharmacyManager {
      * 药房信息
      *
      * @param organId 机构id
-     * @return
+     * @return 机构code = key对象
      */
     public Map<String, PharmacyTcm> pharmacyCodeMap(Integer organId) {
         //药房信息
         List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
+        logger.info("RecipeDetailService pharmacyCodeMap pharmacyList= {}", JSON.toJSONString(pharmacyList));
         return Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 药房信息
+     *
+     * @param organId 机构id
+     * @return id = key对象
+     */
+    public Map<Integer, PharmacyTcm> pharmacyIdMap(Integer organId) {
+        //药房信息
+        List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
+        logger.info("RecipeDetailService pharmacyIdMap pharmacyList= {}", JSON.toJSONString(pharmacyList));
+        return Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
     }
 
 }

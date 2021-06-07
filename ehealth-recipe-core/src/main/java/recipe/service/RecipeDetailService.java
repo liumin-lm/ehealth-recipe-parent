@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.dao.OrganDrugListDAO;
-import recipe.dao.PharmacyTcmDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.manager.PharmacyManager;
@@ -38,8 +37,6 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
 @Service
 public class RecipeDetailService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    @Autowired
-    private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
@@ -86,7 +83,7 @@ public class RecipeDetailService {
                 return;
             }
             //校验药品药房是否变动
-            if (pharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+            if (PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;

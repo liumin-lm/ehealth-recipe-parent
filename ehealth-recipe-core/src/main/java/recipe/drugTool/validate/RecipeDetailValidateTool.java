@@ -43,8 +43,6 @@ public class RecipeDetailValidateTool {
     DrugMakingMethodDao drugMakingMethodDao;
     @Autowired
     private IConfigurationClient configurationClient;
-    @Autowired
-    private OrganDrugListManager organDrugListManager;
 
     /**
      * 患者选择煎法
@@ -68,7 +66,7 @@ public class RecipeDetailValidateTool {
         ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO();
         validateOrganDrugVO.setDrugId(recipeDetailBean.getDrugId());
         validateOrganDrugVO.setOrganDrugCode(recipeDetailBean.getOrganDrugCode());
-        OrganDrugList organDrugList = organDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+        OrganDrugList organDrugList = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
         if (validateOrganDrugVO.getValidateStatus()) {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
         } else {
