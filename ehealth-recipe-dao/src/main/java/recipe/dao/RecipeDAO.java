@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.dao.bean.RecipeListBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
@@ -3889,4 +3890,40 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = " From Recipe where clinicOrgan=:clinicOrgan and recipeId in (:recipeIdList) and status in(14) ")
     public abstract List<Recipe> findRecipeByRecipeIdAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeIdList") List<Integer> recipeIdList);
+
+
+    /**
+     * 根据处方状态批量查询处方
+     * @param allMpiIds
+     * @param start
+     * @param limit
+     */
+    public List<RecipeListBean> findRecipeListByMPIId(List<String> allMpiIds, Integer start, Integer limit,String tabStatus,List<Integer> recipeStatus){
+        HibernateStatelessResultAction<List<RecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<RecipeListBean>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select new recipe.dao.bean.RecipeListBean(r.recipeId," +
+                        "r.orderCode,r.status,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName," +
+                        "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource, r.mpiid,r.depart,r.enterpriseId,e.registerID,e.chronicDiseaseName )  " +
+                        "FROM Recipe r,RecipeExtend e  WHERE r.recipeId = e.recipeId and r.status IN ( :recipeStatus ) AND r.mpiid IN ( :allMpiIds ) " );
+                if("ongoing".equals(tabStatus)){
+                    hql.append("AND r.orderCode IS NOT NULL");
+                }
+
+                hql.append(" AND r.recipeSourceType = 1 ORDER BY r.signDate DESC");
+
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("allMpiIds", allMpiIds);
+                q.setParameterList("recipeStatus", recipeStatus);
+                q.setMaxResults(limit);
+                q.setFirstResult(start);
+
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
