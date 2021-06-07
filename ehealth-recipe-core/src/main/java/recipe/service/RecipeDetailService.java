@@ -134,6 +134,29 @@ public class RecipeDetailService {
     }
 
     /**
+     * 患者端处方进行中列表查询药品信息
+     *
+     * @param orderCode 订单code
+     * @return
+     */
+    public String getDrugName(String orderCode) {
+        StringBuilder stringBuilder = new StringBuilder();
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return stringBuilder.toString();
+        }
+        // 按处方分组,不同处方药品用 ; 分割
+        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+
+        recipeDetailMap.forEach((k, v) -> {
+            v.forEach(a -> stringBuilder.append(a.getDrugName()));
+            stringBuilder.append(";");
+        });
+
+        return stringBuilder.toString();
+    }
+
+    /**
      * 返回前端必须字段
      *
      * @param recipeDetailBean  出参处方明细
@@ -158,27 +181,5 @@ public class RecipeDetailService {
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
     }
 
-    /**
-     * 患者端处方进行中列表查询药品信息
-     * @param orderCode 订单code
-     * @return
-     */
-    public String getDrugName(String orderCode) {
-        final String[] drugName = {""};
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
-        if(CollectionUtils.isEmpty(recipeDetails)){
-            return drugName[0];
-        }
-        // 按处方分组,不同处方药品用 ; 分割
-        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
-        recipeDetailMap.keySet().forEach(key -> {
-            List<Recipedetail> recipeDetailList = recipeDetailMap.get(key);
-            recipeDetailList.forEach(recipedetail -> {
-                drugName[0] = drugName[0] + recipedetail.getDrugName();
-            });
-            drugName[0] = drugName[0] + ";";
-        });
 
-        return drugName[0];
-    }
 }
