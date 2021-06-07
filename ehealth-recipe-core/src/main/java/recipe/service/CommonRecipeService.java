@@ -219,18 +219,24 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      */
     public boolean addOfflineCommon(Integer organId, List<CommonDTO> commonList) {
         Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
+        //查询机构药品
+        Set<String> set = new HashSet<>();
+        commonList.forEach(a -> {
+            if (CollectionUtils.isNotEmpty(a.getCommonRecipeDrugList())) {
+                set.addAll(a.getCommonRecipeDrugList().stream().map(CommonRecipeDrugDTO::getOrganDrugCode).collect(Collectors.toSet()));
+            }
+        });
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, new LinkedList<>(set));
+        LOGGER.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
+        Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+
         //数据比对转线上数据
         commonList.forEach(a -> {
             List<CommonRecipeDrugDTO> commonRecipeDrugList = a.getCommonRecipeDrugList();
             if (CollectionUtils.isEmpty(commonRecipeDrugList)) {
                 return;
             }
-            List<String> organDrugCodeList = commonRecipeDrugList.stream().map(CommonRecipeDrugDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
-            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
-            LOGGER.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
-            Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
 
-            
             commonRecipeDrugList.forEach(b -> {
                 ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(b.getOrganDrugCode(), null, null);
                 OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
@@ -242,7 +248,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     LOGGER.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", b.getOrganDrugCode());
                     return;
                 }
-
             });
 
             //写入表
