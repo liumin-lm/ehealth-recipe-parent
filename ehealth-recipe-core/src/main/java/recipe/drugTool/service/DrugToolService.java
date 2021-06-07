@@ -1575,7 +1575,7 @@ public class DrugToolService implements IDrugToolService {
      *
      * @param organIds
      */
-    @RpcService
+    @RpcService(timeout = 6000)
     public void uploadOrgansDrugToRegulation(List<Integer> organIds) {
         for (Integer organId : organIds) {
             uploadDrugToRegulation(organId);
