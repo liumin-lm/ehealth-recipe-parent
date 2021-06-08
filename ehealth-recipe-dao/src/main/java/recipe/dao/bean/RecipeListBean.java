@@ -88,6 +88,9 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "药企序号")
     private Integer enterpriseId;
 
+    @ItemProperty(alias = "发药方式")
+    private Integer giveMode;
+
     /*****************************************  以下来源 ext 表 ******************************************************/
 
     @ItemProperty(alias = "挂号序号")
@@ -102,6 +105,9 @@ public class RecipeListBean implements Serializable {
 
     @ItemProperty(alias = "排序使用")
     private Date time;
+
+    @ItemProperty(alias = "订单状态")
+    private Integer orderStatus;
 
 
 }

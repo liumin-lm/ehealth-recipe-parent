@@ -3908,8 +3908,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 hql.append("SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
-                        "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time " +
-                        "FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
+                        "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ,o.Status as orderStatus,r.GiveMode" +
+                        " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
                         "cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
                         "WHERE " +
                         " r.STATUS IN ( :recipeStatus ) AND r.mpiid IN ( :allMpiIds  )");
@@ -3994,6 +3994,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         }
                         if (null != objs[21]) {
                             recipeListBean.setOrderId(Integer.valueOf(objs[21].toString()));
+                        }
+                        if (null != objs[23]) {
+                            recipeListBean.setOrderStatus(Integer.valueOf(objs[23].toString()));
+                        }
+                        if (null != objs[24]) {
+                            recipeListBean.setGiveMode(Integer.valueOf(objs[24].toString()));
                         }
 
                         backList.add(recipeListBean);
