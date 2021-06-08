@@ -234,7 +234,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         //数据比对转线上数据
         commonList.forEach(a -> {
             //常用方药房比对
-            a.getCommonRecipeDTO();
+            CommonRecipeDTO commonRecipeDTO = a.getCommonRecipeDTO();
+            PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(commonRecipeDTO.getPharmacyCode());
+            if (null == pharmacyTcm) {
+                pharmacyTcm = new PharmacyTcm();
+            }
+            commonRecipeDTO.setPharmacyName(pharmacyTcm.getPharmacyName());
+            commonRecipeDTO.setPharmacyId(pharmacyTcm.getPharmacyId());
+            commonRecipeDTO.setPharmacyCode(pharmacyTcm.getPharmacyCode());
             //扩展信息转换
             offlineCommonRecipeExt(a.getCommonRecipeExt(), decoctionWayCodeMap, makingMethodCodeMap);
             //药品信息比对
