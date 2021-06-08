@@ -223,25 +223,27 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
         Map<String, DecoctionWay> decoctionWayCodeMap = drugClient.decoctionWayCodeMap(organId);
         Map<String, DrugMakingMethod> makingMethodCodeMap = drugClient.drugMakingMethodCodeMap(organId);
-        Map<String, UsingRate> usingRateMapCode = drugClient.usingRateMapCode(organId);
+        Map<String, UsingRate> usingRateCodeMap = drugClient.usingRateMapCode(organId);
         Map<String, UsePathways> usePathwaysCodeMap = drugClient.usePathwaysCodeMap(organId);
         Map<String, DrugEntrustDTO> drugEntrustCodeMap = drugClient.drugEntrustCodeMap(organId);
 
         //查询机构药品
-        Set<String> set = commonList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getCommonRecipeDrugList()))
+        Set<String> drugCodeSet = commonList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getCommonRecipeDrugList()))
                 .flatMap(a -> a.getCommonRecipeDrugList().stream().map(CommonRecipeDrugDTO::getOrganDrugCode)).collect(Collectors.toSet());
-        Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, new LinkedList<>(set));
+        Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, new LinkedList<>(drugCodeSet));
         //数据比对转线上数据
         commonList.forEach(a -> {
+            //常用方药房比对
+            a.getCommonRecipeDTO();
             //扩展信息转换
             offlineCommonRecipeExt(a.getCommonRecipeExt(), decoctionWayCodeMap, makingMethodCodeMap);
-            //药品信息转换
+            //药品信息比对
             List<CommonRecipeDrugDTO> commonRecipeDrugList = a.getCommonRecipeDrugList();
             if (CollectionUtils.isEmpty(commonRecipeDrugList)) {
                 return;
             }
             //药品信息转换
-            commonRecipeDrugList.forEach(b -> offlineCommonRecipeDrug(b, organDrugGroup, pharmacyCodeMap, usingRateMapCode, usePathwaysCodeMap, drugEntrustCodeMap));
+            commonRecipeDrugList.forEach(b -> offlineCommonRecipeDrug(b, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustCodeMap));
             //写入表
             CommonRecipe commonRecipe = ObjectCopyUtils.convert(a.getCommonRecipeDTO(), CommonRecipe.class);
             List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(commonRecipeDrugList, CommonRecipeDrug.class);
@@ -494,13 +496,13 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      * @param drug               常用线下药品
      * @param organDrugGroup     机构药品code分组
      * @param pharmacyCodeMap    机构药房信息
-     * @param usingRateMapCode   机构的用药频率
+     * @param usingRateCodeMap   机构的用药频率
      * @param usePathwaysCodeMap 机构的用药途径
      * @param drugEntrustCodeMap 机构嘱托
      * @return 常用方 线下药品 转线上药品数据
      */
     private void offlineCommonRecipeDrug(CommonRecipeDrugDTO drug, Map<String, List<OrganDrugList>> organDrugGroup,
-                                         Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateMapCode,
+                                         Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateCodeMap,
                                          Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrustDTO> drugEntrustCodeMap) {
         //校验比对药品
         ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(drug.getOrganDrugCode(), null, null);
@@ -523,7 +525,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         drug.setPharmacyName(pharmacyTcm.getPharmacyName());
 
         //用药频率
-        UsingRate usingRate = usingRateMapCode.get(drug.getUsingRate());
+        UsingRate usingRate = usingRateCodeMap.get(drug.getUsingRate());
         if (null == usingRate) {
             usingRate = new UsingRate();
         }

@@ -56,7 +56,7 @@ public class GenerateSignetRecipePdfRunable implements Runnable {
             if (StringUtils.isNotEmpty(newPfd)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
             }
-            logger.error("GenerateSignetRecipePdfRunable end newPfd={}, organSealId={}", newPfd, organSealId);
+            logger.info("GenerateSignetRecipePdfRunable end newPfd={}, organSealId={}", newPfd, organSealId);
         } catch (Exception e) {
             logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
         }
