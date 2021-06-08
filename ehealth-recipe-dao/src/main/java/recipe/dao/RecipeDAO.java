@@ -3917,7 +3917,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("AND r.orderCode IS NOT NULL");
                 }
 
-                hql.append(" AND r.recipeSourceType = 1 ORDER BY r.signDate DESC");
+                hql.append(" AND r.recipeSourceType = 1 ORDER BY r.time DESC");
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("allMpiIds", allMpiIds);

@@ -983,6 +983,7 @@ public class RecipeListService extends RecipeBaseService {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
             patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConf);
         }
+        LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
 
     }
