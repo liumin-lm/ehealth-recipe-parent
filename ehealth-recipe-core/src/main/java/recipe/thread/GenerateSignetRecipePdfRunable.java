@@ -1,6 +1,5 @@
 package recipe.thread;
 
-import com.google.common.collect.ImmutableMap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
@@ -9,10 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.dao.RecipeDAO;
 
 /**
- * 为 处方 pdf 盖章
+ * 为处方pdf盖章
  *
  * @author fuzi
  */
@@ -50,13 +50,19 @@ public class GenerateSignetRecipePdfRunable implements Runnable {
             logger.info("GenerateSignetRecipePdfRunable recipe is null");
             return;
         }
+
         try {
             //更新pdf
-            String newPfd = CreateRecipePdfUtil.generateSignetRecipePdf(recipe.getChemistSignFile(), organSealId.toString());
+            SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
+                    , organSealId.toString(), recipe.getChemistSignFile(), 90F, 90F, 160f, 490f);
+            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
             if (StringUtils.isNotEmpty(newPfd)) {
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
+                Recipe recipeUpdate = new Recipe();
+                recipeUpdate.setRecipeId(recipeId);
+                recipeUpdate.setChemistSignFile(newPfd);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             }
-            logger.error("GenerateSignetRecipePdfRunable end newPfd={}, organSealId={}", newPfd, organSealId);
+            logger.info("GenerateSignetRecipePdfRunable end newPfd={}, organSealId={}", newPfd, organSealId);
         } catch (Exception e) {
             logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
         }
