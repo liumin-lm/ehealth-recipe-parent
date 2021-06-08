@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
@@ -18,6 +19,7 @@ import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.service.client.IConfigurationClient;
 import recipe.util.MapValueUtil;
@@ -45,6 +47,8 @@ public class RecipeDetailService {
     private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
     private IDrugEntrustService drugEntrustService;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
     /**
      * 校验线上线下 药品数据 用于续方需求
@@ -130,6 +134,29 @@ public class RecipeDetailService {
     }
 
     /**
+     * 患者端处方进行中列表查询药品信息
+     *
+     * @param orderCode 订单code
+     * @return
+     */
+    public String getDrugName(String orderCode) {
+        StringBuilder stringBuilder = new StringBuilder();
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return stringBuilder.toString();
+        }
+        // 按处方分组,不同处方药品用 ; 分割
+        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+
+        recipeDetailMap.forEach((k, v) -> {
+            v.forEach(a -> stringBuilder.append(a.getDrugName()));
+            stringBuilder.append(";");
+        });
+
+        return stringBuilder.toString();
+    }
+
+    /**
      * 返回前端必须字段
      *
      * @param recipeDetailBean  出参处方明细
@@ -153,5 +180,6 @@ public class RecipeDetailService {
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
     }
+
 
 }
