@@ -37,7 +37,9 @@ public interface IQueryRecipeService {
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
 
     /**
+     * todo 新接口 queryRegulationRecipeData
      * 上海监管平台处方反查接口
+     *
      * @param organId
      * @param startDate
      * @param endDate
@@ -45,6 +47,7 @@ public interface IQueryRecipeService {
      * @return
      */
     @RpcService
+    @Deprecated
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeDataForSH(Integer organId, Date startDate, Date endDate, Boolean updateFlag);
 
 

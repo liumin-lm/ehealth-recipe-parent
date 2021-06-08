@@ -983,6 +983,7 @@ public class RecipeListService extends RecipeBaseService {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
             patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConf);
         }
+        LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
 
     }
@@ -1054,7 +1055,13 @@ public class RecipeListService extends RecipeBaseService {
         patientTabStatusRecipeDTO.setStatusText(RecipeStatusEnum.getRecipeStatusEnum(recipeListBean.getStatus()).getName());
         patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
         patientTabStatusRecipeDTO.setRecordCode(recipeListBean.getOrderCode());
-        patientTabStatusRecipeDTO.setRecordId(recipeListBean.getOrderId());
+        if (StringUtils.isNotEmpty(recipeListBean.getOrderCode())) {
+            patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_ORDER);
+            patientTabStatusRecipeDTO.setRecordId(recipeListBean.getOrderId());
+        }else {
+            patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_RECIPE);
+            patientTabStatusRecipeDTO.setRecordId(recipeListBean.getRecipeId());
+        }
 
         String recipeNumber = configurationClient.getValueCatch(recipeListBean.getClinicOrgan(), "recipeNumber", "");
         if (StringUtils.isNotEmpty(recipeNumber)) {
