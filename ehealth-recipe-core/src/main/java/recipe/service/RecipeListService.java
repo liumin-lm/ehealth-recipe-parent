@@ -946,7 +946,7 @@ public class RecipeListService extends RecipeBaseService {
     /**
      * 患者端获取患者处方列表页
      *
-     * @param tabStatus onready待处理 ongoing进行中 onover已结束
+     * @param tabStatus onready待处理 ongoing进行中 isover已结束
      * @param mpiId     就诊人
      * @param index
      * @param limit
@@ -981,7 +981,7 @@ public class RecipeListService extends RecipeBaseService {
         } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) ||
                 RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
-            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList);
+            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList,groupRecipeConf);
         }
         return patientTabStatusMergeRecipeDTOS;
 
@@ -998,7 +998,7 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList) {
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList,GroupRecipeConf groupRecipeConf) {
         List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
         LOGGER.info("getRecipeByGoingAndOver recipeListByMPIId = {}", recipeListByMPIId);
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
@@ -1007,14 +1007,14 @@ public class RecipeListService extends RecipeBaseService {
         Map<String, List<RecipeListBean>> orderMap = recipeListByMPIId.stream().filter(recipeListBean -> recipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(RecipeListBean::getOrderCode));
         Map<String, List<RecipeOrder>> orderMap1 = getOrderMap(orderMap);
         Set<Integer> recipeIds = new HashSet<>();
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
         String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
         recipeListByMPIId.forEach(recipeListBean -> {
             if (!recipeIds.contains(recipeListBean.getRecipeId())) {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 // 获取合并处方的关键字
                 patientTabStatusMergeRecipeDTO.setFirstRecipeId(recipeListBean.getRecipeId());
-                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(true);
+                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
                 patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
