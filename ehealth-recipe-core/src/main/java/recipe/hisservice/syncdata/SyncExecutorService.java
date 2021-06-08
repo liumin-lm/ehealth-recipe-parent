@@ -99,9 +99,10 @@ public class SyncExecutorService {
 
     /**
      * 广东省定时上传接口（批量上传）每天0点上传
-     *
+     * todo 新接口 queryRegulationRecipeData
      */
     @RpcService
+    @Deprecated
     public void uploadRecipeIndicatorsTimeTask() {
         LOGGER.info("uploadRecipeIndicatorsTimeTask start");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
