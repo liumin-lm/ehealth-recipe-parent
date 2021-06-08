@@ -50,4 +50,9 @@ public class SignImgNode implements Serializable {
      */
     private Float y;
 
+    /**
+     * 是否覆盖 true 覆盖
+     */
+    private Boolean repeatWrite;
+
 }

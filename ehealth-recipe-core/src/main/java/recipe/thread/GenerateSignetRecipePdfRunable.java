@@ -54,7 +54,7 @@ public class GenerateSignetRecipePdfRunable implements Runnable {
         try {
             //更新pdf
             SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
-                    , organSealId.toString(), recipe.getChemistSignFile(), 90F, 90F, 160f, 490f);
+                    , organSealId.toString(), recipe.getChemistSignFile(), 90F, 90F, 160f, 490f, false);
             String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
             if (StringUtils.isNotEmpty(newPfd)) {
                 Recipe recipeUpdate = new Recipe();
