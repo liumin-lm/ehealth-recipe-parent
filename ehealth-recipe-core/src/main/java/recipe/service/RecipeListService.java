@@ -1052,13 +1052,15 @@ public class RecipeListService extends RecipeBaseService {
      */
     private PatientTabStatusRecipeDTO PatientTabStatusRecipeConvert(RecipeListBean recipeListBean) {
         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = ObjectCopyUtils.convert(recipeListBean, PatientTabStatusRecipeDTO.class);
-        patientTabStatusRecipeDTO.setStatusText(RecipeStatusEnum.getRecipeStatusEnum(recipeListBean.getStatus()).getName());
-        patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
         patientTabStatusRecipeDTO.setRecordCode(recipeListBean.getOrderCode());
         if (StringUtils.isNotEmpty(recipeListBean.getOrderCode())) {
+            patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getOrderStatus());
+            patientTabStatusRecipeDTO.setStatusText(getOrderStatusTabText(recipeListBean.getOrderStatus(), recipeListBean.getGiveMode(), recipeListBean.getStatus()));
             patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_ORDER);
             patientTabStatusRecipeDTO.setRecordId(recipeListBean.getOrderId());
         }else {
+            patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
+            patientTabStatusRecipeDTO.setStatusText(getRecipeStatusTabText(recipeListBean.getStatus(), recipeListBean.getRecipeId()));
             patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_RECIPE);
             patientTabStatusRecipeDTO.setRecordId(recipeListBean.getRecipeId());
         }
