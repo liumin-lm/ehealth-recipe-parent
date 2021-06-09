@@ -371,6 +371,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "historyOfPresentIllness")
+    @Transient
     public String getHistoryOfPresentIllness() {
         return historyOfPresentIllness;
     }
