@@ -946,7 +946,7 @@ public class RecipeListService extends RecipeBaseService {
     /**
      * 患者端获取患者处方列表页
      *
-     * @param tabStatus onready待处理 ongoing进行中 onover已结束
+     * @param tabStatus onready待处理 ongoing进行中 isover已结束
      * @param mpiId     就诊人
      * @param index
      * @param limit
@@ -981,8 +981,9 @@ public class RecipeListService extends RecipeBaseService {
         } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) ||
                 RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
-            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList);
+            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConf);
         }
+        LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
 
     }
@@ -998,23 +999,22 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList) {
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConf groupRecipeConf) {
         List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
         LOGGER.info("getRecipeByGoingAndOver recipeListByMPIId = {}", recipeListByMPIId);
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
             return result;
         }
         Map<String, List<RecipeListBean>> orderMap = recipeListByMPIId.stream().filter(recipeListBean -> recipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(RecipeListBean::getOrderCode));
-        Map<String, List<RecipeOrder>> orderMap1 = getOrderMap(orderMap);
         Set<Integer> recipeIds = new HashSet<>();
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
         String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
         recipeListByMPIId.forEach(recipeListBean -> {
             if (!recipeIds.contains(recipeListBean.getRecipeId())) {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 // 获取合并处方的关键字
                 patientTabStatusMergeRecipeDTO.setFirstRecipeId(recipeListBean.getRecipeId());
-                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(true);
+                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
                 patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
@@ -1026,13 +1026,13 @@ public class RecipeListService extends RecipeBaseService {
                 String orderCode = recipeListBean.getOrderCode();
                 List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
                 if (Objects.isNull(orderCode)) {
-                    PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean, null);
+                    PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                     recipe.add(patientTabStatusRecipeDTO);
                     recipeIds.add(recipeListBean.getRecipeId());
                 } else {
                     List<RecipeListBean> recipeListBeans = orderMap.get(orderCode);
                     recipeListBeans.forEach(recipeListBean1 -> {
-                        PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1, orderMap1);
+                        PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
                         recipe.add(patientTabStatusRecipeDTO);
                         recipeIds.add(recipeListBean1.getRecipeId());
                     });
@@ -1044,29 +1044,27 @@ public class RecipeListService extends RecipeBaseService {
         return result;
     }
 
-    private Map<String, List<RecipeOrder>> getOrderMap(Map<String, List<RecipeListBean>> orderMap) {
-        Map<String, List<RecipeOrder>> order = null;
-        if (MapUtils.isNotEmpty(orderMap)) {
-            List<RecipeOrder> byOrderCode = orderDAO.findByOrderCode(orderMap.keySet());
-            order = byOrderCode.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
-        }
-        return order;
-    }
-
     /**
      * recipeListBean 转换 PatientTabStatusRecipeDTO
      *
      * @param recipeListBean
      * @return
      */
-    private PatientTabStatusRecipeDTO PatientTabStatusRecipeConvert(RecipeListBean recipeListBean, Map<String, List<RecipeOrder>> orderMap) {
+    private PatientTabStatusRecipeDTO PatientTabStatusRecipeConvert(RecipeListBean recipeListBean) {
         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = ObjectCopyUtils.convert(recipeListBean, PatientTabStatusRecipeDTO.class);
-        patientTabStatusRecipeDTO.setStatusText(RecipeStatusEnum.getRecipeStatusEnum(recipeListBean.getStatus()).getName());
-        patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
         patientTabStatusRecipeDTO.setRecordCode(recipeListBean.getOrderCode());
-        if (MapUtils.isNotEmpty(orderMap)) {
-            patientTabStatusRecipeDTO.setRecordId(orderMap.get(recipeListBean.getOrderCode()).get(0).getOrderId());
+        if (StringUtils.isNotEmpty(recipeListBean.getOrderCode())) {
+            patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getOrderStatus());
+            patientTabStatusRecipeDTO.setStatusText(getOrderStatusTabText(recipeListBean.getOrderStatus(), recipeListBean.getGiveMode(), recipeListBean.getStatus()));
+            patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_ORDER);
+            patientTabStatusRecipeDTO.setRecordId(recipeListBean.getOrderId());
+        }else {
+            patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
+            patientTabStatusRecipeDTO.setStatusText(getRecipeStatusTabText(recipeListBean.getStatus(), recipeListBean.getRecipeId()));
+            patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_RECIPE);
+            patientTabStatusRecipeDTO.setRecordId(recipeListBean.getRecipeId());
         }
+
         String recipeNumber = configurationClient.getValueCatch(recipeListBean.getClinicOrgan(), "recipeNumber", "");
         if (StringUtils.isNotEmpty(recipeNumber)) {
             patientTabStatusRecipeDTO.setRecipeNumber(recipeNumber);

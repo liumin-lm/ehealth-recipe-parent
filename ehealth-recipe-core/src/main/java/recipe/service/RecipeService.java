@@ -40,12 +40,10 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.RecipeDetailsBean;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -1596,11 +1594,8 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
-
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
-
 
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
@@ -1615,6 +1610,8 @@ public class RecipeService extends RecipeBaseService {
                 attMap.put("recipeSupportGiveMode", join);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
+            HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+            RecipeBusiThreadPool.execute(() -> service.uploadRecipeIndicators(recipeBean.getRecipeId()));
 
             //第二步预校验
             if (continueFlag == 0) {
@@ -2301,7 +2298,14 @@ public class RecipeService extends RecipeBaseService {
         RecipeServiceSub.setRecipeMoreInfo(recipe, recipedetails, recipeBean, 1);
         //将原先处方单详情的记录都置为无效 status=0
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
-        Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
+        Integer dbRecipeId;
+
+        try {
+            dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
+        } catch (Exception e) {
+            LOGGER.error("recipeService updateRecipeAndDetail recipe:{} , recipedetails={}", JSON.toJSONString(recipe), JSON.toJSONString(recipedetails), e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
 
         //武昌需求，加入处方扩展信息
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
@@ -2332,7 +2336,6 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
 
-            emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }

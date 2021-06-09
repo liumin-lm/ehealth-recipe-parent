@@ -19,7 +19,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
@@ -31,7 +30,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -56,7 +54,7 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.dao.sign.SignDoctorRecipeInfoDAO;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.EleInvoiceService;
 import recipe.service.RecipeExtendService;
 import recipe.service.client.DoctorClient;
@@ -65,8 +63,11 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2019/6/3
@@ -80,7 +81,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
-    ISignRecipeInfoService signRecipeInfoService;
+    private ISignRecipeInfoService signRecipeInfoService;
+    @Resource
+    private IRegulationService regulationService;
+    @Autowired
+    private RecipeDAO recipeDAO;
     /**
      * logger
      */
@@ -88,6 +93,22 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    public void uploadRecipeIndicators(Integer recipeId) {
+        LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators recipeId={}", recipeId);
+        if (null == recipeId) {
+            return;
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<RegulationRecipeIndicatorsReq> request = new LinkedList<>();
+        splicingBackRecipeData(Collections.singletonList(recipe), request);
+        try {
+            LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators request={}", JSONUtils.toString(request));
+            HisResponseTO response = regulationService.uploadRecipePrepareCheck(recipe.getClinicOrgan(), request);
+            LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("HisSyncSupervisionService uploadRecipeIndicators HIS接口调用失败", e);
+        }
+    }
 
     /**
      * 同步处方数据
@@ -95,7 +116,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipeList
      * @return
      */
-
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
@@ -149,8 +169,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
@@ -478,6 +498,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setOutTradeNo(recipeOrder.getOutTradeNo());
                 //支付时间
                 req.setPayTime(recipeOrder.getPayTime());
+                String address = commonRemoteService.getCompleteAddress(recipeOrder);
+                req.setAddress(address);
             }
 
             //卡号，卡类型
@@ -616,13 +638,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
-        /*IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        if (CollectionUtils.isEmpty(list)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            commonResponse.setMsg("需要同步机构列表为空");
-            return commonResponse;
-        }*/
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -901,12 +916,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (organDrugList == null) {
                 reqDetail.setDrcode(detail.getOrganDrugCode());
             } else {
+                reqDetail.setOrganDrugCode(organDrugList.getOrganDrugCode());
                 reqDetail.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode());
                 reqDetail.setLicenseNumber(organDrugList.getLicenseNumber());
                 reqDetail.setDosageFormCode(organDrugList.getDrugFormCode());
                 reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
                 reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
                 reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
+                reqDetail.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
             }
 
             reqDetail.setDrname(detail.getDrugName());

@@ -5,6 +5,7 @@ import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -16,6 +17,7 @@ import java.util.Date;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class RecipeListBean implements Serializable {
 
     /**
@@ -86,6 +88,9 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "药企序号")
     private Integer enterpriseId;
 
+    @ItemProperty(alias = "发药方式")
+    private Integer giveMode;
+
     /*****************************************  以下来源 ext 表 ******************************************************/
 
     @ItemProperty(alias = "挂号序号")
@@ -94,33 +99,15 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
 
+    /*****************************************  以下来源 order 表 ******************************************************/
+    @ItemProperty(alias = "订单ID")
+    private Integer orderId;
 
-    public RecipeListBean(Integer recipeId, String orderCode, Integer status, String patientName, Integer fromFlag,
-                          String recipeCode, String doctorName, Integer recipeType,
-                          String organDiseaseName, Integer clinicOrgan, String organName,String signFile,String chemistSignFile,Date signDate,String recipeMode,
-                          Integer recipeSource,String mpiid,Integer depart,Integer enterpriseId,String registerID,String chronicDiseaseName) {
-        this.recipeId = recipeId;
-        this.orderCode = orderCode;
-        this.status = status;
-        this.patientName = patientName;
-        this.fromFlag = fromFlag;
-        this.recipeCode = recipeCode;
-        this.doctorName = doctorName;
-        this.recipeType = recipeType;
-        this.organDiseaseName = organDiseaseName;
-        this.clinicOrgan = clinicOrgan;
-        this.organName = organName;
-        this.signFile = signFile;
-        this.chemistSignFile = chemistSignFile;
-        this.signDate = signDate;
-        this.recipeMode = recipeMode;
-        this.recipeSource = recipeSource;
-        this.mpiid = mpiid;
-        this.depart = depart;
-        this.enterpriseId = enterpriseId;
-        this.registerID = registerID;
-        this.chronicDiseaseName = chronicDiseaseName;
-    }
+    @ItemProperty(alias = "排序使用")
+    private Date time;
+
+    @ItemProperty(alias = "订单状态")
+    private Integer orderStatus;
 
 
 }

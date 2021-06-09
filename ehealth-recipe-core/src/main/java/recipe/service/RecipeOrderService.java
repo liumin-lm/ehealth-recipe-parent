@@ -296,7 +296,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
-        if(!payMode.equals(1)){
+        if (!payMode.equals(1)) {
             payModeNew = 2;
         }
         order.setPayMode(payModeNew);
@@ -662,7 +662,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
                     } else {
                         //说明线下无代煎费传入,需要判断是否线下传入了贴数
-                        if (needCalDecFee && recipe.getCopyNum() != null ) {
+                        if (needCalDecFee && recipe.getCopyNum() != null) {
                             totalCopyNum = totalCopyNum + recipe.getCopyNum();
                             //代煎费等于剂数乘以代煎单价
                             //如果是合并处方-多张处方下得累加
@@ -745,7 +745,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setRecMobile(hisRecipe.getReceiverTel());
                         order.setAddressCanSend(true);
                         order.setAddress4(hisRecipe.getSendAddr());
-                    }else {
+                    } else {
                         //运费在这里面设置
                         setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                     }
@@ -846,7 +846,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
             //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
-            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(),recipe.getGiveMode())));
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode())));
             if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
                     totalFee = totalFee.subtract(order.getExpressFee());
@@ -1599,7 +1599,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
                     //取处方详情中的药品的取药窗口信息
                     // 更改为从处方扩展表中获取取药窗口信息
-                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty( recipeExtend.getPharmNo())) {
+                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
                         prb.setGetDrugWindow(organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
                     }
                     //获取煎法
@@ -1821,7 +1821,17 @@ public class RecipeOrderService extends RecipeBaseService {
                 //当不是不需要审核
                 showAuditFee = ReviewTypeConstant.Not_Need_Check != nowRecipe.getReviewType() && (null != configurationService.getConfiguration(nowRecipe.getClinicOrgan(), "auditFee") || 0 > BigDecimal.ZERO.compareTo(order.getAuditFee()));
                 //添加文案提示的
-                getOrderTips(ext, nowRecipe, order);
+                if (ReviewTypeConstant.Postposition_Check.equals(nowRecipe.getReviewType()) && recipeList.size() > 1) {
+                    // 审方后置的情况下,合并支付的的订单的提示文案 有部分未审核通过的处方，顶部文案未”部分处方待审核，请耐心等待药师审核“
+                    Set<Integer> key = recipeList.stream().map(Recipe::getStatus).collect(Collectors.toSet());
+                    if (key.contains(8) && key.size() > 1) {
+                        ext.put("tips", "部分处方待审核，请耐心等待药师审核");
+                    } else {
+                        getOrderTips(ext, nowRecipe, order);
+                    }
+                } else {
+                    getOrderTips(ext, nowRecipe, order);
+                }
                 //设置页面上提示文案的颜色信息
                 //添加一次审核不通过的判断，等价于待审核
                 Integer recipestatus = nowRecipe.getStatus();
@@ -1927,18 +1937,19 @@ public class RecipeOrderService extends RecipeBaseService {
 
     /**
      * 校验待支付订单数据是否发生变化
+     *
      * @param orderCode
      */
     private void checkGetOrderDetail(String orderCode) {
-        try{
+        try {
             LOGGER.info("checkGetOrderDetail orderCode:{}", orderCode);
             //线下处方目前一个订单只会对应一个处方
-            List<Recipe> recipes=recipeDAO.findRecipeByOrdercode(orderCode);
-            Recipe recipe=recipes.get(0);
-            if(recipe==null ||recipe.getRecipeSourceType()!=2){
+            List<Recipe> recipes = recipeDAO.findRecipeByOrdercode(orderCode);
+            Recipe recipe = recipes.get(0);
+            if (recipe == null || recipe.getRecipeSourceType() != 2) {
                 return;
             }
-            String cardId=patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId();
+            String cardId = patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId();
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
             if (StringUtils.isNotEmpty(cardId)) {
@@ -1949,27 +1960,27 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
-            List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
-            if(CollectionUtils.isEmpty(hisRecipeTO)){
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(), patientDTO, 6, 1, null);
+            List<QueryHisRecipResTO> hisRecipeTO = responseTO.getData();
+            if (CollectionUtils.isEmpty(hisRecipeTO)) {
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
             Set<String> deleteSetRecipeCode = new HashSet<>();
-            AtomicReference<Boolean> existThisRecipeCode= new AtomicReference<>(false);
+            AtomicReference<Boolean> existThisRecipeCode = new AtomicReference<>(false);
             hisRecipeTO.forEach(a -> {
-                if(StringUtils.isNotEmpty(a.getRecipeCode()) &&a.getRecipeCode().equals(recipe.getRecipeCode())){
+                if (StringUtils.isNotEmpty(a.getRecipeCode()) && a.getRecipeCode().equals(recipe.getRecipeCode())) {
                     existThisRecipeCode.set(true);
-                    HisRecipe hisRecipe=hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(a.getClinicOrgan(),a.getRecipeCode());
-                    if(hisRecipe==null){
+                    HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(a.getClinicOrgan(), a.getRecipeCode());
+                    if (hisRecipe == null) {
                         LOGGER.info("checkGetOrderDetail hisRecipe==null orderCode:{}", orderCode);
                         throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
                     }
-                    if(hisRecipe.getStatus()!=2){
+                    if (hisRecipe.getStatus() != 2) {
                         //中药判断tcmFee发生变化,删除数据
-                        BigDecimal tcmFee =  a.getTcmFee() ;
-                        if((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee())!= 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)){
-                            LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
+                        BigDecimal tcmFee = a.getTcmFee();
+                        if ((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee()) != 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)) {
+                            LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode, tcmFee, hisRecipe.getTcmFee());
                             deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
                         }
                     }
@@ -1977,12 +1988,12 @@ public class RecipeOrderService extends RecipeBaseService {
             });
             //删除
             hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
-            if (existThisRecipeCode.get()==false ||
-                    (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
+            if (existThisRecipeCode.get() == false ||
+                    (deleteSetRecipeCode == null && deleteSetRecipeCode.size() > 0)) {
                 LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             LOGGER.info("checkGetOrderDetail orderCode:{},error:{}", orderCode, e.getMessage());
         }
@@ -2110,7 +2121,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
-            if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
+            if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 logisticsOnlineOrderService.onlineOrder(order, recipes);
             }
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
@@ -2167,7 +2178,7 @@ public class RecipeOrderService extends RecipeBaseService {
     //药店有库存或者无库存备货给患者推送消息
     private void sendTfdsMsg(Recipe nowRecipe, Integer payMode, String orderCode) {
         //药店取药推送
-        LOGGER.info("sendTfdsMsg nowRecipeId:{}.payMode:{}.orderCode:{}.", JSONUtils.toString(nowRecipe.getRecipeId()),JSONUtils.toString(payMode),JSONUtils.toString(orderCode));
+        LOGGER.info("sendTfdsMsg nowRecipeId:{}.payMode:{}.orderCode:{}.", JSONUtils.toString(nowRecipe.getRecipeId()), JSONUtils.toString(payMode), JSONUtils.toString(orderCode));
         if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode) && nowRecipe.getReviewType() != ReviewTypeConstant.Postposition_Check) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);

@@ -20,7 +20,7 @@ public enum RecipeListTabStatusEnum {
     /**
      * 已完成
      */
-    ON_OVER("onover", 3, "已完成"),
+    ON_OVER("isover", 3, "已完成"),
     ;
 
     /**
