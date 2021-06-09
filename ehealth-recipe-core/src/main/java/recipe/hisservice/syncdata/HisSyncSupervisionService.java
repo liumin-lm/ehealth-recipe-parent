@@ -93,8 +93,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
-    public void uploadRecipeIndicators(Integer recipeId) {
-        LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators recipeId={}", recipeId);
+    public void uploadRecipePrepareCheck(Integer recipeId) {
+        LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck recipeId={}", recipeId);
         if (null == recipeId) {
             return;
         }
@@ -102,11 +102,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<RegulationRecipeIndicatorsReq> request = new LinkedList<>();
         splicingBackRecipeData(Collections.singletonList(recipe), request);
         try {
-            LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators request={}", JSONUtils.toString(request));
+            LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck request={}", JSONUtils.toString(request));
             HisResponseTO response = regulationService.uploadRecipePrepareCheck(recipe.getClinicOrgan(), request);
-            LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators response={}", JSONUtils.toString(response));
+            LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck response={}", JSONUtils.toString(response));
         } catch (Exception e) {
-            LOGGER.error("HisSyncSupervisionService uploadRecipeIndicators HIS接口调用失败", e);
+            LOGGER.error("HisSyncSupervisionService uploadRecipePrepareCheck HIS接口调用失败", e);
         }
     }
 

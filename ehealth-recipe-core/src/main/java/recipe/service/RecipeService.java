@@ -1611,7 +1611,7 @@ public class RecipeService extends RecipeBaseService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
             HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-            RecipeBusiThreadPool.execute(() -> service.uploadRecipeIndicators(recipeBean.getRecipeId()));
+            RecipeBusiThreadPool.execute(() -> service.uploadRecipePrepareCheck(recipeBean.getRecipeId()));
 
             //第二步预校验
             if (continueFlag == 0) {
