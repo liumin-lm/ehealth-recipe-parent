@@ -30,6 +30,7 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.service.client.DoctorClient;
 import recipe.service.client.DrugClient;
 import recipe.service.client.OfflineRecipeClient;
+import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -93,7 +94,7 @@ public class CommonRecipeManager {
      * @param commonRecipeId 常用方id
      */
     public void removeCommonRecipe(Integer commonRecipeId) {
-        if (null == commonRecipeId || 0 == commonRecipeId) {
+        if (ValidateUtil.integerIsEmpty(commonRecipeId)) {
             return;
         }
         commonRecipeDAO.remove(commonRecipeId);
@@ -238,10 +239,15 @@ public class CommonRecipeManager {
      * @param commonRecipeName 常用方名
      * @return
      */
-    public CommonRecipe getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
+    public Integer getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
         LOGGER.info("CommonRecipeManager validateParam getByDoctorIdAndName doctorId:{},commonRecipeName:{}", doctorId, commonRecipeName);
         try {
-            return commonRecipeDAO.getByDoctorIdAndName(doctorId, commonRecipeName);
+            List<CommonRecipe> list = commonRecipeDAO.findByName(doctorId, commonRecipeName);
+            if (CollectionUtils.isNotEmpty(list)) {
+                return list.size();
+            } else {
+                return 0;
+            }
         } catch (Exception e) {
             LOGGER.error("CommonRecipeManager validateParam error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");

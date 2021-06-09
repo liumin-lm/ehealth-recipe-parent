@@ -87,7 +87,7 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, List<DrugEntrustDTO> drugEntrusts) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
                 && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
@@ -102,7 +102,7 @@ public class RecipeDetailValidateTool {
             if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
-            if (entrustValidate(recipeDetail, drugEntrusts)) {
+            if (entrustValidate(recipeDetail, drugEntrustNameMap)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内
@@ -131,36 +131,22 @@ public class RecipeDetailValidateTool {
      * @param drugEntrusts 机构嘱托
      * @return
      */
-    public boolean entrustValidate(RecipeDetailBean recipeDetail, List<DrugEntrustDTO> drugEntrusts) {
+    public boolean entrustValidate(RecipeDetailBean recipeDetail, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
         if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
             return true;
         }
-        if (CollectionUtils.isEmpty(drugEntrusts)) {
-            recipeDetail.setDrugEntrustCode(null);
-            recipeDetail.setEntrustmentId(null);
-            recipeDetail.setMemo(null);
+        //嘱托
+        DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(recipeDetail.getMemo());
+        if (null == drugEntrustDTO) {
+            drugEntrustDTO = new DrugEntrustDTO();
+            recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
+            recipeDetail.setEntrustmentId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
+            recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
             return true;
         }
-        boolean entrusts = true;
-        for (DrugEntrustDTO drugEntrustDTO : drugEntrusts) {
-            if (drugEntrustDTO.getDrugEntrustCode().equals(recipeDetail.getDrugEntrustCode())) {
-                entrusts = false;
-                recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
-                recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
-                break;
-            } else if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && drugEntrustDTO.getDrugEntrustName().equals(recipeDetail.getMemo())) {
-                entrusts = false;
-                recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-                recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
-                break;
-            }
-        }
-        if (entrusts) {
-            recipeDetail.setDrugEntrustCode(null);
-            recipeDetail.setEntrustmentId(null);
-            recipeDetail.setMemo(null);
-            return true;
-        }
+        recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
+        recipeDetail.setEntrustmentId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
+        recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
         return false;
     }
 

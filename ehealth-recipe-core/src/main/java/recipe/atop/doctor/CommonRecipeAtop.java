@@ -7,12 +7,14 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.service.CommonRecipeService;
 import recipe.util.ValidateUtil;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -68,7 +70,7 @@ public class CommonRecipeAtop extends BaseAtop {
     public List<CommonDTO> commonRecipeListV1(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
         logger.info("CommonRecipeAtop commonRecipeListV1 organId = {},doctorId = {},recipeType = {},start = {},limit = {}"
                 , organId, doctorId, recipeType, start, limit);
-        if (null == doctorId && null == organId) {
+        if (ValidateUtil.integerIsEmpty(doctorId, organId)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         try {
@@ -93,8 +95,15 @@ public class CommonRecipeAtop extends BaseAtop {
     public void addCommonRecipe(CommonDTO common) {
         logger.info("CommonRecipeAtop addCommonRecipe common = {}", JSON.toJSONString(common));
         if (null == common || null == common.getCommonRecipeDTO() || CollectionUtils.isEmpty(common.getCommonRecipeDrugList())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
         }
+        CommonRecipeDTO commonRecipe = common.getCommonRecipeDTO();
+        if (ValidateUtil.integerIsEmpty(commonRecipe.getDoctorId(), commonRecipe.getRecipeType()) || StringUtils.isEmpty(commonRecipe.getCommonRecipeName())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
+        }
+        Date now = new Date();
+        commonRecipe.setCreateDt(now);
+        commonRecipe.setLastModify(now);
         try {
             commonRecipeService.addCommonRecipe(common.getCommonRecipeDTO(), common.getCommonRecipeExt(), common.getCommonRecipeDrugList());
         } catch (DAOException e1) {
@@ -161,7 +170,7 @@ public class CommonRecipeAtop extends BaseAtop {
      * @return boolean
      */
     @RpcService
-    public boolean addOfflineCommon(Integer organId, List<CommonDTO> commonList) {
+    public boolean addBatchOfflineCommon(Integer organId, List<CommonDTO> commonList) {
         logger.info("CommonRecipeAtop addOfflineCommon commonList = {}", JSON.toJSONString(commonList));
         if (ValidateUtil.integerIsEmpty(organId) || CollectionUtils.isEmpty(commonList)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");

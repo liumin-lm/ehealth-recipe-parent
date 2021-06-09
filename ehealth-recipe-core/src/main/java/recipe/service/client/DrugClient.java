@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -172,12 +170,8 @@ public class DrugClient extends BaseClient {
     public Map<String, DecoctionWay> decoctionWayCodeMap(Integer organId) {
         logger.info("usingRateMap decoctionWayCodeMap organId = {} ", organId);
         List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
-        if (CollectionUtils.isEmpty(decoctionWayList)) {
-            return null;
-        }
-        Map<String, DecoctionWay> mapCode = decoctionWayList.stream().collect(Collectors.toMap(DecoctionWay::getDecoctionCode, a -> a, (k1, k2) -> k1));
-        logger.info("usingRateMap decoctionWayCodeMap  mapCode:{}", JSON.toJSONString(mapCode));
-        return mapCode;
+        return Optional.ofNullable(decoctionWayList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DecoctionWay::getDecoctionCode, a -> a, (k1, k2) -> k1));
     }
 
     /**
@@ -211,12 +205,9 @@ public class DrugClient extends BaseClient {
     public Map<String, DrugMakingMethod> drugMakingMethodCodeMap(Integer organId) {
         logger.info("usingRateMap DrugMakingMethodCodeMap organId = {} ", organId);
         List<DrugMakingMethod> drugMakingMethodList = drugMakingMethodDao.findByOrganId(organId);
-        if (CollectionUtils.isEmpty(drugMakingMethodList)) {
-            return null;
-        }
-        Map<String, DrugMakingMethod> mapCode = drugMakingMethodList.stream().collect(Collectors.toMap(DrugMakingMethod::getMethodCode, a -> a, (k1, k2) -> k1));
-        logger.info("usingRateMap DrugMakingMethodCodeMap  mapCode:{}", JSON.toJSONString(mapCode));
-        return mapCode;
+        logger.info("usingRateMap DrugMakingMethodCodeMap  mapCode:{}", JSON.toJSONString(drugMakingMethodList));
+        return Optional.ofNullable(drugMakingMethodList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DrugMakingMethod::getMethodCode, a -> a, (k1, k2) -> k1));
     }
 
     /**
@@ -245,9 +236,9 @@ public class DrugClient extends BaseClient {
      * 获取嘱托（特殊煎法）code 为key的Map
      *
      * @param organId 机构id
-     * @return 机构code = key对象
+     * @return 机构name = key对象
      */
-    public Map<String, DrugEntrustDTO> drugEntrustCodeMap(Integer organId) {
+    public Map<String, DrugEntrustDTO> drugEntrustNameMap(Integer organId) {
         if (null == organId) {
             return new HashMap<>();
         }
@@ -256,7 +247,7 @@ public class DrugClient extends BaseClient {
         if (CollectionUtils.isEmpty(drugEntrusts)) {
             return new HashMap<>();
         }
-        return drugEntrusts.stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustCode, a -> a, (k1, k2) -> k1));
+        return drugEntrusts.stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustName, a -> a, (k1, k2) -> k1));
     }
 
 

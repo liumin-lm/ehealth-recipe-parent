@@ -25,7 +25,6 @@ import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,6 +192,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      * @return 线下常用方数据集合
      */
     public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
+        //获取线下常用方
         List<CommonDTO> offlineCommonList = commonRecipeManager.offlineCommon(doctorId);
         //关联常用方主键
         List<CommonRecipe> commonRecipeList = commonRecipeManager.commonRecipeList(organId, doctorId);
@@ -211,7 +211,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         return offlineCommonList;
     }
 
-
     /**
      * 添加线下常用方到线上
      *
@@ -225,7 +224,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         Map<String, DrugMakingMethod> makingMethodCodeMap = drugClient.drugMakingMethodCodeMap(organId);
         Map<String, UsingRate> usingRateCodeMap = drugClient.usingRateMapCode(organId);
         Map<String, UsePathways> usePathwaysCodeMap = drugClient.usePathwaysCodeMap(organId);
-        Map<String, DrugEntrustDTO> drugEntrustCodeMap = drugClient.drugEntrustCodeMap(organId);
+        Map<String, DrugEntrustDTO> drugEntrustNameMap = drugClient.drugEntrustNameMap(organId);
 
         //查询机构药品
         Set<String> drugCodeSet = commonList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getCommonRecipeDrugList()))
@@ -233,35 +232,188 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, new LinkedList<>(drugCodeSet));
         //数据比对转线上数据
         commonList.forEach(a -> {
-            //常用方药房比对
-            CommonRecipeDTO commonRecipeDTO = a.getCommonRecipeDTO();
-            PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(commonRecipeDTO.getPharmacyCode());
-            if (null == pharmacyTcm) {
-                pharmacyTcm = new PharmacyTcm();
-            }
-            commonRecipeDTO.setPharmacyName(pharmacyTcm.getPharmacyName());
-            commonRecipeDTO.setPharmacyId(pharmacyTcm.getPharmacyId());
-            commonRecipeDTO.setPharmacyCode(pharmacyTcm.getPharmacyCode());
-            //扩展信息转换
-            offlineCommonRecipeExt(a.getCommonRecipeExt(), decoctionWayCodeMap, makingMethodCodeMap);
-            //药品信息比对
             List<CommonRecipeDrugDTO> commonRecipeDrugList = a.getCommonRecipeDrugList();
             if (CollectionUtils.isEmpty(commonRecipeDrugList)) {
                 return;
             }
-            //药品信息转换
-            commonRecipeDrugList.forEach(b -> offlineCommonRecipeDrug(b, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustCodeMap));
+            //常用方药房比对
+            CommonRecipeDTO commonRecipeDTO = a.getCommonRecipeDTO();
+            PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(commonRecipeDTO.getPharmacyCode());
+            if (StringUtils.isNotEmpty(commonRecipeDTO.getPharmacyCode()) && null == pharmacyTcm) {
+                return;
+            }
+            commonRecipeDTO.setPharmacyName(pharmacyTcm.getPharmacyName());
+            commonRecipeDTO.setPharmacyId(pharmacyTcm.getPharmacyId());
+            commonRecipeDTO.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+            CommonRecipe commonRecipe = ObjectCopyUtils.convert(commonRecipeDTO, CommonRecipe.class);
+            //扩展信息转换
+            offlineCommonRecipeExt(a.getCommonRecipeExt(), decoctionWayCodeMap, makingMethodCodeMap);
+            //药品信息比对
+            List<CommonRecipeDrug> drugList = offlineCommonRecipeDrug(commonRecipeDrugList, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustNameMap);
             //写入表
-            CommonRecipe commonRecipe = ObjectCopyUtils.convert(a.getCommonRecipeDTO(), CommonRecipe.class);
-            List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(commonRecipeDrugList, CommonRecipeDrug.class);
             commonRecipeManager.saveCommonRecipe(commonRecipe, a.getCommonRecipeExt(), drugList);
         });
         return true;
     }
 
     /**
+     * 参数校验
+     *
+     * @param commonRecipe
+     */
+    private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
+        // 常用方名称校验
+        Integer commonRecipeNameSize = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipe.getCommonRecipeName());
+        if (commonRecipeNameSize > 1) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
+        }
+
+        List<String> drugCodeList = drugList.stream().map(CommonRecipeDrug::getOrganDrugCode).distinct().collect(Collectors.toList());
+        Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(commonRecipe.getOrganId(), drugCodeList);
+        if (organDrugGroup.isEmpty()) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
+        }
+        Date now = new Date();
+        //常用方药品校验
+        drugList.forEach(a -> {
+            if (StringUtils.isAnyEmpty(a.getUsingRate(), a.getUsePathways(), a.getUsingRateId(), a.getUsePathwaysId())) {
+                LOGGER.info("validateParam usingRate:{},usePathways:{},usingRateId:{},usePathwaysId:{}", a.getUsingRate(), a.getUsePathways(), a.getUsingRateId(), a.getUsePathwaysId());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "用药频次和用药方式不能为空");
+            }
+            //校验比对药品
+            ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(a.getOrganDrugCode(), null, null);
+            OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+            if (null == organDrug) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
+            }
+            //校验药品药房变动
+            if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrug.getPharmacy())
+                    && !Arrays.asList(organDrug.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品药房错误");
+            }
+            if (StringUtils.isEmpty(a.getOrganDrugCode())) {
+                a.setOrganDrugCode(organDrug.getOrganDrugCode());
+            }
+            a.setSalePrice(null);
+            a.setDrugCost(null);
+            a.setCreateDt(now);
+            a.setLastModify(now);
+        });
+    }
+
+    /**
+     * 线下 扩展信息转换
+     *
+     * @param commonRecipeExt         常用方线下扩展信息
+     * @param decoctionWayCodeMap     煎法字典
+     * @param drugMakingMethodCodeMap 制法字典
+     * @return 常用方 线下扩展信息 转线上扩展信息数据
+     */
+    private void offlineCommonRecipeExt(CommonRecipeExtDTO commonRecipeExt, Map<String, DecoctionWay> decoctionWayCodeMap, Map<String, DrugMakingMethod> drugMakingMethodCodeMap) {
+        if (null == commonRecipeExt) {
+            return;
+        }
+        //煎法
+        DecoctionWay decoctionWay = DrugClient.validateDecoction(commonRecipeExt.getDecoctionCode(), decoctionWayCodeMap);
+        commonRecipeExt.setDecoctionId(String.valueOf(decoctionWay.getDecoctionId()));
+        commonRecipeExt.setDecoctionText(decoctionWay.getDecoctionText());
+        //制法
+        DrugMakingMethod drugMakingMethod = DrugClient.validateMakeMethod(commonRecipeExt.getMakeMethod(), drugMakingMethodCodeMap);
+        commonRecipeExt.setMakeMethodId(String.valueOf(drugMakingMethod.getMethodId()));
+        commonRecipeExt.setMakeMethodText(drugMakingMethod.getMethodText());
+    }
+
+    /**
+     * 常用方药品信息比对
+     *
+     * @param commonRecipeDrugList 常用线下药品
+     * @param organDrugGroup       机构药品code分组
+     * @param pharmacyCodeMap      机构药房信息
+     * @param usingRateCodeMap     机构的用药频率
+     * @param usePathwaysCodeMap   机构的用药途径
+     * @param drugEntrustNameMap   机构嘱托
+     * @return 常用方 线下药品 转线上药品数据
+     */
+    private List<CommonRecipeDrug> offlineCommonRecipeDrug(List<CommonRecipeDrugDTO> commonRecipeDrugList, Map<String, List<OrganDrugList>> organDrugGroup,
+                                                           Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateCodeMap,
+                                                           Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
+        List<CommonRecipeDrug> drugList = new LinkedList<>();
+        commonRecipeDrugList.forEach(b -> {
+            CommonRecipeDrugDTO drug = offlineCommonRecipeDrug(b, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustNameMap);
+            if (null != drug) {
+                CommonRecipeDrug commonRecipeDrug = ObjectCopyUtils.convert(drug, CommonRecipeDrug.class);
+                drugList.add(commonRecipeDrug);
+            }
+        });
+        return drugList;
+    }
+
+    /**
+     * 常用方药品信息比对
+     *
+     * @param drug               常用线下药品
+     * @param organDrugGroup     机构药品code分组
+     * @param pharmacyCodeMap    机构药房信息
+     * @param usingRateCodeMap   机构的用药频率
+     * @param usePathwaysCodeMap 机构的用药途径
+     * @param drugEntrustNameMap 机构嘱托
+     * @return 常用方 线下药品 转线上药品数据
+     */
+    private CommonRecipeDrugDTO offlineCommonRecipeDrug(CommonRecipeDrugDTO drug, Map<String, List<OrganDrugList>> organDrugGroup,
+                                                        Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateCodeMap,
+                                                        Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
+        //校验比对药品
+        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(drug.getOrganDrugCode(), null, null);
+        OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+        if (null == organDrug) {
+            LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug organDrug OrganDrugCode ：{}", drug.getOrganDrugCode());
+            return null;
+        }
+        //校验药品药房变动
+        if (PharmacyManager.pharmacyVariation(null, drug.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+            LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug pharmacy OrganDrugCode ：{}", drug.getOrganDrugCode());
+            return null;
+        }
+        PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(drug.getPharmacyCode());
+        if (null == pharmacyTcm) {
+            pharmacyTcm = new PharmacyTcm();
+        }
+        drug.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+        drug.setPharmacyId(pharmacyTcm.getPharmacyId());
+        drug.setPharmacyName(pharmacyTcm.getPharmacyName());
+
+        //用药频率
+        UsingRate usingRate = usingRateCodeMap.get(drug.getUsingRate());
+        if (null == usingRate) {
+            usingRate = new UsingRate();
+        }
+        drug.setUsingRate(usingRate.getUsingRateKey());
+        drug.setUsingRateId(String.valueOf(usingRate.getId()));
+        drug.setUsingRateEnglishNames(usingRate.getEnglishNames());
+        //频次
+        UsePathways usePathways = usePathwaysCodeMap.get(drug.getUsePathways());
+        if (null == usePathways) {
+            usePathways = new UsePathways();
+        }
+        drug.setUsePathways(usePathways.getPathwaysKey());
+        drug.setUsePathwaysId(String.valueOf(usePathways.getId()));
+        drug.setUsePathEnglishNames(usePathways.getEnglishNames());
+        //嘱托
+        DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(drug.getMemo());
+        if (null == drugEntrustDTO) {
+            drugEntrustDTO = new DrugEntrustDTO();
+        }
+        drug.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
+        drug.setDrugEntrustId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
+        drug.setMemo(drugEntrustDTO.getDrugEntrustName());
+        return drug;
+    }
+
+
+    /**
      * 查询常用方和常用方下的药品列表信息  查询常用方的详细信息
      * 新版废弃/保留兼容老app版本
+     * 三个月后删除
      *
      * @param commonRecipeId
      * @return
@@ -408,154 +560,5 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         map.put("commonRecipe", commonRecipeDTO);
         return map;
     }
-
-    /**
-     * 参数校验
-     *
-     * @param commonRecipe
-     */
-    private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        Integer doctorId = commonRecipe.getDoctorId();
-        Integer recipeType = commonRecipe.getRecipeType();
-        String commonRecipeName = commonRecipe.getCommonRecipeName();
-
-        if (null == doctorId || null == recipeType || StringUtils.isEmpty(commonRecipeName)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
-        }
-
-        // 常用方名称校验
-        CommonRecipe dbCommonRecipe = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipeName);
-        if (null != dbCommonRecipe && !dbCommonRecipe.getCommonRecipeId().equals(commonRecipe.getCommonRecipeId())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
-        }
-
-        Date now = DateTime.now().toDate();
-        commonRecipe.setCreateDt(now);
-        commonRecipe.setLastModify(now);
-
-        List<Integer> drugIdList = drugList.stream().map(CommonRecipeDrug::getDrugId).distinct().collect(Collectors.toList());
-        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(commonRecipe.getOrganId(), drugIdList);
-        LOGGER.info("validateParam organDrugLists:{}", JSONUtils.toString(organDrugLists));
-        if (CollectionUtils.isEmpty(organDrugLists)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
-        }
-        Map<Integer, List<OrganDrugList>> organDrugListsGroup = organDrugLists.stream().collect(Collectors.groupingBy(OrganDrugList::getDrugId));
-
-        //常用方药品校验
-        drugList.forEach(a -> {
-            OrganDrugList organDrugList = null;
-            List<OrganDrugList> organDrugs = organDrugListsGroup.get(a.getDrugId());
-            if (CollectionUtils.isEmpty(organDrugs)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
-            }
-            for (OrganDrugList organDrug : organDrugs) {
-                if (organDrug.getOrganDrugCode().equals(a.getOrganDrugCode())) {
-                    organDrugList = organDrug;
-                    break;
-                }
-            }
-            if (null == organDrugList) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
-            }
-            if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrugList.getPharmacy())
-                    && !Arrays.asList(organDrugList.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品药房错误");
-            }
-            if (StringUtils.isEmpty(a.getOrganDrugCode())) {
-                a.setOrganDrugCode(organDrugs.get(0).getOrganDrugCode());
-            }
-            if (StringUtils.isAnyEmpty(a.getUsingRate(), a.getUsePathways(), a.getUsingRateId(), a.getUsePathwaysId())) {
-                LOGGER.info("validateParam usingRate:{},usePathways:{},usingRateId:{},usePathwaysId:{}", a.getUsingRate(), a.getUsePathways(), a.getUsingRateId(), a.getUsePathwaysId());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "用药频次和用药方式不能为空");
-            }
-            a.setSalePrice(null);
-            a.setDrugCost(null);
-            a.setCreateDt(now);
-            a.setLastModify(now);
-        });
-    }
-
-    /**
-     * 线下 扩展信息转换
-     *
-     * @param commonRecipeExt         常用方线下扩展信息
-     * @param decoctionWayCodeMap     煎法字典
-     * @param drugMakingMethodCodeMap 制法字典
-     * @return 常用方 线下扩展信息 转线上扩展信息数据
-     */
-    private void offlineCommonRecipeExt(CommonRecipeExtDTO commonRecipeExt, Map<String, DecoctionWay> decoctionWayCodeMap, Map<String, DrugMakingMethod> drugMakingMethodCodeMap) {
-        if (null == commonRecipeExt) {
-            return;
-        }
-        //煎法
-        DecoctionWay decoctionWay = DrugClient.validateDecoction(commonRecipeExt.getDecoctionCode(), decoctionWayCodeMap);
-        commonRecipeExt.setDecoctionId(String.valueOf(decoctionWay.getDecoctionId()));
-        commonRecipeExt.setDecoctionText(decoctionWay.getDecoctionText());
-        //制法
-        DrugMakingMethod drugMakingMethod = DrugClient.validateMakeMethod(commonRecipeExt.getMakeMethod(), drugMakingMethodCodeMap);
-        commonRecipeExt.setMakeMethodId(String.valueOf(drugMakingMethod.getMethodId()));
-        commonRecipeExt.setMakeMethodText(drugMakingMethod.getMethodText());
-    }
-
-
-    /**
-     * @param drug               常用线下药品
-     * @param organDrugGroup     机构药品code分组
-     * @param pharmacyCodeMap    机构药房信息
-     * @param usingRateCodeMap   机构的用药频率
-     * @param usePathwaysCodeMap 机构的用药途径
-     * @param drugEntrustCodeMap 机构嘱托
-     * @return 常用方 线下药品 转线上药品数据
-     */
-    private void offlineCommonRecipeDrug(CommonRecipeDrugDTO drug, Map<String, List<OrganDrugList>> organDrugGroup,
-                                         Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateCodeMap,
-                                         Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrustDTO> drugEntrustCodeMap) {
-        //校验比对药品
-        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(drug.getOrganDrugCode(), null, null);
-        OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
-        if (null == organDrug) {
-            LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug organDrug OrganDrugCode ：{}", drug.getOrganDrugCode());
-            return;
-        }
-        //校验药品药房变动
-        if (PharmacyManager.pharmacyVariation(null, drug.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
-            LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug pharmacy OrganDrugCode ：{}", drug.getOrganDrugCode());
-            return;
-        }
-        PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(drug.getPharmacyCode());
-        if (null == pharmacyTcm) {
-            pharmacyTcm = new PharmacyTcm();
-        }
-        drug.setPharmacyCode(pharmacyTcm.getPharmacyCode());
-        drug.setPharmacyId(pharmacyTcm.getPharmacyId());
-        drug.setPharmacyName(pharmacyTcm.getPharmacyName());
-
-        //用药频率
-        UsingRate usingRate = usingRateCodeMap.get(drug.getUsingRate());
-        if (null == usingRate) {
-            usingRate = new UsingRate();
-        }
-        drug.setUsingRate(usingRate.getUsingRateKey());
-        drug.setUsingRateId(String.valueOf(usingRate.getId()));
-        drug.setUsingRateEnglishNames(usingRate.getEnglishNames());
-        //频次
-        UsePathways usePathways = usePathwaysCodeMap.get(drug.getUsePathways());
-        if (null == usePathways) {
-            usePathways = new UsePathways();
-        }
-        drug.setUsePathways(usePathways.getPathwaysKey());
-        drug.setUsePathwaysId(String.valueOf(usePathways.getId()));
-        drug.setUsePathEnglishNames(usePathways.getEnglishNames());
-        //嘱托
-        DrugEntrustDTO drugEntrustDTO = drugEntrustCodeMap.get(drug.getDrugEntrustCode());
-        if (null == drugEntrustDTO) {
-            drugEntrustDTO = new DrugEntrustDTO();
-        }
-        drug.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-        drug.setDrugEntrustId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
-        drug.setMemo(drugEntrustDTO.getDrugEntrustName());
-    }
-
 
 }
