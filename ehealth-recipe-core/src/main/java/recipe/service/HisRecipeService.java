@@ -49,12 +49,10 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.GroupRecipeManager;
-import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1784,7 +1782,7 @@ public class HisRecipeService {
                 BeanUtils.copy(recipe, recipeBean);
                 recipeBean.setOrganDiseaseName(diseaseName);
                 recipeBean.setOrganDiseaseId(disease);
-                emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
+                emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
                 recipe.setOrganDiseaseId(disease);
                 recipe.setOrganDiseaseName(diseaseName);
