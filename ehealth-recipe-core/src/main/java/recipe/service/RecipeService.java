@@ -4641,7 +4641,7 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setDrugName(drug.getDrugName());
         }
         if (StringUtils.isEmpty(drug.getSaleName())) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "saleName is required");
+            drugListMatch.setSaleName(drug.getDrugName());
         } else {
             drugListMatch.setSaleName(drug.getSaleName());
         }
@@ -4698,9 +4698,7 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getIndications())) {
             drugListMatch.setIndications(drug.getIndications());
         }
-        if (ObjectUtils.isEmpty(drug.getDrugform())) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "drugform is required");
-        } else {
+        if (!ObjectUtils.isEmpty(drug.getDrugform())) {
             drugListMatch.setDrugForm(drug.getDrugform());
         }
         if (!ObjectUtils.isEmpty(drug.getPackingMaterials())) {
@@ -4758,7 +4756,7 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
         }
-        LOGGER.error("addHisDrug 成功", drugListMatch);
+        LOGGER.error("addHisDrug 成功{}", drugListMatch);
     }
 
 
