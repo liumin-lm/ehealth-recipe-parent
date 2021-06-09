@@ -54,7 +54,6 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.EleInvoiceService;
 import recipe.service.RecipeExtendService;
@@ -150,8 +149,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
@@ -479,8 +478,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setOutTradeNo(recipeOrder.getOutTradeNo());
                 //支付时间
                 req.setPayTime(recipeOrder.getPayTime());
-                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-                commonRemoteService.getCompleteAddress(recipeOrder);
+                String address = commonRemoteService.getCompleteAddress(recipeOrder);
+                req.setAddress(address);
             }
 
             //卡号，卡类型
