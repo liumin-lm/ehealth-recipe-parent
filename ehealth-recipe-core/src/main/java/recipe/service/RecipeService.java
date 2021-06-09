@@ -1594,11 +1594,8 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
-
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
-
 
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
@@ -1613,6 +1610,8 @@ public class RecipeService extends RecipeBaseService {
                 attMap.put("recipeSupportGiveMode", join);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
+            HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+            RecipeBusiThreadPool.execute(() -> service.uploadRecipeIndicators(recipeBean.getRecipeId()));
 
             //第二步预校验
             if (continueFlag == 0) {
@@ -2304,7 +2303,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
         } catch (Exception e) {
-            LOGGER.error("recipeService updateRecipeAndDetail recipe:{} , recipedetails={}", JSON.toJSONString(recipe), JSON.toJSONString(recipedetails));
+            LOGGER.error("recipeService updateRecipeAndDetail recipe:{} , recipedetails={}", JSON.toJSONString(recipe), JSON.toJSONString(recipedetails), e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
 

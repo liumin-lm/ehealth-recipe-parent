@@ -63,6 +63,7 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,7 +81,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
-    ISignRecipeInfoService signRecipeInfoService;
+    private ISignRecipeInfoService signRecipeInfoService;
+    @Resource
+    private IRegulationService regulationService;
+    @Autowired
+    private RecipeDAO recipeDAO;
     /**
      * logger
      */
@@ -88,6 +93,22 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    public void uploadRecipeIndicators(Integer recipeId) {
+        LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators recipeId={}", recipeId);
+        if (null == recipeId) {
+            return;
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<RegulationRecipeIndicatorsReq> request = new LinkedList<>();
+        splicingBackRecipeData(Collections.singletonList(recipe), request);
+        try {
+            LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators request={}", JSONUtils.toString(request));
+            HisResponseTO response = regulationService.uploadRecipePrepareCheck(recipe.getClinicOrgan(), request);
+            LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("HisSyncSupervisionService uploadRecipeIndicators HIS接口调用失败", e);
+        }
+    }
 
     /**
      * 同步处方数据
@@ -95,7 +116,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipeList
      * @return
      */
-
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
