@@ -100,7 +100,7 @@ public class RecipeLabelManager {
         }
         //修改pdf文件
         SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
-                , apothecaryVO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f);
+                , apothecaryVO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f, true);
         Recipe recipeUpdate = new Recipe();
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
             signImgNode.setSignFileFileId(recipe.getChemistSignFile());

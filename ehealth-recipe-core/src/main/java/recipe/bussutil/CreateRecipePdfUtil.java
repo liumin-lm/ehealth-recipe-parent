@@ -94,7 +94,8 @@ public class CreateRecipePdfUtil {
             File signFilePDF = new File(signImgNode.getRecipeId() + System.currentTimeMillis() + ".pdf");
             @Cleanup InputStream input = new ByteArrayInputStream(signFileByte);
             @Cleanup OutputStream output = new FileOutputStream(signFilePDF);
-            addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(), signImgNode.getX(), signImgNode.getY(), true);
+            addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(),
+                    signImgNode.getX(), signImgNode.getY(), signImgNode.getRepeatWrite());
             //上传pdf文件
             byte[] bytes = File2byte(signFilePDF);
             IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
@@ -239,60 +240,6 @@ public class CreateRecipePdfUtil {
         coords.setY(82);
         return generateCoOrdinatePdf(pdfId, coords);
     }
-
-
-    /**
-     * 在pdf加盖印章
-     *
-     * @param pdfId       药师签名文件id
-     * @param organSealId 机构配置印章id
-     * @return
-     * @throws Exception
-     */
-    public static String generateSignetRecipePdf(String pdfId, String organSealId) throws Exception {
-        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-
-        //获取印章图片
-        @Cleanup InputStream organSealInput = new ByteArrayInputStream(fileDownloadService.downloadAsByte(organSealId));
-        FileMetaRecord organSealRecord = fileDownloadService.downloadAsRecord(organSealId);
-
-        if (null == organSealRecord) {
-            return null;
-        }
-        //获取图片url
-        File organSealFile = new File(organSealRecord.getFileName());
-        @Cleanup OutputStream organSealOutput = new FileOutputStream(organSealFile);
-
-        byte[] buffer = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = organSealInput.read(buffer)) != -1) {
-            organSealOutput.write(buffer, 0, bytesRead);
-        }
-
-        URL url = organSealFile.toURI().toURL();
-        String fileId = null;
-
-        //获取 处方pdf 加印章
-        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-        logger.info("generateSignetRecipePdf pdfId={}, organSealId={}", pdfId, organSealId);
-        if (null != fileMetaRecord) {
-            File file = new File(fileMetaRecord.getFileName());
-            //添加图片
-            @Cleanup OutputStream output = new FileOutputStream(file);
-            addBarCodeImgForRecipePdfByCoordinates(input, output, url, 90F, 90F, 250, 740, false);
-            //上传pdf文件
-            byte[] bytes = File2byte(file);
-            IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
-            //删除本地文件
-            file.delete();
-        }
-        organSealFile.delete();
-        return fileId;
-    }
-
-
 
     /**
      * 在处方pdf上手动挂上医生药师图片
