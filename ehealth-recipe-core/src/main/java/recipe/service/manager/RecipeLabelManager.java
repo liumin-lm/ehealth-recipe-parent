@@ -239,7 +239,7 @@ public class RecipeLabelManager {
 
     /**
      * 获取处方签 配置 给前端展示。
-     * 1获取处方信息，2获取运营平台配置，3替换运营平台配置字段值，4返回对象给前端展示
+     * 获取处方信息，获取运营平台配置，替换运营平台配置字段值，返回对象给前端展示
      *
      * @param recipeMap 处方
      * @param organId   机构id

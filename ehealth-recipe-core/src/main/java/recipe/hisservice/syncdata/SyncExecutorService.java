@@ -44,29 +44,6 @@ public class SyncExecutorService {
     private static final String REGULATION_GD = "gdsjgpt";
 
     /**
-     * 上传单个处方
-     *
-     * @param recipe
-     */
-    @Deprecated
-    public void uploadRecipeIndicators(Recipe recipe) {
-        CommonSyncSupervisionForIHosService iHosService =
-                ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
-        CommonResponse response = null;
-        try {
-            //RPC调用上传
-            response = iHosService.uploadRecipeIndicators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())){
-                LOGGER.info("uploadRecipeIndicators rpc execute success. recipeId={}", recipe.getRecipeId());
-            } else{
-                LOGGER.warn("uploadRecipeIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
-            }
-        } catch (Exception e) {
-            LOGGER.error("uploadRecipeIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
-        }
-    }
-
-    /**
      * 上传核销信息
      * @param recipeId
      */
@@ -96,7 +73,7 @@ public class SyncExecutorService {
         }
 
     }
-
+    
     /**
      * 广东省定时上传接口（批量上传）每天0点上传
      * todo 新接口 queryRegulationRecipeData

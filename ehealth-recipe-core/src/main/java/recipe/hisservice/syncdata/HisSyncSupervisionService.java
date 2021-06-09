@@ -19,7 +19,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
@@ -31,7 +30,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -57,6 +55,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.EleInvoiceService;
 import recipe.service.RecipeExtendService;
 import recipe.service.client.DoctorClient;
@@ -67,6 +66,8 @@ import recipe.util.RedisClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2019/6/3
@@ -478,6 +479,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setOutTradeNo(recipeOrder.getOutTradeNo());
                 //支付时间
                 req.setPayTime(recipeOrder.getPayTime());
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                commonRemoteService.getCompleteAddress(recipeOrder);
             }
 
             //卡号，卡类型
@@ -616,13 +619,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
-        /*IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        if (CollectionUtils.isEmpty(list)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            commonResponse.setMsg("需要同步机构列表为空");
-            return commonResponse;
-        }*/
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -901,12 +897,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (organDrugList == null) {
                 reqDetail.setDrcode(detail.getOrganDrugCode());
             } else {
+                reqDetail.setOrganDrugCode(organDrugList.getOrganDrugCode());
                 reqDetail.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode());
                 reqDetail.setLicenseNumber(organDrugList.getLicenseNumber());
                 reqDetail.setDosageFormCode(organDrugList.getDrugFormCode());
                 reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
                 reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
                 reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
+                reqDetail.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
             }
 
             reqDetail.setDrname(detail.getDrugName());
