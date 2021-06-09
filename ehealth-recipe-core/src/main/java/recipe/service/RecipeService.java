@@ -2299,7 +2299,14 @@ public class RecipeService extends RecipeBaseService {
         RecipeServiceSub.setRecipeMoreInfo(recipe, recipedetails, recipeBean, 1);
         //将原先处方单详情的记录都置为无效 status=0
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
-        Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
+        Integer dbRecipeId;
+
+        try {
+            dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
+        } catch (Exception e) {
+            LOGGER.error("recipeService updateRecipeAndDetail recipe:{} , recipedetails={}", JSON.toJSONString(recipe), JSON.toJSONString(recipedetails));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
 
         //武昌需求，加入处方扩展信息
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
