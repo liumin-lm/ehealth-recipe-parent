@@ -121,8 +121,7 @@ public class RecipeServiceSub {
     private static final String UNCHECK = "uncheck";
 
     private static SignManager signManager = AppContextHolder.getBean("signManager", SignManager.class);
-    @Autowired
-    private EmrRecipeManager emrRecipeManager;
+
     @Autowired
     private RecipeLabelManager recipeLabelManager;
 
@@ -133,9 +132,6 @@ public class RecipeServiceSub {
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
-
-    private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
-
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
