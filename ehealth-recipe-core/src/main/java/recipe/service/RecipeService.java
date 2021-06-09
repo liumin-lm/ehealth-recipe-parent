@@ -4758,7 +4758,7 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
         }
-        LOGGER.error("addHisDrug 成功", drugListMatch);
+        LOGGER.error("addHisDrug 成功{}", drugListMatch);
     }
 
 
