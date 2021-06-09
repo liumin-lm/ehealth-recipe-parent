@@ -1610,11 +1610,11 @@ public class RecipeService extends RecipeBaseService {
                 attMap.put("recipeSupportGiveMode", join);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), attMap);
             }
-            HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-            RecipeBusiThreadPool.execute(() -> service.uploadRecipePrepareCheck(recipeBean.getRecipeId()));
 
             //第二步预校验
             if (continueFlag == 0) {
+                HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                RecipeBusiThreadPool.execute(() -> service.uploadRecipePrepareCheck(recipeBean.getRecipeId()));
                 //his处方预检查
                 RecipeSignService recipeSignService = AppContextHolder.getBean("eh.recipeSignService", RecipeSignService.class);
                 boolean b = recipeSignService.hisRecipeCheck(rMap, recipeBean);
