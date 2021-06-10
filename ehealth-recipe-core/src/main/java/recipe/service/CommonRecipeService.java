@@ -148,7 +148,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             return commonList;
         }
         //药房信息
-        Map<Integer, PharmacyTcm> pharmacyMap = pharmacyManager.pharmacyIdMap(organId);
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
         //组织出参
         commonRecipeList.forEach(a -> {
             CommonDTO commonDTO = new CommonDTO();
@@ -165,19 +165,17 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 });
                 commonDTO.setCommonRecipeDrugList(commonDrugList);
             }
+            //扩展信息
             CommonRecipeExtDTO commonRecipeExt = commonRecipeExtMap.get(a.getCommonRecipeId());
             if (null != commonRecipeExt) {
                 commonDTO.setCommonRecipeExt(commonRecipeExt);
             }
-            if (null == a.getPharmacyId()) {
-                return;
+            //药房
+            PharmacyTcm pharmacyTcm = PharmacyManager.pharmacyById(a.getPharmacyId(), pharmacyIdMap);
+            if (null != pharmacyTcm) {
+                a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                a.setPharmacyName(pharmacyTcm.getPharmacyName());
             }
-            PharmacyTcm pharmacyTcm = pharmacyMap.get(a.getPharmacyId());
-            if (null == pharmacyTcm) {
-                return;
-            }
-            a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
-            a.setPharmacyName(pharmacyTcm.getPharmacyName());
             commonDTO.setCommonRecipeDTO(a);
             commonList.add(commonDTO);
         });
@@ -196,6 +194,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonDTO> offlineCommonList = commonRecipeManager.offlineCommon(doctorId);
         //关联常用方主键
         List<CommonRecipe> commonRecipeList = commonRecipeManager.commonRecipeList(organId, doctorId);
+        commonRecipeList.get(0).setCommonRecipeCode("code124");
         Map<String, CommonRecipe> commonRecipeMap = commonRecipeList.stream().collect(Collectors.toMap(CommonRecipe::getCommonRecipeCode, a -> a, (k1, k2) -> k1));
         offlineCommonList.forEach(a -> {
             CommonRecipeDTO offlineCommonRecipeDTO = a.getCommonRecipeDTO();

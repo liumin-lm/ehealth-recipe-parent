@@ -190,6 +190,7 @@ public class CommonRecipe implements Serializable{
     }
 
     @Column(name = "common_recipe_code")
+    @Transient
     public String getCommonRecipeCode() {
         return commonRecipeCode;
     }
@@ -199,6 +200,7 @@ public class CommonRecipe implements Serializable{
     }
 
     @Column(name = "common_recipe_type")
+    @Transient
     public Integer getCommonRecipeType() {
         return commonRecipeType;
     }
