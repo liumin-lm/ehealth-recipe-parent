@@ -1640,30 +1640,32 @@ public class RecipeServiceSub {
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
-                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
+            if (recipe.getStatus() != 0) {
+                if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
+                    List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                    map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
 //                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-                List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
-                if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
-                    auditMedicineIssues.forEach(item -> {
-                        if (null == item.getMedicineId()) {
-                            resultMedicineIssues.add(item);
-                        }
-                    });
+                    List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+                    if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
+                        List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
+                        auditMedicineIssues.forEach(item -> {
+                            if (null == item.getMedicineId()) {
+                                resultMedicineIssues.add(item);
+                            }
+                        });
 
-                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
-                    resultMedicineIssues.forEach(item -> {
-                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
-                        recipeDanger.setDangerDesc(item.getDetail());
-                        recipeDanger.setDangerDrug(item.getTitle());
-                        recipeDanger.setDangerLevel(item.getLvlCode());
-                        recipeDanger.setDangerType(item.getLvl());
-                        recipeDanger.setDetailUrl(item.getDetailUrl());
-                        recipeDangers.add(recipeDanger);
-                    });
-                    map.put("recipeDangers", recipeDangers); //返回处方分析数据
+                        List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                        resultMedicineIssues.forEach(item -> {
+                            PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                            recipeDanger.setDangerDesc(item.getDetail());
+                            recipeDanger.setDangerDrug(item.getTitle());
+                            recipeDanger.setDangerLevel(item.getLvlCode());
+                            recipeDanger.setDangerType(item.getLvl());
+                            recipeDanger.setDetailUrl(item.getDetailUrl());
+                            recipeDangers.add(recipeDanger);
+                        });
+                        map.put("recipeDangers", recipeDangers); //返回处方分析数据
+                    }
                 }
             }
             //医生处方单详情页按钮显示
