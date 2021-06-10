@@ -86,23 +86,4 @@ public class PharmacyManager {
                 .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
     }
 
-    /**
-     * 根据药房 key==id 的 Map 获取对象
-     *
-     * @param pharmacyId    药房Id
-     * @param pharmacyIdMap key==id 的 Map
-     * @return 药房对象
-     */
-    public static PharmacyTcm pharmacyById(Integer pharmacyId, Map<Integer, PharmacyTcm> pharmacyIdMap) {
-        if (ValidateUtil.integerIsEmpty(pharmacyId)) {
-            return null;
-        }
-        PharmacyTcm pharmacyTcm = pharmacyIdMap.get(pharmacyId);
-        if (null == pharmacyTcm) {
-            return null;
-        }
-        return pharmacyTcm;
-    }
-
-
 }

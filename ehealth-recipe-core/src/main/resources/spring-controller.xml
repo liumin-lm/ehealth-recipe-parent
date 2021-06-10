@@ -5,21 +5,20 @@
        			http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <!-- service register center -->
-    <ngari:applicationDomain name="eh" serverId="recipe" registryAddress="zookeeper://172.20.1.58:7181" region="xy"/>
+    <ngari:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
     <ngari:connector url="${url}">
         <ngari:filter id="json"/>
         <ngari:filter id="urt"/>
     </ngari:connector>
-    <ngari:mvcServer port="8899"/>
 
     <!--zookeeper代理地址：
     zookeeper://zk.ngarihealth.com:1111  f1环境
     zookeeper://zk.ngarihealth.com:2222  f2环境
     zookeeper://zk.ngarihealth.com:3333  f3环境
-    zookeeper://172.20.1.58:4181         FAT
-    zookeeper://zk.ngarihealth.com:6666  UAT
-    zookeeper:// 172.20.1.58:7181        F5
-    zookeeper://172.20.1.58 5181         devtest环境
+    zookeeper://172.20.1.58:4181 FAT
+    zookeeper://zk.ngarihealth.com:6666 UAT
+    zookeeper://172.20.1.58:7181  f5环境
+    zookeeper://172.20.1.58:5181  devtest环境
     zookeeper://zk.ngarihealth.com:8888  shishi环境
     zookeeper://zk.ngarihealth.com:7777  f6环境
     zookeeper://zk.ngarihealth.com:8899  f7环境
@@ -27,6 +26,7 @@
     zookeeper://172.20.1.58:2181 f9环境 -->
     <!--http://localhost:8899//*.jsonRequest-->
 
+    <!--<ngari:mvcServer port="8899"/>-->
 
     <!-- pub/sub -->
     <ngari:publisher id="publisher"/>
