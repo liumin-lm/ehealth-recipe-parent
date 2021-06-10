@@ -151,7 +151,7 @@ public class CommonRecipeManager {
      * @return
      */
     public List<CommonRecipe> commonRecipeList(Integer organId, Integer doctorId) {
-        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(organId, doctorId, 0, 1000);
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(doctorId, organId, 0, 1000);
         LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}，organId={}，doctorId={}", JSON.toJSONString(commonRecipeList), organId, doctorId);
         return commonRecipeList;
     }
