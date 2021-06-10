@@ -39,7 +39,6 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药房类型：中药,西药,中成药,膏方")
     private List<String> pharmacyCategray;
 
-
     @ItemProperty(alias = "自增id")
     private Integer id;
 

@@ -170,7 +170,7 @@ public class CommonRecipeAtop extends BaseAtop {
      * @return boolean
      */
     @RpcService
-    public boolean addBatchOfflineCommon(Integer organId, List<CommonDTO> commonList) {
+    public boolean batchAddOfflineCommon(Integer organId, List<CommonDTO> commonList) {
         logger.info("CommonRecipeAtop addOfflineCommon commonList = {}", JSON.toJSONString(commonList));
         if (ValidateUtil.integerIsEmpty(organId) || CollectionUtils.isEmpty(commonList)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
