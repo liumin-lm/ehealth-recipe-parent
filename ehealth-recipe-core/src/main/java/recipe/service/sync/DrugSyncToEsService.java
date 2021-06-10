@@ -32,7 +32,7 @@ public class DrugSyncToEsService {
     /**
      * 单线程数据处理量
      **/
-    protected static final int ONCETIME_DEAL_NUM = 200;
+    protected static final int ONCETIME_DEAL_NUM = 2000;
 
     /**
      * 同步base_drugList基础库数据，用于患者检索
