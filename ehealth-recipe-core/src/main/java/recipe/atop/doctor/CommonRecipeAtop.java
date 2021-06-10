@@ -66,6 +66,16 @@ public class CommonRecipeAtop extends BaseAtop {
         }
     }
 
+    /**
+     * 获取常用方列表
+     *
+     * @param recipeType 处方类型
+     * @param doctorId   医生id
+     * @param organId    机构id
+     * @param start      开始
+     * @param limit      分页条数
+     * @return 常用方列表
+     */
     @RpcService
     public List<CommonDTO> commonRecipeListV1(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
         logger.info("CommonRecipeAtop commonRecipeListV1 organId = {},doctorId = {},recipeType = {},start = {},limit = {}"

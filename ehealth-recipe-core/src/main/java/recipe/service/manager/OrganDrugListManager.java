@@ -12,9 +12,10 @@ import org.springframework.stereotype.Service;
 import recipe.dao.OrganDrugListDAO;
 import recipe.util.ValidateUtil;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -38,10 +39,8 @@ public class OrganDrugListManager {
     public Map<String, List<OrganDrugList>> getOrganDrugCode(int organId, List<String> drugCodeList) {
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
         logger.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
-        if (CollectionUtils.isEmpty(organDrugList)) {
-            return new HashMap<>();
-        }
-        return organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+        return Optional.ofNullable(organDrugList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
     }
 
     /**

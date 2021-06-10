@@ -11,7 +11,6 @@ import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,11 +95,9 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
-        logger.info("usingRateMap usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
-        if (CollectionUtils.isEmpty(usingRates)) {
-            return new HashMap<>(1);
-        }
-        return usingRates.stream().collect(Collectors.toMap(UsingRate::getId, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
+        return Optional.ofNullable(usingRates).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsingRate::getId, a -> a, (k1, k2) -> k1));
     }
 
 
@@ -115,11 +112,9 @@ public class DrugClient extends BaseClient {
             return new HashMap<>();
         }
         List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
-        logger.info("usingRateMap usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
-        if (CollectionUtils.isEmpty(usingRates)) {
-            return new HashMap<>();
-        }
-        return usingRates.stream().collect(Collectors.toMap(UsingRate::getUsingRateKey, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient usingRateMapCode organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
+        return Optional.ofNullable(usingRates).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsingRate::getUsingRateKey, a -> a, (k1, k2) -> k1));
     }
 
 
@@ -134,11 +129,9 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-        logger.info("usingRateMap usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
-        if (CollectionUtils.isEmpty(usePathways)) {
-            return new HashMap<>(1);
-        }
-        return usePathways.stream().collect(Collectors.toMap(UsePathways::getId, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
+        return Optional.ofNullable(usePathways).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsePathways::getId, a -> a, (k1, k2) -> k1));
     }
 
 
@@ -153,11 +146,9 @@ public class DrugClient extends BaseClient {
             return new HashMap<>();
         }
         List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-        logger.info("usingRateMap usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
-        if (CollectionUtils.isEmpty(usePathways)) {
-            return new HashMap<>();
-        }
-        return usePathways.stream().collect(Collectors.toMap(UsePathways::getPathwaysKey, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient usePathwaysCodeMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
+        return Optional.ofNullable(usePathways).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsePathways::getPathwaysKey, a -> a, (k1, k2) -> k1));
     }
 
 
@@ -168,8 +159,11 @@ public class DrugClient extends BaseClient {
      * @return code = key对象
      */
     public Map<String, DecoctionWay> decoctionWayCodeMap(Integer organId) {
-        logger.info("usingRateMap decoctionWayCodeMap organId = {} ", organId);
+        if (null == organId) {
+            return new HashMap<>();
+        }
         List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
+        logger.info("DrugClient decoctionWayCodeMap organId = {} ,decoctionWayList:{}", organId, JSON.toJSONString(decoctionWayList));
         return Optional.ofNullable(decoctionWayList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DecoctionWay::getDecoctionCode, a -> a, (k1, k2) -> k1));
     }
@@ -203,9 +197,11 @@ public class DrugClient extends BaseClient {
      * @return code = key对象
      */
     public Map<String, DrugMakingMethod> drugMakingMethodCodeMap(Integer organId) {
-        logger.info("usingRateMap DrugMakingMethodCodeMap organId = {} ", organId);
+        if (null == organId) {
+            return new HashMap<>();
+        }
         List<DrugMakingMethod> drugMakingMethodList = drugMakingMethodDao.findByOrganId(organId);
-        logger.info("usingRateMap DrugMakingMethodCodeMap  mapCode:{}", JSON.toJSONString(drugMakingMethodList));
+        logger.info("DrugClient drugMakingMethodList organId = {}, drugMakingMethodList:{}", organId, JSON.toJSONString(drugMakingMethodList));
         return Optional.ofNullable(drugMakingMethodList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DrugMakingMethod::getMethodCode, a -> a, (k1, k2) -> k1));
     }
@@ -243,11 +239,9 @@ public class DrugClient extends BaseClient {
             return new HashMap<>();
         }
         List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
-        logger.info("usingRateMap drugEntrustCodeMap organId = {} ,drugEntrusts={}", organId, JSON.toJSONString(drugEntrusts));
-        if (CollectionUtils.isEmpty(drugEntrusts)) {
-            return new HashMap<>();
-        }
-        return drugEntrusts.stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustName, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient drugEntrustNameMap organId = {} ,drugEntrusts={}", organId, JSON.toJSONString(drugEntrusts));
+        return Optional.ofNullable(drugEntrusts).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustName, a -> a, (k1, k2) -> k1));
     }
 
 

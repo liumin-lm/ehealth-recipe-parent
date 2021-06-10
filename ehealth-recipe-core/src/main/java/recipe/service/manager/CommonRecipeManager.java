@@ -72,6 +72,8 @@ public class CommonRecipeManager {
      * @param commonDrugList     常用方药品
      */
     public void saveCommonRecipe(CommonRecipe commonRecipe, CommonRecipeExtDTO commonRecipeExtDTO, List<CommonRecipeDrug> commonDrugList) {
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe={},commonRecipeExtDTO={},commonDrugList={}"
+                , JSON.toJSONString(commonRecipe), JSON.toJSONString(commonRecipeExtDTO), JSON.toJSONString(commonDrugList));
         commonRecipe.setCommonRecipeId(null);
         commonRecipeDAO.save(commonRecipe);
         if (null != commonRecipeExtDTO) {
@@ -85,7 +87,7 @@ public class CommonRecipeManager {
             a.setCommonRecipeId(commonRecipe.getCommonRecipeId());
             commonRecipeDrugDAO.save(a);
         });
-        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe.getCommonRecipeId={}", commonRecipe.getCommonRecipeId());
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipeId={}", commonRecipe.getCommonRecipeId());
     }
 
     /**
@@ -262,8 +264,7 @@ public class CommonRecipeManager {
      */
     public List<CommonDTO> offlineCommon(Integer doctorId) {
         DoctorDTO doctorDTO = doctorClient.getDoctor(doctorId);
-        List<CommonDTO> commonList = offlineRecipeClient.offlineCommonRecipe(doctorId, doctorDTO.getJobNumber(), doctorDTO.getName());
-        return commonList;
+        return offlineRecipeClient.offlineCommonRecipe(doctorId, doctorDTO.getJobNumber(), doctorDTO.getName());
     }
 
 

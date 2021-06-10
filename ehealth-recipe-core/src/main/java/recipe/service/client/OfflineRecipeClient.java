@@ -22,17 +22,22 @@ import java.util.List;
  */
 @Service
 public class OfflineRecipeClient extends BaseClient {
-
+    /**
+     * @param doctorId  医生id
+     * @param jobNumber 医生工号
+     * @param name      医生名称
+     * @return 线下常用方对象
+     */
     public List<CommonDTO> offlineCommonRecipe(Integer doctorId, String jobNumber, String name) {
-        List<CommonDTO> result;
+        logger.info("OfflineRecipeClient offlineCommonRecipe doctorId:{}，jobNumber:{}，name:{}", doctorId, jobNumber, name);
         try {
             HisResponseTO<List<CommonDTO>> hisResponse = test(doctorId);//recipeHisService.offlineCommonRecipe(jobNumber, name, "0");
-            result = getResponse(hisResponse);
+            List<CommonDTO> result = getResponse(hisResponse);
+            return result;
         } catch (Exception e) {
             logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        return result;
     }
 
     private HisResponseTO<List<CommonDTO>> test(Integer doctorId) {

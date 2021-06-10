@@ -37,7 +37,6 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "常用方类型：0平台，1协定方，2....")
     private Integer commonRecipeType;
 
-
     @ItemProperty(alias = "处方类型")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
@@ -55,16 +54,11 @@ public class CommonRecipe implements Serializable{
     private Integer pharmacyId;
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
-
-    @ItemProperty(alias = "常用方中的药品信息")
-    @Deprecated
-    private String recipeDetailJsonConfig;
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
 
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
-
-    @ItemProperty(alias = "药房编码")
-    private String pharmacyCode;
 
 
     @Column(name = "pharmacyCode")
@@ -74,15 +68,6 @@ public class CommonRecipe implements Serializable{
 
     public void setPharmacyCode(String pharmacyCode) {
         this.pharmacyCode = pharmacyCode;
-    }
-
-    @Column(name = "recipeDetailJsonConfig")
-    public String getRecipeDetailJsonConfig() {
-        return recipeDetailJsonConfig;
-    }
-
-    public void setRecipeDetailJsonConfig(String recipeDetailJsonConfig) {
-        this.recipeDetailJsonConfig = recipeDetailJsonConfig;
     }
 
     @Column(name = "isLongRecipe")
@@ -190,7 +175,6 @@ public class CommonRecipe implements Serializable{
     }
 
     @Column(name = "common_recipe_code")
-    @Transient
     public String getCommonRecipeCode() {
         return commonRecipeCode;
     }
@@ -200,7 +184,6 @@ public class CommonRecipe implements Serializable{
     }
 
     @Column(name = "common_recipe_type")
-    @Transient
     public Integer getCommonRecipeType() {
         return commonRecipeType;
     }

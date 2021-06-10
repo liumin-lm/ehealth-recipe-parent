@@ -65,9 +65,12 @@ public class PharmacyManager {
      * @return 机构code = key对象
      */
     public Map<String, PharmacyTcm> pharmacyCodeMap(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
         //药房信息
         List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("RecipeDetailService pharmacyCodeMap pharmacyList= {}", JSON.toJSONString(pharmacyList));
+        logger.info("RecipeDetailService pharmacyCodeMap organId:{}, pharmacyList= {}", organId, JSON.toJSONString(pharmacyList));
         return Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
     }
