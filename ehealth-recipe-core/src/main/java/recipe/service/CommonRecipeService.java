@@ -82,7 +82,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         if (null == commonRecipeDTO || CollectionUtils.isEmpty(drugListDTO)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方数据不完整，请重试");
         }
-        addCommonRecipe(commonRecipeDTO, commonRecipeDTO.getCommonRecipeExt(), drugListDTO);
+        saveCommonRecipe(commonRecipeDTO, commonRecipeDTO.getCommonRecipeExt(), drugListDTO);
     }
 
     /**
@@ -93,7 +93,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      * @param drugListDTO     常用方药品
      * @return
      */
-    public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, CommonRecipeExtDTO commonRecipeExt, List<CommonRecipeDrugDTO> drugListDTO) {
+    public void saveCommonRecipe(CommonRecipeDTO commonRecipeDTO, CommonRecipeExtDTO commonRecipeExt, List<CommonRecipeDrugDTO> drugListDTO) {
         //id不为空则删除 重新add数据
         Integer commonRecipeId = commonRecipeDTO.getCommonRecipeId();
         //常用方参数校验

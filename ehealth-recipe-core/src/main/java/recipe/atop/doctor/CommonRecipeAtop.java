@@ -102,7 +102,7 @@ public class CommonRecipeAtop extends BaseAtop {
      * @param common 常用方
      */
     @RpcService
-    public void addCommonRecipe(CommonDTO common) {
+    public void saveCommonRecipe(CommonDTO common) {
         logger.info("CommonRecipeAtop addCommonRecipe common = {}", JSON.toJSONString(common));
         if (null == common || null == common.getCommonRecipeDTO() || CollectionUtils.isEmpty(common.getCommonRecipeDrugList())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
@@ -115,7 +115,7 @@ public class CommonRecipeAtop extends BaseAtop {
         commonRecipe.setCreateDt(now);
         commonRecipe.setLastModify(now);
         try {
-            commonRecipeService.addCommonRecipe(common.getCommonRecipeDTO(), common.getCommonRecipeExt(), common.getCommonRecipeDrugList());
+            commonRecipeService.saveCommonRecipe(common.getCommonRecipeDTO(), common.getCommonRecipeExt(), common.getCommonRecipeDrugList());
         } catch (DAOException e1) {
             logger.warn("CommonRecipeAtop addCommonRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
