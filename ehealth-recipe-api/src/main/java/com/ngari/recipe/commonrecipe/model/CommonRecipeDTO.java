@@ -66,6 +66,7 @@ public class CommonRecipeDTO implements Serializable {
     private List<Integer> drugIdList;
 
     @ItemProperty(alias = "药品列表")
+    @Deprecated
     private List<CommonRecipeDrugDTO> commonDrugList;
 
     @ItemProperty(alias = "常用方的状态")
@@ -75,5 +76,6 @@ public class CommonRecipeDTO implements Serializable {
     private String isLongRecipe;
 
     @ItemProperty(alias = "常用方扩展信息")
+    @Deprecated
     private CommonRecipeExtDTO commonRecipeExt;
 }
