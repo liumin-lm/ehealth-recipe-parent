@@ -408,6 +408,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(drug.getMemo());
         if (null == drugEntrustDTO) {
             drugEntrustDTO = new DrugEntrustDTO();
+            drugEntrustDTO.setDrugEntrustName(drug.getMemo());
         }
         drug.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
         drug.setDrugEntrustId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
