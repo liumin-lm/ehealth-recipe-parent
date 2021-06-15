@@ -76,6 +76,7 @@ import recipe.purchase.PurchaseService;
 import recipe.retry.RecipeRetryService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.CardDataUploadRunable;
+import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
@@ -411,6 +412,9 @@ public class RecipeHisService extends RecipeBaseService {
             }
 
             if (canDrugTakeChange) {
+                //推送处方到监管平台
+                LOGGER.info("recipeDrugTake PushRecipeToRegulationCallable recipeId={}", recipeId);
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
                 LOGGER.info("drugTakeChange 请求参数:{}.", JSONUtils.toString(request));
                 Boolean success = service.drugTakeChange(request);
