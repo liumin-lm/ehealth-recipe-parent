@@ -43,7 +43,7 @@ public class RecipeDetailAtop extends BaseAtop {
     @Deprecated
     public List<RecipeDetailBean> validateDetail(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         logger.info("RecipeDetailAtop validateDetail recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
-        if (null == organId || null == recipeType || CollectionUtils.isEmpty(recipeDetails)) {
+        if (ValidateUtil.integerIsEmpty(organId, recipeType) || CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
         ValidateDetailVO validateDetailVO = new ValidateDetailVO(organId, recipeType, recipeDetails, new RecipeExtendBean(), true);
@@ -124,7 +124,7 @@ public class RecipeDetailAtop extends BaseAtop {
     @RpcService
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
         logger.info("RecipeDetailAtop entrustValidate recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
-        if (null == organId || CollectionUtils.isEmpty(recipeDetails)) {
+        if (ValidateUtil.integerIsEmpty(organId) || CollectionUtils.isEmpty(recipeDetails)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {

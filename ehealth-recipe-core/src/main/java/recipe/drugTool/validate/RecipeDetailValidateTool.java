@@ -5,10 +5,10 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugMakingMethod;
 import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.ValidateOrganDrugVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,10 +20,9 @@ import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
 import recipe.service.client.DrugClient;
 import recipe.service.client.IConfigurationClient;
-import recipe.util.ByteUtils;
+import recipe.service.manager.OrganDrugListManager;
 import recipe.util.ValidateUtil;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,73 +63,21 @@ public class RecipeDetailValidateTool {
      * @return
      */
     public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup) {
-        recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
-        //校验药品存在
-        if (StringUtils.isEmpty(recipeDetailBean.getOrganDrugCode())) {
+        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO();
+        validateOrganDrugVO.setDrugId(recipeDetailBean.getDrugId());
+        validateOrganDrugVO.setOrganDrugCode(recipeDetailBean.getOrganDrugCode());
+        OrganDrugList organDrugList = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+        if (validateOrganDrugVO.getValidateStatus()) {
+            recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
+        } else {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
-            return null;
         }
-        List<OrganDrugList> organDrugs = organDrugGroup.get(recipeDetailBean.getOrganDrugCode());
-        if (CollectionUtils.isEmpty(organDrugs)) {
-            recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
-            return null;
+        if (null != organDrugList) {
+            //设置剂型
+            recipeDetailBean.setDrugForm(organDrugList.getDrugForm());
         }
-        //校验比对药品
-        OrganDrugList organDrug = null;
-        if (ValidateUtil.integerIsEmpty(recipeDetailBean.getDrugId()) && 1 == organDrugs.size()) {
-            organDrug = organDrugs.get(0);
-        }
-        if (!ValidateUtil.integerIsEmpty(recipeDetailBean.getDrugId())) {
-            for (OrganDrugList drug : organDrugs) {
-                if (drug.getDrugId().equals(recipeDetailBean.getDrugId())) {
-                    organDrug = drug;
-                    break;
-                }
-            }
-        }
-        if (null == organDrug) {
-            recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
-            logger.info("RecipeDetailService validateDrug organDrug is null OrganDrugCode ：  {}", recipeDetailBean.getOrganDrugCode());
-            return null;
-        }
-        //设置剂型
-        recipeDetailBean.setDrugForm(organDrug.getDrugForm());
-        return organDrug;
+        return organDrugList;
     }
-
-    /**
-     * 校验药品药房是否变动
-     *
-     * @param commonPharmacyId 续房药房id
-     * @param pharmacyCode     续方药房code
-     * @param pharmacy         机构药房id
-     * @param pharmacyCodeMap  药房表信息
-     * @return true 不一致
-     */
-    public boolean pharmacyVariation(Integer commonPharmacyId, String pharmacyCode, String pharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
-        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isEmpty(pharmacyCode) && StringUtils.isNotEmpty(pharmacy)) {
-            return true;
-        }
-        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacyCode)) {
-            PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(pharmacyCode);
-            if (null == pharmacyTcm) {
-                return true;
-            }
-            commonPharmacyId = pharmacyTcm.getPharmacyId();
-        }
-        if (ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy)) {
-            return true;
-        }
-        if (!ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isEmpty(pharmacy)) {
-            return true;
-        }
-        if (!ValidateUtil.integerIsEmpty(commonPharmacyId) && StringUtils.isNotEmpty(pharmacy) &&
-                !Arrays.asList(pharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(commonPharmacyId))) {
-            return true;
-        }
-        return false;
-    }
-
 
     /**
      * 校验药 数据是否完善
@@ -140,7 +87,7 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, List<DrugEntrustDTO> drugEntrusts) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
                 && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
@@ -155,7 +102,7 @@ public class RecipeDetailValidateTool {
             if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
-            if (entrustValidate(recipeDetail, drugEntrusts)) {
+            if (entrustValidate(recipeDetail, drugEntrustNameMap)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内
@@ -184,36 +131,22 @@ public class RecipeDetailValidateTool {
      * @param drugEntrusts 机构嘱托
      * @return
      */
-    public boolean entrustValidate(RecipeDetailBean recipeDetail, List<DrugEntrustDTO> drugEntrusts) {
+    public boolean entrustValidate(RecipeDetailBean recipeDetail, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
         if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
             return true;
         }
-        if (CollectionUtils.isEmpty(drugEntrusts)) {
-            recipeDetail.setDrugEntrustCode(null);
-            recipeDetail.setEntrustmentId(null);
-            recipeDetail.setMemo(null);
+        //嘱托
+        DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(recipeDetail.getMemo());
+        if (null == drugEntrustDTO) {
+            drugEntrustDTO = new DrugEntrustDTO();
+            recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
+            recipeDetail.setEntrustmentId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
+            recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
             return true;
         }
-        boolean entrusts = true;
-        for (DrugEntrustDTO drugEntrustDTO : drugEntrusts) {
-            if (drugEntrustDTO.getDrugEntrustCode().equals(recipeDetail.getDrugEntrustCode())) {
-                entrusts = false;
-                recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
-                recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
-                break;
-            } else if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && drugEntrustDTO.getDrugEntrustName().equals(recipeDetail.getMemo())) {
-                entrusts = false;
-                recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-                recipeDetail.setEntrustmentId(drugEntrustDTO.getDrugEntrustId().toString());
-                break;
-            }
-        }
-        if (entrusts) {
-            recipeDetail.setDrugEntrustCode(null);
-            recipeDetail.setEntrustmentId(null);
-            recipeDetail.setMemo(null);
-            return true;
-        }
+        recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
+        recipeDetail.setEntrustmentId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
+        recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
         return false;
     }
 
@@ -259,14 +192,14 @@ public class RecipeDetailValidateTool {
         }
         Map<String, DecoctionWay> mapCode = decoctionWayList.stream().collect(Collectors.toMap(DecoctionWay::getDecoctionCode, a -> a, (k1, k2) -> k1));
         DecoctionWay decoctionWay = mapCode.get(recipeExtendBean.getDecoctionCode());
-        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionCode())) {
+        if (null != decoctionWay) {
             decoctionWay(decoctionWay, recipeExtendBean);
             return;
         }
 
         Map<String, DecoctionWay> mapText = decoctionWayList.stream().collect(Collectors.toMap(DecoctionWay::getDecoctionText, a -> a, (k1, k2) -> k1));
         decoctionWay = mapText.get(recipeExtendBean.getDecoctionText());
-        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionText())) {
+        if (null != decoctionWay) {
             decoctionWay(decoctionWay, recipeExtendBean);
         }
     }

@@ -1,7 +1,9 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
@@ -25,7 +27,10 @@ import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.client.DoctorClient;
 import recipe.service.client.DrugClient;
+import recipe.service.client.OfflineRecipeClient;
+import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -54,6 +59,10 @@ public class CommonRecipeManager {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private DoctorClient doctorClient;
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
 
     /**
      * 新增常用方信息
@@ -63,6 +72,8 @@ public class CommonRecipeManager {
      * @param commonDrugList     常用方药品
      */
     public void saveCommonRecipe(CommonRecipe commonRecipe, CommonRecipeExtDTO commonRecipeExtDTO, List<CommonRecipeDrug> commonDrugList) {
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe={},commonRecipeExtDTO={},commonDrugList={}"
+                , JSON.toJSONString(commonRecipe), JSON.toJSONString(commonRecipeExtDTO), JSON.toJSONString(commonDrugList));
         commonRecipe.setCommonRecipeId(null);
         commonRecipeDAO.save(commonRecipe);
         if (null != commonRecipeExtDTO) {
@@ -76,7 +87,7 @@ public class CommonRecipeManager {
             a.setCommonRecipeId(commonRecipe.getCommonRecipeId());
             commonRecipeDrugDAO.save(a);
         });
-        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe.getCommonRecipeId={}", commonRecipe.getCommonRecipeId());
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipeId={}", commonRecipe.getCommonRecipeId());
     }
 
     /**
@@ -85,7 +96,7 @@ public class CommonRecipeManager {
      * @param commonRecipeId 常用方id
      */
     public void removeCommonRecipe(Integer commonRecipeId) {
-        if (null == commonRecipeId || 0 == commonRecipeId) {
+        if (ValidateUtil.integerIsEmpty(commonRecipeId)) {
             return;
         }
         commonRecipeDAO.remove(commonRecipeId);
@@ -131,6 +142,20 @@ public class CommonRecipeManager {
         List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(doctorId, organId, start, limit);
         LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}", JSON.toJSONString(commonRecipeList));
         return ObjectCopyUtils.convert(commonRecipeList, CommonRecipeDTO.class);
+    }
+
+
+    /**
+     * 查询常用方列表
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @return
+     */
+    public List<CommonRecipe> commonRecipeList(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(doctorId, organId, 0, 1000);
+        LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}，organId={}，doctorId={}", JSON.toJSONString(commonRecipeList), organId, doctorId);
+        return commonRecipeList;
     }
 
     /**
@@ -216,13 +241,31 @@ public class CommonRecipeManager {
      * @param commonRecipeName 常用方名
      * @return
      */
-    public CommonRecipe getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
+    public Integer getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
         LOGGER.info("CommonRecipeManager validateParam getByDoctorIdAndName doctorId:{},commonRecipeName:{}", doctorId, commonRecipeName);
         try {
-            return commonRecipeDAO.getByDoctorIdAndName(doctorId, commonRecipeName);
+            List<CommonRecipe> list = commonRecipeDAO.findByName(doctorId, commonRecipeName);
+            if (CollectionUtils.isNotEmpty(list)) {
+                return list.size();
+            } else {
+                return 0;
+            }
         } catch (Exception e) {
             LOGGER.error("CommonRecipeManager validateParam error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }
     }
+
+    /**
+     * 获取线下常用方
+     *
+     * @param doctorId 医生id
+     * @return
+     */
+    public List<CommonDTO> offlineCommon(Integer doctorId) {
+        DoctorDTO doctorDTO = doctorClient.getDoctor(doctorId);
+        return offlineRecipeClient.offlineCommonRecipe(doctorId, doctorDTO.getJobNumber(), doctorDTO.getName());
+    }
+
+
 }

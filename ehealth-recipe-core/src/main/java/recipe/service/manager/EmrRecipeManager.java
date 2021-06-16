@@ -165,34 +165,6 @@ public class EmrRecipeManager {
     }
 
     /**
-     * 批量处理老数据接口 只用发布时处理一次
-     *
-     * @param recipe    处方
-     * @param recipeExt 处方扩展
-     */
-    public void saveDocList(Recipe recipe, RecipeExtend recipeExt) {
-        logger.info("EmrRecipeManager saveDocList recipe:{},recipeExt:{}", JSONUtils.toString(recipe), JSONUtils.toString(recipeExt));
-        try {
-            // 更新 处方诊断信息
-            List<EmrConfigRes> detail = getEmrDetailDTO(recipeExt.getDocIndexId());
-            if (CollectionUtils.isEmpty(detail)) {
-                return;
-            }
-            Recipe recipeUpdate = new Recipe();
-            recipeUpdate.setRecipeId(recipe.getRecipeId());
-            detail.forEach(a -> {
-                if (RecipeEmrComment.DIAGNOSIS.equals(a.getKey())) {
-                    getMultiSearch(a, recipeUpdate, null);
-                }
-            });
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        } catch (Exception e) {
-            logger.error("EmrRecipeManager saveDocList 电子病历保存失败", e);
-        }
-        logger.info("EmrRecipeManager updateMedicalInfo end recipeExt={}", recipeExt.getDocIndexId());
-    }
-
-    /**
      * 写入电子病例 药品信息
      * 更新电子病例 为已经使用状态
      * 更新处方 诊断信息

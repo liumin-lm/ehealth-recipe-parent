@@ -18,13 +18,16 @@ import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.dao.OrganDrugListDAO;
-import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
+import recipe.service.client.DrugClient;
 import recipe.service.client.IConfigurationClient;
+import recipe.service.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_PERFECT;
@@ -38,8 +41,6 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
 public class RecipeDetailService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
-    private PharmacyTcmDAO pharmacyTcmDAO;
-    @Autowired
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private IConfigurationClient configurationClient;
@@ -49,6 +50,11 @@ public class RecipeDetailService {
     private IDrugEntrustService drugEntrustService;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private PharmacyManager pharmacyManager;
+    @Autowired
+    private DrugClient drugClient;
+
 
     /**
      * 校验线上线下 药品数据 用于续方需求
@@ -62,10 +68,7 @@ public class RecipeDetailService {
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getLongRecipe());
         //药房信息
-        List<PharmacyTcm> pharmacyList = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("RecipeDetailService validateDrug pharmacyList= {}", JSON.toJSONString(pharmacyList));
-        Map<String, PharmacyTcm> pharmacyCodeMap = Optional.ofNullable(pharmacyList).orElseGet(Collections::emptyList)
-                .stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
+        Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
         //查询机构药品
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
@@ -74,7 +77,7 @@ public class RecipeDetailService {
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
-        List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+        Map<String, DrugEntrustDTO> drugEntrustNameMap = drugClient.drugEntrustNameMap(organId);
         /**校验处方扩展字段*/
         //校验煎法
         recipeDetailValidateTool.validateDecoction(organId, validateDetailVO.getRecipeExtendBean());
@@ -88,13 +91,13 @@ public class RecipeDetailService {
                 return;
             }
             //校验药品药房是否变动
-            if (recipeDetailValidateTool.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+            if (PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
             }
             //校验数据是否完善
-            recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrusts);
+            recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap);
             //返回前端必须字段
             setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
         });
@@ -124,9 +127,9 @@ public class RecipeDetailService {
      */
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
         //获取嘱托
-        List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+        Map<String, DrugEntrustDTO> drugEntrustNameMap = drugClient.drugEntrustNameMap(organId);
         recipeDetails.forEach(a -> {
-            if (recipeDetailValidateTool.entrustValidate(a, drugEntrusts)) {
+            if (recipeDetailValidateTool.entrustValidate(a, drugEntrustNameMap)) {
                 a.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
         });

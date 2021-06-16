@@ -41,6 +41,7 @@ public  class PharmacyTcm implements java.io.Serializable{
     private Integer organId;
 
     @ItemProperty(alias = "药房类型")
+    @Deprecated
     private String type;
 
     @ItemProperty(alias = "药房类型")
