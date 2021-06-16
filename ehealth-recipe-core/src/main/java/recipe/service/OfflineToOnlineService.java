@@ -1,8 +1,28 @@
 package recipe.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.ExtInfoTO;
+import com.ngari.his.recipe.mode.MedicalInfo;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.persistence.DAOFactory;
+import ctd.util.BeanUtils;
+import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.ObjectUtils;
+import recipe.constant.PayConstant;
+import recipe.dao.*;
+import recipe.offlinetoonline.service.third.RecipeHisService;
+import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -12,11 +32,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bean.RecipeGiveModeButtonRes;
-import recipe.dao.RecipeDAO;
+import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.GroupRecipeManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author liumin
@@ -25,7 +47,7 @@ import java.util.Map;
  */
 @Service
 public class OfflineToOnlineService {
-    private static final Logger logger = LoggerFactory.getLogger(OfflineToOnlineService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfflineToOnlineService.class);
 
     @Autowired
     private RecipeService recipeService;
@@ -36,7 +58,35 @@ public class OfflineToOnlineService {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
+    private HisRecipeDAO hisRecipeDAO;
+    @Autowired
+    private HisRecipeExtDAO hisRecipeExtDAO;
+    @Autowired
+    private HisRecipeDetailDAO hisRecipeDetailDAO;
+    @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
+    @Resource
+    private DrugsEnterpriseService drugsEnterpriseService;
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
+    @Autowired
+    private GroupRecipeManager groupRecipeManager;
+    @Autowired
+    private RecipeHisService recipeHisService;
+
+
+
+
 
     /**
      * 获取购药按钮
@@ -45,12 +95,12 @@ public class OfflineToOnlineService {
      * @return
      */
     public List<RecipeGiveModeButtonRes> getRecipeGiveModeButtonRes(List<Integer> recipeIds) {
-        logger.info("OfflineToOnlineService getRecipeGiveModeButtonRes request = {}",  JSONUtils.toString(recipeIds));
+        LOGGER.info("OfflineToOnlineService getRecipeGiveModeButtonRes request = {}",  JSONUtils.toString(recipeIds));
         List<RecipeGiveModeButtonRes> recipeGiveModeButtonRes = recipeService.getRecipeGiveModeButtonRes(recipeIds);
         if (CollectionUtils.isEmpty(recipeGiveModeButtonRes)) {
             throw new DAOException(609, "“抱歉，当前处方没有可支持的购药方式”");
         }
-        logger.info("OfflineToOnlineService getRecipeGiveModeButtonRes response = {}",  JSONUtils.toString(recipeGiveModeButtonRes));
+        LOGGER.info("OfflineToOnlineService getRecipeGiveModeButtonRes response = {}",  JSONUtils.toString(recipeGiveModeButtonRes));
         return recipeGiveModeButtonRes;
     }
 
@@ -61,7 +111,7 @@ public class OfflineToOnlineService {
      * @Author liumin
      */
     public List<Integer> batchSyncRecipeFromHis(SettleForOfflineToOnlineVO request) {
-        logger.info("OfflineToOnlineService batchSyncRecipeFromHis request = {}", JSONUtils.toString(request));
+        LOGGER.info("OfflineToOnlineService batchSyncRecipeFromHis request = {}", JSONUtils.toString(request));
         List<Integer> recipeIds = new ArrayList<>();
         // 1、删数据
         hisRecipeService.deleteRecipeByRecipeCodes(request.getOrganId(),request.getRecipeCode());
@@ -74,7 +124,7 @@ public class OfflineToOnlineService {
                 recipeIds.add(recipeBean.getRecipeId());
             }
         });
-        logger.info("batchSyncRecipeFromHis recipeIds:{}", JSONUtils.toString(recipeIds));
+        LOGGER.info("batchSyncRecipeFromHis recipeIds:{}", JSONUtils.toString(recipeIds));
         //部分处方线下转线上成功
         if (recipeIds.size() != request.getRecipeCode().size()) {
             throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
@@ -82,11 +132,15 @@ public class OfflineToOnlineService {
         //存在已失效处方
         List<Recipe> recipes=recipeDAO.findRecipeByRecipeIdAndClinicOrgan(Integer.parseInt(request.getOrganId()),recipeIds);
         if(CollectionUtils.isNotEmpty(recipes)&& recipes.size()>0){
-            logger.info("batchSyncRecipeFromHis 存在已失效处方");
+            LOGGER.info("batchSyncRecipeFromHis 存在已失效处方");
             throw new DAOException(600, "处方单过期已失效");
         }
-        logger.info("OfflineToOnlineService batchSyncRecipeFromHis response = {}",  JSONUtils.toString(recipeIds));
+        LOGGER.info("OfflineToOnlineService batchSyncRecipeFromHis response = {}",  JSONUtils.toString(recipeIds));
         return recipeIds;
     }
 
+
+    public List<HisRecipe> findHisRecipes(FindHisRecipeListVO request) {
+        return hisRecipeDAO.findHisRecipes(request.getOrganId(), request.getMpiId(), Integer.parseInt(request.getStatus()), request.getStart(), request.getLimit());
+    }
 }
