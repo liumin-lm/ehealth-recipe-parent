@@ -250,6 +250,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 return;
             }
             List<CommonRecipeDrug> drugList = offlineCommonRecipeDrug(commonRecipeDrugList, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustNameMap);
+            if (CollectionUtils.isEmpty(drugList)) {
+                fail.add(commonRecipeDTO.getCommonRecipeName());
+                return;
+            }
             if (commonRecipeDrugList.size() != drugList.size()) {
                 fail.add(commonRecipeDTO.getCommonRecipeName());
             }
