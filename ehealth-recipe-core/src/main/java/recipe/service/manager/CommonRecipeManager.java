@@ -262,9 +262,9 @@ public class CommonRecipeManager {
      * @param doctorId 医生id
      * @return
      */
-    public List<CommonDTO> offlineCommon(Integer doctorId) {
+    public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
         DoctorDTO doctorDTO = doctorClient.getDoctor(doctorId);
-        return offlineRecipeClient.offlineCommonRecipe(doctorId, doctorDTO.getJobNumber(), doctorDTO.getName());
+        return offlineRecipeClient.offlineCommonRecipe(organId, doctorDTO);
     }
 
 
