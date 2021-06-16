@@ -4,8 +4,11 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
+import com.ngari.recipe.recipe.model.HisRecipeVO;
+import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +25,17 @@ import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
 import recipe.service.OfflineToOnlineService2;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @Author liumin
- * @Date 2021/6/8上午11:42
- * @Description 线下转线上进行中处方实现类
+ * @Date 2021/1/26 上午11:42
+ * @Description 线下转线上待缴费处方实现类
  */
 @Service
-public class OnGoningServiceImpl implements IOfflineToOnlineService {
+public class NoPayServiceImpl implements IOfflineToOnlineService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
@@ -50,19 +54,40 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
 
     @Override
     public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
-        // 2、返回进行中的线下处方
+        // 2、转换成前端所需对象
+        List<HisRecipeVO> noPayFeeHisRecipeVO = offlineToOnlineService.covertToHisRecipeObject(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()));
+        // 3、过滤出待处理（未生成订单的）线下处方
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
-        return offlineToOnlineService.findOngoingHisRecipe(hisRecipeInfos.getData(), patientDTO, giveModeButtonBean, request.getStart(), request.getLimit());
-
+        return offlineToOnlineService.findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
     }
 
     @Override
     public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
-        // 跟待处理获取详情一致 先判断数据是否变更 然后返回详情
-        // 1.返回数据详情
+        // 1获取his数据
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
+        if (null == patientDTO) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,180,1,null);
 
-        return new;
+        try {
+            // 2更新数据校验
+            offlineToOnlineService.hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+        }
+        List<HisRecipe> recipes=new ArrayList<>();
+        try {
+            // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
+            recipes=offlineToOnlineService.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 1);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
 
+        // 4.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
+        Integer recipeId=offlineToOnlineService.saveRecipeInfo(recipes.get(0).getHisRecipeID());
+        // 5.通过cdrHisRecipeId返回数据详情
+        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(),recipeId);
     }
 
     @Override

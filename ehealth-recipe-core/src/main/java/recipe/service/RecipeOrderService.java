@@ -124,7 +124,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeDAO recipeDAO;
 
     @Autowired
-    private HisRecipeService hisRecipeService;
+    private OfflineToOnlineService offlineToOnlineService;
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
@@ -1939,7 +1939,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = offlineToOnlineService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
             List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
             if(CollectionUtils.isEmpty(hisRecipeTO)){
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
@@ -1966,7 +1966,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             });
             //删除
-            hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
+            offlineToOnlineService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
             if (existThisRecipeCode.get()==false ||
                     (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
                 LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);

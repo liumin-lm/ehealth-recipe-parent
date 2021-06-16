@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.HisRecipeService;
+import recipe.service.OfflineToOnlineService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.serviceprovider.recipeorder.service.constant.RecipeTaskEnum;
 
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 @RpcBean("patientTaskService")
 public class PatientTaskServiceImpl implements IPatientTaskService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfflineToOnlineService.class);
     private RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
     private RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
     private RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);

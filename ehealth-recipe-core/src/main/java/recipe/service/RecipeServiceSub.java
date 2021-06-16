@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
@@ -129,7 +128,7 @@ public class RecipeServiceSub {
 
     private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
 
-    private static HisRecipeService hisRecipeService=ApplicationUtils.getRecipeService(HisRecipeService.class);
+    private static OfflineToOnlineService offlineToOnlineService =ApplicationUtils.getRecipeService(OfflineToOnlineService.class);
 
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
@@ -2700,7 +2699,7 @@ public class RecipeServiceSub {
         }else{
             //获取当前处方详情
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeService.queryData(organId, patientDTO, null, 1, recipeCode);
+            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = offlineToOnlineService.queryData(organId, patientDTO, null, 1, recipeCode);
             QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
             if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
                 LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);

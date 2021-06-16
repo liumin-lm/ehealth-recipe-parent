@@ -4,7 +4,7 @@ import com.ngari.patient.dto.PatientDTO;
 import ctd.util.AppContextHolder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import recipe.service.HisRecipeService;
+import recipe.service.OfflineToOnlineService;
 
 import java.util.concurrent.Callable;
 
@@ -28,9 +28,9 @@ public class QueryHisRecipeCallable implements Callable<String> {
 
     @Override
     public String call() {
-        HisRecipeService hisRecipeService = AppContextHolder.getBean("eh.hisRecipeService", HisRecipeService.class);
+        OfflineToOnlineService offlineToOnlineService = AppContextHolder.getBean("eh.hisRecipeService", OfflineToOnlineService.class);
         try {
-            hisRecipeService.queryHisRecipeInfo(organId, patientDTO, timeQuantum, flag);
+            offlineToOnlineService.queryHisRecipeInfo(organId, patientDTO, timeQuantum, flag);
         } catch (Exception e) {
             LOGGER.error("查询his线下处方数据 error ", e);
         }
