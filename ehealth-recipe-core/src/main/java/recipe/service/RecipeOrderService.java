@@ -71,11 +71,13 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.givemode.business.GiveModeFactory;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 
@@ -2129,6 +2131,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
+        // 处方支付信息上传 监管平台
+        RecipeBusiThreadPool.submit(()->{
+            HisSyncSupervisionService hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
+            return null;
+        });
         return result;
     }
 
