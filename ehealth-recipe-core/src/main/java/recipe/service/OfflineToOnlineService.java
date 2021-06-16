@@ -3,11 +3,10 @@ package recipe.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
+import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.dao.RecipeDAO;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 

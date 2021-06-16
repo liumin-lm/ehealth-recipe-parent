@@ -1,14 +1,14 @@
-package recipe.factory.status.offlineToOnlineFactory.impl;
+package recipe.offlinetoonline.service.impl;
 
-import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
+import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import recipe.bean.RecipeGiveModeButtonRes;
-import recipe.factory.status.constant.OfflineToOnlineEnum;
-import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
+import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
+import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.service.OfflineToOnlineService;
 
 import java.util.List;

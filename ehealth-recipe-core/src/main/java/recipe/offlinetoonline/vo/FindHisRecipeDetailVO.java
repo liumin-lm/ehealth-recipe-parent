@@ -1,4 +1,4 @@
-package com.ngari.recipe.vo;
+package recipe.offlinetoonline.vo;
 
 import lombok.Data;
 

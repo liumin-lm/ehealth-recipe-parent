@@ -1,4 +1,4 @@
-package recipe.factory.status.constant;
+package recipe.offlinetoonline.constant;
 
 /**
  * 线下转线上查询方式 枚举

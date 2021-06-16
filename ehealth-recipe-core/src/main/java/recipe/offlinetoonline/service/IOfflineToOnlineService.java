@@ -1,6 +1,6 @@
-package recipe.factory.status.offlineToOnlineFactory;
+package recipe.offlinetoonline.service;
 
-import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
+import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.bean.RecipeGiveModeButtonRes;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package recipe.factory.status.offlineToOnlineFactory;
+package recipe.offlinetoonline.factory;
 
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
@@ -7,6 +7,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import recipe.offlinetoonline.service.IOfflineToOnlineService;
 
 import java.util.HashMap;
 import java.util.Map;

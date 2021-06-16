@@ -1,6 +1,6 @@
-package recipe.atop;
+package recipe.offlinetoonline.atop;
 
-import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
+import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -8,12 +8,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import recipe.atop.BaseAtop;
 import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.ErrorCode;
-import recipe.factory.status.constant.OfflineToOnlineEnum;
-import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
-import recipe.factory.status.offlineToOnlineFactory.OfflineToOnlineFactory;
+import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
+import recipe.offlinetoonline.service.IOfflineToOnlineService;
+import recipe.offlinetoonline.factory.OfflineToOnlineFactory;
 
 import javax.validation.Valid;
 import java.util.List;
