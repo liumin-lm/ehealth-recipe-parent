@@ -44,6 +44,8 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -277,6 +279,16 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianName(patient.getGuardianName());
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
+            }
+            //根据复诊id 保存就诊卡号和就诊卡类型
+            Integer consultId = recipeBean.getClinicId();
+            if (consultId != null) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
+                if (consultExDTO != null) {
+                    recipeExtend.setCardNo(consultExDTO.getCardId());
+                    recipeExtend.setCardType(consultExDTO.getCardType());
+                }
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
