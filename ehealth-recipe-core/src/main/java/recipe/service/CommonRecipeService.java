@@ -390,6 +390,9 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             return null;
         }
         PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(drug.getPharmacyCode());
+        if (null == pharmacyTcm) {
+            pharmacyTcm = new PharmacyTcm();
+        }
         drug.setPharmacyCode(pharmacyTcm.getPharmacyCode());
         drug.setPharmacyId(pharmacyTcm.getPharmacyId());
         drug.setPharmacyName(pharmacyTcm.getPharmacyName());
