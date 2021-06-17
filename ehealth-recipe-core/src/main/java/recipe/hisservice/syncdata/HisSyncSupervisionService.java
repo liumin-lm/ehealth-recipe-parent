@@ -1592,6 +1592,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //物流信息
                 RegulationLogisticsReq LogisticsInfo = pakRegulationLogisticsReq(order);
                 req.setLogisticsInfo(LogisticsInfo);
+
+                //复诊id
+                req.setBussID(recipe.getClinicId()!=null?recipe.getClinicId().toString():null);
+
             }
 
         }
