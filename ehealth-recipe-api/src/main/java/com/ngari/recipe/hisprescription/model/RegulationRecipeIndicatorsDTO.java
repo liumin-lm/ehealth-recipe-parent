@@ -17,7 +17,6 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  hosCode;//	院区代码
     private String  hosName;//	院区名称
     private String  mpiId;
-    @NotNull
     private String  bussID;//	互联网医院复诊记录Id
     private String  bussSource;// 处方来源标记   1 问诊  4 复诊
     private String  patientNumber;//门诊号
