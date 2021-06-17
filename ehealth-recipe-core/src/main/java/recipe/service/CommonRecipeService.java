@@ -405,7 +405,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             usingRate = new UsingRate();
         }
         drug.setUsingRate(usingRate.getUsingRateKey());
-        drug.setUsingRateId(String.valueOf(usingRate.getId()));
+        drug.setUsingRateId(ByteUtils.objValueOf(usingRate.getId()));
         drug.setUsingRateEnglishNames(usingRate.getEnglishNames());
         //频次
         UsePathways usePathways = usePathwaysCodeMap.get(drug.getUsePathways());
@@ -413,7 +413,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             usePathways = new UsePathways();
         }
         drug.setUsePathways(usePathways.getPathwaysKey());
-        drug.setUsePathwaysId(String.valueOf(usePathways.getId()));
+        drug.setUsePathwaysId(ByteUtils.objValueOf(usePathways.getId()));
         drug.setUsePathEnglishNames(usePathways.getEnglishNames());
         //嘱托
         DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(drug.getMemo());
@@ -422,7 +422,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             drugEntrustDTO.setDrugEntrustName(drug.getMemo());
         }
         drug.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-        drug.setDrugEntrustId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
+        drug.setDrugEntrustId(ByteUtils.objValueOf(drugEntrustDTO.getDrugEntrustId()));
         drug.setMemo(drugEntrustDTO.getDrugEntrustName());
         return drug;
     }
