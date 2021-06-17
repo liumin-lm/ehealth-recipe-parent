@@ -33,7 +33,7 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "常用方编码-医院唯一主键字段")
     private String commonRecipeCode;
 
-    @ItemProperty(alias = "常用方类型：0平台，1协定方，2....")
+    @ItemProperty(alias = "常用方类型：1平台，2协定方，3....")
     private Integer commonRecipeType;
 
     @ItemProperty(alias = "处方类型")
@@ -58,6 +58,11 @@ public class CommonRecipe implements Serializable{
 
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
+
+
+    //开当前处方的配置项信息
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    private String recipeJsonConfig;
 
 
     @Column(name = "pharmacyCode")
@@ -86,10 +91,6 @@ public class CommonRecipe implements Serializable{
     public void setOrganId(Integer organId) {
         this.organId = organId;
     }
-
-    //开当前处方的配置项信息
-    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
-    private String recipeJsonConfig;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

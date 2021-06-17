@@ -192,8 +192,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
         //获取线下常用方
         List<CommonDTO> offlineCommonList = commonRecipeManager.offlineCommon(organId, doctorId);
+        if (CollectionUtils.isEmpty(offlineCommonList)) {
+            return offlineCommonList;
+        }
         //关联常用方主键
-        List<CommonRecipe> commonRecipeList = commonRecipeManager.commonRecipeList(organId, doctorId);
+        List<CommonRecipe> commonRecipeList = commonRecipeManager.offlineCommonRecipeList(organId, doctorId);
+        if (CollectionUtils.isEmpty(commonRecipeList)) {
+            return offlineCommonList;
+        }
         Map<String, CommonRecipe> commonRecipeMap = commonRecipeList.stream().collect(Collectors.toMap(CommonRecipe::getCommonRecipeCode, a -> a, (k1, k2) -> k1));
         offlineCommonList.forEach(a -> {
             CommonRecipeDTO offlineCommonRecipeDTO = a.getCommonRecipeDTO();
