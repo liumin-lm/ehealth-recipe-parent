@@ -1052,6 +1052,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setPharmacyName(drugListMatch.getPharmacy());
+                        organDrugList.setChemicalName(drugListMatch.getChemicalName());
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
@@ -1177,6 +1178,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugSpec(drugListMatch.getDrugSpec());
                         organDrugList.setRetrievalCode(drugListMatch.getRetrievalCode());
                         organDrugList.setDrugForm(drugListMatch.getDrugForm());
+                        organDrugList.setChemicalName(drugListMatch.getChemicalName());
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
