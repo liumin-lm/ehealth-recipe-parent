@@ -125,11 +125,11 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     /**
      * 获取常用方列表
      *
-     * @param organId
-     * @param doctorId
-     * @param recipeType
-     * @param start
-     * @param limit
+     * @param recipeType 处方类型
+     * @param doctorId   医生id
+     * @param organId    机构id
+     * @param start      开始
+     * @param limit      分页条数
      * @return
      */
     public List<CommonDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
@@ -274,7 +274,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     /**
      * 参数校验
      *
-     * @param commonRecipe
+     * @param commonRecipe 常用方头
+     * @param drugList     常用方药品
      */
     private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
         // 常用方名称校验
@@ -288,7 +289,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         if (organDrugGroup.isEmpty()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品为空");
         }
-        Date now = new Date();
         //常用方药品校验
         drugList.forEach(a -> {
             if (StringUtils.isAnyEmpty(a.getUsingRate(), a.getUsePathways(), a.getUsingRateId(), a.getUsePathwaysId())) {
@@ -311,8 +311,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             }
             a.setSalePrice(null);
             a.setDrugCost(null);
-            a.setCreateDt(now);
-            a.setLastModify(now);
         });
     }
 
@@ -392,9 +390,6 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             return null;
         }
         PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(drug.getPharmacyCode());
-        if (null == pharmacyTcm) {
-            pharmacyTcm = new PharmacyTcm();
-        }
         drug.setPharmacyCode(pharmacyTcm.getPharmacyCode());
         drug.setPharmacyId(pharmacyTcm.getPharmacyId());
         drug.setPharmacyName(pharmacyTcm.getPharmacyName());
