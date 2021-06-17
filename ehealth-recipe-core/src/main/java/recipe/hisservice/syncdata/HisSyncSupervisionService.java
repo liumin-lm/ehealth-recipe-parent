@@ -35,11 +35,14 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.cdr.api.service.IEmrPdfService;
+import eh.cdr.api.service.IOtherdocService;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -86,6 +89,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private IRegulationService regulationService;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Resource
+    private IEmrPdfService emrPdfService;
     /**
      * logger
      */
@@ -119,7 +124,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
-        LOGGER.info("uploadRecipeIndicators recipeList length={} recipeId={}", recipeList.size(), recipeList.get(0).getRecipeId());
+        LOGGER.info("uploadRecipeIndicators recipeList length={} recipeId={}", recipeList.size(), recipeList.get (0).getRecipeId());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         if (CollectionUtils.isEmpty(recipeList)) {
             commonResponse.setMsg("处方列表为空");
@@ -172,6 +177,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
+
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
@@ -208,6 +214,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RegulationRecipeIndicatorsReq();
+            // 电子病历PDF id
+            Map<String, Object> docIndex = emrPdfService.generateEmrPdf(recipeExtend.getDocIndexId());
+            if(MapUtils.isNotEmpty(docIndex) && Objects.nonNull(docIndex.get("fileId"))) {
+                req.setMedicalFileId(docIndex.get("fileId").toString());
+            }
+
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
             if (null == organDTO) {
