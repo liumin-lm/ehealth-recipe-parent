@@ -1022,6 +1022,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     }
 
     public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
+        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
@@ -1107,7 +1108,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     }
                     //开方医生信息
                     req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
-
+                    //复诊id
+                    req.setBussID(recipe.getClinicId()!=null?recipe.getClinicId().toString():null);
+                    //医保金额
+                    req.setFundAmount(order.getFundAmount());
+                    //自费金额
+                    req.setCashAmount(order.getCashAmount());
                     LOGGER.info("调用regulation接口，上传处方缴费信息，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
                     IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
                     HisResponseTO hisResponseTO = regulationService.uploadOutpatientPay(recipe.getClinicOrgan(), req);
