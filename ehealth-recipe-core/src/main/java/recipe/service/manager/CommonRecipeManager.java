@@ -146,14 +146,14 @@ public class CommonRecipeManager {
 
 
     /**
-     * 查询常用方列表
+     * 查询线下常用方列表
      *
      * @param organId  机构id
      * @param doctorId 医生id
      * @return
      */
-    public List<CommonRecipe> commonRecipeList(Integer organId, Integer doctorId) {
-        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByDoctorIdAndOrganId(doctorId, organId, 0, 1000);
+    public List<CommonRecipe> offlineCommonRecipeList(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByOrganIdAndDoctorIdAndType(organId, doctorId, 2);
         LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}，organId={}，doctorId={}", JSON.toJSONString(commonRecipeList), organId, doctorId);
         return commonRecipeList;
     }

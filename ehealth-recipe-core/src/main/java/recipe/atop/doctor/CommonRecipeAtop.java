@@ -14,7 +14,6 @@ import recipe.constant.ErrorCode;
 import recipe.service.CommonRecipeService;
 import recipe.util.ValidateUtil;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -108,12 +107,10 @@ public class CommonRecipeAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
         }
         CommonRecipeDTO commonRecipe = common.getCommonRecipeDTO();
-        if (ValidateUtil.integerIsEmpty(commonRecipe.getDoctorId(), commonRecipe.getRecipeType()) || StringUtils.isEmpty(commonRecipe.getCommonRecipeName())) {
+        if (ValidateUtil.integerIsEmpty(commonRecipe.getDoctorId(), commonRecipe.getRecipeType(), commonRecipe.getCommonRecipeType())
+                || StringUtils.isEmpty(commonRecipe.getCommonRecipeName())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
         }
-        Date now = new Date();
-        commonRecipe.setCreateDt(now);
-        commonRecipe.setLastModify(now);
         try {
             commonRecipeService.saveCommonRecipe(common.getCommonRecipeDTO(), common.getCommonRecipeExt(), common.getCommonRecipeDrugList());
         } catch (DAOException e1) {

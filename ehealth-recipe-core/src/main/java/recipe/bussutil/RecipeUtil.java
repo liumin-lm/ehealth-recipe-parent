@@ -10,7 +10,6 @@ import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -33,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 电子处方工具类
@@ -220,19 +221,6 @@ public class RecipeUtil {
         return false;
     }
 
-    /**
-     * 是否为取消处方，这些状态的处方 chooseflag也是1
-     *
-     * @return
-     */
-    public static boolean isCanncelRecipe(int status) {
-        if (RecipeStatusConstant.REVOKE == status || RecipeStatusConstant.NO_PAY == status
-                || RecipeStatusConstant.NO_OPERATOR == status) {
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * 处方单设置默认值

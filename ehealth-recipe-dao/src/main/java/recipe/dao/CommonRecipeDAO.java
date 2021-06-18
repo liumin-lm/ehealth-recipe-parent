@@ -68,9 +68,23 @@ public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<Common
                                                                 @DAOParam(pageStart = true) int start,
                                                                 @DAOParam(pageLimit = true) int limit);
 
+    /**
+     * 根据机构类型获取常用方
+     *
+     * @param organId          机构id
+     * @param doctorId         医生id
+     * @param commonRecipeType 类型
+     * @return
+     */
+    @DAOMethod(limit = 0, sql = "from CommonRecipe where doctorId=:doctorId and organId=:organId and common_recipe_type=:commonRecipeType")
+    public abstract List<CommonRecipe> findByOrganIdAndDoctorIdAndType(@DAOParam("organId") Integer organId,
+                                                                       @DAOParam("doctorId") Integer doctorId,
+                                                                       @DAOParam("commonRecipeType") Integer commonRecipeType);
+
 
     /**
      * 通过医生id查询常用方
+     *
      * @param doctorId
      * @param start
      * @param limit
