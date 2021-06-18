@@ -2286,6 +2286,14 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     @RpcService
+    public SkipThirdBean skipThiirdPage(SkipThirdReq skipThirdReq){
+        SkipThirdBean skipThirdBean = new SkipThirdBean();
+
+        return skipThirdBean;
+    }
+
+    @Deprecated
+    @RpcService
     public String getThirdUrl(Integer recipeId) {
         SkipThirdBean skipThirdBean = getThirdUrlNew(recipeId);
         if (skipThirdBean != null && StringUtils.isNotEmpty(skipThirdBean.getUrl())) {
@@ -2301,7 +2309,7 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @return
      */
-    @RpcService
+    @Deprecated
     public SkipThirdBean getThirdUrlNew(Integer recipeId) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {
