@@ -55,9 +55,7 @@ public class RecipeOrderDoctorAtop extends BaseAtop {
     @RpcService
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
         logger.info("RecipeOrderAtop updateRecipeGiveUser recipeId = {} giveUser = {}", recipeId, giveUser);
-        if (ValidateUtil.integerIsEmpty(recipeId, giveUser)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
-        }
+        validateAtop(recipeId, giveUser);
         try {
             ResultBean result = recipeOrderTwoService.updateRecipeGiveUser(recipeId, giveUser);
             logger.info("RecipeOrderAtop updateRecipeGiveUser result = {}", JSON.toJSONString(result));

@@ -99,7 +99,7 @@ public class RecipeDetailValidateTool {
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
-            if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose())) {
+            if (ValidateUtil.validateObjects(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             if (entrustValidate(recipeDetail, drugEntrustNameMap)) {
@@ -110,11 +110,11 @@ public class RecipeDetailValidateTool {
         } else {
             /**校验西药 数据是否完善*/
             //每次剂量
-            if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
+            if (ValidateUtil.validateObjects(recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //开药总数是否为空
-            if (ValidateUtil.doubleIsEmpty(recipeDetail.getUseTotalDose())) {
+            if (ValidateUtil.validateObjects(recipeDetail.getUseTotalDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
             //用药频次，用药途径是否在机构字典范围内

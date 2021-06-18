@@ -26,7 +26,10 @@ import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.AddressService;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
@@ -79,7 +82,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
-import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -1265,11 +1267,11 @@ public class RecipeOrderService extends RecipeBaseService {
     private boolean judgeIsSupportMedicalInsurance(String mpiId, Integer organId) {
         HisServiceConfigBean hisServiceConfig = iHisConfigService.getHisConfigByOrganId(organId);
         PatientDTO patient = patientService.get(mpiId);
-        if (ValidateUtil.blankString(patient.getPatientType()) || String.valueOf(PayConstant.PAY_TYPE_SELF_FINANCED).equals(patient.getPatientType())) {
+        if (StringUtils.isEmpty(patient.getPatientType()) || String.valueOf(PayConstant.PAY_TYPE_SELF_FINANCED).equals(patient.getPatientType())) {
             LOGGER.info("judgeIsSupportMedicalInsurance patient not support, mpiId[{}]", patient.getMpiId());
             return false;
         }
-        if (ValidateUtil.isNotTrue(hisServiceConfig.getSupportMedicalInsurance())) {
+        if (null == hisServiceConfig.getSupportMedicalInsurance() || !hisServiceConfig.getSupportMedicalInsurance()) {
             LOGGER.info("judgeIsSupportMedicalInsurance hisServiceConfig not support, id[{}]", hisServiceConfig.getId());
             return false;
         }

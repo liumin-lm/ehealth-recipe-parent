@@ -43,9 +43,7 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
     @Deprecated
     public List<RecipeDetailBean> validateDetail(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
         logger.info("RecipeDetailAtop validateDetail recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
-        if (ValidateUtil.integerIsEmpty(organId, recipeType) || CollectionUtils.isEmpty(recipeDetails)) {
-            return null;
-        }
+        validateAtop(organId, recipeType, recipeDetails);
         ValidateDetailVO validateDetailVO = new ValidateDetailVO(organId, recipeType, recipeDetails, new RecipeExtendBean(), true);
         try {
             List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO).getRecipeDetails();
@@ -69,10 +67,7 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
     @RpcService
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO {}", JSON.toJSONString(validateDetailVO));
-        if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
-                null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
-        }
+        validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
             ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
@@ -96,10 +91,7 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
     @RpcService
     public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
         logger.info("RecipeDetailAtop useDayValidate validateDetailVO {}", JSON.toJSONString(validateDetailVO));
-        if (ValidateUtil.integerIsEmpty(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType()) ||
-                null == validateDetailVO.getRecipeExtendBean() || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
-        }
+        validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
             List<RecipeDetailBean> result = recipeDetailService.useDayValidate(validateDetailVO);
