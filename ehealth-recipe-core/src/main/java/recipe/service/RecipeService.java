@@ -4658,6 +4658,9 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getDrugType())) {
             drugListMatch.setDrugType(drug.getDrugType());
         }
+        if (!ObjectUtils.isEmpty(drug.getChemicalName())) {
+            drugListMatch.setChemicalName(drug.getChemicalName());
+        }
         if (ObjectUtils.isEmpty(drug.getPack())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pack is required");
         } else {
@@ -4779,6 +4782,9 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getUnit())) {
             String packUnit = drug.getUnit();
             organDrug.setUnit(packUnit);
+        }
+        if (StringUtils.isNotEmpty(drug.getChemicalName())) {
+            organDrug.setChemicalName(drug.getChemicalName());
         }
         //药品规格
         if (StringUtils.isNotEmpty(drug.getDrugSpec())) {
