@@ -1,6 +1,12 @@
 package recipe.util;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -240,6 +246,40 @@ public class ValidateUtil {
     public static boolean doubleIsEmpty(Double d) {
         if (null == d || 0 == d) {
             return true;
+        }
+        return false;
+    }
+
+    public static boolean validateObjects(Object... args) {
+        if (null == args) {
+            return true;
+        }
+        for (Object i : args) {
+            if (validateObject(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean validateObject(Object args) {
+        if (Objects.isNull(args)) {
+            return true;
+        }
+        if (args instanceof Collection) {
+            return CollectionUtils.isEmpty((Collection) args);
+        }
+        if (args instanceof Map) {
+            return ((Map) args).isEmpty();
+        }
+        if (args instanceof String) {
+            return StringUtils.isEmpty((String) args);
+        }
+        if (args instanceof Integer) {
+            return integerIsEmpty((Integer) args);
+        }
+        if (args instanceof Double) {
+            return doubleIsEmpty((Double) args);
         }
         return false;
     }
