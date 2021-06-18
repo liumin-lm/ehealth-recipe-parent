@@ -112,7 +112,7 @@ public class CommonRecipeAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
         }
         try {
-            commonRecipeService.saveCommonRecipe(common.getCommonRecipeDTO(), common.getCommonRecipeExt(), common.getCommonRecipeDrugList());
+            commonRecipeService.saveCommonRecipe(common);
         } catch (DAOException e1) {
             logger.warn("CommonRecipeAtop addCommonRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
