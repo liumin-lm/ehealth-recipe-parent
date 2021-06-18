@@ -216,6 +216,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req = new RegulationRecipeIndicatorsReq();
             // 电子病历PDF id
             Map<String, Object> docIndex = emrPdfService.generateEmrPdf(recipeExtend.getDocIndexId());
+            LOGGER.info("电子病历 PDF 返回信息 ", JSONUtils.toString(docIndex));
             if(MapUtils.isNotEmpty(docIndex) && Objects.nonNull(docIndex.get("fileId"))) {
                 req.setMedicalFileId(docIndex.get("fileId").toString());
             }
