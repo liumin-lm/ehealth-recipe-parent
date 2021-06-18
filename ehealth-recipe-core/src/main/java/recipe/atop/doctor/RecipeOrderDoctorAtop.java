@@ -18,7 +18,7 @@ import recipe.util.ValidateUtil;
  * @author fuzi
  */
 @RpcBean("recipeOrderAtop")
-public class RecipeOrderAtop extends BaseAtop {
+public class RecipeOrderDoctorAtop extends BaseAtop {
 
     @Autowired
     private RecipeOrderTwoService recipeOrderTwoService;

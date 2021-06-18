@@ -21,7 +21,7 @@ import recipe.util.ValidateUtil;
  * @author fuzi
  */
 @RpcBean("caseHistoryAtop")
-public class CaseHistoryAtop extends BaseAtop {
+public class CaseHistoryDoctorAtop extends BaseAtop {
 
 
     @Autowired

@@ -23,7 +23,7 @@ import java.util.List;
  * @author fuzi
  */
 @RpcBean("commonRecipeAtop")
-public class CommonRecipeAtop extends BaseAtop {
+public class CommonRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private CommonRecipeService commonRecipeService;
 
