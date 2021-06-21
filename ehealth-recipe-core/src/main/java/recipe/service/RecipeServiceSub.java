@@ -1908,7 +1908,7 @@ public class RecipeServiceSub {
 //                }
 
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                String decoctionDeploy =(String) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy");
+                String decoctionDeploy =((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
                 //用于确认订单页显示线下处方代煎费 兼容老版本（修复老版本的bug）
                 //如果为医生选择且recipeExt存在decoctionText
                 if("1".equals(decoctionDeploy)
