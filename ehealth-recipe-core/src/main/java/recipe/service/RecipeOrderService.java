@@ -661,7 +661,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         tcmFee = hisRecipe.getTcmFee();
                     }
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                    String decoctionDeploy =(String) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy");
+                    String decoctionDeploy =((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
                     //设置代煎费
                     //如果为医生选择且recipeExt存在decoctionText，需设置待煎费   患者选择由前端计算
                     if("1".equals(decoctionDeploy)
