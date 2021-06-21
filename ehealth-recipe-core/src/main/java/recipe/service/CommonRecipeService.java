@@ -243,6 +243,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(commonRecipeDTO.getPharmacyCode());
                 if (null == pharmacyTcm) {
                     failNameList.add(commonRecipeDTO.getCommonRecipeName());
+                    LOGGER.info("CommonRecipeService addOfflineCommon pharmacyTcm is null ：{}", commonRecipeDTO.getPharmacyCode());
                     return;
                 }
                 commonRecipeDTO.setPharmacyName(pharmacyTcm.getPharmacyName());
@@ -254,11 +255,13 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             List<CommonRecipeDrugDTO> commonRecipeDrugList = a.getCommonRecipeDrugList();
             if (CollectionUtils.isEmpty(commonRecipeDrugList)) {
                 failNameList.add(commonRecipeDTO.getCommonRecipeName());
+                LOGGER.info("CommonRecipeService addOfflineCommon commonRecipeDrugList is null ：{}", commonRecipeDTO.getCommonRecipeName());
                 return;
             }
             List<CommonRecipeDrug> drugList = offlineCommonRecipeDrug(commonRecipeDrugList, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustNameMap);
             if (CollectionUtils.isEmpty(drugList)) {
                 failNameList.add(commonRecipeDTO.getCommonRecipeName());
+                LOGGER.info("CommonRecipeService addOfflineCommon drugList is null ：{}", commonRecipeDTO.getCommonRecipeName());
                 return;
             }
             if (drugList.size() != commonRecipeDrugList.size()) {
