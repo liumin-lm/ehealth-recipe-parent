@@ -3133,7 +3133,7 @@ public class RecipeServiceSub {
         }
     }
 
-    public DrugEnterpriseResult pushRecipeForThird(Recipe recipe) {
+    public DrugEnterpriseResult pushRecipeForThird(Recipe recipe, Integer node) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         try {
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
@@ -3143,7 +3143,7 @@ public class RecipeServiceSub {
             for (DrugsEnterprise drugsEnterprise : retList) {
                 if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
                     if ("bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                        result = drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                        result = drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise, node);
                     }
                 }
             }

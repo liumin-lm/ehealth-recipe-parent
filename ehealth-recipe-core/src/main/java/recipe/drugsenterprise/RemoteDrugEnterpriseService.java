@@ -100,11 +100,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        pushRecipeInfoForThird(recipe, drugsEnterprise);
+        pushRecipeInfoForThird(recipe, drugsEnterprise, 0);
 
     }
 
-    public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise){
+    public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node){
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //传过来的处方不是最新的需要重新从数据库获取
@@ -113,6 +113,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //药企对应的service为空，则通过前置机进行推送
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
         PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
+        pushRecipeAndOrder.setNode(node);
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         if (responseTO != null && responseTO.isSuccess()) {
