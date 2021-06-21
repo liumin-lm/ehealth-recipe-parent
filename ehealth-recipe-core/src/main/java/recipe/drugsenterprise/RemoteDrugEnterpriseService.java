@@ -266,6 +266,16 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
+        RecipeAuditReq recipeAuditReq = new RecipeAuditReq();
+        //设置审方药师信息
+        if (recipe.getChecker() != null && recipe.getChecker() != 0) {
+            DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
+            if (doctor != null) {
+                recipeAuditReq.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), doctor.getDepartment()));
+                recipeAuditReq.setAuditDoctorName(doctor.getName());
+            }
+        }
+        pushRecipeAndOrder.setRecipeAuditReq(recipeAuditReq);
         List<Recipe> recipes = Arrays.asList(recipe);
         //多处方处理
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
