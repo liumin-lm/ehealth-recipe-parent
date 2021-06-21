@@ -135,6 +135,9 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private LogisticsOnlineOrderService logisticsOnlineOrderService;
 
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
     /**
      * 处方结算时创建临时订单
      *
@@ -650,20 +653,34 @@ public class RecipeOrderService extends RecipeBaseService {
                 //处理线下转线上的代煎费
                 if (new Integer(2).equals(recipe.getRecipeSourceType())) {
                     //表示为线下的处方
-                    HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                    RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     tcmFlag = false;
                     //设置中医辨证论证费
                     if (hisRecipe != null && hisRecipe.getTcmFee() != null) {
                         tcmFee = hisRecipe.getTcmFee();
                     }
-                    if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
-                        //说明线下处方有代煎费
-                        decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
-                    } else {
-                        //说明线下无代煎费传入,需要判断是否线下传入了贴数
-                        if (needCalDecFee && recipe.getCopyNum() != null ) {
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    String decoctionDeploy =(String) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy");
+                    //设置代煎费
+                    //如果为医生选择且recipeExt存在decoctionText，需设置待煎费   患者选择由前端计算
+                    if("1".equals(decoctionDeploy)
+                            &&recipeExtend!=null&&StringUtils.isNotEmpty(recipeExtend.getDecoctionText())){
+                        if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
+                            //有代煎总额
+                            decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
+                        } else {
                             totalCopyNum = totalCopyNum + recipe.getCopyNum();
+                            //无代煎总额 需计算代煎总额=贴数*代煎单价
+                            if (hisRecipe.getDecoctionUnitFee()!=null && recipe.getCopyNum() != null ) {
+                                //代煎费等于剂数乘以代煎单价
+                                //如果是合并处方-多张处方下得累加
+                                decoctionFee = decoctionFee.add(hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                            }
+                        }
+                    }else{
+                        totalCopyNum = totalCopyNum + recipe.getCopyNum();
+                        if (order.getDecoctionUnitPrice()!=null && recipe.getCopyNum() != null ) {
                             //代煎费等于剂数乘以代煎单价
                             //如果是合并处方-多张处方下得累加
                             decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
@@ -696,7 +713,6 @@ public class RecipeOrderService extends RecipeBaseService {
         order.setTcmFee(tcmFee);
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(decoctionFee);
-
         //药店取药不需要地址信息
         if (payModeSupport.isSupportTFDS() || payModeSupport.isSupportDownload() || payModeSupport.isSupportToHos()) {
             order.setAddressCanSend(true);
