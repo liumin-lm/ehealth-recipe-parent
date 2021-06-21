@@ -26,7 +26,7 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "常用方编码-医院唯一主键字段")
     private String commonRecipeCode;
 
-    @ItemProperty(alias = "常用方类型：0平台，1协定方，2....")
+    @ItemProperty(alias = "常用方类型：1平台，2协定方，3....")
     private Integer commonRecipeType;
 
     @ItemProperty(alias = "医生身份ID")
