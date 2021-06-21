@@ -393,6 +393,11 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug pharmacy OrganDrugCode ：{}", drug.getOrganDrugCode());
             return null;
         }
+        drug.setDrugName(organDrug.getDrugName());
+        drug.setSaleName(organDrug.getSaleName());
+        drug.setPlatformSaleName(organDrug.getSaleName());
+        drug.setUseDoseUnit(organDrug.getUseDoseUnit());
+        drug.setUseDose(organDrug.getUseDose());
         PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(drug.getPharmacyCode());
         if (null == pharmacyTcm) {
             pharmacyTcm = new PharmacyTcm();
