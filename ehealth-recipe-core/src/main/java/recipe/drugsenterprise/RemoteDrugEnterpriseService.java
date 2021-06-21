@@ -104,10 +104,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     }
 
-    public void pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise){
+    public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise){
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //传过来的处方不是最新的需要重新从数据库获取
         Recipe recipeNew = recipeDAO.getByRecipeId(recipe.getRecipeId());
+        recipeNew.setGiveMode(recipe.getGiveMode());
         //药企对应的service为空，则通过前置机进行推送
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
         PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
@@ -124,11 +126,15 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                     recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", prescId));
                 }
             }
+            result.setCode(1);
             //上传处方pdf给第三方
             RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipeNew.getRecipeId()));
         } else {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送失败:" + enterprise.getName() + responseTO.getMsg());
+            result.setCode(0);
+            result.setMsg(responseTO.getMsg());
         }
+        return result;
     }
 
     /**
