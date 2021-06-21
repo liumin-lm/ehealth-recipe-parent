@@ -10,10 +10,7 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
@@ -267,6 +264,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
         RecipeAuditReq recipeAuditReq = new RecipeAuditReq();
+        //科室代码
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        recipeAuditReq.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+        //科室名称
+        recipeAuditReq.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         //设置审方药师信息
         if (recipe.getChecker() != null && recipe.getChecker() != 0) {
             DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
