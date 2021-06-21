@@ -34,4 +34,18 @@ public enum GiveModeTextEnum {
         }
         return null;
     }
+
+    /**
+     * 根据购药方式获取文本
+     * @param giveMode
+     * @return
+     */
+    public static String getGiveModeText(Integer giveMode){
+        for (GiveModeTextEnum e : GiveModeTextEnum.values()) {
+            if (new Integer(giveMode).equals(e.giveMode)) {
+                return e.giveModeText;
+            }
+        }
+        return null;
+    }
 }

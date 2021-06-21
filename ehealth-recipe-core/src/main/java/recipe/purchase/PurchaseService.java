@@ -23,6 +23,7 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
@@ -44,7 +45,9 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.givemode.business.GiveModeTextEnum;
 import recipe.service.*;
+import recipe.service.client.IConfigurationClient;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -80,6 +83,12 @@ public class PurchaseService {
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
+
+    @Autowired
+    private RecipeOrderService recipeOrderService;
+
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -227,6 +236,18 @@ public class PurchaseService {
             depListBean.setList(depListBeanList);
             resultBean.setObject(depListBean);
             LOG.info("filterSupportDepList recipeIds={} resultBean={}", recipeIds, JSONUtils.toString(resultBean));
+        }
+        //患者选择购药方式后,将处方推送到前置机
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(recipeList.get(0).getClinicOrgan(), "pushToHisAfterChoose", false);
+            if (pushToHisAfterChoose) {
+                SkipThirdReqVO skipThirdReqVO = new SkipThirdReqVO();
+                skipThirdReqVO.setOrganId(recipeList.get(0).getClinicOrgan());
+                skipThirdReqVO.setRecipeIds(recipeIds);
+                Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
+                skipThirdReqVO.setGiveMode(GiveModeTextEnum.getGiveModeText(giveMode));
+                recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            }
         }
         return resultBean;
     }

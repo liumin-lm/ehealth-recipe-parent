@@ -10,10 +10,7 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
@@ -100,11 +97,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        pushRecipeInfoForThird(recipe, drugsEnterprise);
+        pushRecipeInfoForThird(recipe, drugsEnterprise, 0);
 
     }
 
-    public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise){
+    public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node){
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //传过来的处方不是最新的需要重新从数据库获取
@@ -113,6 +110,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //药企对应的service为空，则通过前置机进行推送
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
         PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
+        pushRecipeAndOrder.setNode(node);
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         if (responseTO != null && responseTO.isSuccess()) {
@@ -265,6 +263,22 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
+        RecipeAuditReq recipeAuditReq = new RecipeAuditReq();
+        //科室代码
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        recipeAuditReq.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+        //科室名称
+        recipeAuditReq.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        //设置审方药师信息
+        if (recipe.getChecker() != null && recipe.getChecker() != 0) {
+            DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
+            if (doctor != null) {
+                recipeAuditReq.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), doctor.getDepartment()));
+                recipeAuditReq.setAuditDoctorName(doctor.getName());
+            }
+        }
+        pushRecipeAndOrder.setRecipeAuditReq(recipeAuditReq);
         List<Recipe> recipes = Arrays.asList(recipe);
         //多处方处理
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {

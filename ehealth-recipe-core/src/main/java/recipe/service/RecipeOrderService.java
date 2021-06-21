@@ -2302,7 +2302,7 @@ public class RecipeOrderService extends RecipeBaseService {
         for (Integer recipeId : skipThirdReqVO.getRecipeIds()) {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
-            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe);
+            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
             if (new Integer(0).equals(result.getCode())) {
                 //表示上传失败
                 throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
