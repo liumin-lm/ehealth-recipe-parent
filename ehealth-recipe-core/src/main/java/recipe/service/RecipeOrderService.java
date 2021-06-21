@@ -74,10 +74,12 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
+import recipe.service.client.IConfigurationClient;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.RecipeBusiThreadPool;
@@ -138,6 +140,12 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private LogisticsOnlineOrderService logisticsOnlineOrderService;
+
+    @Autowired
+    private IConfigurationClient configurationClient;
+
+    @Autowired
+    private RecipeServiceSub recipeServiceSub;
 
     /**
      * 处方结算时创建临时订单
@@ -2285,13 +2293,28 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
-    @RpcService
-    public SkipThirdBean skipThiirdPage(SkipThirdReq skipThirdReq){
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
-
-        return skipThirdBean;
+    public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
+        Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
+        if (!pushToHisAfterChoose) {
+            return ;
+        }
+        //将处方上传到第三方
+        for (Integer recipeId : skipThirdReqVO.getRecipeIds()) {
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe);
+            if (new Integer(0).equals(result.getCode())) {
+                //表示上传失败
+                throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
+            }
+        }
     }
 
+    /**
+     * 跳转第三方订单或者处方购药页面  新接口：recipeOrderPatientAtop skipThirdPage
+     * @param recipeId
+     * @return
+     */
     @Deprecated
     @RpcService
     public String getThirdUrl(Integer recipeId) {
@@ -2309,7 +2332,6 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @return
      */
-    @Deprecated
     public SkipThirdBean getThirdUrlNew(Integer recipeId) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {

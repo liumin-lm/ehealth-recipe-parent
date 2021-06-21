@@ -13,7 +13,12 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SkipThirdReq {
+public class SkipThirdReqVO {
+
+    /**
+     * 机构ID
+     */
+    private Integer organId;
 
     /**
      * 处方集合
@@ -22,5 +27,5 @@ public class SkipThirdReq {
     /**
      * 患者选择的购药方式
      */
-    private Integer giveMode;
+    private String giveMode;
 }
