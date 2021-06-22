@@ -147,10 +147,9 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
-        RecipeServiceSub recipeServiceSub = ApplicationUtils.getRecipeService(RecipeServiceSub.class);
+        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
         //药师审方后推送给前置机（扁鹊）
         recipeServiceSub.pushRecipeForThird(recipe, 0);
-        LOGGER.info("AuditPreMode afterCheckPassYs pushRecipeForThird finish recipeId:{}.", recipe.getRecipeId());
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发

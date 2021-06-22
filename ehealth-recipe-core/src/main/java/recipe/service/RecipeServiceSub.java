@@ -3141,7 +3141,6 @@ public class RecipeServiceSub {
             RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
             List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-            LOGGER.info("RecipeServiceSub pushRecipeForThird retList:{}.", JSONUtils.toString(retList));
             for (DrugsEnterprise drugsEnterprise : retList) {
                 if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
                     if ("bqEnterprise".equals(drugsEnterprise.getAccount())) {
