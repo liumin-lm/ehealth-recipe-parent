@@ -55,7 +55,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
     @Override
     public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         // 2、转换成前端所需对象
-        List<HisRecipeVO> noPayFeeHisRecipeVO = offlineToOnlineService.covertToHisRecipeObject(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()));
+        List<HisRecipeVO> noPayFeeHisRecipeVO = offlineToOnlineService.covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
         // 3、过滤出待处理（未生成订单的）线下处方
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
         return offlineToOnlineService.findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);

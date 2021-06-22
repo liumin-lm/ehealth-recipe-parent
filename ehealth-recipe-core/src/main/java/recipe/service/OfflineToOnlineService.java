@@ -162,7 +162,7 @@ public class OfflineToOnlineService {
             return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
         } else {
             if ("onready".equals(findHisRecipeListVO.getStatus())) {
-                List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeObject(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
+                List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeVoObject(hisResponseTO, patientDTO);
                 return findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
             } else {
                 checkHisRecipeAndSave(status, patientDTO, hisResponseTO);
@@ -573,7 +573,7 @@ public class OfflineToOnlineService {
      * @param patientDTO
      * @return
      */
-    public List<HisRecipeVO> covertToHisRecipeObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO) {
+    public List<HisRecipeVO> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO) {
         LOGGER.info("covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTO),JSONUtils.toString(patientDTO));
         List<HisRecipeVO> hisRecipeVOs = new ArrayList<>();
         if (responseTO == null) {
@@ -585,85 +585,73 @@ public class OfflineToOnlineService {
         }
         LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
-            HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
+            HisRecipe hisRecipeDb = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
-            //数据库不存在处方信息，则新增
-            if (null == hisRecipe1) {
-                HisRecipe hisRecipe = new HisRecipe();
-                hisRecipe.setCertificate(patientDTO.getCertificate());
-                hisRecipe.setCertificateType(patientDTO.getCertificateType());
-                hisRecipe.setMpiId(patientDTO.getMpiId());
-                hisRecipe.setPatientName(patientDTO.getPatientName());
-                hisRecipe.setPatientAddress(patientDTO.getAddress());
-                hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
-                hisRecipe.setPatientTel(patientDTO.getMobile());
-                hisRecipe.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId()) ? queryHisRecipResTO.getRegisteredId() : "");
-                hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
-                hisRecipe.setDepartCode(queryHisRecipResTO.getDepartCode());
-                hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
-                hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
-                hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
-                hisRecipe.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode()) ? queryHisRecipResTO.getChronicDiseaseCode() : "");
-                hisRecipe.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName()) ? queryHisRecipResTO.getChronicDiseaseName() : "");
-                hisRecipe.setStatus(queryHisRecipResTO.getStatus());
-                if (new Integer(2).equals(queryHisRecipResTO.getMedicalType())) {
-                    hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
-                } else {
-                    hisRecipe.setMedicalType(1);//默认自费
-                }
-                hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
-                hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
-                hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
-                hisRecipe.setCreateTime(new Date());
-                hisRecipe.setExtensionFlag(1);
-                if (queryHisRecipResTO.getExtensionFlag() == null) {
-                    hisRecipe.setRecipePayType(0); //设置外延处方的标志
-                } else {
-                    hisRecipe.setRecipePayType(queryHisRecipResTO.getExtensionFlag()); //设置外延处方的标志
-                }
-
-                if (!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())) {
-                    hisRecipe.setDiseaseName(queryHisRecipResTO.getDiseaseName());
-                } else {
-                    hisRecipe.setDiseaseName("无");
-                }
-                hisRecipe.setDisease(queryHisRecipResTO.getDisease());
-                if (!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())) {
-                    hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
-                }
-                OrganService organService = BasicAPI.getService(OrganService.class);
-                OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
-                if (null != organDTO) {
-                    hisRecipe.setOrganName(organDTO.getName());
-                }
-                setMedicalInfo(queryHisRecipResTO, hisRecipe);
-                hisRecipe.setGiveMode(queryHisRecipResTO.getGiveMode());
-                hisRecipe.setDeliveryCode(queryHisRecipResTO.getDeliveryCode());
-                hisRecipe.setDeliveryName(queryHisRecipResTO.getDeliveryName());
-                hisRecipe.setSendAddr(queryHisRecipResTO.getSendAddr());
-                hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
-                hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
-                hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
-
-                HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
-                //设置其它信息
-                hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
-                hisRecipeVO.setRecipeMode("ngarihealth");
-                setOtherInfo(hisRecipeVO, hisRecipe.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
-
-                hisRecipeVOs.add(hisRecipeVO);
-            } else {
-                //如果为已支付，不予返回
-                if (!new Integer("2").equals(hisRecipe1.getStatus())) {
-                    HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe1, HisRecipeVO.class);
-                    setOtherInfo(hisRecipeVO, hisRecipe1.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
-                    hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
-                    hisRecipeVO.setRecipeMode("ngarihealth");
-                    hisRecipeVOs.add(hisRecipeVO);
-                }
+            //已在平台处理 则数据不返回待处理列表显示
+            if (null != hisRecipeDb && new Integer("2").equals(hisRecipeDb.getStatus())) {
+                continue;
             }
+            HisRecipeVO hisRecipeVO =new HisRecipeVO();
+            //TODO  deleteLM 测试后确认没问题后统一删除
+/*            HisRecipe hisRecipe = new HisRecipe();
+            hisRecipeVO.setCertificate(patientDTO.getCertificate());
+            hisRecipeVO.setCertificateType(patientDTO.getCertificateType());
+
+            hisRecipeVO.setPatientAddress(patientDTO.getAddress());
+            hisRecipeVO.setPatientNumber(queryHisRecipResTO.getPatientNumber());
+            hisRecipeVO.setPatientTel(patientDTO.getMobile());
+            hisRecipeVO.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId()) ? queryHisRecipResTO.getRegisteredId() : "");
+            hisRecipeVO.setDepartCode(queryHisRecipResTO.getDepartCode());
+            hisRecipeVO.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode()) ? queryHisRecipResTO.getChronicDiseaseCode() : "");
+            hisRecipeVO.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName()) ? queryHisRecipResTO.getChronicDiseaseName() : "");
+            hisRecipeVO.setStatus(queryHisRecipResTO.getStatus());
+            if (new Integer(2).equals(queryHisRecipResTO.getMedicalType())) {
+                hisRecipeVO.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
+            } else {
+                hisRecipeVO.setMedicalType(1);//默认自费
+            }
+            hisRecipeVO.setRecipeFee(queryHisRecipResTO.getRecipeFee());
+            hisRecipeVO.setRecipeType(queryHisRecipResTO.getRecipeType());
+            hisRecipeVO.setExtensionFlag(1);
+
+
+            if (!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())) {
+                hisRecipeVO.setDiseaseName(queryHisRecipResTO.getDiseaseName());
+            } else {
+                hisRecipeVO.setDiseaseName("无");
+            }
+            hisRecipe.setDisease(queryHisRecipResTO.getDisease());
+            if (!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())) {
+                hisRecipeVO.setDoctorCode(queryHisRecipResTO.getDoctorCode());
+            }
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
+            if (null != organDTO) {
+                hisRecipeVO.setOrganName(organDTO.getName());
+            }*/
+            //详情需要
+            hisRecipeVO.setMpiId(patientDTO.getMpiId());
+            hisRecipeVO.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
+
+            //页面显示
+            hisRecipeVO.setPatientName(patientDTO.getPatientName());
+            hisRecipeVO.setCreateDate(queryHisRecipResTO.getCreateDate());
+            hisRecipeVO.setRecipeCode(queryHisRecipResTO.getRecipeCode());
+            if (!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())) {
+                hisRecipeVO.setDiseaseName(queryHisRecipResTO.getDiseaseName());
+            } else {
+                hisRecipeVO.setDiseaseName("无");
+            }
+            hisRecipeVO.setDisease(queryHisRecipResTO.getDisease());
+            hisRecipeVO.setDoctorName(queryHisRecipResTO.getDoctorName());
+            hisRecipeVO.setDepartName(queryHisRecipResTO.getDepartName());
+            //设置其它信息
+            setOtherInfo(hisRecipeVO, patientDTO.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+            //不知道是否游泳 TODO
+            hisRecipeVO.setRecipeMode("ngarihealth");
+            hisRecipeVOs.add(hisRecipeVO);
         }
-        LOGGER.info("covertHisRecipeObject hisRecipeVOs:" + JSONUtils.toString(hisRecipeVOs));
+        LOGGER.info("covertHisRecipeObject response hisRecipeVOs:{}" , JSONUtils.toString(hisRecipeVOs));
         return hisRecipeVOs;
     }
 
@@ -1106,7 +1094,7 @@ public class OfflineToOnlineService {
     private Recipe saveRecipeFromHisRecipe(HisRecipe hisRecipe) {
         LOGGER.info("saveRecipeFromHisRecipe hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
-        LOGGER.info("saveRecipeFromHisRecipe haveRecipe:{}.", JSONUtils.toString(haveRecipe));
+        //LOGGER.info("saveRecipeFromHisRecipe haveRecipe:{}.", JSONUtils.toString(haveRecipe));
         UserRoleToken userRoleToken = UserRoleToken.getCurrent();
         if(recipe!=null && !isAllowDeleteByPayFlag(recipe.getPayFlag())){
             //已支付状态下的处方不允许修改
