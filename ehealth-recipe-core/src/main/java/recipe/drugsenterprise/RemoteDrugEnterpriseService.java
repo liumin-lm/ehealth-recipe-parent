@@ -102,6 +102,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     }
 
     public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node){
+        LOGGER.info("RemoteDrugEnterpriseService pushRecipeInfoForThird recipeId:{},enterpriseId:{},node:{}.", recipe.getRecipeId(), enterprise.getId(), node);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //传过来的处方不是最新的需要重新从数据库获取
