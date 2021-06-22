@@ -234,11 +234,14 @@ public class CommonRecipeManager {
      * @param commonRecipeName 常用方名
      * @return
      */
-    public Integer getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
+    public Integer getByDoctorIdAndName(Integer doctorId, String commonRecipeName, Integer commonRecipeId) {
         LOGGER.info("CommonRecipeManager validateParam getByDoctorIdAndName doctorId:{},commonRecipeName:{}", doctorId, commonRecipeName);
         try {
             List<CommonRecipe> list = commonRecipeDAO.findByName(doctorId, commonRecipeName);
             if (CollectionUtils.isNotEmpty(list)) {
+                if (!ValidateUtil.validateObjects(commonRecipeId)) {
+                    list = list.stream().filter(a -> !a.getCommonRecipeId().equals(commonRecipeId)).collect(Collectors.toList());
+                }
                 return list.size();
             } else {
                 return 0;
