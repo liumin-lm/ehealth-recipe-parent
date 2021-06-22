@@ -143,10 +143,11 @@ public class AuditPreMode extends AbstractAuidtMode {
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
+        LOGGER.info("AuditPreMode afterCheckPassYs recipeId:{}.", recipe.getRecipeId());
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
-        RecipeServiceSub recipeServiceSub = ApplicationUtils.getRecipeService(RecipeServiceSub.class);
+        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
         //药师审方后推送给前置机（扁鹊）
         recipeServiceSub.pushRecipeForThird(recipe, 0);
         //正常平台处方

@@ -3134,6 +3134,7 @@ public class RecipeServiceSub {
     }
 
     public DrugEnterpriseResult pushRecipeForThird(Recipe recipe, Integer node) {
+        LOGGER.info("RecipeServiceSub pushRecipeForThird recipeId:{}, node:{}.", recipe.getRecipeId(), node);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         try {
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
@@ -3148,7 +3149,7 @@ public class RecipeServiceSub {
                 }
             }
         } catch (Exception e) {
-            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
+            LOGGER.info("RecipeServiceSub pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
         return result;
     }
