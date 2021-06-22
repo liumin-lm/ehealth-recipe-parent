@@ -7,7 +7,6 @@ import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
-import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.CommonRecipeExt;
@@ -199,13 +198,7 @@ public class CommonRecipeManager {
                 commonDrugDTO.setPrice1(organDrug.getSalePrice().doubleValue());
                 commonDrugDTO.setDrugForm(organDrug.getDrugForm());
                 //用药单位不为空时才返回给前端
-                List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-                } else if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
-                }
-                commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                commonDrugDTO.setUseDoseAndUnitRelation(OrganDrugListManager.defaultUseDose(organDrug));
                 commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
             }
             if (StringUtils.isNotEmpty(commonDrugDTO.getUsingRateId())) {

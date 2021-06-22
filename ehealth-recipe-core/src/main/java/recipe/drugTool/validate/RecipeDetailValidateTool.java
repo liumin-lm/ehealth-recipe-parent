@@ -89,8 +89,7 @@ public class RecipeDetailValidateTool {
      */
     public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
         //剂量单位是否与机构药品目录单位一致
-        if (StringUtils.isEmpty(recipeDetail.getUseDoseUnit()) || (!recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseUnit())
-                && !recipeDetail.getUseDoseUnit().equals(organDrug.getUseDoseSmallestUnit()))) {
+        if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
         }

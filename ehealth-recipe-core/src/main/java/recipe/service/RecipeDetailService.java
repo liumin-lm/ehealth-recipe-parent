@@ -1,7 +1,6 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
@@ -10,7 +9,6 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.ValidateDetailVO;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +20,10 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.service.client.DrugClient;
 import recipe.service.client.IConfigurationClient;
+import recipe.service.manager.OrganDrugListManager;
 import recipe.service.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -170,16 +168,7 @@ public class RecipeDetailService {
     private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap, Integer recipeType) {
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
-        if (CollectionUtils.isEmpty(recipeDetailBean.getUseDoseAndUnitRelation())) {
-            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
-            if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-            }
-            if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
-            }
-            recipeDetailBean.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-        }
+        recipeDetailBean.setUseDoseAndUnitRelation(OrganDrugListManager.defaultUseDose(organDrug));
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
     }

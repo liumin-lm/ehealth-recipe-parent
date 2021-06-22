@@ -1,6 +1,7 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.recipe.model.ValidateOrganDrugVO;
 import org.apache.commons.collections.CollectionUtils;
@@ -12,10 +13,7 @@ import org.springframework.stereotype.Service;
 import recipe.dao.OrganDrugListDAO;
 import recipe.util.ValidateUtil;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -81,6 +79,36 @@ public class OrganDrugListManager {
             return null;
         }
         return organDrug;
+    }
+
+    /***
+     * 比对获取药品单位
+     * @param useDoseUnit 药品单位
+     * @param organDrug 机构药品
+     * @return 药品单位
+     */
+    public static String getUseDoseUnit(String useDoseUnit, OrganDrugList organDrug) {
+        if (StringUtils.isEmpty(useDoseUnit)) {
+            return null;
+        }
+        if (useDoseUnit.equals(organDrug.getUseDoseUnit())) {
+            return organDrug.getUseDoseUnit();
+        }
+        if (useDoseUnit.equals(organDrug.getUseDoseSmallestUnit())) {
+            return organDrug.getUseDoseSmallestUnit();
+        }
+        return null;
+    }
+
+    public static List<UseDoseAndUnitRelationBean> defaultUseDose(OrganDrugList organDrug) {
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+        }
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+        }
+        return useDoseAndUnitRelationList;
     }
 
 }

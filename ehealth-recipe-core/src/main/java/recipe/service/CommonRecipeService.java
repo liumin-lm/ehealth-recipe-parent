@@ -396,8 +396,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         drug.setDrugName(organDrug.getDrugName());
         drug.setSaleName(organDrug.getSaleName());
         drug.setPlatformSaleName(organDrug.getSaleName());
-        drug.setUseDoseUnit(organDrug.getUseDoseUnit());
-        drug.setUseDose(organDrug.getUseDose());
+        //药品单位
+        drug.setUseDoseUnit(OrganDrugListManager.getUseDoseUnit(drug.getUseDoseUnit(), organDrug));
+        if (StringUtils.isNotEmpty(drug.getUseDoseUnit())) {
+            drug.setUseDose(organDrug.getUseDose());
+        } else {
+            drug.setUseDose(null);
+        }
+
         PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(drug.getPharmacyCode());
         if (null == pharmacyTcm) {
             pharmacyTcm = new PharmacyTcm();
