@@ -2294,6 +2294,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
+        LOGGER.info("RecipeOrderService uploadRecipeInfoToThird:{}.", JSONUtils.toString(skipThirdReqVO));
         Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
         if (!pushToHisAfterChoose) {
             return ;

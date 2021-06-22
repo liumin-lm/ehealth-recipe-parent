@@ -102,6 +102,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     }
 
     public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node){
+        LOGGER.info("RemoteDrugEnterpriseService pushRecipeInfoForThird recipeId:{},enterpriseId:{},node:{}.", recipe.getRecipeId(), enterprise.getId(), node);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //传过来的处方不是最新的需要重新从数据库获取
@@ -336,9 +337,11 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         //设置配送药品信息
         for (Recipedetail recipedetail : recipedetails) {
             PushDrugListBean pushDrugListBean = new PushDrugListBean();
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
-            if (saleDrugList != null) {
-                pushDrugListBean.setSaleDrugListDTO(ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class));
+            if (enterprise != null) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
+                if (saleDrugList != null) {
+                    pushDrugListBean.setSaleDrugListDTO(ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class));
+                }
             }
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(),recipedetail.getDrugId());
             if (organDrug != null) {
@@ -378,7 +381,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 LOGGER.error("getPushRecipeAndOrder:{}处方，获取处方pdf:{},服务异常：", recipe.getRecipeId(),recipe.getSignFile(), e);
             }
         }
-        if (enterprise.getDownSignImgType() != null && enterprise.getDownSignImgType() == 1) {
+        if (enterprise != null && enterprise.getDownSignImgType() != null && enterprise.getDownSignImgType() == 1) {
             //获取处方签链接
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             String signImgFile = recipeParameterDao.getByName("fileImgUrl");
