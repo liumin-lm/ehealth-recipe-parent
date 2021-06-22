@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class RecipeHisService {
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         //TODO question 查询条件带recipeCode
         //TODO question 让前置机去过滤数据
-        LOGGER.info("HisRecipeService HisResponseTO.queryData:organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
+        LOGGER.info("queryData organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
@@ -67,6 +68,33 @@ public class RecipeHisService {
         return responseTO;
     }
 
+
+
+    /**
+     * @param flag 根据flag转化日期 查询标志 0-近一个月数据;1-近三个月;2-近半年;3-近一年
+     *             1 代表一个月  3 代表三个月 6 代表6个月
+     * @return
+     */
+    private Date tranDateByFlagNew(String flag) {
+        Date beginTime = new Date();
+        Calendar ca = Calendar.getInstance();
+        //得到当前日期
+        ca.setTime(new Date());
+        if ("6".equals(flag)) {  //近半年数据
+            ca.add(Calendar.MONTH, -6);//月份减6
+            Date resultDate = ca.getTime(); //结果
+            beginTime = resultDate;
+        } else if ("3".equals(flag)) {  //近三个月数据
+            ca.add(Calendar.MONTH, -3);//月份减3
+            Date resultDate = ca.getTime(); //结果
+            beginTime = resultDate;
+        } else if ("1".equals(flag)) { //近一个月数据
+            ca.add(Calendar.MONTH, -1);//月份减1
+            Date resultDate = ca.getTime(); //结果
+            beginTime = resultDate;
+        }
+        return beginTime;
+    }
 
     /**
      * @param responseTO

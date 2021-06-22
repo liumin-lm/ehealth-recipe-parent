@@ -52,6 +52,7 @@ import recipe.service.manager.GroupRecipeManager;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,7 +62,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\3\10 0010 19:58
  */
-@RpcBean(value = "hisRecipeService", mvc_authentication = false)
+@RpcBean(value = "offlineToOnlineService", mvc_authentication = false)
 public class OfflineToOnlineService {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfflineToOnlineService.class);
 
@@ -102,10 +103,11 @@ public class OfflineToOnlineService {
      *
      * @param findHisRecipeListVO 入参
      * @return 前端展示
+     * @Deprecated
      */
     @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipe(FindHisRecipeListVO findHisRecipeListVO) {
-        LOGGER.info("hisRecipeService findHisRecipe request:{}", JSONUtils.toString(findHisRecipeListVO));
+    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipe(@Valid FindHisRecipeListVO findHisRecipeListVO) {
+        LOGGER.info("offlineToOnlineService findHisRecipe request:{}", JSONUtils.toString(findHisRecipeListVO));
         if (null == findHisRecipeListVO
                 || findHisRecipeListVO.getOrganId() == null
                 || StringUtils.isEmpty(findHisRecipeListVO.getMpiId())
@@ -114,13 +116,13 @@ public class OfflineToOnlineService {
         }
         try {
             List<HisPatientTabStatusMergeRecipeVO> result = findHisRecipeEnter(findHisRecipeListVO);
-            LOGGER.info("hisRecipeService findHisRecipe result:{}", JSONUtils.toString(result));
+            LOGGER.info("offlineToOnlineService findHisRecipe result:{}", JSONUtils.toString(result));
             return result;
         } catch (DAOException e1) {
-            LOGGER.error("hisRecipeService findHisRecipe error", e1);
+            LOGGER.error("offlineToOnlineService findHisRecipe error", e1);
             throw new DAOException(e1.getCode(), e1.getMessage());
         } catch (Exception e) {
-            LOGGER.error("hisRecipeService findHisRecipe error", e);
+            LOGGER.error("offlineToOnlineService findHisRecipe error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
@@ -132,7 +134,7 @@ public class OfflineToOnlineService {
      * @return 线下处方列表
      */
     private List<HisPatientTabStatusMergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO) {
-        LOGGER.info("hisRecipeService findHisRecipe findHisRecipeListVO:{}", JSONUtils.toString(findHisRecipeListVO));
+        LOGGER.info("offlineToOnlineService findHisRecipe findHisRecipeListVO:{}", JSONUtils.toString(findHisRecipeListVO));
         String status = findHisRecipeListVO.getStatus();
         String mpiId = findHisRecipeListVO.getMpiId();
         String carId = findHisRecipeListVO.getCardId();
@@ -175,7 +177,7 @@ public class OfflineToOnlineService {
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
     public List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
-        LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
+        LOGGER.info("offlineToOnlineService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
         List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
         //先查询进行中处方(目前仅指的是待支付的处方单)
         //查询所有进行中的线下处方
@@ -224,7 +226,7 @@ public class OfflineToOnlineService {
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        LOGGER.info("hisRecipeService findOngoingHisRecipe result:{}", JSONUtils.toString(result));
+        LOGGER.info("offlineToOnlineService findOngoingHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
@@ -274,7 +276,7 @@ public class OfflineToOnlineService {
      * @return 前端需要的处方单集合
      */
     public List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
-        LOGGER.info("hisRecipeService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
+        LOGGER.info("offlineToOnlineService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
 
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
@@ -351,7 +353,7 @@ public class OfflineToOnlineService {
         }
         //按处方id从大到小排列
         //result.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
-        LOGGER.info("hisRecipeService findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
+        LOGGER.info("offlineToOnlineService findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
@@ -510,7 +512,7 @@ public class OfflineToOnlineService {
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         //TODO question 查询条件带recipeCode
         //TODO question 让前置机去过滤数据
-        LOGGER.info("HisRecipeService HisResponseTO.queryData:organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
+        LOGGER.info("offlineToOnlineService HisResponseTO.queryData:organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
@@ -569,10 +571,10 @@ public class OfflineToOnlineService {
      *
      * @param responseTO
      * @param patientDTO
-     * @param flag
      * @return
      */
-    public List<HisRecipeVO> covertToHisRecipeObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO, Integer flag) {
+    public List<HisRecipeVO> covertToHisRecipeObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO) {
+        LOGGER.info("covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTO),JSONUtils.toString(patientDTO));
         List<HisRecipeVO> hisRecipeVOs = new ArrayList<>();
         if (responseTO == null) {
             return hisRecipeVOs;
@@ -642,8 +644,6 @@ public class OfflineToOnlineService {
                 hisRecipe.setRecipeSource(queryHisRecipResTO.getRecipeSource());
                 hisRecipe.setReceiverName(queryHisRecipResTO.getReceiverName());
                 hisRecipe.setReceiverTel(queryHisRecipResTO.getReceiverTel());
-                //未缓存在平台
-                hisRecipe.setIsCachePlatform(0);
 
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
                 //设置其它信息
@@ -682,6 +682,13 @@ public class OfflineToOnlineService {
         }
     }
 
+    /**
+     * 设置文案显示、处方来源、跳转页面
+     * @param hisRecipeVO
+     * @param mpiId
+     * @param recipeCode
+     * @param clinicOrgan
+     */
     private void setOtherInfo(HisRecipeVO hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
         if (recipe == null) {
@@ -691,7 +698,7 @@ public class OfflineToOnlineService {
         } else {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-            if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
+            if (recipe.getRecipeSourceType() == 2 ) {
                 //表示该处方来源于HIS
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
                     hisRecipeVO.setStatusText("待处理");
@@ -717,8 +724,9 @@ public class OfflineToOnlineService {
                 hisRecipeVO.setJumpPageType(0);
                 hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
                 hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
-                List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
-                hisRecipeVO.setRecipeDetail(recipeDetailVOS);
+                //TODO 沟通用不到了 deleteLM 测试后确认没问题后统一删除
+//                List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+//                hisRecipeVO.setRecipeDetail(recipeDetailVOS);
             }
         }
     }
@@ -976,7 +984,7 @@ public class OfflineToOnlineService {
      */
     @RpcService
     public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId, String mpiId, String recipeCode, String organId, Integer isCachePlatform, String cardId) {
-        LOGGER.info("HisRecipeService getHisRecipeDetail param:[{},{},{},{},{},{}]", hisRecipeId, mpiId, recipeCode, organId, isCachePlatform, cardId);
+        LOGGER.info("offlineToOnlineService getHisRecipeDetail param:[{},{},{},{},{},{}]", hisRecipeId, mpiId, recipeCode, organId, isCachePlatform, cardId);
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, Integer.parseInt(organId), recipeCode);
         if (hisRecipe == null) {
             //throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
@@ -1134,7 +1142,7 @@ public class OfflineToOnlineService {
         if (appointDepartDTO != null) {
             recipe.setDepart(appointDepartDTO.getDepartId());
         } else {
-            LOGGER.info("HisRecipeService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
+            LOGGER.info("offlineToOnlineService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
             throw new DAOException(ErrorCode.SERVICE_ERROR, "挂号科室维护错误");
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
@@ -1498,12 +1506,12 @@ public class OfflineToOnlineService {
 
 
     /**
-     * 校验his线下处方是否发生变更 如果变更则处理数据（删除）
+     * 校验his线下处方是否发生变更 如果变更则处理数据
      * @param hisRecipeTO
      * @param patientDTO
      */
     public void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO, PatientDTO patientDTO) {
-        LOGGER.info("hisRecipeInfoCheck hisRecipeTO = {}.", JSONUtils.toString(hisRecipeTO));
+        LOGGER.info("hisRecipeInfoCheck param hisRecipeTO = {} , patientDTO={}", JSONUtils.toString(hisRecipeTO),JSONUtils.toString(patientDTO));
         if (CollectionUtils.isEmpty(hisRecipeTO)) {
             return;
         }
