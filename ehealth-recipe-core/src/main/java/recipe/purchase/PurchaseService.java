@@ -240,10 +240,14 @@ public class PurchaseService {
         //患者选择购药方式后,将处方推送到前置机
         if (CollectionUtils.isNotEmpty(recipeList)) {
             SkipThirdReqVO skipThirdReqVO = new SkipThirdReqVO();
-            skipThirdReqVO.setOrganId(recipeList.get(0).getClinicOrgan());
-            skipThirdReqVO.setRecipeIds(recipeIds);
-            Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
-            skipThirdReqVO.setGiveMode(GiveModeTextEnum.getGiveModeText(giveMode));
+            try {
+                skipThirdReqVO.setOrganId(recipeList.get(0).getClinicOrgan());
+                skipThirdReqVO.setRecipeIds(recipeIds);
+                Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
+                skipThirdReqVO.setGiveMode(GiveModeTextEnum.getGiveModeText(giveMode));
+            } catch (Exception e) {
+                LOG.error("filterSupportDepList error msg ", e);
+            }
             recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
         }
         return resultBean;
