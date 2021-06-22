@@ -49,12 +49,10 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.GroupRecipeManager;
-import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -848,6 +846,7 @@ public class HisRecipeService {
                 hisRecipe.setDecoctionFee(queryHisRecipResTO.getDecoctionFee());
                 hisRecipe.setDecoctionCode(queryHisRecipResTO.getDecoctionCode());
                 hisRecipe.setDecoctionText(queryHisRecipResTO.getDecoctionText());
+                hisRecipe.setDecoctionUnitFee(queryHisRecipResTO.getDecoctionUnitFee());
                 hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum() == null ? null : String.valueOf(queryHisRecipResTO.getTcmNum()));
                 //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
                 hisRecipe.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
@@ -1111,9 +1110,17 @@ public class HisRecipeService {
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         recipeExtend.setChronicDiseaseCode(hisRecipe.getChronicDiseaseCode());
         recipeExtend.setChronicDiseaseName(hisRecipe.getChronicDiseaseName());
-        //设置煎法
+        //设置煎法 优先取his的煎法
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
+        }else{
+            if(StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())){
+                DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DecoctionWay decoctionWay=drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(recipe.getClinicOrgan(),hisRecipe.getDecoctionCode());
+                if(decoctionWay!=null){
+                    recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
+                }
+            }
         }
         try {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);

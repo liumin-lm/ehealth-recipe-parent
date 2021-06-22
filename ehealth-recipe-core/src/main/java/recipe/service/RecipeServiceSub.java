@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organ.model.OrganBean;
@@ -1903,10 +1902,29 @@ public class RecipeServiceSub {
                 HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                 HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                 //设置代煎费
-                if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
-                    //说明线下处方有代煎费
-                    recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
+//                if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
+//                    //说明线下处方有代煎费
+//                    recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
+//                }
+
+                IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                String decoctionDeploy =((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
+                //用于确认订单页显示线下处方代煎费 兼容老版本（修复老版本的bug）
+                //如果为医生选择且recipeExt存在decoctionText
+                if("1".equals(decoctionDeploy)
+                        &&recipeExtend!=null&&StringUtils.isNotEmpty(recipeExtend.getDecoctionText())){
+                    if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
+                        //有代煎总额
+                        recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
+                    } else {
+                        //无代煎总额 需计算代煎总额=贴数*代煎单价
+                        if (hisRecipe.getDecoctionUnitFee()!=null && recipe.getCopyNum() != null ) {
+                            //代煎费等于剂数乘以代煎单价
+                            recipeBean.setDecoctionFee(hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                        }
+                    }
                 }
+
             }
         }
         map.put("recipe", recipeBean);
