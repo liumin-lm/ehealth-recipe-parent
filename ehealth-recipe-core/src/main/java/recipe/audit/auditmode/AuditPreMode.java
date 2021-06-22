@@ -143,6 +143,7 @@ public class AuditPreMode extends AbstractAuidtMode {
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
+        LOGGER.info("AuditPreMode afterCheckPassYs recipeId:{}.", recipe.getRecipeId());
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
