@@ -102,7 +102,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     }
 
     public DrugEnterpriseResult pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node){
-        LOGGER.info("RemoteDrugEnterpriseService pushRecipeInfoForThird recipeId:{},enterpriseId:{},node:{}.", recipe.getRecipeId(), enterprise.getId(), node);
+        LOGGER.info("RemoteDrugEnterpriseService pushRecipeInfoForThird recipeId:{},enterprise:{},node:{}.", recipe.getRecipeId(), JSONUtils.toString(enterprise), node);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //传过来的处方不是最新的需要重新从数据库获取
@@ -116,7 +116,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         if (responseTO != null && responseTO.isSuccess()) {
             //推送药企处方成功,判断是否为扁鹊平台
-            if ("bqEnterprise".equals(enterprise.getAccount())){
+            if (enterprise != null && "bqEnterprise".equals(enterprise.getAccount())){
                 recipeDAO.updateRecipeInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("PushFlag", 1, "EnterpriseId", enterprise.getId()));
             }else {
                 String prescId = (String)responseTO.getExtend().get("prescId");
@@ -129,7 +129,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             //上传处方pdf给第三方
             RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipeNew.getRecipeId()));
         } else {
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送失败:" + enterprise.getName() + responseTO.getMsg());
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送失败:" + responseTO.getMsg());
             result.setCode(0);
             result.setMsg(responseTO.getMsg());
         }
