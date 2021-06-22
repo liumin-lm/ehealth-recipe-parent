@@ -100,6 +100,12 @@ public class OrganDrugListManager {
         return null;
     }
 
+    /**
+     * 默认药品单位计量 机构关联关系
+     *
+     * @param organDrug 机构药品
+     * @return 默认药品单位计量
+     */
     public static List<UseDoseAndUnitRelationBean> defaultUseDose(OrganDrugList organDrug) {
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
         if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
