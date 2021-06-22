@@ -997,6 +997,11 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap = Maps.newHashMap();
+                attrMap.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
+                LOGGER.info("checkFlag {} 更新为待审核", recipeId);
                 recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
             }
 
@@ -1184,6 +1189,10 @@ public class RecipeService extends RecipeBaseService {
         Integer recipeId = resultVo.getRecipeId();
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            return;
+        }
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         RecipeResultBean result = RecipeResultBean.getFail();
 
@@ -1304,6 +1313,11 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap1 = Maps.newHashMap();
+                attrMap1.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap1);
+                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //添加兼容医生CA易签保的回调逻辑
                 if (MapUtils.isNotEmpty(esignResponseMap)) {
