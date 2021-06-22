@@ -91,6 +91,9 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "发药方式")
     private Integer giveMode;
 
+    @ItemProperty(alias = "购药方式")
+    private Integer payMode;
+
     /*****************************************  以下来源 ext 表 ******************************************************/
 
     @ItemProperty(alias = "挂号序号")
