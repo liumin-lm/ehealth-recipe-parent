@@ -283,7 +283,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      */
     private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
         // 常用方名称校验
-        Integer commonRecipeNameSize = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipe.getCommonRecipeName());
+        Integer commonRecipeNameSize = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipe.getCommonRecipeName(), commonRecipe.getCommonRecipeId());
         if (commonRecipeNameSize > 0) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }
