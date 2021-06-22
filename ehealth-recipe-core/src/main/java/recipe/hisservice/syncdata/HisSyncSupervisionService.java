@@ -177,7 +177,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
-
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
@@ -1035,6 +1034,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     }
 
     public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
+        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
@@ -1120,6 +1120,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     }
                     //开方医生信息
                     req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
+                    //复诊id
+                    req.setBussID(recipe.getClinicId()!=null?recipe.getClinicId().toString():null);
+                    //医保金额
+                    req.setFundAmount(order.getFundAmount());
+                    //自费金额
+                    req.setCashAmount(order.getCashAmount());
+                    req.setRecipeCode(recipe.getRecipeCode());
 
                     // 购药方式
                     req.setGiveMode(recipe.getGiveMode());
@@ -1601,6 +1608,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //物流信息
                 RegulationLogisticsReq LogisticsInfo = pakRegulationLogisticsReq(order);
                 req.setLogisticsInfo(LogisticsInfo);
+
+                //复诊id
+                req.setBussID(recipe.getClinicId()!=null?recipe.getClinicId().toString():null);
+
             }
 
         }

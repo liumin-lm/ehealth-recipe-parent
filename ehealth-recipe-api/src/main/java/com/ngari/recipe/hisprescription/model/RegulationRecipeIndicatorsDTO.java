@@ -16,7 +16,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  organName;
     private String  hosCode;//	院区代码
     private String  hosName;//	院区名称
+    private String  mpiId;
     private String  bussID;//	互联网医院复诊记录Id
+    private String  bussSource;// 处方来源标记   1 问诊  4 复诊
     private String  patientNumber;//门诊号
     private String  originalDiagnosis;//上次就诊诊断名称
     private String  subjectCode;//	开方医师所属专业代码（诊疗科目代码）
@@ -27,10 +29,17 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  doctorCertID;//	医师身份证号
     private String  doctorName;//	医师姓名
     private String  doctorNo;// 开方医生工号
+    private String doctorProTitle;//开方医生职称
     private String  auditDoctorId;//	审方医生ID
     private String  auditDoctorCertID;//	审方医师身份证号
     private String  auditDoctor;//	审方医师姓名
     private String  auditDoctorNo;// 审方医生工号
+    private String auditDoctorSign;//审核医生电子签名
+    private String auditProTitle;//审方医生职称
+    private String  auditDeptID;//审方医师所属科室代码
+    private String  auditDeptName;//审方医师所属科室名称
+    private String  auditSubjectCode;//	审方医师所属专业代码（诊疗科目代码）
+    private String  auditSubjectName;//	审方医师所属专业名称（诊疗科目名称）
     private String  patientCardType;//	患者证件
     private String  patientCertID;//	患者证件号
     private String  patientName;//	患者姓名
@@ -44,6 +53,7 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private String  guardianCertID;
     private String  guardianName;
+    private String  guardianMobile;
 
     private String  allergyFlag;//过敏史标记0:无 1:有
     private String  allergyInfo;//	过敏信息
@@ -51,17 +61,21 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  recipeUniqueID;//	互联网医院处方唯一号
     private String  recipeID;//	互联网医院处方号
     private String  recipeRecordNo;//处方医保备案号
-    private String  rationalFlag;//是否经过合理用药判断标志
+    private String  rationalFlag;//是否经过合理用药判断标志 1经过0未经过
     private String  rationalDrug;//	合理用药审核结果
     private String  CAInfo;//	处方CA认证文件信息
+    private String  recipeFileId; // 处方笺文件id
+    private String  medicalFileId; //患者病历文件id
     private String  icdCode;//	诊断ICD码
     private String  icdName;//	初步诊断名称
+    private String memo;//诊断备注
     private String  recipeType;//	处方类型 1西药 2成药 3草药
     private Integer packetsNum;//	帖数
     private Date    datein;//	处方日期
     private Integer effectivePeriod;//	处方效期
     private Date    startDate;//	处方开始日期
     private Date    endDate;//	处方结束日期
+    private Date  checkDate;//处方审核时间
     private String  deliveryType;//	处方配送方式 0医院取药 1物流配送 2药店取药
     private String  deliveryFirm;//	配送厂商名称
     private Date    deliveryDate;//	配送时间
@@ -80,9 +94,13 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private String payFlag; //支付标识 0未支付 1已支付
 
-    private String signRecipeCode; //处方开具签名
+    private String signRecipeCode; //医生处方数字签名值
+
+    private String signPharmacistCode; //药师处方数字签名值
 
     private String signCADate; //可信时间戳（医生处方签名生成时间戳）
+
+    private String serialNumCA; //医护人员证件序列号
 
 //    private String  satisfaction; //满意度
 //    private String  scoring;//评分
@@ -112,9 +130,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     //发药药师身份证号
     private String dispensingApothecaryIdCard;
 
-    /**
-     * 商户订单号
-     */
+    private String einvoiceNumber; // 电子发票号
+
+    /**商户订单号*/
     private String outTradeNo;
 
     /**
@@ -752,5 +770,141 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
         this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    public String getMpiId() {
+        return mpiId;
+    }
+
+    public void setMpiId(String mpiId) {
+        this.mpiId = mpiId;
+    }
+
+    public String getBussSource() {
+        return bussSource;
+    }
+
+    public void setBussSource(String bussSource) {
+        this.bussSource = bussSource;
+    }
+
+    public String getDoctorProTitle() {
+        return doctorProTitle;
+    }
+
+    public void setDoctorProTitle(String doctorProTitle) {
+        this.doctorProTitle = doctorProTitle;
+    }
+
+    public String getAuditDoctorSign() {
+        return auditDoctorSign;
+    }
+
+    public void setAuditDoctorSign(String auditDoctorSign) {
+        this.auditDoctorSign = auditDoctorSign;
+    }
+
+    public String getAuditProTitle() {
+        return auditProTitle;
+    }
+
+    public void setAuditProTitle(String auditProTitle) {
+        this.auditProTitle = auditProTitle;
+    }
+
+    public String getAuditDeptID() {
+        return auditDeptID;
+    }
+
+    public void setAuditDeptID(String auditDeptID) {
+        this.auditDeptID = auditDeptID;
+    }
+
+    public String getAuditDeptName() {
+        return auditDeptName;
+    }
+
+    public void setAuditDeptName(String auditDeptName) {
+        this.auditDeptName = auditDeptName;
+    }
+
+    public String getAuditSubjectCode() {
+        return auditSubjectCode;
+    }
+
+    public void setAuditSubjectCode(String auditSubjectCode) {
+        this.auditSubjectCode = auditSubjectCode;
+    }
+
+    public String getAuditSubjectName() {
+        return auditSubjectName;
+    }
+
+    public void setAuditSubjectName(String auditSubjectName) {
+        this.auditSubjectName = auditSubjectName;
+    }
+
+    public String getGuardianMobile() {
+        return guardianMobile;
+    }
+
+    public void setGuardianMobile(String guardianMobile) {
+        this.guardianMobile = guardianMobile;
+    }
+
+    public String getRecipeFileId() {
+        return recipeFileId;
+    }
+
+    public void setRecipeFileId(String recipeFileId) {
+        this.recipeFileId = recipeFileId;
+    }
+
+    public String getMedicalFileId() {
+        return medicalFileId;
+    }
+
+    public void setMedicalFileId(String medicalFileId) {
+        this.medicalFileId = medicalFileId;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    public void setCheckDate(Date checkDate) {
+        this.checkDate = checkDate;
+    }
+
+    public String getSignPharmacistCode() {
+        return signPharmacistCode;
+    }
+
+    public void setSignPharmacistCode(String signPharmacistCode) {
+        this.signPharmacistCode = signPharmacistCode;
+    }
+
+    public String getSerialNumCA() {
+        return serialNumCA;
+    }
+
+    public void setSerialNumCA(String serialNumCA) {
+        this.serialNumCA = serialNumCA;
+    }
+
+    public String getEinvoiceNumber() {
+        return einvoiceNumber;
+    }
+
+    public void setEinvoiceNumber(String einvoiceNumber) {
+        this.einvoiceNumber = einvoiceNumber;
     }
 }
