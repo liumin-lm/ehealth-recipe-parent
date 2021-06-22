@@ -431,7 +431,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 pushRecipeAndOrder.getRecipeExtendBean().setMakeMethod(drugMakingMethod.getMethodCode());
             }
             if(StringUtils.isNotBlank(recipeExtend.getSymptomId())){
-                Symptom symptom=symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                Symptom symptom = symptomDAO.get(recipeExtend.getSymptomId());
                 pushRecipeAndOrder.getRecipeExtendBean().setSymptomCode(symptom.getSymptomCode());
             }
         }catch(Exception e){
