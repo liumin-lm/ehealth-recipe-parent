@@ -6,7 +6,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
@@ -53,10 +53,10 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
     OfflineToOnlineService2 offlineToOnlineService2;
 
     @Override
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
-        // 2、转换成前端所需对象
+    public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
+        // 2、转换成前端所需recipe对象
         List<HisRecipeVO> noPayFeeHisRecipeVO = offlineToOnlineService.covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
-        // 3、过滤出待处理（未生成订单的）线下处方
+        // 3、包装成前端所需线下处方列表对象
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
         return offlineToOnlineService.findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
     }

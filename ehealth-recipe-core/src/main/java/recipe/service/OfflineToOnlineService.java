@@ -106,7 +106,7 @@ public class OfflineToOnlineService {
      * @Deprecated
      */
     @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipe(@Valid FindHisRecipeListVO findHisRecipeListVO) {
+    public List<MergeRecipeVO> findHisRecipe(@Valid FindHisRecipeListVO findHisRecipeListVO) {
         LOGGER.info("offlineToOnlineService findHisRecipe request:{}", JSONUtils.toString(findHisRecipeListVO));
         if (null == findHisRecipeListVO
                 || findHisRecipeListVO.getOrganId() == null
@@ -115,7 +115,7 @@ public class OfflineToOnlineService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         try {
-            List<HisPatientTabStatusMergeRecipeVO> result = findHisRecipeEnter(findHisRecipeListVO);
+            List<MergeRecipeVO> result = findHisRecipeEnter(findHisRecipeListVO);
             LOGGER.info("offlineToOnlineService findHisRecipe result:{}", JSONUtils.toString(result));
             return result;
         } catch (DAOException e1) {
@@ -133,7 +133,7 @@ public class OfflineToOnlineService {
      * @param findHisRecipeListVO 请求入参
      * @return 线下处方列表
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO) {
+    private List<MergeRecipeVO> findHisRecipeEnter(FindHisRecipeListVO findHisRecipeListVO) {
         LOGGER.info("offlineToOnlineService findHisRecipe findHisRecipeListVO:{}", JSONUtils.toString(findHisRecipeListVO));
         String status = findHisRecipeListVO.getStatus();
         String mpiId = findHisRecipeListVO.getMpiId();
@@ -176,9 +176,9 @@ public class OfflineToOnlineService {
      * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
-    public List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    public List<MergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("offlineToOnlineService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
-        List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
+        List<MergeRecipeVO> result = Lists.newArrayList();
         //先查询进行中处方(目前仅指的是待支付的处方单)
         //查询所有进行中的线下处方
         List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIId(patientDTO.getMpiId(), start, limit);
@@ -193,20 +193,20 @@ public class OfflineToOnlineService {
         hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
                 String orderCode = hisRecipeListBean.getOrderCode();
-                HisPatientTabStatusMergeRecipeVO hisPatientTabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
-                hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
+                MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
+                mergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
+                mergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
                 GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
                 String mergeRecipeWay = groupRecipeConf.getMergeRecipeWayAfter();
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(groupRecipeConf.getMergeRecipeFlag());
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+                mergeRecipeVO.setMergeRecipeFlag(groupRecipeConf.getMergeRecipeFlag());
+                mergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
                 if ("e.registerId".equals(mergeRecipeWay)) {
                     // 挂号序号
-                    hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
+                    mergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
                 } else {
                     // 慢病名称
-                    hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
+                    mergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
                 }
                 List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                 List<HisRecipeVO> list = new ArrayList<>();
@@ -216,8 +216,8 @@ public class OfflineToOnlineService {
                      recipeOrder = recipeOrders.get(0);
                 }
                 setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list);
-                hisPatientTabStatusMergeRecipeVO.setRecipe(list);
-                result.add(hisPatientTabStatusMergeRecipeVO);
+                mergeRecipeVO.setRecipe(list);
+                result.add(mergeRecipeVO);
             }
         });
         try {
@@ -275,25 +275,15 @@ public class OfflineToOnlineService {
      * @param request his的处方单集合
      * @return 前端需要的处方单集合
      */
-    public List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
+    public List<MergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
         LOGGER.info("offlineToOnlineService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
-
         //查询线下待缴费处方
-        List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
+        List<MergeRecipeVO> result = new ArrayList<>();
         GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
         Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
         String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
-        //移除正在进行中的处方单
-        Iterator<HisRecipeVO> iterator = request.iterator();
-        while (iterator.hasNext()) {
-            HisRecipeVO hisRecipeVO = iterator.next();
-            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
-            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                iterator.remove();
-            }
-        }
         if (mergeRecipeFlag) {
-            //获取合并的处方
+            //开启合并支付开关
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
                 //表示根据挂号序号分组
                 Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
@@ -301,17 +291,10 @@ public class OfflineToOnlineService {
                     List<HisRecipeVO> recipes = entry.getValue();
                     if (StringUtils.isEmpty(entry.getKey())) {
                         //表示挂号序号为空,不能进行处方合并
-                        setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
+                        covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
                     } else {
                         //可以进行合并支付
-                        HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                        tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getRegisteredId());
-                        tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                        tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                        tabStatusMergeRecipeVO.setRecipe(recipes);
-                        tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                        tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
-                        result.add(tabStatusMergeRecipeVO);
+                        covertMergeRecipeVO(recipes.get(0).getRegisteredId(),true,mergeRecipeWayAfter,recipes.get(0).getHisRecipeID(),giveModeButtonBean.getButtonSkipType(),recipes,result);
                     }
                 }
             } else {
@@ -323,7 +306,7 @@ public class OfflineToOnlineService {
                         Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
                         for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
-                            setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
+                            covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
                         }
                     } else {
                         //表示挂号序号不为空,需要根据当前病种
@@ -332,16 +315,10 @@ public class OfflineToOnlineService {
                             //如果病种为空不能进行合并
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
-                                setMergeRecipeVO(recipes, mergeRecipeWayAfter, mergeRecipeFlag, result, giveModeButtonBean);
+                                covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
                             } else {
                                 //可以进行合并支付
-                                HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                                tabStatusMergeRecipeVO.setGroupField(recipes.get(0).getChronicDiseaseName());
-                                tabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                                tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                                tabStatusMergeRecipeVO.setRecipe(recipes);
-                                tabStatusMergeRecipeVO.setFirstRecipeId(recipes.get(0).getHisRecipeID());
-                                result.add(tabStatusMergeRecipeVO);
+                                covertMergeRecipeVO(recipes.get(0).getChronicDiseaseName(),true,mergeRecipeWayAfter,recipes.get(0).getHisRecipeID(),giveModeButtonBean.getButtonSkipType(),recipes,result);
                             }
                         }
                     }
@@ -349,7 +326,7 @@ public class OfflineToOnlineService {
             }
         } else {
             //不开启合并支付开关
-            setMergeRecipeVO(request, mergeRecipeWayAfter, false, result, giveModeButtonBean);
+            covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
         }
         //按处方id从大到小排列
         //result.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
@@ -357,21 +334,37 @@ public class OfflineToOnlineService {
         return result;
     }
 
-    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean) {
-        for (HisRecipeVO hisRecipeVO : recipes) {
-            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
-            if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                continue;
+    /**
+     *
+     * @param grpupFiled
+     * @param mergeRecipeFlag
+     * @param mergeRecipeWay
+     * @param firstRecipeId
+     * @param listSkipType
+     * @param recipes
+     * @param result
+     */
+    private void covertMergeRecipeVO(String grpupFiled, boolean mergeRecipeFlag, String mergeRecipeWay, Integer firstRecipeId, String  listSkipType, List<HisRecipeVO> recipes, List<MergeRecipeVO> result) {
+        LOGGER.info("setMergeRecipeVO param grpupFiled:{},mergeRecipeFlag:{},mergeRecipeWay:{},firstRecipeId:{},listSkipType:{},recipes:{},result:{}",grpupFiled,mergeRecipeFlag,mergeRecipeWay,firstRecipeId,listSkipType,JSONUtils.toString(recipes),JSONUtils.toString(result));
+        if(mergeRecipeFlag){
+            MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
+            mergeRecipeVO.setGroupField(grpupFiled);
+            mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
+            mergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+            mergeRecipeVO.setRecipe(recipes);
+            mergeRecipeVO.setFirstRecipeId(firstRecipeId);
+            mergeRecipeVO.setListSkipType(listSkipType);
+            result.add(mergeRecipeVO);
+        }else{
+            for (HisRecipeVO hisRecipeVO : recipes) {
+                MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
+                mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
+                mergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
+                mergeRecipeVO.setListSkipType(listSkipType);
+                result.add(mergeRecipeVO);
             }
-            HisPatientTabStatusMergeRecipeVO tabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-            tabStatusMergeRecipeVO.setGroupField(hisRecipeVO.getChronicDiseaseName());
-            tabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
-            tabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-            tabStatusMergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
-            tabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeVO.getHisRecipeID());
-            tabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
-            result.add(tabStatusMergeRecipeVO);
         }
+        LOGGER.info("setMergeRecipeVO response result:{}",JSONUtils.toString(result));
     }
 
     /**
@@ -383,10 +376,10 @@ public class OfflineToOnlineService {
      * @return
      */
     @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    public List<MergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
-        List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
+        List<MergeRecipeVO> result = new ArrayList<>();
         // 所有所有已处理的线下处方
         List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIId(mpiId, start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
@@ -399,22 +392,22 @@ public class OfflineToOnlineService {
         hisRecipeListByMPIIds.forEach(hisRecipeListBean -> {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
                 String orderCode = hisRecipeListBean.getOrderCode();
-                HisPatientTabStatusMergeRecipeVO hisPatientTabStatusMergeRecipeVO = new HisPatientTabStatusMergeRecipeVO();
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(true);
-                hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
-                hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
+                MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
+                mergeRecipeVO.setMergeRecipeFlag(true);
+                mergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
+                mergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
                 GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
                 Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
                 String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
+                mergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
+                mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
-                    hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
+                    mergeRecipeVO.setGroupField(hisRecipeListBean.getRegisteredId());
                 } else {
                     // 慢病名称
-                    hisPatientTabStatusMergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
+                    mergeRecipeVO.setGroupField(hisRecipeListBean.getChronicDiseaseName());
                 }
 
                 if (Objects.isNull(orderCode)) {
@@ -427,8 +420,8 @@ public class OfflineToOnlineService {
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
                     list.add(hisRecipeVO);
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());
-                    hisPatientTabStatusMergeRecipeVO.setRecipe(list);
-                    result.add(hisPatientTabStatusMergeRecipeVO);
+                    mergeRecipeVO.setRecipe(list);
+                    result.add(mergeRecipeVO);
                 } else {
                     List<HisRecipeListBean> hisRecipeListBeans = orderCodeMap.get(orderCode);
                     List<HisRecipeVO> list1 = new ArrayList<>();
@@ -438,8 +431,8 @@ public class OfflineToOnlineService {
                         recipeOrder = recipeOrders.get(0);
                     }
                     setPatientTabStatusMerge(recipeMap, recipeIds, recipeOrder, hisRecipeListBeans, list1);
-                    hisPatientTabStatusMergeRecipeVO.setRecipe(list1);
-                    result.add(hisPatientTabStatusMergeRecipeVO);
+                    mergeRecipeVO.setRecipe(list1);
+                    result.add(mergeRecipeVO);
                 }
             }
 
@@ -587,10 +580,16 @@ public class OfflineToOnlineService {
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
             HisRecipe hisRecipeDb = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
-            //已在平台处理 则数据不返回待处理列表显示
+            //移除已在平台处理的处方单
             if (null != hisRecipeDb && new Integer("2").equals(hisRecipeDb.getStatus())) {
                 continue;
             }
+            //移除正在进行中的处方单
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                continue;
+            }
+
             HisRecipeVO hisRecipeVO =new HisRecipeVO();
             //TODO  deleteLM 测试后确认没问题后统一删除
 /*            HisRecipe hisRecipe = new HisRecipe();

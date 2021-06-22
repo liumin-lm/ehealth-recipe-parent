@@ -5,7 +5,7 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
+    public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         try {
             // 2.更新数据校验
             offlineToOnlineService.hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);

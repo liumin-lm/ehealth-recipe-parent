@@ -3,8 +3,7 @@ package recipe.offlinetoonline.service;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
-import com.ngari.recipe.recipe.model.HisRecipeVO;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
@@ -27,7 +26,7 @@ public interface IOfflineToOnlineService {
      * @return
      */
     @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request);
+    public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request);
 
     /**
      * 获取线下处方详情

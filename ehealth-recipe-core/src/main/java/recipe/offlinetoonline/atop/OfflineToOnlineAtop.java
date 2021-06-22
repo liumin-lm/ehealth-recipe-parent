@@ -4,7 +4,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -55,7 +55,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
+    public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
         logger.info("OfflineToOnlineAtop findHisRecipeList request:{}", ctd.util.JSONUtils.toString(request));
         if (null == request
                 || request.getOrganId() == null
@@ -74,7 +74,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
             HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
             IOfflineToOnlineService offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(Integer.parseInt(request.getStatus()));
             // 2、待缴费、进行中、已缴费线下处方列表服务差异化实现
-            List<HisPatientTabStatusMergeRecipeVO> hisRecipeVOS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
+            List<MergeRecipeVO> hisRecipeVOS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
             return hisRecipeVOS;
         } catch (DAOException e1) {
             logger.error("OfflineToOnlineAtop findHisRecipeList error", e1);

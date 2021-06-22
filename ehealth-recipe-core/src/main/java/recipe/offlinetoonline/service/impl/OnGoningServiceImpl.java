@@ -5,7 +5,7 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     OfflineToOnlineService2 offlineToOnlineService2;
 
     @Override
-    public List<HisPatientTabStatusMergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
+    public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         // 2、返回进行中的线下处方
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
         return offlineToOnlineService.findOngoingHisRecipe(hisRecipeInfos.getData(), patientDTO, giveModeButtonBean, request.getStart(), request.getLimit());

@@ -10,7 +10,7 @@ import java.util.List;
  * @date 2021\5\17 0017 20:20
  */
 @Data
-public class HisPatientTabStatusMergeRecipeVO implements Serializable{
+public class MergeRecipeVO implements Serializable{
     private static final long serialVersionUID = 4183151633663146015L;
 
     /**
@@ -26,7 +26,7 @@ public class HisPatientTabStatusMergeRecipeVO implements Serializable{
     private Boolean mergeRecipeFlag;
 
     /**
-     * 第一个处方单id 排序用
+     * 第一个处方单id 仅仅后台排序用
      */
     private Integer firstRecipeId;
 
