@@ -1,18 +1,28 @@
 package recipe.givemode.business;
 
 /**
+ * 购药方式
  * @author yinsheng
  * @date 2021\6\20 0020 18:13
  */
 public enum GiveModeTextEnum {
 
-    SENDTOENTER("supportToHos", 1, "药企配送"),
+    SENDTOENTER("showSendToEnterprises", 1, "药企配送"),
     SENDTOHOS("showSendToHos", 1, "医院配送"),
     SUPPORTTOHIS("supportToHos", 2, "到院取药"),
     SUPPORTTFDS("supportTFDS", 3, "药店取药");
 
+    /**
+     * 购药方式文本
+     */
     private String giveModeText;
+    /**
+     * 购药方式
+     */
     private Integer giveMode;
+    /**
+     * 描述
+     */
     private String desc;
 
     GiveModeTextEnum(String giveModeText,Integer giveMode, String desc) {
