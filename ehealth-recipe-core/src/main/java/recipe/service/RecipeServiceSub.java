@@ -3134,12 +3134,14 @@ public class RecipeServiceSub {
     }
 
     public DrugEnterpriseResult pushRecipeForThird(Recipe recipe, Integer node) {
+        LOGGER.info("RecipeServiceSub pushRecipeForThird recipeId:{}, node:{}.", recipe.getRecipeId(), node);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         try {
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
             List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            LOGGER.info("RecipeServiceSub pushRecipeForThird retList:{}.", JSONUtils.toString(retList));
             for (DrugsEnterprise drugsEnterprise : retList) {
                 if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
                     if ("bqEnterprise".equals(drugsEnterprise.getAccount())) {
@@ -3148,7 +3150,7 @@ public class RecipeServiceSub {
                 }
             }
         } catch (Exception e) {
-            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
+            LOGGER.info("RecipeServiceSub pushRecipeForThird error msg:{}.", e.getMessage(), e);
         }
         return result;
     }
