@@ -398,9 +398,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         drug.setPlatformSaleName(organDrug.getSaleName());
         //药品单位
         drug.setUseDoseUnit(OrganDrugListManager.getUseDoseUnit(drug.getUseDoseUnit(), organDrug));
-        if (StringUtils.isNotEmpty(drug.getUseDoseUnit())) {
-            drug.setUseDose(organDrug.getUseDose());
-        } else {
+        if (StringUtils.isEmpty(drug.getUseDoseUnit())) {
             drug.setUseDose(null);
         }
 
