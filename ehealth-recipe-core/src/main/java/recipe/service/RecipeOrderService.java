@@ -682,12 +682,6 @@ public class RecipeOrderService extends RecipeBaseService {
                             //有代煎总额
                             decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
                         } else {
-                    if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
-                        //说明线下处方有代煎费
-                        decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
-                    } else {
-                        //说明线下无代煎费传入,需要判断是否线下传入了贴数
-                        if (needCalDecFee && recipe.getCopyNum() != null) {
                             totalCopyNum = totalCopyNum + recipe.getCopyNum();
                             //无代煎总额 需计算代煎总额=贴数*代煎单价
                             if (hisRecipe.getDecoctionUnitFee()!=null && recipe.getCopyNum() != null ) {
