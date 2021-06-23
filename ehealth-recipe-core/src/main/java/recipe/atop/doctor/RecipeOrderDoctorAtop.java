@@ -18,7 +18,7 @@ import recipe.util.ValidateUtil;
  * @author fuzi
  */
 @RpcBean("recipeOrderAtop")
-public class RecipeOrderAtop extends BaseAtop {
+public class RecipeOrderDoctorAtop extends BaseAtop {
 
     @Autowired
     private RecipeOrderTwoService recipeOrderTwoService;
@@ -55,9 +55,7 @@ public class RecipeOrderAtop extends BaseAtop {
     @RpcService
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
         logger.info("RecipeOrderAtop updateRecipeGiveUser recipeId = {} giveUser = {}", recipeId, giveUser);
-        if (ValidateUtil.integerIsEmpty(recipeId) || ValidateUtil.integerIsEmpty(giveUser)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
-        }
+        validateAtop(recipeId, giveUser);
         try {
             ResultBean result = recipeOrderTwoService.updateRecipeGiveUser(recipeId, giveUser);
             logger.info("RecipeOrderAtop updateRecipeGiveUser result = {}", JSON.toJSONString(result));

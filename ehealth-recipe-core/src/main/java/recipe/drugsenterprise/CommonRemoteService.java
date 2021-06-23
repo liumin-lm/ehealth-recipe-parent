@@ -217,7 +217,11 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("recipecode", recipe.getRecipeCode());
             recipeMap.put("recipetype", recipe.getRecipeType());
             //此处接口那边不是中药方需要置为1
-            recipeMap.put("copynum", recipe.getCopyNum());
+            if (new Integer(3).equals(recipe.getRecipeType())) {
+                recipeMap.put("copynum", recipe.getCopyNum());
+            } else {
+                recipeMap.put("copynum", 1);
+            }
             recipeMap.put("createdate", recipe.getSignDate());
             recipeMap.put("requestdate", new Date());
             recipeMap.put("patientid", recipe.getMpiid());

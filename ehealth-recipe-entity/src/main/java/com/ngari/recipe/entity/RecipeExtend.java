@@ -326,6 +326,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "mainDieaseDescribe")
+    @Transient
     public String getMainDieaseDescribe() {
         return mainDieaseDescribe;
     }
@@ -335,6 +336,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "currentMedical")
+    @Transient
     public String getCurrentMedical() {
         return currentMedical;
     }
@@ -344,6 +346,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "histroyMedical")
+    @Transient
     public String getHistroyMedical() {
         return histroyMedical;
     }
@@ -353,6 +356,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "allergyMedical")
+    @Transient
     public String getAllergyMedical() {
         return allergyMedical;
     }
@@ -371,6 +375,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "historyOfPresentIllness")
+    @Transient
     public String getHistoryOfPresentIllness() {
         return historyOfPresentIllness;
     }
@@ -380,6 +385,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "handleMethod")
+    @Transient
     public String getHandleMethod() {
         return handleMethod;
     }
@@ -389,6 +395,7 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "physicalCheck")
+    @Transient
     public String getPhysicalCheck() {
         return physicalCheck;
     }

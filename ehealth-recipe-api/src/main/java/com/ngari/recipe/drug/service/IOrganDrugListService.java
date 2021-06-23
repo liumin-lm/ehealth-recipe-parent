@@ -23,7 +23,7 @@ public interface IOrganDrugListService {
     @RpcService
     List<OrganDrugListBean> findByOrganIdAndDrugIdAndOrganDrugCode(int organId,
                                                                   int drugId, String organDrugCode);
-    @RpcService
+    @RpcService(timeout = 600)
     QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(Date startTime, Date endTime, Integer organId, String drugClass, String keyword, Integer status, Integer isregulationDrug,  final Integer type, int start, int limit, Boolean canDrugSend);
 
     @RpcService

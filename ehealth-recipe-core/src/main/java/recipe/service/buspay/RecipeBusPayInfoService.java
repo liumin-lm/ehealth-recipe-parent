@@ -313,7 +313,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
             //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
             simpleBusObject.setMrn(getMrnForRecipe(recipeBean));
-
+            //由于bug#70621新增卡号卡类型字段
+            RecipeExtendBean recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeBean.getRecipeId());
+            if(recipeExtend!=null){
+                simpleBusObject.setCardId(recipeExtend.getCardNo());
+                simpleBusObject.setCardType(recipeExtend.getCardType());
+            }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {
                 //杭州市互联网医保支付

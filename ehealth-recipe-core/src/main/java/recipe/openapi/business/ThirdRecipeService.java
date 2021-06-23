@@ -1,5 +1,7 @@
 package recipe.openapi.business;
 
+import com.ngari.infra.logistics.mode.LogisticsOrderDetailsDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -17,12 +19,14 @@ import ctd.account.UserRoleToken;
 import ctd.account.thirdparty.ThirdPartyMappingController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
@@ -47,6 +51,9 @@ import java.util.*;
 public class ThirdRecipeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdRecipeService.class);
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 根据处方状态查询处方信息
@@ -259,6 +266,25 @@ public class ThirdRecipeService {
         return 0;
     }
 
+    /**
+     * 根据订单查询物流信息
+     * @param request 物流参数
+     * @return 订单物流轨迹
+     */
+    public LogisticsOrderDetailsDto getLogisticsOrderByOrderId(ThirdLogisticsRequest request){
+        LOGGER.info("ThirdRecipeService.getLogisticsOrderByOrderId request:{}.", JSONUtils.toString(request));
+        checkLogisticsParams(request);
+        setUrtToContext(request.getAppkey(), request.getTid());
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(request.getOrderId());
+        if (null == recipeOrder) {
+            throw new DAOException(609, "订单不存在");
+        }
+        ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+        LogisticsOrderDetailsDto logisticsOrderDetailsDto = logisticsOrderService.getLogisticsOrderByBizNo(1, recipeOrder.getOrderCode());
+        LOGGER.info("ThirdRecipeService.getLogisticsOrderByOrderId logisticsOrderDetailsDto:{}.", JSONUtils.toString(logisticsOrderDetailsDto));
+        return logisticsOrderDetailsDto;
+    }
+
     private void setOrderFee(RecipeOrder order, Recipe recipe, ThirdSaveOrderRequest request) {
         //设置挂号费
         if (request.getRecipeOrder().getRegisterFee() != null && request.getRecipeOrder().getRegisterFee() > 0.0) {
@@ -414,6 +440,15 @@ public class ThirdRecipeService {
         recipeExtend.setCurrentMedical("确诊创伤后股骨头坏死；既往使用阿奇霉素片(新维宏)、头孢地尼胶囊(全泽复)；无服药不良反应；无过敏史；未怀孕；2020.06确诊");
         recipeExtend.setRegisterID("3831292");
         recipeExtendDAO.save(recipeExtend);
+    }
+
+    private void checkLogisticsParams(ThirdLogisticsRequest request){
+        if (StringUtils.isEmpty(request.getTid())) {
+            throw new DAOException(609, "用户为空");
+        }
+        if (request.getOrderId() == null) {
+            throw new DAOException(609, "定单ID为空");
+        }
     }
 
     private void checkOrderParams(ThirdSaveOrderRequest request){
