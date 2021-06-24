@@ -286,7 +286,7 @@ public class CreateRecipePdfUtil {
                 //获取图片url
                 URL url = docSignImage.toURI().toURL();
                 //添加图片
-                addBarCodeImgForRecipePdfByCoordinates(input, output, url, 50f, 20f, xPoint, yPoint, false);
+                addBarCodeImgForRecipePdfByCoordinates(input, output, url, 40f, 20f, xPoint, yPoint, false);
                 //上传pdf文件
                 byte[] bytes = File2byte(file);
                 fileId = fileUploadService.uploadFileWithoutUrt(bytes, file.getName());
