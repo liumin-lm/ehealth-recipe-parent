@@ -3,7 +3,6 @@ package recipe.offlinetoonline.service.impl;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import org.slf4j.Logger;
@@ -18,7 +17,6 @@ import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,16 +45,15 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
         } catch (Exception e) {
             LOGGER.error("findHisRecipeList hisRecipeInfoCheck error ", e);
         }
-        List<HisRecipe> recipes=new ArrayList<>();
         try {
             // 3.保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
-            offlineToOnlineService.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 1);
+            offlineToOnlineService.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 2);
         } catch (Exception e) {
             LOGGER.error("findHisRecipeList saveHisRecipeInfo error ", e);
         }
         // 4.查询并转换成前端所需对象
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
-        return offlineToOnlineService.findFinishHisRecipes(request.getMpiId(), giveModeButtonBean, request.getStart(), request.getLimit());
+        return offlineToOnlineService.findFinishHisRecipes(request.getOrganId(),request.getMpiId(), giveModeButtonBean, request.getStart(), request.getLimit());
     }
 
     @Override
