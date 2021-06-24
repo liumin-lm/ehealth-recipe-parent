@@ -2315,16 +2315,16 @@ public class RecipeOrderService extends RecipeBaseService {
         if (!pushToHisAfterChoose) {
             return ;
         }
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
         //将处方上传到第三方
-        for (Integer recipeId : skipThirdReqVO.getRecipeIds()) {
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        recipes.forEach(recipe -> {
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
             DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
             if (new Integer(0).equals(result.getCode())) {
                 //表示上传失败
                 throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
             }
-        }
+        });
     }
 
     /**
@@ -2361,7 +2361,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipe.getClinicOrgan() == 1005683) {
             return getUrl(recipe);
         }
-        if (null != recipe && recipe.getEnterpriseId() != null) {
+        if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
