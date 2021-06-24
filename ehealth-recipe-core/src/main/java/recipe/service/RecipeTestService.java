@@ -26,21 +26,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -49,12 +45,6 @@ import java.util.stream.Collectors;
  */
 @RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
-    @Autowired
-    private EmrRecipeManager emrRecipeManager;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-    @Resource
-    private OrganService organService;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -270,44 +260,6 @@ public class RecipeTestService {
         recipeOrderDAO.updateByOrdeCode(orderCode, map);
     }
 
-    /**
-     * 处理处方电子病历的历史数据
-     *
-     * @param organId 机构ID
-     */
-    @RpcService
-    public void saveDoc(Integer organId) {
-        LOGGER.info("RecipeTestService saveDoc start organId= {}", organId);
-        List<Recipe> recipes = recipeDAO.findRecipeForDoc(organId);
-        if (CollectionUtils.isEmpty(recipes)) {
-            LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
-            return;
-        }
-        for (Recipe recipe : recipes) {
-            try {
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                if (null == recipeExtend || null == recipeExtend.getDocIndexId() || 0 == recipeExtend.getDocIndexId()) {
-                    continue;
-                }
-                emrRecipeManager.saveDocList(recipe, recipeExtend);
-            } catch (Exception e) {
-                LOGGER.info("saveDoc error:{}.", e.getMessage(), e);
-            }
-        }
-        LOGGER.info("RecipeTestService saveDoc end organId= {} ,size={}", organId, recipes.size());
-    }
-
-    /**
-     * 处理处方电子病历的历史数据 仅用于同步老数据 执行一次
-     */
-    @RpcService
-    public void saveDocList() {
-        LOGGER.info("RecipeTestService saveDocList start ");
-        List<OrganDTO> organList = organService.findOrgans();
-        List<Integer> organIds = organList.stream().map(OrganDTO::getOrganId).distinct().collect(Collectors.toList());
-        organIds.forEach(this::saveDoc);
-        LOGGER.info("RecipeTestService saveDocList end");
-    }
 
     /**
      * 处方退费应该按取消处方处理通知给药企--test

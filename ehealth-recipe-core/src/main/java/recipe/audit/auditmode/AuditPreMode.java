@@ -143,11 +143,13 @@ public class AuditPreMode extends AbstractAuidtMode {
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
+        LOGGER.info("AuditPreMode afterCheckPassYs recipeId:{}.", recipe.getRecipeId());
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
+        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
         //药师审方后推送给前置机（扁鹊）
-        RecipeServiceSub.pushRecipeForThird(recipe);
+        recipeServiceSub.pushRecipeForThird(recipe, 0);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发

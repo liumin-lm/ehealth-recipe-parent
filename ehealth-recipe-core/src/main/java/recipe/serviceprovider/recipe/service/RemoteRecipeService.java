@@ -2485,7 +2485,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         HosBusFundsReportResult ho = new HosBusFundsReportResult();
         HosBusFundsReportResult.MedFundsDetail result = new HosBusFundsReportResult.MedFundsDetail();
         result.setMedicalAmount(pay.getMedFee().getMedicalAmount().subtract(refund.getMedFee().getMedicalAmount()));
-        result.setPersonalAmount(pay.getMedFee().getPersonalAmount().subtract(refund.getMedFee().getMedicalAmount()));
+        result.setPersonalAmount(pay.getMedFee().getPersonalAmount().subtract(refund.getMedFee().getPersonalAmount()));
         result.setTotalAmount(pay.getMedFee().getTotalAmount().subtract(refund.getMedFee().getTotalAmount()));
         LOGGER.info("getRecipeMedAndCash.hoList ={}", JSONUtils.toString(result));
         ho.setMedFee(result);

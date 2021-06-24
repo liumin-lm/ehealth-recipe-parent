@@ -43,10 +43,6 @@ public class CommonRecipeExt implements Serializable {
     private String entrust;
     @ItemProperty(alias = "是否启用")
     private Integer status;
-//    @ItemProperty(alias = "创建时间")
-//    private Date createDt;
-//    @ItemProperty(alias = "最后修改时间")
-//    private Date lastModify;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -167,21 +163,4 @@ public class CommonRecipeExt implements Serializable {
         this.status = status;
     }
 
-//    @Column(name = "gmt_create")
-//    public Date getCreateDt() {
-//        return createDt;
-//    }
-//
-//    public void setCreateDt(Date createDt) {
-//        this.createDt = createDt;
-//    }
-//
-//    @Column(name = "gmt_modified")
-//    public Date getLastModify() {
-//        return lastModify;
-//    }
-//
-//    public void setLastModify(Date lastModify) {
-//        this.lastModify = lastModify;
-//    }
 }
