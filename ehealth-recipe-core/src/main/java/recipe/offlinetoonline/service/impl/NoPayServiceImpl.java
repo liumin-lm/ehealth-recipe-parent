@@ -58,7 +58,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
         List<HisRecipeVO> noPayFeeHisRecipeVO = offlineToOnlineService.covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
         // 3、包装成前端所需线下处方列表对象
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
-        return offlineToOnlineService.findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
+        return offlineToOnlineService.findOnReadyHisRecipeList(noPayFeeHisRecipeVO, giveModeButtonBean);
     }
 
     @Override

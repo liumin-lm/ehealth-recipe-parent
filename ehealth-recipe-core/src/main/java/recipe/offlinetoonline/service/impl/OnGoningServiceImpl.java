@@ -52,7 +52,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         // 2、返回进行中的线下处方
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
-        return offlineToOnlineService.findOngoingHisRecipe(hisRecipeInfos.getData(), patientDTO, giveModeButtonBean, request.getStart(), request.getLimit());
+        return offlineToOnlineService.findOngoingHisRecipeList(hisRecipeInfos.getData(), patientDTO, giveModeButtonBean, request.getStart(), request.getLimit());
 
     }
 
@@ -61,7 +61,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
         // 跟待处理获取详情一致 先判断数据是否变更 然后返回详情
         // 1.返回数据详情
 
-        return new;
+        return null;
 
     }
 

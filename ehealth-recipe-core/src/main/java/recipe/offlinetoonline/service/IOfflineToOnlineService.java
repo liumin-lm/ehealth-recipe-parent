@@ -20,8 +20,11 @@ import java.util.Map;
  */
 public interface IOfflineToOnlineService {
 
+
     /**
      * 获取线下处方列表
+     * @param hisRecipeInfos
+     * @param patientDTO
      * @param request
      * @return
      */

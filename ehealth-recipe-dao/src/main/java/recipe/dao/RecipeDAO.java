@@ -1207,7 +1207,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("select DISTINCT r.recipeCode from Recipe r, RecipeOrder o where r.orderCode=o.orderCode and clinicOrgan=:clinicOrgan and  recipeCode in (:recipeCodeList) and o.payFlag=0  ");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("recipeCodeList", recipeCodeList);
-                q.setParameterList("clinicOrgan", orgclinicOrganan);
+                q.setParameter("clinicOrgan", clinicOrgan);
                 List<String> recipeCodes=q.list();
                 setResult(recipeCodes);
             }

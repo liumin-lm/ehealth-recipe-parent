@@ -53,7 +53,7 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
         }
         // 4.查询并转换成前端所需对象
         GiveModeButtonBean giveModeButtonBean=offlineToOnlineService.getGiveModeButtonBean(request.getOrganId());
-        return offlineToOnlineService.findFinishHisRecipes(request.getOrganId(),request.getMpiId(), giveModeButtonBean, request.getStart(), request.getLimit());
+        return offlineToOnlineService.findFinishHisRecipeList(request.getOrganId(),request.getMpiId(), giveModeButtonBean, request.getStart(), request.getLimit());
     }
 
     @Override

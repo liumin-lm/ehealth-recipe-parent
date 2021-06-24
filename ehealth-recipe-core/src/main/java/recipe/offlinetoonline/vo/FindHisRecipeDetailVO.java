@@ -9,11 +9,12 @@ import java.io.Serializable;
  * @Date 2021/1/26 上午11:42
  * @Description 线下转线上获取详情参数
  */
+@SuppressWarnings("ALL")
 @Data
 public class FindHisRecipeDetailVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
-     //机构
+    //机构
     private Integer organId;
 
      //mpiId
@@ -30,8 +31,6 @@ public class FindHisRecipeDetailVO implements Serializable {
 
     //缴费状态 1 未处理 2已处理
     private Integer status;
-
-
 
 }
 

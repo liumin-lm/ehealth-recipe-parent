@@ -74,8 +74,8 @@ public class OfflineToOnlineAtop extends BaseAtop {
             HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
             IOfflineToOnlineService offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(Integer.parseInt(request.getStatus()));
             // 2、待缴费、进行中、已缴费线下处方列表服务差异化实现
-            List<MergeRecipeVO> hisRecipeVOS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
-            return hisRecipeVOS;
+            List<MergeRecipeVO> hisRecipeVoS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
+            return hisRecipeVoS;
         } catch (DAOException e1) {
             logger.error("OfflineToOnlineAtop findHisRecipeList error", e1);
             throw new DAOException(e1.getCode(), e1.getMessage());
