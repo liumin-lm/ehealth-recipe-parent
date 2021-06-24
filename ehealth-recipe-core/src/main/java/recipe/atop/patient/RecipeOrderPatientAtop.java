@@ -31,14 +31,20 @@ public class RecipeOrderPatientAtop  extends BaseAtop {
     @RpcService
     public SkipThirdBean skipThirdPage(SkipThirdReqVO skipThirdReqVO){
         logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdReqVO:{}.", JSON.toJSONString(skipThirdReqVO));
-        if (CollectionUtils.isEmpty(skipThirdReqVO.getRecipeIds())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        validateAtop(skipThirdReqVO.getRecipeIds());
+        try {
+            //上传处方到第三方,上传失败提示HIS返回的失败信息
+            recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            //获取跳转链接
+            SkipThirdBean skipThirdBean = recipeOrderService.getThirdUrlNew(skipThirdReqVO.getRecipeIds().get(0));
+            logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdBean:{}.", JSON.toJSONString(skipThirdBean));
+            return skipThirdBean;
+        } catch (DAOException e1) {
+            logger.error("RecipeOrderPatientAtop skipThirdPage error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOrderPatientAtop skipThirdPage error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        //上传处方到第三方,上传失败提示HIS返回的失败信息
-        recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
-        //获取跳转链接
-        SkipThirdBean skipThirdBean = recipeOrderService.getThirdUrlNew(skipThirdReqVO.getRecipeIds().get(0));
-        logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdBean:{}.", JSON.toJSONString(skipThirdBean));
-        return skipThirdBean;
     }
 }

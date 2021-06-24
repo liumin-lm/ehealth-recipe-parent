@@ -1,7 +1,6 @@
 package recipe.dao.bean;
 
 import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,6 +1,5 @@
 package recipe.atop.patient;
 
-import com.alibaba.fastjson.JSON;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;

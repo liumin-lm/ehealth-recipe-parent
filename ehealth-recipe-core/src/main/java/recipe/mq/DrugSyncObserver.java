@@ -209,7 +209,7 @@ public class DrugSyncObserver implements Observer<ShadowMessage> {
                     //重置searchKey
                     //机构药品名+平台商品名+机构商品名+院内别名
                     searchKey = organDrug.getDrugName()+";"+drug.getSaleName() + ";" + organDrug.getSaleName() + ";" +
-                            LocalStringUtil.toString(organDrug.getRetrievalCode());
+                            LocalStringUtil.toString(organDrug.getRetrievalCode()) + ";" + organDrug.getChemicalName();
                     detailVo.setSearchKey(searchKey.replaceAll(" ", ";"));
                     detailVo.setPlatformSaleName(drug.getSaleName());
                     detailVo.setDrugType(drug.getDrugType());

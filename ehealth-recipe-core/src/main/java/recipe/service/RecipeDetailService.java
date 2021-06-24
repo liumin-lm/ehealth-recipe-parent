@@ -1,12 +1,10 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.ValidateDetailVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -15,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.service.client.DrugClient;
@@ -39,20 +36,17 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
 public class RecipeDetailService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeDetailValidateTool recipeDetailValidateTool;
-    @Autowired
-    private IDrugEntrustService drugEntrustService;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
     private DrugClient drugClient;
-
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
 
     /**
      * 校验线上线下 药品数据 用于续方需求
@@ -69,9 +63,8 @@ public class RecipeDetailService {
         Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
         //查询机构药品
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
-        logger.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
-        Map<String, List<OrganDrugList>> organDrugGroup = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+        Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, organDrugCodeList);
+
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托

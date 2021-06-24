@@ -36,7 +36,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.cdr.api.service.IEmrPdfService;
-import eh.cdr.api.service.IOtherdocService;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.AuditMedicinesBean;

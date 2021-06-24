@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -65,6 +66,11 @@ public class AuditPreMode extends AbstractAuidtMode {
         //生成文件成功后再去更新处方状态
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
+        //更新审方checkFlag为待审核
+        Map<String, Object> attrMap = Maps.newHashMap();
+        attrMap.put("checkFlag", 0);
+        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+        LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
