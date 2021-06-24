@@ -2310,25 +2310,26 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
-        LOGGER.info("RecipeOrderService uploadRecipeInfoToThird:{}.", JSONUtils.toString(skipThirdReqVO));
+        LOGGER.info("RecipeOrderService uploadRecipeInfoToThird skipThirdReqVO:{}.", JSONUtils.toString(skipThirdReqVO));
         Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
         if (!pushToHisAfterChoose) {
             return ;
         }
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
         //将处方上传到第三方
-        for (Integer recipeId : skipThirdReqVO.getRecipeIds()) {
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        recipes.forEach(recipe -> {
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
             DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
+            LOGGER.info("RecipeOrderService uploadRecipeInfoToThird result:{}.", JSONUtils.toString(result));
             if (new Integer(0).equals(result.getCode())) {
                 //表示上传失败
                 throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
             }
-        }
+        });
     }
 
     /**
-     * 跳转第三方订单或者处方购药页面  新接口：recipeOrderPatientAtop skipThirdPage
+     * todo 过期方法新调用 使用： recipeOrderPatientAtop skipThirdPage
      * @param recipeId
      * @return
      */
@@ -2361,7 +2362,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipe.getClinicOrgan() == 1005683) {
             return getUrl(recipe);
         }
-        if (null != recipe && recipe.getEnterpriseId() != null) {
+        if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
