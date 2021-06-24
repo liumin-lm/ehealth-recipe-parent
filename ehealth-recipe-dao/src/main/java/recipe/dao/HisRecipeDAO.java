@@ -49,6 +49,10 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList)")
     public abstract List<HisRecipe> findHisRecipeByRecipeCodeAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
 
+    @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList) and status!=2")
+    public abstract List<HisRecipe> findNoDealHisRecipe(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
+
+
     /**
      * 查询
      * @param

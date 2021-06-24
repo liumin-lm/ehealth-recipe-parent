@@ -55,6 +55,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -326,7 +327,7 @@ public class OfflineToOnlineService {
             }
         } else {
             //不开启合并支付开关
-            covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
+            covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),request,result);
         }
         //按处方id从大到小排列
         //result.sort((o1, o2) -> o2.getFirstRecipeId() - o1.getFirstRecipeId());
@@ -591,48 +592,10 @@ public class OfflineToOnlineService {
             }
 
             HisRecipeVO hisRecipeVO =new HisRecipeVO();
-            //TODO  deleteLM 测试后确认没问题后统一删除
-/*            HisRecipe hisRecipe = new HisRecipe();
-            hisRecipeVO.setCertificate(patientDTO.getCertificate());
-            hisRecipeVO.setCertificateType(patientDTO.getCertificateType());
-
-            hisRecipeVO.setPatientAddress(patientDTO.getAddress());
-            hisRecipeVO.setPatientNumber(queryHisRecipResTO.getPatientNumber());
-            hisRecipeVO.setPatientTel(patientDTO.getMobile());
-            hisRecipeVO.setRegisteredId(StringUtils.isNotEmpty(queryHisRecipResTO.getRegisteredId()) ? queryHisRecipResTO.getRegisteredId() : "");
-            hisRecipeVO.setDepartCode(queryHisRecipResTO.getDepartCode());
-            hisRecipeVO.setChronicDiseaseCode(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseCode()) ? queryHisRecipResTO.getChronicDiseaseCode() : "");
-            hisRecipeVO.setChronicDiseaseName(StringUtils.isNotEmpty(queryHisRecipResTO.getChronicDiseaseName()) ? queryHisRecipResTO.getChronicDiseaseName() : "");
-            hisRecipeVO.setStatus(queryHisRecipResTO.getStatus());
-            if (new Integer(2).equals(queryHisRecipResTO.getMedicalType())) {
-                hisRecipeVO.setMedicalType(queryHisRecipResTO.getMedicalType());//医保类型
-            } else {
-                hisRecipeVO.setMedicalType(1);//默认自费
-            }
-            hisRecipeVO.setRecipeFee(queryHisRecipResTO.getRecipeFee());
-            hisRecipeVO.setRecipeType(queryHisRecipResTO.getRecipeType());
-            hisRecipeVO.setExtensionFlag(1);
-
-
-            if (!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())) {
-                hisRecipeVO.setDiseaseName(queryHisRecipResTO.getDiseaseName());
-            } else {
-                hisRecipeVO.setDiseaseName("无");
-            }
-            hisRecipe.setDisease(queryHisRecipResTO.getDisease());
-            if (!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())) {
-                hisRecipeVO.setDoctorCode(queryHisRecipResTO.getDoctorCode());
-            }
-            OrganService organService = BasicAPI.getService(OrganService.class);
-            OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
-            if (null != organDTO) {
-                hisRecipeVO.setOrganName(organDTO.getName());
-            }*/
             //详情需要
             hisRecipeVO.setMpiId(patientDTO.getMpiId());
             hisRecipeVO.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
-
-            //页面显示
+            //列表显示需要
             hisRecipeVO.setPatientName(patientDTO.getPatientName());
             hisRecipeVO.setCreateDate(queryHisRecipResTO.getCreateDate());
             hisRecipeVO.setRecipeCode(queryHisRecipResTO.getRecipeCode());
@@ -644,9 +607,9 @@ public class OfflineToOnlineService {
             hisRecipeVO.setDisease(queryHisRecipResTO.getDisease());
             hisRecipeVO.setDoctorName(queryHisRecipResTO.getDoctorName());
             hisRecipeVO.setDepartName(queryHisRecipResTO.getDepartName());
-            //设置其它信息
             setOtherInfo(hisRecipeVO, patientDTO.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
-            //不知道是否游泳 TODO
+            //其它需要
+            hisRecipeVO.setStatus(queryHisRecipResTO.getStatus());
             hisRecipeVO.setRecipeMode("ngarihealth");
             hisRecipeVOs.add(hisRecipeVO);
         }
@@ -1512,37 +1475,19 @@ public class OfflineToOnlineService {
             LOGGER.info("hisRecipeInfoCheck his data error recipeCodeList is null");
             return;
         }
-        //2 判断Recipe 是否有订单
         List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
         LOGGER.info("hisRecipeInfoCheck recipeList = {}", JSONUtils.toString(recipeList));
 
-        if (CollectionUtils.isNotEmpty(recipeList)) {
-            List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).distinct().collect(Collectors.toList());
-            //3 判断 订单 是否支付
-            if (CollectionUtils.isNotEmpty(orderCodeList)) {
-                List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
-                LOGGER.info("hisRecipeInfoCheck recipeOrderList = {}", JSONUtils.toString(recipeOrderList));
-                List<String> recipeOrderCode = recipeOrderList.stream().filter(a -> a.getPayFlag().equals(PayConstant.PAY_FLAG_PAY_SUCCESS)).map(RecipeOrder::getOrderCode).collect(Collectors.toList());
-                List<String> recipeCodeExclude = recipeList.stream().filter(a -> recipeOrderCode.contains(a.getOrderCode())).map(Recipe::getRecipeCode).distinct().collect(Collectors.toList());
-                //排除支付订单处方（找到非已支付的recipeCode）
-                recipeCodeList = recipeCodeList.stream().filter(a -> !recipeCodeExclude.contains(a)).collect(Collectors.toList());
-                //question TODO 比如his 返回已缴费的处方 ordercode就是空 这样吧his返回的已缴费的处方也过滤出来了
-
-
-                LOGGER.info("hisRecipeInfoCheck recipeCodeList = {}", JSONUtils.toString(recipeCodeList));
-                if (CollectionUtils.isEmpty(recipeCodeList)) {
-                    return;
-                }
-            }
-        }
-
-        List<HisRecipe> hisRecipeList = hisRecipeDAO.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, recipeCodeList);
+        List<HisRecipe> hisRecipeList = hisRecipeDAO.findNoDealHisRecipe(clinicOrgan, recipeCodeList);
         LOGGER.info("hisRecipeInfoCheck hisRecipeList = {}", JSONUtils.toString(hisRecipeList));
         if (CollectionUtils.isEmpty(hisRecipeList)) {
             return;
         }
+        Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
+
         //判断 hisRecipe 诊断不一致 更新
-        Map<String, HisRecipe> hisRecipeMap = updateHisRecipe(hisRecipeTO, recipeList, hisRecipeList);
+        updateDisease(hisRecipeTO, recipeList, hisRecipeMap);
+
 
         /**判断处方是否删除*/
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).distinct().collect(Collectors.toList());
@@ -1551,8 +1496,19 @@ public class OfflineToOnlineService {
         if (CollectionUtils.isEmpty(hisRecipeDetailList)) {
             return;
         }
+        deleteRecipeData(hisRecipeTO,hisRecipeMap,hisRecipeIds,hisRecipeDetailList,patientDTO.getMpiId());
+    }
 
-        //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数
+    /**
+     * 药品详情发生变化、数据不是由本人生成的未支付处方 数据处理
+     * @param hisRecipeTO
+     * @param hisRecipeMap
+     * @param hisRecipeIds
+     * @param hisRecipeDetailList
+     * @param mpiId
+     */
+    private void deleteRecipeData(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<Integer> hisRecipeIds, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
+        //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数等
         Set<String> deleteSetRecipeCode = new HashSet<>();
         Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
         hisRecipeTO.forEach(a -> {
@@ -1561,13 +1517,13 @@ public class OfflineToOnlineService {
             if (null == hisRecipe) {
                 return;
             } else {
-                if (!hisRecipe.getMpiId().equals(patientDTO.getMpiId())) {
+                if (!hisRecipe.getMpiId().equals(mpiId)) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}", recipeCode);
                     return;
                 }
             }
-            //已处理处方不应删除(现在因为其他用户绑定了该就诊人也要查询到数据，所以mpiid不一致，数据需要删除)
+            //已处理处方(现在因为其他用户绑定了该就诊人也要查询到数据，所以mpiid不一致，数据需要删除)
             if (2 == hisRecipe.getStatus()) {
                 return;
             }
@@ -1575,7 +1531,6 @@ public class OfflineToOnlineService {
             if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
                 deleteSetRecipeCode.add(recipeCode);
                 LOGGER.info("deleteSetRecipeCode cause drugList empty recipeCode:{}", recipeCode);
-
                 return;
             }
             if (a.getDrugList().size() != hisDetailList.size()) {
@@ -1657,11 +1612,9 @@ public class OfflineToOnlineService {
                 LOGGER.info("deleteSetRecipeCode cause tcmFee recipeCode:{}", recipeCode);
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }
-
         });
-
         //删除
-        deleteSetRecipeCode(clinicOrgan, deleteSetRecipeCode);
+        deleteSetRecipeCode(hisRecipeTO.get(0).getClinicOrgan(), deleteSetRecipeCode);
     }
 
     /**
@@ -1696,21 +1649,26 @@ public class OfflineToOnlineService {
         }
         recipeExtendDAO.deleteByRecipeIds(recipeIds);
         recipeDetailDAO.deleteByRecipeIds(recipeIds);
-        //question TODO recipe 主表不删 修改具体哪些字段（除id外所有字段）
-        recipeDAO.deleteByRecipeIds(recipeIds);
+        //recipe表不删 添加的时候修改（除id外所有字段）
+        recipeDAO.updateRecipeStatusByRecipeIds(recipeIds);
+        //日志记录
+        Map<Integer, Recipe> recipeMap =recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId,Function.identity(),(key1, key2) -> key2));
+        recipeIds.forEach(a -> {
+            RecipeLogService.saveRecipeLog(a, recipeMap.get(a).getStatus(), RecipeStatusConstant.DELETE,
+                    "线下转线上：修改处方状态为已删除");
+        });
         LOGGER.info("deleteSetRecipeCode is delete end ");
     }
 
     /**
      * 更新诊断字段
-     *
-     * @param hisRecipeTO
+     *  @param hisRecipeTO
      * @param recipeList
-     * @param hisRecipeList
+     * @param hisRecipeMap
      */
-    private Map<String, HisRecipe> updateHisRecipe(List<QueryHisRecipResTO> hisRecipeTO, List<Recipe> recipeList, List<HisRecipe> hisRecipeList) {
+    private Map<String, HisRecipe> updateDisease(List<QueryHisRecipResTO> hisRecipeTO, List<Recipe> recipeList, Map<String, HisRecipe> hisRecipeMap) {
+        LOGGER.info("updateHisRecipe param hisRecipeTO:{},recipeList:{},hisRecipeMap:{}",JSONUtils.toString(hisRecipeTO),JSONUtils.toString(recipeList),JSONUtils.toString(hisRecipeMap));
         Map<String, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeCode, a -> a, (k1, k2) -> k1));
-        Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         hisRecipeTO.forEach(a -> {
             HisRecipe hisRecipe = hisRecipeMap.get(a.getRecipeCode());
             if (null == hisRecipe) {
@@ -1722,20 +1680,23 @@ public class OfflineToOnlineService {
                 hisRecipe.setDisease(disease);
                 hisRecipe.setDiseaseName(diseaseName);
                 hisRecipeDAO.update(hisRecipe);
+
                 LOGGER.info("updateHisRecipe hisRecipe = {}", JSONUtils.toString(hisRecipe));
                 Recipe recipe = recipeMap.get(a.getRecipeCode());
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                recipe.setOrganDiseaseId(disease);
+                recipe.setOrganDiseaseName(diseaseName);
+                recipeDAO.update(recipe);
+
                 RecipeBean recipeBean = new RecipeBean();
                 BeanUtils.copy(recipe, recipeBean);
                 recipeBean.setOrganDiseaseName(diseaseName);
                 recipeBean.setOrganDiseaseId(disease);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-                recipe.setOrganDiseaseId(disease);
-                recipe.setOrganDiseaseName(diseaseName);
-                recipeDAO.update(recipe);
             }
         });
+        LOGGER.info("updateHisRecipe response hisRecipeMap:{}",JSONUtils.toString(hisRecipeMap));
         return hisRecipeMap;
     }
 
