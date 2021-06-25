@@ -3731,7 +3731,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             return RecipePharmacistCheckConstant.Check_Pass;
         }
         if (eh.cdr.constant.RecipeStatusConstant.REVOKE == status) {
-            return RecipePharmacistCheckConstant.Check_Failure;
+            return RecipePharmacistCheckConstant.Cancel;
         }
         if (eh.cdr.constant.RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
