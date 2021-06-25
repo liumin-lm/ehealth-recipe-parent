@@ -538,7 +538,7 @@ public class OperationPlatformRecipeService {
             if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId()))) {
                 return RecipePharmacistCheckConstant.Cancel;
             }
-            return RecipePharmacistCheckConstant.Check_Failure;
+            return RecipePharmacistCheckConstant.Cancel;
         }
         if (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status) {
             RecipeCheckBean nowRecipeCheck = recipeCheckService.getNowCheckResultByRecipeId(recipe.getRecipeId());
