@@ -5775,11 +5775,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.warn("当前处方{}信息为null，生成药师pdf部分失败", recipeId);
             return;
         }
-//        DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
-//        if (null == doctorDTOn) {
-//            LOGGER.warn("当前处方{}信息药师审核信息为空，生成药师pdf部分失败", recipeId);
-//            return;
-//        }
         try {
             boolean usePlatform = true;
             Object recipeUsePlatformCAPDF = configService.getConfiguration(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF");
