@@ -11,13 +11,11 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.account.UserRoleToken;
 import ctd.account.thirdparty.ThirdPartyMappingController;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -74,7 +72,7 @@ public class ThirdRecipeService {
     @Deprecated
     @RpcService
     public List<RecipeAndRecipeDetailsBean> findRecipesForPatientAndTabStatus(ThirdGetRecipeDetailRequest request){
-        LOGGER.info("ThirdRecipeService.findRecipesForPatientAndTabStatus request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus request:{}.", JSONUtils.toString(request));
         List<RecipeAndRecipeDetailsBean> recipeAndRecipeDetailsBeans = new ArrayList<>();
         Assert.hasLength(request.getTid(), "findRecipesForPatientAndTabStatus 用户tid为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
@@ -105,6 +103,7 @@ public class ThirdRecipeService {
             recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
             recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
         }
+        LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus recipeAndRecipeDetailsBeans:{}.", JSONUtils.toString(recipeAndRecipeDetailsBeans));
         return recipeAndRecipeDetailsBeans;
     }
 
@@ -115,7 +114,7 @@ public class ThirdRecipeService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(ThirdRecipeDetailRequest request){
-        LOGGER.info("ThirdRecipeService.getPatientRecipeById request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService getPatientRecipeById request:{}.", JSONUtils.toString(request));
         Assert.hasLength(request.getTid(), "getPatientRecipeById 用户tid为空!");
         Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
@@ -126,6 +125,7 @@ public class ThirdRecipeService {
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(request.getRecipeId(), false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        LOGGER.info("ThirdRecipeService getPatientRecipeById result:{}.", JSONUtils.toString(result));
         return result;
     }
 
@@ -136,11 +136,13 @@ public class ThirdRecipeService {
      */
     @RpcService
     public RecipeResultBean filterSupportDepList(ThirdGetDepListRequest request) {
-        LOGGER.info("ThirdRecipeService.filterSupportDepList request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService filterSupportDepList request:{}.", JSONUtils.toString(request));
         Assert.hasLength(request.getTid(), "filterSupportDepList 用户tid为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        return purchaseService.filterSupportDepList(Arrays.asList(request.getRecipeId()), Arrays.asList(request.getPayMode()), request.getFilterConditions());
+        RecipeResultBean  resultBean = purchaseService.filterSupportDepList(Arrays.asList(request.getRecipeId()), Arrays.asList(request.getPayMode()), request.getFilterConditions());
+        LOGGER.info("ThirdRecipeService filterSupportDepList resultBean:{}.", JSONUtils.toString(resultBean));
+        return resultBean;
     }
 
     /**
@@ -150,15 +152,17 @@ public class ThirdRecipeService {
      */
     @RpcService
     public List<AddressDTO> findByMpiIdOrderSelf(ThirdBaseRequest request){
-        LOGGER.info("ThirdRecipeService.findByMpiIdOrderSelf request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService findByMpiIdOrderSelf request:{}.", JSONUtils.toString(request));
+        List<AddressDTO> addressDTOS = new ArrayList<>();
         Assert.hasLength(request.getTid(), "findByMpiIdOrderSelf 用户tid为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
         String mpiId = getOwnMpiId();
         AddressService addressService = BasicAPI.getService(AddressService.class);
         if (StringUtils.isNotEmpty(mpiId)) {
-            return addressService.findByMpiIdOrderSelf(mpiId);
+            addressDTOS = addressService.findByMpiIdOrderSelf(mpiId);
         }
-        return new ArrayList<>();
+        LOGGER.info("ThirdRecipeService findByMpiIdOrderSelf addressDTOS:{}.", JSONUtils.toString(addressDTOS));
+        return addressDTOS;
     }
 
     /**
@@ -168,7 +172,7 @@ public class ThirdRecipeService {
      */
     @RpcService
     public Integer addAddress(ThirdSetAddressRequest request) {
-        LOGGER.info("ThirdRecipeService.addAddress request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService addAddress request:{}.", JSONUtils.toString(request));
         checkThirdAddressParams(request);
         setUrtToContext(request.getAppkey(), request.getTid());
         String mpiId = getOwnMpiId();
@@ -199,7 +203,7 @@ public class ThirdRecipeService {
      */
     @RpcService
     public Integer createOrder(ThirdSaveOrderRequest request) {
-        LOGGER.info("ThirdRecipeService.createOrder request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService createOrder request:{}.", JSONUtils.toString(request));
         try {
             checkOrderParams(request);
             setUrtToContext(request.getAppkey(), request.getTid());
@@ -259,6 +263,7 @@ public class ThirdRecipeService {
                 order.setLastModifyTime(new Date());
                 order.setOrderType(0);
                 RecipeOrder recipeOrder = recipeOrderDAO.save(order);
+                LOGGER.info("ThirdRecipeService createOrder recipeOrder:{}.", JSONUtils.toString(recipeOrder));
                 if (recipeOrder != null) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("orderCode", recipeOrder.getOrderCode());
@@ -281,7 +286,7 @@ public class ThirdRecipeService {
      * @return 订单物流轨迹
      */
     public LogisticsOrderDetailsDto getLogisticsOrderByOrderId(ThirdLogisticsRequest request){
-        LOGGER.info("ThirdRecipeService.getLogisticsOrderByOrderId request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService getLogisticsOrderByOrderId request:{}.", JSONUtils.toString(request));
         checkLogisticsParams(request);
         setUrtToContext(request.getAppkey(), request.getTid());
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(request.getOrderId());
@@ -290,7 +295,7 @@ public class ThirdRecipeService {
         }
         ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
         LogisticsOrderDetailsDto logisticsOrderDetailsDto = logisticsOrderService.getLogisticsOrderByBizNo(1, recipeOrder.getOrderCode());
-        LOGGER.info("ThirdRecipeService.getLogisticsOrderByOrderId logisticsOrderDetailsDto:{}.", JSONUtils.toString(logisticsOrderDetailsDto));
+        LOGGER.info("ThirdRecipeService getLogisticsOrderByOrderId logisticsOrderDetailsDto:{}.", JSONUtils.toString(logisticsOrderDetailsDto));
         return logisticsOrderDetailsDto;
     }
 
@@ -345,7 +350,7 @@ public class ThirdRecipeService {
      */
     @RpcService
     public Integer recipePayCallBack(ThirdPayCallBackRequest request){
-        LOGGER.info("ThirdRecipeService.recipePayCallBack request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService recipePayCallBack request:{}.", JSONUtils.toString(request));
         checkPayCallBackParams(request);
         setUrtToContext(request.getAppkey(), request.getTid());
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -381,7 +386,7 @@ public class ThirdRecipeService {
      */
     @RpcService
     public Integer updateRecipeStatus(ThirdUpdateRecipeRequest request) {
-        LOGGER.info("ThirdRecipeService.updateRecipeStatus request:{}.", JSONUtils.toString(request));
+        LOGGER.info("ThirdRecipeService updateRecipeStatus request:{}.", JSONUtils.toString(request));
         Assert.notNull(request.getTid(), "用户tid为空!");
         Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         Assert.notNull(request.getStatus(), "处方状态为空!");
@@ -394,56 +399,6 @@ public class ThirdRecipeService {
             return 1;
         }
         return 0;
-    }
-
-    @RpcService
-    public void insertTestData(String mpiId, String name) {
-        Recipe recipe = new Recipe();
-        recipe.setMpiid(mpiId);
-        recipe.setPatientName(name);
-        recipe.setPatientID("3831291");
-        recipe.setPatientStatus(1);
-        recipe.setClinicOrgan(1);
-        recipe.setOrganName("浙大附属邵逸夫医院");
-        recipe.setRecipeType(1);
-        recipe.setRecipeMode("ngarihealth");
-        recipe.setDepart(3024);
-        recipe.setDoctor(1182);
-        recipe.setDoctorName("张肖f5");
-        recipe.setCreateDate(new Date());
-        recipe.setCopyNum(1);
-        recipe.setTotalMoney(new BigDecimal(125.19));
-        recipe.setOrganDiseaseName("阿尔茨海默病");
-        recipe.setOrganDiseaseId("G30.900");
-        recipe.setMemo("无");
-        recipe.setPayFlag(0);
-        recipe.setActualPrice(new BigDecimal(125.19));
-        recipe.setGiveFlag(0);
-        recipe.setValueDays(3);
-        recipe.setGiveMode(2);
-        recipe.setSignFile("5f3cee982cd918114a494446");
-        recipe.setStatus(2);
-        recipe.setLastModify(new Date());
-        recipe.setSignDate(new Date());
-        recipe.setChooseFlag(2);
-        recipe.setRemindFlag(0);
-        recipe.setPushFlag(0);
-        recipe.setMedicalPayFlag(0);
-        recipe.setRequestMpiId(mpiId);
-        recipe.setReviewType(1);
-        recipe.setCheckMode(1);
-        recipe.setRecipeSourceType(1);
-        recipe.setRecipePayType(0);
-        recipe.setTakeMedicine(0);
-        Recipe result = recipeDAO.saveRecipe(recipe);
-        result.setRecipeCode(result.getRecipeId() + "ngari999");
-        recipeDAO.update(result);
-        RecipeExtend recipeExtend = new RecipeExtend();
-        recipeExtend.setRecipeId(result.getRecipeId());
-        recipeExtend.setMainDieaseDescribe("11");
-        recipeExtend.setCurrentMedical("确诊创伤后股骨头坏死；既往使用阿奇霉素片(新维宏)、头孢地尼胶囊(全泽复)；无服药不良反应；无过敏史；未怀孕；2020.06确诊");
-        recipeExtend.setRegisterID("3831292");
-        recipeExtendDAO.save(recipeExtend);
     }
 
     private void checkLogisticsParams(ThirdLogisticsRequest request){
