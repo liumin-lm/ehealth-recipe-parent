@@ -1046,7 +1046,11 @@ public class RecipeService extends RecipeBaseService {
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
         }
-
+        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            return;
+        }
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -1066,11 +1070,6 @@ public class RecipeService extends RecipeBaseService {
             //date 20200617
             //添加逻辑：ca返回异步无结果
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
-                return;
-            }
-            //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
-            if (recipe.getStatus() == 9) {
-                LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
                 return;
             }
             if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
