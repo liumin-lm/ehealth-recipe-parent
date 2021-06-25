@@ -2897,8 +2897,9 @@ public class RecipeServiceSub {
             }
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
         }
+        //撤销处方
+        changeAttr.put("checkFlag", null);
         result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
-
         if (result) {
             msg = "处方撤销成功";
             EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
