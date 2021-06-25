@@ -12,7 +12,6 @@ import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
@@ -23,7 +22,6 @@ import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.patient.utils.UrtUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
@@ -32,11 +30,9 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
-import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
-import ctd.mvc.controller.util.UserRoleTokenUtils;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -48,10 +44,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import ctd.util.context.ContextUtils;
 import ctd.util.event.GlobalEventExecFactory;
-import eh.entity.base.UsePathways;
-import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -64,14 +57,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.formula.functions.Count;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DoctorDrugUsageRequest;
 import recipe.bean.DrugEnterpriseResult;
@@ -94,7 +85,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * created by shiyuping on 2019/2/1
@@ -292,7 +282,7 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(23));
+                String retrievalCode = getStrFromCell(row.getCell(24));
                 if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
                     continue;
                 } else {
@@ -332,17 +322,17 @@ public class DrugToolService implements IDrugToolService {
                 }
 
                 try {
-                    drug.setDrugSpec(getStrFromCell(row.getCell(3)));
+                    drug.setDrugSpec(getStrFromCell(row.getCell(4)));
                 } catch (Exception e) {
                     LOGGER.error("药品规格有误 ," + e.getMessage(), e);
                     errMsg.append("药品规格有误").append(";");
                 }
                 try {
-                    if (("中药").equals(getStrFromCell(row.getCell(4)))) {
+                    if (("中药").equals(getStrFromCell(row.getCell(5)))) {
                         drug.setDrugType(3);
-                    } else if (("中成药").equals(getStrFromCell(row.getCell(4)))) {
+                    } else if (("中成药").equals(getStrFromCell(row.getCell(5)))) {
                         drug.setDrugType(2);
-                    } else if (("西药").equals(getStrFromCell(row.getCell(4)))) {
+                    } else if (("西药").equals(getStrFromCell(row.getCell(5)))) {
                         drug.setDrugType(1);
                     } else {
                         errMsg.append("药品类型格式错误").append(";");
@@ -354,14 +344,14 @@ public class DrugToolService implements IDrugToolService {
 
 
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("单次剂量不能为空").append(";");
                         }
 
                     } else {
-                        drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(5))));
+                        drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(6))));
                     }
                 } catch (Exception e) {
                     LOGGER.error("单次剂量有误 ," + e.getMessage(), e);
@@ -369,11 +359,11 @@ public class DrugToolService implements IDrugToolService {
                 }
 
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(7)))) {
 
                         drug.setDefaultUseDose(null);
                     } else {
-                        drug.setDefaultUseDose(Double.parseDouble(getStrFromCell(row.getCell(6))));
+                        drug.setDefaultUseDose(Double.parseDouble(getStrFromCell(row.getCell(7))));
                     }
                 } catch (Exception e) {
                     LOGGER.error("默认单次剂量有误 ," + e.getMessage(), e);
@@ -382,41 +372,41 @@ public class DrugToolService implements IDrugToolService {
 
 
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(8)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(9)))) {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("转换系数不能为空").append(";");
                         }
                     } else {
-                        drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(8))));
+                        drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(9))));
                     }
                 } catch (Exception e) {
                     LOGGER.error("转换系数有误 ," + e.getMessage(), e);
                     errMsg.append("转换系数有误").append(";");
                 }
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(9)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(10)))) {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("药品单位不能为空").append(";");
                         }
                     }
-                    drug.setUnit(getStrFromCell(row.getCell(9)));
+                    drug.setUnit(getStrFromCell(row.getCell(10)));
                 } catch (Exception e) {
                     LOGGER.error("药品单位有误 ," + e.getMessage(), e);
                     errMsg.append("药品单位有误").append(";");
                 }
 
             try {
-                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(10)))) {
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
                     //中药不需要设置
                     if ((new Integer(3).equals(drug.getDrugType()))) {
-                        DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(10)));
+                        DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(11)));
                         if (byOrganIdAndDrugEntrustName != null){
                             drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustId().toString());
                         }
                     }else {
-                        drug.setDrugEntrust(getStrFromCell(row.getCell(10)));
+                        drug.setDrugEntrust(getStrFromCell(row.getCell(11)));
                     }
                 }
             } catch (Exception e) {
@@ -424,10 +414,10 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("药品嘱托有误").append(";");
             }
             try {
-                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
-                    if (("是").equals(getStrFromCell(row.getCell(11)))) {
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(12)))) {
+                    if (("是").equals(getStrFromCell(row.getCell(12)))) {
                         drug.setMedicalInsuranceControl(true);
-                    } else if (("否").equals(getStrFromCell(row.getCell(11)))) {
+                    } else if (("否").equals(getStrFromCell(row.getCell(12)))) {
                         drug.setMedicalInsuranceControl(false);
                     }  else {
                         errMsg.append("医保控制格式错误").append(";");
@@ -438,21 +428,21 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("医保控制有误").append(";");
             }
             try {
-                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(12)))) {
-                    drug.setIndicationsDeclare(getStrFromCell(row.getCell(12)));
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(13)))) {
+                    drug.setIndicationsDeclare(getStrFromCell(row.getCell(13)));
                 }
             } catch (Exception e) {
                 LOGGER.error("适应症说明有误 ," + e.getMessage(), e);
                 errMsg.append("适应症说明有误").append(";");
             }
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(14)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(15)))) {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("生产厂家不能为空").append(";");
                         }
                     }
-                    drug.setProducer(getStrFromCell(row.getCell(14)));
+                    drug.setProducer(getStrFromCell(row.getCell(15)));
                 } catch (Exception e) {
                     LOGGER.error("生产厂家有误 ," + e.getMessage(), e);
                     errMsg.append("生产厂家有误").append(";");
@@ -461,9 +451,9 @@ public class DrugToolService implements IDrugToolService {
                 //中药不需要设置
                 if (!(new Integer(3).equals(drug.getDrugType()))) {
                     try {
-                        if (("是").equals(getStrFromCell(row.getCell(22)))) {
+                        if (("是").equals(getStrFromCell(row.getCell(23)))) {
                             drug.setBaseDrug(1);
-                        } else if (("否").equals(getStrFromCell(row.getCell(22)))) {
+                        } else if (("否").equals(getStrFromCell(row.getCell(23)))) {
                             drug.setBaseDrug(0);
                         } else {
                             errMsg.append("是否基药格式不正确").append(";");
@@ -476,21 +466,21 @@ public class DrugToolService implements IDrugToolService {
                 }
 
                 try {
-                    drug.setUseDoseUnit(getStrFromCell(row.getCell(7)));
+                    drug.setUseDoseUnit(getStrFromCell(row.getCell(8)));
                 } catch (Exception e) {
                     LOGGER.error("剂量单位有误 ," + e.getMessage(), e);
                     errMsg.append("剂量单位有误").append(";");
                 }
 
                 try {
-                    drug.setRetrievalCode(getStrFromCell(row.getCell(23)));
+                    drug.setRetrievalCode(getStrFromCell(row.getCell(24)));
                 } catch (Exception e) {
                     LOGGER.error("院内检索码有误 ," + e.getMessage(), e);
                     errMsg.append("院内检索码有误").append(";");
                 }
 
                 try {
-                    String priceCell = getStrFromCell(row.getCell(15));
+                    String priceCell = getStrFromCell(row.getCell(16));
                     if (StringUtils.isEmpty(priceCell)) {
                         drug.setPrice(new BigDecimal(0));
                     } else {
@@ -501,10 +491,10 @@ public class DrugToolService implements IDrugToolService {
                     errMsg.append("药品单价有误").append(";");
                 }
                 //设置无需判断的数据
-                drug.setDrugManfCode(getStrFromCell(row.getCell(13)));
+                drug.setDrugManfCode(getStrFromCell(row.getCell(14)));
             try {
-                if (getStrFromCell(row.getCell(16)) != null) {
-                    String strFromCell = getStrFromCell(row.getCell(16));
+                if (getStrFromCell(row.getCell(17)) != null) {
+                    String strFromCell = getStrFromCell(row.getCell(17));
                     StringBuilder ss = new StringBuilder();
                     String[] split = strFromCell.split(",");
                     for (int i = 0; i < split.length; i++) {
@@ -524,15 +514,16 @@ public class DrugToolService implements IDrugToolService {
             }catch (Exception e){
                 LOGGER.error("药房名称有误 ," + e.getMessage(), e);
             }
-                drug.setLicenseNumber(getStrFromCell(row.getCell(17)));
-                drug.setStandardCode(getStrFromCell(row.getCell(18)));
-                drug.setIndications(getStrFromCell(row.getCell(19)));
-                drug.setDrugForm(getStrFromCell(row.getCell(20)));
-                drug.setPackingMaterials(getStrFromCell(row.getCell(21)));
+                drug.setLicenseNumber(getStrFromCell(row.getCell(18)));
+                drug.setStandardCode(getStrFromCell(row.getCell(19)));
+                drug.setIndications(getStrFromCell(row.getCell(20)));
+                drug.setDrugForm(getStrFromCell(row.getCell(21)));
+                drug.setPackingMaterials(getStrFromCell(row.getCell(22)));
                 //drug.setRegulationDrugCode(getStrFromCell(row.getCell(20)));
-                drug.setMedicalDrugCode(getStrFromCell(row.getCell(24)));
-                drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(25)));
-                drug.setHisFormCode(getStrFromCell(row.getCell(26)));
+                drug.setMedicalDrugCode(getStrFromCell(row.getCell(25)));
+                drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(26)));
+                drug.setHisFormCode(getStrFromCell(row.getCell(27)));
+                drug.setChemicalName(getStrFromCell(row.getCell(3)));
                 if (!ObjectUtils.isEmpty(organId)){
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
@@ -550,10 +541,10 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setStatus(DrugMatchConstant.UNMATCH);
                 drug.setOperator(operator);
-                drug.setRegulationDrugCode(getStrFromCell(row.getCell(28)));
+                drug.setRegulationDrugCode(getStrFromCell(row.getCell(29)));
                 try {
-                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(27)))) {
-                        drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(27)).trim()));
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(28)))) {
+                        drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(28)).trim()));
                     }
                 } catch (Exception e) {
                     LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
@@ -1051,6 +1042,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setPharmacyName(drugListMatch.getPharmacy());
+                        organDrugList.setChemicalName(drugListMatch.getChemicalName());
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
@@ -1176,6 +1168,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugSpec(drugListMatch.getDrugSpec());
                         organDrugList.setRetrievalCode(drugListMatch.getRetrievalCode());
                         organDrugList.setDrugForm(drugListMatch.getDrugForm());
+                        organDrugList.setChemicalName(drugListMatch.getChemicalName());
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
@@ -1568,6 +1561,18 @@ public class DrugToolService implements IDrugToolService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 批量操作机构 上传机构药品数据到监管平台备案
+     *
+     * @param organIds
+     */
+    @RpcService(timeout = 6000)
+    public void uploadOrgansDrugToRegulation(List<Integer> organIds) {
+        for (Integer organId : organIds) {
+            uploadDrugToRegulation(organId);
+        }
     }
 
     /**

@@ -4,7 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.*;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeOrderBill;
+import com.ngari.recipe.entity.RecipeRefund;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
@@ -27,10 +30,11 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
-import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.service.*;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeOrderService;
+import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -69,13 +73,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     @Override
     public void finishOrderPay(String orderCode, int payFlag, Integer payMode) {
+        LOGGER.info("RemoteRecipeOrderService finishOrderPay orderCode={}, payFlag={} ,payMode={}", orderCode, payFlag, payMode);
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         service.finishOrderPay(orderCode, payFlag, payMode);
-        RecipeBusiThreadPool.submit(()->{
-            HisSyncSupervisionService  hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
-            return null;
-        });
+//        RecipeBusiThreadPool.submit(()->{
+//            HisSyncSupervisionService  hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+//            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
+//            return null;
+//        });
     }
 
     @RpcService

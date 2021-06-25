@@ -38,7 +38,7 @@ public class BaseService<T> implements IBaseService<T> {
      * @param dest
      * @param origin
      */
-    public void copyProperties(Object dest, Object origin) {
+    private void copyProperties(Object dest, Object origin) {
         if (null == origin) {
             dest = null;
             return;
@@ -52,12 +52,14 @@ public class BaseService<T> implements IBaseService<T> {
 
     /**
      * 获取业务对象bean
+     * todo 新 ObjectCopyUtils.convert(originList, clazz)
      *
      * @param origin
      * @param clazz
      * @param <T>
      * @return
      */
+    @Deprecated
     public <T> T getBean(Object origin, Class<T> clazz) {
         Object dest = null;
         if (null != origin) {
@@ -78,11 +80,13 @@ public class BaseService<T> implements IBaseService<T> {
 
     /**
      * 获取业务对象列表
+     * todo 新 ObjectCopyUtils.convert(originList, clazz)
      *
      * @param originList
      * @param clazz
      * @return
      */
+    @Deprecated
     public List<T> getList(List<?> originList, Class<T> clazz) {
         List<T> list = new ArrayList<>(originList.size());
         if (CollectionUtils.isNotEmpty(originList)) {
@@ -90,7 +94,6 @@ public class BaseService<T> implements IBaseService<T> {
                 list.add(getBean(obj, clazz));
             }
         }
-
         return list;
     }
 }

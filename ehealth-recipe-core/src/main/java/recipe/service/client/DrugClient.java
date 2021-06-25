@@ -5,16 +5,19 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
+import com.ngari.recipe.entity.DecoctionWay;
+import com.ngari.recipe.entity.DrugMakingMethod;
+import com.ngari.recipe.recipe.model.DrugEntrustDTO;
+import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.dao.DrugDecoctionWayDao;
+import recipe.dao.DrugMakingMethodDao;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +31,12 @@ public class DrugClient extends BaseClient {
     private IUsingRateService usingRateService;
     @Autowired
     private IUsePathwaysService usePathwaysService;
-
+    @Autowired
+    private DrugMakingMethodDao drugMakingMethodDao;
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    private IDrugEntrustService drugEntrustService;
 
     /**
      * 获取机构 药物使用频率
@@ -87,12 +95,28 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
-        logger.info("usingRateMap usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
-        if (CollectionUtils.isEmpty(usingRates)) {
-            return new HashMap<>(1);
-        }
-        return usingRates.stream().collect(Collectors.toMap(UsingRate::getId, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
+        return Optional.ofNullable(usingRates).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsingRate::getId, a -> a, (k1, k2) -> k1));
     }
+
+
+    /**
+     * 获取机构的用药频率
+     *
+     * @param organId 机构id
+     * @return 用药频率 机构code = key对象
+     */
+    public Map<String, UsingRate> usingRateMapCode(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
+        List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        logger.info("DrugClient usingRateMapCode organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
+        return Optional.ofNullable(usingRates).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsingRate::getUsingRateKey, a -> a, (k1, k2) -> k1));
+    }
+
 
     /**
      * 获取机构的用药途径
@@ -105,10 +129,120 @@ public class DrugClient extends BaseClient {
             return new HashMap<>(1);
         }
         List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-        logger.info("usingRateMap usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
-        if (CollectionUtils.isEmpty(usePathways)) {
-            return new HashMap<>(1);
-        }
-        return usePathways.stream().collect(Collectors.toMap(UsePathways::getId, a -> a, (k1, k2) -> k1));
+        logger.info("DrugClient usePathwaysMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
+        return Optional.ofNullable(usePathways).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsePathways::getId, a -> a, (k1, k2) -> k1));
     }
+
+
+    /**
+     * 获取机构的用药途径
+     *
+     * @param organId 机构id
+     * @return 用药途径 机构code = key对象
+     */
+    public Map<String, UsePathways> usePathwaysCodeMap(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
+        List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+        logger.info("DrugClient usePathwaysCodeMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
+        return Optional.ofNullable(usePathways).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(UsePathways::getPathwaysKey, a -> a, (k1, k2) -> k1));
+    }
+
+
+    /**
+     * 获取煎法code 为key的Map
+     *
+     * @param organId 机构id
+     * @return code = key对象
+     */
+    public Map<String, DecoctionWay> decoctionWayCodeMap(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
+        logger.info("DrugClient decoctionWayCodeMap organId = {} ,decoctionWayList:{}", organId, JSON.toJSONString(decoctionWayList));
+        return Optional.ofNullable(decoctionWayList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DecoctionWay::getDecoctionCode, a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 获取煎法 codeMap对象
+     *
+     * @param decoctionCode key
+     * @param codeMap       map字典
+     * @return
+     */
+    public static DecoctionWay validateDecoction(String decoctionCode, Map<String, DecoctionWay> codeMap) {
+        DecoctionWay decoctionWay = new DecoctionWay();
+        if (StringUtils.isEmpty(decoctionCode)) {
+            return decoctionWay;
+        }
+        if (null == codeMap) {
+            return decoctionWay;
+        }
+        DecoctionWay code = codeMap.get(decoctionCode);
+        if (null == code) {
+            return decoctionWay;
+        }
+        return code;
+    }
+
+    /**
+     * 获取制法code 为key的Map
+     *
+     * @param organId 机构id
+     * @return code = key对象
+     */
+    public Map<String, DrugMakingMethod> drugMakingMethodCodeMap(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
+        List<DrugMakingMethod> drugMakingMethodList = drugMakingMethodDao.findByOrganId(organId);
+        logger.info("DrugClient drugMakingMethodList organId = {}, drugMakingMethodList:{}", organId, JSON.toJSONString(drugMakingMethodList));
+        return Optional.ofNullable(drugMakingMethodList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DrugMakingMethod::getMethodCode, a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 获取制法 codeMap对象
+     *
+     * @param makeMethod key
+     * @param codeMap    map字典
+     * @return
+     */
+    public static DrugMakingMethod validateMakeMethod(String makeMethod, Map<String, DrugMakingMethod> codeMap) {
+        DrugMakingMethod drugMakingMethod = new DrugMakingMethod();
+        if (StringUtils.isEmpty(makeMethod)) {
+            return drugMakingMethod;
+        }
+        if (null == codeMap) {
+            return drugMakingMethod;
+        }
+        DrugMakingMethod code = codeMap.get(makeMethod);
+        if (null == code) {
+            return drugMakingMethod;
+        }
+        return code;
+    }
+
+    /**
+     * 获取嘱托（特殊煎法）code 为key的Map
+     *
+     * @param organId 机构id
+     * @return 机构name = key对象
+     */
+    public Map<String, DrugEntrustDTO> drugEntrustNameMap(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
+        List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+        logger.info("DrugClient drugEntrustNameMap organId = {} ,drugEntrusts={}", organId, JSON.toJSONString(drugEntrusts));
+        return Optional.ofNullable(drugEntrusts).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustName, a -> a, (k1, k2) -> k1));
+    }
+
+
 }

@@ -383,28 +383,30 @@ public class OperationPlatformRecipeService {
         //增加返回智能审方结果药品问题列表
         //判断开关是否开启
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-            map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
-            List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesService.findIssueByRecipeId(recipeId);
-            if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
-                auditMedicineIssues.forEach(item -> {
-                    if (null == item.getMedicineId()) {
-                        resultMedicineIssues.add(item);
-                    }
-                });
+        if (recipe.getStatus() != 0) {
+            if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
+                map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
+                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesService.findIssueByRecipeId(recipeId);
+                if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
+                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
+                    auditMedicineIssues.forEach(item -> {
+                        if (null == item.getMedicineId()) {
+                            resultMedicineIssues.add(item);
+                        }
+                    });
 
-                List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
-                resultMedicineIssues.forEach(item -> {
-                    PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
-                    recipeDanger.setDangerDesc(item.getDetail());
-                    recipeDanger.setDangerDrug(item.getTitle());
-                    recipeDanger.setDangerLevel(item.getLvlCode());
-                    recipeDanger.setDangerType(item.getLvl());
-                    recipeDanger.setDetailUrl(item.getDetailUrl());
-                    recipeDangers.add(recipeDanger);
-                });
-                map.put("recipeDangers", recipeDangers);
+                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                    resultMedicineIssues.forEach(item -> {
+                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                        recipeDanger.setDangerDesc(item.getDetail());
+                        recipeDanger.setDangerDrug(item.getTitle());
+                        recipeDanger.setDangerLevel(item.getLvlCode());
+                        recipeDanger.setDangerType(item.getLvl());
+                        recipeDanger.setDetailUrl(item.getDetailUrl());
+                        recipeDangers.add(recipeDanger);
+                    });
+                    map.put("recipeDangers", recipeDangers);
+                }
             }
         }
         Integer one = 1;

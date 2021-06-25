@@ -48,7 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import recipe.ApplicationUtils;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
@@ -313,7 +312,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
             //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
             simpleBusObject.setMrn(getMrnForRecipe(recipeBean));
-
+            //由于bug#70621新增卡号卡类型字段
+            RecipeExtendBean recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeBean.getRecipeId());
+            if(recipeExtend!=null){
+                simpleBusObject.setCardId(recipeExtend.getCardNo());
+                simpleBusObject.setCardType(recipeExtend.getCardType());
+            }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {
                 //杭州市互联网医保支付
