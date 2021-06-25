@@ -192,6 +192,7 @@ public class EmrRecipeManager {
             recipeInfoReq.setRpDetailBeanList(rpDetailBean);
             recipeInfoReq.setRecipeId(recipeId);
             recipeInfoReq.setHisRecipeCode(recipe.getRecipeCode());
+            recipeInfoReq.setDocIndexId(docId);
             if (null != recipeExtend) {
                 recipeInfoReq.setRegisterNo(recipeExtend.getRegisterID());
             }
