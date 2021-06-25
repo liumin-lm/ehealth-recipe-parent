@@ -195,73 +195,79 @@ public class ThirdRecipeService {
     @RpcService
     public Integer createOrder(ThirdSaveOrderRequest request) {
         LOGGER.info("ThirdRecipeService.createOrder request:{}.", JSONUtils.toString(request));
-        checkOrderParams(request);
-        setUrtToContext(request.getAppkey(), request.getTid());
-        String mpiId = getOwnMpiId();
-        //查询处方是否存在
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
-        if (recipe != null && StringUtils.isEmpty(recipe.getOrderCode())) {
-            RecipeOrder order = new RecipeOrder();
-            order.setMpiId(mpiId);
-            order.setOrganId(recipe.getClinicOrgan());
-            order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-            if (new Integer(1).equals(request.getGiveMode())) {
-                //设置配送到家的待配送状态
-                order.setStatus(3);
-            } else if (new Integer(2).equals(request.getGiveMode())) {
-                //设置到院取药的状态
-                order.setStatus(2);
-            } else if (new Integer(3).equals(request.getGiveMode())) {
-                //设置到店取药的待取药状态
-                order.setStatus(12);
-            } else {
-                //默认待配送
-                order.setStatus(3);
-            }
-            //设置配送信息
-            if (StringUtils.isNotEmpty(request.getRecipeOrder().getAddressId())) {
-                order.setAddressID(Integer.parseInt(request.getRecipeOrder().getAddressId()));
-                AddressService addressService = BasicAPI.getService(AddressService.class);
-                AddressDTO addressDTO = addressService.getByAddressId(Integer.parseInt(request.getRecipeOrder().getAddressId()));
-                if (addressDTO != null) {
-                    order.setAddress1(addressDTO.getAddress1());
-                    order.setAddress2(addressDTO.getAddress2());
-                    order.setAddress3(addressDTO.getAddress3());
-                    order.setAddress4(addressDTO.getAddress4());
-                    order.setReceiver(addressDTO.getReceiver());
-                    order.setRecMobile(addressDTO.getRecMobile());
+        try {
+            checkOrderParams(request);
+            setUrtToContext(request.getAppkey(), request.getTid());
+            String mpiId = getOwnMpiId();
+            //查询处方是否存在
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
+            if (recipe != null && StringUtils.isEmpty(recipe.getOrderCode())) {
+                RecipeOrder order = new RecipeOrder();
+                order.setMpiId(mpiId);
+                order.setOrganId(recipe.getClinicOrgan());
+                order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+                if (new Integer(1).equals(request.getGiveMode())) {
+                    //设置配送到家的待配送状态
+                    order.setStatus(3);
+                } else if (new Integer(2).equals(request.getGiveMode())) {
+                    //设置到院取药的状态
+                    order.setStatus(2);
+                } else if (new Integer(3).equals(request.getGiveMode())) {
+                    //设置到店取药的待取药状态
+                    order.setStatus(12);
+                } else {
+                    //默认待配送
+                    order.setStatus(3);
+                }
+                //设置配送信息
+                if (StringUtils.isNotEmpty(request.getRecipeOrder().getAddressId())) {
+                    order.setAddressID(Integer.parseInt(request.getRecipeOrder().getAddressId()));
+                    AddressService addressService = BasicAPI.getService(AddressService.class);
+                    AddressDTO addressDTO = addressService.getByAddressId(Integer.parseInt(request.getRecipeOrder().getAddressId()));
+                    if (addressDTO != null) {
+                        order.setAddress1(addressDTO.getAddress1());
+                        order.setAddress2(addressDTO.getAddress2());
+                        order.setAddress3(addressDTO.getAddress3());
+                        order.setAddress4(addressDTO.getAddress4());
+                        order.setReceiver(addressDTO.getReceiver());
+                        order.setRecMobile(addressDTO.getRecMobile());
+                    }
+                }
+                order.setWxPayWay(request.getRecipeOrder().getPayway());
+                if (StringUtils.isNotEmpty(request.getRecipeOrder().getDepId())) {
+                    order.setEnterpriseId(Integer.parseInt(request.getRecipeOrder().getDepId()));
+                }
+                if (StringUtils.isNotEmpty(request.getRecipeOrder().getGysCode())) {
+                    order.setDrugStoreCode(request.getRecipeOrder().getGysCode());
+                }
+                order.setEffective(1);
+                order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
+                order.setPayFlag(0);
+                //设置订单各个费用
+                setOrderFee(order, recipe ,request);
+                order.setWxPayWay(request.getRecipeOrder().getPayway());
+                order.setCreateTime(new Date());
+                order.setPayTime(new Date());
+                order.setPushFlag(1);
+                order.setSendTime(new Date());
+                order.setLastModifyTime(new Date());
+                order.setOrderType(0);
+                RecipeOrder recipeOrder = recipeOrderDAO.save(order);
+                if (recipeOrder != null) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("orderCode", recipeOrder.getOrderCode());
+                    map.put("enterpriseId", recipeOrder.getEnterpriseId());
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
+                    return recipeOrder.getOrderId();
                 }
             }
-            order.setWxPayWay(request.getRecipeOrder().getPayway());
-            if (StringUtils.isNotEmpty(request.getRecipeOrder().getDepId())) {
-                order.setEnterpriseId(Integer.parseInt(request.getRecipeOrder().getDepId()));
-            }
-            if (StringUtils.isNotEmpty(request.getRecipeOrder().getGysCode())) {
-                order.setDrugStoreCode(request.getRecipeOrder().getGysCode());
-            }
-            order.setEffective(1);
-            order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
-            order.setPayFlag(0);
-            //设置订单各个费用
-            setOrderFee(order, recipe ,request);
-            order.setWxPayWay(request.getRecipeOrder().getPayway());
-            order.setCreateTime(new Date());
-            order.setPayTime(new Date());
-            order.setPushFlag(1);
-            order.setSendTime(new Date());
-            order.setLastModifyTime(new Date());
-            order.setOrderType(0);
-            RecipeOrder recipeOrder = recipeOrderDAO.save(order);
-            if (recipeOrder != null) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("orderCode", recipeOrder.getOrderCode());
-                map.put("enterpriseId", recipeOrder.getEnterpriseId());
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
-                return recipeOrder.getOrderId();
-            }
+        } catch (NumberFormatException e) {
+            LOGGER.info("ThirdRecipeService createOrder NumberFormatException recipeId:{}.", request.getRecipeId(), e);
+        } catch (DAOException e) {
+            LOGGER.info("ThirdRecipeService createOrder DAOException recipeId:{}.", request.getRecipeId(), e);
         }
         return 0;
     }
