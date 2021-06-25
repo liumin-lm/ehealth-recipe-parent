@@ -1070,6 +1070,11 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
                 return;
             }
+            //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+            if (recipe.getStatus() == 9) {
+                LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+                return;
+            }
             if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
                 //说明处方签名失败
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
