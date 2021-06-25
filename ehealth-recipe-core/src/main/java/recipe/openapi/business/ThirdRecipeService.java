@@ -226,8 +226,8 @@ public class ThirdRecipeService {
                     //设置到店取药的待取药状态
                     order.setStatus(12);
                 } else {
-                    //默认待配送
-                    order.setStatus(3);
+                    //设置到院取药的状态
+                    order.setStatus(2);
                 }
                 //设置配送信息
                 if (StringUtils.isNotEmpty(request.getRecipeOrder().getAddressId())) {
@@ -421,17 +421,8 @@ public class ThirdRecipeService {
         if (null == recipe) {
             throw new DAOException(609, "不存在的处方单");
         }
-        if (StringUtils.isEmpty(request.getRecipeOrder().getAddressId())) {
-            throw new DAOException(609, "收货地址为空");
-        }
         if (StringUtils.isEmpty(request.getRecipeOrder().getPayway())) {
             throw new DAOException(609, "支付类型为空");
-        }
-        if (StringUtils.isEmpty(request.getRecipeOrder().getDecoctionFlag())) {
-            throw new DAOException(609, "代煎方式为空");
-        }
-        if (StringUtils.isEmpty(request.getRecipeOrder().getDepId())) {
-            throw new DAOException(609, "药企ID为空");
         }
     }
 
