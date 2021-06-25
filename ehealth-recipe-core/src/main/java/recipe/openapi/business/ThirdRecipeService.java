@@ -55,6 +55,12 @@ public class ThirdRecipeService {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
 
+    @Autowired
+    private RecipeDAO recipeDAO;
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
     /**
      * 根据处方状态查询处方信息
      * @param request
@@ -113,7 +119,6 @@ public class ThirdRecipeService {
         Assert.hasLength(request.getTid(), "getPatientRecipeById 用户tid为空!");
         Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
         if (recipe != null) {
             checkUserHasPermission(recipe.getRecipeId());
@@ -200,11 +205,9 @@ public class ThirdRecipeService {
             setUrtToContext(request.getAppkey(), request.getTid());
             String mpiId = getOwnMpiId();
             //查询处方是否存在
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
-            if (recipe != null && StringUtils.isEmpty(recipe.getOrderCode())) {
+            if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 RecipeOrder order = new RecipeOrder();
                 order.setMpiId(mpiId);
                 order.setOrganId(recipe.getClinicOrgan());
@@ -346,8 +349,6 @@ public class ThirdRecipeService {
         checkPayCallBackParams(request);
         setUrtToContext(request.getAppkey(), request.getTid());
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
         if (recipe != null) {
             checkUserHasPermission(recipe.getRecipeId());
@@ -385,7 +386,6 @@ public class ThirdRecipeService {
         Assert.notNull(request.getRecipeId(), "处方单ID为空!");
         Assert.notNull(request.getStatus(), "处方状态为空!");
         setUrtToContext(request.getAppkey(), request.getTid());
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
         if (recipe != null) {
             checkUserHasPermission(recipe.getRecipeId());
@@ -398,8 +398,6 @@ public class ThirdRecipeService {
 
     @RpcService
     public void insertTestData(String mpiId, String name) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Recipe recipe = new Recipe();
         recipe.setMpiid(mpiId);
         recipe.setPatientName(name);
@@ -463,6 +461,10 @@ public class ThirdRecipeService {
         }
         if (request.getRecipeId() == null) {
             throw new DAOException(609, "处方单ID为空");
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(request.getRecipeId());
+        if (null == recipe) {
+            throw new DAOException(609, "不存在的处方单");
         }
         if (StringUtils.isEmpty(request.getRecipeOrder().getAddressId())) {
             throw new DAOException(609, "收货地址为空");
@@ -560,7 +562,6 @@ public class ThirdRecipeService {
     }
 
     private void checkUserHasPermission(Integer recipeId){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         UserRoleToken urt = UserRoleToken.getCurrent();
