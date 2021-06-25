@@ -363,6 +363,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
     private String recipeSupportGiveMode;
 
+    @ItemProperty(alias = "处方审核状态")
+    private Integer checkFlag;
+
     @Column(name = "recipeSupportGiveMode")
     public String getRecipeSupportGiveMode() {
         return recipeSupportGiveMode;
@@ -1453,6 +1456,15 @@ public class Recipe implements Serializable {
     }
     public void setGrabOrderStatus(Integer grabOrderStatus) {
         this.grabOrderStatus = grabOrderStatus;
+    }
+
+    @Column(name = "checkFlag")
+    public Integer getCheckFlag() {
+        return checkFlag;
+    }
+
+    public void setCheckFlag(Integer checkFlag) {
+        this.checkFlag = checkFlag;
     }
 
     public Recipe(Integer recipeId, String supplementaryMemo) {

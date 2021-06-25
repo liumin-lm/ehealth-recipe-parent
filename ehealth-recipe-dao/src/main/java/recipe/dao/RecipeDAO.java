@@ -3723,7 +3723,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      */
     private Integer getCheckResultByPending(Recipe recipe) {
-        Integer checkResult = 0;
+        /*Integer checkResult = 0;
         Integer status = recipe.getStatus();
         //date 20191127
         //添加前置判断:当审核方式是不需要审核则返回通过审核状态
@@ -3750,9 +3750,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     }
                 }
             }
-        }
+        }*/
 
-        return checkResult;
+        return recipe.getCheckFlag();
     }
 
     public List<Recipe> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes, Date date) {
