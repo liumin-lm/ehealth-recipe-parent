@@ -371,6 +371,9 @@ public class Recipe implements Serializable {
         return recipeSupportGiveMode;
     }
 
+    @ItemProperty(alias = "处方审核状态")
+    private Integer checkFlag;
+
     public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
         this.recipeSupportGiveMode = recipeSupportGiveMode;
     }
