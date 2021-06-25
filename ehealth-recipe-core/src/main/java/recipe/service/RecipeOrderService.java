@@ -973,6 +973,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
+        LOGGER.info("reCalculateRecipeFee enterpriseId = {}, recipeIds = {} , extInfo ={} " ,enterpriseId,JSON.toJSONString(recipeIds),JSON.toJSONString(extInfo));
         DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1017,6 +1018,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         if (extInfo == null) {
+            LOGGER.info("reCalculateRecipeFee extInfo ");
             //说明是重新计算药企处方费用的
             return recipeFee;
         } else {
@@ -1025,6 +1027,7 @@ public class RecipeOrderService extends RecipeBaseService {
             IRecipeOrderService orderService = RecipeAPI.getService(IRecipeOrderService.class);
             RecipeOrderBean order = orderService.getOrderByRecipeId(recipeIds.get(0));
             if (null == order) {
+                LOGGER.info("reCalculateRecipeFee order ={} " ,JSON.toJSONString(order));
                 RecipeBussResTO<RecipeOrderBean> resTO = orderService.createBlankOrder(recipeIds, extInfo);
                 if (null != resTO) {
                     order = resTO.getData();
