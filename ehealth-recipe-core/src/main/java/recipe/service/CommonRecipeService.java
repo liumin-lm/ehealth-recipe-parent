@@ -332,11 +332,11 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         }
         //煎法
         DecoctionWay decoctionWay = DrugClient.validateDecoction(commonRecipeExt.getDecoctionCode(), decoctionWayCodeMap);
-        commonRecipeExt.setDecoctionId(String.valueOf(decoctionWay.getDecoctionId()));
+        commonRecipeExt.setDecoctionId(ByteUtils.objValueOf(decoctionWay.getDecoctionId()));
         commonRecipeExt.setDecoctionText(decoctionWay.getDecoctionText());
         //制法
         DrugMakingMethod drugMakingMethod = DrugClient.validateMakeMethod(commonRecipeExt.getMakeMethod(), drugMakingMethodCodeMap);
-        commonRecipeExt.setMakeMethodId(String.valueOf(drugMakingMethod.getMethodId()));
+        commonRecipeExt.setMakeMethodId(ByteUtils.objValueOf(drugMakingMethod.getMethodId()));
         commonRecipeExt.setMakeMethodText(drugMakingMethod.getMethodText());
     }
 
