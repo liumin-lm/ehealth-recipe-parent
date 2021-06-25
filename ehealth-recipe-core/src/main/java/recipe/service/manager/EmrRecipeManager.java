@@ -195,9 +195,10 @@ public class EmrRecipeManager {
             if (null != recipeExtend) {
                 recipeInfoReq.setRegisterNo(recipeExtend.getRegisterID());
             }
+            logger.info("EmrRecipeManager upDocIndex recipeInfoReq：{} ", JSON.toJSONString(recipeInfoReq));
             docIndexService.saveRpDetailRelation(recipeInfoReq);
         } catch (Exception e) {
-            logger.error("saveRpDetailRelation error docId：{} ", docId, e);
+            logger.error("EmrRecipeManager upDocIndex  saveRpDetailRelation error docId：{} ", docId, e);
         }
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();

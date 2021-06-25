@@ -874,7 +874,7 @@ public class HisRequestInit {
         if (recipe.getChecker() != null && recipe.getChecker() != 0) {
             DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
             if (doctor != null) {
-                request.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), doctor.getDepartment()));
+                request.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctor.getDoctorId(), recipe.getClinicOrgan(), doctor.getDepartment()));
                 request.setAuditDoctorName(doctor.getName());
             }
         }
