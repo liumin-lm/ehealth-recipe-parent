@@ -216,13 +216,13 @@ public class ThirdRecipeService {
                 order.setMpiId(mpiId);
                 order.setOrganId(recipe.getClinicOrgan());
                 order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-                if (new Integer(1).equals(request.getGiveMode())) {
+                if ("1".equals(request.getRecipeOrder().getSendMethod())) {
                     //设置配送到家的待配送状态
                     order.setStatus(3);
-                } else if (new Integer(2).equals(request.getGiveMode())) {
+                } else if ("2".equals(request.getRecipeOrder().getSendMethod())) {
                     //设置到院取药的状态
                     order.setStatus(2);
-                } else if (new Integer(3).equals(request.getGiveMode())) {
+                } else if ("3".equals(request.getRecipeOrder().getSendMethod())) {
                     //设置到店取药的待取药状态
                     order.setStatus(12);
                 } else {
