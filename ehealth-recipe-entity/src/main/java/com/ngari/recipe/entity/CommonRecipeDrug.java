@@ -6,7 +6,6 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * Created by  on 2017/5/23.
@@ -76,12 +75,6 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     @ItemProperty(alias = "药品嘱托Id")
     private String drugEntrustId ;
-
-    @ItemProperty(alias="创建时间")
-    private Date createDt;
-
-    @ItemProperty(alias="最后修改时间")
-    private Date lastModify;
 
     @ItemProperty(alias="药物使用频率代码")
     @Dictionary(id="eh.cdr.dictionary.UsingRate")
@@ -291,24 +284,6 @@ public class CommonRecipeDrug implements java.io.Serializable{
         this.memo = memo;
     }
 
-    @Column(name = "CreateDt")
-    public Date getCreateDt() {
-        return createDt;
-    }
-
-    public void setCreateDt(Date createDt) {
-        this.createDt = createDt;
-    }
-
-    @Column(name = "LastModify")
-    public Date getLastModify() {
-        return lastModify;
-    }
-
-    public void setLastModify(Date lastModify) {
-        this.lastModify = lastModify;
-    }
-
     @Column(name = "UsingRate")
     public String getUsingRate() {
         return usingRate;
@@ -401,8 +376,6 @@ public class CommonRecipeDrug implements java.io.Serializable{
                 ", price1=" + price1 +
                 ", drugCost=" + drugCost +
                 ", memo='" + memo + '\'' +
-                ", createDt=" + createDt +
-                ", lastModify=" + lastModify +
                 ", usingRate='" + usingRate + '\'' +
                 ", usePathways='" + usePathways + '\'' +
                 ", useDays=" + useDays +

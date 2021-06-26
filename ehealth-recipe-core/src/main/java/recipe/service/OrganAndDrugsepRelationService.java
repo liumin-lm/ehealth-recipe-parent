@@ -82,7 +82,9 @@ public class OrganAndDrugsepRelationService implements IOrganAndDrugsepRelationS
         }
         OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         OrganAndDrugsepRelation drugsepRelation = relationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, entId);
-        relationDAO.remove(drugsepRelation.getId());
+        if (null != drugsepRelation) {
+            relationDAO.remove(drugsepRelation.getId());
+        }
     }
 
 

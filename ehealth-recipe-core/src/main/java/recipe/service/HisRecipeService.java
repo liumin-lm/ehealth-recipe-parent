@@ -1791,7 +1791,7 @@ public class HisRecipeService {
                 BeanUtils.copy(recipe, recipeBean);
                 recipeBean.setOrganDiseaseName(diseaseName);
                 recipeBean.setOrganDiseaseId(disease);
-                emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
+                emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
                 recipe.setOrganDiseaseId(disease);
                 recipe.setOrganDiseaseName(diseaseName);

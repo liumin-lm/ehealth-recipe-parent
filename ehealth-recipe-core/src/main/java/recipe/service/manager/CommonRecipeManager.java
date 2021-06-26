@@ -1,11 +1,12 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
-import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.CommonRecipeExt;
@@ -25,7 +26,10 @@ import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.client.DoctorClient;
 import recipe.service.client.DrugClient;
+import recipe.service.client.OfflineRecipeClient;
+import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -54,6 +58,10 @@ public class CommonRecipeManager {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private DoctorClient doctorClient;
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
 
     /**
      * 新增常用方信息
@@ -63,6 +71,8 @@ public class CommonRecipeManager {
      * @param commonDrugList     常用方药品
      */
     public void saveCommonRecipe(CommonRecipe commonRecipe, CommonRecipeExtDTO commonRecipeExtDTO, List<CommonRecipeDrug> commonDrugList) {
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe={},commonRecipeExtDTO={},commonDrugList={}"
+                , JSON.toJSONString(commonRecipe), JSON.toJSONString(commonRecipeExtDTO), JSON.toJSONString(commonDrugList));
         commonRecipe.setCommonRecipeId(null);
         commonRecipeDAO.save(commonRecipe);
         if (null != commonRecipeExtDTO) {
@@ -76,7 +86,7 @@ public class CommonRecipeManager {
             a.setCommonRecipeId(commonRecipe.getCommonRecipeId());
             commonRecipeDrugDAO.save(a);
         });
-        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipe.getCommonRecipeId={}", commonRecipe.getCommonRecipeId());
+        LOGGER.info("CommonRecipeManager saveCommonRecipe commonRecipeId={}", commonRecipe.getCommonRecipeId());
     }
 
     /**
@@ -85,7 +95,7 @@ public class CommonRecipeManager {
      * @param commonRecipeId 常用方id
      */
     public void removeCommonRecipe(Integer commonRecipeId) {
-        if (null == commonRecipeId || 0 == commonRecipeId) {
+        if (ValidateUtil.integerIsEmpty(commonRecipeId)) {
             return;
         }
         commonRecipeDAO.remove(commonRecipeId);
@@ -133,6 +143,20 @@ public class CommonRecipeManager {
         return ObjectCopyUtils.convert(commonRecipeList, CommonRecipeDTO.class);
     }
 
+
+    /**
+     * 查询线下常用方列表
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @return
+     */
+    public List<CommonRecipe> offlineCommonRecipeList(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findByOrganIdAndDoctorIdAndType(organId, doctorId, 2);
+        LOGGER.info("CommonRecipeManager commonRecipeList commonRecipeList={}，organId={}，doctorId={}", JSON.toJSONString(commonRecipeList), organId, doctorId);
+        return commonRecipeList;
+    }
+
     /**
      * 查询常用方药品，与机构药品关联返回
      *
@@ -174,13 +198,7 @@ public class CommonRecipeManager {
                 commonDrugDTO.setPrice1(organDrug.getSalePrice().doubleValue());
                 commonDrugDTO.setDrugForm(organDrug.getDrugForm());
                 //用药单位不为空时才返回给前端
-                List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
-                } else if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
-                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
-                }
-                commonDrugDTO.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                commonDrugDTO.setUseDoseAndUnitRelation(OrganDrugListManager.defaultUseDose(organDrug));
                 commonDrugDTO.setPlatformSaleName(organDrug.getSaleName());
             }
             if (StringUtils.isNotEmpty(commonDrugDTO.getUsingRateId())) {
@@ -216,13 +234,34 @@ public class CommonRecipeManager {
      * @param commonRecipeName 常用方名
      * @return
      */
-    public CommonRecipe getByDoctorIdAndName(Integer doctorId, String commonRecipeName) {
+    public Integer getByDoctorIdAndName(Integer doctorId, String commonRecipeName, Integer commonRecipeId) {
         LOGGER.info("CommonRecipeManager validateParam getByDoctorIdAndName doctorId:{},commonRecipeName:{}", doctorId, commonRecipeName);
         try {
-            return commonRecipeDAO.getByDoctorIdAndName(doctorId, commonRecipeName);
+            List<CommonRecipe> list = commonRecipeDAO.findByName(doctorId, commonRecipeName);
+            if (CollectionUtils.isNotEmpty(list)) {
+                if (!ValidateUtil.validateObjects(commonRecipeId)) {
+                    list = list.stream().filter(a -> !a.getCommonRecipeId().equals(commonRecipeId)).collect(Collectors.toList());
+                }
+                return list.size();
+            } else {
+                return 0;
+            }
         } catch (Exception e) {
             LOGGER.error("CommonRecipeManager validateParam error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }
     }
+
+    /**
+     * 获取线下常用方
+     *
+     * @param doctorId 医生id
+     * @return
+     */
+    public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
+        DoctorDTO doctorDTO = doctorClient.getDoctor(doctorId);
+        return offlineRecipeClient.offlineCommonRecipe(organId, doctorDTO);
+    }
+
+
 }

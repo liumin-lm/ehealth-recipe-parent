@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -65,6 +66,11 @@ public class AuditPreMode extends AbstractAuidtMode {
         //生成文件成功后再去更新处方状态
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
+        //更新审方checkFlag为待审核
+        Map<String, Object> attrMap = Maps.newHashMap();
+        attrMap.put("checkFlag", 0);
+        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+        LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
@@ -143,11 +149,13 @@ public class AuditPreMode extends AbstractAuidtMode {
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
+        LOGGER.info("AuditPreMode afterCheckPassYs recipeId:{}.", recipe.getRecipeId());
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
+        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
         //药师审方后推送给前置机（扁鹊）
-        RecipeServiceSub.pushRecipeForThird(recipe);
+        recipeServiceSub.pushRecipeForThird(recipe, 0);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发

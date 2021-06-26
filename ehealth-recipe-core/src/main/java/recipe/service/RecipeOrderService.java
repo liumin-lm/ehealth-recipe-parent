@@ -26,7 +26,10 @@ import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.AddressService;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
@@ -71,13 +74,16 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.givemode.business.GiveModeFactory;
+import recipe.givemode.business.GiveModeTextEnum;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
+import recipe.service.client.IConfigurationClient;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
-import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -137,6 +143,12 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private IConfigurationClient configurationClient;
+
+    @Autowired
+    private RecipeServiceSub recipeServiceSub;
 
     /**
      * 处方结算时创建临时订单
@@ -299,7 +311,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
-        if(!payMode.equals(1)){
+        if (!payMode.equals(1)) {
             payModeNew = 2;
         }
         order.setPayMode(payModeNew);
@@ -761,7 +773,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setRecMobile(hisRecipe.getReceiverTel());
                         order.setAddressCanSend(true);
                         order.setAddress4(hisRecipe.getSendAddr());
-                    }else {
+                    } else {
                         //运费在这里面设置
                         setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
                     }
@@ -862,7 +874,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
             //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
-            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(),recipe.getGiveMode())));
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode())));
             if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
                     totalFee = totalFee.subtract(order.getExpressFee());
@@ -961,6 +973,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
+        LOGGER.info("reCalculateRecipeFee enterpriseId = {}, recipeIds = {} , extInfo ={} " ,enterpriseId,JSON.toJSONString(recipeIds),JSON.toJSONString(extInfo));
         DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1005,6 +1018,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         if (extInfo == null) {
+            LOGGER.info("reCalculateRecipeFee extInfo ");
             //说明是重新计算药企处方费用的
             return recipeFee;
         } else {
@@ -1013,6 +1027,7 @@ public class RecipeOrderService extends RecipeBaseService {
             IRecipeOrderService orderService = RecipeAPI.getService(IRecipeOrderService.class);
             RecipeOrderBean order = orderService.getOrderByRecipeId(recipeIds.get(0));
             if (null == order) {
+                LOGGER.info("reCalculateRecipeFee order ={} " ,JSON.toJSONString(order));
                 RecipeBussResTO<RecipeOrderBean> resTO = orderService.createBlankOrder(recipeIds, extInfo);
                 if (null != resTO) {
                     order = resTO.getData();
@@ -1279,11 +1294,11 @@ public class RecipeOrderService extends RecipeBaseService {
     private boolean judgeIsSupportMedicalInsurance(String mpiId, Integer organId) {
         HisServiceConfigBean hisServiceConfig = iHisConfigService.getHisConfigByOrganId(organId);
         PatientDTO patient = patientService.get(mpiId);
-        if (ValidateUtil.blankString(patient.getPatientType()) || String.valueOf(PayConstant.PAY_TYPE_SELF_FINANCED).equals(patient.getPatientType())) {
+        if (StringUtils.isEmpty(patient.getPatientType()) || String.valueOf(PayConstant.PAY_TYPE_SELF_FINANCED).equals(patient.getPatientType())) {
             LOGGER.info("judgeIsSupportMedicalInsurance patient not support, mpiId[{}]", patient.getMpiId());
             return false;
         }
-        if (ValidateUtil.isNotTrue(hisServiceConfig.getSupportMedicalInsurance())) {
+        if (null == hisServiceConfig.getSupportMedicalInsurance() || !hisServiceConfig.getSupportMedicalInsurance()) {
             LOGGER.info("judgeIsSupportMedicalInsurance hisServiceConfig not support, id[{}]", hisServiceConfig.getId());
             return false;
         }
@@ -1524,6 +1539,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
+            String decoctionId = "";
+            String decoctionText = "";
+            boolean decoctionFlag = true;
             //更新处方recipe的status
 
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
@@ -1612,8 +1630,14 @@ public class RecipeOrderService extends RecipeBaseService {
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
                     //取处方详情中的药品的取药窗口信息
                     // 更改为从处方扩展表中获取取药窗口信息
-                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty( recipeExtend.getPharmNo())) {
+                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
                         prb.setGetDrugWindow(organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
+                    }
+                    //获取煎法
+                    if (new Integer(3).equals(recipe.getRecipeType()) && decoctionFlag) {
+                        decoctionId = recipeExtend.getDecoctionId();
+                        decoctionText = recipeExtend.getDecoctionText();
+                        decoctionFlag = false;
                     }
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
@@ -1673,7 +1697,8 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
-
+            orderBean.setDecoctionId(decoctionId);
+            orderBean.setDecoctionText(decoctionText);
             BigDecimal needFee = new BigDecimal(0.00);
             //当处方状态为已完成时
             if (RecipeStatusConstant.FINISH == recipeList.get(0).getStatus()) {
@@ -1827,7 +1852,17 @@ public class RecipeOrderService extends RecipeBaseService {
                 //当不是不需要审核
                 showAuditFee = ReviewTypeConstant.Not_Need_Check != nowRecipe.getReviewType() && (null != configurationService.getConfiguration(nowRecipe.getClinicOrgan(), "auditFee") || 0 > BigDecimal.ZERO.compareTo(order.getAuditFee()));
                 //添加文案提示的
-                getOrderTips(ext, nowRecipe, order);
+                if (ReviewTypeConstant.Postposition_Check.equals(nowRecipe.getReviewType()) && recipeList.size() > 1) {
+                    // 审方后置的情况下,合并支付的的订单的提示文案 有部分未审核通过的处方，顶部文案未”部分处方待审核，请耐心等待药师审核“
+                    Set<Integer> key = recipeList.stream().map(Recipe::getStatus).collect(Collectors.toSet());
+                    if (key.contains(8) && key.size() > 1) {
+                        ext.put("tips", "部分处方待审核，请耐心等待药师审核");
+                    } else {
+                        getOrderTips(ext, nowRecipe, order);
+                    }
+                } else {
+                    getOrderTips(ext, nowRecipe, order);
+                }
                 //设置页面上提示文案的颜色信息
                 //添加一次审核不通过的判断，等价于待审核
                 Integer recipestatus = nowRecipe.getStatus();
@@ -1933,18 +1968,19 @@ public class RecipeOrderService extends RecipeBaseService {
 
     /**
      * 校验待支付订单数据是否发生变化
+     *
      * @param orderCode
      */
     private void checkGetOrderDetail(String orderCode) {
-        try{
+        try {
             LOGGER.info("checkGetOrderDetail orderCode:{}", orderCode);
             //线下处方目前一个订单只会对应一个处方
-            List<Recipe> recipes=recipeDAO.findRecipeByOrdercode(orderCode);
-            Recipe recipe=recipes.get(0);
-            if(recipe==null ||recipe.getRecipeSourceType()!=2){
+            List<Recipe> recipes = recipeDAO.findRecipeByOrdercode(orderCode);
+            Recipe recipe = recipes.get(0);
+            if (recipe == null || recipe.getRecipeSourceType() != 2) {
                 return;
             }
-            String cardId=patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId();
+            String cardId = patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId();
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
             if (StringUtils.isNotEmpty(cardId)) {
@@ -1955,27 +1991,27 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
-            List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
-            if(CollectionUtils.isEmpty(hisRecipeTO)){
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(), patientDTO, 6, 1, null);
+            List<QueryHisRecipResTO> hisRecipeTO = responseTO.getData();
+            if (CollectionUtils.isEmpty(hisRecipeTO)) {
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
             Set<String> deleteSetRecipeCode = new HashSet<>();
-            AtomicReference<Boolean> existThisRecipeCode= new AtomicReference<>(false);
+            AtomicReference<Boolean> existThisRecipeCode = new AtomicReference<>(false);
             hisRecipeTO.forEach(a -> {
-                if(StringUtils.isNotEmpty(a.getRecipeCode()) &&a.getRecipeCode().equals(recipe.getRecipeCode())){
+                if (StringUtils.isNotEmpty(a.getRecipeCode()) && a.getRecipeCode().equals(recipe.getRecipeCode())) {
                     existThisRecipeCode.set(true);
-                    HisRecipe hisRecipe=hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(a.getClinicOrgan(),a.getRecipeCode());
-                    if(hisRecipe==null){
+                    HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(a.getClinicOrgan(), a.getRecipeCode());
+                    if (hisRecipe == null) {
                         LOGGER.info("checkGetOrderDetail hisRecipe==null orderCode:{}", orderCode);
                         throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
                     }
-                    if(hisRecipe.getStatus()!=2){
+                    if (hisRecipe.getStatus() != 2) {
                         //中药判断tcmFee发生变化,删除数据
-                        BigDecimal tcmFee =  a.getTcmFee() ;
-                        if((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee())!= 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)){
-                            LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode,tcmFee,hisRecipe.getTcmFee());
+                        BigDecimal tcmFee = a.getTcmFee();
+                        if ((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee()) != 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)) {
+                            LOGGER.info("checkGetOrderDetail tcmFee no equal, deleteSetRecipeCode add orderCode:{},tcmFee:{},hisRecipe.getTcmFee();{}", orderCode, tcmFee, hisRecipe.getTcmFee());
                             deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
                         }
                     }
@@ -1983,12 +2019,12 @@ public class RecipeOrderService extends RecipeBaseService {
             });
             //删除
             hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
-            if (existThisRecipeCode.get()==false ||
-                    (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
+            if (existThisRecipeCode.get() == false ||
+                    (deleteSetRecipeCode == null && deleteSetRecipeCode.size() > 0)) {
                 LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             LOGGER.info("checkGetOrderDetail orderCode:{},error:{}", orderCode, e.getMessage());
         }
@@ -2116,7 +2152,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
-            if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
+            if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 logisticsOnlineOrderService.onlineOrder(order, recipes);
             }
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
@@ -2124,6 +2160,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
+        // 处方支付信息上传 监管平台
+        RecipeBusiThreadPool.submit(()->{
+            HisSyncSupervisionService hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
+            return null;
+        });
         return result;
     }
 
@@ -2173,7 +2215,7 @@ public class RecipeOrderService extends RecipeBaseService {
     //药店有库存或者无库存备货给患者推送消息
     private void sendTfdsMsg(Recipe nowRecipe, Integer payMode, String orderCode) {
         //药店取药推送
-        LOGGER.info("sendTfdsMsg nowRecipeId:{}.payMode:{}.orderCode:{}.", JSONUtils.toString(nowRecipe.getRecipeId()),JSONUtils.toString(payMode),JSONUtils.toString(orderCode));
+        LOGGER.info("sendTfdsMsg nowRecipeId:{}.payMode:{}.orderCode:{}.", JSONUtils.toString(nowRecipe.getRecipeId()), JSONUtils.toString(payMode), JSONUtils.toString(orderCode));
         if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode) && nowRecipe.getReviewType() != ReviewTypeConstant.Postposition_Check) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
@@ -2270,6 +2312,31 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
+    public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
+        LOGGER.info("RecipeOrderService uploadRecipeInfoToThird skipThirdReqVO:{}.", JSONUtils.toString(skipThirdReqVO));
+        Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
+        if (!pushToHisAfterChoose) {
+            return ;
+        }
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
+        //将处方上传到第三方
+        recipes.forEach(recipe -> {
+            recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
+            LOGGER.info("RecipeOrderService uploadRecipeInfoToThird result:{}.", JSONUtils.toString(result));
+            if (new Integer(0).equals(result.getCode())) {
+                //表示上传失败
+                throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
+            }
+        });
+    }
+
+    /**
+     * todo 过期方法新调用 使用： recipeOrderPatientAtop skipThirdPage
+     * @param recipeId
+     * @return
+     */
+    @Deprecated
     @RpcService
     public String getThirdUrl(Integer recipeId) {
         SkipThirdBean skipThirdBean = getThirdUrlNew(recipeId);
@@ -2286,7 +2353,6 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @return
      */
-    @RpcService
     public SkipThirdBean getThirdUrlNew(Integer recipeId) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {
@@ -2299,7 +2365,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipe.getClinicOrgan() == 1005683) {
             return getUrl(recipe);
         }
-        if (null != recipe && recipe.getEnterpriseId() != null) {
+        if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {

@@ -1,7 +1,6 @@
 package recipe.bussutil.openapi.request.province;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -12,6 +11,9 @@ import java.io.Serializable;
  */
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignImgNode implements Serializable {
     private static final long serialVersionUID = -6566326647606097783L;
     /**
@@ -48,14 +50,9 @@ public class SignImgNode implements Serializable {
      */
     private Float y;
 
-    public SignImgNode(String recipeId, String signImgId, String signImgFileId, String signFileFileId, Float width, Float height, Float x, Float y) {
-        this.recipeId = recipeId;
-        this.signImgId = signImgId;
-        this.signImgFileId = signImgFileId;
-        this.signFileFileId = signFileFileId;
-        this.width = width;
-        this.height = height;
-        this.x = x;
-        this.y = y;
-    }
+    /**
+     * 是否覆盖 true 覆盖
+     */
+    private Boolean repeatWrite;
+
 }

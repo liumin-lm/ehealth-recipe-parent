@@ -31,6 +31,7 @@
     <reference id="pm.remoteRelationLabelService" interface="com.ngari.follow.service.IRelationLabelService"/>
     <!--电子病历-->
     <reference id="ecdr.docIndexService" interface="eh.cdr.api.service.IDocIndexService"/>
+    <reference id="ecdr.emrPdfService" interface="eh.cdr.api.service.IEmrPdfService"/>
 
     <!--审方-->
     <reference id="recipeaudit.recipeAuditServiceImpl" interface="eh.recipeaudit.api.IRecipeAuditService"/>
