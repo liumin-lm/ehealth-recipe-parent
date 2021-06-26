@@ -40,6 +40,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "商品名")
     private String saleName;
 
+    @ItemProperty(alias = "化学名")
+    private String chemicalName;
+
     @ItemProperty(alias = "药品规格")
     private String drugSpec;
 
@@ -278,6 +281,15 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setSaleName(String saleName) {
         this.saleName = saleName;
+    }
+
+    @Column(name = "chemicalName")
+    public String getChemicalName() {
+        return chemicalName;
+    }
+
+    public void setChemicalName(String chemicalName) {
+        this.chemicalName = chemicalName;
     }
 
     @Column(name = "drugSpec")

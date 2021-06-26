@@ -178,6 +178,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药店地址")
     private String drugStoreAddr;
 
+    @ItemProperty(alias = "煎法")
+    private String decoctionId;
+
+    @ItemProperty(alias = "煎法text")
+    private String decoctionText;
+
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 
@@ -1061,5 +1067,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setOrderMemo(String orderMemo) {
         this.orderMemo = orderMemo;
+    }
+
+    public String getDecoctionId() {
+        return decoctionId;
+    }
+
+    public void setDecoctionId(String decoctionId) {
+        this.decoctionId = decoctionId;
+    }
+
+    public String getDecoctionText() {
+        return decoctionText;
+    }
+
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
     }
 }

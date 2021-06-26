@@ -2,6 +2,7 @@ package recipe.service;
 
 import ca.vo.CommonSignRequest;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
@@ -759,6 +760,11 @@ public class RecipeCAService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("signRecipeCAAfterCallBack 当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap = Maps.newHashMap();
+                attrMap.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
             }
 

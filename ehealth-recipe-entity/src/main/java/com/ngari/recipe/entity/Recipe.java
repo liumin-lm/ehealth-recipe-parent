@@ -5,12 +5,13 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
-import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+
+import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author yuyun
@@ -361,6 +362,9 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
     private String recipeSupportGiveMode;
+
+    @ItemProperty(alias = "处方审核状态")
+    private Integer checkFlag;
 
     @Column(name = "recipeSupportGiveMode")
     public String getRecipeSupportGiveMode() {
@@ -1207,7 +1211,7 @@ public class Recipe implements Serializable {
         this.discountAmount = discountAmount;
     }
 
-    @Column(name = "Memo")
+    @Transient
     public String getMemo() {
         return memo;
     }
@@ -1452,6 +1456,15 @@ public class Recipe implements Serializable {
     }
     public void setGrabOrderStatus(Integer grabOrderStatus) {
         this.grabOrderStatus = grabOrderStatus;
+    }
+
+    @Column(name = "checkFlag")
+    public Integer getCheckFlag() {
+        return checkFlag;
+    }
+
+    public void setCheckFlag(Integer checkFlag) {
+        this.checkFlag = checkFlag;
     }
 
     public Recipe(Integer recipeId, String supplementaryMemo) {

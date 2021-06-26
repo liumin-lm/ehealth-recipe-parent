@@ -119,6 +119,7 @@ public class HisRecipe implements Serializable {
     private BigDecimal tcmFee;
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
+    private BigDecimal decoctionUnitFee;//代煎单价
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
     @ItemProperty(alias = "煎法编码")
@@ -616,5 +617,13 @@ public class HisRecipe implements Serializable {
 
     public void setChronicDiseaseName(String chronicDiseaseName) {
         this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public BigDecimal getDecoctionUnitFee() {
+        return decoctionUnitFee;
+    }
+
+    public void setDecoctionUnitFee(BigDecimal decoctionUnitFee) {
+        this.decoctionUnitFee = decoctionUnitFee;
     }
 }

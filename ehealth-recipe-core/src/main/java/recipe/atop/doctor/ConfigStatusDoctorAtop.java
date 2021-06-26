@@ -16,7 +16,7 @@ import java.util.List;
  * @author fuzi
  */
 @RpcBean("configStatusAtop")
-public class ConfigStatusAtop extends BaseAtop {
+public class ConfigStatusDoctorAtop extends BaseAtop {
     @Autowired
     private IConfigStatusService configStatusService;
 
