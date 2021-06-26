@@ -271,6 +271,9 @@ public class ThirdRecipeService {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
                     return recipeOrder.getOrderId();
                 }
+            } else {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                return recipeOrder.getOrderId();
             }
         } catch (NumberFormatException e) {
             LOGGER.info("ThirdRecipeService createOrder NumberFormatException recipeId:{}.", request.getRecipeId(), e);
