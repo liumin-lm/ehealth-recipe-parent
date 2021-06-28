@@ -150,6 +150,10 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private RecipeServiceSub recipeServiceSub;
 
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
+
+
     /**
      * 处方结算时创建临时订单
      *
@@ -1437,6 +1441,16 @@ public class RecipeOrderService extends RecipeBaseService {
                     for (Recipe recipe : recipes) {
                         if (recipe != null) {
                             recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe);
+                            String decoctionDeploy =((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
+                            if("2".equals(decoctionDeploy)){
+                                RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                                if(recipeExtend!=null){
+                                    recipeExtend.setDecoctionText(null);
+                                    recipeExtend.setDecoctionPrice(null);
+                                    recipeExtend.setDecoctionId(null);
+                                    recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                                }
+                            }
                         }
                         try {
                             //对于来源于HIS的处方单更新hisRecipe的状态
