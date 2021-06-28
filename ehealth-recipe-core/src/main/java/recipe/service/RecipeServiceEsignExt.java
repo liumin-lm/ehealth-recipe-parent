@@ -22,6 +22,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import sun.misc.BASE64Decoder;
@@ -35,15 +36,10 @@ import java.util.Map;
  */
 @RpcBean
 public class RecipeServiceEsignExt {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceEsignExt.class);
-    /**
-     * 中药和西药的标识
-     */
-    private static final String TCM_TEMPLATETYPE = "tcm";
 
     private static IRecipeService recipeService = AppContextHolder.getBean("eh.remoteRecipeService", IRecipeService.class);
-    
+
     /**
      * 获取移动端获取pdf文件、用于SDK进行签章
      *
@@ -62,8 +58,8 @@ public class RecipeServiceEsignExt {
         String fileName = "recipe_" + recipeId + ".pdf";
         String pdf = "";
         if (isDoctor) {
-            RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
-            pdf = recipeServiceSub.queryPdfStrById(recipeId, recipe.getClinicOrgan());
+            CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
+            pdf = createPdfFactory.queryPdfByte(recipe);
             //这里走生成通过的平台模板（易签保开始使用）
             caBean.setLeftX(55);
             caBean.setLeftY(76);

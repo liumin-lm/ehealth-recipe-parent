@@ -36,7 +36,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
@@ -69,7 +68,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -94,7 +92,6 @@ import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.GroupRecipeManager;
-import recipe.service.manager.RecipeLabelManager;
 import recipe.service.manager.SignManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -124,9 +121,6 @@ public class RecipeServiceSub {
 
     private static SignManager signManager = AppContextHolder.getBean("signManager", SignManager.class);
 
-    @Autowired
-    private RecipeLabelManager recipeLabelManager;
-
     private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
 
     private static HisRecipeService hisRecipeService=ApplicationUtils.getRecipeService(HisRecipeService.class);
@@ -149,67 +143,6 @@ public class RecipeServiceSub {
     private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
-
-    /**
-     * 获取pdf byte 格式
-     *
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public String queryPdfStrById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        try {
-            return recipeLabelManager.queryPdfStrById(result, recipeMap);
-        } catch (Exception e) {
-            LOGGER.error("queryPdfRecipeLabelById error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
-        }
-    }
-
-    /**
-     * 获取pdf oss id
-     *
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId, int recipeStatus) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        try {
-            return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
-        } catch (Exception e) {
-            LOGGER.error("queryPdfRecipeLabelById error ", e);
-            //日志记录
-            String memo = "签名上传文件失败！原因：" + e.getMessage();
-            RecipeLogService.saveRecipeLog(recipeId, recipeStatus, recipeStatus, memo);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
-        }
-    }
-
-    /**
-     * 获取配置的处方签
-     *
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        return result;
-    }
 
     /**
      * @param recipeBean

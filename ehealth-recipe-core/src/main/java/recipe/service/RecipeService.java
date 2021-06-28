@@ -108,6 +108,7 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CARecipeTypeEnum;
 import recipe.caNew.CaAfterProcessType;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
@@ -147,6 +148,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.RecipeServiceSub.getRecipeAndDetailByIdImpl;
 
 /**
  * 处方服务类
@@ -200,8 +202,10 @@ public class RecipeService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private RecipeServiceSub recipeServiceSub;
+
     @Autowired
-    private EmrRecipeManager emrRecipeManager;
+    private CreatePdfFactory createPdfFactory;
+
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
 
@@ -529,16 +533,7 @@ public class RecipeService extends RecipeBaseService {
         return recipeId;
     }
 
-    /**
-     * 保存HIS处方
-     *
-     * @param recipe
-     * @param details
-     * @return
-     */
-    public Integer saveRecipeDataForHos(RecipeBean recipe, List<RecipeDetailBean> details) {
-        return recipeServiceSub.saveRecipeDataImpl(recipe, details, 0);
-    }
+
 
     /**
      * 保存处方电子病历
@@ -749,7 +744,7 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Map<String, Object> backMap = recipeServiceSub.queryPdfRecipeLabelById(recipeId, recipe.getClinicOrgan(), recipe.getStatus());
+        Map<String, Object> backMap = createPdfFactory.queryPdfOssId(recipe);
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
@@ -2757,7 +2752,7 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
         LOGGER.info("findRecipeAndDetailById recipeId = {}", recipeId);
         try {
-            Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+            Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, true);
             PatientDTO patient = (PatientDTO) result.get("patient");
             result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
             EmrRecipeManager.getMedicalInfo((RecipeBean) result.get("recipe"), (RecipeExtend) result.get("recipeExtend"));
@@ -3673,7 +3668,7 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> getPatientRecipeById(int recipeId) {
         checkUserHasPermission(recipeId);
 
-        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
         return result;
@@ -3691,7 +3686,7 @@ public class RecipeService extends RecipeBaseService {
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
             for (Integer recipeId : recipeIds) {
-                recipeInfos.add(RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false));
+                recipeInfos.add(getRecipeAndDetailByIdImpl(recipeId, false));
             }
             return recipeInfos;
         }
@@ -3707,7 +3702,12 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        return recipeServiceSub.queryRecipeLabelById(recipeId, organId);
+        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
+        }
+        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
+        return result;
     }
 
     /**
