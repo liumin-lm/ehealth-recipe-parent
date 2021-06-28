@@ -368,6 +368,9 @@ public class Recipe implements Serializable {
         return recipeSupportGiveMode;
     }
 
+    @ItemProperty(alias = "处方审核状态")
+    private Integer checkFlag;
+
     public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
         this.recipeSupportGiveMode = recipeSupportGiveMode;
     }
@@ -1453,6 +1456,15 @@ public class Recipe implements Serializable {
     }
     public void setGrabOrderStatus(Integer grabOrderStatus) {
         this.grabOrderStatus = grabOrderStatus;
+    }
+
+    @Column(name = "checkFlag")
+    public Integer getCheckFlag() {
+        return checkFlag;
+    }
+
+    public void setCheckFlag(Integer checkFlag) {
+        this.checkFlag = checkFlag;
     }
 
     public Recipe(Integer recipeId, String supplementaryMemo) {

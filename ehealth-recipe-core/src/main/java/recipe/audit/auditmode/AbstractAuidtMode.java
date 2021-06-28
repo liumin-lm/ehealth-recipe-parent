@@ -65,6 +65,11 @@ public abstract class AbstractAuidtMode implements IAuditMode {
     protected void saveStatusAndSendMsg(Integer status, Recipe recipe, String memo) {
         //生成文件成功后再去更新处方状态
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            return;
+        }
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
