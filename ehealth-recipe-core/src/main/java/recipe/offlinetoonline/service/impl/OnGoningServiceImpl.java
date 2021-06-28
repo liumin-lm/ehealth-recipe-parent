@@ -77,8 +77,8 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public Integer getPayMode() {
-        return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType();
+    public String getPayMode() {
+        return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
     }
 
 

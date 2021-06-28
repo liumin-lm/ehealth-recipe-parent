@@ -1759,4 +1759,17 @@ public class OfflineToOnlineService {
         return true;
     }
 
+    public Integer attachRecipeId(Integer organId, String recipeCode, List<HisRecipe> hisRecipes) {
+        HisRecipe hisRecipe=new HisRecipe();
+        if (CollectionUtils.isEmpty(hisRecipes)) {
+            //点击卡片 历史处方his不会返回 故从表查  同时也兼容已处理状态的处方，前端漏传hisRecipeId的情况
+            if (!StringUtils.isEmpty(recipeCode)) {
+                hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCode);
+            }
+            if (hisRecipe != null) {
+                return hisRecipe.getHisRecipeID();
+            }
+        }
+        return hisRecipes.get(0).getHisRecipeID();
+    }
 }

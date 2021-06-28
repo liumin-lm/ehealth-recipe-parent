@@ -51,5 +51,5 @@ public interface IOfflineToOnlineService {
      *
      * @return
      */
-    Integer getPayMode();
+    String getPayMode();
 }

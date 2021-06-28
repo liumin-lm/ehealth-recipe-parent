@@ -30,7 +30,7 @@ public class OfflineToOnlineFactory implements ApplicationContextAware {
      * @param
      * @return
      */
-    public IOfflineToOnlineService getFactoryService(Integer payMode) {
+    public IOfflineToOnlineService getFactoryService(String payMode) {
         IOfflineToOnlineService offlineToOnlineService = payModeMap.get(payMode);
         if (offlineToOnlineService == null) {
             logger.warn("OfflineToOnlineFactory无效 payMode= {}", payMode);

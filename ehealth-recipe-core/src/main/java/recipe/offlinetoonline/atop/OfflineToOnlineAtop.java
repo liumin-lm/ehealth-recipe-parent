@@ -72,13 +72,13 @@ public class OfflineToOnlineAtop extends BaseAtop {
 
             // 1、获取his数据
             HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
-            IOfflineToOnlineService offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(Integer.parseInt(request.getStatus()));
+            IOfflineToOnlineService offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             // 2、待缴费、进行中、已缴费线下处方列表服务差异化实现
             List<MergeRecipeVO> hisRecipeVoS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
             return hisRecipeVoS;
-        } catch (DAOException e1) {
-            logger.error("OfflineToOnlineAtop findHisRecipeList error", e1);
-            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeList error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
         } catch (Exception e) {
             logger.error("OfflineToOnlineAtop findHisRecipeList error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -92,8 +92,23 @@ public class OfflineToOnlineAtop extends BaseAtop {
      */
     @RpcService
     public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
-        IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(request.getStatus());
-        return offlineToOnlineService.findHisRecipeDetail(request);
+        logger.info("OfflineToOnlineAtop findHisRecipeDetail request:{}", ctd.util.JSONUtils.toString(request));
+        if (null == request
+                || request.getOrganId() == null
+                || StringUtils.isEmpty(request.getMpiId())
+                || StringUtils.isEmpty(request.getStatus())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+        try {
+            IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(request.getStatus());
+            return offlineToOnlineService.findHisRecipeDetail(request);
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeDetail error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeDetail error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**
@@ -115,7 +130,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {
-            IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
+            IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
             List<RecipeGiveModeButtonRes> result = offlineToOnlineService.settleForOfflineToOnline(request);
             logger.info("OfflineToOnlineAtop settleForOfflineToOnline result = {}", JSONUtils.toString(result));
             return result;

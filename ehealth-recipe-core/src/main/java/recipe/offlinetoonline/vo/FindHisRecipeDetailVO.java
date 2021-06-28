@@ -30,7 +30,7 @@ public class FindHisRecipeDetailVO implements Serializable {
     private String cardId;
 
     //缴费状态 1 未处理 2已处理
-    private Integer status;
+    private String status;
 
 }
 
