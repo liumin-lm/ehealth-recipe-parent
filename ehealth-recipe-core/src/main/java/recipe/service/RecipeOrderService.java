@@ -1718,7 +1718,6 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
-           44
             orderBean.setDecoctionId(decoctionId);
             orderBean.setDecoctionText(decoctionText);
             BigDecimal needFee = new BigDecimal(0.00);
