@@ -92,6 +92,13 @@ public class OfflineToOnlineService {
     private IConfigurationCenterUtilsService configService;
     @Autowired
     private GroupRecipeManager groupRecipeManager;
+    @Autowired
+    private DrugMakingMethodDao drugMakingMethodDao;
+    @Autowired
+    private SymptomDAO symptomDAO;
+
+    @Autowired
+    private IRevisitExService exService;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -792,6 +799,20 @@ public class OfflineToOnlineService {
                 hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum() == null ? null : String.valueOf(queryHisRecipResTO.getTcmNum()));
                 //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
                 hisRecipe.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
+                hisRecipe.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
+                hisRecipe.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
+                hisRecipe.setJuice(queryHisRecipResTO.getJuice());
+                hisRecipe.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
+                hisRecipe.setMinor(queryHisRecipResTO.getMinor());
+                hisRecipe.setMinorUnit(queryHisRecipResTO.getMinorUnit());
+                hisRecipe.setSymptomCode(queryHisRecipResTO.getSymptomCode());
+                hisRecipe.setSymptomName(queryHisRecipResTO.getSysmptomName());
+                hisRecipe.setSpecialDecoctionCode(queryHisRecipResTO.getSpecialDecoctiionCode());
+                hisRecipe.setCardNo(queryHisRecipResTO.getCardNo());
+                hisRecipe.setCardTypeCode(queryHisRecipResTO.getCardTypeCode());
+                hisRecipe.setCardTypeName(queryHisRecipResTO.getCardTypeName());
+
+
                 //审核药师
                 hisRecipe.setCheckerCode(queryHisRecipResTO.getCheckerCode());
                 hisRecipe.setCheckerName(queryHisRecipResTO.getCheckerName());
@@ -864,6 +885,9 @@ public class OfflineToOnlineService {
                         //药房信息
                         detail.setPharmacyCode(recipeDetailTO.getPharmacyCode());
                         detail.setPharmacyName(recipeDetailTO.getPharmacyName());
+                        detail.setPharmacyCategray(recipeDetailTO.getPharmacyCategray());
+                        detail.setTcmContraindicationCause(recipeDetailTO.getTcmContraindicationCause());
+                        detail.setTcmContraindicationType(recipeDetailTO.getTcmContraindicationType());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
@@ -935,8 +959,7 @@ public class OfflineToOnlineService {
                 payFlag = 1;
             }
         }
-        //TODO liumin 这个条件应改为待缴费处方还是已缴费处方，已缴费处方不用走这个逻辑了  但是重复走这个逻辑也没关系，保存时会判断，存在数据也不会新增
-        if (hisRecipe == null || hisRecipe.getStatus() != 2 || payFlag == 1) {
+        if (hisRecipe.getStatus() != 2 ) {
             LOGGER.info("getHisRecipeDetail 进入");
             try {
                 PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -1021,16 +1044,69 @@ public class OfflineToOnlineService {
         //设置煎法
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
-        }
-        try {
-            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-            RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
-            if (consultExDTO != null) {
-                recipeExtend.setCardNo(consultExDTO.getCardId());
+        }else{
+            if(StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())){
+                DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                DecoctionWay decoctionWay=drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(recipe.getClinicOrgan(),hisRecipe.getDecoctionCode());
+                if(decoctionWay!=null){
+                    recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
+                }
             }
+        }
+
+        DrugMakingMethod drugMakingMethod=drugMakingMethodDao.getDrugMakingMethodByOrganIdAndCode(recipe.getClinicOrgan(),hisRecipe.getMakeMethodCode())
+        if(drugMakingMethod!=null){
+            recipeExtend.setMakeMethodId(drugMakingMethod.getMethodId().toString());
+        }
+        if(StringUtils.isNotEmpty(hisRecipe.getMakeMethodText())){
+            recipeExtend.setMakeMethodText(hisRecipe.getMakeMethodText());
+        }else{
+            if(drugMakingMethod!=null){
+                recipeExtend.setMakeMethodText(drugMakingMethod.getMethodText());
+            }
+        }
+        recipeExtend.setJuice(hisRecipe.getJuice());
+        recipeExtend.setJuiceUnit(hisRecipe.getJuiceUnit());
+        recipeExtend.setMinor(hisRecipe.getMinor());
+        recipeExtend.setMinorUnit(hisRecipe.getMinorUnit());
+        Symptom symptom=symptomDAO.getByOrganIdAndSymptomCode(recipe.getClinicOrgan(),hisRecipe.getSymptomCode());
+        if(symptom!=null){
+            recipeExtend.setSymptomId(symptom.getSymptomId().toString());
+        }
+        if(StringUtils.isNotEmpty(hisRecipe.getSymptomName())){
+            recipeExtend.setSymptomName(hisRecipe.getSymptomName());
+        }else{
+            if(symptom!=null){
+                recipeExtend.setSymptomName(recipeExtend.getSymptomName());
+            }
+        }
+        //列表详情都没用到这个特殊煎法 app说只有搜索用到了 那这个字段还有什么意义
+        //recipeExtend.setSpecialDecoctionCode(hisRecipe.getSpecialDecoctiionCode());
+
+        RevisitExDTO consultExDTO = new RevisitExDTO();
+        try {
+            consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
         } catch (Exception e) {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
         }
+        if(StringUtils.isNotEmpty(hisRecipe.getCardNo())){
+            recipeExtend.setCardNo(hisRecipe.getCardNo());
+        }else{
+            if (consultExDTO != null) {
+                recipeExtend.setCardNo(consultExDTO.getCardId());
+            }
+        }
+        if(StringUtils.isNotEmpty(hisRecipe.getCardTypeName())){
+            recipeExtend.setCardTypeName(hisRecipe.getCardTypeName());
+        }
+        if(StringUtils.isNotEmpty(hisRecipe.getCardTypeName())){
+            recipeExtend.setCardType(hisRecipe.getCardTypeCode());
+        }else{
+            if (consultExDTO != null) {
+                recipeExtend.setCardType(consultExDTO.getCardType());
+            }
+        }
+
         //中药
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
         RecipeBean recipeBean = new RecipeBean();
@@ -1269,7 +1345,10 @@ public class OfflineToOnlineService {
             if (StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyName())) {
                 recipedetail.setPharmacyName(hisRecipeDetail.getPharmacyName());
             }
-
+            //药房类型不需要保存下来 传code过来就好了，在运营平台配置
+            //recipedetail.setPh(hisRecipeDetail.getPharmacyCategray());
+            recipedetail.setTcmContraindicationCause(hisRecipeDetail.getTcmContraindicationCause());
+            recipedetail.setTcmContraindicationType(hisRecipeDetail.getTcmContraindicationType());
             recipeDetailDAO.save(recipedetail);
         }
     }

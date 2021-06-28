@@ -22,7 +22,7 @@ public class OfflineToOnlineFactory implements ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static Map<Integer, IOfflineToOnlineService> payModeMap = new HashMap<>();
+    private static Map<String, IOfflineToOnlineService> payModeMap = new HashMap<>();
 
     /**
      * 获取实现类
@@ -44,7 +44,7 @@ public class OfflineToOnlineFactory implements ApplicationContextAware {
         logger.info("OfflineToOnlineFactory添加授权服务工厂类，beanNames = {}", beanNames.toString());
         for (String beanName : beanNames) {
             IOfflineToOnlineService offlineToOnlineService = applicationContext.getBean(beanName, IOfflineToOnlineService.class);
-            payModeMap.put(offlineToOnlineService.getPayMode(), offlineToOnlineService);
+            payModeMap.put(offlineToOnlineService.getHandlerMode(), offlineToOnlineService);
         }
         logger.info("OfflineToOnlineFactory添加授权服务工厂类，payModeMap = {}", JSON.toJSONString(payModeMap));
 

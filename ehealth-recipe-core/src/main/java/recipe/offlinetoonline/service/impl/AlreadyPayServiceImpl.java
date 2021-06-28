@@ -33,7 +33,7 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
     private OfflineToOnlineService offlineToOnlineService;
 
     @Override
-    public String getPayMode() {
+    public String getHandlerMode() {
         return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getName();
     }
 

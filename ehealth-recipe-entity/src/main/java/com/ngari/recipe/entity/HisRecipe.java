@@ -134,6 +134,31 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
 
+    @ItemProperty(alias = "制法")
+    private String makeMethodCode;
+    @ItemProperty(alias = "制法text")
+    private String makeMethodText;
+    @ItemProperty(alias = "每付取汁")
+    private String juice;
+    @ItemProperty(alias = "每付取汁单位")
+    private String juiceUnit;
+    @ItemProperty(alias = "次量")
+    private String minor;
+    @ItemProperty(alias = "次量单位")
+    private String minorUnit;
+    @ItemProperty(alias = "中医症候编码")
+    private String symptomCode;
+    @ItemProperty(alias = "中医症候名称")
+    private String symptomName;
+    @ItemProperty(alias = "特殊煎法code：搅碎、碾磨等")
+    private String specialDecoctionCode;
+    @ItemProperty(alias = "卡号")
+    private String cardNo;
+    @ItemProperty(alias = "卡类型")
+    private String cardTypeCode;
+    @ItemProperty(alias = "卡名称")
+    private String cardTypeName;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "hisRecipeID", unique = true, nullable = false)
@@ -616,5 +641,112 @@ public class HisRecipe implements Serializable {
 
     public void setChronicDiseaseName(String chronicDiseaseName) {
         this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    @Column(name = "makeMethodCode")
+    public String getMakeMethodCode() {
+        return makeMethodCode;
+    }
+
+    public void setMakeMethodCode(String makeMethodCode) {
+        this.makeMethodCode = makeMethodCode;
+    }
+
+    @Column(name = "makeMethodText")
+    public String getMakeMethodText() {
+        return makeMethodText;
+    }
+
+    public void setMakeMethodText(String makeMethodText) {
+        this.makeMethodText = makeMethodText;
+    }
+
+    @Column(name = "juice")
+    public String getJuice() {
+        return juice;
+    }
+
+    public void setJuice(String juice) {
+        this.juice = juice;
+    }
+
+    @Column(name = "juiceUnit")
+    public String getJuiceUnit() {
+        return juiceUnit;
+    }
+
+    public void setJuiceUnit(String juiceUnit) {
+        this.juiceUnit = juiceUnit;
+    }
+
+    @Column(name = "minor")
+    public String getMinor() {
+        return minor;
+    }
+
+    public void setMinor(String minor) {
+        this.minor = minor;
+    }
+
+    @Column(name = "minorUnit")
+    public String getMinorUnit() {
+        return minorUnit;
+    }
+
+    public void setMinorUnit(String minorUnit) {
+        this.minorUnit = minorUnit;
+    }
+
+    @Column(name = "symptomCode")
+    public String getSymptomCode() {
+        return symptomCode;
+    }
+
+    public void setSymptomCode(String symptomCode) {
+        this.symptomCode = symptomCode;
+    }
+    @Column(name = "symptomName")
+    public String getSymptomName() {
+        return symptomName;
+    }
+
+    public void setSymptomName(String symptomName) {
+        this.symptomName = symptomName;
+    }
+
+    @Column(name = "specialDecoctionCode")
+    public String getSpecialDecoctionCode() {
+        return specialDecoctionCode;
+    }
+
+    public void setSpecialDecoctionCode(String specialDecoctionCode) {
+        this.specialDecoctionCode = specialDecoctionCode;
+    }
+
+    @Column(name = "cardNo")
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
+    }
+
+    @Column(name = "cardTypeCode")
+    public String getCardTypeCode() {
+        return cardTypeCode;
+    }
+
+    public void setCardTypeCode(String cardTypeCode) {
+        this.cardTypeCode = cardTypeCode;
+    }
+
+    @Column(name = "cardTypeName")
+    public String getCardTypeName() {
+        return cardTypeName;
+    }
+
+    public void setCardTypeName(String cardTypeName) {
+        this.cardTypeName = cardTypeName;
     }
 }

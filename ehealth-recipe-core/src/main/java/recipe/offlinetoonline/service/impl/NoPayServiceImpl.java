@@ -68,7 +68,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,180,1,null);
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,180,1,request.getRecipeCode());
 
         try {
             // 2更新数据校验
@@ -105,7 +105,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public String getPayMode() {
+    public String getHandlerMode() {
         return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
     }
 

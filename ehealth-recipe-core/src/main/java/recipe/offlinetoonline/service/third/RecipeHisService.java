@@ -37,8 +37,6 @@ public class RecipeHisService {
      * @Desciption 从 his查询待缴费已缴费的处方信息
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        //TODO question 查询条件带recipeCode
-        //TODO question 让前置机去过滤数据
         LOGGER.info("queryData organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
