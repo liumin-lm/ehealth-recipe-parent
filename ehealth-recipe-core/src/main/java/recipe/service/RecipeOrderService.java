@@ -2370,11 +2370,14 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
+     * todo 过期方法新调用 使用： recipeOrderPatientAtop skipThirdPage
      * 从微信模板消息跳转时 先获取一下是否需要跳转第三方地址
      * 或者处方审核成功后推送处方卡片消息时点击跳转(互联网)
      *
      * @return
      */
+    @Deprecated
+    @RpcService
     public SkipThirdBean getThirdUrlNew(Integer recipeId) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {
