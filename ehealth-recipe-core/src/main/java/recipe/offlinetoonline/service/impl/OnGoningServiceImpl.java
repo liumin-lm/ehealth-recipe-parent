@@ -4,8 +4,10 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
 import recipe.service.OfflineToOnlineService2;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,9 +62,34 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     @Override
     public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
         // 跟待处理获取详情一致 先判断数据是否变更 然后返回详情
-        // 1.返回数据详情
+        // 1获取his数据
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
+        if (null == patientDTO) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,180,1,null);
 
-        return null;
+        try {
+            // 2更新数据校验
+            offlineToOnlineService.hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+        }
+        List<HisRecipe> hisRecipes=new ArrayList<>();
+        try {
+            // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
+            hisRecipes=offlineToOnlineService.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 1);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
+        Integer hisRecipeId;
+        hisRecipeId=offlineToOnlineService.attachRecipeId(request.getOrganId(),request.getRecipeCode(),hisRecipes);
+
+        // 4.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
+        Integer recipeId=offlineToOnlineService.saveRecipeInfo(hisRecipeId);
+
+        // 5.通过cdrHisRecipeId返回数据详情
+        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(),recipeId);
 
     }
 
