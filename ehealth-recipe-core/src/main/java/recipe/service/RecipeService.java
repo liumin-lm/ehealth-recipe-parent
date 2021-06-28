@@ -2541,6 +2541,8 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> updateMap = new HashMap<>();
         updateMap.put("supplementaryMemo", recipe.getSupplementaryMemo());
         updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+        //二次签名 强制处方状态为通过 0 待审核  1 审核通过  2 审核不通过
+        updateMap.put("checkFlag", 1);
 
         //date 20190929
         //这里提示文案描述，扩展成二次审核通过/二次审核不通过的说明

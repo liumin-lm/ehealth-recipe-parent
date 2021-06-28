@@ -44,6 +44,11 @@ public class AuditPreMode extends AbstractAuidtMode {
 
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
+        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            return;
+        }
         if (status == RecipeStatusConstant.CHECK_PASS) {
             //暂时去掉，没有用到
             /*//todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
