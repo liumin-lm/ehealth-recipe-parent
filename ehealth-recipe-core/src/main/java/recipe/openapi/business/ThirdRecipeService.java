@@ -21,12 +21,14 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -36,6 +38,7 @@ import recipe.openapi.business.request.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeOrderService;
+import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 
 import java.math.BigDecimal;
@@ -58,6 +61,9 @@ public class ThirdRecipeService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeService recipeService;
 
     /**
      * 根据处方状态查询处方信息
@@ -271,6 +277,9 @@ public class ThirdRecipeService {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
                     return recipeOrder.getOrderId();
                 }
+            } else {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                return recipeOrder.getOrderId();
             }
         } catch (NumberFormatException e) {
             LOGGER.info("ThirdRecipeService createOrder NumberFormatException recipeId:{}.", request.getRecipeId(), e);
@@ -278,6 +287,23 @@ public class ThirdRecipeService {
             LOGGER.info("ThirdRecipeService createOrder DAOException recipeId:{}.", request.getRecipeId(), e);
         }
         return 0;
+    }
+
+    /**
+     * 获取处方的购药方式
+     * @param request
+     * @return
+     */
+    @RpcService
+    public List<RecipeGiveModeButtonRes> getRecipeGiveModeButtonRes(ThirdGiveModeRequest request){
+        LOGGER.info("ThirdRecipeService getRecipeGiveModeButtonRes request:{}.", JSONUtils.toString(request));
+        setUrtToContext(request.getAppkey(), request.getTid());
+        List<RecipeGiveModeButtonRes> recipeGiveModeButtonRes = recipeService.getRecipeGiveModeButtonRes(request.getRecipeIds());
+        if (CollectionUtils.isEmpty(recipeGiveModeButtonRes)) {
+            throw new DAOException(609, "“抱歉，当前处方没有可支持的购药方式”");
+        }
+        LOGGER.info("ThirdRecipeService getRecipeGiveModeButtonRes response = {}",  JSONUtils.toString(recipeGiveModeButtonRes));
+        return recipeGiveModeButtonRes;
     }
 
     /**
