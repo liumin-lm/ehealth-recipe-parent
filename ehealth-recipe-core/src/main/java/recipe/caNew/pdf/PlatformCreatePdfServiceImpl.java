@@ -4,6 +4,7 @@ import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.ESignDTO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
@@ -13,6 +14,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import recipe.constant.ErrorCode;
 import recipe.service.RecipeLogService;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.manager.RecipeLabelManager;
+import recipe.third.IFileDownloadService;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
@@ -58,6 +61,8 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     private RedisClient redisClient;
     @Autowired
     private RecipeLabelManager recipeLabelManager;
+    @Resource
+    private IFileDownloadService fileDownloadService;
 
 
     @Override
@@ -101,7 +106,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public String queryPdfByte(RecipeBean recipe) {
+    public CaSealRequestTO queryPdfByte(RecipeBean recipe) {
         int recipeId = recipe.getRecipeId();
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
@@ -122,13 +127,12 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
                 map.put("templateType", "wm");
                 createMedicinePDF(result, (RecipeBean) recipeMap.get("recipe"));
             }
-
             map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", null));
             map.put("paramMap", result);
             SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
             logger.info("RecipeLabelManager queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSONUtils.toString(map), JSONUtils.toString(signRecipePdfVO));
             coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
-            return signRecipePdfVO.getDataStr();
+            return caSealRequestTO(55, String.valueOf(recipeId), signRecipePdfVO.getDataStr());
         } catch (Exception e) {
             logger.error("queryPdfRecipeLabelById error ", e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "获取pdf-byte-格式" + e.getMessage());
@@ -136,6 +140,15 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
     }
 
+    @Override
+    public CaSealRequestTO queryCheckPdfByte(RecipeBean recipe) {
+        //先下载oss服务器上的签名文件
+        byte[] signFileByte = fileDownloadService.downloadAsByte(recipe.getSignFile());
+        if (null != signFileByte) {
+            return caSealRequestTO(190, "check" + recipe.getRecipeId(), new String(Base64.encode(signFileByte)));
+        }
+        return caSealRequestTO(190, "check" + recipe.getRecipeId(), "");
+    }
 
     /**
      * 特殊字段坐标记录
@@ -262,6 +275,30 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return useDays + "天";
         }
         return "";
+    }
+
+    /**
+     * 组织pdf Byte字节 给前端SDK 出餐
+     *
+     * @param leftX        行坐标
+     * @param pdfName      文件名
+     * @param pdfBase64Str 文件
+     * @return
+     */
+    private CaSealRequestTO caSealRequestTO(int leftX, String pdfName, String pdfBase64Str) {
+        CaSealRequestTO caSealRequest = new CaSealRequestTO();
+        caSealRequest.setPdfBase64Str(pdfBase64Str);
+        //这个赋值后端没在用 可能前端在使用,所以沿用老代码写法
+        caSealRequest.setLeftX(leftX);
+        caSealRequest.setLeftY(76);
+        caSealRequest.setPdfName("recipe" + pdfName + ".pdf");
+        
+        caSealRequest.setSealHeight(40);
+        caSealRequest.setSealWidth(40);
+        caSealRequest.setPage(1);
+        caSealRequest.setPdfMd5("");
+        caSealRequest.setMode(1);
+        return caSealRequest;
     }
 
 }

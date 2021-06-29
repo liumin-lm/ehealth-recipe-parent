@@ -29,8 +29,6 @@ import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.CompactWriter;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -39,7 +37,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -63,9 +60,6 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -683,7 +677,6 @@ public class RecipeCAService {
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
 
-        String recipeMode = recipe.getRecipeMode();
         RecipeResultBean result = new RecipeResultBean();
 
         Integer organId = recipe.getClinicOrgan();
@@ -698,16 +691,6 @@ public class RecipeCAService {
                 //保存签名值、时间戳、电子签章文件
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                 resultVo.setFileId(fileId);
-//                try {
-//                    SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-//                    JSONObject jsonObject = new JSONObject();
-//                    jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-//                    jsonObject.put("details", JSONObject.toJSONString(details));
-//                    signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-//                    signRecipeInfoService.update(signDoctorRecipeInfo);
-//                } catch (Exception e) {
-//                    LOGGER.error("signBefText save error：" + e.getMessage(), e);
-//                }
             } else {
                 ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
                 SmsInfoBean smsInfo = new SmsInfoBean();
@@ -732,24 +715,6 @@ public class RecipeCAService {
         //重试签名，首先设置处方的状态为签名中，根据签名的结果
         Integer code = result.getCode();
         String msg = result.getMsg();
-        Integer status = RecipeStatusConstant.CHECK_PASS;
-
-        String memo = "HIS审核返回：写入his成功，审核通过";
-        /*// 医保用户
-        if (recipe.canMedicalPay()) {
-            // 如果是中药或膏方处方不需要药师审核
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                status = RecipeStatusConstant.CHECK_PASS_YS;
-                memo = "HIS审核返回：写入his成功，药师审核通过";
-            }
-
-        }*/
-
-        //其他平台处方状态不变
-        if (0 == recipe.getFromflag()) {
-            status = recipe.getStatus();
-            memo = "HIS审核返回：写入his成功(其他平台处方)";
-        }
         try {
             if (RecipeResultBean.FAIL == code) {
                 //说明处方签名失败
@@ -767,8 +732,6 @@ public class RecipeCAService {
                 LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
             }
-
-
         } catch (Exception e) {
             LOGGER.error("signRecipeCAAfterCallBack 签名服务或者发送卡片异常. ", e);
         }

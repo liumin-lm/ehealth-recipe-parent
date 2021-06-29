@@ -1,5 +1,6 @@
 package recipe.caNew.pdf;
 
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 
@@ -25,5 +26,13 @@ public interface CreatePdfService {
      * @param recipe 处方信息
      * @return
      */
-    String queryPdfByte(RecipeBean recipe);
+    CaSealRequestTO queryPdfByte(RecipeBean recipe);
+
+    /**
+     * 获取药师签名 pdf Byte字节 给前端SDK
+     *
+     * @param recipe 处方信息
+     * @return
+     */
+    CaSealRequestTO queryCheckPdfByte(RecipeBean recipe);
 }

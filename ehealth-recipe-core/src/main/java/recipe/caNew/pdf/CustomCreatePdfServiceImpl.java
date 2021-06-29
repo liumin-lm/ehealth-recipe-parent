@@ -1,5 +1,6 @@
 package recipe.caNew.pdf;
 
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,12 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public String queryPdfByte(RecipeBean recipe) {
+    public CaSealRequestTO queryPdfByte(RecipeBean recipe) {
+        return null;
+    }
+
+    @Override
+    public CaSealRequestTO queryCheckPdfByte(RecipeBean recipe) {
         return null;
     }
 }
