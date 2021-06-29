@@ -56,7 +56,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
      */
     @RpcService
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
-        logger.info("OfflineToOnlineAtop findHisRecipeList request:{}", ctd.util.JSONUtils.toString(request));
+        logger.info("OfflineToOnlineAtop findHisRecipeList request:{}", JSONUtils.toString(request));
         if (null == request
                 || request.getOrganId() == null
                 || StringUtils.isEmpty(request.getMpiId())

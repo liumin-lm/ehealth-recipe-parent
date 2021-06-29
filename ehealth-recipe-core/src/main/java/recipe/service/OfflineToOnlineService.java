@@ -346,8 +346,8 @@ public class OfflineToOnlineService {
 
     /**
      * 校验his线下处方是否发生变更 如果变更则处理数据
-     * @param hisRecipeTO
-     * @param patientDTO
+     * @param hisRecipeTO his处方数据
+     * @param patientDTO  患者信息
      */
     public void hisRecipeInfoCheck(List<QueryHisRecipResTO> hisRecipeTO, PatientDTO patientDTO) {
         LOGGER.info("hisRecipeInfoCheck param hisRecipeTO = {} , patientDTO={}", JSONUtils.toString(hisRecipeTO),JSONUtils.toString(patientDTO));
@@ -373,18 +373,12 @@ public class OfflineToOnlineService {
             return;
         }
         Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
-
-        //判断 hisRecipe 诊断不一致 更新
-        updateDisease(hisRecipeTO, recipeList, hisRecipeMap);
-
-
-        /**判断处方是否删除*/
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).distinct().collect(Collectors.toList());
         List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
         LOGGER.info("hisRecipeInfoCheck hisRecipeDetailList = {}", JSONUtils.toString(hisRecipeDetailList));
-        if (CollectionUtils.isEmpty(hisRecipeDetailList)) {
-            return;
-        }
+        //诊断变更，更新诊断
+        updateDisease(hisRecipeTO, recipeList, hisRecipeMap);
+        //药品发生变更，删除关联信息
         deleteRecipeData(hisRecipeTO,hisRecipeMap,hisRecipeIds,hisRecipeDetailList,patientDTO.getMpiId());
     }
 
@@ -432,7 +426,7 @@ public class OfflineToOnlineService {
 
 
     /**
-     *
+     *转换成前端所需MergeRecipeVO对象
      * @param grpupFiled
      * @param mergeRecipeFlag
      * @param mergeRecipeWay
@@ -504,7 +498,7 @@ public class OfflineToOnlineService {
             return null;
         }
         try {
-            /** 更新数据校验*/
+            //更新数据校验
             hisRecipeInfoCheck(responseTO.getData(), patientDTO);
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
@@ -528,8 +522,6 @@ public class OfflineToOnlineService {
      * @Desciption 从 his查询待缴费已缴费的处方信息
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        //TODO question 查询条件带recipeCode
-        //TODO question 让前置机去过滤数据
         LOGGER.info("offlineToOnlineService HisResponseTO.queryData:organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
@@ -561,7 +553,6 @@ public class OfflineToOnlineService {
     /**
      * @param responseTO
      * @return
-     * @author liumin
      * @Description 数据过滤
      */
     private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTO) {
@@ -641,6 +632,11 @@ public class OfflineToOnlineService {
         return hisRecipeVOs;
     }
 
+    /**
+     * 设置医保信息
+     * @param queryHisRecipResTO
+     * @param hisRecipe
+     */
     private void setMedicalInfo(QueryHisRecipResTO queryHisRecipResTO, HisRecipe hisRecipe) {
         if (null != queryHisRecipResTO.getMedicalInfo()) {
             MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
@@ -845,24 +841,8 @@ public class OfflineToOnlineService {
                         detail.setUsePathways(recipeDetailTO.getUsePathWays());
                         detail.setDrugSpec(recipeDetailTO.getDrugSpec());
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
-                        //date 20200526
-                        //修改线下处方同步用药天数，判断是否有小数类型的用药天数
-                        //修改逻辑，UseDays这个字段为老字段只有整数
-                        //UseDaysB这个字段为字符类型，可能小数，准备之后用药天数都用这个字段
-                        //取对应没有的字段设置传过来的值
-                        //这两个值只会有一个没有传
-                        if (null != recipeDetailTO.getUseDays()) {
-                            //设置字符类型的
-                            detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
-                        }
-                        if (null != recipeDetailTO.getUseDaysB()) {
-                            //设置int类型的
-                            //设置字符转向上取整
-                            int useDays = new BigDecimal(recipeDetailTO.getUseDaysB()).setScale(0, BigDecimal.ROUND_UP).intValue();
-                            detail.setUseDays(useDays);
-                        }
-//                        detail.setUseDays(recipeDetailTO.getUseDays());
-//                        detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
+                        detail.setUseDays(recipeDetailTO.getUseDays());
+                        detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         detail.setUsingRateText(recipeDetailTO.getUsingRateText());
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
@@ -927,10 +907,6 @@ public class OfflineToOnlineService {
     }
 
 
-    /**
-     * @author liumin
-     * @Description 获取处方详情
-     */
     /**
      * @param hisRecipeId
      * @param mpiId
@@ -1004,6 +980,10 @@ public class OfflineToOnlineService {
 
     }
 
+    /**
+     * 初始化一个返回对象
+     * @return
+     */
     private Map<String, Object> initReturnMap() {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("hisRecipeDetails", null);
@@ -1029,6 +1009,11 @@ public class OfflineToOnlineService {
         }
     }
 
+    /**
+     * 保存线下处方到cdr_recipe_ext
+     * @param recipe
+     * @param hisRecipe
+     */
     private void saveRecipeExt(Recipe recipe, HisRecipe hisRecipe) {
         Integer recipeId = recipe.getRecipeId();
         RecipeExtend haveRecipeExt = recipeExtendDAO.getByRecipeId(recipeId);
@@ -1115,6 +1100,11 @@ public class OfflineToOnlineService {
         recipeExtendDAO.save(recipeExtend);
     }
 
+    /**
+     * 保存线下处方到Recipe表
+     * @param hisRecipe
+     * @return
+     */
     private Recipe saveRecipeFromHisRecipe(HisRecipe hisRecipe) {
         LOGGER.info("saveRecipeFromHisRecipe hisRecipe:{}.", JSONUtils.toString(hisRecipe));
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
@@ -1239,6 +1229,11 @@ public class OfflineToOnlineService {
 
     }
 
+    /**
+     * 保存数据到平台处方详情表
+     * @param recipeId 处方号
+     * @param hisRecipe 线下处方对象
+     */
     private void savaRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
         List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -1324,9 +1319,9 @@ public class OfflineToOnlineService {
                 recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
             }
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
-            //date 20200528
-            //设置线上处方的信息
-            recipedetail.setUseDaysB(hisRecipeDetail.getUseDaysB());
+            if(StringUtils.isNotEmpty(hisRecipeDetail.getUseDaysB())){
+                recipedetail.setUseDaysB(new BigDecimal(hisRecipeDetail.getUseDaysB()).setScale(0, BigDecimal.ROUND_UP).toString());
+            }
             recipedetail.setStatus(1);
 
             //单药品总价使用线下传过来的，传过来多少就是多少我们不计算
@@ -1352,70 +1347,6 @@ public class OfflineToOnlineService {
             recipeDetailDAO.save(recipedetail);
         }
     }
-
-    private String getRecipeStatusTabText(int status) {
-        String msg;
-        switch (status) {
-            case RecipeStatusConstant.FINISH:
-                msg = "已完成";
-                break;
-            case RecipeStatusConstant.HAVE_PAY:
-                msg = "已支付，待取药";
-                break;
-            case RecipeStatusConstant.CHECK_PASS:
-                msg = "待处理";
-                break;
-            case RecipeStatusConstant.NO_PAY:
-                msg = "未支付";
-                break;
-            case RecipeStatusConstant.NO_OPERATOR:
-                msg = "未处理";
-                break;
-            //已撤销从已取消拆出来
-            case RecipeStatusConstant.REVOKE:
-                msg = "已撤销";
-                break;
-            //已撤销从已取消拆出来
-            case RecipeStatusConstant.DELETE:
-                msg = "已删除";
-                break;
-            //写入his失败从已取消拆出来
-            case RecipeStatusConstant.HIS_FAIL:
-                msg = "写入his失败";
-                break;
-            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                msg = "审核不通过";
-                break;
-            case RecipeStatusConstant.IN_SEND:
-                msg = "配送中";
-                break;
-            case RecipeStatusConstant.WAIT_SEND:
-                msg = "待配送";
-                break;
-            case RecipeStatusConstant.READY_CHECK_YS:
-                msg = "待审核";
-                break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
-                msg = "审核通过";
-                break;
-            //这里患者取药失败和取药失败都判定为失败
-            case RecipeStatusConstant.NO_DRUG:
-            case RecipeStatusConstant.RECIPE_FAIL:
-                msg = "失败";
-                break;
-            case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                msg = "待取药";
-                break;
-            case RecipeStatusConstant.USING:
-                msg = "处理中";
-                break;
-            default:
-                msg = "未知状态";
-        }
-
-        return msg;
-    }
-
 
     /**
      * 状态文字提示（患者端）
@@ -1533,8 +1464,24 @@ public class OfflineToOnlineService {
      * @param mpiId
      */
     private void deleteRecipeData(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<Integer> hisRecipeIds, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
-        //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数等
+        if (CollectionUtils.isEmpty(hisRecipeDetailList)) {
+            return;
+        }
+        Set<String> deleteSetRecipeCode=attachDeleteRecipeCodes(hisRecipeTO,hisRecipeMap,hisRecipeDetailList,mpiId);
+        deleteSetRecipeCode(hisRecipeTO.get(0).getClinicOrgan(), deleteSetRecipeCode);
+    }
+
+    /**
+     * 获取需要删除的recipeCodes
+     * @param hisRecipeTO
+     * @param hisRecipeMap
+     * @param hisRecipeDetailList
+     * @param mpiId
+     * @return
+     */
+    private Set<String> attachDeleteRecipeCodes(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
         Set<String> deleteSetRecipeCode = new HashSet<>();
+        //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数等
         Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
         hisRecipeTO.forEach(a -> {
             String recipeCode = a.getRecipeCode();
@@ -1581,8 +1528,7 @@ public class OfflineToOnlineService {
                     LOGGER.info("deleteSetRecipeCode cause hisRecipeDetail is null recipeCode:{}", recipeCode);
                     continue;
                 }
-                BigDecimal useTotalDose = hisRecipeDetail.getUseTotalDose();
-                if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
+                if ( 0 != covertBigdecimal(hisRecipeDetail.getUseTotalDose()).compareTo(covertBigdecimal(recipeDetailTO.getUseTotalDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useTotalDose recipeCode:{}", recipeCode);
                     continue;
@@ -1647,8 +1593,14 @@ public class OfflineToOnlineService {
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }
         });
-        //删除
-        deleteSetRecipeCode(hisRecipeTO.get(0).getClinicOrgan(), deleteSetRecipeCode);
+        return deleteSetRecipeCode;
+    }
+
+    private BigDecimal covertBigdecimal(BigDecimal bigDecimal) {
+        if(bigDecimal==null){
+            return new BigDecimal(BigDecimal.ZERO);
+        }
+        return bigDecimal;
     }
 
     /**
@@ -1828,7 +1780,7 @@ public class OfflineToOnlineService {
 
     /**
      * 是否允许删除 默认不允许
-     * @param payFlag
+     * @param payFlag 支付状态
      * @return
      */
     boolean isAllowDeleteByPayFlag(Integer payFlag){
@@ -1838,6 +1790,13 @@ public class OfflineToOnlineService {
         return true;
     }
 
+    /**
+     * 获取处方id
+     * @param organId 机构
+     * @param recipeCode 处方号
+     * @param hisRecipes 线下处方
+     * @return
+     */
     public Integer attachRecipeId(Integer organId, String recipeCode, List<HisRecipe> hisRecipes) {
         HisRecipe hisRecipe=new HisRecipe();
         if (CollectionUtils.isEmpty(hisRecipes)) {
