@@ -1479,7 +1479,7 @@ public class OfflineToOnlineService {
      * @param mpiId
      * @return
      */
-    private Set<String> attachDeleteRecipeCodes(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
+    public Set<String> attachDeleteRecipeCodes(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
         Set<String> deleteSetRecipeCode = new HashSet<>();
         //1 判断是否delete 处方相关表 / RecipeDetailTO 数量 ，药品，开药总数等
         Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
@@ -1534,61 +1534,52 @@ public class OfflineToOnlineService {
                     continue;
                 }
                 String useDose = hisRecipeDetail.getUseDose();
-                if ((StringUtils.isEmpty(useDose) && StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) || (StringUtils.isNotEmpty(useDose) && !useDose.equals(recipeDetailTO.getUseDose()))) {
+                if ( !covertString(hisRecipeDetail.getUseDose()).equals(covertString(recipeDetailTO.getUseDose())) ){
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDose recipeCode:{}", recipeCode);
                     continue;
                 }
-                String useDoseStr = hisRecipeDetail.getUseDoseStr();
-                if ((StringUtils.isEmpty(useDoseStr) && StringUtils.isNotEmpty(recipeDetailTO.getUseDoseStr())) || (StringUtils.isNotEmpty(useDoseStr) && !useDoseStr.equals(recipeDetailTO.getUseDoseStr()))) {
+                if ((!covertString(hisRecipeDetail.getUseDoseStr()).equals(covertString()recipeDetailTO.getUseDoseStr()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
                     continue;
                 }
-                if (StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() == null){
-                    String useDaysB = hisRecipeDetail.getUseDaysB();
-                    if ((StringUtils.isEmpty(useDaysB) && StringUtils.isNotEmpty(recipeDetailTO.getUseDaysB())) || (StringUtils.isNotEmpty(useDaysB) && !useDaysB.equals(recipeDetailTO.getUseDaysB()))) {
-                        deleteSetRecipeCode.add(recipeCode);
-                        LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
-                        continue;
-                    }
+                if ((!covertString(hisRecipeDetail.getUseDaysB()).equals(covertString(recipeDetailTO.getUseDaysB())))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
+                    continue;
                 }
-                if (StringUtils.isEmpty(recipeDetailTO.getUseDaysB()) && recipeDetailTO.getUseDays() != null) {
-                    Integer useDays = hisRecipeDetail.getUseDays();
-                    if ((useDays == null && recipeDetailTO.getUseDays() != null) || (useDays != null && !useDays.equals(recipeDetailTO.getUseDays()))) {
-                        deleteSetRecipeCode.add(recipeCode);
-                        LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}",recipeCode);
-                        continue;
-                    }
+
+                if ((!covertInteger( hisRecipeDetail.getUseDays()).equals(covertInteger(recipeDetailTO.getUseDays())))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}",recipeCode);
+                    continue;
                 }
-                String usingRate = hisRecipeDetail.getUsingRate();
-                if ((StringUtils.isEmpty(usingRate) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRate())) || (StringUtils.isNotEmpty(usingRate) && !usingRate.equals(recipeDetailTO.getUsingRate()))) {
+
+                if ( !covertString(hisRecipeDetail.getUsingRate()).equals(covertString(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usingRate recipeCode:{}", recipeCode);
                     continue;
                 }
 
-                String usingRateText = hisRecipeDetail.getUsingRateText();
-                if ((StringUtils.isEmpty(usingRateText) && StringUtils.isNotEmpty(recipeDetailTO.getUsingRateText())) || (StringUtils.isNotEmpty(usingRateText) && !usingRateText.equals(recipeDetailTO.getUsingRateText()))) {
+                if (!covertString(hisRecipeDetail.getUsingRateText()).equals(covertString(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usingRateText recipeCode:{}", recipeCode);
                     continue;
                 }
-                String usePathways = hisRecipeDetail.getUsePathways();
-                if ((StringUtils.isEmpty(usePathways) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathWays())) || (StringUtils.isNotEmpty(usePathways) && !usePathways.equals(recipeDetailTO.getUsePathWays()))) {
+                if ( !covertString(hisRecipeDetail.getUsePathways()).equals(covertString(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usePathWays recipeCode:{}", recipeCode);
                     continue;
                 }
-                String usePathwaysText = hisRecipeDetail.getUsePathwaysText();
-                if ((StringUtils.isEmpty(usePathwaysText) && StringUtils.isNotEmpty(recipeDetailTO.getUsePathwaysText())) || (StringUtils.isNotEmpty(usePathwaysText) && !usePathwaysText.equals(recipeDetailTO.getUsePathwaysText()))) {
+                if ( !covertString(hisRecipeDetail.getUsePathwaysText()).equals(covertString(recipeDetailTO.getUsePathwaysText()))) {
                     LOGGER.info("deleteSetRecipeCode cause usePathwaysText recipeCode:{}", recipeCode);
                     deleteSetRecipeCode.add(recipeCode);
                 }
             }
             //中药判断tcmFee发生变化,删除数据
             BigDecimal tcmFee = a.getTcmFee();
-            if ((tcmFee != null && tcmFee.compareTo(hisRecipe.getTcmFee()) != 0) || (tcmFee == null && hisRecipe.getTcmFee() != null)) {
+            if ( covertBigdecimal(tcmFee).compareTo(covertBigdecimal(hisRecipe.getTcmFee())) != 0) {
                 LOGGER.info("deleteSetRecipeCode cause tcmFee recipeCode:{}", recipeCode);
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }
@@ -1596,11 +1587,25 @@ public class OfflineToOnlineService {
         return deleteSetRecipeCode;
     }
 
-    private BigDecimal covertBigdecimal(BigDecimal bigDecimal) {
-        if(bigDecimal==null){
-            return new BigDecimal(BigDecimal.ZERO);
+    private BigDecimal covertBigdecimal(BigDecimal obj) {
+        if(obj==null){
+            return BigDecimal.ZERO;
         }
-        return bigDecimal;
+        return obj;
+    }
+
+    private String covertString(String obj) {
+        if(obj==null){
+            return "";
+        }
+        return obj;
+    }
+
+    private Integer covertInteger(Integer obj) {
+        if(obj==null){
+            return 0;
+        }
+        return obj;
     }
 
     /**

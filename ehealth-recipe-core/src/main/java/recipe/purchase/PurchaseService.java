@@ -89,6 +89,12 @@ public class PurchaseService {
     @Qualifier("basic.patientService")
     PatientService patientService;
 
+    @Autowired
+    OfflineToOnlineService offlineToOnlineService;
+
+    @Autowired
+    HisRecipeDetailDAO hisRecipeDetailDAO;
+
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
      *
@@ -329,15 +335,22 @@ public class PurchaseService {
             }
             //诊断
             if (!queryHisRecipResTO.getDisease().equals(covertData(hisRecipe.getDisease())) || !covertData(queryHisRecipResTO.getDiseaseName()).equals(covertData(hisRecipe.getDiseaseName()))) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
-
             }
-
-
-
-            Set<String> deleteSetRecipeCode=attachDeleteRecipeCodes(hisRecipeTO,hisRecipeMap,hisRecipeDetailList,mpiId);
-
+            //药品详情变更或数据是否由他人生成
+            List<Integer> hisRecipeIds=new ArrayList<>();
+            Map<String, HisRecipe> hisRecipeMap=new HashMap<>();
+            hisRecipeIds.add(hisRecipe.getHisRecipeID());
+            List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+            hisRecipeMap.put(hisRecipe.getRecipeCode(),hisRecipe);
+            Set<String> deleteSetRecipeCode=offlineToOnlineService.attachDeleteRecipeCodes(hisRecipeInfos.getData(),hisRecipeMap,hisRecipeDetailList,dbRecipe.getMpiid());
+            if(!CollectionUtils.isEmpty(deleteSetRecipeCode)){
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} 药品详情已变更或数据已经由他人生成", recipeId);
+            }
             EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
         }
         return result;
