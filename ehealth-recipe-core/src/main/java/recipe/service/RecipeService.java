@@ -1048,7 +1048,7 @@ public class RecipeService extends RecipeBaseService {
         }
         //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
         if (recipe.getStatus() == 9) {
-            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
             return;
         }
         try {

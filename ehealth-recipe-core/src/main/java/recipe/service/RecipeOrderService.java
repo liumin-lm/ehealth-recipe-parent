@@ -682,9 +682,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果为医生选择且recipeExt存在decoctionText，需设置待煎费   患者选择由前端计算
                     if("1".equals(decoctionDeploy)
                             &&recipeExtend!=null&&StringUtils.isNotEmpty(recipeExtend.getDecoctionText())){
+                        boolean isExistValue=false;
                         if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
                             //有代煎总额
                             decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
+                            isExistValue=true;
                         } else {
                             totalCopyNum = totalCopyNum + recipe.getCopyNum();
                             //无代煎总额 需计算代煎总额=贴数*代煎单价
@@ -692,7 +694,12 @@ public class RecipeOrderService extends RecipeBaseService {
                                 //代煎费等于剂数乘以代煎单价
                                 //如果是合并处方-多张处方下得累加
                                 decoctionFee = decoctionFee.add(hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                                isExistValue=true;
                             }
+                        }
+                        //当his值是空的时候，给前端返回空，不显示  当0的时候需要显示
+                        if(decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
+                            decoctionFee=null;
                         }
                     }else{
                         totalCopyNum = totalCopyNum + recipe.getCopyNum();
