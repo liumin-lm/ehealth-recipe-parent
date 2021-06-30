@@ -664,6 +664,8 @@ public class RecipeOrderService extends RecipeBaseService {
         int i = 0;
         //是否走平台的中医论证费
         boolean tcmFlag = true;
+        //是否显示代煎费 默认不显示
+        boolean isExistValue=false;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 //处理线下转线上的代煎费
@@ -682,7 +684,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果为医生选择且recipeExt存在decoctionText，需设置待煎费   患者选择由前端计算
                     if("1".equals(decoctionDeploy)
                             &&recipeExtend!=null&&StringUtils.isNotEmpty(recipeExtend.getDecoctionText())){
-                        boolean isExistValue=false;
                         if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
                             //有代煎总额
                             decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
@@ -697,15 +698,12 @@ public class RecipeOrderService extends RecipeBaseService {
                                 isExistValue=true;
                             }
                         }
-                        //当his值是空的时候，给前端返回空，不显示  当0的时候需要显示
-                        if(decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
-                            decoctionFee=null;
-                        }
                     }else{
                         totalCopyNum = totalCopyNum + recipe.getCopyNum();
                         if (order.getDecoctionUnitPrice()!=null && recipe.getCopyNum() != null ) {
                             //代煎费等于剂数乘以代煎单价
                             //如果是合并处方-多张处方下得累加
+                            isExistValue=true;
                             decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                         }
                     }
@@ -715,12 +713,19 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (needCalDecFee) {
                         //代煎费等于剂数乘以代煎单价
                         //如果是合并处方-多张处方下得累加
+                        isExistValue=true;
                         decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                     }
                     i++;
                 }
             }
         }
+
+        //当his值是空的时候，给前端返回空，不显示  当0的时候需要显示
+        if(decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
+            decoctionFee=null;
+        }
+
         //多个处方，中医辨证论治费收多次!
         //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
