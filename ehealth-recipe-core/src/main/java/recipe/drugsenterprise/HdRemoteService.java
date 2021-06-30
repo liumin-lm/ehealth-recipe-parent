@@ -678,7 +678,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 getFailResult(result, "药品的单价为空");
                 return result;
             }
-            price = null == saleDrug.getPrice() ? doubleParameterDefault : saleDrug.getPrice().doubleValue();
+            price = nowDetail.getActualSalePrice() == null ? nowDetail.getSalePrice().doubleValue() : nowDetail.getActualSalePrice().doubleValue();
             quantity = null == nowDetail.getUseTotalDose() ? doubleParameterDefault : nowDetail.getUseTotalDose();
 
             nowHdDrugDTO.setDrugFee(price.toString());

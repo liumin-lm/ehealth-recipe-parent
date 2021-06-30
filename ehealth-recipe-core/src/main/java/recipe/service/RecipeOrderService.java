@@ -1566,6 +1566,7 @@ public class RecipeOrderService extends RecipeBaseService {
             //更新处方recipe的status
 
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
+            boolean tcmFlag = false;
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 //设置地址，先取处方单address4的值，没有则取订单地址
                 if (StringUtils.isNotEmpty(recipeList.get(0).getAddress4())) {
@@ -1603,6 +1604,9 @@ public class RecipeOrderService extends RecipeBaseService {
                         recipeBean.setGiveModeText(order.getGiveModeText());
                     } else {
                         recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                    }
+                    if (new Integer(3).equals(recipe.getRecipeType())) {
+                        tcmFlag = true;
                     }
                     prb.setRecipe(recipeBean);
                     prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
@@ -1770,6 +1774,11 @@ public class RecipeOrderService extends RecipeBaseService {
 
                     orderBean.setEnterpriseName(order.getHisEnterpriseName());
                 }
+            }
+            if (!tcmFlag) {
+                //表示处方单中不存在中药处方,需要将中医辨证论证费和代煎费去掉
+                orderBean.setDecoctionFee(null);
+                orderBean.setTcmFee(null);
             }
             Collections.sort(patientRecipeBeanList, Comparator.comparing(PatientRecipeDTO::getRecipeId).reversed());
             orderBean.setList(patientRecipeBeanList);
