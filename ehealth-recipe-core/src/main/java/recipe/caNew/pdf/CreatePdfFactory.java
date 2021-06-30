@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.openapi.request.province.SignImgNode;
+import recipe.caNew.pdf.service.CreatePdfService;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.service.client.IConfigurationClient;
@@ -30,7 +31,9 @@ import java.util.Map;
 public class CreatePdfFactory {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Resource(name = "platformCreatePdfServiceImpl")
-    private CreatePdfService createPdfService;
+    private CreatePdfService platformCreatePdfServiceImpl;
+    @Resource(name = "customCreatePdfServiceImpl")
+    private CreatePdfService customCreatePdfServiceImpl;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
@@ -47,7 +50,7 @@ public class CreatePdfFactory {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        return createPdfService.queryPdfOssId(recipe);
+        return platformCreatePdfServiceImpl.queryPdfOssId(recipe);
     }
 
     /**
@@ -65,7 +68,7 @@ public class CreatePdfFactory {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        return createPdfService.queryPdfByte(recipe);
+        return platformCreatePdfServiceImpl.queryPdfByte(recipe);
     }
 
 
@@ -84,7 +87,7 @@ public class CreatePdfFactory {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        return createPdfService.queryCheckPdfByte(recipe);
+        return platformCreatePdfServiceImpl.queryCheckPdfByte(recipe);
     }
 
     /**
@@ -95,7 +98,7 @@ public class CreatePdfFactory {
      */
     public void updateTotalPdfExecute(Integer recipeId, BigDecimal recipeFee) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        RecipeBusiThreadPool.execute(() -> createPdfService.updateTotalPdf(recipeId, recipeFee));
+        RecipeBusiThreadPool.execute(() -> platformCreatePdfServiceImpl.updateTotalPdf(recipeId, recipeFee));
     }
 
     /**
@@ -105,7 +108,7 @@ public class CreatePdfFactory {
      */
     public void updateCheckNamePdf(Integer recipeId) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        createPdfService.updateCheckNamePdf(recipeId);
+        platformCreatePdfServiceImpl.updateCheckNamePdf(recipeId);
     }
 
     /**
@@ -115,7 +118,7 @@ public class CreatePdfFactory {
      */
     public void updateDoctorNamePdf(Recipe recipe) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        createPdfService.updateDoctorNamePdf(recipe);
+        platformCreatePdfServiceImpl.updateDoctorNamePdf(recipe);
     }
 
     /**
@@ -125,7 +128,7 @@ public class CreatePdfFactory {
      */
     public void updateCodePdfExecute(Integer recipeId) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        RecipeBusiThreadPool.execute(() -> createPdfService.updateCodePdfExecute(recipeId));
+        RecipeBusiThreadPool.execute(() -> platformCreatePdfServiceImpl.updateCodePdfExecute(recipeId));
     }
 
     /**
@@ -135,7 +138,7 @@ public class CreatePdfFactory {
      */
     public void updateAddressPdfExecute(Integer recipeId) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        RecipeBusiThreadPool.execute(() -> createPdfService.updateAddressPdfExecute(recipeId));
+        RecipeBusiThreadPool.execute(() -> platformCreatePdfServiceImpl.updateAddressPdfExecute(recipeId));
     }
 
     /**
@@ -146,7 +149,7 @@ public class CreatePdfFactory {
      */
     public Recipe updateGiveUser(Recipe recipe) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        return createPdfService.updateGiveUser(recipe);
+        return platformCreatePdfServiceImpl.updateGiveUser(recipe);
     }
 
     /**

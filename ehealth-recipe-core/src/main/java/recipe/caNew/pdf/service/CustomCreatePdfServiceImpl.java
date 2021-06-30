@@ -3,7 +3,6 @@ package recipe.caNew.pdf.service;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import org.springframework.stereotype.Service;
-import recipe.caNew.pdf.CreatePdfService;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -33,6 +32,31 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public Recipe updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
+        return null;
+    }
+
+    @Override
+    public void updateCheckNamePdf(Integer recipeId) {
+        
+    }
+
+    @Override
+    public void updateDoctorNamePdf(Recipe recipe) {
+
+    }
+
+    @Override
+    public void updateCodePdfExecute(Integer recipeId) {
+
+    }
+
+    @Override
+    public void updateAddressPdfExecute(Integer recipeId) {
+
+    }
+
+    @Override
+    public Recipe updateGiveUser(Recipe recipe) {
         return null;
     }
 }

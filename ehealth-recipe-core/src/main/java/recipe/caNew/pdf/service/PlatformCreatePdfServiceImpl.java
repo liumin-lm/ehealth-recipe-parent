@@ -29,7 +29,6 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.bussutil.openapi.util.JSONUtils;
-import recipe.caNew.pdf.CreatePdfService;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;

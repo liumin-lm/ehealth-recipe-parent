@@ -1,4 +1,4 @@
-package recipe.caNew.pdf;
+package recipe.caNew.pdf.service;
 
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
