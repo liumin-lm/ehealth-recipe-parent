@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.service.client.DoctorClient;
-import recipe.service.manager.RecipeLabelManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +44,7 @@ public class RecipeOrderTwoService {
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
-    private RecipeLabelManager recipeLabelManager;
+    private CreatePdfFactory createPdfFactory;
 
     /**
      * 更新核发药师信息
@@ -73,7 +73,7 @@ public class RecipeOrderTwoService {
 
         //更新pdf
         recipe.setGiveUser(giveUser.toString());
-        Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
+        Recipe recipeUpdate = createPdfFactory.updateGiveUser(recipe);
         //更新处方字段
         if (null != recipeUpdate) {
             recipeUpdate.setGiveUser(giveUser.toString());

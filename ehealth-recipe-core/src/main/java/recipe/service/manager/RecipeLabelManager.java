@@ -1,12 +1,10 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
@@ -18,17 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
-import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeOrderDAO;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
-import recipe.util.ValidateUtil;
 
 import java.util.*;
 
@@ -50,62 +43,9 @@ public class RecipeLabelManager {
     @Autowired
     private IConfigurationCenterUtilsService configService;
     @Autowired
-    private RedisClient redisClient;
-    @Autowired
     private SignManager signManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-
-    /**
-     * 更新 pdf 核对发药
-     *
-     * @param recipe 处方
-     * @return
-     */
-    public Recipe giveUserUpdate(Recipe recipe) {
-        logger.info("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
-        //获取 核对发药药师签名id
-        ApothecaryVO apothecaryVO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
-        //判断发药状态
-        if (StringUtils.isEmpty(recipe.getOrderCode())) {
-            return null;
-        }
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
-            return null;
-        }
-        //判断配置是否有核对发药
-        List<Scratchable> scratchableList = scratchableList(recipe.getClinicOrgan(), "moduleFour");
-        if (CollectionUtils.isEmpty(scratchableList)) {
-            return null;
-        }
-        boolean isGiveUser = scratchableList.stream().noneMatch(a -> "recipe.giveUser".equals(a.getBoxLink()));
-        if (isGiveUser) {
-            return null;
-        }
-        //修改pdf文件
-        SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
-                , apothecaryVO.getGiveUserSignImg(), null, 50f, 20f, 210f, 99f, true);
-        Recipe recipeUpdate = new Recipe();
-        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-            signImgNode.setSignFileFileId(recipe.getChemistSignFile());
-            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
-            if (StringUtils.isEmpty(newPfd)) {
-                return null;
-            }
-            recipeUpdate.setChemistSignFile(newPfd);
-        } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-            signImgNode.setSignFileFileId(recipe.getSignFile());
-            String newPfd = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
-            if (StringUtils.isEmpty(newPfd)) {
-                return null;
-            }
-            recipeUpdate.setSignFile(newPfd);
-        }
-        recipeUpdate.setRecipeId(recipe.getRecipeId());
-        logger.info("RecipeLabelManager giveUserUpdate recipeUpdate={}", JSON.toJSONString(recipeUpdate));
-        return recipeUpdate;
-    }
 
     /**
      * 获取处方签配置模块
@@ -121,36 +61,6 @@ public class RecipeLabelManager {
         }
         return (List<Scratchable>) labelMap.get(moduleName);
     }
-
-    /**
-     * 获取pdf 特殊字段坐标
-     *
-     * @param recipeId   处方id
-     * @param coordsName 特殊字段名称
-     * @return
-     */
-    public CoOrdinateVO getPdfCoordsHeight(Integer recipeId, String coordsName) {
-        if (ValidateUtil.integerIsEmpty(recipeId) || StringUtils.isEmpty(coordsName)) {
-            return null;
-        }
-        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
-        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
-
-        if (CollectionUtils.isEmpty(coOrdinateList)) {
-            logger.error("RecipeLabelManager getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
-            return null;
-        }
-
-        for (CoOrdinateVO coOrdinate : coOrdinateList) {
-            if (coordsName.equals(coOrdinate.getName())) {
-                coOrdinate.setY(499 - coOrdinate.getY());
-                coOrdinate.setX(coOrdinate.getX() + 5);
-                return coOrdinate;
-            }
-        }
-        return null;
-    }
-
 
 
     /**

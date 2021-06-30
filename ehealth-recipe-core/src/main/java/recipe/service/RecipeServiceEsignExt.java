@@ -52,17 +52,13 @@ public class RecipeServiceEsignExt {
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
-        RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-        if (null == recipe) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is null");
-        }
         //组装生成pdf的参数
         CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
         CaSealRequestTO caBean;
         if (isDoctor) {
-            caBean = createPdfFactory.queryPdfByte(recipe);
+            caBean = createPdfFactory.queryPdfByte(recipeId);
         } else {
-            caBean = createPdfFactory.queryCheckPdfByte(recipe);
+            caBean = createPdfFactory.queryCheckPdfByte(recipeId);
         }
         LOGGER.info("signCreateRecipePDF caBean is [{}]", JSONObject.toJSONString(caBean));
         return caBean;

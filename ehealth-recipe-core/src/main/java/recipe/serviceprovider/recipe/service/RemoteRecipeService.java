@@ -82,6 +82,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -101,7 +102,10 @@ import recipe.service.client.DoctorClient;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
-import recipe.thread.*;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.RecipeSendFailRunnable;
+import recipe.thread.RecipeSendSuccessRunnable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -129,9 +133,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private static final Integer PAGESIZE = 50;
     //初始页码
     private static final Integer PAGENUM = 0;
-//    @Autowired
-//    private CommonCAFactory commonCAFactory;
-
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
@@ -152,6 +153,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private IClientConfigService clientConfigService;
     @Autowired
     private IRecipeHisService hisService;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
+
 
     @RpcService
     @Override
@@ -1577,7 +1581,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void generateSignetRecipePdf(Integer recipeId, Integer organId) {
-        RecipeBusiThreadPool.execute(new GenerateSignetRecipePdfRunable(recipeId, organId));
+        createPdfFactory.updatesealPdfExecute(recipeId);
     }
 
     @Override

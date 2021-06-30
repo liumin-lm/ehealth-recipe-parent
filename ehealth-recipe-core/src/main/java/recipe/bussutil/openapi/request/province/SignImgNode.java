@@ -23,7 +23,6 @@ public class SignImgNode implements Serializable {
     /**
      * 图片标识id
      */
-
     private String signImgId;
     /**
      * 图片文件id
@@ -32,7 +31,9 @@ public class SignImgNode implements Serializable {
     /**
      * 处方pdf文件id
      */
-    private String signFileFileId;
+    private String signFileId;
+
+    private byte[] signFileData;
     /**
      * 图片在pdf中的宽度
      */
@@ -49,7 +50,6 @@ public class SignImgNode implements Serializable {
      * 图片在pdf中y坐标
      */
     private Float y;
-
     /**
      * 是否覆盖 true 覆盖
      */

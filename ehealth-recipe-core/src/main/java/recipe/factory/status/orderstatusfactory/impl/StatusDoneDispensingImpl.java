@@ -6,10 +6,10 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.service.client.HisInventoryClient;
-import recipe.service.manager.RecipeLabelManager;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;
@@ -28,7 +28,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     @Autowired
     private HisInventoryClient hisInventoryClient;
     @Autowired
-    private RecipeLabelManager recipeLabelManager;
+    private CreatePdfFactory createPdfFactory;
 
     @Override
     public Integer getStatus() {
@@ -50,7 +50,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     public void upRecipeThreadPool(Recipe recipe) {
         RecipeBusiThreadPool.execute(() -> {
             try {
-                Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
+                Recipe recipeUpdate = createPdfFactory.updateGiveUser(recipe);
                 if (null != recipeUpdate) {
                     recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
                 }

@@ -102,7 +102,6 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bean.RecipeInvalidDTO;
-import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
@@ -183,6 +182,8 @@ public class RecipeService extends RecipeBaseService {
     private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
     @Resource
     private AuditModeContext auditModeContext;
@@ -202,9 +203,6 @@ public class RecipeService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private RecipeServiceSub recipeServiceSub;
-
-    @Autowired
-    private CreatePdfFactory createPdfFactory;
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
@@ -757,23 +755,16 @@ public class RecipeService extends RecipeBaseService {
             String recipeFileId = MapValueUtil.getString(backMap, "fileId");
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("signFile", recipeFileId);
-            // 会更新signRecipeNew方法保存的签名时间导致计算失效时间不准确
-            //attrMap.put("signDate", DateTime.now().toDate());
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
-            //个性化医院处方笺生成条形码
-            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_BARCODEFORRECIPE_ORGAN_LIST);
-            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(String.valueOf(recipe.getClinicOrgan()))) {
-                RecipeBusiThreadPool.execute(() -> generateBarCodeForRecipePdfAndSwap(recipeId, recipeFileId, recipe.getRecipeCode()));
-            }
         } else if (Integer.valueOf(2).equals(code)) {
             memo = "签名成功,高州CA方式";
-            doctorToRecipePDF(recipeId, recipe);
+            createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else if (Integer.valueOf(100).equals(code)) {
             memo = "签名成功,标准对接CA方式";
-            doctorToRecipePDF(recipeId, recipe);
+            createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
                 Integer organId = recipe.getClinicOrgan();
@@ -816,72 +807,6 @@ public class RecipeService extends RecipeBaseService {
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
         return result;
-    }
-
-    private void doctorToRecipePDF(Integer recipeId, Recipe recipe) {
-        LOGGER.info("doctorToRecipePDF recipeId:{}", recipeId);
-        //在触发医生签名的时候将pdf先生成，回调的时候再将CA的返回更新
-        //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
-        try {
-            //date 202001013 修改非易签保流程下的pdf
-            Integer organId = recipe.getClinicOrgan();
-            String fileId;
-            boolean usePlatform = true;
-            Object recipeUsePlatformCAPDF = configService.getConfiguration(organId, "recipeUsePlatformCAPDF");
-            if (null != recipeUsePlatformCAPDF) {
-                usePlatform = Boolean.parseBoolean(recipeUsePlatformCAPDF.toString());
-            }
-            //保存签名值、时间戳、电子签章文件
-            //使用平台CA模式，手动生成pdf
-            //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
-            String pdfBase64Str;
-            String signImageId;
-            if (usePlatform) {
-                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, true);
-                if (null == requestSealTO) {
-                    LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
-                } else {
-                    //设置签名图片
-                    Map<String, String> signInfo = RecipeServiceSub.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-                    signImageId = signInfo.get("doctorSignImg");
-                    pdfBase64Str = requestSealTO.getPdfBase64Str();
-                    //将生成的处方pdf生成id
-                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getDoctor(), true, TCM_TEMPLATETYPE.equals(recipe.getRecipeType()), pdfBase64Str, signImageId);
-
-                    //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
-                    RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, null, null, true, fileId);
-                }
-
-            }
-        } catch (Exception e) {
-            LOGGER.warn("当前处方是使用平台医生部分pdf的,生成失败！{}", recipe.getRecipeId(), e);
-            //日志记录
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
-        }
-    }
-
-    /**
-     * 加@RpcService为了测试
-     * 生成条形码在处方pdf文件上
-     *
-     * @param recipeId
-     * @param recipeFileId
-     * @param recipeCode
-     */
-    @RpcService
-    public void generateBarCodeForRecipePdfAndSwap(Integer recipeId, String recipeFileId, String recipeCode) {
-//        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(recipeFileId)) {
-//            return;
-//        }
-//        try {
-//            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//            String newPfd = CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipeFileId, recipeCode);
-//            if (StringUtils.isNotEmpty(newPfd)) {
-//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", newPfd));
-//            }
-//        } catch (Exception e) {
-//            LOGGER.error("generateBarCodeForRecipePdfAndSwap error. recipeId={}", recipeId, e);
-//        }
     }
 
     //重试二次医生审核通过签名
@@ -976,11 +901,6 @@ public class RecipeService extends RecipeBaseService {
         try {
             //写入his成功后，生成pdf并签名
             RecipeResultBean recipeSignResult = generateRecipePdfAndSign(dbRecipe.getRecipeId());
-            //date 20200424
-            //判断当前处方的状态为签名失败不走下面逻辑
-//            if(new Integer(28).equals(getByRecipeId(dbRecipe.getRecipeId()).getStatus())){
-//                return;
-//            }
             if (RecipeResultBean.FAIL == recipeSignResult.getCode()) {
                 //说明处方签名失败
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
@@ -1239,7 +1159,7 @@ public class RecipeService extends RecipeBaseService {
                         //需要调整逻辑：
                         //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
                         if (CA_NEW_TYPE.equals(CANewOldWay)) {
-                            doctorToRecipePDF(recipeId, recipe);
+                            createPdfFactory.updateDoctorNamePdf(recipe);
                         }
                     }
                     //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
@@ -1323,16 +1243,9 @@ public class RecipeService extends RecipeBaseService {
                     attrMap.put("signFile", recipeFileId);
                     attrMap.put("signDate", recipe.getSignDate());
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-                    memo = "签名上传文件成功, fileId=" + recipeFileId;
                     LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
-                    //个性化医院处方笺生成条形码
-                    Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_BARCODEFORRECIPE_ORGAN_LIST);
-                    if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(String.valueOf(recipe.getClinicOrgan()))) {
-                        RecipeBusiThreadPool.execute(() -> generateBarCodeForRecipePdfAndSwap(recipeId, recipeFileId, recipe.getRecipeCode()));
-                    }
                 }
             }
-
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
@@ -4411,7 +4324,7 @@ public class RecipeService extends RecipeBaseService {
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
-                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeLabelManager, recipeId, recipeFee));
+                createPdfFactory.updateTotalPdfExecute(recipeId, recipeFee);
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);
@@ -4421,8 +4334,8 @@ public class RecipeService extends RecipeBaseService {
             //根据审方模式改变
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterPayChange(saveFlag, dbRecipe, result, attrMap);
             //支付成功后pdf异步显示对应的配送信息
-            if (new Integer("1").equals(payFlag)) {
-                RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
+            if (1 == payFlag) {
+                createPdfFactory.updateAddressPdfExecute(recipeId);
             }
         }
         return result;
@@ -4438,8 +4351,8 @@ public class RecipeService extends RecipeBaseService {
     @Deprecated
     public String recipePdfTest(Integer recipeId) throws Exception {
         CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
-        RecipeBusiThreadPool.execute(new UpdateReceiverInfoRecipePdfRunable(recipeId, recipeLabelManager));
-        RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeLabelManager, recipeId, BigDecimal.valueOf(521.20)));
+        createPdfFactory.updateAddressPdfExecute(recipeId);
+        createPdfFactory.updateTotalPdfExecute(recipeId, BigDecimal.valueOf(521.20));
         return null;
     }
 
@@ -5769,53 +5682,16 @@ public class RecipeService extends RecipeBaseService {
         return Optional.ofNullable(recipeDAO.getByClinicIdAndStatus(clinicId, status)).map(Recipe::getRecipeId).orElse(null);
     }
 
+    /**
+     * 再触发药师签名的时候将pdf先生成，回调的时候再将CA的返回更新
+     * 之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
+     *
+     * @param recipeId
+     */
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId) {
         LOGGER.info("recipe pharmacyToRecipePDF,recipeId={}", recipeId);
-        //再触发药师签名的时候将pdf先生成，回调的时候再将CA的返回更新
-        //之所以不放置在CA回调里，是因为老流程里不是一定调用回调函数的
-        //date 202001013 修改非易签保流程下的pdf
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe) {
-            LOGGER.warn("当前处方{}信息为null，生成药师pdf部分失败", recipeId);
-            return;
-        }
-        try {
-            boolean usePlatform = true;
-            Object recipeUsePlatformCAPDF = configService.getConfiguration(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF");
-            if (null != recipeUsePlatformCAPDF) {
-                usePlatform = Boolean.parseBoolean(recipeUsePlatformCAPDF.toString());
-            }
-            //使用平台CA模式，手动生成pdf
-            //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
-            if (usePlatform) {
-                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
-                if (null == requestSealTO) {
-                    LOGGER.warn("当前处方{}CA组装【pdf】和【签章数据】信息返回空, 产生CA模板pdf文件失败！", recipeId);
-                    return;
-                }
-                //先将产生的pdf
-                //设置签名图片
-                String fileId = null;
-                Map<String, String> signInfo = RecipeServiceSub.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-                if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
-                    String signImageId = signInfo.get("checkerSignImg");
-                    String pdfBase64Str = requestSealTO.getPdfBase64Str();
-                    //将生成的处方pdf生成id
-                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipeId, recipe.getChecker(), false, TCM_TEMPLATETYPE.equals(recipe.getRecipeType()), pdfBase64Str, signImageId);
-                } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
-                    fileId = CreateRecipePdfUtil.generateDocSignImageInRecipePdf(recipe.getSignFile(), recipe.getCheckerText());
-                }
-                if (StringUtils.isNotEmpty(fileId)) {
-                    RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, null, null, false, fileId);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("当前处方{}是使用平台药师部分pdf的,生成失败！", recipe.getRecipeId());
-            //日志记录
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
-        }
+        createPdfFactory.updateCheckNamePdf(recipeId);
     }
 
     @RpcService

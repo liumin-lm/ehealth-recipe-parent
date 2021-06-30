@@ -1,10 +1,11 @@
-package recipe.caNew.pdf;
+package recipe.caNew.pdf.service;
 
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import org.springframework.stereotype.Service;
+import recipe.caNew.pdf.CreatePdfService;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -21,12 +22,17 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public CaSealRequestTO queryPdfByte(RecipeBean recipe) {
+    public CaSealRequestTO queryPdfByte(Recipe recipe) {
         return null;
     }
 
     @Override
-    public CaSealRequestTO queryCheckPdfByte(RecipeBean recipe) {
+    public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
+        return null;
+    }
+
+    @Override
+    public Recipe updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
         return null;
     }
 }
