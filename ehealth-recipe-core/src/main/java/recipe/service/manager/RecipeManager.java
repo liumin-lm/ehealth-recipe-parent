@@ -14,7 +14,7 @@ import recipe.dao.RecipeOrderDAO;
 import java.util.List;
 
 /**
- * 处方订单
+ * 处方
  * @author yinsheng
  * @date 2021\6\30 0030 14:21
  */
@@ -24,7 +24,7 @@ public class RecipeManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
+    private OrderManager orderManager;
 
     @Autowired
     private RecipeDAO recipeDAO;
@@ -36,7 +36,7 @@ public class RecipeManager {
      */
     public List<Recipe> getRecipesByOrderCode(String orderCode) {
         logger.info("RecipeOrderManager getRecipesByOrderCode orderCode:{}.", orderCode);
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        RecipeOrder recipeOrder = orderManager.getOrderByOrderCode(orderCode);
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
         logger.info("RecipeOrderManager getRecipesByOrderCode recipes:{}.", JSON.toJSONString(recipes));
