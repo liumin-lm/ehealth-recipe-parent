@@ -1534,7 +1534,7 @@ public class RecipeOrderService extends RecipeBaseService {
             List<PatientRecipeDTO> patientRecipeBeanList = new ArrayList<>(10);
             List<Recipe> recipeList = null;
             if (1 == order.getEffective()) {
-                recipeList = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
+                recipeList = recipeDAO.findSortRecipeListByOrderCode(order.getOrderCode());
                 if (CollectionUtils.isEmpty(recipeList) && StringUtils.isNotEmpty(order.getRecipeIdList())) {
                     //如果没有数据，则使用RecipeIdList字段
                     List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
@@ -1785,7 +1785,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setDecoctionFee(null);
                 orderBean.setTcmFee(null);
             }
-            Collections.sort(patientRecipeBeanList, Comparator.comparing(PatientRecipeDTO::getRecipeId).reversed());
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
