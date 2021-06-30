@@ -40,12 +40,10 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.RecipeDetailsBean;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -2861,8 +2859,8 @@ public class RecipeService extends RecipeBaseService {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
         IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        com.ngari.patient.service.OrganConfigService organConfigService =
-                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+        OrganConfigService organConfigService =
+                AppContextHolder.getBean("basic.organConfigService", OrganConfigService.class);
         Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
         if (!sync) {
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认接口对接已完成，且配置管理-机构配置-机构设置-业务设置-【药品目录是否支持接口同步】已开启，再尝试进行同步!");
@@ -3650,6 +3648,20 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> getPatientRecipeById(int recipeId) {
         checkUserHasPermission(recipeId);
 
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        return result;
+    }
+
+    /**
+     * 健康端获取处方详情
+     *
+     * @param recipeId 处方ID
+     * @return HashMap<String, Object>
+     */
+    @RpcService
+    public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
@@ -4521,7 +4533,7 @@ public class RecipeService extends RecipeBaseService {
             }
             Integer beforStatus = recipe.getStatus();
             if (beforStatus == RecipeStatusConstant.REVOKE) {
-                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已被撤销");
             }
             searchMap.put("giveMode", RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE);
             searchMap.put("chooseFlag", havChooseFlag);

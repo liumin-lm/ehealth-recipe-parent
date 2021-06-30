@@ -409,6 +409,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return save(recipe);
     }
 
+    /**
+     * 保存或更新recipe
+     * @param recipe
+     */
+    public Recipe saveOrUpdate(Recipe recipe) {
+        if(null == recipe.getRecipeId()){
+            return save(recipe);
+        }else{
+            return update(recipe);
+        }
+    }
+
     public List<Integer> findPendingRecipes(final List<String> allMpiIds, final Integer status, final int start, final int limit) {
         HibernateStatelessResultAction<List<Integer>> action = new AbstractHibernateStatelessResultAction<List<Integer>>() {
             @Override

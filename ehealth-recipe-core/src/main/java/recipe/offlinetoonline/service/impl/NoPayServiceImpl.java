@@ -19,7 +19,7 @@ import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.service.third.RecipeHisService;
-import recipe.offlinetoonline.vo.FindHisRecipeDetailVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
@@ -62,7 +62,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
+    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         // 1获取his数据
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
         if (null == patientDTO) {

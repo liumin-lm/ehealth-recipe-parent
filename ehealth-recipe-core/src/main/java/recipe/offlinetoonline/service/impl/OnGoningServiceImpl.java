@@ -18,7 +18,7 @@ import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.service.third.RecipeHisService;
-import recipe.offlinetoonline.vo.FindHisRecipeDetailVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
@@ -60,7 +60,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
+    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         // 跟待处理获取详情一致 先判断数据是否变更 然后返回详情
         // 1获取his数据
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
