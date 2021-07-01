@@ -1,10 +1,10 @@
 package recipe.caNew.pdf.service;
 
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.entity.Recipe;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * pdf 创建业务接口
@@ -18,7 +18,7 @@ public interface CreatePdfService {
      * @param recipe 处方信息
      * @return
      */
-    Map<String, Object> queryPdfOssId(Recipe recipe);
+    PdfSignResultDTO queryPdfOssId(Recipe recipe);
 
     /**
      * 获取pdf Byte字节 给前端SDK
@@ -43,7 +43,7 @@ public interface CreatePdfService {
      * @param recipeFee
      * @return
      */
-    Recipe updateTotalPdf(Integer recipeId, BigDecimal recipeFee);
+    void updateTotalPdf(Integer recipeId, BigDecimal recipeFee);
 
     /**
      * 在pdf中添加 药师签名

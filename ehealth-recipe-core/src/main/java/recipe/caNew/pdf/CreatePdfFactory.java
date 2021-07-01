@@ -2,6 +2,7 @@ package recipe.caNew.pdf;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +21,6 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * pdf 构建工厂类
@@ -45,7 +45,7 @@ public class CreatePdfFactory {
      * @param recipe
      * @return
      */
-    public Map<String, Object> queryPdfOssId(Recipe recipe) {
+    public PdfSignResultDTO queryPdfOssId(Recipe recipe) {
         if (ValidateUtil.validateObjects(recipe, recipe.getRecipeId(), recipe.getClinicOrgan())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
@@ -91,17 +91,6 @@ public class CreatePdfFactory {
     }
 
     /**
-     * 处方金额
-     *
-     * @param recipeId
-     * @param recipeFee
-     */
-    public void updateTotalPdfExecute(Integer recipeId, BigDecimal recipeFee) {
-        //判断自定义有就调用 CustomCreatePdfServiceImpl
-        RecipeBusiThreadPool.execute(() -> platformCreatePdfServiceImpl.updateTotalPdf(recipeId, recipeFee));
-    }
-
-    /**
      * 药师签名
      *
      * @param recipeId
@@ -119,6 +108,17 @@ public class CreatePdfFactory {
     public void updateDoctorNamePdf(Recipe recipe) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
         platformCreatePdfServiceImpl.updateDoctorNamePdf(recipe);
+    }
+
+    /**
+     * 处方金额
+     *
+     * @param recipeId
+     * @param recipeFee
+     */
+    public void updateTotalPdfExecute(Integer recipeId, BigDecimal recipeFee) {
+        //判断自定义有就调用 CustomCreatePdfServiceImpl
+        RecipeBusiThreadPool.execute(() -> platformCreatePdfServiceImpl.updateTotalPdf(recipeId, recipeFee));
     }
 
     /**

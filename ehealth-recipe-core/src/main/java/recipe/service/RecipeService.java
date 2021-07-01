@@ -42,6 +42,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
@@ -740,24 +741,20 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Map<String, Object> backMap = createPdfFactory.queryPdfOssId(recipe);
-        String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
+        PdfSignResultDTO pdfSignResult = createPdfFactory.queryPdfOssId(recipe);
+
         Map<String, Object> attrMapimg = Maps.newHashMap();
-        attrMapimg.put("signImg", imgFileId);
+        attrMapimg.put("signImg", pdfSignResult.getImgFileId());
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
-        LOGGER.info("generateRecipeImg 签名图片成功. fileId={}, recipeId={}", imgFileId, recipe.getRecipeId());
-        //0表示成功
-        Integer code = MapValueUtil.getInteger(backMap, "code");
+        Integer code = pdfSignResult.getCode();
         String memo;
         if (Integer.valueOf(0).equals(code)) {
-            String recipeFileId = MapValueUtil.getString(backMap, "fileId");
             Map<String, Object> attrMap = Maps.newHashMap();
-            attrMap.put("signFile", recipeFileId);
+            attrMap.put("signFile", pdfSignResult.getFileId());
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-            memo = "签名上传文件成功, fileId=" + recipeFileId;
-            LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
+            memo = "签名上传文件成功, fileId=" + pdfSignResult.getFileId();
+            LOGGER.info("generateRecipePdfAndSign 签名成功 recipeId={}", recipe.getRecipeId());
         } else if (Integer.valueOf(2).equals(code)) {
             memo = "签名成功,高州CA方式";
             createPdfFactory.updateDoctorNamePdf(recipe);
@@ -770,15 +767,12 @@ public class RecipeService extends RecipeBaseService {
                 Integer organId = recipe.getClinicOrgan();
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
                 String userAccount = doctorDTO.getIdNumber();
-                String caPassword = "";
                 //签名时的密码从redis中获取
-                if (null != redisClient.get("caPassword")) {
-                    caPassword = redisClient.get("caPassword");
-                }
-                //标准化CA进行签名、签章==========================start=====
+                String caPassword = redisClient.get("caPassword");
+                caPassword = null == caPassword ? "" : caPassword;
 
                 //获取签章pdf数据。签名原文
-                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, true);
+                CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
                 //获取签章图片
                 DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
                 DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
@@ -794,15 +788,13 @@ public class RecipeService extends RecipeBaseService {
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                 result.setCode(RecipeResultBean.NO_ADDRESS);
                 return result;
-
             } catch (Exception e) {
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
                 result.setCode(RecipeResultBean.FAIL);
             }
-            //标准化CA进行签名、签章==========================end=====
         } else {
-            memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
-            LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
+            memo = "签名上传文件失败！原因：" + code;
+            LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}", recipe.getRecipeId());
         }
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);

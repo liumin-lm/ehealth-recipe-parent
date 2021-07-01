@@ -51,6 +51,7 @@ import recipe.bussutil.XstreamUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -97,13 +98,13 @@ public class RecipeCAService {
 
     @Autowired
     OrganDrugListDAO organDrugDao;
-
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
         LOGGER.info("packageCAFromRecipe recipeId：{},doctorId:{},isDoctor:{}", recipeId, doctorId, isDoctor);
         CommonSignRequest caRequest = new CommonSignRequest();
-        Map<String, Object> caExt = new HashMap<>();
         Map<String, Object> esignMap = new HashMap<>();
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -153,53 +154,24 @@ public class RecipeCAService {
 
             caRequest.setEsignMap(esignMap);
 
-
             //3.在组装通用的签名签章数据
-            //首先将处方测试pdf的数据
             //获取签章pdf数据。签名原文
-            CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, true);
+            CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
             if(null == requestSealTO){
                 LOGGER.warn("当前CA组装【pdf】和【签章数据】信息返回空，中断当前CA");
                 return null;
             }
 
             /*****添加pdf覆盖逻辑*****/
-            //首先在组装的CA原生pdf文件，保存在recipe中，等到之后的签章返回后再进行覆盖
-            //这里的覆盖是将操作者的签名图片添加到pdf上，这要判断CA用的是本地的签名图片和CA图片
-            //判断有没有签名图片，没有则填充初始化的pdf
-            //组装生成pdf的参数
             /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
-
-//            //获取签章图片
-//            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-//            //根据当前的操作用户id获取
-//            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(doctorId);
-//            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-//                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-//            } else {
-//                requestSealTO.setSealBase64Str("");
-//            }
-//            String caPassword = "";
-//            //签名时的密码从redis中获取
-//            if (null != redisClient.get("caPassword")) {
-//                caPassword = redisClient.get("caPassword");
-//            }
-//            requestSealTO.setUserPin(caPassword);
-
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-            String userAccount = doctorDTO.getIdNumber();
             //4.最后组装业务单独请求的扩展数据
-
-            //获取业务的组装数据
-            //原先签名原文里有直接用处方字符串busString，还有使用监管平台组装的数据taskCode
             /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
             //如果是重庆监管平台，按照固定要求格式上传签名原文
             caRequest.setBussData(JSONUtils.toString(recipe));
             if (RecipeServiceSub.isCQOrgan(recipe.getClinicOrgan())) {
                 caRequest.setBussData(getBussDataFromCQ(recipeId,isDoctor));
             }
-            caExt.put("taskCode", packageCAFromBus(recipeId));
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }

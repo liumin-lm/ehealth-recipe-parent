@@ -7,6 +7,7 @@ import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -79,7 +80,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     private RecipeExtendDAO recipeExtendDAO;
 
     @Override
-    public Map<String, Object> queryPdfOssId(Recipe recipe) {
+    public PdfSignResultDTO queryPdfOssId(Recipe recipe) {
         int recipeId = recipe.getRecipeId();
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(recipe.getClinicOrgan(), recipeMap);
@@ -87,6 +88,13 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             PatientDTO patientDTO = (PatientDTO) recipeMap.get("patient");
             //组装生成pdf的参数
             ESignDTO eSignDTO = new ESignDTO();
+            eSignDTO.setLoginId(patientDTO.getLoginId());
+            eSignDTO.setDoctorName(recipe.getDoctorName());
+            eSignDTO.setDoctorId(recipe.getDoctor());
+            eSignDTO.setOrgan(recipe.getClinicOrgan());
+            eSignDTO.setFileName("recipe_" + recipeId + ".pdf");
+            eSignDTO.setParamMap(Collections.unmodifiableMap(result));
+            eSignDTO.setRp(configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", null));
             if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 //中药pdf参数
                 eSignDTO.setTemplateType("tcm");
@@ -96,18 +104,16 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
                 eSignDTO.setImgFileId(String.valueOf(recipeId));
                 createMedicinePDF(result, (RecipeBean) recipeMap.get("recipe"));
             }
-            eSignDTO.setLoginId(patientDTO.getLoginId());
-            eSignDTO.setDoctorName(recipe.getDoctorName());
-            eSignDTO.setDoctorId(recipe.getDoctor());
-            eSignDTO.setOrgan(recipe.getClinicOrgan());
-            eSignDTO.setFileName("recipe_" + recipeId + ".pdf");
-            eSignDTO.setParamMap(Collections.unmodifiableMap(result));
-            eSignDTO.setRp(configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", null));
             Map<String, Object> backMap = esignService.signForRecipe2(eSignDTO);
             logger.info("RecipeLabelManager queryPdfRecipeLabelById backMap={},eSignDTO={}", JSONUtils.toString(backMap), JSONUtils.toString(eSignDTO));
+
             List<CoOrdinateVO> coOrdinateVO = MapValueUtil.getList(backMap, "coOrdinateList");
             coOrdinate(recipeId, coOrdinateVO);
-            return backMap;
+
+            String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
+            Integer code = MapValueUtil.getInteger(backMap, "code");
+            String recipeFileId = MapValueUtil.getString(backMap, "fileId");
+            return new PdfSignResultDTO(imgFileId, code, recipeFileId);
         } catch (Exception e) {
             logger.error("queryPdfRecipeLabelById error ", e);
             //日志记录
@@ -131,25 +137,25 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public Recipe updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
+    public void updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
         logger.info("UpdateTotalRecipePdfRunable start. recipeId={},recipeFee={}", recipeId, recipeFee);
         if (null == recipeFee) {
             logger.warn("UpdateTotalRecipePdfRunable recipeFee is null  recipeFee={}", recipeFee);
-            return null;
+            return;
         }
         Recipe recipe = recipeDAO.get(recipeId);
         //更新pdf
         if (null == recipe) {
             logger.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipeId);
-            return null;
+            return;
         }
         List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFour");
         if (CollectionUtils.isEmpty(scratchableList)) {
-            return null;
+            return;
         }
         boolean actualPrice = scratchableList.stream().noneMatch(a -> "recipe.actualPrice".equals(a.getBoxLink()));
         if (actualPrice) {
-            return null;
+            return;
         }
         CoOrdinateVO coords = new CoOrdinateVO();
         coords.setValue("药品金额 ：" + recipeFee + "元");
@@ -168,16 +174,15 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             }
         } catch (Exception e) {
             logger.error("UpdateTotalRecipePdfRunable error recipeId={}", recipeId, e);
-            return null;
+            return;
         }
 
         if (StringUtils.isEmpty(fileId)) {
-            return null;
+            return;
         }
         recipeUpdate.setRecipeId(recipeId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         logger.info("UpdateTotalRecipePdfRunable recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
-        return null;
     }
 
 

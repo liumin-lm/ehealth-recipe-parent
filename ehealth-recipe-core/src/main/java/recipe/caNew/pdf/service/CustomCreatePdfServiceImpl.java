@@ -1,11 +1,11 @@
 package recipe.caNew.pdf.service;
 
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.entity.Recipe;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * 自定义创建pdf
@@ -16,7 +16,7 @@ import java.util.Map;
 @Service
 public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
-    public Map<String, Object> queryPdfOssId(Recipe recipe) {
+    public PdfSignResultDTO queryPdfOssId(Recipe recipe) {
         return null;
     }
 
@@ -31,8 +31,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public Recipe updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
-        return null;
+    public void updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
     }
 
     @Override
