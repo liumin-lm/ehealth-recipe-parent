@@ -39,6 +39,7 @@ public class CreatePdfFactory {
     @Autowired
     private RecipeDAO recipeDAO;
 
+
     /**
      * 获取pdf oss id
      *
@@ -88,6 +89,19 @@ public class CreatePdfFactory {
         }
         //判断自定义有就调用 CustomCreatePdfServiceImpl
         return platformCreatePdfServiceImpl.queryCheckPdfByte(recipe);
+    }
+
+
+    /**
+     * pdf 转 图片
+     *
+     * @param recipeId
+     * @return
+     */
+    public void updatePdfToImg(Integer recipeId) {
+        if (ValidateUtil.validateObjects(recipeId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
+        }
     }
 
     /**

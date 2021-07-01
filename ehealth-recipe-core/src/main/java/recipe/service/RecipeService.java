@@ -764,13 +764,6 @@ public class RecipeService extends RecipeBaseService {
             createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
-                Integer organId = recipe.getClinicOrgan();
-                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
-                String userAccount = doctorDTO.getIdNumber();
-                //签名时的密码从redis中获取
-                String caPassword = redisClient.get("caPassword");
-                caPassword = null == caPassword ? "" : caPassword;
-
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
                 //获取签章图片
@@ -781,13 +774,19 @@ public class RecipeService extends RecipeBaseService {
                 } else {
                     requestSealTO.setSealBase64Str("");
                 }
+
+                Integer organId = recipe.getClinicOrgan();
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+                String userAccount = doctorDTO.getIdNumber();
+                //签名时的密码从redis中获取
+                String caPassword = redisClient.get("caPassword");
+                caPassword = null == caPassword ? "" : caPassword;
                 //CA
                 ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ICaRemoteService.class);
                 ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
                 iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                 result.setCode(RecipeResultBean.NO_ADDRESS);
-                return result;
             } catch (Exception e) {
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
                 result.setCode(RecipeResultBean.FAIL);
