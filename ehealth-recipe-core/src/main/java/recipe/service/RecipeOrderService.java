@@ -666,10 +666,12 @@ public class RecipeOrderService extends RecipeBaseService {
         boolean tcmFlag = true;
         //是否显示代煎费 默认不显示
         boolean isExistValue=false;
+        boolean isOfflineRecipe=false;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 //处理线下转线上的代煎费
                 if (new Integer(2).equals(recipe.getRecipeSourceType())) {
+                    isOfflineRecipe=true;
                     //表示为线下的处方
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                     RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -713,16 +715,14 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (needCalDecFee) {
                         //代煎费等于剂数乘以代煎单价
                         //如果是合并处方-多张处方下得累加
-                        isExistValue=true;
                         decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                     }
                     i++;
                 }
             }
         }
-
         //当his值是空的时候，给前端返回空，不显示  当0的时候需要显示
-        if(decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
+        if(isOfflineRecipe&&decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
             decoctionFee=null;
         }
 
@@ -1534,7 +1534,7 @@ public class RecipeOrderService extends RecipeBaseService {
             List<PatientRecipeDTO> patientRecipeBeanList = new ArrayList<>(10);
             List<Recipe> recipeList = null;
             if (1 == order.getEffective()) {
-                recipeList = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
+                recipeList = recipeDAO.findSortRecipeListByOrderCode(order.getOrderCode());
                 if (CollectionUtils.isEmpty(recipeList) && StringUtils.isNotEmpty(order.getRecipeIdList())) {
                     //如果没有数据，则使用RecipeIdList字段
                     List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
@@ -1785,7 +1785,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setDecoctionFee(null);
                 orderBean.setTcmFee(null);
             }
-            Collections.sort(patientRecipeBeanList, Comparator.comparing(PatientRecipeDTO::getRecipeId).reversed());
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
