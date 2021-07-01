@@ -955,7 +955,7 @@ public class RecipeService extends RecipeBaseService {
         }
         //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
         if (recipe.getStatus() == 9) {
-            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
             return;
         }
         try {
@@ -3587,12 +3587,16 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIds(Integer ext, List<Integer> recipeIds) {
+        Collections.sort(recipeIds);
+        Collections.reverse(recipeIds);
+        LOGGER.info("findPatientRecipesByIds recipeIds:{}",JSONUtils.toString(recipeIds));
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
             for (Integer recipeId : recipeIds) {
                 recipeInfos.add(getRecipeAndDetailByIdImpl(recipeId, false));
             }
+            LOGGER.info("findPatientRecipesByIds response:{}",JSONUtils.toString(recipeInfos));
             return recipeInfos;
         }
         return null;
