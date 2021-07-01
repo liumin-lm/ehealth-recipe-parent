@@ -666,10 +666,12 @@ public class RecipeOrderService extends RecipeBaseService {
         boolean tcmFlag = true;
         //是否显示代煎费 默认不显示
         boolean isExistValue=false;
+        boolean isOfflineRecipe=false;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 //处理线下转线上的代煎费
                 if (new Integer(2).equals(recipe.getRecipeSourceType())) {
+                    isOfflineRecipe=true;
                     //表示为线下的处方
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
                     RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -713,16 +715,14 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (needCalDecFee) {
                         //代煎费等于剂数乘以代煎单价
                         //如果是合并处方-多张处方下得累加
-                        isExistValue=true;
                         decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                     }
                     i++;
                 }
             }
         }
-
         //当his值是空的时候，给前端返回空，不显示  当0的时候需要显示
-        if(decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
+        if(isOfflineRecipe&&decoctionFee.compareTo(BigDecimal.ZERO)==0&&!isExistValue){
             decoctionFee=null;
         }
 
