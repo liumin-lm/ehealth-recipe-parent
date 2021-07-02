@@ -68,13 +68,7 @@ public class CreatePdfFactory {
      * @return
      */
     public CaSealRequestTO queryPdfByte(Integer recipeId) {
-        if (ValidateUtil.validateObjects(recipeId)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (ValidateUtil.validateObjects(recipe, recipe.getRecipeId(), recipe.getClinicOrgan())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
+        Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
         return createPdfService.queryPdfByte(recipe);
     }
@@ -87,13 +81,7 @@ public class CreatePdfFactory {
      * @return
      */
     public CaSealRequestTO queryCheckPdfByte(Integer recipeId) {
-        if (ValidateUtil.validateObjects(recipeId)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (ValidateUtil.validateObjects(recipe, recipe.getRecipeId(), recipe.getClinicOrgan())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
+        Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
         return createPdfService.queryCheckPdfByte(recipe);
     }
@@ -106,10 +94,9 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateCheckNamePdf(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //判断自定义有就调用 CustomCreatePdfServiceImpl
+        Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        createPdfService.updateCheckNamePdf(recipeId);
+        createPdfService.updateCheckNamePdf(recipe);
     }
 
     /**
@@ -118,7 +105,6 @@ public class CreatePdfFactory {
      * @param recipe
      */
     public void updateDoctorNamePdf(Recipe recipe) {
-        //判断自定义有就调用 CustomCreatePdfServiceImpl
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
         createPdfService.updateDoctorNamePdf(recipe);
     }
@@ -130,9 +116,8 @@ public class CreatePdfFactory {
      * @param recipeFee
      */
     public void updateTotalPdfExecute(Integer recipeId, BigDecimal recipeFee) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        //判断自定义有就调用 CustomCreatePdfServiceImpl
         RecipeBusiThreadPool.execute(() -> createPdfService.updateTotalPdf(recipeId, recipeFee));
     }
 
@@ -142,9 +127,9 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateCodePdfExecute(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        RecipeBusiThreadPool.execute(() -> createPdfService.updateCodePdf(recipeId));
+        RecipeBusiThreadPool.execute(() -> createPdfService.updateCodePdf(recipe));
     }
 
     /**
@@ -153,9 +138,9 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateAddressPdfExecute(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        RecipeBusiThreadPool.execute(() -> createPdfService.updateAddressPdf(recipeId));
+        RecipeBusiThreadPool.execute(() -> createPdfService.updateAddressPdf(recipe));
     }
 
     /**
@@ -240,6 +225,17 @@ public class CreatePdfFactory {
         recipeUpdate.setChemistSignFile(fileId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         logger.info("GenerateSignetRecipePdfRunable end recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+    }
+
+    private Recipe validate(Integer recipeId) {
+        if (ValidateUtil.validateObjects(recipeId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (ValidateUtil.validateObjects(recipe, recipe.getRecipeId(), recipe.getClinicOrgan())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
+        }
+        return recipe;
     }
 
     /**

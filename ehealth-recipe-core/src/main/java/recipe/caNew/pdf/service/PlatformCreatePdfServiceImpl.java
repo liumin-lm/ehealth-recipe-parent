@@ -132,12 +132,9 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public void updateCheckNamePdf(Integer recipeId) {
+    public void updateCheckNamePdf(Recipe recipe) {
+        Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe) {
-            return;
-        }
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
             return;
@@ -225,12 +222,9 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public void updateCodePdf(Integer recipeId) {
+    public void updateCodePdf(Recipe recipe) {
+        Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateCodePdfExecute  recipeId={}", recipeId);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe == null) {
-            return;
-        }
         String barcode = "";
         List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFive");
         if (!CollectionUtils.isEmpty(scratchableList)) {
@@ -277,20 +271,15 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public void updateAddressPdf(Integer recipeId) {
+    public void updateAddressPdf(Recipe recipe) {
+        Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute  recipeId={}", recipeId);
-        Recipe recipe = recipeDAO.get(recipeId);
-        //更新pdf
-        if (null == recipe) {
-            logger.warn("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipe is null  recipeId={}", recipeId);
-            return;
-        }
         RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
         if (null == order) {
             logger.warn("PlatformCreatePdfServiceImpl updateAddressPdfExecute   order is null  recipeId={}", recipeId);
             return;
         }
-        String fileId = null;
+        String fileId;
         Recipe recipeUpdate = new Recipe();
         try {
             // 煎法

@@ -48,7 +48,7 @@ public interface CreatePdfService {
      *
      * @param recipeId
      */
-    void updateCheckNamePdf(Integer recipeId);
+    void updateCheckNamePdf(Recipe recipeId);
 
     /**
      * 在pdf中添加 药品金额
@@ -64,14 +64,14 @@ public interface CreatePdfService {
      *
      * @param recipeId
      */
-    void updateCodePdf(Integer recipeId);
+    void updateCodePdf(Recipe recipeId);
 
     /**
      * 支付成功后修改pdf 添加收货人信息/煎法
      *
      * @param recipeId
      */
-    void updateAddressPdf(Integer recipeId);
+    void updateAddressPdf(Recipe recipeId);
 
     /**
      * pdf 核对发药
