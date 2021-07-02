@@ -1,7 +1,7 @@
 package recipe.caNew.pdf.service;
 
+import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.entity.Recipe;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Service
 public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
-    public PdfSignResultDTO queryPdfOssId(Recipe recipe) {
+    public SignRecipePdfVO queryPdfOssId(Recipe recipe) {
         return null;
     }
 

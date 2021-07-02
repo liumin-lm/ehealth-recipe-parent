@@ -1,8 +1,8 @@
 package recipe.caNew.pdf;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
 import recipe.constant.ErrorCode;
@@ -46,12 +47,19 @@ public class CreatePdfFactory {
      * @param recipe
      * @return
      */
-    public PdfSignResultDTO queryPdfOssId(Recipe recipe) {
+    public void queryPdfOssId(Recipe recipe) {
         if (ValidateUtil.validateObjects(recipe, recipe.getRecipeId(), recipe.getClinicOrgan())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
         //判断自定义有就调用 CustomCreatePdfServiceImpl
-        return platformCreatePdfServiceImpl.queryPdfOssId(recipe);
+        SignRecipePdfVO signRecipePdfVO = platformCreatePdfServiceImpl.queryPdfOssId(recipe);
+
+
+        String fileId = CreateRecipePdfUtil.signFileByte(signRecipePdfVO.getData(), "fileName");
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        recipeUpdate.setSignFile(fileId);
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
     }
 
     /**
@@ -92,17 +100,6 @@ public class CreatePdfFactory {
     }
 
 
-    /**
-     * pdf 转 图片
-     *
-     * @param recipeId
-     * @return
-     */
-    public void updatePdfToImg(Integer recipeId) {
-        if (ValidateUtil.validateObjects(recipeId)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
-    }
 
     /**
      * 药师签名
@@ -164,6 +161,39 @@ public class CreatePdfFactory {
     public Recipe updateGiveUser(Recipe recipe) {
         //判断自定义有就调用 CustomCreatePdfServiceImpl
         return platformCreatePdfServiceImpl.updateGiveUser(recipe);
+    }
+
+
+    /**
+     * pdf 转 图片
+     *
+     * @param recipeId
+     * @return
+     */
+    public void updatePdfToImg(Integer recipeId) {
+        if (ValidateUtil.validateObjects(recipeId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (ValidateUtil.validateObjects(recipe, recipe.getSignFile())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
+        }
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            return;
+        }
+        RecipeBusiThreadPool.execute(() -> {
+            try {
+                String imageFile = CreateRecipePdfUtil.updatePdfToImg(recipe.getRecipeId(), recipe.getSignFile());
+                if (StringUtils.isNotEmpty(imageFile)) {
+                    Recipe recipeUpdate = new Recipe();
+                    recipeUpdate.setRecipeId(recipeId);
+                    recipeUpdate.setSignImg(imageFile);
+                    recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                }
+            } catch (Exception e) {
+                logger.error("CreatePdfFactory updatePdfToImg error", e);
+            }
+        });
     }
 
     /**

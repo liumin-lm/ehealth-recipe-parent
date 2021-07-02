@@ -1,7 +1,7 @@
 package recipe.caNew.pdf.service;
 
+import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.entity.Recipe;
 
 import java.math.BigDecimal;
@@ -18,7 +18,7 @@ public interface CreatePdfService {
      * @param recipe 处方信息
      * @return
      */
-    PdfSignResultDTO queryPdfOssId(Recipe recipe);
+    SignRecipePdfVO queryPdfOssId(Recipe recipe);
 
     /**
      * 获取pdf Byte字节 给前端SDK
@@ -29,21 +29,19 @@ public interface CreatePdfService {
     CaSealRequestTO queryPdfByte(Recipe recipe);
 
     /**
+     * 在pdf中添加 医生签名
+     *
+     * @param recipe
+     */
+    void updateDoctorNamePdf(Recipe recipe);
+
+    /**
      * 获取药师签名 pdf Byte字节 给前端SDK
      *
      * @param recipe 处方信息
      * @return
      */
     CaSealRequestTO queryCheckPdfByte(Recipe recipe);
-
-    /**
-     * 在pdf中添加 药品金额
-     *
-     * @param recipeId
-     * @param recipeFee
-     * @return
-     */
-    void updateTotalPdf(Integer recipeId, BigDecimal recipeFee);
 
     /**
      * 在pdf中添加 药师签名
@@ -53,11 +51,13 @@ public interface CreatePdfService {
     void updateCheckNamePdf(Integer recipeId);
 
     /**
-     * 在pdf中添加 医生签名
+     * 在pdf中添加 药品金额
      *
-     * @param recipe
+     * @param recipeId
+     * @param recipeFee
+     * @return
      */
-    void updateDoctorNamePdf(Recipe recipe);
+    void updateTotalPdf(Integer recipeId, BigDecimal recipeFee);
 
     /**
      * pdf 处方号和患者病历号

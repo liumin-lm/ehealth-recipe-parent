@@ -42,7 +42,6 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
-import com.ngari.recipe.ca.PdfSignResultDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
@@ -106,7 +105,6 @@ import recipe.bean.RecipeInvalidDTO;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
-import recipe.caNew.CARecipeTypeEnum;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.CommonConstant;
@@ -124,6 +122,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
+import recipe.service.client.IConfigurationClient;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
@@ -161,6 +160,8 @@ import static recipe.service.RecipeServiceSub.getRecipeAndDetailByIdImpl;
 public class RecipeService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
+
+    private static List<String> beforeCAList = Arrays.asList("gdsign", "jiangsuCA", "beijingCA", "bjYwxCA");
 
     private static final String EXTEND_VALUE_FLAG = "1";
 
@@ -225,7 +226,8 @@ public class RecipeService extends RecipeBaseService {
 
     @Resource
     private SyncDrugExcDAO syncDrugExcDAO;
-
+    @Autowired
+    private IConfigurationClient configurationClient;
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
 
@@ -742,24 +744,18 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        PdfSignResultDTO pdfSignResult = createPdfFactory.queryPdfOssId(recipe);
-
-        Map<String, Object> attrMapimg = Maps.newHashMap();
-        attrMapimg.put("signImg", pdfSignResult.getImgFileId());
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
-        Integer code = pdfSignResult.getCode();
         String memo;
-        if (Integer.valueOf(0).equals(code)) {
-            Map<String, Object> attrMap = Maps.newHashMap();
-            attrMap.put("signFile", pdfSignResult.getFileId());
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-            memo = "签名上传文件成功, fileId=" + pdfSignResult.getFileId();
+        //todo shanghaiCA ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST") 配置到机构上
+        String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", null);
+        if ("esign".equals(thirdCASign)) {
+            createPdfFactory.queryPdfOssId(recipe);
+            memo = "esign签名上传文件成功";
             LOGGER.info("generateRecipePdfAndSign 签名成功 recipeId={}", recipe.getRecipeId());
-        } else if (Integer.valueOf(2).equals(code)) {
+        } else if (beforeCAList.contains(thirdCASign)) {
             memo = "签名成功,高州CA方式";
             createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
-        } else if (Integer.valueOf(100).equals(code)) {
+        } else {
             memo = "签名成功,标准对接CA方式";
             createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
@@ -791,10 +787,8 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
                 result.setCode(RecipeResultBean.FAIL);
             }
-        } else {
-            memo = "签名上传文件失败！原因：" + code;
-            LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}", recipe.getRecipeId());
         }
+        createPdfFactory.updatePdfToImg(recipeId);
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
         return result;
@@ -4345,9 +4339,10 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public String recipePdfTest(Integer recipeId) throws Exception {
-        CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
-        createPdfFactory.updateAddressPdfExecute(recipeId);
-        createPdfFactory.updateTotalPdfExecute(recipeId, BigDecimal.valueOf(521.20));
+        // CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
+        //createPdfFactory.updateAddressPdfExecute(recipeId);
+        //createPdfFactory.updateTotalPdfExecute(recipeId, BigDecimal.valueOf(521.20));
+        createPdfFactory.updatePdfToImg(recipeId);
         return null;
     }
 
