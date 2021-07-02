@@ -64,14 +64,14 @@ public interface CreatePdfService {
      *
      * @param recipeId
      */
-    void updateCodePdfExecute(Integer recipeId);
+    void updateCodePdf(Integer recipeId);
 
     /**
      * 支付成功后修改pdf 添加收货人信息/煎法
      *
      * @param recipeId
      */
-    void updateAddressPdfExecute(Integer recipeId);
+    void updateAddressPdf(Integer recipeId);
 
     /**
      * pdf 核对发药

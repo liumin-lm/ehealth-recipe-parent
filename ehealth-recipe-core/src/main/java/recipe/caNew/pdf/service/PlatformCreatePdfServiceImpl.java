@@ -83,6 +83,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
         //todo E签宝签名 base 待实现
         // signRecipePdfVO = signRecipePDFV2(signRecipePdfVO.getData(), recipe.getDoctor(), "recipe_" + recipe.getRecipeId() + ".pdf",x,y);
+        logger.info("PlatformCreatePdfServiceImpl queryPdfOssId signRecipePdfVO:{}", JSON.toJSONString(signRecipePdfVO));
         return signRecipePdfVO;
     }
 
@@ -95,7 +96,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public void updateDoctorNamePdf(Recipe recipe) {
-        logger.info("doctorToRecipePDF recipe:{}", JSON.toJSONString(recipe));
+        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{}", JSON.toJSONString(recipe));
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
             return;
@@ -120,18 +121,19 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         recipeUpdate.setRecipeId(recipeId);
         recipeUpdate.setSignFile(fileId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("UpdateTotalRecipePdfRunable recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf ={}", JSON.toJSONString(recipeUpdate));
     }
 
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
+        logger.info("PlatformCreatePdfServiceImpl queryCheckPdfByte recipe:{}", JSON.toJSONString(recipe));
         return caSealRequestTO(190, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileByte(recipe.getSignFile()));
     }
 
 
     @Override
     public void updateCheckNamePdf(Integer recipeId) {
-        logger.info("recipe pharmacyToRecipePDF,recipeId={}", recipeId);
+        logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             return;
@@ -142,9 +144,10 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         String fileId = null;
         try {
-            //设置签名图片
+            //获取签名图片
             AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
             String signImageId = sttachSealPicDTO.getCheckerSignImg();
+            //更新pdf文件
             if (StringUtils.isNotEmpty(signImageId)) {
                 SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
                         , signImageId, recipe.getSignFile(), null, 40f, 20f, 190f, 76f, false);
@@ -167,21 +170,21 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         recipeUpdate.setRecipeId(recipeId);
         recipeUpdate.setChemistSignFile(fileId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("UpdateTotalRecipePdfRunable recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
     }
 
 
     @Override
     public void updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
-        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},recipeFee={}", recipeId, recipeFee);
+        logger.info("PlatformCreatePdfServiceImpl updateTotalPdf  recipeId={},recipeFee={}", recipeId, recipeFee);
         if (null == recipeFee) {
-            logger.warn("UpdateTotalRecipePdfRunable recipeFee is null  recipeFee={}", recipeFee);
+            logger.warn("PlatformCreatePdfServiceImpl updateTotalPdf   recipeFee is null  recipeFee={}", recipeFee);
             return;
         }
         Recipe recipe = recipeDAO.get(recipeId);
         //更新pdf
         if (null == recipe) {
-            logger.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipeId);
+            logger.warn("PlatformCreatePdfServiceImpl updateTotalPdf   recipe is null  recipeId={}", recipeId);
             return;
         }
         List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFour");
@@ -208,7 +211,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
                 recipeUpdate.setSignFile(fileId);
             }
         } catch (Exception e) {
-            logger.error("UpdateTotalRecipePdfRunable error recipeId={}", recipeId, e);
+            logger.error("PlatformCreatePdfServiceImpl updateTotalPdf   error recipeId={}", recipeId, e);
             return;
         }
 
@@ -217,12 +220,13 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         recipeUpdate.setRecipeId(recipeId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("UpdateTotalRecipePdfRunable recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        logger.info("PlatformCreatePdfServiceImpl updateTotalPdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
     }
 
 
     @Override
-    public void updateCodePdfExecute(Integer recipeId) {
+    public void updateCodePdf(Integer recipeId) {
+        logger.info("PlatformCreatePdfServiceImpl updateCodePdfExecute  recipeId={}", recipeId);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             return;
@@ -269,21 +273,21 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         recipeUpdate.setRecipeId(recipeId);
         recipeUpdate.setSignFile(fileId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("addRecipeCodeAndPatientForRecipePdf recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        logger.info("PlatformCreatePdfServiceImpl updateCodePdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
     }
 
     @Override
-    public void updateAddressPdfExecute(Integer recipeId) {
-        logger.info("UpdateReceiverInfoRecipePdfRunable start. recipeId={}", recipeId);
+    public void updateAddressPdf(Integer recipeId) {
+        logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute  recipeId={}", recipeId);
         Recipe recipe = recipeDAO.get(recipeId);
         //更新pdf
         if (null == recipe) {
-            logger.warn("UpdateReceiverInfoRecipePdfRunable recipe is null  recipeId={}", recipeId);
+            logger.warn("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipe is null  recipeId={}", recipeId);
             return;
         }
         RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
         if (null == order) {
-            logger.warn("UpdateReceiverInfoRecipePdfRunable order is null  recipeId={}", recipeId);
+            logger.warn("PlatformCreatePdfServiceImpl updateAddressPdfExecute   order is null  recipeId={}", recipeId);
             return;
         }
         String fileId = null;
@@ -292,7 +296,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             // 煎法
             CoOrdinateVO decoction = validateDecoction(recipe);
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            logger.info("UpdateReceiverInfoRecipePdfRunable recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
+            logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
             //存在收货人信息
             if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile())) {
                 CoOrdinateVO coOrdinateVO = getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
@@ -316,17 +320,17 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
                 }
             }
         } catch (Exception e) {
-            logger.error("UpdateReceiverInfoRecipePdfRunable error recipeId={}", recipeId, e);
+            logger.error("PlatformCreatePdfServiceImpl updateAddressPdfExecute   error recipeId={}", recipeId, e);
             return;
         }
         recipeUpdate.setRecipeId(recipeId);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("addRecipeCodeAndPatientForRecipePdf recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
     }
 
     @Override
     public Recipe updateGiveUser(Recipe recipe) {
-        logger.info("RecipeLabelManager giveUserUpdate recipe={}", JSON.toJSONString(recipe));
+        logger.info("PlatformCreatePdfServiceImpl updateGiveUser recipe={}", JSON.toJSONString(recipe));
         //获取 核对发药药师签名id
         ApothecaryVO apothecaryVO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
         //判断发药状态
@@ -366,7 +370,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             recipeUpdate.setSignFile(newPfd);
         }
         recipeUpdate.setRecipeId(recipe.getRecipeId());
-        logger.info("RecipeLabelManager giveUserUpdate recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+        logger.info("PlatformCreatePdfServiceImpl updateGiveUser recipeUpdate={}", JSON.toJSONString(recipeUpdate));
         return recipeUpdate;
     }
 
@@ -404,6 +408,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @return
      */
     private SignRecipePdfVO queryPdfBytePdf(Recipe recipe) {
+        logger.info("PlatformCreatePdfServiceImpl queryPdfBytePdf recipe:{}", JSON.toJSONString(recipe));
         int recipeId = recipe.getRecipeId();
         Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
         if (CollectionUtils.isEmpty(recipeMap)) {
@@ -427,11 +432,11 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", null));
             map.put("paramMap", result);
             SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
-            logger.info("RecipeLabelManager queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSONUtils.toString(map), JSONUtils.toString(signRecipePdfVO));
+            logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSONUtils.toString(map), JSONUtils.toString(signRecipePdfVO));
             coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
             return signRecipePdfVO;
         } catch (Exception e) {
-            logger.error("queryPdfRecipeLabelById error ", e);
+            logger.error("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById error ", e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "获取pdf-byte-格式" + e.getMessage());
             throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
         }
@@ -445,7 +450,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      */
     private void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
         if (CollectionUtils.isEmpty(coOrdinateList) || null == recipeId) {
-            logger.error("RecipeLabelManager coOrdinate error ");
+            logger.error("PlatformCreatePdfServiceImpl coOrdinate error ");
             return;
         }
         redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
@@ -464,10 +469,10 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
-        logger.info("RecipeLabelManager getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
+        logger.info("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
 
         if (CollectionUtils.isEmpty(coOrdinateList)) {
-            logger.error("RecipeLabelManager getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
+            logger.error("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
             return null;
         }
 

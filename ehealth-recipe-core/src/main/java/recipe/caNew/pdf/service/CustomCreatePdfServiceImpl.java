@@ -45,12 +45,12 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public void updateCodePdfExecute(Integer recipeId) {
+    public void updateCodePdf(Integer recipeId) {
 
     }
 
     @Override
-    public void updateAddressPdfExecute(Integer recipeId) {
+    public void updateAddressPdf(Integer recipeId) {
 
     }
 
