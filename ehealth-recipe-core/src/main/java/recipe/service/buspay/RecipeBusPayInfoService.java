@@ -73,6 +73,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @Qualifier("remoteRecipeService")
     @Autowired
     private RemoteRecipeService recipeService;
+    @Autowired
+    private DepartmentService departmentService;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -292,6 +294,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setRecipeId(null != busId ? busId.toString() : null);
             simpleBusObject.setHisRecipeId(recipe.getRecipeCode());
             simpleBusObject.setPatId(recipe.getPatientID());
+            //date 20210701
+            //添加字段
+            simpleBusObject.setDepartId(null!=recipe.getDepart()?recipe.getDepart().toString():null);
+            simpleBusObject.setDepartName(null!=recipe.getDepart()?departmentService.getNameById(recipe.getDepart()):null);
         } else {
             simpleBusObject.setBusId(busId);
             simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
@@ -349,7 +355,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setRecipeId(null != recipeBean.getRecipeId() ? recipeBean.getRecipeId().toString() : null);
                 simpleBusObject.setHisRecipeId(recipeBean.getRecipeCode());
                 simpleBusObject.setPatId(recipeBean.getPatientID());
-
+                //date 20210701
+                //添加字段
+                simpleBusObject.setDepartId(null!=recipeBean.getDepart()?recipeBean.getDepart().toString():null);
+                simpleBusObject.setDepartName(null!=recipeBean.getDepart()?departmentService.getNameById(recipeBean.getDepart()):null);
             }
 
         }
