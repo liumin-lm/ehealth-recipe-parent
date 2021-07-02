@@ -316,6 +316,28 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
 
+    @ItemProperty(alias = "第三方支付类型，1 商保支付 2 预存金支付")
+    private Integer thirdPayType;
+
+    @ItemProperty(alias = "第三方支付金额")
+    private Double thirdPayFee;
+
+    public Integer getThirdPayType() {
+        return thirdPayType;
+    }
+
+    public void setThirdPayType(Integer thirdPayType) {
+        this.thirdPayType = thirdPayType;
+    }
+
+    public Double getThirdPayFee() {
+        return thirdPayFee;
+    }
+
+    public void setThirdPayFee(Double thirdPayFee) {
+        this.thirdPayFee = thirdPayFee;
+    }
+
     public Integer getLogisticsType() {
         return logisticsType;
     }
