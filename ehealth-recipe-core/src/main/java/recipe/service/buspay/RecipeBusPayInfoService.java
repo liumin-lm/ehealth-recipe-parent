@@ -218,7 +218,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             OrganDTO organDTO = organService.getByOrganId(organId);
             //取处方详情中的药品的取药窗口信息
             // 取药窗口修改为从扩展表中获取
-            if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty( recipeExtend.getPharmNo())) {
+            if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
                 map.put("getDrugWindow", organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
             }
 
@@ -296,8 +296,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setPatId(recipe.getPatientID());
             //date 20210701
             //添加字段
-            simpleBusObject.setDepartId(null!=recipe.getDepart()?recipe.getDepart().toString():null);
-            simpleBusObject.setDepartName(null!=recipe.getDepart()?departmentService.getNameById(recipe.getDepart()):null);
+            if (null != recipe.getDepart()) {
+                Integer departId = recipe.getDepart();
+                simpleBusObject.setDepartId(departId.toString());
+                String departName = departmentService.getNameById(departId);
+                simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
+            }
         } else {
             simpleBusObject.setBusId(busId);
             simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
@@ -321,7 +325,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setMrn(getMrnForRecipe(recipeBean));
             //由于bug#70621新增卡号卡类型字段
             RecipeExtendBean recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeBean.getRecipeId());
-            if(recipeExtend!=null){
+            if (recipeExtend != null) {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
             }
@@ -357,8 +361,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setPatId(recipeBean.getPatientID());
                 //date 20210701
                 //添加字段
-                simpleBusObject.setDepartId(null!=recipeBean.getDepart()?recipeBean.getDepart().toString():null);
-                simpleBusObject.setDepartName(null!=recipeBean.getDepart()?departmentService.getNameById(recipeBean.getDepart()):null);
+                if (null != recipeBean.getDepart()) {
+                    Integer departId = recipeBean.getDepart();
+                    simpleBusObject.setDepartId(departId.toString());
+                    String departName = departmentService.getNameById(departId);
+                    simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
+                }
             }
 
         }
