@@ -21,6 +21,7 @@ import eh.entity.bus.Order;
 import eh.utils.ValidateUtil;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,6 +145,15 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String ybbody = StringUtils.defaultString(notifyMap.get("ybbody"), "");
             if(StringUtils.isNotEmpty(ybbody)){
                 attr.put("healthInsurancePayContent", ybbody);
+            }
+            // 商保结算内容
+            String sbbody = StringUtils.defaultString(notifyMap.get("sbbody"), "");
+            Map<String, String> sbbodyMap = JSONUtils.parse(sbbody, Map.class);
+            if(MapUtils.isNotEmpty(sbbodyMap)){
+                String type = StringUtils.defaultString(sbbodyMap.get("type"), "");
+                String sbjmje = StringUtils.defaultString(sbbodyMap.get("sbjmje"), "");
+                attr.put("thirdPayType", type);
+                attr.put("thirdPayFee", sbjmje);
             }
 
             Map<String, String> body = JSONUtils.parse(bodyString, Map.class);
