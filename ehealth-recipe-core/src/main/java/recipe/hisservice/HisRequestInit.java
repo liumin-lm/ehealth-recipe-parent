@@ -873,8 +873,12 @@ public class HisRequestInit {
         //获取药师工号药师姓名
         if (recipe.getChecker() != null && recipe.getChecker() != 0) {
             DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
+            LOGGER.info("recipeAudit doctor:{}.", JSONUtils.toString(doctor));
             if (doctor != null) {
-                request.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctor.getDoctorId(), recipe.getClinicOrgan(), doctor.getDepartment()));
+                List<String> jobNumbers = iEmploymentService.findJobNumberByDoctorIdAndOrganId(doctor.getDoctorId(), recipe.getCheckOrgan());
+                if (CollectionUtils.isNotEmpty(jobNumbers)) {
+                    request.setAuditDoctorNo(jobNumbers.get(0));
+                }
                 request.setAuditDoctorName(doctor.getName());
             }
         }

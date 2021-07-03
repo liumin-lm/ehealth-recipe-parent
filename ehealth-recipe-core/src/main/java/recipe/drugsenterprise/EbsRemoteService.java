@@ -258,7 +258,10 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         result.append("<provinceName>").append(ebsBean.getProvinceName()).append("</provinceName>");
         result.append("<cityName>").append(ebsBean.getCityName()).append("</cityName>");
         result.append("<districtName>").append(ebsBean.getDistrictName()).append("</districtName>");
-        result.append("<shippingAddress>").append(ebsBean.getShippingAddress()).append("</shippingAddress>");
+        if (StringUtils.isNotEmpty(ebsBean.getShippingAddress())) {
+            String address = ebsBean.getShippingAddress().replace("\n", "");
+            result.append("<shippingAddress>").append(address).append("</shippingAddress>");
+        }
         result.append("<remark>").append(ebsBean.getRemark()).append("</remark>");
         for (EbsDetail ebsDetail : ebsBean.getDetails()) {
             result.append("<medName>").append(ebsDetail.getMedName()).append("</medName>");
