@@ -154,6 +154,23 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 giveModeShowButtonVO.setButtonType(4);
             }
         }
+        //设置第三方订单跳转的按钮
+        Integer enterpriseId = recipe.getEnterpriseId();
+        if (null == enterpriseId) {
+            return;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
+            return;
+        }
+        //orderType=0表示订单在第三方生成
+        GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
+        giveModeButton.setButtonSkipType("3");
+        giveModeButton.setShowButtonName("查看订单");
+        giveModeButton.setShowButtonKey("supportThirdOrder");
+        giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
+        //此时将ButtonType设置为4
+        giveModeShowButtonVO.setButtonType(4);
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe) {
