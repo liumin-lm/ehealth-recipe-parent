@@ -3,6 +3,8 @@ package recipe.caNew.pdf.service;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
  */
 @Service
 public class CustomCreatePdfServiceImpl implements CreatePdfService {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Override
     public SignRecipePdfVO queryPdfOssId(Recipe recipe) {
         return null;
@@ -35,18 +38,18 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public void updateCheckNamePdf(Recipe recipe) {
-
+    public String updateCheckNamePdf(Recipe recipe) {
+        return null;
     }
 
     @Override
-    public void updateDoctorNamePdf(Recipe recipe) {
-
+    public String updateDoctorNamePdf(Recipe recipe) {
+        return null;
     }
 
     @Override
-    public void updateCodePdf(Recipe recipe) {
-
+    public String updateCodePdf(Recipe recipe) {
+        return null;
     }
 
     @Override

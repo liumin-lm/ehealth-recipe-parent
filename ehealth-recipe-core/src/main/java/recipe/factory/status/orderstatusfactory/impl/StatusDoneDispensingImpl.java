@@ -48,15 +48,6 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public void upRecipeThreadPool(Recipe recipe) {
-        RecipeBusiThreadPool.execute(() -> {
-            try {
-                Recipe recipeUpdate = createPdfFactory.updateGiveUser(recipe);
-                if (null != recipeUpdate) {
-                    recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-                }
-            } catch (Exception e) {
-                logger.error("StatusDoneDispensingImpl upRecipeThreadPool ", e);
-            }
-        });
+        RecipeBusiThreadPool.execute(() -> createPdfFactory.updateGiveUser(recipe));
     }
 }

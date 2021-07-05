@@ -73,14 +73,7 @@ public class RecipeOrderTwoService {
 
         //更新pdf
         recipe.setGiveUser(giveUser.toString());
-        Recipe recipeUpdate = createPdfFactory.updateGiveUser(recipe);
-        //更新处方字段
-        if (null != recipeUpdate) {
-            recipeUpdate.setGiveUser(giveUser.toString());
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        } else {
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        }
+        createPdfFactory.updateGiveUser(recipe);
         return ResultBean.succeed();
     }
 

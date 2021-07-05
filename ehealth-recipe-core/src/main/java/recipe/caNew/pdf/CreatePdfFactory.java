@@ -51,7 +51,7 @@ public class CreatePdfFactory {
         if (ValidateUtil.validateObjects(recipe, recipe.getRecipeId(), recipe.getClinicOrgan())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
+        CreatePdfService createPdfService = createPdfService(recipe);
         SignRecipePdfVO signRecipePdfVO = createPdfService.queryPdfOssId(recipe);
 
         String fileId = CreateRecipePdfUtil.signFileByte(signRecipePdfVO.getData(), "fileName");
@@ -69,7 +69,7 @@ public class CreatePdfFactory {
      */
     public CaSealRequestTO queryPdfByte(Integer recipeId) {
         Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
+        CreatePdfService createPdfService = createPdfService(recipe);
         return createPdfService.queryPdfByte(recipe);
     }
 
@@ -82,7 +82,7 @@ public class CreatePdfFactory {
      */
     public CaSealRequestTO queryCheckPdfByte(Integer recipeId) {
         Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
+        CreatePdfService createPdfService = createPdfService(recipe);
         return createPdfService.queryCheckPdfByte(recipe);
     }
 
@@ -95,8 +95,14 @@ public class CreatePdfFactory {
      */
     public void updateCheckNamePdf(Integer recipeId) {
         Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        createPdfService.updateCheckNamePdf(recipe);
+        CreatePdfService createPdfService = createPdfService(recipe);
+        String fileId = createPdfService.updateCheckNamePdf(recipe);
+
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipeId);
+        recipeUpdate.setChemistSignFile(fileId);
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
     }
 
     /**
@@ -105,8 +111,14 @@ public class CreatePdfFactory {
      * @param recipe
      */
     public void updateDoctorNamePdf(Recipe recipe) {
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        createPdfService.updateDoctorNamePdf(recipe);
+        CreatePdfService createPdfService = createPdfService(recipe);
+        String fileId = createPdfService.updateDoctorNamePdf(recipe);
+
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        recipeUpdate.setSignFile(fileId);
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
     }
 
     /**
@@ -117,7 +129,7 @@ public class CreatePdfFactory {
      */
     public void updateTotalPdfExecute(Integer recipeId, BigDecimal recipeFee) {
         Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
+        CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> createPdfService.updateTotalPdf(recipeId, recipeFee));
     }
 
@@ -128,8 +140,16 @@ public class CreatePdfFactory {
      */
     public void updateCodePdfExecute(Integer recipeId) {
         Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        RecipeBusiThreadPool.execute(() -> createPdfService.updateCodePdf(recipe));
+        CreatePdfService createPdfService = createPdfService(recipe);
+        RecipeBusiThreadPool.execute(() -> {
+                    String fileId = createPdfService.updateCodePdf(recipe);
+                    Recipe recipeUpdate = new Recipe();
+                    recipeUpdate.setRecipeId(recipeId);
+                    recipeUpdate.setSignFile(fileId);
+                    recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                    logger.info("CreatePdfFactory updateCodePdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+                }
+        );
     }
 
     /**
@@ -139,7 +159,7 @@ public class CreatePdfFactory {
      */
     public void updateAddressPdfExecute(Integer recipeId) {
         Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
+        CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> createPdfService.updateAddressPdf(recipe));
     }
 
@@ -149,9 +169,16 @@ public class CreatePdfFactory {
      * @param recipe 处方
      * @return
      */
-    public Recipe updateGiveUser(Recipe recipe) {
-        CreatePdfService createPdfService = ccreatePdfService(recipe.getClinicOrgan());
-        return createPdfService.updateGiveUser(recipe);
+    public void updateGiveUser(Recipe recipe) {
+        CreatePdfService createPdfService = createPdfService(recipe);
+        Recipe recipeUpdate = createPdfService.updateGiveUser(recipe);
+        //更新处方字段
+        if (null != recipeUpdate) {
+            recipe.setSignImg(recipeUpdate.getSignImg());
+            recipe.setChemistSignFile(recipeUpdate.getChemistSignFile());
+        }
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        logger.info("CreatePdfFactory updateGiveUser recipe ={}", JSON.toJSONString(recipe));
     }
 
 
@@ -241,11 +268,11 @@ public class CreatePdfFactory {
     /**
      * 判断使用那个实现类
      *
-     * @param organId
+     * @param recipe
      * @return
      */
-    private CreatePdfService ccreatePdfService(Integer organId) {
-        String organSealId = configurationClient.getValueCatch(organId, "xxxxxxpdf", "");
+    private CreatePdfService createPdfService(Recipe recipe) {
+        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
         CreatePdfService createPdfService;
         if (StringUtils.isNotEmpty(organSealId)) {
             createPdfService = customCreatePdfServiceImpl;

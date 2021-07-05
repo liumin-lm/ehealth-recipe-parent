@@ -33,7 +33,7 @@ public interface CreatePdfService {
      *
      * @param recipe
      */
-    void updateDoctorNamePdf(Recipe recipe);
+    String updateDoctorNamePdf(Recipe recipe);
 
     /**
      * 获取药师签名 pdf Byte字节 给前端SDK
@@ -48,7 +48,7 @@ public interface CreatePdfService {
      *
      * @param recipeId
      */
-    void updateCheckNamePdf(Recipe recipeId);
+    String updateCheckNamePdf(Recipe recipeId);
 
     /**
      * 在pdf中添加 药品金额
@@ -64,7 +64,7 @@ public interface CreatePdfService {
      *
      * @param recipeId
      */
-    void updateCodePdf(Recipe recipeId);
+    String updateCodePdf(Recipe recipeId);
 
     /**
      * 支付成功后修改pdf 添加收货人信息/煎法

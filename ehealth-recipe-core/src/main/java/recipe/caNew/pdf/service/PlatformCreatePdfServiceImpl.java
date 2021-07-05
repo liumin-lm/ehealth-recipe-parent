@@ -59,7 +59,7 @@ import static recipe.service.RecipeServiceSub.getRecipeAndDetailByIdImpl;
  */
 @Service
 public class PlatformCreatePdfServiceImpl implements CreatePdfService {
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private IConfigurationClient configurationClient;
     @Resource
@@ -95,33 +95,25 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public void updateDoctorNamePdf(Recipe recipe) {
+    public String updateDoctorNamePdf(Recipe recipe) {
         logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{}", JSON.toJSONString(recipe));
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
-            return;
+            return null;
         }
         Integer recipeId = recipe.getRecipeId();
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
-        String fileId = null;
         try {
             //设置签名图片
             AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
             SignImgNode signImgNode = new SignImgNode(recipeId.toString(), recipeId.toString(), sttachSealPicDTO.getDoctorSignImg(),
                     null, signRecipePdfVO.getData(), 40f, 20f, 55f, 76f, false);
-            fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+            return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
         } catch (Exception e) {
             logger.warn("当前处方是使用平台医生部分pdf的,生成失败！{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
         }
-        if (StringUtils.isEmpty(fileId)) {
-            return;
-        }
-        Recipe recipeUpdate = new Recipe();
-        recipeUpdate.setRecipeId(recipeId);
-        recipeUpdate.setSignFile(fileId);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf ={}", JSON.toJSONString(recipeUpdate));
+        return null;
     }
 
     @Override
@@ -132,15 +124,15 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public void updateCheckNamePdf(Recipe recipe) {
+    public String updateCheckNamePdf(Recipe recipe) {
         Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
-            return;
+            return null;
         }
-        String fileId = null;
         try {
+            String fileId = null;
             //获取签名图片
             AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
             String signImageId = sttachSealPicDTO.getCheckerSignImg();
@@ -156,18 +148,12 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
                 coords.setY(82);
                 fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
             }
+            return fileId;
         } catch (Exception e) {
             logger.warn("当前处方{}是使用平台药师部分pdf的,生成失败！", recipe.getRecipeId());
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
-        if (StringUtils.isEmpty(fileId)) {
-            return;
-        }
-        Recipe recipeUpdate = new Recipe();
-        recipeUpdate.setRecipeId(recipeId);
-        recipeUpdate.setChemistSignFile(fileId);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        return null;
     }
 
 
@@ -222,7 +208,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public void updateCodePdf(Recipe recipe) {
+    public String updateCodePdf(Recipe recipe) {
         Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateCodePdfExecute  recipeId={}", recipeId);
         String barcode = "";
@@ -254,20 +240,12 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
-        String fileId = null;
         try {
-            fileId = CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, barcode);
+            return CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, barcode);
         } catch (Exception e) {
-            logger.error("当前处方是使用平台医生部分pdf的,生成失败！{}", recipe.getRecipeId(), e);
+            logger.error("PlatformCreatePdfServiceImpl updateCodePdfExecute error！recipeId:{}", recipeId, e);
         }
-        if (StringUtils.isEmpty(fileId)) {
-            return;
-        }
-        Recipe recipeUpdate = new Recipe();
-        recipeUpdate.setRecipeId(recipeId);
-        recipeUpdate.setSignFile(fileId);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("PlatformCreatePdfServiceImpl updateCodePdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        return null;
     }
 
     @Override
