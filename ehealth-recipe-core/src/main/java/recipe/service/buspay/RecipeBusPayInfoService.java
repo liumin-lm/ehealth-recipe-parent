@@ -294,6 +294,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setRecipeId(null != busId ? busId.toString() : null);
             simpleBusObject.setHisRecipeId(recipe.getRecipeCode());
             simpleBusObject.setPatId(recipe.getPatientID());
+
             //date 20210701
             //添加字段
             if (null != recipe.getDepart()) {
@@ -359,6 +360,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setRecipeId(null != recipeBean.getRecipeId() ? recipeBean.getRecipeId().toString() : null);
                 simpleBusObject.setHisRecipeId(recipeBean.getRecipeCode());
                 simpleBusObject.setPatId(recipeBean.getPatientID());
+
                 //date 20210701
                 //添加字段
                 if (null != recipeBean.getDepart()) {
