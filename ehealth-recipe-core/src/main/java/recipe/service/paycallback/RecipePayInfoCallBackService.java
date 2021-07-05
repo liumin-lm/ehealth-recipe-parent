@@ -150,8 +150,8 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String sbbody = StringUtils.defaultString(notifyMap.get("sbbody"), "");
             Map<String, String> sbbodyMap = JSONUtils.parse(sbbody, Map.class);
             if(MapUtils.isNotEmpty(sbbodyMap)){
-                String type = StringUtils.defaultString(sbbodyMap.get("type"), "");
-                String sbjmje = StringUtils.defaultString(sbbodyMap.get("sbjmje"), "");
+                Integer type = ConversionUtils.convert(sbbodyMap.get("type"), Integer.class);
+                Double sbjmje = ConversionUtils.convert(sbbodyMap.get("sbjmje"), Double.class);
                 attr.put("thirdPayType", type);
                 attr.put("thirdPayFee", sbjmje);
             }
