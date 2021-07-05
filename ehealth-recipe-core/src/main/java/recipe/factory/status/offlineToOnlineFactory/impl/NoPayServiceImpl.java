@@ -1,12 +1,12 @@
 package recipe.factory.status.offlineToOnlineFactory.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bean.RecipeGiveModeButtonRes;
-import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
 import recipe.service.OfflineToOnlineService;
@@ -28,12 +28,12 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
 
     @Override
     public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request) {
-        logger.info("NoPayServiceImpl settleForOfflineToOnline request = {}",  JSONUtils.toString(request));
+        logger.info("NoPayServiceImpl settleForOfflineToOnline request = {}", JSON.toJSONString(request));
         // 1、线下转线上
         List<Integer> recipeIds = offlineToOnlineService.batchSyncRecipeFromHis(request);
         // 2、获取够药按钮
         List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList = offlineToOnlineService.getRecipeGiveModeButtonRes(recipeIds);
-        logger.info("NoPayServiceImpl settleForOfflineToOnline response:{}", JSONUtils.toString(recipeGiveModeButtonResList));
+        logger.info("NoPayServiceImpl settleForOfflineToOnline response:{}", JSON.toJSONString(recipeGiveModeButtonResList));
         return recipeGiveModeButtonResList;
     }
 

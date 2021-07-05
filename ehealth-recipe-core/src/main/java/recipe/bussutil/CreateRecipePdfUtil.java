@@ -1,13 +1,8 @@
 package recipe.bussutil;
 
 import com.alibaba.fastjson.JSON;
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
@@ -22,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
-import recipe.bussutil.openapi.request.province.SignImgNode;
 import recipe.third.IFileDownloadService;
 
 import javax.imageio.ImageIO;
@@ -304,6 +298,81 @@ public class CreateRecipePdfUtil {
         }
         return fileId;
     }
+
+
+    /**
+     * 读取pdf模板
+     * pdf 读取输出流 方法
+     *
+     * @param generatePdfList
+     */
+    public static byte[] generateTemplatePdf(Integer recipeId, String pdfId, List<WordToPdfBean> generatePdfList, List<CoOrdinateVO> ordinateList) throws Exception {
+        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        @Cleanup ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, bos);
+        AcroFields form = stamper.getAcroFields();
+        form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
+        //模版填充 数据方法
+        templatePdf(generatePdfList, form, ordinateList);
+        // 如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
+        stamper.setFormFlattening(true);
+        stamper.close();
+
+        //拷贝模版生成新pdf
+        String fileName = "recipe_" + recipeId + ".pdf";
+        File file = new File(fileName);
+        @Cleanup OutputStream output = new FileOutputStream(file);
+        Document doc = new Document();
+        PdfSmartCopy copy = new PdfSmartCopy(doc, output);
+        doc.open();
+        PdfImportedPage importPage = copy.getImportedPage(new PdfReader(bos.toByteArray()), 1);
+        copy.addPage(importPage);
+        doc.close();
+        byte[] bytes = File2byte(file);
+        file.delete();
+        return bytes;
+    }
+
+    /**
+     * 模版填充 数据方法
+     *
+     * @param list 模版数据对象
+     * @param form 模版
+     */
+    private static void templatePdf(List<WordToPdfBean> list, AcroFields form, List<CoOrdinateVO> ordinateList) throws IOException, DocumentException {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        for (WordToPdfBean wordToPdf : list) {
+            try {
+                String key = wordToPdf.getKey();
+                String value = wordToPdf.getValue();
+                if (1 == wordToPdf.getType()) {
+                    //文字类的内容处理
+                    form.setField(key, value);
+                } else {
+                    //将图片写入指定的field
+                    Image image = Image.getInstance(value);
+                    PushbuttonField pb = form.getNewPushbuttonFromField(key);
+                    pb.setImage(image);
+                    form.replacePushbuttonField(key, pb.getField());
+                }
+            } catch (Exception e) {
+                logger.error("CreateRecipePdfUtil templatePdf error ", e);
+            }
+        }
+
+        //定位某个表单字段坐标
+        ordinateList.forEach(a -> {
+            List<AcroFields.FieldPosition> pos = form.getFieldPositions(a.getName());
+            AcroFields.FieldPosition pitem = pos.get(0);
+            Rectangle pRectangle = pitem.position;
+            a.setX((int) pRectangle.getLeft());
+            a.setY((int) pRectangle.getBottom());
+        });
+    }
+
 
     /**
      * 上传图片文件到oss服务器

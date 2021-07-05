@@ -49,7 +49,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
-import recipe.bussutil.openapi.util.AESUtils;
+import recipe.bussutil.AESUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.givemode.business.GiveModeFactory;
@@ -101,6 +101,7 @@ public class OperationPlatformRecipeService {
         //20200323 解密recipe
         Integer reicpeIdI = null;
         try {
+
             String recipeS = AESUtils.decrypt(recipeId, "1234567890123gmw");
             reicpeIdI = Integer.valueOf(recipeS);
         } catch (Exception e) {

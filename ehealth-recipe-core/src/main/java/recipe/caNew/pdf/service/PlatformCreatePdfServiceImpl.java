@@ -25,8 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
-import recipe.bussutil.openapi.request.province.SignImgNode;
-import recipe.bussutil.openapi.util.JSONUtils;
+import recipe.bussutil.SignImgNode;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
@@ -91,7 +91,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CaSealRequestTO queryPdfByte(Recipe recipe) {
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
-        return caSealRequestTO(55, recipe.getRecipeId().toString(), signRecipePdfVO.getDataStr());
+        return CreatePdfFactory.caSealRequestTO(55, 76, recipe.getRecipeId().toString(), signRecipePdfVO.getDataStr());
     }
 
     @Override
@@ -119,7 +119,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
         logger.info("PlatformCreatePdfServiceImpl queryCheckPdfByte recipe:{}", JSON.toJSONString(recipe));
-        return caSealRequestTO(190, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileByte(recipe.getSignFile()));
+        return CreatePdfFactory.caSealRequestTO(190, 76, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileByte(recipe.getSignFile()));
     }
 
 
@@ -263,7 +263,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             // 煎法
             CoOrdinateVO decoction = validateDecoction(recipe);
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipeid:{},order:{}", recipeId, JSONUtils.toString(order));
+            logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipeid:{},order:{}", recipeId, JSON.toJSONString(order));
             //存在收货人信息
             if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile())) {
                 CoOrdinateVO coOrdinateVO = getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
@@ -399,7 +399,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", null));
             map.put("paramMap", result);
             SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
-            logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSONUtils.toString(map), JSONUtils.toString(signRecipePdfVO));
+            logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSON.toJSONString(map), JSON.toJSONString(signRecipePdfVO));
             coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
             return signRecipePdfVO;
         } catch (Exception e) {
@@ -436,7 +436,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
-        logger.info("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSONUtils.toString(coOrdinateList));
+        logger.info("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSON.toJSONString(coOrdinateList));
 
         if (CollectionUtils.isEmpty(coOrdinateList)) {
             logger.error("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
@@ -565,29 +565,4 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         return "";
     }
-
-    /**
-     * 组织pdf Byte字节 给前端SDK 出餐
-     *
-     * @param leftX        行坐标
-     * @param pdfName      文件名
-     * @param pdfBase64Str 文件
-     * @return
-     */
-    private CaSealRequestTO caSealRequestTO(int leftX, String pdfName, String pdfBase64Str) {
-        CaSealRequestTO caSealRequest = new CaSealRequestTO();
-        caSealRequest.setPdfBase64Str(pdfBase64Str);
-        //这个赋值后端没在用 可能前端在使用,所以沿用老代码写法
-        caSealRequest.setLeftX(leftX);
-        caSealRequest.setLeftY(76);
-        caSealRequest.setPdfName("recipe" + pdfName + ".pdf");
-
-        caSealRequest.setSealHeight(40);
-        caSealRequest.setSealWidth(40);
-        caSealRequest.setPage(1);
-        caSealRequest.setPdfMd5("");
-        caSealRequest.setMode(1);
-        return caSealRequest;
-    }
-
 }

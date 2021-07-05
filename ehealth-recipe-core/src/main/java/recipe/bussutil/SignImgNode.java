@@ -1,4 +1,4 @@
-package recipe.bussutil.openapi.request.province;
+package recipe.bussutil;
 
 import lombok.*;
 

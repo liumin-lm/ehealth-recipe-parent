@@ -1,5 +1,6 @@
 package recipe.atop;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -9,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import recipe.bean.RecipeGiveModeButtonRes;
-import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.constant.ErrorCode;
 import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService;
@@ -40,7 +40,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
     @RpcService
     @Validated
     public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(@Valid SettleForOfflineToOnlineVO request) {
-        logger.info("OfflineToOnlineAtop settleForOfflineToOnline request={}", JSONUtils.toString(request));
+        logger.info("OfflineToOnlineAtop settleForOfflineToOnline request={}", JSON.toJSONString(request));
         if (request == null
                 || CollectionUtils.isEmpty(request.getRecipeCode())
                 || StringUtils.isEmpty(request.getOrganId())
@@ -52,7 +52,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
         try {
             IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
             List<RecipeGiveModeButtonRes> result = offlineToOnlineService.settleForOfflineToOnline(request);
-            logger.info("OfflineToOnlineAtop settleForOfflineToOnline result = {}", JSONUtils.toString(result));
+            logger.info("OfflineToOnlineAtop settleForOfflineToOnline result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             logger.error("OfflineToOnlineAtop settleForOfflineToOnline error", e1);

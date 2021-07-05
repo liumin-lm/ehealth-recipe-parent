@@ -102,6 +102,7 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bean.RecipeInvalidDTO;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
@@ -4343,6 +4344,7 @@ public class RecipeService extends RecipeBaseService {
         //createPdfFactory.updateAddressPdfExecute(recipeId);
         //createPdfFactory.updateTotalPdfExecute(recipeId, BigDecimal.valueOf(521.20));
         createPdfFactory.updatePdfToImg(recipeId);
+        CreateRecipePdfUtil.generateTemplatePdf(recipeId, "60da8309f0f97817f591892d", null);
         return null;
     }
 

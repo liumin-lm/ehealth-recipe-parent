@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeOrderDAO;
@@ -94,10 +93,10 @@ public class RecipeLabelManager {
                 List<RecipeLabelVO> list = getValue(value, recipeMap, organId);
                 resultMap.put(k, list);
             } catch (Exception e) {
-                logger.error("RecipeLabelManager queryRecipeLabelById error  value ={} recipeMap={}", JSONUtils.toString(value), JSONUtils.toString(recipeMap), e);
+                logger.error("RecipeLabelManager queryRecipeLabelById error  value ={} recipeMap={}", JSON.toJSONString(value), JSON.toJSONString(recipeMap), e);
             }
         });
-        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSONUtils.toString(resultMap));
+        logger.info("RecipeLabelManager queryRecipeLabelById resultMap={}", JSON.toJSONString(resultMap));
         return resultMap;
     }
 
@@ -137,7 +136,7 @@ public class RecipeLabelManager {
                     }
                     value = MapValueUtil.getFieldValueByName(boxLinks[1], key);
                 } else {
-                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSONUtils.toString(boxLinks));
+                    logger.warn("RecipeLabelManager getValue boxLinks ={}", JSON.toJSONString(boxLinks));
                 }
             }
 

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
-import recipe.bussutil.openapi.request.province.SignImgNode;
+import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
@@ -221,6 +221,31 @@ public class CreatePdfFactory {
      */
     public void updatesealPdfExecute(Integer recipeId) {
         RecipeBusiThreadPool.execute(() -> updatesealPdf(recipeId));
+    }
+
+
+    /**
+     * 组织pdf Byte字节 给前端SDK 出餐
+     *
+     * @param leftX        行坐标
+     * @param pdfName      文件名
+     * @param pdfBase64Str 文件
+     * @return
+     */
+    public static CaSealRequestTO caSealRequestTO(int leftX, int leftY, String pdfName, String pdfBase64Str) {
+        CaSealRequestTO caSealRequest = new CaSealRequestTO();
+        caSealRequest.setPdfBase64Str(pdfBase64Str);
+        //这个赋值后端没在用 可能前端在使用,所以沿用老代码写法
+        caSealRequest.setLeftX(leftX);
+        caSealRequest.setLeftY(leftY);
+        caSealRequest.setPdfName("recipe" + pdfName + ".pdf");
+
+        caSealRequest.setSealHeight(40);
+        caSealRequest.setSealWidth(40);
+        caSealRequest.setPage(1);
+        caSealRequest.setPdfMd5("");
+        caSealRequest.setMode(1);
+        return caSealRequest;
     }
 
     private void updatesealPdf(Integer recipeId) {
