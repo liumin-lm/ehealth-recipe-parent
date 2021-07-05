@@ -2011,6 +2011,9 @@ public class RecipeOrderService extends RecipeBaseService {
             LOGGER.info("checkGetOrderDetail orderCode:{}", orderCode);
             //线下处方目前一个订单只会对应一个处方
             List<Recipe> recipes = recipeDAO.findRecipeByOrdercode(orderCode);
+            if(CollectionUtils.isEmpty(recipes)){
+                return ;
+            }
             Recipe recipe = recipes.get(0);
             if (recipe == null || recipe.getRecipeSourceType() != 2) {
                 return;
