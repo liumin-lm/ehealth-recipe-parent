@@ -2848,7 +2848,6 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 600000)
     public Map<String, Object> drugInfoSynMovement(Integer organId, List<String> drugForms) throws ParseException {
-        SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
@@ -2863,7 +2862,6 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
-        IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
@@ -2874,31 +2872,13 @@ public class RecipeService extends RecipeBaseService {
         Boolean commit = organConfigService.getByOrganIdEnableDrugSyncArtificial(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-        OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
-        request.setOrganId(organId);
-        //查询全部药品信息，返回的是医院所有有效的药品信息
-        request.setData(Lists.newArrayList());
-        request.setDrcode(Lists.newArrayList());
-        OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
-        try {
-            responseTO = recipeHisService.queryOrganDrugInfo(request);
-            LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
-        } catch (Exception e) {
-            LOGGER.error("drugInfoSynMovement error ", e);
-        }
-        List<OrganDrugInfoTO> data = Lists.newArrayList();
-        if (responseTO != null) {
-            data = responseTO.getData();
-        }
-        if (ObjectUtils.isEmpty(data)) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
-        }
+
         Map<String, OrganDrugList> drugMap = Maps.newHashMap();
         if (!CollectionUtils.isEmpty(details)) {
             drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         }
         //LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
-        return drugInfoSynMovementExt(organId, drugForms, data, drugMap, urt.getUserName(), sync, add, commit);
+        return drugInfoSynMovementExt(organId, drugForms, drugMap, urt.getUserName(), sync, add, commit);
     }
 
     /**
@@ -2908,7 +2888,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drugForms
      * @return
      */
-    public Map<String, Object> drugInfoSynMovementExt(Integer organId, List<String> drugForms, List<OrganDrugInfoTO> data, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit) throws ParseException {
+    public Map<String, Object> drugInfoSynMovementExt(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
@@ -2916,11 +2896,39 @@ public class RecipeService extends RecipeBaseService {
         map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-
-        List<OrganDrugInfoTO> finalData = data;
+       //List<OrganDrugInfoTO> finalData = data;
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+                OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
+                OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
+                request.setOrganId(organId);
+                //查询全部药品信息，返回的是医院所有有效的药品信息
+                request.setData(Lists.newArrayList());
+                request.setDrcode(Lists.newArrayList());
+                try {
+                    responseTO = recipeHisService.queryOrganDrugInfo(request);
+                    LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+                } catch (Exception e) {
+                    LOGGER.error("drugInfoSynMovement error{} ", e);
+                }
+                List<OrganDrugInfoTO> data = Lists.newArrayList();
+                if (responseTO != null) {
+                    data = responseTO.getData();
+                }
+                if (ObjectUtils.isEmpty(data)) {
+                    LOGGER.info("his查询药品数据为空 organId=[{}]", organId);
+                    SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    Map<String, Object> map = Maps.newHashMap();
+                    map.put("Date", myFmt2.format(new Date()));
+                    map.put("Status", 2);
+                    map.put("Exception", 0);
+                    map.put("hisException","his查询药品数据为空!");
+                    redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
+                    redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+                    return;
+                }
                 //查询起始下标
                 Long updateNum = 0L;
                 Long addNum = 0L;
@@ -2928,12 +2936,12 @@ public class RecipeService extends RecipeBaseService {
                 List<OrganDrugInfoTO> addList = Lists.newArrayList();
                 List<OrganDrugInfoTO> updateList = Lists.newArrayList();
                 boolean finishFlag = true;
-                long total = finalData.size();
+                long total = data.size();
                 if (sync || add) {
                     while (finishFlag) {
-                        if (!CollectionUtils.isEmpty(finalData)) {
+                        if (!CollectionUtils.isEmpty(data)) {
                             //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
-                            for (OrganDrugInfoTO drug : finalData) {
+                            for (OrganDrugInfoTO drug : data) {
                                 Integer status = drug.getStatus();
                                 LOGGER.info("drugInfoSynMovementaddHisDrug前期" + drug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                                 OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
