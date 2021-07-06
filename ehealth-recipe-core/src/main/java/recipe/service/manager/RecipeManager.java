@@ -24,7 +24,7 @@ public class RecipeManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private OrderManager orderManager;
+    private RecipeOrderDAO recipeOrderDAO;
 
     @Autowired
     private RecipeDAO recipeDAO;
@@ -36,7 +36,7 @@ public class RecipeManager {
      */
     public List<Recipe> getRecipesByOrderCode(String orderCode) {
         logger.info("RecipeOrderManager getRecipesByOrderCode orderCode:{}.", orderCode);
-        RecipeOrder recipeOrder = orderManager.getOrderByOrderCode(orderCode);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
         logger.info("RecipeOrderManager getRecipesByOrderCode recipes:{}.", JSON.toJSONString(recipes));
