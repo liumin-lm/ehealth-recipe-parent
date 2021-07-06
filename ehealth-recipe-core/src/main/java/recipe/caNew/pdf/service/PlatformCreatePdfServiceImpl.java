@@ -28,7 +28,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.comment.DictionaryUtil;
-import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -37,8 +36,8 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.RecipeLogService;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.manager.RecipeLabelManager;
+import recipe.service.manager.RedisManager;
 import recipe.service.manager.SignManager;
-import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -65,7 +64,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Resource
     private IESignBaseService esignService;
     @Autowired
-    private RedisClient redisClient;
+    private RedisManager redisManager;
     @Autowired
     private RecipeLabelManager recipeLabelManager;
     @Autowired
@@ -230,12 +229,12 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
 
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
-        CoOrdinateVO patientId = getPdfCoordsHeight(recipeId, "recipe.patientID");
+        CoOrdinateVO patientId = redisManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
         if (null != patientId) {
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
         }
-        CoOrdinateVO recipeCode = getPdfCoordsHeight(recipeId, "recipe.recipeCode");
+        CoOrdinateVO recipeCode = redisManager.getPdfCoordsHeight(recipeId, "recipe.recipeCode");
         if (null != recipeCode) {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
@@ -262,14 +261,14 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         try {
             // 煎法
             CoOrdinateVO decoction = validateDecoction(recipe);
-            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute   recipeid:{},order:{}", recipeId, JSON.toJSONString(order));
             //存在收货人信息
             if (StringUtils.isNotEmpty(order.getReceiver()) || StringUtils.isNotEmpty(order.getRecMobile())) {
-                CoOrdinateVO coOrdinateVO = getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
+                CoOrdinateVO coOrdinateVO = redisManager.getPdfCoordsHeight(recipe.getRecipeId(), "receiverPlaceholder");
                 if (null == coOrdinateVO) {
                     return;
                 }
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                     fileId = CreateRecipePdfUtil.generateReceiverInfoRecipePdf(recipe.getChemistSignFile(), order.getReceiver(), order.getRecMobile(), commonRemoteService.getCompleteAddress(order), coOrdinateVO.getY(), decoction);
                     recipeUpdate.setChemistSignFile(fileId);
@@ -359,7 +358,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         //decoctionDeploy煎法
-        CoOrdinateVO coOrdinateVO = getPdfCoordsHeight(recipe.getRecipeId(), "tcmDecoction");
+        CoOrdinateVO coOrdinateVO = redisManager.getPdfCoordsHeight(recipe.getRecipeId(), "tcmDecoction");
         if (null == coOrdinateVO) {
             return null;
         }
@@ -400,7 +399,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             map.put("paramMap", result);
             SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
             logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSON.toJSONString(map), JSON.toJSONString(signRecipePdfVO));
-            coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
+            redisManager.coOrdinate(recipeId, signRecipePdfVO.getCoOrdinateList());
             return signRecipePdfVO;
         } catch (Exception e) {
             logger.error("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById error ", e);
@@ -408,51 +407,6 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
         }
     }
-
-    /**
-     * 特殊字段坐标记录
-     *
-     * @param recipeId
-     * @param coOrdinateList
-     */
-    private void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
-        if (CollectionUtils.isEmpty(coOrdinateList) || null == recipeId) {
-            logger.error("PlatformCreatePdfServiceImpl coOrdinate error ");
-            return;
-        }
-        redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
-    }
-
-
-    /**
-     * 获取pdf 特殊字段坐标
-     *
-     * @param recipeId   处方id
-     * @param coordsName 特殊字段名称
-     * @return
-     */
-    private CoOrdinateVO getPdfCoordsHeight(Integer recipeId, String coordsName) {
-        if (ValidateUtil.integerIsEmpty(recipeId) || StringUtils.isEmpty(coordsName)) {
-            return null;
-        }
-        List<CoOrdinateVO> coOrdinateList = redisClient.getList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString());
-        logger.info("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId={}，coOrdinateList={}", recipeId, JSON.toJSONString(coOrdinateList));
-
-        if (CollectionUtils.isEmpty(coOrdinateList)) {
-            logger.error("PlatformCreatePdfServiceImpl getPdfReceiverHeight recipeId为空 recipeId={}", recipeId);
-            return null;
-        }
-
-        for (CoOrdinateVO coOrdinate : coOrdinateList) {
-            if (coordsName.equals(coOrdinate.getName())) {
-                coOrdinate.setY(499 - coOrdinate.getY());
-                coOrdinate.setX(coOrdinate.getX() + 5);
-                return coOrdinate;
-            }
-        }
-        return null;
-    }
-
 
     /**
      * 西药 pdf 摸版参数
