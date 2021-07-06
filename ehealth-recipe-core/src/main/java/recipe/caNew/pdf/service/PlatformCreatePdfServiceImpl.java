@@ -118,7 +118,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
         logger.info("PlatformCreatePdfServiceImpl queryCheckPdfByte recipe:{}", JSON.toJSONString(recipe));
-        return CreatePdfFactory.caSealRequestTO(190, 76, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileByte(recipe.getSignFile()));
+        return CreatePdfFactory.caSealRequestTO(190, 76, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
     }
 
 

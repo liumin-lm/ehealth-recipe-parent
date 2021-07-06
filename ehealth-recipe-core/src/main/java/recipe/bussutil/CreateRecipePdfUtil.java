@@ -1,12 +1,16 @@
 package recipe.bussutil;
 
 import com.alibaba.fastjson.JSON;
-import com.itextpdf.text.*;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.*;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
+import ctd.net.rpc.async.exception.AsyncTaskException;
 import ctd.util.JSONUtils;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +24,8 @@ import recipe.ApplicationUtils;
 import recipe.third.IFileDownloadService;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
@@ -259,14 +265,12 @@ public class CreateRecipePdfUtil {
      */
     public static String generateWaterPrintRecipePdf(String pdfId, String waterPrintText) throws IOException, DocumentException {
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
-        String fileId = null;
         if (fileMetaRecord != null) {
             //因为导入包不同，放在此类调用一直报错，所以addWaterPrintForRecipePdf放在新建工具类
-            byte[] bytes = CreateRecipePdfUtilByLowagie.addWaterPrintForRecipePdf(fileDownloadService.downloadAsByte(pdfId), waterPrintText);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            byte[] bytes = addWaterPrintForRecipePdf(fileDownloadService.downloadAsByte(pdfId), waterPrintText);
+            return signFileByte(bytes, fileMetaRecord.getFileName());
         }
-        logger.info("generateWaterPrintRecipePdf newFileId:{}", fileId);
-        return fileId;
+        return null;
     }
 
 
@@ -276,12 +280,16 @@ public class CreateRecipePdfUtil {
      * @param signFile ossId
      * @return
      */
-    public static String signFileByte(String signFile) {
-        byte[] signFileByte = fileDownloadService.downloadAsByte(signFile);
+    public static String signFileBase64(String signFile) {
+        byte[] signFileByte = signFileByte(signFile);
         if (null == signFileByte) {
             return "";
         }
         return new String(Base64.encode(signFileByte));
+    }
+
+    public static byte[] signFileByte(String signFile) {
+        return fileDownloadService.downloadAsByte(signFile);
     }
 
     /**
@@ -301,27 +309,16 @@ public class CreateRecipePdfUtil {
 
 
     /**
-     * 读取pdf模板
-     * pdf 读取输出流 方法
+     * 读取pdf模板 拷贝模版流 生成新pdf
      *
-     * @param generatePdfList
+     * @param recipeId
+     * @param bos
+     * @return
+     * @throws Exception
      */
-    public static byte[] generateTemplatePdf(Integer recipeId, String pdfId, List<WordToPdfBean> generatePdfList, List<CoOrdinateVO> ordinateList) throws Exception {
-        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
-        @Cleanup ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        PdfReader reader = new PdfReader(input);
-        PdfStamper stamper = new PdfStamper(reader, bos);
-        AcroFields form = stamper.getAcroFields();
-        form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
-        //模版填充 数据方法
-        templatePdf(generatePdfList, form, ordinateList);
-        // 如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
-        stamper.setFormFlattening(true);
-        stamper.close();
-
+    public static byte[] generateTemplatePdf(Integer recipeId, ByteArrayOutputStream bos) throws Exception {
         //拷贝模版生成新pdf
-        String fileName = "recipe_" + recipeId + ".pdf";
-        File file = new File(fileName);
+        File file = new File("recipe_" + recipeId + ".pdf");
         @Cleanup OutputStream output = new FileOutputStream(file);
         Document doc = new Document();
         PdfSmartCopy copy = new PdfSmartCopy(doc, output);
@@ -332,45 +329,6 @@ public class CreateRecipePdfUtil {
         byte[] bytes = File2byte(file);
         file.delete();
         return bytes;
-    }
-
-    /**
-     * 模版填充 数据方法
-     *
-     * @param list 模版数据对象
-     * @param form 模版
-     */
-    private static void templatePdf(List<WordToPdfBean> list, AcroFields form, List<CoOrdinateVO> ordinateList) throws IOException, DocumentException {
-        if (CollectionUtils.isEmpty(list)) {
-            return;
-        }
-        for (WordToPdfBean wordToPdf : list) {
-            try {
-                String key = wordToPdf.getKey();
-                String value = wordToPdf.getValue();
-                if (1 == wordToPdf.getType()) {
-                    //文字类的内容处理
-                    form.setField(key, value);
-                } else {
-                    //将图片写入指定的field
-                    Image image = Image.getInstance(value);
-                    PushbuttonField pb = form.getNewPushbuttonFromField(key);
-                    pb.setImage(image);
-                    form.replacePushbuttonField(key, pb.getField());
-                }
-            } catch (Exception e) {
-                logger.error("CreateRecipePdfUtil templatePdf error ", e);
-            }
-        }
-
-        //定位某个表单字段坐标
-        ordinateList.forEach(a -> {
-            List<AcroFields.FieldPosition> pos = form.getFieldPositions(a.getName());
-            AcroFields.FieldPosition pitem = pos.get(0);
-            Rectangle pRectangle = pitem.position;
-            a.setX((int) pRectangle.getLeft());
-            a.setY((int) pRectangle.getBottom());
-        });
     }
 
 
@@ -521,6 +479,63 @@ public class CreateRecipePdfUtil {
             logger.info("getFileByBytes error", e);
         }
     }
+
+    /**
+     * 水印
+     *
+     * @param data
+     * @param waterText
+     * @return
+     */
+    private static byte[] addWaterPrintForRecipePdf(byte[] data, String waterText) {
+        try {
+            //读取已有的pdf，在已有的pdf上添加图片或者是添加水印的
+            com.lowagie.text.pdf.PdfReader pdfReader = new com.lowagie.text.pdf.PdfReader(data);
+            @Cleanup ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            com.lowagie.text.pdf.PdfStamper pdfStamper = new com.lowagie.text.pdf.PdfStamper(pdfReader, baos);
+            com.lowagie.text.pdf.BaseFont base = com.lowagie.text.pdf.BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", com.lowagie.text.pdf.BaseFont.NOT_EMBEDDED);
+            com.lowagie.text.pdf.PdfGState gs = new com.lowagie.text.pdf.PdfGState();
+            gs.setFillOpacity(0.2f);
+            gs.setStrokeOpacity(0.4f);
+            //原pdf文件的总页数
+            int total = pdfReader.getNumberOfPages() + 1;
+            JLabel label = new JLabel();
+            //固定label宽高
+            label.setText(waterText);
+            //文字水印 起始位置
+            FontMetrics metrics = label.getFontMetrics(label.getFont());
+            int textH = metrics.getHeight();
+            int textW = metrics.stringWidth(label.getText());
+            int interval = -textH / 3;
+            //循环页
+            for (int i = 1; i < total; i++) {
+                com.lowagie.text.Rectangle pageRect = pdfReader.getPageSizeWithRotation(i);
+                // 水印在之前文本上
+                com.lowagie.text.pdf.PdfContentByte under2 = pdfStamper.getOverContent(i);
+                under2.saveState();
+                under2.setGState(gs);
+                under2.beginText();
+                // 文字水印 字体及字号
+                under2.setFontAndSize(base, 10);
+                under2.setColorFill(Color.GRAY);
+                // 水印文字成任意度角倾斜
+                //你可以随心所欲的改你自己想要的角度//上下移+直角三角形的高
+                for (int height = interval + textH; height < pageRect.getHeight(); height = height + textH * 10) {
+                    for (int width = interval + textW; width < pageRect.getWidth() + textW; width = width + textW * 2) {
+                        under2.showTextAligned(com.lowagie.text.Element.ALIGN_LEFT, waterText, width - textW, height - textH, -30);
+                    }
+                }
+                // 添加水印文字
+                under2.endText();
+            }
+            pdfReader.close();
+            pdfStamper.close();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new AsyncTaskException(AsyncTaskException.EXECUTOR_NOT_FOUND, e.getMessage());
+        }
+    }
+
 
     /**
      * 根据 x，y坐标放置 图片

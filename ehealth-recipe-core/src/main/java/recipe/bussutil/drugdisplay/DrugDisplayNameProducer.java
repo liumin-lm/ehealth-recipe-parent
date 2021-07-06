@@ -2,7 +2,6 @@ package recipe.bussutil.drugdisplay;
 
 
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
-import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.JSONUtils;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.util.MapValueUtil;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +37,7 @@ public class DrugDisplayNameProducer {
         }
         StringBuilder splicedName = new StringBuilder();
         //排好序的配置name列表
-        List<String> sortConfigList = DrugDisplayNameSorter.sortConfigName(keyMap, configKey);
+        List<String> sortConfigList = DisplayNameEnum.getDisplayObject(configKey).sortConfigName(keyMap);
         LOGGER.info("DrugDisplayNameProducer getDrugName sortConfigList:{}.", JSONUtils.toString(sortConfigList));
         String value;
         //依次拼接

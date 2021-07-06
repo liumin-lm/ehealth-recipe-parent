@@ -32,7 +32,7 @@ public class RedisManager {
      * @param coOrdinateList
      */
     public void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
-        if (CollectionUtils.isEmpty(coOrdinateList) || null == recipeId) {
+        if (ValidateUtil.validateObjects(recipeId, coOrdinateList)) {
             logger.warn("RedisManager coOrdinate error ");
             return;
         }
