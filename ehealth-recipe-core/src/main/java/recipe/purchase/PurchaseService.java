@@ -46,6 +46,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
+import recipe.offlinetoonline.service.third.HisService;
 import recipe.service.*;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
@@ -83,7 +84,7 @@ public class PurchaseService {
     private HisRecipeDAO hisRecipeDAO;
 
     @Autowired
-    recipe.offlinetoonline.service.third.RecipeHisService recipeHisService;
+    HisService hisService;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -321,7 +322,7 @@ public class PurchaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(dbRecipe.getClinicOrgan(),patientDTO,null,OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),dbRecipe.getRecipeCode());
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisService.queryData(dbRecipe.getClinicOrgan(),patientDTO,null,OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),dbRecipe.getRecipeCode());
             if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");

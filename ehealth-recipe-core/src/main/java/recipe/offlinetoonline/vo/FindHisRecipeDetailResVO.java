@@ -1,7 +1,7 @@
 package recipe.offlinetoonline.vo;
 
-import com.ngari.recipe.entity.HisRecipeDetail;
 import com.ngari.recipe.entity.HisRecipeExt;
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,14 +15,12 @@ import java.util.Map;
  */
 @SuppressWarnings("ALL")
 @Data
+@Builder
 public class FindHisRecipeDetailResVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
-    //
+    //处方详情（调用线上获取处方详情获得）
     private Map<String, Object> recipeDetailMap;
-
-    //线下处方详情
-    private List<HisRecipeDetail> hisRecipeDetails;
 
     //线下处方拓展数据
     private List<HisRecipeExt> hisRecipeExts;

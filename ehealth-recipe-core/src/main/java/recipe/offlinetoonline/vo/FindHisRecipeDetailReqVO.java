@@ -1,5 +1,6 @@
 package recipe.offlinetoonline.vo;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -9,8 +10,8 @@ import java.io.Serializable;
  * @Date 2021/1/26 上午11:42
  * @Description 线下转线上获取详情参数
  */
-@SuppressWarnings("ALL")
 @Data
+@Builder
 public class FindHisRecipeDetailReqVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
@@ -26,10 +27,10 @@ public class FindHisRecipeDetailReqVO implements Serializable {
     //处方号
     private String recipeCode;
 
-    //
+    //卡片号
     private String cardId;
 
-    //缴费状态 1 未处理 2已处理
+    //
     private String status;
 
 }

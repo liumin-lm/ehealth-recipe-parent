@@ -23,7 +23,7 @@ import java.util.List;
  * @Date 2021/6/8 下午2:08
  * @Description
  */
-public class RecipeHisService {
+public class HisService {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 

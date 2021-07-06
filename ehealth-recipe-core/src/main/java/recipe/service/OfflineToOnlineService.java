@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -31,10 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
@@ -42,12 +43,14 @@ import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
+import recipe.offlinetoonline.service.impl.NoPayServiceImpl;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
+import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.manager.EmrRecipeManager;
 import recipe.service.manager.GroupRecipeManager;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
@@ -95,6 +98,86 @@ public class OfflineToOnlineService {
     private IRevisitExService exService;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private NoPayServiceImpl noPayServiceImpl;
+
+    /**
+     * 获取购药按钮
+     *
+     * @param recipeIds
+     * @return
+     */
+    public List<RecipeGiveModeButtonRes> getRecipeGiveModeButtonRes(List<Integer> recipeIds) {
+        LOGGER.info("OfflineToOnlineService getRecipeGiveModeButtonRes request = {}",  JSONUtils.toString(recipeIds));
+        List<RecipeGiveModeButtonRes> recipeGiveModeButtonRes = recipeService.getRecipeGiveModeButtonRes(recipeIds);
+        if (CollectionUtils.isEmpty(recipeGiveModeButtonRes)) {
+            throw new DAOException(609, "“抱歉，当前处方没有可支持的购药方式”");
+        }
+        LOGGER.info("OfflineToOnlineService getRecipeGiveModeButtonRes response = {}",  JSONUtils.toString(recipeGiveModeButtonRes));
+        return recipeGiveModeButtonRes;
+    }
+
+    /**
+     * @param request
+     * @return
+     * @Description 批量同步线下处方数据
+     * @Author liumin
+     */
+    public List<Integer> batchSyncRecipeFromHis(SettleForOfflineToOnlineVO request) {
+        LOGGER.info("OfflineToOnlineService batchSyncRecipeFromHis request = {}", JSONUtils.toString(request));
+        List<Integer> recipeIds = new ArrayList<>();
+        // 1、删数据
+        deleteRecipeByRecipeCodes(request.getOrganId(),request.getRecipeCode());
+
+        request.getRecipeCode().forEach(recipeCode -> {
+            // 2、线下转线上
+            FindHisRecipeDetailReqVO findHisRecipeDetailReqVO=getFindHisRecipeDetailParam(request.getMpiId(),recipeCode, request.getOrganId(),request.getCardId());
+            Map<String, Object> map = noPayServiceImpl.findHisRecipeDetail(findHisRecipeDetailReqVO);
+            RecipeBean recipeBean = objectMapper.convertValue(map.get("recipe"), RecipeBean.class);
+            if (null != recipeBean) {
+                recipeIds.add(recipeBean.getRecipeId());
+            }
+        });
+        LOGGER.info("batchSyncRecipeFromHis recipeIds:{}", JSONUtils.toString(recipeIds));
+        //部分处方线下转线上成功
+        if (recipeIds.size() != request.getRecipeCode().size()) {
+            throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
+        }
+        //存在已失效处方
+        List<Recipe> recipes=recipeDAO.findRecipeByRecipeIdAndClinicOrgan(Integer.parseInt(request.getOrganId()),recipeIds);
+        if(CollectionUtils.isNotEmpty(recipes)&& recipes.size()>0){
+            LOGGER.info("batchSyncRecipeFromHis 存在已失效处方");
+            throw new DAOException(600, "处方单过期已失效");
+        }
+        LOGGER.info("OfflineToOnlineService batchSyncRecipeFromHis response = {}",  JSONUtils.toString(recipeIds));
+        return recipeIds;
+    }
+
+    /**
+     * 获取一个获取详情的入参对象
+     * @param mpiId             就诊人mpiid
+     * @param recipeCode        处方号
+     * @param organId           机构id
+     * @param cardId            卡号
+     * @return
+     */
+    private FindHisRecipeDetailReqVO getFindHisRecipeDetailParam(String mpiId, String recipeCode, String organId, String cardId) {
+        FindHisRecipeDetailReqVO findHisRecipeDetailReqVO;
+        findHisRecipeDetailReqVO=FindHisRecipeDetailReqVO.builder()
+                .mpiId(mpiId)
+                .recipeCode(recipeCode)
+                .organId(Integer.parseInt(organId))
+                .cardId(cardId)
+                .build();
+        return findHisRecipeDetailReqVO;
+    }
+
+    public List<HisRecipe> findHisRecipes(FindHisRecipeListVO request) {
+        return hisRecipeDAO.findHisRecipes(request.getOrganId(), request.getMpiId(), Integer.parseInt(request.getStatus()), request.getStart(), request.getLimit());
+    }
 
 //    /**
 //     * organId 机构编码
@@ -457,69 +540,28 @@ public class OfflineToOnlineService {
      * @param timeQuantum
      * @param flag
      */
-    @RpcService
-    public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
-        List<HisRecipe> recipes = new ArrayList<>();
-        //查询数据
-        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId, patientDTO, timeQuantum, flag, recipeCodeThreadLocal.get());
-        if (null == responseTO || CollectionUtils.isEmpty(responseTO.getData())) {
-            return null;
-        }
-        try {
-            //更新数据校验
-            hisRecipeInfoCheck(responseTO.getData(), patientDTO);
-        } catch (Exception e) {
-            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
-        }
-        try {
-            //数据入库
-            recipes = saveHisRecipeInfo(responseTO, patientDTO, flag);
-        } catch (Exception e) {
-            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
-        }
-        return recipes;
-    }
-
-    /**
-     * @param organId
-     * @param patientDTO
-     * @param timeQuantum
-     * @param flag
-     * @return
-     * @Author liumin
-     * @Desciption 从 his查询待缴费已缴费的处方信息
-     */
-    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        LOGGER.info("offlineToOnlineService HisResponseTO.queryData:organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
-        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        patientBaseInfo.setBirthday(patientDTO.getBirthday());
-        patientBaseInfo.setPatientName(patientDTO.getPatientName());
-        patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
-        patientBaseInfo.setMobile(patientDTO.getMobile());
-        patientBaseInfo.setMpi(patientDTO.getMpiId());
-        patientBaseInfo.setCardID(patientDTO.getCardId());
-        patientBaseInfo.setCertificate(patientDTO.getCertificate());
-
-        QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
-        queryRecipeRequestTO.setPatientInfo(patientBaseInfo);
-        queryRecipeRequestTO.setEndDate(new Date());
-        queryRecipeRequestTO.setOrgan(organId);
-        queryRecipeRequestTO.setQueryType(flag);
-        if (StringUtils.isNotEmpty(recipeCode)) {
-            queryRecipeRequestTO.setRecipeCode(recipeCode);
-        }
-        IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO, QueryRecipeRequestTO.class));
-        HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
-        LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO, HisResponseTO.class));
-        //过滤数据
-        responseTO = filterData(responseTO);
-        LOGGER.info("queryHisRecipeInfo queryData:{}.", JSONUtils.toString(responseTO));
-        return responseTO;
-    }
-
-
-
+//    @RpcService
+//    public List<HisRecipe> queryHisRecipeInfo(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag) {
+//        List<HisRecipe> recipes = new ArrayList<>();
+//        //查询数据
+//        HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryData(organId, patientDTO, timeQuantum, flag, recipeCodeThreadLocal.get());
+//        if (null == responseTO || CollectionUtils.isEmpty(responseTO.getData())) {
+//            return null;
+//        }
+//        try {
+//            //更新数据校验
+//            hisRecipeInfoCheck(responseTO.getData(), patientDTO);
+//        } catch (Exception e) {
+//            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+//        }
+//        try {
+//            //数据入库
+//            recipes = saveHisRecipeInfo(responseTO, patientDTO, flag);
+//        } catch (Exception e) {
+//            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+//        }
+//        return recipes;
+//    }
     /**
      * 线下待处理处方转换成前端列表所需对象
      *
@@ -957,7 +999,7 @@ public class OfflineToOnlineService {
             }
         }
 
-        DrugMakingMethod drugMakingMethod=drugMakingMethodDao.getDrugMakingMethodByOrganIdAndCode(recipe.getClinicOrgan(),hisRecipe.getMakeMethodCode())
+        DrugMakingMethod drugMakingMethod=drugMakingMethodDao.getDrugMakingMethodByOrganIdAndCode(recipe.getClinicOrgan(),hisRecipe.getMakeMethodCode());
         if(drugMakingMethod!=null){
             recipeExtend.setMakeMethodId(drugMakingMethod.getMethodId().toString());
         }
@@ -1009,8 +1051,6 @@ public class OfflineToOnlineService {
                 recipeExtend.setCardType(consultExDTO.getCardType());
             }
         }
-
-        //中药
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
         RecipeBean recipeBean = new RecipeBean();
         BeanUtils.copy(recipe, recipeBean);
@@ -1057,18 +1097,18 @@ public class OfflineToOnlineService {
                         if (payFlag == 0) {
                             tips = "待支付";
                         } else {
-                            if (OrderStatusConstant.READY_SEND.equals(orderStatus)) {
+                            if (RecipeOrderStatusEnum.ORDER_STATUS_AWAIT_SHIPPING.getType().equals(orderStatus)) {
                                 tips = "待配送";
-                            } else if (OrderStatusConstant.SENDING.equals(orderStatus)) {
+                            } else if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.equals(orderStatus)) {
                                 tips = "配送中";
-                            } else if (OrderStatusConstant.FINISH.equals(orderStatus)) {
+                            } else if (RecipeOrderStatusEnum.ORDER_STATUS_DONE.equals(orderStatus)) {
                                 tips = "已完成";
                             }
                         }
                     }
 
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    if (OrderStatusConstant.HAS_DRUG.equals(orderStatus)) {
+                    if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.equals(orderStatus)) {
                         if (payFlag == 0) {
                             tips = "待支付";
                         } else {
@@ -1785,28 +1825,5 @@ public class OfflineToOnlineService {
         return Arrays.asList(cardTypes);
     }
 
-    /**
-     * @param responseTO
-     * @return
-     * @Description 数据过滤
-     */
-    private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTO) {
-        if (!StringUtils.isEmpty(recipeCodeThreadLocal.get())) {
-            String recipeCode = recipeCodeThreadLocal.get();
-            if (responseTO != null) {
-                LOGGER.info("queryHisRecipeInfo recipeCodeThreadLocal:{}", recipeCode);
-                List<QueryHisRecipResTO> queryHisRecipResTOs = responseTO.getData();
-                List<QueryHisRecipResTO> queryHisRecipResTOFilters = new ArrayList<>();
-                if (!CollectionUtils.isEmpty(queryHisRecipResTOs)) {
-                    for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOs) {
-                        if (recipeCode.equals(queryHisRecipResTO.getRecipeCode())) {
-                            queryHisRecipResTOFilters.add(queryHisRecipResTO);
-                        }
-                    }
-                }
-                responseTO.setData(queryHisRecipResTOFilters);
-            }
-        }
-        return responseTO;
-    }
+
 }

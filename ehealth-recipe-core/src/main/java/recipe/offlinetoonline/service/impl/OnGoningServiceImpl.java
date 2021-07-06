@@ -17,12 +17,11 @@ import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
-import recipe.offlinetoonline.service.third.RecipeHisService;
+import recipe.offlinetoonline.service.third.HisService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
-import recipe.service.OfflineToOnlineService2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,14 +41,11 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     OfflineToOnlineService offlineToOnlineService;
 
     @Autowired
-    RecipeHisService recipeHisService;
+    HisService hisService;
 
     @Autowired
     @Qualifier("basic.patientService")
     PatientService patientService;
-
-    @Autowired
-    OfflineToOnlineService2 offlineToOnlineService2;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
@@ -67,7 +63,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,180,1,null);
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisService.queryData(request.getOrganId(),patientDTO,180,1,null);
 
         try {
             // 2更新数据校验
@@ -97,9 +93,9 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request) {
         LOGGER.info("NoPayServiceImpl settleForOfflineToOnline request = {}",  JSONUtils.toString(request));
         // 1、线下转线上
-        List<Integer> recipeIds = offlineToOnlineService2.batchSyncRecipeFromHis(request);
+        List<Integer> recipeIds = offlineToOnlineService.batchSyncRecipeFromHis(request);
         // 2、获取购药按钮
-        List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList = offlineToOnlineService2.getRecipeGiveModeButtonRes(recipeIds);
+        List<RecipeGiveModeButtonRes> recipeGiveModeButtonResList = offlineToOnlineService.getRecipeGiveModeButtonRes(recipeIds);
         LOGGER.info("NoPayServiceImpl settleForOfflineToOnline response:{}", JSONUtils.toString(recipeGiveModeButtonResList));
         return recipeGiveModeButtonResList;
     }

@@ -20,8 +20,8 @@ import recipe.constant.ErrorCode;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.factory.OfflineToOnlineFactory;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
-import recipe.offlinetoonline.service.third.RecipeHisService;
-import recipe.offlinetoonline.vo.FindHisRecipeDetailVO;
+import recipe.offlinetoonline.service.third.HisService;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 
@@ -31,8 +31,8 @@ import java.util.Map;
 
 
 /**
- * @Author liumin
- * @Date 2021/05/18 上午11:42
+ * @Author      liumin
+ * @Date        2021/07/06 上午11:42
  * @Description 线下转线上服务入口类
  */
 @RpcBean("offlineToOnlineAtop")
@@ -43,7 +43,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
     OfflineToOnlineFactory offlineToOnlineFactory;
 
     @Autowired
-    RecipeHisService recipeHisService;
+    HisService hisService;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -72,7 +72,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
             patientDTO.setCardId(StringUtils.isNotEmpty(request.getCardId()) ? request.getCardId() : "");
 
             // 1、获取his数据
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos=recipeHisService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
             IOfflineToOnlineService offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             // 2、待缴费、进行中、已缴费线下处方列表服务差异化实现
             List<MergeRecipeVO> hisRecipeVoS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
@@ -93,7 +93,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
      */
     @RpcService
     @Validated
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailVO request) {
+    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         logger.info("OfflineToOnlineAtop findHisRecipeDetail request:{}", ctd.util.JSONUtils.toString(request));
         if (null == request
                 || request.getOrganId() == null
