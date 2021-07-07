@@ -36,7 +36,7 @@ public class RecipeOrderPatientAtop  extends BaseAtop {
             //上传处方到第三方,上传失败提示HIS返回的失败信息
             recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
             //获取跳转链接
-            SkipThirdBean skipThirdBean = recipeOrderService.getThirdUrlNew(skipThirdReqVO.getRecipeIds().get(0));
+            SkipThirdBean skipThirdBean = recipeOrderService.getSkipUrl(skipThirdReqVO);
             logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdBean:{}.", JSON.toJSONString(skipThirdBean));
             return skipThirdBean;
         } catch (DAOException e1) {
