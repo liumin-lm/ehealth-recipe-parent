@@ -410,6 +410,9 @@ public class RecipeOrder implements Serializable {
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+        this.setRegisterFee(zero);
+        this.setThirdPayType(0);
+        this.setThirdPayFee(0d);
     }
     @Column(name = "payeeCode")
     public Integer getPayeeCode() {

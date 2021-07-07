@@ -43,7 +43,7 @@ public class OrderManager {
      * @param recipe  处方信息
      * @return        订单信息
      */
-    public RecipeOrder createBlankOrder(Recipe recipe){
+    public RecipeOrder createBlankOrder(Recipe recipe, Integer status){
         logger.info("OrderManager createBlankOrder recipe:{}.", JSON.toJSON(recipe));
         RecipeOrder order = new RecipeOrder();
         order.setMpiId(recipe.getMpiid());
@@ -51,6 +51,10 @@ public class OrderManager {
         order.setOrderCode(LocalStringUtil.getOrderCode(order.getMpiId()));
         order.setEnterpriseId(recipe.getEnterpriseId());
         order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
+        order.setRecipeFee(recipe.getTotalMoney());
+        order.setTotalFee(recipe.getTotalMoney());
+        order.setActualPrice(recipe.getActualPrice().doubleValue());
+        order.setStatus(status);
         return recipeOrderDAO.save(order);
     }
 }

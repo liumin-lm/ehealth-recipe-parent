@@ -121,7 +121,7 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean(value = "remoteRecipeService")
+@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -238,6 +238,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("updateRecipeInfoForThirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
         try {
             Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeStatusReqTO.getRecipeCode(), recipeStatusReqTO.getOrganId());
+            RecipeOrder recipeOrder;
+            if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                //创建空的订单
+                recipeOrder = orderManager.createBlankOrder(recipe, recipeStatusReqTO.getStatus());
+                recipe.setOrderCode(recipeOrder.getOrderCode());
+            }
             if (new Integer(9).equals(recipeStatusReqTO.getStatus())) {
                 //表示退款的取消
                 //退费申请记录保存
@@ -252,14 +258,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 //保存记录
                 recipeRefundDAO.saveRefund(recipeRefund);
             } else {
-                RecipeOrder recipeOrder;
-                if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    //创建空的订单
-                    recipeOrder = orderManager.createBlankOrder(recipe);
-                    recipe.setOrderCode(recipeOrder.getOrderCode());
-                } else {
                     recipeOrder = orderManager.getOrderByOrderCode(recipe.getOrderCode());
-                }
                 if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
                     recipe.setStatus(6);
                 }
