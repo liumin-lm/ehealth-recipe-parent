@@ -3,6 +3,7 @@ package recipe.bussutil;
 import lombok.*;
 
 import java.io.Serializable;
+import java.net.URI;
 
 /**
  * 模版数据对象
@@ -24,8 +25,5 @@ public class WordToPdfBean implements Serializable {
      * 需要替换pdf模版表单字段值
      */
     private String value;
-    /**
-     * 1 文字类的内容处理,2 将图片写入指定的field
-     */
-    private int type;
+    private URI uri;
 }

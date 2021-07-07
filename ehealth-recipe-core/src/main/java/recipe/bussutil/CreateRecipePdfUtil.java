@@ -86,12 +86,11 @@ public class CreateRecipePdfUtil {
         if (StringUtils.isAnyEmpty(signImgNode.getRecipeId(), signImgNode.getSignImgFileId(), signImgNode.getSignImgId())) {
             return null;
         }
-        //获取图片
-        byte[] doctorSignImageByte = fileDownloadService.downloadAsByte(signImgNode.getSignImgFileId());
-        File giveUserImage = new File(signImgNode.getSignImgId() + System.currentTimeMillis() + ".png");
-        getFileByBytes(doctorSignImageByte, giveUserImage);
-        String fileId = null;
         try {
+            //获取图片
+            byte[] doctorSignImageByte = fileDownloadService.downloadAsByte(signImgNode.getSignImgFileId());
+            File giveUserImage = new File("recipe_" + signImgNode.getRecipeId() + ".png");
+            getFileByBytes(doctorSignImageByte, giveUserImage);
             URL url = giveUserImage.toURI().toURL();
             //获取pdf
             byte[] signFileByte;
@@ -100,23 +99,23 @@ public class CreateRecipePdfUtil {
             } else {
                 signFileByte = signImgNode.getSignFileData();
             }
-            File signFilePDF = new File(signImgNode.getRecipeId() + System.currentTimeMillis() + ".pdf");
+            File signFilePDF = new File("recipe_" + signImgNode.getRecipeId() + ".pdf");
             @Cleanup InputStream input = new ByteArrayInputStream(signFileByte);
             @Cleanup OutputStream output = new FileOutputStream(signFilePDF);
             addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(),
                     signImgNode.getX(), signImgNode.getY(), signImgNode.getRepeatWrite());
             //上传pdf文件
             byte[] bytes = File2byte(signFilePDF);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes, signFilePDF.getName());
+            String fileId = fileUploadService.uploadFileWithoutUrt(bytes, signFilePDF.getName());
             //删除本地文件
             signFilePDF.delete();
+            giveUserImage.delete();
+            return fileId;
         } catch (Exception e) {
-            logger.warn("CreateRecipePdfUtil giveUserUpdate error", e);
+            logger.error("CreateRecipePdfUtil giveUserUpdate error", e);
+            return null;
         }
-        giveUserImage.delete();
-        return fileId;
     }
-
 
     /**
      * 处方签pdf添加收货人信息

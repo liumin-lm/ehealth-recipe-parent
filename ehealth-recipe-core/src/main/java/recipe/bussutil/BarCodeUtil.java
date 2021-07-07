@@ -5,17 +5,36 @@ import org.krysalis.barcode4j.HumanReadablePlacement;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.net.URI;
 
 /**
  * created by shiyuping on 2020/6/3
  * 条形码生成工具
  */
 public class BarCodeUtil {
+    private static final Logger logger = LoggerFactory.getLogger(BarCodeUtil.class);
+
+    public static URI generateFileUrl(String msg, String path) {
+        if (StringUtils.isEmpty(msg)) {
+            return null;
+        }
+        try {
+            File barCodeFile = BarCodeUtil.generateFile(msg, path);
+            URI url = barCodeFile.toURI();
+            return url;
+        } catch (Exception e) {
+            logger.error("BarCodeUtil generateFileUrl wordToPdf ={} ,path={} ,error", msg, path, e);
+            return null;
+        }
+    }
+
     /**
      * 生成文件
      *
@@ -23,7 +42,7 @@ public class BarCodeUtil {
      * @param path
      * @return
      */
-    public static File generateFile(String msg, String path) throws Exception{
+    public static File generateFile(String msg, String path) throws Exception {
         File file = new File(path);
         generate(msg, new FileOutputStream(file));
         return file;

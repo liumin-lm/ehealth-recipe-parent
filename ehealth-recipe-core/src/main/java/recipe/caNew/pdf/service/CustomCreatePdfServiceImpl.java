@@ -1,6 +1,5 @@
 package recipe.caNew.pdf.service;
 
-import com.alibaba.fastjson.JSON;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.*;
@@ -18,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bean.RecipePdfDTO;
+import recipe.bussutil.BarCodeUtil;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.bussutil.WordToPdfBean;
@@ -32,8 +32,10 @@ import recipe.util.MapValueUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.*;
 
 /**
@@ -45,16 +47,13 @@ import java.util.*;
 @Service
 public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    /**
-     * 1: 文字类的内容处理,2 :将图片写入
-     */
-    private final int TYPE_TEXT = 1;
-    private final int TYPE_IMG = 2;
 
     /**
      * 需要记录坐标的的字段
      */
-    private final List<String> ADDITIONAL_FIELDS = Arrays.asList("doctorSignImg,doctorSignImgToken", "recipe.check", "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "tcmDecoction", "recipe.giveUser");
+    private final List<String> ADDITIONAL_FIELDS = Arrays.asList("doctorSignImg,doctorSignImgToken", "recipe.check",
+            "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "tcmDecoction", "recipe.giveUser",
+            "barCode.recipeExtend.cardNo", "qrCode.recipeExtend.cardNo");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -124,17 +123,27 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         return null;
     }
 
+    /**
+     * 按照模版生成 pdf
+     *
+     * @param recipe 处方
+     * @return pdf byte
+     */
     private byte[] generateTemplatePdf(Recipe recipe) {
         try {
             //替换模版pdf的字段
             @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
-            List<CoOrdinateVO> ordinateList = generateTemplatePdf(recipe, output);
+            List<WordToPdfBean> wordToPdf = generateTemplatePdf(recipe, output);
             byte[] data = CreateRecipePdfUtil.generateTemplatePdf(recipe.getRecipeId(), output);
             if (null == data) {
                 return null;
             }
-            //需要记录坐标的的字段
-            redisManager.coOrdinate(recipe.getRecipeId(), ordinateList);
+            wordToPdf.forEach(a -> {
+                if (null != a.getUri()) {
+                    File file = new File(a.getUri());
+                    file.delete();
+                }
+            });
             return data;
         } catch (Exception e) {
             logger.error("CustomCreatePdfServiceImpl generateTemplatePdf error ", e);
@@ -150,7 +159,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @return 需要记录坐标的的字段对象
      * @throws Exception
      */
-    private List<CoOrdinateVO> generateTemplatePdf(Recipe recipe, ByteArrayOutputStream output) throws Exception {
+    private List<WordToPdfBean> generateTemplatePdf(Recipe recipe, ByteArrayOutputStream output) throws Exception {
         //模版pdfId
         String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
         @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
@@ -160,12 +169,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
         //记录坐标的的字段对象
         List<CoOrdinateVO> ordinateList = ordinateList(form);
+        redisManager.coOrdinate(recipe.getRecipeId(), ordinateList);
         //模版填充 数据方法
-        generatePdfList(recipe, form);
+        List<WordToPdfBean> generatePdfList = templatePdfList(recipe, form);
         //如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
         stamper.setFormFlattening(true);
         stamper.close();
-        return ordinateList;
+        return generatePdfList;
     }
 
     /**
@@ -199,50 +209,38 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @param form
      * @return
      */
-    private void generatePdfList(Recipe recipe, AcroFields form) {
+    private List<WordToPdfBean> templatePdfList(Recipe recipe, AcroFields form) {
         Map<String, AcroFields.Item> map = form.getFields();
         if (map.isEmpty()) {
             logger.warn("CustomCreatePdfServiceImpl generatePdfList map null");
-            return;
+            return null;
         }
         //获取pdf值对象
         RecipePdfDTO recipePdfDTO = (RecipePdfDTO) recipeManager.getRecipeDTO(recipe.getRecipeId());
         PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
         recipePdfDTO.setPatientBean(patientBean);
-        //模版填充
+        //获取模版填充字段
         List<WordToPdfBean> generatePdfList = generatePdfList(map.keySet(), recipePdfDTO);
-        templatePdf(generatePdfList, form);
-    }
-
-    /**
-     * 模版填充 数据方法
-     *
-     * @param list 模版数据对象
-     * @param form 模版
-     */
-    private void templatePdf(List<WordToPdfBean> list, AcroFields form) {
-        logger.info("CustomCreatePdfServiceImpl templatePdf list = {}", JSON.toJSONString(list));
-        if (CollectionUtils.isEmpty(list)) {
-            return;
-        }
-        for (WordToPdfBean wordToPdf : list) {
+        //替换的模版字段
+        for (WordToPdfBean wordToPdf : generatePdfList) {
             try {
                 String key = wordToPdf.getKey();
                 String value = wordToPdf.getValue();
-                if (TYPE_TEXT == wordToPdf.getType()) {
+                if (null == wordToPdf.getUri()) {
                     //文字类的内容处理
                     form.setField(key, value);
                 } else {
                     //将图片写入指定的field
-                    Image image = Image.getInstance(value);
+                    Image image = Image.getInstance(wordToPdf.getUri().toURL());
                     PushbuttonField pb = form.getNewPushbuttonFromField(key);
                     pb.setImage(image);
                     form.replacePushbuttonField(key, pb.getField());
                 }
             } catch (Exception e) {
-                logger.error("CreateRecipePdfUtil templatePdf error ", e);
+                logger.error("CreateRecipePdfUtil templatePdfList error ", e);
             }
         }
+        return generatePdfList;
     }
 
     /**
@@ -257,8 +255,20 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         for (String key : keySet) {
             //单一字段处理
             String[] keySplit = key.split(ByteUtils.DOT);
-            if (1 == keySplit.length) {
-                generatePdfList.add(new WordToPdfBean(key, "", TYPE_TEXT));
+            //条形码 ，二维码 等特殊节点处理
+            if (3 == keySplit.length) {
+                String identifyName = keySplit[0];
+                String objectName = keySplit[1];
+                String fieldName = keySplit[2];
+                if ("barCode".equals(identifyName)) {
+                    WordToPdfBean wordToPdf = getFieldValueByName(key, objectName, fieldName, recipePdfDTO);
+                    URI uri = BarCodeUtil.generateFileUrl(wordToPdf.getValue(), "barcode.png");
+                    wordToPdf.setUri(uri);
+                    generatePdfList.add(wordToPdf);
+                }
+                if ("qrCode".equals(identifyName)) {
+                    generatePdfList.add(getFieldValueByName(key, objectName, fieldName, recipePdfDTO));
+                }
                 continue;
             }
             //对象字段处理
@@ -266,21 +276,6 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 String objectName = keySplit[0];
                 String fieldName = keySplit[1];
                 generatePdfList.add(getFieldValueByName(key, objectName, fieldName, recipePdfDTO));
-                continue;
-            }
-            //条形码 ，二维码 等特殊节点处理
-            if (3 == keySplit.length) {
-                String identifyName = keySplit[0];
-                String objectName = keySplit[1];
-                String fieldName = keySplit[2];
-                if ("barCode".equals(identifyName)) {
-                    generatePdfList.add(getFieldValueByName(key, objectName, fieldName, recipePdfDTO));
-                    continue;
-                }
-                if ("qrCode".equals(identifyName)) {
-                    generatePdfList.add(getFieldValueByName(key, objectName, fieldName, recipePdfDTO));
-                    continue;
-                }
             }
         }
         return generatePdfList;
@@ -298,19 +293,19 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private WordToPdfBean getFieldValueByName(String key, String objectName, String fieldName, RecipePdfDTO recipePdfDTO) {
         if ("recipe".equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
-            return new WordToPdfBean(key, value, TYPE_TEXT);
+            return new WordToPdfBean(key, value, null);
         }
         if ("patient".equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
-            return new WordToPdfBean(key, value, TYPE_TEXT);
+            return new WordToPdfBean(key, value, null);
         }
-        if ("recipeExt".equals(objectName)) {
+        if ("recipeExtend".equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
-            return new WordToPdfBean(key, value, TYPE_TEXT);
+            return new WordToPdfBean(key, value, null);
         }
-        if ("recipeDetails".equals(objectName)) {
+        if ("recipeDetail".equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeDetails());
-            return new WordToPdfBean(key, value, TYPE_TEXT);
+            return new WordToPdfBean(key, value, null);
         }
         return null;
     }
