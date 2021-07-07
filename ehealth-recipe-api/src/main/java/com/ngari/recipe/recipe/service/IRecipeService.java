@@ -9,6 +9,7 @@ import com.ngari.his.recipe.mode.weijianwei.DrugInfoReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
+import com.ngari.platform.recipe.mode.RecipeStatusReqTO;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
@@ -97,6 +98,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr);
+
+    /**
+     * 根据第三方传的状态更新处方相关信息,用于订单在第三方生成模式
+     * @param recipeStatusReqTO
+     * @return
+     */
+    @RpcService
+    boolean updateRecipeInfoForthirdOrder(RecipeStatusReqTO recipeStatusReqTO);
 
     /**
      * 获取处方信息

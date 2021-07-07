@@ -39,6 +39,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
+import com.ngari.platform.recipe.mode.RecipeStatusReqTO;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
@@ -226,6 +227,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr) {
         return recipeDAO.updateRecipeInfoByRecipeId(recipeId, afterStatus, changeAttr);
+    }
+
+    @Override
+    public boolean updateRecipeInfoForthirdOrder(RecipeStatusReqTO recipeStatusReqTO) {
+        LOGGER.info("updateRecipeInfoForthirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
+
+        return false;
     }
 
     @RpcService

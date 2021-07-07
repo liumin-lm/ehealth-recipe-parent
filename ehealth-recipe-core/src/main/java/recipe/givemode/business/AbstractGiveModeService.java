@@ -163,14 +163,20 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
             return;
         }
-        //orderType=0表示订单在第三方生成
-        GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
-        giveModeButton.setButtonSkipType("3");
-        giveModeButton.setShowButtonName("查看订单");
-        giveModeButton.setShowButtonKey("supportThirdOrder");
-        giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
-        //此时将ButtonType设置为4
-        giveModeShowButtonVO.setButtonType(4);
+        if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipe.getStatus())) {
+            //orderType=0表示订单在第三方生成
+            GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
+            giveModeButton.setButtonSkipType("3");
+            giveModeButton.setShowButtonName("查看订单");
+            giveModeButton.setShowButtonKey("supportThirdOrder");
+            giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
+            //此时将ButtonType设置为4
+            giveModeShowButtonVO.setButtonType(4);
+        }
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe) {

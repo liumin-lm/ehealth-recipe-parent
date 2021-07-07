@@ -600,6 +600,9 @@ public class PayModeOnline implements IPurchaseService {
                     }
                 }
                 break;
+            case RECIPE_STATUS_WAIT_SEND:
+                tips = "订单已处理，请耐心等待药品配送";
+                break;
             case RECIPE_STATUS_CHECK_PASS_YS:
                 tips = "处方已审核通过，请耐心等待药品配送";
                 break;
