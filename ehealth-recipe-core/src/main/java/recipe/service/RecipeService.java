@@ -995,6 +995,11 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap = Maps.newHashMap();
+                attrMap.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
+                LOGGER.info("checkFlag {} 更新为待审核", recipeId);
                 recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
             }
 
@@ -1041,7 +1046,11 @@ public class RecipeService extends RecipeBaseService {
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
         }
-
+        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
+            return;
+        }
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -1182,6 +1191,10 @@ public class RecipeService extends RecipeBaseService {
         Integer recipeId = resultVo.getRecipeId();
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            return;
+        }
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         RecipeResultBean result = RecipeResultBean.getFail();
 
@@ -1302,6 +1315,11 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap1 = Maps.newHashMap();
+                attrMap1.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap1);
+                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //添加兼容医生CA易签保的回调逻辑
                 if (MapUtils.isNotEmpty(esignResponseMap)) {
@@ -2523,6 +2541,8 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> updateMap = new HashMap<>();
         updateMap.put("supplementaryMemo", recipe.getSupplementaryMemo());
         updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+        //二次签名 强制处方状态为通过 0 待审核  1 审核通过  2 审核不通过
+        updateMap.put("checkFlag", 1);
 
         //date 20190929
         //这里提示文案描述，扩展成二次审核通过/二次审核不通过的说明
@@ -3675,12 +3695,16 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIds(Integer ext, List<Integer> recipeIds) {
+        Collections.sort(recipeIds);
+        Collections.reverse(recipeIds);
+        LOGGER.info("findPatientRecipesByIds recipeIds:{}",JSONUtils.toString(recipeIds));
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
             for (Integer recipeId : recipeIds) {
                 recipeInfos.add(RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false));
             }
+            LOGGER.info("findPatientRecipesByIds response:{}",JSONUtils.toString(recipeInfos));
             return recipeInfos;
         }
         return null;
@@ -5769,11 +5793,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.warn("当前处方{}信息为null，生成药师pdf部分失败", recipeId);
             return;
         }
-//        DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
-//        if (null == doctorDTOn) {
-//            LOGGER.warn("当前处方{}信息药师审核信息为空，生成药师pdf部分失败", recipeId);
-//            return;
-//        }
         try {
             boolean usePlatform = true;
             Object recipeUsePlatformCAPDF = configService.getConfiguration(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF");
