@@ -63,9 +63,7 @@ public class RecipeDetailValidateTool {
      * @return
      */
     public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup) {
-        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO();
-        validateOrganDrugVO.setDrugId(recipeDetailBean.getDrugId());
-        validateOrganDrugVO.setOrganDrugCode(recipeDetailBean.getOrganDrugCode());
+        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(recipeDetailBean.getOrganDrugCode(), null, recipeDetailBean.getDrugId());
         OrganDrugList organDrugList = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
         if (validateOrganDrugVO.getValidateStatus()) {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);

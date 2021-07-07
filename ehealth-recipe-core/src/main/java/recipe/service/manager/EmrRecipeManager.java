@@ -14,6 +14,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.*;
+import eh.cdr.api.vo.request.RecipeInfoReq;
 import eh.cdr.api.vo.request.SaveEmrContractReq;
 import eh.cdr.api.vo.response.EmrConfigRes;
 import org.slf4j.Logger;
@@ -37,7 +38,6 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 电子病历
@@ -181,16 +181,25 @@ public class EmrRecipeManager {
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
-        //写入电子病例 药品信息
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
-        //替换下药品拼接名
-        Map<Integer, Recipedetail> recipedetailMap = recipeDetailList.stream().collect(Collectors.toMap(Recipedetail::getRecipeDetailId, a -> a));
-        rpDetailBean.forEach(a -> a.setDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetailMap.get(a.getRecipeDetailId()), recipe.getRecipeType(), recipe.getClinicOrgan())));
         try {
-            docIndexService.saveRpDetailRelation(docId, recipeId, recipe.getRecipeType(), rpDetailBean);
+            //写入电子病例 药品信息
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+            //替换下药品拼接名
+            recipeDetailList.forEach(a -> a.setDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
+            List<RpDetailBean> rpDetailBean = ObjectCopyUtils.convert(recipeDetailList, RpDetailBean.class);
+            RecipeInfoReq recipeInfoReq = new RecipeInfoReq();
+            recipeInfoReq.setRpDetailBeanList(rpDetailBean);
+            recipeInfoReq.setRecipeId(recipeId);
+            recipeInfoReq.setHisRecipeCode(recipe.getRecipeCode());
+            recipeInfoReq.setDocIndexId(docId);
+            if (null != recipeExtend) {
+                recipeInfoReq.setRegisterNo(recipeExtend.getRegisterID());
+            }
+            logger.info("EmrRecipeManager upDocIndex recipeInfoReq：{} ", JSON.toJSONString(recipeInfoReq));
+            docIndexService.saveRpDetailRelation(recipeInfoReq);
         } catch (Exception e) {
-            logger.error("saveRpDetailRelation error docId：{} ", docId, e);
+            logger.error("EmrRecipeManager upDocIndex  saveRpDetailRelation error docId：{} ", docId, e);
         }
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();

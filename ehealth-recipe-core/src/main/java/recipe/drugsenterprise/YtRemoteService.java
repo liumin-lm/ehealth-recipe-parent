@@ -607,7 +607,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 getFailResult(result, "药品的单价为空");
                 return result;
             }
-            price = saleDrug.getPrice().doubleValue();
+            price = nowDetail.getActualSalePrice() == null ? nowDetail.getSalePrice().doubleValue() : nowDetail.getActualSalePrice().doubleValue();
             quantity = nowDetail.getUseTotalDose();
 
             nowYtDrugDTO.setQuantity(quantity);

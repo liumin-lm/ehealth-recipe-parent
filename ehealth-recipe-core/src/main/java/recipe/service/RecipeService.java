@@ -995,6 +995,11 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap = Maps.newHashMap();
+                attrMap.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
+                LOGGER.info("checkFlag {} 更新为待审核", recipeId);
                 recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
             }
 
@@ -1041,7 +1046,11 @@ public class RecipeService extends RecipeBaseService {
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
         }
-
+        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
+            return;
+        }
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -1182,6 +1191,10 @@ public class RecipeService extends RecipeBaseService {
         Integer recipeId = resultVo.getRecipeId();
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe.getStatus() == 9) {
+            LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
+            return;
+        }
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         RecipeResultBean result = RecipeResultBean.getFail();
 
@@ -1302,6 +1315,11 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                //更新审方checkFlag为待审核
+                Map<String, Object> attrMap1 = Maps.newHashMap();
+                attrMap1.put("checkFlag", 0);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap1);
+                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
                 //添加兼容医生CA易签保的回调逻辑
                 if (MapUtils.isNotEmpty(esignResponseMap)) {
@@ -2523,6 +2541,8 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> updateMap = new HashMap<>();
         updateMap.put("supplementaryMemo", recipe.getSupplementaryMemo());
         updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+        //二次签名 强制处方状态为通过 0 待审核  1 审核通过  2 审核不通过
+        updateMap.put("checkFlag", 1);
 
         //date 20190929
         //这里提示文案描述，扩展成二次审核通过/二次审核不通过的说明
@@ -2848,7 +2868,6 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 600000)
     public Map<String, Object> drugInfoSynMovement(Integer organId, List<String> drugForms) throws ParseException {
-        SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
@@ -2863,7 +2882,6 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
-        IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
@@ -2874,31 +2892,13 @@ public class RecipeService extends RecipeBaseService {
         Boolean commit = organConfigService.getByOrganIdEnableDrugSyncArtificial(organId);
         //获取纳里机构药品目录
         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-        OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
-        request.setOrganId(organId);
-        //查询全部药品信息，返回的是医院所有有效的药品信息
-        request.setData(Lists.newArrayList());
-        request.setDrcode(Lists.newArrayList());
-        OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
-        try {
-            responseTO = recipeHisService.queryOrganDrugInfo(request);
-            LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
-        } catch (Exception e) {
-            LOGGER.error("drugInfoSynMovement error ", e);
-        }
-        List<OrganDrugInfoTO> data = Lists.newArrayList();
-        if (responseTO != null) {
-            data = responseTO.getData();
-        }
-        if (ObjectUtils.isEmpty(data)) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "his查询药品数据为空!");
-        }
+
         Map<String, OrganDrugList> drugMap = Maps.newHashMap();
         if (!CollectionUtils.isEmpty(details)) {
             drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         }
         //LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
-        return drugInfoSynMovementExt(organId, drugForms, data, drugMap, urt.getUserName(), sync, add, commit);
+        return drugInfoSynMovementExt(organId, drugForms, drugMap, urt.getUserName(), sync, add, commit);
     }
 
     /**
@@ -2908,7 +2908,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drugForms
      * @return
      */
-    public Map<String, Object> drugInfoSynMovementExt(Integer organId, List<String> drugForms, List<OrganDrugInfoTO> data, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit) throws ParseException {
+    public Map<String, Object> drugInfoSynMovementExt(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
@@ -2916,11 +2916,39 @@ public class RecipeService extends RecipeBaseService {
         map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-
-        List<OrganDrugInfoTO> finalData = data;
+       //List<OrganDrugInfoTO> finalData = data;
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+                OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
+                OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
+                request.setOrganId(organId);
+                //查询全部药品信息，返回的是医院所有有效的药品信息
+                request.setData(Lists.newArrayList());
+                request.setDrcode(Lists.newArrayList());
+                try {
+                    responseTO = recipeHisService.queryOrganDrugInfo(request);
+                    LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+                } catch (Exception e) {
+                    LOGGER.error("drugInfoSynMovement error{} ", e);
+                }
+                List<OrganDrugInfoTO> data = Lists.newArrayList();
+                if (responseTO != null) {
+                    data = responseTO.getData();
+                }
+                if (ObjectUtils.isEmpty(data)) {
+                    LOGGER.info("his查询药品数据为空 organId=[{}]", organId);
+                    SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    Map<String, Object> map = Maps.newHashMap();
+                    map.put("Date", myFmt2.format(new Date()));
+                    map.put("Status", 2);
+                    map.put("Exception", 0);
+                    map.put("hisException","his查询药品数据为空!");
+                    redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
+                    redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+                    return;
+                }
                 //查询起始下标
                 Long updateNum = 0L;
                 Long addNum = 0L;
@@ -2928,12 +2956,12 @@ public class RecipeService extends RecipeBaseService {
                 List<OrganDrugInfoTO> addList = Lists.newArrayList();
                 List<OrganDrugInfoTO> updateList = Lists.newArrayList();
                 boolean finishFlag = true;
-                long total = finalData.size();
+                long total = data.size();
                 if (sync || add) {
                     while (finishFlag) {
-                        if (!CollectionUtils.isEmpty(finalData)) {
+                        if (!CollectionUtils.isEmpty(data)) {
                             //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
-                            for (OrganDrugInfoTO drug : finalData) {
+                            for (OrganDrugInfoTO drug : data) {
                                 Integer status = drug.getStatus();
                                 LOGGER.info("drugInfoSynMovementaddHisDrug前期" + drug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                                 OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
@@ -3667,12 +3695,16 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIds(Integer ext, List<Integer> recipeIds) {
+        Collections.sort(recipeIds);
+        Collections.reverse(recipeIds);
+        LOGGER.info("findPatientRecipesByIds recipeIds:{}",JSONUtils.toString(recipeIds));
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
             for (Integer recipeId : recipeIds) {
                 recipeInfos.add(RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false));
             }
+            LOGGER.info("findPatientRecipesByIds response:{}",JSONUtils.toString(recipeInfos));
             return recipeInfos;
         }
         return null;
@@ -5761,11 +5793,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.warn("当前处方{}信息为null，生成药师pdf部分失败", recipeId);
             return;
         }
-//        DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
-//        if (null == doctorDTOn) {
-//            LOGGER.warn("当前处方{}信息药师审核信息为空，生成药师pdf部分失败", recipeId);
-//            return;
-//        }
         try {
             boolean usePlatform = true;
             Object recipeUsePlatformCAPDF = configService.getConfiguration(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF");

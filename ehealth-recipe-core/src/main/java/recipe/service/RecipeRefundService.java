@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.service.manager.RecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
@@ -68,6 +69,8 @@ public class RecipeRefundService extends RecipeBaseService{
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private DrugsEnterpriseDAO enterpriseDAO;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /*
      * @description 向his申请处方退费接口
@@ -182,7 +185,7 @@ public class RecipeRefundService extends RecipeBaseService{
      */
     public void updateRecipeRefundStatus(Recipe recipe, Integer status){
         //处理合并支付问题
-        List<Recipe> recipes = getRecipesByorderCode(recipe.getOrderCode());
+        List<Recipe> recipes = recipeManager.getRecipesByOrderCode(recipe.getOrderCode());
         recipes.forEach(recipe1 -> {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe1.getRecipeId());
             if (recipeExtend != null) {
@@ -391,7 +394,7 @@ public class RecipeRefundService extends RecipeBaseService{
     @RpcService
     public void recipeReFundSave(Recipe recipe, RecipeRefund recipeRefund) {
         //处理合并支付问题
-        List<Recipe> recipes = getRecipesByorderCode(recipe.getOrderCode());
+        List<Recipe> recipes = recipeManager.getRecipesByOrderCode(recipe.getOrderCode());
         recipes.forEach(recipe1 -> {
             recipeRefund.setBusId(recipe1.getRecipeId());
             recipeRefund.setOrganId(recipe1.getClinicOrgan());
@@ -422,13 +425,6 @@ public class RecipeRefundService extends RecipeBaseService{
             recipeRefundDao.saveRefund(recipeRefund);
         });
 
-
-    }
-
-    private List<Recipe> getRecipesByorderCode(String orderCode) {
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-        return recipeDAO.findByRecipeIds(recipeIdList);
     }
 
     /*

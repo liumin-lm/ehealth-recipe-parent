@@ -23,11 +23,11 @@ public class RecipePharmacistCheckConstant {
     /**
      * 二次签名
      */
-    public static final int Second_Sign = 3;
+    public static final int Second_Sign = 0;
     /**
      * 失效
      */
-    public static final int Check_Failure = 4;
+    public static final int Check_Failure = 0;
     /**
      * 已取消
      */

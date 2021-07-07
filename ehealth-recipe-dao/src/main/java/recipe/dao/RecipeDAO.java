@@ -95,6 +95,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipeListByOrderCode(@DAOParam("orderCode") String orderCode);
 
     /**
+     * 根据订单编号获取处方列表
+     *
+     * @param orderCode
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where orderCode=:orderCode order by recipeId desc")
+    public abstract List<Recipe> findSortRecipeListByOrderCode(@DAOParam("orderCode") String orderCode);
+
+    /**
      * 根据订单编号获取处方id集合
      *
      * @param orderCode
@@ -1746,24 +1755,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
 
         if (checkStatus != null) {
-//            checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+//            checkResult 0:未审核 1:通过 2:不通过 3:全部
             switch (checkStatus) {
                 case 0:
-                    hql.append(" and r.status =").append(8);
+                    hql.append(" and r.checkFlag=0 ");
                     break;
                 case 1:
-//                    hql.append(" and r.status =").append(1);
-                    hql.append(" and r.status=2");
+                    hql.append(" and r.checkFlag=1 ");
                     break;
                 case 2:
-//                    hql.append(" and r.checkStatus =").append(0).append(" and r.checker is not null ");
-                    hql.append(" and r.status=15");
+                    hql.append(" and r.checkFlag=2 ");
                     break;
                 case 3:
-                    hql.append(" and r.supplementaryMemo is not null ");
-                    break;
-                case 4:
-                    hql.append(" and r.status = ").append(9);
+                    hql.append(" and r.checkFlag in(0,1,2) ");
                     break;
             }
         }
@@ -3728,7 +3732,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      */
     private Integer getCheckResultByPending(Recipe recipe) {
-        Integer checkResult = 0;
+        /*Integer checkResult = 0;
         Integer status = recipe.getStatus();
         //date 20191127
         //添加前置判断:当审核方式是不需要审核则返回通过审核状态
@@ -3736,7 +3740,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             return RecipePharmacistCheckConstant.Check_Pass;
         }
         if (eh.cdr.constant.RecipeStatusConstant.REVOKE == status) {
-            return RecipePharmacistCheckConstant.Check_Failure;
+            return RecipePharmacistCheckConstant.Cancel;
         }
         if (eh.cdr.constant.RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
@@ -3755,9 +3759,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     }
                 }
             }
-        }
+        }*/
 
-        return checkResult;
+        return recipe.getCheckFlag();
     }
 
     public List<Recipe> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes, Date date) {

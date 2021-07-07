@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -81,6 +82,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                             status = RecipeStatusConstant.CHECK_PASS_YS;
                         }*/
                         memo = "配送到家-线上支付成功";
+                        //更新CheckFlag
+                        updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                     } else {
                         memo = "配送到家-线上支付失败";
                     }
@@ -89,6 +92,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                         //可医保支付的单子在用户看到之前已进行审核
                         status = RecipeStatusConstant.CHECK_PASS_YS;
                         memo = "医保支付成功，发送药企处方";
+                        //更新CheckFlag
+                        updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                     }
                 } else if (RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
 //                    //收到userConfirm通知
@@ -99,6 +104,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         status = RecipeStatusConstant.READY_CHECK_YS;
                         memo = "配送到家-货到付款成功";
+                        //更新CheckFlag
+                        updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                     }
                 }
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
@@ -110,6 +117,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
                     memo = "医院取药-线上支付部分费用(除药品费)成功";
+                    //更新CheckFlag
+                    updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                 }
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 //收到userConfirm通知
@@ -120,11 +129,15 @@ public class AuditPostMode extends AbstractAuidtMode {
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
                     memo = "药店取药-线上支付部分费用(除药品费)成功";
+                    //更新CheckFlag
+                    updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                 }
 
             }else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
+                    //更新CheckFlag
+                    updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                 }
             }
             //记录日志
@@ -227,6 +240,14 @@ public class AuditPostMode extends AbstractAuidtMode {
             LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;
         }
+    }
+
+    public void updateCheckFlagByRecipeid(RecipeDAO recipeDAO, Recipe recipe) {
+        //更新审方checkFlag为待审核
+        Map<String, Object> attrMap = Maps.newHashMap();
+        attrMap.put("checkFlag", 0);
+        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+        LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
     }
 
 }

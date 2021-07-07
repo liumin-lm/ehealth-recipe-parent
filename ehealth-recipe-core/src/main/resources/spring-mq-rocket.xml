@@ -14,7 +14,7 @@
 
 	<bean id="consumer" class="org.apache.rocketmq.client.consumer.DefaultMQPushConsumer" init-method="start" destroy-method="shutdown">
 		<property name="namesrvAddr" value="${rocketmq.namesrv}"/>
-		<property name="consumerGroup" value="${ons_cid}"/>
+		<property name="consumerGroup" value="#{ systemProperties['ngari.region'] == 'gray' ? '${ons_cid}' + '_gray' : '${ons_cid}' }"/>
 		<property name="messageListener">
 			<bean class="ctd.net.broadcast.rocketmq.listener.ObserverRegisterListener"></bean>
 		</property>
