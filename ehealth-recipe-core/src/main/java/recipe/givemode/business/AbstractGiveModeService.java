@@ -160,7 +160,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             return;
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
-        if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
+        if (null == drugsEnterprise.getOrderType() || new Integer(0).equals(drugsEnterprise.getOrderType())) {
             return;
         }
         if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())
