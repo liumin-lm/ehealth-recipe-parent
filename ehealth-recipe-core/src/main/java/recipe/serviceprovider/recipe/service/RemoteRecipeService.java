@@ -101,6 +101,7 @@ import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.client.DoctorClient;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.OrderManager;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -154,6 +155,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private IClientConfigService clientConfigService;
     @Autowired
     private IRecipeHisService hisService;
+    @Autowired
+    private OrderManager orderManager;
 
     @RpcService
     @Override
@@ -248,9 +251,22 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipeRefund.setCheckTime(new Date());
                 //保存记录
                 recipeRefundDAO.saveRefund(recipeRefund);
+            } else {
+                RecipeOrder recipeOrder;
+                if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                    //创建空的订单
+                    recipeOrder = orderManager.createBlankOrder(recipe);
+                    recipe.setOrderCode(recipeOrder.getOrderCode());
+                } else {
+                    recipeOrder = orderManager.getOrderByOrderCode(recipe.getOrderCode());
+                }
+                if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
+                    recipe.setStatus(6);
+                }
+                recipeOrder.setStatus(recipeStatusReqTO.getStatus());
+                recipeOrderDAO.update(recipeOrder);
             }
-            recipe.setStatus(recipeStatusReqTO.getStatus());
-            recipeDAO.saveRecipe(recipe);
+            recipeDAO.update(recipe);
             return true;
         } catch (Exception e) {
             LOGGER.info("updateRecipeInfoForThirdOrder error", e);
