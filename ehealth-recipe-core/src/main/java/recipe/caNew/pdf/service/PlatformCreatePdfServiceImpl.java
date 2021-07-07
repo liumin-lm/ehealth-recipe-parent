@@ -94,25 +94,13 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public String updateDoctorNamePdf(Recipe recipe) {
+    public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) {
         logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{}", JSON.toJSONString(recipe));
-        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
-        if (!usePlatform) {
-            return null;
-        }
-        Integer recipeId = recipe.getRecipeId();
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
-        try {
-            //设置签名图片
-            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-            SignImgNode signImgNode = new SignImgNode(recipeId.toString(), recipeId.toString(), sttachSealPicDTO.getDoctorSignImg(),
-                    null, signRecipePdfVO.getData(), 40f, 20f, 55f, 76f, false);
-            return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
-        } catch (Exception e) {
-            logger.warn("当前处方是使用平台医生部分pdf的,生成失败！{}", recipe.getRecipeId(), e);
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
-        }
-        return null;
+        signImgNode.setSignFileData(signRecipePdfVO.getData());
+        signImgNode.setX(55f);
+        signImgNode.setY(76f);
+        return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
     }
 
     @Override

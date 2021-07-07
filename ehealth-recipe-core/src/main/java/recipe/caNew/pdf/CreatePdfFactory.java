@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,7 +17,9 @@ import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
+import recipe.service.RecipeLogService;
 import recipe.service.client.IConfigurationClient;
+import recipe.service.manager.SignManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
 
@@ -39,7 +42,8 @@ public class CreatePdfFactory {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeDAO recipeDAO;
-
+    @Autowired
+    private SignManager signManager;
 
     /**
      * 获取pdf oss id
@@ -111,14 +115,34 @@ public class CreatePdfFactory {
      * @param recipe
      */
     public void updateDoctorNamePdf(Recipe recipe) {
-        CreatePdfService createPdfService = createPdfService(recipe);
-        String fileId = createPdfService.updateDoctorNamePdf(recipe);
+        try {
+            boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
+            if (!usePlatform) {
+                return;
+            }
+            //设置签名图片
+            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
+            SignImgNode signImgNode = new SignImgNode();
+            signImgNode.setRecipeId(recipe.getRecipeId().toString());
+            signImgNode.setSignImgFileId(sttachSealPicDTO.getDoctorSignImg());
+            signImgNode.setHeight(20f);
+            signImgNode.setWidth(40f);
+            signImgNode.setRepeatWrite(false);
+            CreatePdfService createPdfService = createPdfService(recipe);
+            String fileId = createPdfService.updateDoctorNamePdf(recipe, signImgNode);
+            if (StringUtils.isEmpty(fileId)) {
+                return;
+            }
+            Recipe recipeUpdate = new Recipe();
+            recipeUpdate.setRecipeId(recipe.getRecipeId());
+            recipeUpdate.setSignFile(fileId);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+        } catch (Exception e) {
+            logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
+        }
 
-        Recipe recipeUpdate = new Recipe();
-        recipeUpdate.setRecipeId(recipe.getRecipeId());
-        recipeUpdate.setSignFile(fileId);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
     }
 
     /**

@@ -3,6 +3,7 @@ package recipe.caNew.pdf.service;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
+import recipe.bussutil.SignImgNode;
 
 import java.math.BigDecimal;
 
@@ -33,7 +34,7 @@ public interface CreatePdfService {
      *
      * @param recipe
      */
-    String updateDoctorNamePdf(Recipe recipe);
+    String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode);
 
     /**
      * 获取药师签名 pdf Byte字节 给前端SDK
