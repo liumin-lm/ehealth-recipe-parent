@@ -105,7 +105,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    boolean updateRecipeInfoForthirdOrder(RecipeStatusReqTO recipeStatusReqTO);
+    boolean updateRecipeInfoForThirdOrder(RecipeStatusReqTO recipeStatusReqTO);
 
     /**
      * 获取处方信息

@@ -84,6 +84,7 @@ import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
@@ -230,9 +231,30 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public boolean updateRecipeInfoForthirdOrder(RecipeStatusReqTO recipeStatusReqTO) {
-        LOGGER.info("updateRecipeInfoForthirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
-
+    public boolean updateRecipeInfoForThirdOrder(RecipeStatusReqTO recipeStatusReqTO) {
+        LOGGER.info("updateRecipeInfoForThirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
+        try {
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeStatusReqTO.getRecipeCode(), recipeStatusReqTO.getOrganId());
+            if (new Integer(9).equals(recipeStatusReqTO.getStatus())) {
+                //表示退款的取消
+                //退费申请记录保存
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo("");
+                recipeRefund.setPrice(recipe.getActualPrice().doubleValue());
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_FINISH);
+                recipeRefund.setApplyNo("");
+                recipeRefund.setReason("暂无");
+                recipeRefund.setApplyTime(new Date());
+                recipeRefund.setCheckTime(new Date());
+                //保存记录
+                recipeRefundDAO.saveRefund(recipeRefund);
+            }
+            recipe.setStatus(recipeStatusReqTO.getStatus());
+            recipeDAO.saveRecipe(recipe);
+            return true;
+        } catch (Exception e) {
+            LOGGER.info("updateRecipeInfoForThirdOrder error", e);
+        }
         return false;
     }
 
