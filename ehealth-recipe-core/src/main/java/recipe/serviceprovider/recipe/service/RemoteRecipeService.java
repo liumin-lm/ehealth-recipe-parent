@@ -238,12 +238,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("updateRecipeInfoForThirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
         try {
             Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeStatusReqTO.getRecipeCode(), recipeStatusReqTO.getOrganId());
-            RecipeOrder recipeOrder;
-            if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                //创建空的订单
-                recipeOrder = orderManager.createBlankOrder(recipe, recipeStatusReqTO.getStatus());
-                recipe.setOrderCode(recipeOrder.getOrderCode());
-            }
             if (new Integer(9).equals(recipeStatusReqTO.getStatus())) {
                 //表示退款的取消
                 //退费申请记录保存
@@ -257,15 +251,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipeRefund.setCheckTime(new Date());
                 //保存记录
                 recipeRefundDAO.saveRefund(recipeRefund);
-            } else {
-                    recipeOrder = orderManager.getOrderByOrderCode(recipe.getOrderCode());
-                if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
-                    recipe.setStatus(6);
-                }
-                recipeOrder.setStatus(recipeStatusReqTO.getStatus());
-                recipeOrderDAO.update(recipeOrder);
             }
-            recipeDAO.update(recipe);
+            recipe.setStatus(recipeStatusReqTO.getStatus());
+            recipeDAO.saveRecipe(recipe);
             return true;
         } catch (Exception e) {
             LOGGER.info("updateRecipeInfoForThirdOrder error", e);
