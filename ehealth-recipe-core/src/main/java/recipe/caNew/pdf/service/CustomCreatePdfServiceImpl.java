@@ -11,9 +11,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import ctd.persistence.exception.DAOException;
 import lombok.Cleanup;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import recipe.bean.RecipeInfoDTO;
 import recipe.bussutil.*;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.comment.DictionaryUtil;
-import recipe.constant.ErrorCode;
+import recipe.dao.RecipeExtendDAO;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.client.PatientClient;
 import recipe.service.manager.RecipeManager;
@@ -55,7 +56,8 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * 需要记录坐标的的字段
      */
     private final List<String> ADDITIONAL_FIELDS = Arrays.asList("doctorSignImg,doctorSignImgToken", "recipe.check",
-            "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "tcmDecoction", "recipe.giveUser");
+            "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.giveUser"
+            , "barCode.recipe.patientID", "barCode.recipe.recipeCode");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -64,10 +66,12 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private RecipeManager recipeManager;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
 
     @Override
-    public SignRecipePdfVO queryPdfOssId(Recipe recipe) {
+    public SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
         // ordinateVO.getX(), ordinateVO.getY(),
@@ -76,19 +80,25 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public CaSealRequestTO queryPdfByte(Recipe recipe) {
+    public CaSealRequestTO queryPdfByte(Recipe recipe) throws Exception {
         logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
         String pdfBase64Str = new String(Base64.encode(data));
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
+        if (null == ordinateVO) {
+            return null;
+        }
         return CreatePdfFactory.caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), recipe.getRecipeId().toString(), pdfBase64Str);
-
     }
 
     @Override
-    public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) {
+    public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
+        logger.info("CustomCreatePdfServiceImpl updateDoctorNamePdf recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
+        if (null == ordinateVO) {
+            return null;
+        }
         signImgNode.setSignFileData(data);
         signImgNode.setX(ordinateVO.getX().floatValue());
         signImgNode.setY(ordinateVO.getY().floatValue());
@@ -98,31 +108,114 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.check");
+        if (null == ordinateVO) {
+            return null;
+        }
         return CreatePdfFactory.caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
     }
 
     @Override
     public String updateCheckNamePdf(Recipe recipe, String signImageId) throws Exception {
+        String recipeId = recipe.getRecipeId().toString();
+        logger.info("CustomCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
+        //更新pdf文件
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.check");
+        if (null == ordinateVO) {
+            return null;
+        }
+        if (StringUtils.isNotEmpty(signImageId)) {
+            SignImgNode signImgNode = new SignImgNode(recipeId, recipeId, signImageId, recipe.getSignFile(), null,
+                    40f, 20f, ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), false);
+            return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+        } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
+            CoOrdinateVO coords = new CoOrdinateVO();
+            coords.setValue(recipe.getCheckerText());
+            coords.setX(ordinateVO.getX());
+            coords.setY(ordinateVO.getY());
+            return CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
+        }
         return null;
     }
 
     @Override
-    public void updateTotalPdf(Integer recipeId, BigDecimal recipeFee) {
+    public CoOrdinateVO updateTotalPdf(Recipe recipe, BigDecimal recipeFee) {
+        logger.info("CustomCreatePdfServiceImpl updateTotalPdf  recipeId={},recipeFee={}", recipe.getRecipeId(), recipeFee);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.actualPrice");
+        if (null == ordinateVO) {
+            return null;
+        }
+        CoOrdinateVO coords = new CoOrdinateVO();
+        coords.setValue("药品金额 ：" + recipeFee + "元");
+        coords.setX(ordinateVO.getX());
+        coords.setY(ordinateVO.getY());
+        coords.setRepeatWrite(true);
+        return coords;
+    }
+
+
+    @Override
+    public String updateCodePdf(Recipe recipe) throws Exception {
+        Integer recipeId = recipe.getRecipeId();
+        logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
+        CoOrdinateVO barcode = new CoOrdinateVO();
+        CoOrdinateVO barCodePatientId = redisManager.getPdfCoords(recipe.getRecipeId(), "barCode.recipe.patientID");
+        if (null != barCodePatientId) {
+            barcode = barCodePatientId;
+            barcode.setValue(recipe.getPatientID());
+        }
+        CoOrdinateVO barCodeRecipeCode = redisManager.getPdfCoords(recipe.getRecipeId(), "barCode.recipe.recipeCode");
+        if (null != barCodeRecipeCode) {
+            barcode = barCodeRecipeCode;
+            barcode.setValue(recipe.getRecipeCode());
+        }
+        List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
+        CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
+        if (null != patientId) {
+            patientId.setValue(recipe.getPatientID());
+            coOrdinateList.add(patientId);
+        }
+        CoOrdinateVO recipeCode = redisManager.getPdfCoords(recipeId, "recipe.recipeCode");
+        if (null != recipeCode) {
+            recipeCode.setValue(recipe.getRecipeCode());
+            coOrdinateList.add(recipeCode);
+        }
+        return CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, barcode);
+    }
+
+
+    @Override
+    public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order) {
+        logger.info("CustomCreatePdfServiceImpl updateAddressPdfExecute  recipeId={}", recipe.getRecipeId());
+        List<CoOrdinateVO> list = new LinkedList<>();
+        //患者端煎法生效
+        String decoctionDeploy = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "decoctionDeploy", null);
+        if (null != decoctionDeploy) {
+            CoOrdinateVO decoctionText = redisManager.getPdfCoords(recipe.getRecipeId(), "recipeExtend.decoctionText");
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (null != decoctionText && null != recipeExtend && StringUtils.isEmpty(recipeExtend.getDecoctionText())) {
+                decoctionText.setValue(recipeExtend.getDecoctionText());
+                list.add(decoctionText);
+            }
+        }
+        CoOrdinateVO address = redisManager.getPdfCoords(recipe.getRecipeId(), "address");
+        if (null != address) {
+            address.setValue(DictionaryUtil.getCompleteAddress(order));
+            list.add(address);
+        }
+        logger.info("CustomCreatePdfServiceImpl updateAddressPdf   list ={}", JSON.toJSONString(list));
+        return list;
     }
 
     @Override
-    public String updateCodePdf(Recipe recipe) {
-        return null;
-    }
-
-    @Override
-    public void updateAddressPdf(Recipe recipe) {
-
-    }
-
-    @Override
-    public Recipe updateGiveUser(Recipe recipe) {
-        return null;
+    public SignImgNode updateGiveUser(Recipe recipe) {
+        logger.info("CustomCreatePdfServiceImpl updateGiveUser recipe={}", JSON.toJSONString(recipe));
+        //修改pdf文件
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.giveUser");
+        if (null == ordinateVO) {
+            return null;
+        }
+        return new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString(), null,
+                null, null, 50f, 20f, ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), true);
     }
 
     /**
@@ -131,37 +224,31 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @param recipe 处方
      * @return pdf byte
      */
-    private byte[] generateTemplatePdf(Recipe recipe) {
-        try {
-            //替换模版pdf的字段
-            @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
-            //模版pdfId
-            String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
-            @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
-            PdfReader reader = new PdfReader(input);
-            PdfStamper stamper = new PdfStamper(reader, output);
-            AcroFields form = stamper.getAcroFields();
-            form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
-            //记录坐标的的字段对象
-            redisManager.coOrdinate(recipe.getRecipeId(), ordinateList(form));
-            //模版填充 数据方法
-            List<WordToPdfBean> generatePdfList = templatePdfList(recipe, form);
-            //如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
-            stamper.setFormFlattening(true);
-            stamper.close();
-            //拷贝模版流 生成新pdf
-            byte[] data = CreateRecipePdfUtil.generateTemplatePdf(recipe.getRecipeId(), output);
-            //删除生成的图片
-            generatePdfList.forEach(a -> {
-                if (null != a.getUri()) {
-                    new File(a.getUri()).delete();
-                }
-            });
-            return data;
-        } catch (Exception e) {
-            logger.error("CustomCreatePdfServiceImpl generateTemplatePdf error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+    private byte[] generateTemplatePdf(Recipe recipe) throws Exception {
+        //模版pdfId
+        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
+        @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
+        @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        AcroFields form = stamper.getAcroFields();
+        form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
+        //记录坐标的的字段对象
+        redisManager.coOrdinate(recipe.getRecipeId(), ordinateList(form));
+        //需要替换的模版字段对象
+        List<WordToPdfBean> generatePdfList = templatePdfList(recipe, form);
+        //如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
+        stamper.setFormFlattening(true);
+        stamper.close();
+        //拷贝模版流 生成新pdf
+        byte[] data = CreateRecipePdfUtil.generateTemplatePdf(recipe.getRecipeId(), output);
+        //删除生成的图片
+        generatePdfList.forEach(a -> {
+            if (null != a.getUri()) {
+                new File(a.getUri()).delete();
+            }
+        });
+        return data;
     }
 
     /**

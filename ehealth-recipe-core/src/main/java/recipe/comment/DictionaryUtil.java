@@ -1,5 +1,6 @@
 package recipe.comment;
 
+import com.ngari.recipe.entity.RecipeOrder;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,7 @@ public class DictionaryUtil {
 
     /**
      * 根据key 查询字典数据 value
-     * value为null 返回key
+     * value为null
      *
      * @param classId
      * @param key
@@ -49,7 +50,7 @@ public class DictionaryUtil {
         try {
             String value = DictionaryController.instance().get(classId).getText(key);
             if (StringUtils.isEmpty(value)) {
-                return key;
+                return "";
             } else {
                 return value;
             }
@@ -57,5 +58,16 @@ public class DictionaryUtil {
             LOGGER.warn("DictionaryUtil DictionaryController error classId:{},key:{}", classId, key);
             return "";
         }
+    }
+
+    public static String getCompleteAddress(RecipeOrder order) {
+        StringBuilder address = new StringBuilder();
+        if (null != order) {
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress1()));
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress2()));
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress3()));
+            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
+        }
+        return address.toString();
     }
 }

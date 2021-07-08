@@ -1,11 +1,14 @@
 package recipe.caNew.pdf.service;
 
+import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import recipe.bussutil.SignImgNode;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * pdf 创建业务接口
@@ -19,7 +22,7 @@ public interface CreatePdfService {
      * @param recipe 处方信息
      * @return
      */
-    SignRecipePdfVO queryPdfOssId(Recipe recipe);
+    SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception;
 
     /**
      * 获取pdf Byte字节 给前端SDK
@@ -27,14 +30,14 @@ public interface CreatePdfService {
      * @param recipe 处方信息
      * @return
      */
-    CaSealRequestTO queryPdfByte(Recipe recipe);
+    CaSealRequestTO queryPdfByte(Recipe recipe) throws Exception;
 
     /**
      * 在pdf中添加 医生签名
      *
      * @param recipe
      */
-    String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode);
+    String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception;
 
     /**
      * 获取药师签名 pdf Byte字节 给前端SDK
@@ -61,21 +64,21 @@ public interface CreatePdfService {
      * @param recipeFee
      * @return
      */
-    void updateTotalPdf(Integer recipeId, BigDecimal recipeFee);
+    CoOrdinateVO updateTotalPdf(Recipe recipe, BigDecimal recipeFee);
 
     /**
      * pdf 处方号和患者病历号
      *
      * @param recipeId
      */
-    String updateCodePdf(Recipe recipeId);
+    String updateCodePdf(Recipe recipeId) throws Exception;
 
     /**
      * 支付成功后修改pdf 添加收货人信息/煎法
      *
      * @param recipeId
      */
-    void updateAddressPdf(Recipe recipeId);
+    List<CoOrdinateVO> updateAddressPdf(Recipe recipeId, RecipeOrder order);
 
     /**
      * pdf 核对发药
@@ -83,5 +86,5 @@ public interface CreatePdfService {
      * @param recipe 处方
      * @return
      */
-    Recipe updateGiveUser(Recipe recipe);
+    SignImgNode updateGiveUser(Recipe recipe);
 }
