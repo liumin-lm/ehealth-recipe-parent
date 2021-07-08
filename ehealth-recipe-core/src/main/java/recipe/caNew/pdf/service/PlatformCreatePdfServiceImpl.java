@@ -9,7 +9,6 @@ import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.AttachSealPicDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.ApothecaryVO;
@@ -111,34 +110,20 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public String updateCheckNamePdf(Recipe recipe) {
-        Integer recipeId = recipe.getRecipeId();
+    public String updateCheckNamePdf(Recipe recipe, String signImageId) throws Exception {
+        String recipeId = recipe.getRecipeId().toString();
         logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
-        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
-        if (!usePlatform) {
-            return null;
-        }
-        try {
-            String fileId = null;
-            //获取签名图片
-            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-            String signImageId = sttachSealPicDTO.getCheckerSignImg();
-            //更新pdf文件
-            if (StringUtils.isNotEmpty(signImageId)) {
-                SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString()
-                        , signImageId, recipe.getSignFile(), null, 40f, 20f, 190f, 76f, false);
-                fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
-            } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
-                CoOrdinateVO coords = new CoOrdinateVO();
-                coords.setValue(recipe.getCheckerText());
-                coords.setX(199);
-                coords.setY(82);
-                fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
-            }
-            return fileId;
-        } catch (Exception e) {
-            logger.warn("当前处方{}是使用平台药师部分pdf的,生成失败！", recipe.getRecipeId());
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
+        //更新pdf文件
+        if (StringUtils.isNotEmpty(signImageId)) {
+            SignImgNode signImgNode = new SignImgNode(recipeId, recipeId, signImageId, recipe.getSignFile(),
+                    null, 40f, 20f, 190f, 76f, false);
+            return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+        } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
+            CoOrdinateVO coords = new CoOrdinateVO();
+            coords.setValue(recipe.getCheckerText());
+            coords.setX(199);
+            coords.setY(82);
+            return CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
         }
         return null;
     }

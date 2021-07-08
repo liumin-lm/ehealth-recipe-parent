@@ -79,37 +79,6 @@ public class CreatePdfFactory {
 
 
     /**
-     * 获取药师 pdf byte 格式
-     *
-     * @param recipe
-     * @return
-     */
-    public CaSealRequestTO queryCheckPdfByte(Integer recipeId) {
-        Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = createPdfService(recipe);
-        return createPdfService.queryCheckPdfByte(recipe);
-    }
-
-
-
-    /**
-     * 药师签名
-     *
-     * @param recipeId
-     */
-    public void updateCheckNamePdf(Integer recipeId) {
-        Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = createPdfService(recipe);
-        String fileId = createPdfService.updateCheckNamePdf(recipe);
-
-        Recipe recipeUpdate = new Recipe();
-        recipeUpdate.setRecipeId(recipeId);
-        recipeUpdate.setChemistSignFile(fileId);
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
-    }
-
-    /**
      * 医生签名
      *
      * @param recipe
@@ -141,6 +110,55 @@ public class CreatePdfFactory {
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
+        }
+
+    }
+
+    /**
+     * 获取药师 pdf byte 格式
+     *
+     * @param recipe
+     * @return
+     */
+    public CaSealRequestTO queryCheckPdfByte(Integer recipeId) {
+        Recipe recipe = validate(recipeId);
+        CreatePdfService createPdfService = createPdfService(recipe);
+        return createPdfService.queryCheckPdfByte(recipe);
+    }
+
+
+
+    /**
+     * 药师签名
+     *
+     * @param recipeId
+     */
+    public void updateCheckNamePdf(Integer recipeId) {
+        Recipe recipe = validate(recipeId);
+
+        logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
+        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
+        if (!usePlatform) {
+            return;
+        }
+
+        //获取签名图片
+        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+        String signImageId = sttachSealPicDTO.getCheckerSignImg();
+        try {
+            CreatePdfService createPdfService = createPdfService(recipe);
+            String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
+            if (StringUtils.isEmpty(fileId)) {
+                return;
+            }
+            Recipe recipeUpdate = new Recipe();
+            recipeUpdate.setRecipeId(recipeId);
+            recipeUpdate.setChemistSignFile(fileId);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        } catch (Exception e) {
+            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId());
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
 
     }

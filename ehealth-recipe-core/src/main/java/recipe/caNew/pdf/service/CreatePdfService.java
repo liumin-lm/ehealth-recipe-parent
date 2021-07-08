@@ -47,9 +47,12 @@ public interface CreatePdfService {
     /**
      * 在pdf中添加 药师签名
      *
-     * @param recipeId
+     * @param recipe      处方信息
+     * @param signImageId 药师签名
+     * @return 文件 fileId
+     * @throws Exception
      */
-    String updateCheckNamePdf(Recipe recipeId);
+    String updateCheckNamePdf(Recipe recipe, String signImageId) throws Exception;
 
     /**
      * 在pdf中添加 药品金额

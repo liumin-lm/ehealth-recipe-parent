@@ -46,7 +46,7 @@ public class CreateRecipePdfUtil {
      * @param pdfId     pdfId
      * @param decoction 特殊节点写入
      */
-    public static String generateCoOrdinatePdf(String pdfId, CoOrdinateVO decoction) throws IOException, DocumentException {
+    public static String generateCoOrdinatePdf(String pdfId, CoOrdinateVO decoction) throws Exception {
         logger.info("generateCoOrdinatePdf pdfId={}, decoction={}", pdfId, decoction);
         if (StringUtils.isEmpty(pdfId) || null == decoction) {
             return null;
@@ -58,14 +58,9 @@ public class CreateRecipePdfUtil {
             @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
             PdfReader reader = new PdfReader(input);
             PdfStamper stamper = new PdfStamper(reader, output);
-            try {
-                addTextForPdf(stamper, decoction);
-            } catch (Exception e) {
-                logger.error("generateCoOrdinatePdf error", e);
-            } finally {
-                stamper.close();
-                reader.close();
-            }
+            addTextForPdf(stamper, decoction);
+            stamper.close();
+            reader.close();
             //上传pdf文件
             byte[] bytes = File2byte(file);
             String fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());

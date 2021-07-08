@@ -102,7 +102,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public String updateCheckNamePdf(Recipe recipe) {
+    public String updateCheckNamePdf(Recipe recipe, String signImageId) throws Exception {
         return null;
     }
 
