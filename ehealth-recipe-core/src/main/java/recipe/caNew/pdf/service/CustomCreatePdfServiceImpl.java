@@ -1,5 +1,6 @@
 package recipe.caNew.pdf.service;
 
+import com.alibaba.fastjson.JSON;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.*;
@@ -7,7 +8,10 @@ import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
 import lombok.Cleanup;
 import org.bouncycastle.util.encoders.Base64;
@@ -16,12 +20,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.bean.RecipePdfDTO;
-import recipe.bussutil.BarCodeUtil;
-import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.bussutil.SignImgNode;
-import recipe.bussutil.WordToPdfBean;
+import recipe.bean.RecipeInfoDTO;
+import recipe.bussutil.*;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.client.PatientClient;
@@ -37,6 +39,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 自定义创建pdf
@@ -52,8 +55,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * 需要记录坐标的的字段
      */
     private final List<String> ADDITIONAL_FIELDS = Arrays.asList("doctorSignImg,doctorSignImgToken", "recipe.check",
-            "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "tcmDecoction", "recipe.giveUser",
-            "barCode.recipeExtend.cardNo", "qrCode.recipeExtend.cardNo");
+            "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "tcmDecoction", "recipe.giveUser");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -133,15 +135,26 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         try {
             //替换模版pdf的字段
             @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
-            List<WordToPdfBean> wordToPdf = generateTemplatePdf(recipe, output);
+            //模版pdfId
+            String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
+            @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
+            PdfReader reader = new PdfReader(input);
+            PdfStamper stamper = new PdfStamper(reader, output);
+            AcroFields form = stamper.getAcroFields();
+            form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
+            //记录坐标的的字段对象
+            redisManager.coOrdinate(recipe.getRecipeId(), ordinateList(form));
+            //模版填充 数据方法
+            List<WordToPdfBean> generatePdfList = templatePdfList(recipe, form);
+            //如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
+            stamper.setFormFlattening(true);
+            stamper.close();
+            //拷贝模版流 生成新pdf
             byte[] data = CreateRecipePdfUtil.generateTemplatePdf(recipe.getRecipeId(), output);
-            if (null == data) {
-                return null;
-            }
-            wordToPdf.forEach(a -> {
+            //删除生成的图片
+            generatePdfList.forEach(a -> {
                 if (null != a.getUri()) {
-                    File file = new File(a.getUri());
-                    file.delete();
+                    new File(a.getUri()).delete();
                 }
             });
             return data;
@@ -152,31 +165,181 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     /**
-     * 读取模版
+     * 需要替换的模版字段对象
      *
-     * @param recipe 处方
-     * @param output 输出流
-     * @return 需要记录坐标的的字段对象
-     * @throws Exception
+     * @param recipe
+     * @param form
+     * @return
      */
-    private List<WordToPdfBean> generateTemplatePdf(Recipe recipe, ByteArrayOutputStream output) throws Exception {
-        //模版pdfId
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
-        @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
-        PdfReader reader = new PdfReader(input);
-        PdfStamper stamper = new PdfStamper(reader, output);
-        AcroFields form = stamper.getAcroFields();
-        form.addSubstitutionFont(BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED));
-        //记录坐标的的字段对象
-        List<CoOrdinateVO> ordinateList = ordinateList(form);
-        redisManager.coOrdinate(recipe.getRecipeId(), ordinateList);
-        //模版填充 数据方法
-        List<WordToPdfBean> generatePdfList = templatePdfList(recipe, form);
-        //如果为false，生成的PDF文件可以编辑，如果为true，生成的PDF文件不可以编辑
-        stamper.setFormFlattening(true);
-        stamper.close();
+    private List<WordToPdfBean> templatePdfList(Recipe recipe, AcroFields form) {
+        Map<String, AcroFields.Item> map = form.getFields();
+        if (map.isEmpty()) {
+            logger.warn("CustomCreatePdfServiceImpl generatePdfList map null");
+            return null;
+        }
+        //获取pdf值对象
+        RecipeInfoDTO recipePdfDTO = (RecipeInfoDTO) recipeManager.getRecipeDTO(recipe.getRecipeId());
+        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
+        recipePdfDTO.setPatientBean(patientBean);
+        //获取模版填充字段
+        List<WordToPdfBean> generatePdfList = generatePdfList(map.keySet(), recipePdfDTO);
+        //替换的模版字段
+        for (WordToPdfBean wordToPdf : generatePdfList) {
+            try {
+                String key = wordToPdf.getKey();
+                if (null == wordToPdf.getUri()) {
+                    //文字类的内容处理
+                    form.setField(key, wordToPdf.getValue());
+                } else {
+                    //将图片写入指定的field
+                    Image image = Image.getInstance(wordToPdf.getUri().toURL());
+                    PushbuttonField pb = form.getNewPushbuttonFromField(key);
+                    pb.setImage(image);
+                    form.replacePushbuttonField(key, pb.getField());
+                }
+            } catch (Exception e) {
+                logger.error("CreateRecipePdfUtil templatePdfList error ", e);
+            }
+        }
         return generatePdfList;
     }
+
+    /**
+     * 获取模版填充字段,根据模版表单字段解析 反射获取值
+     *
+     * @param keySet       模版表单字段
+     * @param recipePdfDTO pdf值对象
+     * @return 模版填充对象
+     */
+    private List<WordToPdfBean> generatePdfList(Set<String> keySet, RecipeInfoDTO recipePdfDTO) {
+        List<WordToPdfBean> generatePdfList = new LinkedList<>();
+        Map<String, Object> recipeDetailMap;
+        if (RecipeUtil.isTcmType(recipePdfDTO.getRecipe().getRecipeType())) {
+            //中药
+            recipeDetailMap = createChineMedicinePDF(recipePdfDTO);
+        } else {
+            //西药
+            recipeDetailMap = createMedicinePDF(recipePdfDTO);
+        }
+        for (String key : keySet) {
+            String[] keySplit = key.split(ByteUtils.DOT);
+            //特殊节点处理
+            if (3 == keySplit.length) {
+                String identifyName = keySplit[0];
+                String objectName = keySplit[1];
+                String fieldName = keySplit[2];
+                //条形码
+                if ("barCode".equals(identifyName)) {
+                    WordToPdfBean wordToPdf = invokeFieldName(key, objectName, fieldName, recipePdfDTO, null);
+                    URI uri = BarCodeUtil.generateFileUrl(wordToPdf.getValue(), "barcode.png");
+                    wordToPdf.setUri(uri);
+                    generatePdfList.add(wordToPdf);
+                }
+                //二维码
+                if ("qrCode".equals(identifyName)) {
+                    generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, null));
+                }
+                continue;
+            }
+            //对象字段处理
+            if (2 == keySplit.length) {
+                String objectName = keySplit[0];
+                String fieldName = keySplit[1];
+                generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, recipeDetailMap));
+            }
+        }
+        return generatePdfList;
+    }
+
+    /**
+     * 反射获取所需字段值
+     *
+     * @param key          表单名
+     * @param objectName   对象名
+     * @param fieldName    字段名
+     * @param recipePdfDTO pdf值对象
+     * @return 对应的value
+     */
+    private WordToPdfBean invokeFieldName(String key, String objectName, String fieldName, RecipeInfoDTO recipePdfDTO, Map<String, Object> recipeDetailMap) {
+        if ("recipe".equals(objectName)) {
+            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
+            return new WordToPdfBean(key, value, null);
+        }
+        if ("patient".equals(objectName)) {
+            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
+            return new WordToPdfBean(key, value, null);
+        }
+        if ("recipeExtend".equals(objectName)) {
+            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
+            return new WordToPdfBean(key, value, null);
+        }
+        if ("recipeDetail".equals(objectName)) {
+            String value = ByteUtils.objValueOfString(recipeDetailMap.get(key));
+            return new WordToPdfBean(key, value, null);
+        }
+        return null;
+    }
+
+    /**
+     * 中药
+     *
+     * @param recipeInfoDTO 处方明细
+     * @return
+     */
+    private Map<String, Object> createChineMedicinePDF(RecipeInfoDTO recipeInfoDTO) {
+        List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return null;
+        }
+        List<RecipeLabelVO> list = new LinkedList<>();
+        for (int i = 0; i < recipeDetails.size(); i++) {
+            Recipedetail detail = recipeDetails.get(i);
+            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName() + "(" + detail.getMemo() + ")"));
+        }
+        Recipedetail recipedetail = recipeDetails.get(0);
+        list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", recipedetail.getUseDays()));
+        list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
+        list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
+        Recipe recipe = recipeInfoDTO.getRecipe();
+        list.add(new RecipeLabelVO("贴数", "recipe.copyNum", recipe.getCopyNum()));
+        list.add(new RecipeLabelVO("嘱托", "recipe.recipeMemo", recipe.getRecipeMemo()));
+        RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
+        list.add(new RecipeLabelVO("煎法", "recipeExtend.decoctionText", recipeExtend.getDecoctionText()));
+        list.add(new RecipeLabelVO("制法", "recipeExtend.makeMethodText", recipeExtend.getMakeMethodText()));
+        list.add(new RecipeLabelVO("每付取汁", "recipeExtend.juice", recipeExtend.getJuice()));
+        list.add(new RecipeLabelVO("每次用汁", "recipeExtend.minor", recipeExtend.getMinor()));
+        logger.info("CreateRecipePdfUtil createChineMedicinePDF list :{} ", JSON.toJSONString(list));
+        return list.stream().collect(Collectors.toMap(RecipeLabelVO::getEnglishName, RecipeLabelVO::getValue));
+    }
+
+
+    /**
+     * 西药
+     *
+     * @param recipeInfoDTO 处方明细
+     * @return
+     */
+    private Map<String, Object> createMedicinePDF(RecipeInfoDTO recipeInfoDTO) {
+        List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return null;
+        }
+        List<RecipeLabelVO> list = new LinkedList<>();
+        for (int i = 0; i < recipeDetails.size(); i++) {
+            Recipedetail detail = recipeDetails.get(i);
+            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
+            list.add(new RecipeLabelVO("包装规格", "recipeDetail.drugSpec_" + i, detail.getDrugSpec()));
+            list.add(new RecipeLabelVO("发药数量", "recipeDetail.useTotalDose_" + i, detail.getUseTotalDose()));
+            list.add(new RecipeLabelVO("每次用量", "recipeDetail.useDose_" + i, detail.getUseDose()));
+            list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
+            list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
+            list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, detail.getUseDays()));
+            list.add(new RecipeLabelVO("用药天数", "recipeDetail.memo_" + i, detail.getMemo()));
+        }
+        logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
+        return list.stream().collect(Collectors.toMap(RecipeLabelVO::getEnglishName, RecipeLabelVO::getValue));
+    }
+
 
     /**
      * 记录坐标的的字段对象
@@ -201,114 +364,5 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         });
         return ordinateList;
     }
-
-    /**
-     * 需要替换的模版字段对象
-     *
-     * @param recipe
-     * @param form
-     * @return
-     */
-    private List<WordToPdfBean> templatePdfList(Recipe recipe, AcroFields form) {
-        Map<String, AcroFields.Item> map = form.getFields();
-        if (map.isEmpty()) {
-            logger.warn("CustomCreatePdfServiceImpl generatePdfList map null");
-            return null;
-        }
-        //获取pdf值对象
-        RecipePdfDTO recipePdfDTO = (RecipePdfDTO) recipeManager.getRecipeDTO(recipe.getRecipeId());
-        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
-        recipePdfDTO.setPatientBean(patientBean);
-        //获取模版填充字段
-        List<WordToPdfBean> generatePdfList = generatePdfList(map.keySet(), recipePdfDTO);
-        //替换的模版字段
-        for (WordToPdfBean wordToPdf : generatePdfList) {
-            try {
-                String key = wordToPdf.getKey();
-                String value = wordToPdf.getValue();
-                if (null == wordToPdf.getUri()) {
-                    //文字类的内容处理
-                    form.setField(key, value);
-                } else {
-                    //将图片写入指定的field
-                    Image image = Image.getInstance(wordToPdf.getUri().toURL());
-                    PushbuttonField pb = form.getNewPushbuttonFromField(key);
-                    pb.setImage(image);
-                    form.replacePushbuttonField(key, pb.getField());
-                }
-            } catch (Exception e) {
-                logger.error("CreateRecipePdfUtil templatePdfList error ", e);
-            }
-        }
-        return generatePdfList;
-    }
-
-    /**
-     * 获取模版填充字段
-     *
-     * @param keySet       模版表单字段
-     * @param recipePdfDTO pdf值对象
-     * @return 模版填充对象
-     */
-    private List<WordToPdfBean> generatePdfList(Set<String> keySet, RecipePdfDTO recipePdfDTO) {
-        List<WordToPdfBean> generatePdfList = new LinkedList<>();
-        for (String key : keySet) {
-            //单一字段处理
-            String[] keySplit = key.split(ByteUtils.DOT);
-            //条形码 ，二维码 等特殊节点处理
-            if (3 == keySplit.length) {
-                String identifyName = keySplit[0];
-                String objectName = keySplit[1];
-                String fieldName = keySplit[2];
-                if ("barCode".equals(identifyName)) {
-                    WordToPdfBean wordToPdf = getFieldValueByName(key, objectName, fieldName, recipePdfDTO);
-                    URI uri = BarCodeUtil.generateFileUrl(wordToPdf.getValue(), "barcode.png");
-                    wordToPdf.setUri(uri);
-                    generatePdfList.add(wordToPdf);
-                }
-                if ("qrCode".equals(identifyName)) {
-                    generatePdfList.add(getFieldValueByName(key, objectName, fieldName, recipePdfDTO));
-                }
-                continue;
-            }
-            //对象字段处理
-            if (2 == keySplit.length) {
-                String objectName = keySplit[0];
-                String fieldName = keySplit[1];
-                generatePdfList.add(getFieldValueByName(key, objectName, fieldName, recipePdfDTO));
-            }
-        }
-        return generatePdfList;
-    }
-
-    /**
-     * 获取pdf值对象 所对应的value
-     *
-     * @param key          表单名
-     * @param objectName   对象名
-     * @param fieldName    字段名
-     * @param recipePdfDTO pdf值对象
-     * @return 对应的value
-     */
-    private WordToPdfBean getFieldValueByName(String key, String objectName, String fieldName, RecipePdfDTO recipePdfDTO) {
-        if ("recipe".equals(objectName)) {
-            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
-            return new WordToPdfBean(key, value, null);
-        }
-        if ("patient".equals(objectName)) {
-            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
-            return new WordToPdfBean(key, value, null);
-        }
-        if ("recipeExtend".equals(objectName)) {
-            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
-            return new WordToPdfBean(key, value, null);
-        }
-        if ("recipeDetail".equals(objectName)) {
-            String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeDetails());
-            return new WordToPdfBean(key, value, null);
-        }
-        return null;
-    }
-
 
 }

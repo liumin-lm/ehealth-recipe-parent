@@ -6,6 +6,8 @@ import lombok.Setter;
 import java.io.Serializable;
 
 /**
+ * 处方签生成字段对象
+ *
  * @author fuzi
  */
 @Setter

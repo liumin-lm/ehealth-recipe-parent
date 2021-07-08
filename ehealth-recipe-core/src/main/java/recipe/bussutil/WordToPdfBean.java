@@ -25,5 +25,8 @@ public class WordToPdfBean implements Serializable {
      * 需要替换pdf模版表单字段值
      */
     private String value;
+    /**
+     * 需要替换pdf模版表单图片
+     */
     private URI uri;
 }

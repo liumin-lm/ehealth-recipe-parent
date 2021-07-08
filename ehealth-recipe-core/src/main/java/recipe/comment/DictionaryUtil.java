@@ -2,11 +2,9 @@ package recipe.comment;
 
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.constant.ErrorCode;
 import recipe.hisservice.EleInvoiceService;
 
 /**
@@ -26,7 +24,7 @@ public class DictionaryUtil {
      */
     public static String getDictionary(String classId, Integer key) {
         if (null == key) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "DictionaryController is null");
+            return "";
         }
         try {
             return DictionaryController.instance().get(classId).getText(key);
@@ -46,7 +44,7 @@ public class DictionaryUtil {
      */
     public static String getDictionary(String classId, String key) {
         if (null == key) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "DictionaryController is null");
+            return "";
         }
         try {
             String value = DictionaryController.instance().get(classId).getText(key);

@@ -33,7 +33,7 @@ public class RedisManager {
      */
     public void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
         if (ValidateUtil.validateObjects(recipeId, coOrdinateList)) {
-            logger.warn("RedisManager coOrdinate error ");
+            logger.warn("RedisManager coOrdinate error recipeId :{}", recipeId);
             return;
         }
         redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);

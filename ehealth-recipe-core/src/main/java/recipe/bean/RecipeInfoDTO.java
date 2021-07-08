@@ -11,7 +11,8 @@ import java.io.Serializable;
  */
 @Setter
 @Getter
-public class RecipePdfDTO extends RecipeDTO implements Serializable {
+public class RecipeInfoDTO extends RecipeDTO implements Serializable {
     private static final long serialVersionUID = 4097986146206606609L;
     private PatientDTO patientBean;
+
 }
