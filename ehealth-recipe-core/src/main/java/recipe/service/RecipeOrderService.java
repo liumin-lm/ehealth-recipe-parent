@@ -371,6 +371,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
+                order.setThirdPayType(0);
+                order.setThirdPayFee(0.00);
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
                 if (saveFlag) {
                     if (payModeSupport.isSupportMedicalInsureance()) {

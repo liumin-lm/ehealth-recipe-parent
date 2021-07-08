@@ -354,6 +354,8 @@ public class PayModeOnline implements IPurchaseService {
         if(Objects.nonNull(logisticsCompany)) {
             order.setLogisticsCompany(logisticsCompany);
         }
+        order.setThirdPayType(0);
+        order.setThirdPayFee(0.00);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
