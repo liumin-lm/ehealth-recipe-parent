@@ -1192,7 +1192,7 @@ public class HisRecipeService {
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
             if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setDoctor(employmentDTO.getDoctorId());
             } else {
@@ -1202,7 +1202,7 @@ public class HisRecipeService {
         }
 
         if (StringUtils.isNotEmpty(hisRecipe.getCheckerCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
             if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setChecker(employmentDTO.getDoctorId());
                 recipe.setCheckerText(hisRecipe.getCheckerName());
