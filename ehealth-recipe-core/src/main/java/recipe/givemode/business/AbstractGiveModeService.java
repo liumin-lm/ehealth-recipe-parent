@@ -175,7 +175,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             giveModeButton.setShowButtonKey("supportThirdOrder");
             giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
             //此时将ButtonType设置为4
-            giveModeShowButtonVO.setButtonType(4);
+            giveModeShowButtonVO.setButtonType(5);
         }
     }
 
