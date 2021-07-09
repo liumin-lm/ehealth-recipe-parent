@@ -3928,7 +3928,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             " LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode " +
                             " LEFT JOIN cdr_recipe_ext e ON r.RecipeID = e.recipeId " +
                             " WHERE " +
-                            " r.STATUS IN ( 2 ) " +
+                            " r.STATUS IN ( 2,8 ) " +
                             " AND r.mpiid IN ( :allMpiIds )" +
                             " AND r.recipeSourceType = 1 " +
                             " AND r.orderCode IS NOT NULL");
@@ -3943,6 +3943,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameter("limit",limit);
 
 
+                logger.info("findRecipeListByMPIId hql={}",hql.toString());
                 List<Object[]> result = q.list();
                 List<RecipeListBean> backList = new ArrayList<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
