@@ -6,6 +6,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import recipe.comment.DictionaryUtil;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -41,6 +42,9 @@ public class PatientClient extends BaseClient {
         p.setCertificate(null);
         PatientDTO patientDTO = new PatientDTO();
         BeanUtils.copyProperties(p, patientDTO);
+        if (StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
+            patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
+        }
         return patientDTO;
     }
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.io.Serializable;
 
 /**
- * 药师信息用于前端展示
+ * 签名信息用于前端展示
  *
  * @author fuzi
  */

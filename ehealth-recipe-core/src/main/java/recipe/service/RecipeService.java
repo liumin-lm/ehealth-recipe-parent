@@ -50,6 +50,7 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
@@ -98,10 +99,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
-import recipe.bean.CheckYsInfoBean;
-import recipe.bean.DrugEnterpriseResult;
-import recipe.bean.RecipeGiveModeButtonRes;
-import recipe.bean.RecipeInvalidDTO;
+import recipe.bean.*;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -124,10 +122,12 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.client.IConfigurationClient;
+import recipe.service.client.OperationClient;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
 import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.RecipeLabelManager;
+import recipe.service.manager.RecipeManager;
+import recipe.service.manager.SignManager;
 import recipe.thread.*;
 import recipe.util.*;
 import video.ainemo.server.IVideoInfoService;
@@ -199,9 +199,12 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
-
     @Autowired
-    private RecipeLabelManager recipeLabelManager;
+    private RecipeManager recipeManager;
+    @Autowired
+    private SignManager signManager;
+    @Autowired
+    private OperationClient operationClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -263,8 +266,6 @@ public class RecipeService extends RecipeBaseService {
      */
     public static final Integer RECIPE_EXPIRED_SEARCH_DAYS = 13;
 
-    /*处方中药标识*/
-    private static final String TCM_TEMPLATETYPE = "tcm";
 
     @RpcService
     public RecipeBean getByRecipeId(int recipeId) {
@@ -3605,12 +3606,11 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        return result;
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        Recipe recipe = recipePdfDTO.getRecipe();
+        ApothecaryVO apothecaryVO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
+        recipePdfDTO.setApothecary(apothecaryVO);
+        return operationClient.queryRecipeLabel(recipePdfDTO);
     }
 
     /**

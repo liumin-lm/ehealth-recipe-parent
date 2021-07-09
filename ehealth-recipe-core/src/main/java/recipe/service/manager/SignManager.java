@@ -46,6 +46,55 @@ public class SignManager {
     @Autowired
     private DoctorClient doctorClient;
 
+
+    /**
+     * 获取全部药师签名信息
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @param checker  审方药师id
+     * @param giveUser 发药药师id
+     * @param recipeId 处方id
+     * @return
+     */
+    public ApothecaryVO attachSealPic(Integer organId, Integer doctorId, Integer checker, String giveUser, Integer recipeId) {
+        ApothecaryVO apothecaryVO = attachSealPic(organId, doctorId, checker, recipeId);
+        ApothecaryVO giveUserApothecary = giveUser(organId, giveUser, recipeId);
+        apothecaryVO.setGiveUserId(giveUserApothecary.getGiveUserId());
+        apothecaryVO.setGiveUserName(giveUserApothecary.getGiveUserName());
+        apothecaryVO.setGiveUserSignImg(giveUserApothecary.getGiveUserSignImg());
+        apothecaryVO.setGiveUserSignImgToken(giveUserApothecary.getGiveUserSignImgToken());
+        return apothecaryVO;
+    }
+
+    /**
+     * 获取医生药师签名信息
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @param checker  审方药师id
+     * @param recipeId 处方id
+     * @return
+     */
+    public ApothecaryVO attachSealPic(Integer organId, Integer doctorId, Integer checker, Integer recipeId) {
+        logger.info("SignManager attachSealPic param organId:{},doctorId:{},checker:{},recipeId:{}", organId, doctorId, checker, recipeId);
+        ApothecaryVO attachSealPicDTO = new ApothecaryVO();
+        attachSealPicDTO.setRecipeId(recipeId);
+        attachSealPicDTO.setDoctorSignImg(signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_DOC));
+        if (StringUtils.isNotEmpty(attachSealPicDTO.getDoctorSignImg())) {
+            attachSealPicDTO.setDoctorId(doctorId);
+            attachSealPicDTO.setDoctorSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getDoctorSignImg(), 3600L));
+        }
+        attachSealPicDTO.setCheckerSignImg(signImg(organId, checker, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA));
+        if (StringUtils.isNotEmpty(attachSealPicDTO.getCheckerSignImg())) {
+            attachSealPicDTO.setCheckerId(checker);
+            attachSealPicDTO.setCheckerSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getCheckerSignImg(), 3600L));
+        }
+        logger.info("SignManager attachSealPic attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
+        return attachSealPicDTO;
+    }
+
+
     /**
      * 获取 发药药师签名图片id
      *
@@ -72,33 +121,6 @@ public class SignManager {
         return apothecaryVO;
     }
 
-
-    /**
-     * 根据配置项sealDataFrom获取签章图片
-     *
-     * @param doctorId
-     * @param
-     * @Author liumin
-     */
-    public ApothecaryVO attachSealPic(Integer organId, Integer doctorId, Integer checker, Integer recipeId) {
-        logger.info("SignManager attachSealPic param organId:{},doctorId:{},checker:{},recipeId:{}", organId, doctorId, checker, recipeId);
-        ApothecaryVO attachSealPicDTO = new ApothecaryVO();
-        attachSealPicDTO.setRecipeId(recipeId);
-        attachSealPicDTO.setDoctorSignImg(signImg(organId, doctorId, recipeId, CARecipeTypeConstant.CA_RECIPE_DOC));
-        if (StringUtils.isNotEmpty(attachSealPicDTO.getDoctorSignImg())) {
-            attachSealPicDTO.setDoctorId(doctorId);
-            attachSealPicDTO.setDoctorSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getDoctorSignImg(), 3600L));
-        }
-        attachSealPicDTO.setCheckerSignImg(signImg(organId, checker, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA));
-        if (StringUtils.isNotEmpty(attachSealPicDTO.getCheckerSignImg())) {
-            attachSealPicDTO.setCheckerId(checker);
-            attachSealPicDTO.setCheckerSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getCheckerSignImg(), 3600L));
-        }
-        logger.info("SignManager attachSealPic attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
-        return attachSealPicDTO;
-    }
-
-
     /**
      * 签名图片取值规则：根据运营平台-机构配置里面"处方单和处方笺签名取值配置"来定，拿不到在拿平台
      *
@@ -109,6 +131,7 @@ public class SignManager {
      */
     private ApothecaryVO giveUser(Integer organId, Integer doctorId, Integer recipeId) {
         ApothecaryVO apothecaryVO = new ApothecaryVO();
+        apothecaryVO.setGiveUserId(doctorId);
         Recipe recipe = new Recipe();
         recipe.setRecipeId(recipeId);
         recipe.setGiveUser(ByteUtils.objValueOf(doctorId));

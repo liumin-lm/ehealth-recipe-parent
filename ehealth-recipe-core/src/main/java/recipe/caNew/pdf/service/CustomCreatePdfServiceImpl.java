@@ -7,7 +7,6 @@ import com.itextpdf.text.pdf.*;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -27,7 +26,6 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.comment.DictionaryUtil;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.client.IConfigurationClient;
-import recipe.service.client.PatientClient;
 import recipe.service.manager.RecipeManager;
 import recipe.service.manager.RedisManager;
 import recipe.util.ByteUtils;
@@ -55,17 +53,15 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     /**
      * 需要记录坐标的的字段
      */
-    private final List<String> ADDITIONAL_FIELDS = Arrays.asList("doctorSignImg,doctorSignImgToken", "recipe.check",
-            "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.giveUser"
-            , "barCode.recipe.patientID", "barCode.recipe.recipeCode");
+    private final List<String> ADDITIONAL_FIELDS = Arrays.asList("recipe.doctor", "recipe.check", "recipe.actualPrice",
+            "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.giveUser",
+            "recipeExtend.superviseRecipecode", "barCode.recipe.patientID", "barCode.recipe.recipeCode");
     @Autowired
     private RedisManager redisManager;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeManager recipeManager;
-    @Autowired
-    private PatientClient patientClient;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
 
@@ -265,9 +261,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         //获取pdf值对象
-        RecipeInfoDTO recipePdfDTO = (RecipeInfoDTO) recipeManager.getRecipeDTO(recipe.getRecipeId());
-        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
-        recipePdfDTO.setPatientBean(patientBean);
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
         //获取模版填充字段
         List<WordToPdfBean> generatePdfList = generatePdfList(map.keySet(), recipePdfDTO);
         //替换的模版字段
@@ -309,7 +303,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             recipeDetailMap = createMedicinePDF(recipePdfDTO);
         }
         for (String key : keySet) {
-            String[] keySplit = key.split(ByteUtils.DOT);
+            String[] keySplit = key.trim().split(ByteUtils.DOT);
             //特殊节点处理
             if (3 == keySplit.length) {
                 String identifyName = keySplit[0];
@@ -381,7 +375,11 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         List<RecipeLabelVO> list = new LinkedList<>();
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
-            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName() + "(" + detail.getMemo() + ")"));
+            String drugName = detail.getDrugName();
+            if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
+                drugName = drugName + "(" + detail.getMemo() + ")";
+            }
+            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, drugName));
         }
         Recipedetail recipedetail = recipeDetails.get(0);
         list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", recipedetail.getUseDays()));

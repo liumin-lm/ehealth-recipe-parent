@@ -1,6 +1,7 @@
 package recipe.service.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -11,10 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bean.RecipeDTO;
+import recipe.bean.RecipeInfoDTO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.client.PatientClient;
 
 import java.util.List;
 
@@ -27,18 +30,16 @@ import java.util.List;
 public class RecipeManager {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-
     @Autowired
     private RecipeDAO recipeDAO;
-
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private PatientClient patientClient;
 
     /**
      * 通过订单号获取该订单下关联的所有处方
@@ -71,5 +72,19 @@ public class RecipeManager {
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
         return recipeDTO;
+    }
+
+    /**
+     * 获取处方相关信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    public RecipeInfoDTO getRecipeInfoDTO(Integer recipeId) {
+        RecipeInfoDTO recipePdfDTO = (RecipeInfoDTO) getRecipeDTO(recipeId);
+        Recipe recipe = recipePdfDTO.getRecipe();
+        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
+        recipePdfDTO.setPatientBean(patientBean);
+        return recipePdfDTO;
     }
 }
