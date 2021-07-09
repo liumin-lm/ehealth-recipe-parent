@@ -174,7 +174,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             giveModeButton.setShowButtonName("查看订单");
             giveModeButton.setShowButtonKey("supportThirdOrder");
             giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
-            //此时将ButtonType设置为4
+            //此时将ButtonType设置为5
             giveModeShowButtonVO.setButtonType(5);
         }
     }
@@ -192,7 +192,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             }
         } else {
             recordType = LIST_TYPE_RECIPE;
-            recordStatusCode = recipe.getStatus();
+            if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())) {
+                recordStatusCode = RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType();
+            } else {
+                recordStatusCode = recipe.getStatus();
+            }
         }
         Map<String, String> map = new HashMap<>();
         map.put("recordType", recordType);
