@@ -252,6 +252,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 //保存记录
                 recipeRefundDAO.saveRefund(recipeRefund);
             }
+            if (new Integer(3).equals(recipeStatusReqTO.getStatus())) {
+                recipe.setGiveMode(3);
+            }
+            if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
+                recipe.setGiveMode(1);
+            }
             recipe.setStatus(recipeStatusReqTO.getStatus());
             recipeDAO.update(recipe);
             return true;
