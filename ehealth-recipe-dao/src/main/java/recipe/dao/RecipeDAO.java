@@ -3943,6 +3943,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameter("limit",limit);
 
 
+                logger.info("findRecipeListByMPIId hql={}",hql.toString());
                 List<Object[]> result = q.list();
                 List<RecipeListBean> backList = new ArrayList<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
