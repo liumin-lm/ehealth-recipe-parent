@@ -3910,24 +3910,38 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
+
+                hql.append("select * from (");
                 hql.append("SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
                         "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ,o.Status as orderStatus,r.GiveMode,r.PayMode" +
                         " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
-                        "cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
-                        "WHERE " +
-                        " r.STATUS IN ( :recipeStatus ) AND r.mpiid IN ( :allMpiIds  )");
-//                if ("ongoing".equals(tabStatus)) {
-//                    hql.append("AND r.orderCode IS NOT NULL");
-//                }
+                        " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
+                        " WHERE " +
+                        " r.STATUS IN ( :recipeStatus ) AND r.mpiid IN ( :allMpiIds  ) AND r.recipeSourceType = 1");
+                if ("ongoing".equals(tabStatus)) {
+                    hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
+                            " r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart,r.enterpriseId,e.registerID,e.chronicDiseaseName," +
+                            " o.OrderId,IFNULL( o.CreateTime, r.signDate ) AS time,o.STATUS AS orderStatus,r.GiveMode,r.PayMode " +
+                            " FROM " +
+                            " cdr_recipe r " +
+                            " LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode " +
+                            " LEFT JOIN cdr_recipe_ext e ON r.RecipeID = e.recipeId " +
+                            " WHERE " +
+                            " r.STATUS IN ( 2 ) " +
+                            " AND r.mpiid IN ( :allMpiIds )" +
+                            " AND r.recipeSourceType = 1 " +
+                            " AND r.orderCode IS NOT NULL");
+                }
 
-                hql.append(" AND r.recipeSourceType = 1 ORDER BY time DESC");
+                hql.append(" ) a ORDER BY a.time DESC LIMIT :start,:limit");
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("allMpiIds", allMpiIds);
                 q.setParameterList("recipeStatus", recipeStatus);
-                q.setMaxResults(limit);
-                q.setFirstResult(start);
+                q.setParameter("start",start);
+                q.setParameter("limit",limit);
+
 
                 List<Object[]> result = q.list();
                 List<RecipeListBean> backList = new ArrayList<>(limit);
