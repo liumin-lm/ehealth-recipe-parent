@@ -177,6 +177,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             //此时将ButtonType设置为5
             giveModeShowButtonVO.setButtonType(5);
         }
+        LOGGER.info("setOtherButton giveModeButtons:{}", JSONUtils.toString(giveModeShowButtonVO));
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe) {
