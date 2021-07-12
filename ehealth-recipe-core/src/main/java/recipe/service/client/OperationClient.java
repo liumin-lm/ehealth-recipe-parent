@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.RecipeInfoDTO;
 import recipe.constant.ErrorCode;
+import recipe.constant.OperationConstant;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
@@ -111,7 +112,10 @@ public class OperationClient extends BaseClient {
         if (2 == boxLink.length) {
             String objectName = boxLink[0];
             String fieldName = boxLink[1];
-            return invokeFieldName(objectName, fieldName, recipePdfDTO, scratchable.getBoxDesc());
+            if (OperationConstant.OP_RECIPE_ORGAN_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
+                return scratchable.getBoxDesc();
+            }
+            return invokeFieldName(objectName, fieldName, recipePdfDTO);
         }
         //特殊节点处理
         if (3 == boxLink.length) {
@@ -119,47 +123,44 @@ public class OperationClient extends BaseClient {
             String objectName = boxLink[1];
             String fieldName = boxLink[2];
             //条形码
-            if ("barCode".equals(identifyName)) {
-                return invokeFieldName(objectName, fieldName, recipePdfDTO, null);
+            if (OperationConstant.OP_BARCODE.equals(identifyName)) {
+                return invokeFieldName(objectName, fieldName, recipePdfDTO);
             }
             //二维码
-            if ("qrCode".equals(identifyName)) {
-                return invokeFieldName(objectName, fieldName, recipePdfDTO, null);
+            if (OperationConstant.OP_QRCODE.equals(identifyName)) {
+                return invokeFieldName(objectName, fieldName, recipePdfDTO);
             }
         }
         return "";
     }
 
-    private String invokeFieldName(String objectName, String fieldName, RecipeInfoDTO recipePdfDTO, String def) {
-        if ("patient".equals(objectName)) {
+    private String invokeFieldName(String objectName, String fieldName, RecipeInfoDTO recipePdfDTO) {
+        if (OperationConstant.OP_PATIENT.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
         }
-        if ("recipeExtend".equals(objectName)) {
+        if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
         }
-        if ("recipeDetail".equals(objectName)) {
+        if (OperationConstant.OP_RECIPE_DETAIL.equals(objectName)) {
             List<Recipedetail> recipeDetails = recipePdfDTO.getRecipeDetails();
             if (!CollectionUtils.isEmpty(recipeDetails)) {
                 return MapValueUtil.getFieldValueByName(fieldName, recipeDetails.get(0));
             }
         }
-        if ("recipe".equals(objectName)) {
-            if ("organName".equals(fieldName) && StringUtils.isNotEmpty(def)) {
-                return def;
-            }
-            if ("recipeMemo".equals(fieldName)) {
+        if (OperationConstant.OP_RECIPE.equals(objectName)) {
+            if (OperationConstant.OP_RECIPE_RECIPE_MEMO.equals(fieldName)) {
                 Object recipeDetailRemark = configService.getConfiguration(recipePdfDTO.getRecipe().getClinicOrgan(), "recipeDetailRemark");
                 if (!ObjectUtils.isEmpty(recipeDetailRemark)) {
                     return recipeDetailRemark.toString();
                 }
             }
             RecipeOrder recipeOrder = recipePdfDTO.getRecipeOrder();
-            if ("actualPrice".equals(fieldName) && null != recipeOrder && null != recipeOrder.getRecipeFee()) {
+            if (OperationConstant.OP_RECIPE_ACTUAL_PRICE.equals(fieldName) && null != recipeOrder && null != recipeOrder.getRecipeFee()) {
                 return recipeOrder.getRecipeFee().toString();
             }
             ApothecaryVO apothecaryVO = recipePdfDTO.getApothecary();
             //医生签名图片
-            if ("doctor".equals(fieldName) && StringUtils.isNotEmpty(apothecaryVO.getDoctorSignImg())) {
+            if (OperationConstant.OP_RECIPE_DOCTOR.equals(fieldName) && StringUtils.isNotEmpty(apothecaryVO.getDoctorSignImg())) {
                 ApothecaryVO doctor = new ApothecaryVO();
                 doctor.setDoctorSignImg(apothecaryVO.getDoctorSignImg());
                 doctor.setDoctorSignImgToken(apothecaryVO.getDoctorSignImgToken());
@@ -167,7 +168,7 @@ public class OperationClient extends BaseClient {
                 return JSON.toJSONString(doctor);
             }
             //审方药师签名图片
-            if ("checker".equals(fieldName) && StringUtils.isNotEmpty(apothecaryVO.getCheckerSignImg())) {
+            if (OperationConstant.OP_RECIPE_CHECKER.equals(fieldName) && StringUtils.isNotEmpty(apothecaryVO.getCheckerSignImg())) {
                 ApothecaryVO checker = new ApothecaryVO();
                 checker.setCheckerSignImg(apothecaryVO.getCheckerSignImg());
                 checker.setCheckerSignImgToken(apothecaryVO.getCheckerSignImgToken());
@@ -175,7 +176,7 @@ public class OperationClient extends BaseClient {
                 return JSON.toJSONString(checker);
             }
             //核发药师签名图片
-            if ("giveUser".equals(fieldName) && StringUtils.isNotEmpty(apothecaryVO.getGiveUserSignImg())) {
+            if (OperationConstant.OP_RECIPE_GIVE_USER.equals(fieldName) && StringUtils.isNotEmpty(apothecaryVO.getGiveUserSignImg())) {
                 ApothecaryVO giveUser = new ApothecaryVO();
                 giveUser.setGiveUserSignImg(apothecaryVO.getGiveUserSignImg());
                 giveUser.setGiveUserSignImgToken(apothecaryVO.getGiveUserSignImgToken());

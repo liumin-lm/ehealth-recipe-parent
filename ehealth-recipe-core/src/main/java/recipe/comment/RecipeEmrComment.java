@@ -16,14 +16,6 @@ public class RecipeEmrComment {
      * 多选
      */
     public static final String MULTI_SEARCH = "multiSearch";
-    /**
-     * 单选
-     */
-    public static final String SINGLE_SEARCH = "singleSearch";
-    /**
-     * 隐藏文本
-     */
-    public static final String HIDE_TEXT = "hideText";
 
     /*** key字段 ****/
     /**
@@ -34,7 +26,6 @@ public class RecipeEmrComment {
      * 诊断
      */
     public static final String DIAGNOSIS = "diagnosis";
-
 
     /**
      * 主诉
@@ -67,10 +58,6 @@ public class RecipeEmrComment {
      */
     public static final String PROCESSING_METHOD = "processingMethod";
 
-    /**
-     * 注意事项
-     */
-    public static final String MEMO = "memo";
     /**
      * 备注
      */

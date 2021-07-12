@@ -24,6 +24,7 @@ import recipe.bean.RecipeInfoDTO;
 import recipe.bussutil.*;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.comment.DictionaryUtil;
+import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.manager.RecipeManager;
@@ -222,7 +223,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      */
     private byte[] generateTemplatePdf(Recipe recipe) throws Exception {
         //模版pdfId
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
+        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
         @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
         @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
         PdfReader reader = new PdfReader(input);
@@ -310,14 +311,14 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 String objectName = keySplit[1];
                 String fieldName = keySplit[2];
                 //条形码
-                if ("barCode".equals(identifyName)) {
+                if (OperationConstant.OP_BARCODE.equals(identifyName)) {
                     WordToPdfBean wordToPdf = invokeFieldName(key, objectName, fieldName, recipePdfDTO, null);
                     URI uri = BarCodeUtil.generateFileUrl(wordToPdf.getValue(), "barcode.png");
                     wordToPdf.setUri(uri);
                     generatePdfList.add(wordToPdf);
                 }
                 //二维码
-                if ("qrCode".equals(identifyName)) {
+                if (OperationConstant.OP_QRCODE.equals(identifyName)) {
                     generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, null));
                 }
                 continue;
@@ -342,19 +343,19 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @return 对应的value
      */
     private WordToPdfBean invokeFieldName(String key, String objectName, String fieldName, RecipeInfoDTO recipePdfDTO, Map<String, Object> recipeDetailMap) {
-        if ("recipe".equals(objectName)) {
+        if (OperationConstant.OP_RECIPE.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
             return new WordToPdfBean(key, value, null);
         }
-        if ("patient".equals(objectName)) {
+        if (OperationConstant.OP_PATIENT.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
             return new WordToPdfBean(key, value, null);
         }
-        if ("recipeExtend".equals(objectName)) {
+        if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
             return new WordToPdfBean(key, value, null);
         }
-        if ("recipeDetail".equals(objectName)) {
+        if (OperationConstant.OP_RECIPE_DETAIL.equals(objectName)) {
             String value = ByteUtils.objValueOfString(recipeDetailMap.get(key));
             return new WordToPdfBean(key, value, null);
         }

@@ -25,6 +25,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.comment.DictionaryUtil;
+import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.client.IConfigurationClient;
 import recipe.service.client.OperationClient;
@@ -306,7 +307,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @param recipe
      */
     private void createMedicinePDF(List<RecipeLabelVO> list, Recipe recipe) {
-        RecipeLabelVO recipeLabelVO = list.stream().filter(a -> "recipedetails".equals(a.getEnglishName())).findAny().orElse(null);
+        RecipeLabelVO recipeLabelVO = list.stream().filter(a -> OperationConstant.OP_RECIPE_DETAIL.equals(a.getEnglishName())).findAny().orElse(null);
         if (null == recipeLabelVO) {
             return;
         }
@@ -357,7 +358,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @param recipe
      */
     private void createChineMedicinePDF(List<RecipeLabelVO> list, RecipeExtend extend, Recipe recipe) {
-        RecipeLabelVO recipeLabelVO = list.stream().filter(a -> "recipedetails".equals(a.getEnglishName())).findAny().orElse(null);
+        RecipeLabelVO recipeLabelVO = list.stream().filter(a -> OperationConstant.OP_RECIPE_DETAIL.equals(a.getEnglishName())).findAny().orElse(null);
         if (null == recipeLabelVO) {
             return;
         }

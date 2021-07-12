@@ -20,6 +20,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
 import recipe.constant.ErrorCode;
+import recipe.constant.OperationConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeLogService;
@@ -60,6 +61,7 @@ public class CreatePdfFactory {
      * @return
      */
     public void queryPdfOssId(Recipe recipe) {
+        logger.info("CreatePdfFactory queryPdfOssId recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
             SignRecipePdfVO signRecipePdfVO = createPdfService.queryPdfOssId(recipe);
@@ -73,7 +75,7 @@ public class CreatePdfFactory {
             recipeUpdate.setSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
+            logger.error("CreatePdfFactory queryPdfOssId 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成失败");
         }
     }
@@ -85,6 +87,7 @@ public class CreatePdfFactory {
      * @return
      */
     public CaSealRequestTO queryPdfByte(Integer recipeId) {
+        logger.info("CreatePdfFactory queryPdfByte recipe:{}", recipeId);
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
@@ -107,6 +110,7 @@ public class CreatePdfFactory {
      * @param recipe
      */
     public void updateDoctorNamePdf(Recipe recipe) {
+        logger.info("CreatePdfFactory updateDoctorNamePdf recipe:{}", recipe.getRecipeId());
         try {
             boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
             if (!usePlatform) {
@@ -144,12 +148,14 @@ public class CreatePdfFactory {
      * @return
      */
     public CaSealRequestTO queryCheckPdfByte(Integer recipeId) {
+        logger.info("CreatePdfFactory queryCheckPdfByte recipeId:{}", recipeId);
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         CaSealRequestTO caSealRequestTO = createPdfService.queryCheckPdfByte(recipe);
         if (null == caSealRequestTO) {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取药师pdf_byte格式生成失败");
         }
+        logger.info("CreatePdfFactory queryCheckPdfByte caSealRequestTO:{}", JSON.toJSONString(caSealRequestTO));
         return caSealRequestTO;
     }
 
@@ -195,6 +201,7 @@ public class CreatePdfFactory {
      * @param recipeFee
      */
     public void updateTotalPdfExecute(Integer recipeId, BigDecimal recipeFee) {
+        logger.info("CreatePdfFactory updateTotalPdfExecute recipeId:{},recipeFee:{}", recipeId, recipeFee);
         if (null == recipeFee) {
             logger.warn("CreatePdfFactory updateTotalPdfExecute recipeFee is null");
             return;
@@ -234,6 +241,7 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateCodePdfExecute(Integer recipeId) {
+        logger.info("CreatePdfFactory updateCodePdfExecute recipeId:{}", recipeId);
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> {
@@ -259,6 +267,7 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateAddressPdfExecute(Integer recipeId) {
+        logger.info("CreatePdfFactory updateAddressPdfExecute recipeId:{}", recipeId);
         RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
         if (null == order) {
             logger.warn("CreatePdfFactory updateAddressPdfExecute   order is null  recipeId={}", recipeId);
@@ -313,7 +322,7 @@ public class CreatePdfFactory {
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             return;
         }
-        //pdf坐标
+        //获取pdf坐标
         CreatePdfService createPdfService = createPdfService(recipe);
         SignImgNode signImgNode = createPdfService.updateGiveUser(recipe);
         if (null == signImgNode) {
@@ -351,6 +360,7 @@ public class CreatePdfFactory {
      * @return
      */
     public void updatePdfToImg(Integer recipeId) {
+        logger.info("CreatePdfFactory updatePdfToImg recipeId:{}", recipeId);
         if (ValidateUtil.validateObjects(recipeId)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
         }
@@ -383,6 +393,7 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updatesealPdfExecute(Integer recipeId) {
+        logger.info("CreatePdfFactory updatesealPdfExecute recipeId:{}", recipeId);
         RecipeBusiThreadPool.execute(() -> updatesealPdf(recipeId));
     }
 
@@ -460,7 +471,7 @@ public class CreatePdfFactory {
      * @return
      */
     private CreatePdfService createPdfService(Recipe recipe) {
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "xxxxxxpdf", "");
+        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
         CreatePdfService createPdfService;
         if (StringUtils.isNotEmpty(organSealId)) {
             createPdfService = customCreatePdfServiceImpl;
