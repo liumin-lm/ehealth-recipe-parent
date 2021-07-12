@@ -48,6 +48,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -66,6 +67,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+
 
 /**
  * 第三方药企调用接口,历史原因存在一些平台的接口
@@ -1177,7 +1179,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
         if (REQUEST_OK == code && null != beforeStatus) {
             if(CHECK_ORDER.equals(checkStatus)){
-                if (!order.getStatus().equals(beforeStatus)) {
+                if (!order.getStatus().equals(beforeStatus)&& RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType()!=order.getStatus()) {
                     if (order.getStatus().equals(afterStatus)) {
                         code = REQUEST_ERROR_REAPET;
                     } else {
