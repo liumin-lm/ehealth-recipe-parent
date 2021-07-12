@@ -245,6 +245,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipeRefund.setTradeNo("");
                 recipeRefund.setPrice(recipe.getActualPrice().doubleValue());
                 recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_FINISH);
+                recipeRefund.setBusId(recipe.getRecipeId());
+                recipeRefund.setOrganId(recipe.getClinicOrgan());
+                recipeRefund.setPatientName(recipe.getPatientName());
+                recipeRefund.setMpiid(recipe.getMpiid());
+                recipeRefund.setStatus(1);
                 recipeRefund.setApplyNo("");
                 recipeRefund.setReason("暂无");
                 recipeRefund.setApplyTime(new Date());
