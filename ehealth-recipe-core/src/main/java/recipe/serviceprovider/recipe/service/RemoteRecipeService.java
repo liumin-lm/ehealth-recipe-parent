@@ -259,6 +259,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
             if (new Integer(3).equals(recipeStatusReqTO.getStatus())) {
                 recipe.setGiveMode(3);
+            } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())){
+                //信息推送
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
             }
             if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
                 recipe.setGiveMode(1);
