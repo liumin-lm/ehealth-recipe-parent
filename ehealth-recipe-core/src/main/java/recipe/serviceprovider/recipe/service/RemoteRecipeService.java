@@ -83,10 +83,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeRefundRoleConstant;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.ReviewTypeConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.CommonRemoteService;
@@ -256,16 +253,29 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipeRefund.setCheckTime(new Date());
                 //保存记录
                 recipeRefundDAO.saveRefund(recipeRefund);
-            }
-            if (new Integer(3).equals(recipeStatusReqTO.getStatus())) {
-                recipe.setGiveMode(3);
-            } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())){
-                //信息推送
-                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_SUCC);
             }
             if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
                 recipe.setGiveMode(1);
             }
+            if (new Integer(3).equals(recipeStatusReqTO.getStatus())) {
+                recipe.setGiveMode(3);
+                //药店待取药
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, recipe);
+            } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())){
+                //信息推送
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
+            }
+            if (new Integer(6).equals(recipe.getStatus())) {
+                if (new Integer(1).equals(recipe.getGiveMode())) {
+                    //配送完成
+                    RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+                } else if (new Integer(3).equals(recipe.getGiveMode())){
+                    //发送取药完成消息
+                    RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
+                }
+            }
+
             recipe.setStatus(recipeStatusReqTO.getStatus());
             recipeDAO.update(recipe);
             return true;
