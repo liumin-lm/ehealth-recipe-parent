@@ -88,7 +88,7 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.offlinetoonline.service.third.HisService;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.manager.EmrRecipeManager;
@@ -135,7 +135,7 @@ public class RecipeServiceSub {
 
     private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
 
-    private static HisService hisService = ApplicationUtils.getRecipeService(HisService.class);
+    private static FrontService frontService = AppContextHolder.getBean("frontService", FrontService.class);
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -2698,7 +2698,7 @@ public class RecipeServiceSub {
             recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
         }else{
             //获取当前处方详情
-            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisService.queryData(organId, patientDTO, null, 1, recipeCode);
+            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = frontService.queryData(organId, patientDTO, null, 1, recipeCode);
             QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
             if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
                 LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);

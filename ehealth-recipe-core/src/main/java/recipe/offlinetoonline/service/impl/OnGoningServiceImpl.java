@@ -17,7 +17,7 @@ import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
-import recipe.offlinetoonline.service.third.HisService;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
@@ -41,7 +41,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     OfflineToOnlineService offlineToOnlineService;
 
     @Autowired
-    HisService hisService;
+    FrontService frontService;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -63,7 +63,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisService.queryData(request.getOrganId(),patientDTO,180,1,null);
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= frontService.queryData(request.getOrganId(),patientDTO,180,1,null);
 
         try {
             // 2更新数据校验

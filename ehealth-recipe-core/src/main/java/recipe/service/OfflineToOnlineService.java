@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.recipe.mode.*;
-import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.recipe.mode.ExtInfoTO;
+import com.ngari.his.recipe.mode.MedicalInfo;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -19,7 +20,6 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -30,10 +30,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeGiveModeButtonRes;
-import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
@@ -43,7 +43,7 @@ import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
-import recipe.offlinetoonline.service.impl.NoPayServiceImpl;
+import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
@@ -102,7 +102,8 @@ public class OfflineToOnlineService {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    private NoPayServiceImpl noPayServiceImpl;
+    @Qualifier("noPayServiceImpl")
+    private IOfflineToOnlineService iOfflineToOnlineService;
 
     /**
      * 获取购药按钮
@@ -135,7 +136,7 @@ public class OfflineToOnlineService {
         request.getRecipeCode().forEach(recipeCode -> {
             // 2、线下转线上
             FindHisRecipeDetailReqVO findHisRecipeDetailReqVO=getFindHisRecipeDetailParam(request.getMpiId(),recipeCode, request.getOrganId(),request.getCardId());
-            Map<String, Object> map = noPayServiceImpl.findHisRecipeDetail(findHisRecipeDetailReqVO);
+            Map<String, Object> map = iOfflineToOnlineService.findHisRecipeDetail(findHisRecipeDetailReqVO);
             RecipeBean recipeBean = objectMapper.convertValue(map.get("recipe"), RecipeBean.class);
             if (null != recipeBean) {
                 recipeIds.add(recipeBean.getRecipeId());
@@ -784,18 +785,18 @@ public class OfflineToOnlineService {
                 hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum() == null ? null : String.valueOf(queryHisRecipResTO.getTcmNum()));
                 //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
                 hisRecipe.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
-                hisRecipe.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
-                hisRecipe.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
-                hisRecipe.setJuice(queryHisRecipResTO.getJuice());
-                hisRecipe.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
-                hisRecipe.setMinor(queryHisRecipResTO.getMinor());
-                hisRecipe.setMinorUnit(queryHisRecipResTO.getMinorUnit());
-                hisRecipe.setSymptomCode(queryHisRecipResTO.getSymptomCode());
-                hisRecipe.setSymptomName(queryHisRecipResTO.getSysmptomName());
-                hisRecipe.setSpecialDecoctionCode(queryHisRecipResTO.getSpecialDecoctiionCode());
-                hisRecipe.setCardNo(queryHisRecipResTO.getCardNo());
-                hisRecipe.setCardTypeCode(queryHisRecipResTO.getCardTypeCode());
-                hisRecipe.setCardTypeName(queryHisRecipResTO.getCardTypeName());
+//                hisRecipe.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
+//                hisRecipe.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
+//                hisRecipe.setJuice(queryHisRecipResTO.getJuice());
+//                hisRecipe.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
+//                hisRecipe.setMinor(queryHisRecipResTO.getMinor());
+//                hisRecipe.setMinorUnit(queryHisRecipResTO.getMinorUnit());
+//                hisRecipe.setSymptomCode(queryHisRecipResTO.getSymptomCode());
+//                hisRecipe.setSymptomName(queryHisRecipResTO.getSysmptomName());
+//                hisRecipe.setSpecialDecoctionCode(queryHisRecipResTO.getSpecialDecoctiionCode());
+//                hisRecipe.setCardNo(queryHisRecipResTO.getCardNo());
+//                hisRecipe.setCardTypeCode(queryHisRecipResTO.getCardTypeCode());
+//                hisRecipe.setCardTypeName(queryHisRecipResTO.getCardTypeName());
 
                 //审核药师
                 hisRecipe.setCheckerCode(queryHisRecipResTO.getCheckerCode());
@@ -853,9 +854,9 @@ public class OfflineToOnlineService {
                         //药房信息
                         detail.setPharmacyCode(recipeDetailTO.getPharmacyCode());
                         detail.setPharmacyName(recipeDetailTO.getPharmacyName());
-                        detail.setPharmacyCategray(recipeDetailTO.getPharmacyCategray());
-                        detail.setTcmContraindicationCause(recipeDetailTO.getTcmContraindicationCause());
-                        detail.setTcmContraindicationType(recipeDetailTO.getTcmContraindicationType());
+//                        detail.setPharmacyCategray(recipeDetailTO.getPharmacyCategray());
+//                        detail.setTcmContraindicationCause(recipeDetailTO.getTcmContraindicationCause());
+//                        detail.setTcmContraindicationType(recipeDetailTO.getTcmContraindicationType());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }

@@ -12,6 +12,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,7 +24,8 @@ import java.util.List;
  * @Date 2021/6/8 下午2:08
  * @Description
  */
-public class HisService {
+@Service
+public class FrontService {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 

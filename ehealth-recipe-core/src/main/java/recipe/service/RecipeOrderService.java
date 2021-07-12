@@ -71,7 +71,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.offlinetoonline.service.third.HisService;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -125,7 +125,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeDAO recipeDAO;
 
     @Autowired
-    private HisService hisService;
+    private FrontService frontService;
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
@@ -1943,7 +1943,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = frontService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
             List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
             if(CollectionUtils.isEmpty(hisRecipeTO)){
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);

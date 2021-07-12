@@ -18,7 +18,7 @@ import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
-import recipe.offlinetoonline.service.third.HisService;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
@@ -33,7 +33,7 @@ import java.util.Map;
  * @Date 2021/1/26 上午11:42
  * @Description 线下转线上待缴费处方实现类
  */
-@Service
+@Service("noPayServiceImpl")
 public class NoPayServiceImpl implements IOfflineToOnlineService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -42,7 +42,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
     OfflineToOnlineService offlineToOnlineService;
 
     @Autowired
-    HisService hisService;
+    FrontService frontService;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -65,7 +65,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisService.queryData(request.getOrganId(),patientDTO,180,1,request.getRecipeCode());
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= frontService.queryData(request.getOrganId(),patientDTO,180,1,request.getRecipeCode());
 
         try {
             // 2更新数据校验

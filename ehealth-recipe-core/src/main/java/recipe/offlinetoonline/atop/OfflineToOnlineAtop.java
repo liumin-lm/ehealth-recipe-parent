@@ -20,7 +20,7 @@ import recipe.constant.ErrorCode;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.factory.OfflineToOnlineFactory;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
-import recipe.offlinetoonline.service.third.HisService;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
@@ -43,7 +43,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
     OfflineToOnlineFactory offlineToOnlineFactory;
 
     @Autowired
-    HisService hisService;
+    FrontService frontService;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -72,7 +72,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
             patientDTO.setCardId(StringUtils.isNotEmpty(request.getCardId()) ? request.getCardId() : "");
 
             // 1、获取his数据
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= frontService.queryData(request.getOrganId(),patientDTO,request.getTimeQuantum(),Integer.parseInt(request.getStatus()),null);
             IOfflineToOnlineService offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             // 2、待缴费、进行中、已缴费线下处方列表服务差异化实现
             List<MergeRecipeVO> hisRecipeVoS=offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos,patientDTO,request);
