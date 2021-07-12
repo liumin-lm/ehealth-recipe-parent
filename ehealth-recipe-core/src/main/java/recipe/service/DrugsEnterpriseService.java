@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.opbase.auth.service.ISecurityService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
@@ -367,6 +368,16 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         }).collect(Collectors.toList());
         drugsEnterpriseBean.setDrugEnterpriseLogisticsBeans(drugEnterpriseLogisticsBeans);
         return drugsEnterpriseBean;
+    }
+
+    @RpcService
+    public DrugsEnterpriseBean getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId){
+        ISecurityService securityService = AppContextHolder.getBean("opbase.securityService",ISecurityService.class);
+        DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
+        if (bean != null){
+            securityService.isAuthoritiedOrganNew(bean.getOrganId());
+        }
+        return bean;
     }
 
     @RpcService
