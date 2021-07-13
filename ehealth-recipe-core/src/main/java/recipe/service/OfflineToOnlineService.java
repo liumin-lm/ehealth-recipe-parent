@@ -180,7 +180,7 @@ public class OfflineToOnlineService {
     }
 
     public List<HisRecipe> findHisRecipes(FindHisRecipeListVO request) {
-        return hisRecipeDAO.findHisRecipes(request.getOrganId(), request.getMpiId(), Integer.parseInt(request.getStatus()), request.getStart(), request.getLimit());
+        return hisRecipeDAO.findHisRecipes(request.getOrganId(), request.getMpiId(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), request.getStart(), request.getLimit());
     }
 
 //    /**
