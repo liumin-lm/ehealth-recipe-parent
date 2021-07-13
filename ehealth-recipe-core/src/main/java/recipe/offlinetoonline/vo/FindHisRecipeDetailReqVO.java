@@ -30,9 +30,20 @@ public class FindHisRecipeDetailReqVO implements Serializable {
     //卡片号
     private String cardId;
 
-    //
+    //onready（待处理）ongoing（进行中）isover（已完成）
     private String status;
 
+    public FindHisRecipeDetailReqVO(Integer organId, String mpiId, Integer hisRecipeId, String recipeCode, String cardId, String status) {
+        this.organId = organId;
+        this.mpiId = mpiId;
+        this.hisRecipeId = hisRecipeId;
+        this.recipeCode = recipeCode;
+        this.cardId = cardId;
+        this.status = status;
+    }
+
+    public FindHisRecipeDetailReqVO() {
+    }
 }
 
 

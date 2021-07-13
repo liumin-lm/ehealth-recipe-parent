@@ -14,12 +14,12 @@ import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author liumin
@@ -61,7 +61,7 @@ public class AlreadyPayServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
+    public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         // 1.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
         Integer recipeId=offlineToOnlineService.saveRecipeInfo(request.getHisRecipeId());
         // 2.通过cdrHisRecipeId返回数据详情

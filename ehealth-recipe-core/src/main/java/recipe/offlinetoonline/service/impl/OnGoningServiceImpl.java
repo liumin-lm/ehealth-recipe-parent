@@ -19,13 +19,13 @@ import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.service.third.FrontService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author liumin
@@ -56,7 +56,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
+    public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         // 跟待处理获取详情一致 先判断数据是否变更 然后返回详情
         // 1获取his数据
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
@@ -102,7 +102,7 @@ public class OnGoningServiceImpl implements IOfflineToOnlineService {
 
     @Override
     public String getHandlerMode() {
-        return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
+        return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ONGOING.getName();
     }
 
 

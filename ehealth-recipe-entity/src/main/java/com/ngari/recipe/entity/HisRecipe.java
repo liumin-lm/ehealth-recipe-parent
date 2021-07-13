@@ -150,8 +150,6 @@ public class HisRecipe implements Serializable {
     private String symptomCode;
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
-    @ItemProperty(alias = "特殊煎法code：搅碎、碾磨等")
-    private String specialDecoctionCode;
     @ItemProperty(alias = "卡号")
     private String cardNo;
     @ItemProperty(alias = "卡类型")
@@ -714,14 +712,6 @@ public class HisRecipe implements Serializable {
         this.symptomName = symptomName;
     }
 
-    @Column(name = "specialDecoctionCode")
-    public String getSpecialDecoctionCode() {
-        return specialDecoctionCode;
-    }
-
-    public void setSpecialDecoctionCode(String specialDecoctionCode) {
-        this.specialDecoctionCode = specialDecoctionCode;
-    }
 
     @Column(name = "cardNo")
     public String getCardNo() {

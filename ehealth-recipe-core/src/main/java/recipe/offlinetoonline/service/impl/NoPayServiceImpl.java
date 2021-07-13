@@ -20,13 +20,13 @@ import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.service.third.FrontService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.OfflineToOnlineService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author liumin
@@ -59,7 +59,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
     }
 
     @Override
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
+    public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         // 1获取his数据
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(request.getMpiId());
         if (null == patientDTO) {
@@ -86,7 +86,7 @@ public class NoPayServiceImpl implements IOfflineToOnlineService {
         Integer recipeId=offlineToOnlineService.saveRecipeInfo(hisRecipeId);
 
         // 5.通过cdrHisRecipeId返回数据详情
-        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(),recipeId);
+        return offlineToOnlineService.getHisRecipeDetailByHisRecipeIdAndRecipeId(hisRecipeId,recipeId);
     }
 
     @Override

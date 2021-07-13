@@ -5,13 +5,13 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.util.annotation.RpcService;
+import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
-import recipe.bean.RecipeGiveModeButtonRes;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author liumin
@@ -36,7 +36,7 @@ public interface IOfflineToOnlineService {
      * @param request
      * @return
      */
-    Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request);
+    FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request);
 
     /**
      * 线下处方点够药、缴费点结算 1、线下转线上 2、获取购药按钮

@@ -45,6 +45,7 @@ import recipe.givemode.business.IGiveModeBase;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.service.manager.EmrRecipeManager;
@@ -97,8 +98,6 @@ public class OfflineToOnlineService {
     @Autowired
     private IRevisitExService exService;
 
-    private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
-
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -136,11 +135,15 @@ public class OfflineToOnlineService {
         request.getRecipeCode().forEach(recipeCode -> {
             // 2、线下转线上
             FindHisRecipeDetailReqVO findHisRecipeDetailReqVO=getFindHisRecipeDetailParam(request.getMpiId(),recipeCode, request.getOrganId(),request.getCardId());
-            Map<String, Object> map = iOfflineToOnlineService.findHisRecipeDetail(findHisRecipeDetailReqVO);
-            RecipeBean recipeBean = objectMapper.convertValue(map.get("recipe"), RecipeBean.class);
-            if (null != recipeBean) {
-                recipeIds.add(recipeBean.getRecipeId());
+            FindHisRecipeDetailResVO findHisRecipeDetailResVO=iOfflineToOnlineService.findHisRecipeDetail(findHisRecipeDetailReqVO);
+            if(findHisRecipeDetailResVO!=null){
+                Map<String, Object> map = findHisRecipeDetailResVO.getPlatRecipeDetail();
+                RecipeBean recipeBean = objectMapper.convertValue(map.get("recipe"), RecipeBean.class);
+                if (null != recipeBean) {
+                    recipeIds.add(recipeBean.getRecipeId());
+                }
             }
+
         });
         LOGGER.info("batchSyncRecipeFromHis recipeIds:{}", JSONUtils.toString(recipeIds));
         //部分处方线下转线上成功
@@ -1481,7 +1484,7 @@ public class OfflineToOnlineService {
     public Integer saveRecipeInfo(Integer hisRecipeId) {
         LOGGER.info("saveRecipeInfo param hisRecipeId:{}",hisRecipeId);
         if (hisRecipeId == null) {
-            return null;
+            throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         HisRecipe hisRecipe = hisRecipeDAO.get(hisRecipeId);
         if (hisRecipe == null) {
@@ -1617,6 +1620,7 @@ public class OfflineToOnlineService {
         recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum()) == true ? null : Integer.parseInt(hisRecipe.getTcmNum()));
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
+        recipe=recipeDAO.saveOrUpdate(recipe);
         //购药按钮
         List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
         LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
@@ -1754,24 +1758,28 @@ public class OfflineToOnlineService {
      * @Description 通过hisRecipeId和recipeId查询并返回前端所需数据
      * @return
      */
-    public Map<String, Object> getHisRecipeDetailByHisRecipeIdAndRecipeId(Integer hisRecipeId, Integer recipeId) {
+    public FindHisRecipeDetailResVO getHisRecipeDetailByHisRecipeIdAndRecipeId(Integer hisRecipeId, Integer recipeId) {
+        if(hisRecipeId==null || recipeId==null){
+            throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
+        }
+        FindHisRecipeDetailResVO findHisRecipeDetailResVO=new FindHisRecipeDetailResVO();
         Map<String, Object> recipeDetailMap=new HashMap<String, Object>();
         Recipe recipe=recipeDAO.get(recipeId);
         HisRecipe hisRecipe= hisRecipeDAO.get(hisRecipeId);
-        List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         if(recipe==null){
-            throw new DAOException("当前处方不存在");
+            throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         if("2".equals(hisRecipe.getStatus())){
             recipeDetailMap= recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
         }else {
             recipeDetailMap = recipeService.getPatientRecipeById(recipeId);
         }
-        recipeDetailMap.put("hisRecipeExts", hisRecipeExts);
-        recipeDetailMap.put("showText", hisRecipe.getShowText());
+        findHisRecipeDetailResVO.setPlatRecipeDetail(recipeDetailMap);
+        findHisRecipeDetailResVO.setHisRecipeExts(hisRecipeExts);
+        findHisRecipeDetailResVO.setShowText(hisRecipe.getShowText());
         LOGGER.info("getHisRecipeDetailByHisRecipeId response:{}", JSONUtils.toString(recipeDetailMap));
-        return recipeDetailMap;
+        return findHisRecipeDetailResVO;
     }
 
     /**
@@ -1802,6 +1810,8 @@ public class OfflineToOnlineService {
             }
             if (hisRecipe != null) {
                 return hisRecipe.getHisRecipeID();
+            }else{
+                return null;
             }
         }
         return hisRecipes.get(0).getHisRecipeID();

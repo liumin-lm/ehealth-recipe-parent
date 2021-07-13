@@ -22,12 +22,12 @@ import recipe.offlinetoonline.factory.OfflineToOnlineFactory;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.service.third.FrontService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
+import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -35,7 +35,7 @@ import java.util.Map;
  * @Date        2021/07/06 上午11:42
  * @Description 线下转线上服务入口类
  */
-@RpcBean("offlineToOnlineAtop")
+@RpcBean(value="offlineToOnlineAtop")
 @Validated
 public class OfflineToOnlineAtop extends BaseAtop {
 
@@ -92,8 +92,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    @Validated
-    public Map<String, Object> findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
+    public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         logger.info("OfflineToOnlineAtop findHisRecipeDetail request:{}", ctd.util.JSONUtils.toString(request));
         if (null == request
                 || request.getOrganId() == null
