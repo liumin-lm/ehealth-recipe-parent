@@ -209,6 +209,7 @@ public class HisCallBackService {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
@@ -222,6 +223,7 @@ public class HisCallBackService {
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
                 IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
                 ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+                LOGGER.info("updateRecipeRegisterID consultExDTO:{}", JSONUtils.toString(consultExDTO));
                 exService.updateRecipeIdByConsultId(recipe.getClinicId(),recipe.getRecipeId());
                 if (null != consultExDTO) {
                     if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {

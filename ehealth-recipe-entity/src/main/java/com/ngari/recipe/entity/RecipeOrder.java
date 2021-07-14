@@ -241,6 +241,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    @ItemProperty(alias = "第三方支付类型，1 商保支付 2 预存金支付")
+    private Integer thirdPayType;
+
+    @ItemProperty(alias = "第三方支付金额")
+    private Double thirdPayFee;
+
     @ItemProperty(alias = "处方预结算返回门诊挂号序号")
     private String registerNo;
 
@@ -349,6 +355,24 @@ public class RecipeOrder implements Serializable {
         this.healthInsurancePayContent = healthInsurancePayContent;
     }
 
+    @Column(name = "thirdPayType")
+    public Integer getThirdPayType() {
+        return thirdPayType;
+    }
+
+    public void setThirdPayType(Integer thirdPayType) {
+        this.thirdPayType = thirdPayType;
+    }
+
+    @Column(name = "thirdPayFee")
+    public Double getThirdPayFee() {
+        return thirdPayFee;
+    }
+
+    public void setThirdPayFee(Double thirdPayFee) {
+        this.thirdPayFee = thirdPayFee;
+    }
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -386,6 +410,9 @@ public class RecipeOrder implements Serializable {
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+        this.setRegisterFee(zero);
+        this.setThirdPayType(0);
+        this.setThirdPayFee(0d);
     }
     @Column(name = "payeeCode")
     public Integer getPayeeCode() {

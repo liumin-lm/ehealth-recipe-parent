@@ -250,6 +250,8 @@ public class PayModeTFDS implements IPurchaseService{
             payModeNew = 2;
         }
         order.setPayMode(payModeNew);
+        order.setThirdPayType(0);
+        order.setThirdPayFee(0.00);
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if(!saveFlag){
             result.setCode(RecipeResultBean.FAIL);
@@ -349,6 +351,9 @@ public class PayModeTFDS implements IPurchaseService{
                 } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()) {
                     tips = "药品已准备好，请到药店取药";
                 }
+                break;
+            case RECIPE_STATUS_HAVE_PAY:
+                tips = "订单已处理，请到店取药";
                 break;
             case RECIPE_STATUS_RECIPE_FAIL:
                 tips = "药店取药失败";

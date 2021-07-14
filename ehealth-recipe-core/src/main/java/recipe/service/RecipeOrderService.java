@@ -371,6 +371,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
+                order.setThirdPayType(0);
+                order.setThirdPayFee(0.00);
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
                 if (saveFlag) {
                     if (payModeSupport.isSupportMedicalInsureance()) {
@@ -2370,6 +2372,35 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
+     * 获取第三方跳转链接
+     * TODO 七月大版本将会去掉bqEnterprise标志,会对此处代码进行重构,由于涉及改动较大,本次小版本不做处理
+     * @param skipThirdReqVO
+     * @return
+     */
+    public SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO){
+        SkipThirdBean skipThirdBean = new SkipThirdBean();
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        Integer recipeId = skipThirdReqVO.getRecipeIds().get(0);
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (recipe.getClinicOrgan() == 1005683) {
+            return getUrl(recipe, 0);
+        }
+        if (recipe.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
+            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+                return getUrl(recipe, GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+            }
+            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
+            if (null == order) {
+                return skipThirdBean;
+            }
+        }
+        return skipThirdBean;
+    }
+
+    /**
      * todo 过期方法新调用 使用： recipeOrderPatientAtop skipThirdPage
      * @param recipeId
      * @return
@@ -2404,13 +2435,13 @@ public class RecipeOrderService extends RecipeBaseService {
 
         Recipe recipe = recipeDAO.get(recipeId);
         if (recipe.getClinicOrgan() == 1005683) {
-            return getUrl(recipe);
+            return getUrl(recipe, 0);
         }
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return getUrl(recipe);
+                return getUrl(recipe, 0);
             }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
@@ -2420,7 +2451,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return skipThirdBean;
     }
 
-    private SkipThirdBean getUrl(Recipe recipe) {
+    private SkipThirdBean getUrl(Recipe recipe, Integer giveMode) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         String thirdUrl = "";
         if (null != recipe) {
@@ -2481,6 +2512,7 @@ public class RecipeOrderService extends RecipeBaseService {
             } catch (Exception e) {
                 LOGGER.error("queryPatientChannelId error:", e);
             }
+            req.setSkipMode(giveMode);
             try {
                 //获取民科机构登记号
                 req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));

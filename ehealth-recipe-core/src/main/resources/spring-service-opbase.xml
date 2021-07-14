@@ -10,5 +10,6 @@
     <reference interface="com.ngari.opbase.zjs.service.IMinkeOrganService" id="opbase.minkeOrganService"/>
     <reference interface="com.ngari.opbase.base.service.IDynamicLinkService" id="opbase.dynamicLinkService"/>
     <reference interface="com.ngari.opbase.xls.service.IImportExcelInfoService" id="opbase.importExcelInfoService"/>
+    <reference interface="com.ngari.opbase.auth.service.ISecurityService" id="opbase.securityService" />
 
 </s:beans>

@@ -354,6 +354,8 @@ public class PayModeOnline implements IPurchaseService {
         if(Objects.nonNull(logisticsCompany)) {
             order.setLogisticsCompany(logisticsCompany);
         }
+        order.setThirdPayType(0);
+        order.setThirdPayFee(0.00);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
@@ -599,6 +601,9 @@ public class PayModeOnline implements IPurchaseService {
                         tips = "订单结算失败，费用已为您原路返回";
                     }
                 }
+                break;
+            case RECIPE_STATUS_WAIT_SEND:
+                tips = "订单已处理，请耐心等待药品配送";
                 break;
             case RECIPE_STATUS_CHECK_PASS_YS:
                 tips = "处方已审核通过，请耐心等待药品配送";

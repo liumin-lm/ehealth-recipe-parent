@@ -39,6 +39,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
+import com.ngari.platform.recipe.mode.RecipeStatusReqTO;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
@@ -82,9 +83,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.ReviewTypeConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.CommonRemoteService;
@@ -99,6 +98,7 @@ import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
 import recipe.service.client.DoctorClient;
 import recipe.service.manager.EmrRecipeManager;
+import recipe.service.manager.OrderManager;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.*;
@@ -118,7 +118,7 @@ import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean(value = "remoteRecipeService")
+@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -152,6 +152,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private IClientConfigService clientConfigService;
     @Autowired
     private IRecipeHisService hisService;
+    @Autowired
+    private OrderManager orderManager;
 
     @RpcService
     @Override
@@ -226,6 +228,61 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr) {
         return recipeDAO.updateRecipeInfoByRecipeId(recipeId, afterStatus, changeAttr);
+    }
+
+    @Override
+    public boolean updateRecipeInfoForThirdOrder(RecipeStatusReqTO recipeStatusReqTO) {
+        LOGGER.info("updateRecipeInfoForThirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
+        try {
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeStatusReqTO.getRecipeCode(), recipeStatusReqTO.getOrganId());
+            if (new Integer(9).equals(recipeStatusReqTO.getStatus())) {
+                //表示退款的取消
+                //退费申请记录保存
+               RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo("");
+                recipeRefund.setPrice(recipe.getActualPrice().doubleValue());
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_FINISH);
+                recipeRefund.setBusId(recipe.getRecipeId());
+                recipeRefund.setOrganId(recipe.getClinicOrgan());
+                recipeRefund.setPatientName(recipe.getPatientName());
+                recipeRefund.setMpiid(recipe.getMpiid());
+                recipeRefund.setStatus(1);
+                recipeRefund.setApplyNo("");
+                recipeRefund.setReason("暂无");
+                recipeRefund.setApplyTime(new Date());
+                recipeRefund.setCheckTime(new Date());
+                //保存记录
+                recipeRefundDAO.saveRefund(recipeRefund);
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_SUCC);
+            }
+            if (new Integer(5).equals(recipeStatusReqTO.getStatus())) {
+                recipe.setGiveMode(1);
+            }
+            if (new Integer(3).equals(recipeStatusReqTO.getStatus())) {
+                recipe.setGiveMode(3);
+                //药店待取药
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, recipe);
+            } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())){
+                //信息推送
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
+            }
+            if (new Integer(6).equals(recipe.getStatus())) {
+                if (new Integer(1).equals(recipe.getGiveMode())) {
+                    //配送完成
+                    RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+                } else if (new Integer(3).equals(recipe.getGiveMode())){
+                    //发送取药完成消息
+                    RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
+                }
+            }
+
+            recipe.setStatus(recipeStatusReqTO.getStatus());
+            recipeDAO.update(recipe);
+            return true;
+        } catch (Exception e) {
+            LOGGER.info("updateRecipeInfoForThirdOrder error", e);
+        }
+        return false;
     }
 
     @RpcService

@@ -154,6 +154,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 giveModeShowButtonVO.setButtonType(4);
             }
         }
+        LOGGER.info("setOtherButton giveModeButtons:{}", JSONUtils.toString(giveModeShowButtonVO));
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe) {
@@ -169,7 +170,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             }
         } else {
             recordType = LIST_TYPE_RECIPE;
-            recordStatusCode = recipe.getStatus();
+            if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())) {
+                recordStatusCode = RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType();
+            } else {
+                recordStatusCode = recipe.getStatus();
+            }
         }
         Map<String, String> map = new HashMap<>();
         map.put("recordType", recordType);
@@ -264,7 +269,6 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             }
         }
         saveGiveModeDatas(giveModeButtonBeans, list);
-
 
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());

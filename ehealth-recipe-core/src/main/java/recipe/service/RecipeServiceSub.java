@@ -2057,6 +2057,36 @@ public class RecipeServiceSub {
         giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
         giveModeBase.setShowButton(giveModeShowButtonVO, recipe);
         map.put("giveModeShowButtonVO", giveModeShowButtonVO);
+        GiveModeButtonBean giveModeButtonBean = getShowThirdOrder(recipe);
+        if (null != giveModeButtonBean) {
+            map.put("showThirdOrder", giveModeButtonBean);
+        }
+    }
+
+    private static GiveModeButtonBean getShowThirdOrder(Recipe recipe){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        //设置第三方订单跳转的按钮
+        Integer enterpriseId = recipe.getEnterpriseId();
+        if (null == enterpriseId) {
+            return null;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
+            return null;
+        }
+        if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipe.getStatus())) {
+            //orderType=0表示订单在第三方生成
+            GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
+            giveModeButton.setButtonSkipType("3");
+            giveModeButton.setShowButtonName("查看订单");
+            giveModeButton.setShowButtonKey("supportThirdOrder");
+            return giveModeButton;
+        }
+        return null;
     }
 
     private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {

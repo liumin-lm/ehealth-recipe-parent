@@ -1,9 +1,12 @@
 package recipe.util;
 
 import org.apache.commons.lang3.StringUtils;
+import recipe.constant.BussTypeConstant;
 
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -88,6 +91,20 @@ public class LocalStringUtil {
             tpl = tpl.replace("${" + k + "}", val);
         }
         return tpl;
+    }
+
+    /**
+     * 业务类型1位+时间戳后10位+随机码4位
+     *
+     * @return
+     */
+    public static String getOrderCode(String mpiId) {
+        StringBuilder orderCode = new StringBuilder();
+        orderCode.append(BussTypeConstant.RECIPE);
+        String time = Long.toString(Calendar.getInstance().getTimeInMillis());
+        orderCode.append(time.substring(time.length() - 10));
+        orderCode.append(new Random().nextInt(9000) + 1000);
+        return orderCode.toString();
     }
 
     /**
