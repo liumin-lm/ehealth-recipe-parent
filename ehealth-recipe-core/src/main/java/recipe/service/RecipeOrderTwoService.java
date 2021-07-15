@@ -12,6 +12,7 @@ import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -61,8 +62,6 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private IConfigurationClient configurationClient;
-    @Autowired
-    private RecipeServiceSub recipeServiceSub;
     @Autowired
     private OrderManager orderManager;
 
@@ -131,6 +130,7 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
             return;
         }
         List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
+        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
         //将处方上传到第三方
         recipes.forEach(recipe -> {
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
