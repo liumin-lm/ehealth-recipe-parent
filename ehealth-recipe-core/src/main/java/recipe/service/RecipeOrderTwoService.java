@@ -164,13 +164,12 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
         Integer recipeId = skipThirdReqVO.getRecipeIds().get(0);
         Recipe recipe = recipeDAO.get(recipeId);
         if (recipe.getClinicOrgan() == 1005683) {
-            return orderManager.getUrl(recipe);
+            return orderManager.getUrl(recipe, 0);
         }
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                //  return getUrl(recipe, GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {               return orderManager.getUrl(recipe, GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
             }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
