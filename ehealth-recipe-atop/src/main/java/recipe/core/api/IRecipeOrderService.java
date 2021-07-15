@@ -32,7 +32,5 @@ public interface IRecipeOrderService {
      *
      * @return
      */
-    SkipThirdBean getThirdUrl(Integer integer);
-
     SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO);
 }
