@@ -7,7 +7,6 @@ import com.itextpdf.text.pdf.*;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -20,16 +19,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.bean.RecipeInfoDTO;
 import recipe.bussutil.*;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.comment.DictionaryUtil;
+import recipe.client.IConfigurationClient;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
-import recipe.service.client.IConfigurationClient;
-import recipe.service.manager.RecipeManager;
-import recipe.service.manager.RedisManager;
+import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.RecipeLabelVO;
+import recipe.manager.RecipeManager;
+import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
+import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 
 import java.io.ByteArrayInputStream;
@@ -181,7 +181,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order) {
+    public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order, String address) {
         logger.info("CustomCreatePdfServiceImpl updateAddressPdfExecute  recipeId={}", recipe.getRecipeId());
         List<CoOrdinateVO> list = new LinkedList<>();
         //患者端煎法生效
@@ -194,10 +194,10 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 list.add(decoctionText);
             }
         }
-        CoOrdinateVO address = redisManager.getPdfCoords(recipe.getRecipeId(), "address");
-        if (null != address) {
-            address.setValue(DictionaryUtil.getCompleteAddress(order));
-            list.add(address);
+        CoOrdinateVO addressOrdinate = redisManager.getPdfCoords(recipe.getRecipeId(), "address");
+        if (null != addressOrdinate) {
+            addressOrdinate.setValue(address);
+            list.add(addressOrdinate);
         }
         logger.info("CustomCreatePdfServiceImpl updateAddressPdf   list ={}", JSON.toJSONString(list));
         return list;

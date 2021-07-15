@@ -10,8 +10,8 @@
     </parent>
 
     <packaging>jar</packaging>
-    <name>处方API</name>
-    <description>处方API</description>
+    <name>api</name>
+    <description>处方接口层</description>
     <artifactId>ehealth-recipe-api</artifactId>
 
     <dependencies>
@@ -58,6 +58,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

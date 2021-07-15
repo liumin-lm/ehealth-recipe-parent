@@ -2,13 +2,13 @@ package recipe.drugTool.validate;
 
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.DecoctionWay;
+import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.DrugMakingMethod;
 import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import com.ngari.recipe.recipe.model.ValidateOrganDrugVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,11 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
+import recipe.client.IConfigurationClient;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
-import recipe.service.client.DrugClient;
-import recipe.service.client.IConfigurationClient;
-import recipe.service.manager.OrganDrugListManager;
+import recipe.manager.DrugManeger;
+import recipe.manager.OrganDrugListManager;
 import recipe.util.ValidateUtil;
 
 import java.util.List;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class RecipeDetailValidateTool {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
-    private DrugClient drugClient;
+    private DrugManeger drugManeger;
     @Autowired
     DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
@@ -63,9 +63,9 @@ public class RecipeDetailValidateTool {
      * @return
      */
     public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup) {
-        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(recipeDetailBean.getOrganDrugCode(), null, recipeDetailBean.getDrugId());
-        OrganDrugList organDrugList = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
-        if (validateOrganDrugVO.getValidateStatus()) {
+        ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(recipeDetailBean.getOrganDrugCode(), null, recipeDetailBean.getDrugId());
+        OrganDrugList organDrugList = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
+        if (validateOrganDrugDTO.getValidateStatus()) {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
         } else {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_FAILURE);
@@ -85,7 +85,7 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap) {
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
@@ -124,26 +124,26 @@ public class RecipeDetailValidateTool {
     /**
      * 校验中药嘱托
      *
-     * @param recipeDetail 处方明细数据
-     * @param drugEntrusts 机构嘱托
+     * @param recipeDetail       处方明细数据
+     * @param drugEntrustNameMap 机构嘱托
      * @return
      */
-    public boolean entrustValidate(RecipeDetailBean recipeDetail, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
+    public boolean entrustValidate(RecipeDetailBean recipeDetail, Map<String, DrugEntrust> drugEntrustNameMap) {
         if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
             return true;
         }
         //嘱托
-        DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(recipeDetail.getMemo());
-        if (null == drugEntrustDTO) {
-            drugEntrustDTO = new DrugEntrustDTO();
-            recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-            recipeDetail.setEntrustmentId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
-            recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
+        DrugEntrust drugEntrust = drugEntrustNameMap.get(recipeDetail.getMemo());
+        if (null == drugEntrust) {
+            drugEntrust = new DrugEntrust();
+            recipeDetail.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
+            recipeDetail.setEntrustmentId(String.valueOf(drugEntrust.getDrugEntrustId()));
+            recipeDetail.setMemo(drugEntrust.getDrugEntrustName());
             return true;
         }
-        recipeDetail.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-        recipeDetail.setEntrustmentId(String.valueOf(drugEntrustDTO.getDrugEntrustId()));
-        recipeDetail.setMemo(drugEntrustDTO.getDrugEntrustName());
+        recipeDetail.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
+        recipeDetail.setEntrustmentId(String.valueOf(drugEntrust.getDrugEntrustId()));
+        recipeDetail.setMemo(drugEntrust.getDrugEntrustName());
         return false;
     }
 
@@ -302,7 +302,7 @@ public class RecipeDetailValidateTool {
      */
     private boolean medicationsValidate(Integer organId, RecipeDetailBean recipeDetail) {
         boolean us = false;
-        UsingRateDTO usingRateDTO = drugClient.usingRate(organId, recipeDetail.getOrganUsingRate());
+        UsingRateDTO usingRateDTO = drugManeger.usingRate(organId, recipeDetail.getOrganUsingRate());
         if (null == usingRateDTO) {
             recipeDetail.setUsingRate(null);
             recipeDetail.setUsingRateTextFromHis(null);
@@ -313,7 +313,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUsingRate(usingRateDTO.getUsingRateKey());
             recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
         }
-        UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(organId, recipeDetail.getOrganUsePathways());
+        UsePathwaysDTO usePathwaysDTO = drugManeger.usePathways(organId, recipeDetail.getOrganUsePathways());
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
             recipeDetail.setUsePathwaysTextFromHis(null);

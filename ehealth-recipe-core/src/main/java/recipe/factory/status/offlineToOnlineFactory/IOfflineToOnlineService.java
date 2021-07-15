@@ -1,7 +1,7 @@
 package recipe.factory.status.offlineToOnlineFactory;
 
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
-import recipe.bean.RecipeGiveModeButtonRes;
+import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.List;
 

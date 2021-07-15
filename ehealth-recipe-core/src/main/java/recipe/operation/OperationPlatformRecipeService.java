@@ -13,11 +13,11 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
@@ -50,12 +50,12 @@ import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bussutil.AESUtils;
+import recipe.client.DoctorClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
-import recipe.service.client.DoctorClient;
 import recipe.util.ByteUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
@@ -433,9 +433,9 @@ public class OperationPlatformRecipeService {
                 map.put("grabOrderStatus", orderStatusAndLimitTime.get("grabOrderStatus"));
             }
         }
-        ApothecaryVO apothecaryVO = doctorClient.getApothecary(recipe);
-        map.put("apothecary", apothecaryVO);
-        LOGGER.info("findRecipeAndDetailsAndCheckById.map={}",JSONUtils.toString(map));
+        ApothecaryDTO apothecaryDTO = doctorClient.getApothecary(recipe);
+        map.put("apothecary", apothecaryDTO);
+        LOGGER.info("findRecipeAndDetailsAndCheckById.map={}", JSONUtils.toString(map));
         return map;
     }
 

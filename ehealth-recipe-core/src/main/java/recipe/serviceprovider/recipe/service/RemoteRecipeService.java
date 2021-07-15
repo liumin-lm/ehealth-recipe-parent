@@ -51,7 +51,6 @@ import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.account.Client;
@@ -83,6 +82,7 @@ import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.DoctorClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -92,14 +92,14 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
+import com.ngari.recipe.dto.ApothecaryDTO;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.EmrRecipeManager;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
-import recipe.service.client.DoctorClient;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -113,7 +113,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 
 /**
@@ -236,10 +235,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public RecipeBean getByRecipeId(int recipeId) {
         RecipeBean recipeBean = get(recipeId);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeBean != null && recipeExtend != null) {
-            getMedicalInfo(recipeBean, recipeExtend);
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             recipeBean.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
         }
@@ -317,7 +317,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             record.put("giveModeText", GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
             RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
             if (recipeOrder.getDispensingTime() != null) {
-                ApothecaryVO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
+                ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
                 recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
             } else {
                 recipeOrder.setDispensingApothecaryName("");

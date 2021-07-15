@@ -19,7 +19,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.HisRecipeService;
-import recipe.service.manager.EmrRecipeManager;
+import recipe.manager.EmrRecipeManager;
 import recipe.serviceprovider.recipeorder.service.constant.RecipeTaskEnum;
 
 import java.util.ArrayList;

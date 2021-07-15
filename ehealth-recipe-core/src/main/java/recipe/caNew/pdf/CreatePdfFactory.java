@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.AttachSealPicDTO;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,19 +19,21 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
+import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
-import recipe.service.client.IConfigurationClient;
-import recipe.service.manager.SignManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+
+import static recipe.util.DictionaryUtil.getDictionary;
 
 /**
  * pdf 构建工厂类
@@ -277,7 +279,7 @@ public class CreatePdfFactory {
         CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> {
             try {
-                List<CoOrdinateVO> list = createPdfService.updateAddressPdf(recipe, order);
+                List<CoOrdinateVO> list = createPdfService.updateAddressPdf(recipe, order, getCompleteAddress(order));
                 logger.info("CreatePdfFactory updateAddressPdfExecute list ={}", JSON.toJSONString(list));
                 if (CollectionUtils.isEmpty(list)) {
                     return;
@@ -310,8 +312,8 @@ public class CreatePdfFactory {
     public void updateGiveUser(Recipe recipe) {
         logger.info("CreatePdfFactory updateGiveUser recipe={}", JSON.toJSONString(recipe));
         //获取 核对发药药师签名id
-        ApothecaryVO apothecaryVO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
-        if (StringUtils.isEmpty(apothecaryVO.getGiveUserSignImg())) {
+        ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
             return;
         }
         //判断发药状态
@@ -328,7 +330,7 @@ public class CreatePdfFactory {
         if (null == signImgNode) {
             return;
         }
-        signImgNode.setSignImgFileId(apothecaryVO.getGiveUserSignImg());
+        signImgNode.setSignImgFileId(apothecaryDTO.getGiveUserSignImg());
         String fileId = null;
         Recipe recipeUpdate = new Recipe();
         try {
@@ -480,4 +482,17 @@ public class CreatePdfFactory {
         }
         return createPdfService;
     }
+
+
+    private String getCompleteAddress(RecipeOrder order) {
+        StringBuilder address = new StringBuilder();
+        if (null != order) {
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress1()));
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress2()));
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress3()));
+            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
+        }
+        return address.toString();
+    }
+
 }

@@ -41,13 +41,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
+import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeTextEnum;
 import recipe.service.*;
-import recipe.service.client.IConfigurationClient;
-import recipe.service.manager.EmrRecipeManager;
+import recipe.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 

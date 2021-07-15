@@ -33,11 +33,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
-import recipe.comment.DictionaryUtil;
 import recipe.constant.ErrorCode;
 import recipe.constant.MedicalChargesEnum;
 import recipe.dao.*;
 import recipe.util.DateConversion;
+import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;

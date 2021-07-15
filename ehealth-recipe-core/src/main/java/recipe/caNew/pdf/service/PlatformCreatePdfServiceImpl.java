@@ -5,12 +5,13 @@ import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
+import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import ctd.dictionary.DictionaryController;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
@@ -19,19 +20,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.bean.RecipeInfoDTO;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.comment.DictionaryUtil;
+import recipe.client.IConfigurationClient;
+import recipe.client.OperationClient;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
-import recipe.service.client.IConfigurationClient;
-import recipe.service.client.OperationClient;
-import recipe.service.manager.RecipeManager;
-import recipe.service.manager.RedisManager;
-import recipe.service.manager.SignManager;
+import recipe.manager.RecipeManager;
+import recipe.manager.RedisManager;
+import recipe.manager.SignManager;
+import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -182,7 +182,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order) {
+    public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order, String address) {
         Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateAddressPdfExecute  recipeId={}", recipeId);
         List<CoOrdinateVO> list = new LinkedList<>();
@@ -209,7 +209,6 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             receiver.setValue("收货人电话：" + order.getRecMobile());
             list.add(receiver);
         }
-        String address = DictionaryUtil.getCompleteAddress(order);
         if (StringUtils.isNotEmpty(address)) {
             CoOrdinateVO receiver = new CoOrdinateVO();
             receiver.setX(10);
@@ -275,8 +274,8 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         logger.info("PlatformCreatePdfServiceImpl queryPdfBytePdf recipe:{}", JSON.toJSONString(recipe));
         //获取pdf值对象
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
-        ApothecaryVO apothecaryVO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
-        recipePdfDTO.setApothecary(apothecaryVO);
+        ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
+        recipePdfDTO.setApothecary(apothecaryDTO);
         Map<String, List<RecipeLabelVO>> result = operationClient.queryRecipeLabel(recipePdfDTO);
         List<RecipeLabelVO> list = result.get("moduleThree");
         //组装生成pdf的参数

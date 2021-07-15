@@ -78,7 +78,7 @@ public interface CreatePdfService {
      *
      * @param recipeId
      */
-    List<CoOrdinateVO> updateAddressPdf(Recipe recipeId, RecipeOrder order);
+    List<CoOrdinateVO> updateAddressPdf(Recipe recipeId, RecipeOrder order, String address);
 
     /**
      * pdf 核对发药

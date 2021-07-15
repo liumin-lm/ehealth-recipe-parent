@@ -37,7 +37,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
-import recipe.service.manager.EmrRecipeManager;
+import recipe.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 

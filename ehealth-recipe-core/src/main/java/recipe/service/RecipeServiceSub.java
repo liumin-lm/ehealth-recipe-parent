@@ -25,7 +25,6 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.message.api.MessageAPI;
 import com.ngari.message.api.service.ConsultMessageService;
 import com.ngari.message.api.service.INetworkclinicMsgService;
@@ -36,8 +35,9 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.AttachSealPicDTO;
+import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -77,7 +77,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -88,11 +87,11 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.GroupRecipeManager;
+import recipe.manager.SignManager;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
-import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.GroupRecipeManager;
-import recipe.service.manager.SignManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -3026,29 +3025,6 @@ public class RecipeServiceSub {
             return false;
         }
         return false;
-    }
-
-    /**
-     * //根据平台机构id获取民科机构登记号
-     *
-     * @param organid
-     * @return
-     */
-    public static String getMinkeOrganCodeByOrganId(Integer organid) {
-        try {
-            if (organid != null) {
-                //获取民科机构登记号
-                OrganService organService = BasicAPI.getService(OrganService.class);
-                OrganDTO organDTO = organService.getByOrganId(organid);
-                if (organDTO != null && StringUtils.isNotEmpty(organDTO.getMinkeUnitID())) {
-                    IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
-                    return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("getMinkeOrganCodeByOrganId error", e);
-        }
-        return null;
     }
 
     /**

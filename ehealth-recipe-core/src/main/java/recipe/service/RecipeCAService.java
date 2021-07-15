@@ -55,8 +55,8 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.common.RecipeSignService;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -398,7 +398,11 @@ public class RecipeCAService {
                 }
             }
             if (null != recipeExtend) {
-                EmrRecipeManager.getMedicalInfo(recipeBean, recipeExtend);
+                Recipe recipeNew = new Recipe();
+                ctd.util.BeanUtils.copy(recipeBean, recipeNew);
+                EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+                recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+                recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
                 registerId = recipeExtend.getRegisterID();
                 request.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             } else {

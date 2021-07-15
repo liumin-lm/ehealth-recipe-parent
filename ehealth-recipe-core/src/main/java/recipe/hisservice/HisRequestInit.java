@@ -28,7 +28,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -46,13 +45,14 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
-import recipe.service.manager.EmrRecipeManager;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+import recipe.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * company: ngarihealth
@@ -79,7 +79,7 @@ public class HisRequestInit {
 
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            getMedicalInfo(recipe, recipeExtend);
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             requestTO.setIcdCode(recipe.getOrganDiseaseId());
             requestTO.setIcdName(recipe.getOrganDiseaseName());
             // 简要病史
@@ -296,7 +296,7 @@ public class HisRequestInit {
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        getMedicalInfo(recipe, recipeExtend);
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
         requestTO.setIcdCode(recipe.getOrganDiseaseId());
         requestTO.setIcdName(recipe.getOrganDiseaseName());
         // 简要病史
@@ -1016,7 +1016,7 @@ public class HisRequestInit {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
-                getMedicalInfo(recipe, recipeExtend);
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 //主诉
                 requestTO.setMainDiseaseDescribe(StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe()) ? recipeExtend.getMainDieaseDescribe() : "无");
                 //现病史
@@ -1029,7 +1029,7 @@ public class HisRequestInit {
                 LOGGER.warn("recipeExtend is null . recipeId={}", recipe.getRecipeId());
             }
             //获取诊断数据
-            getMedicalInfo(recipe, recipeExtend);
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             List<String> icdLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseId());
             List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
             List<DocIndexInfoTO> data = Lists.newArrayList();

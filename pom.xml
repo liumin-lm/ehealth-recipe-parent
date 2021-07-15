@@ -9,7 +9,7 @@
         <version>3.6.3.0b.master-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
-    <name>处方</name>
+    <name>root</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
     <modules>
@@ -17,9 +17,9 @@
         <module>ehealth-recipe-api</module>
         <module>ehealth-recipe-common</module>
         <module>ehealth-recipe-dao</module>
-        <module>ehealth-recipe-prescription</module>
-        <module>ehealth-recipe-audit</module>
-        <module>ehealth-recipe-purchase</module>
+        <module>ehealth-recipe-manager</module>
+        <module>ehealth-recipe-client</module>
+        <module>ehealth-recipe-atop</module>
         <module>ehealth-recipe-core</module>
     </modules>
     <properties>
@@ -397,12 +397,6 @@
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-bill-api</artifactId>
                 <version>${ngari.bill.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.18.12</version>
-                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
