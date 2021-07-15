@@ -3,8 +3,6 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.PharmacyTcm;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
@@ -20,8 +18,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class PharmacyManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class PharmacyManager extends BaseManager {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
 

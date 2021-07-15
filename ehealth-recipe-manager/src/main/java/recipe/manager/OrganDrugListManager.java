@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class OrganDrugListManager {
+public class OrganDrugListManager extends BaseManager {
     private static final Logger logger = LoggerFactory.getLogger(OrganDrugListManager.class);
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
