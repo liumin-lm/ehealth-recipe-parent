@@ -9,7 +9,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeOrderService;
+import recipe.core.api.patient.IRecipeOrderService;
 
 /**
  * @author yinsheng

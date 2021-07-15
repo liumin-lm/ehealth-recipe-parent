@@ -23,7 +23,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeOrderService;
+import recipe.core.api.patient.IRecipeOrderService;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;

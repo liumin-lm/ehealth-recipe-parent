@@ -37,7 +37,7 @@ import javax.annotation.Resource;
  * @date 2021\6\30 0030 15:22
  */
 @Service
-public class OrderManager {
+public class OrderManager extends BaseManager {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired

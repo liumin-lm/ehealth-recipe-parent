@@ -32,8 +32,7 @@ public class OfflineRecipeClient extends BaseClient {
         request.setName(doctorDTO.getName());
         try {
             HisResponseTO<List<com.ngari.his.recipe.mode.CommonDTO>> hisResponse = recipeHisService.offlineCommonRecipe(request);
-            List<CommonDTO> resultDTO = getResponse(hisResponse);
-            return resultDTO;
+            return getResponse(hisResponse);
         } catch (Exception e) {
             logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());

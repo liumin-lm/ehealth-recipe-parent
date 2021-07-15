@@ -33,28 +33,6 @@ public class PatientClient extends BaseClient {
      * @param mpiid
      * @return
      */
-    public com.ngari.patient.dto.PatientDTO getPatientDTO(String mpiid) {
-        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiid);
-        PatientDTO p = new PatientDTO();
-        BeanUtils.copyProperties(patient, p);
-        if (StringUtils.isNotEmpty(patient.getMobile())) {
-            p.setMobile(LocalStringUtil.coverMobile((patient.getMobile())));
-        }
-        if (StringUtils.isNotEmpty(patient.getIdcard())) {
-            p.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
-        }
-        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
-        p.setIdcard2(null);
-        p.setCertificate(null);
-        com.ngari.patient.dto.PatientDTO patientDTO = new com.ngari.patient.dto.PatientDTO();
-        BeanUtils.copyProperties(p, patientDTO);
-        if (StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
-            patientDTO.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientDTO.getPatientSex())));
-        }
-        return patientDTO;
-    }
-
-
     public PatientDTO getPatient(String mpiid) {
         com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiid);
         PatientDTO p = new PatientDTO();
