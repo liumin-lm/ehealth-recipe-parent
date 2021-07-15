@@ -3588,6 +3588,16 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
+    public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
+        //checkUserHasPermission(recipeId);
+
+        Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        return result;
+    }
+
     /**
      * 健康端获取处方详情-----合并处方
      *
