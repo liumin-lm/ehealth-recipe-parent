@@ -3,11 +3,11 @@ package recipe.atop.patient;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailService;
 
-import javax.annotation.Resource;
 import java.util.Objects;
 
 /**
@@ -18,11 +18,10 @@ import java.util.Objects;
 @RpcBean("recipeDetailPatientAtop")
 public class RecipeDetailPatientAtop extends BaseAtop {
 
-    @Resource
+    @Autowired
     private IRecipeDetailService recipeDetailService;
 
     /**
-     * todo 需要确认是否修改正确 （王鸿芳）
      * 患者端处方进行中列表查询药品信息
      *
      * @param orderCode 订单code

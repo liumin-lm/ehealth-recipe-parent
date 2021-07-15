@@ -23,7 +23,6 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     private IRecipeOrderService recipeOrderService;
 
     /**
-     * todo 需要确认是否修改正确 （王鸿芳）
      * 跳转到第三方处方购药页面
      *
      * @param skipThirdReqVO 处方ID + 患者选择的购药方式
