@@ -83,12 +83,12 @@ public class OrderManager {
         }
         Recipe recipe = recipeDAO.get(recipeId);
         if (recipe.getClinicOrgan() == 1005683) {
-            return getUrl(recipe);
+            return getUrl(recipe, 0);
         }
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return getUrl(recipe);
+                return getUrl(recipe, 0);
             }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
@@ -98,7 +98,7 @@ public class OrderManager {
         return skipThirdBean;
     }
 
-    public SkipThirdBean getUrl(Recipe recipe) {
+    public SkipThirdBean getUrl(Recipe recipe, Integer giveMode) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         String thirdUrl;
         if (null != recipe) {
@@ -157,6 +157,7 @@ public class OrderManager {
             } catch (Exception e) {
                 logger.error("queryPatientChannelId error:", e);
             }
+            req.setSkipMode(giveMode);
             try {
                 //获取民科机构登记号
                 req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));

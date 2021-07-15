@@ -3580,7 +3580,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
-        checkUserHasPermission(recipeId);
+        //checkUserHasPermission(recipeId);
 
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
@@ -4463,7 +4463,7 @@ public class RecipeService extends RecipeBaseService {
             }
             Integer beforStatus = recipe.getStatus();
             if (beforStatus == RecipeStatusConstant.REVOKE) {
-                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已被撤销");
             }
             searchMap.put("giveMode", RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE);
             searchMap.put("chooseFlag", havChooseFlag);
