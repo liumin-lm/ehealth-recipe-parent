@@ -39,7 +39,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeCAService;
-import recipe.service.manager.EmrRecipeManager;
+import recipe.manager.EmrRecipeManager;
 
 import java.util.*;
 

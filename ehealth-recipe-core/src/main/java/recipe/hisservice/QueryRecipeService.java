@@ -48,6 +48,7 @@ import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
@@ -61,7 +62,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static recipe.dao.DrugMakingMethodDao.log;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * 浙江互联网医院处方查询接口
@@ -225,7 +226,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
             }
 
-            getMedicalInfo(recipe, recipeExtend);
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             recipeDTO = new QueryRecipeInfoDTO();
             //拼接处方信息
             //处方号
@@ -300,7 +301,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             //主诉等等四个字段
 
             if (recipeExtend != null) {
-                getMedicalInfo(recipe, recipeExtend);
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 if (StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe())) {
                     //主诉
                     recipeDTO.setBRZS(recipeExtend.getMainDieaseDescribe());

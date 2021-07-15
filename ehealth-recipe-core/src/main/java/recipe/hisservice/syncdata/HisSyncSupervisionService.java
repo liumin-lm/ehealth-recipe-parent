@@ -18,8 +18,8 @@ import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
+import recipe.client.DoctorClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
@@ -58,9 +59,8 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.EleInvoiceService;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeExtendService;
-import recipe.service.client.DoctorClient;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -549,16 +549,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
             //获取运营平台发药药师
-            ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
-            if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
-                req.setDispensingApothecaryName(apothecaryVO.getGiveUserName());
+            ApothecaryDTO apothecaryDTO = doctorClient.getGiveUser(recipe);
+            if (StringUtils.isNotEmpty(apothecaryDTO.getGiveUserName())) {
+                req.setDispensingApothecaryName(apothecaryDTO.getGiveUserName());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                 req.setDispensingApothecaryName(dispensingApothecary.getName());
             }
-            if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserIdCard())) {
-                req.setDispensingApothecaryIdCard(apothecaryVO.getGiveUserIdCard());
+            if (StringUtils.isNotEmpty(apothecaryDTO.getGiveUserIdCard())) {
+                req.setDispensingApothecaryIdCard(apothecaryDTO.getGiveUserIdCard());
             } else if (doctorId != null) {
                 //获取默认发药药师
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
@@ -1515,10 +1515,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
-                ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
+                ApothecaryDTO apothecaryDTO = doctorClient.getGiveUser(recipe);
                 //获取发药药师姓名  默认平台配置
-                if (StringUtils.isNotEmpty(apothecaryVO.getGiveUserName())) {
-                    req.setDispensingCheckerName(apothecaryVO.getGiveUserName());
+                if (StringUtils.isNotEmpty(apothecaryDTO.getGiveUserName())) {
+                    req.setDispensingCheckerName(apothecaryDTO.getGiveUserName());
                 } else if (doctorId != null) {
                     //获取机构发药药师
                     DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));

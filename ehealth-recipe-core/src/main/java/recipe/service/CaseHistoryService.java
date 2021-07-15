@@ -1,12 +1,19 @@
 package recipe.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.vo.CaseHistoryVO;
 import eh.cdr.api.vo.MedicalDetailBean;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import recipe.service.manager.EmrRecipeManager;
+import recipe.core.api.doctor.ICaseHistoryService;
+import recipe.manager.EmrRecipeManager;
 import recipe.util.ValidateUtil;
+import recipe.vo.second.EmrConfigVO;
+import recipe.vo.second.MedicalDetailVO;
+
+import java.util.List;
 
 /**
  * 电子病历处理实现类
@@ -14,7 +21,7 @@ import recipe.util.ValidateUtil;
  * @author fuzi
  */
 @Service
-public class CaseHistoryService {
+public class CaseHistoryService implements ICaseHistoryService {
     /**
      * 操作类型 1：查看，2：copy
      */
@@ -31,23 +38,33 @@ public class CaseHistoryService {
      *
      * @param caseHistoryVO 电子病历查询对象
      */
-    public MedicalDetailBean getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
+    @Override
+    public MedicalDetailVO getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
+        MedicalDetailBean medicalDetailBean = null;
         //查看
         if (DOC_ACTION_TYPE_INFO.equals(caseHistoryVO.getActionType())) {
             MedicalDetailBean emrDetails = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
             if (!StringUtils.isEmpty(emrDetails)) {
-                return emrDetails;
+                medicalDetailBean = emrDetails;
+            } else {
+                medicalDetailBean = emrRecipeManager.getEmrDetails(caseHistoryVO.getDocIndexId());
             }
-            return emrRecipeManager.getEmrDetails(caseHistoryVO.getDocIndexId());
         }
         //copy
         if (DOC_ACTION_TYPE_COPY.equals(caseHistoryVO.getActionType())) {
             if (ValidateUtil.integerIsEmpty(caseHistoryVO.getRecipeId())) {
-                return emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
+                medicalDetailBean = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
             } else {
-                return emrRecipeManager.copyEmrDetails(caseHistoryVO.getRecipeId(), caseHistoryVO.getClinicId());
+                medicalDetailBean = emrRecipeManager.copyEmrDetails(caseHistoryVO.getRecipeId(), caseHistoryVO.getClinicId());
             }
         }
-        return null;
+        if (null == medicalDetailBean) {
+            return null;
+        }
+        MedicalDetailVO medicalDetailVO = new MedicalDetailVO();
+        BeanUtils.copyProperties(medicalDetailBean, medicalDetailVO);
+        List<EmrConfigVO> detailList = ObjectCopyUtils.convert(medicalDetailBean.getDetailList(), EmrConfigVO.class);
+        medicalDetailVO.setDetailList(detailList);
+        return medicalDetailVO;
     }
 }

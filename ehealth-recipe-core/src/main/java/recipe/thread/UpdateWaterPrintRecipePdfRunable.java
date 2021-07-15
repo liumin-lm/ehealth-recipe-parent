@@ -1,5 +1,6 @@
 package recipe.thread;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.bussutil.openapi.util.JSONUtils;
 import recipe.dao.RecipeDAO;
 import recipe.util.DateConversion;
 
@@ -33,7 +33,7 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
         logger.info("UpdateWaterPrintRecipePdfRunable start. recipeId={}", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
-        logger.info("UpdateWaterPrintRecipePdfRunable recipeId={} recipe={}", recipeId, JSONUtils.toString(recipe));
+        logger.info("UpdateWaterPrintRecipePdfRunable recipeId={} recipe={}", recipeId, JSON.toJSONString(recipe));
         //更新pdf
         if (null == recipe) {
             logger.warn("UpdateWaterPrintRecipePdfRunable recipe is null  recipeId={}", recipeId);

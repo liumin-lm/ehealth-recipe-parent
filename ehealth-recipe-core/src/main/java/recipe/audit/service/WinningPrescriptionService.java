@@ -7,6 +7,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -26,13 +27,13 @@ import recipe.ApplicationUtils;
 import recipe.audit.bean.*;
 import recipe.audit.pawebservice.PAWebServiceLocator;
 import recipe.audit.pawebservice.PAWebServiceSoap12Stub;
-import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
@@ -45,7 +46,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 描述：卫宁智能审方
@@ -109,7 +109,11 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         if (StringUtils.isEmpty(isAutoReview) || "true".equalsIgnoreCase(isAutoReview)) {
             try {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                getMedicalInfo(recipe, recipeExtend);
+                Recipe recipeNew = new Recipe();
+                ctd.util.BeanUtils.copy(recipe, recipeNew);
+                EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+                recipe.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+                recipe.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
                 result = analysisImpl(recipe, recipedetails);
             } catch (Exception e) {
                 LOGGER.warn("analysis error. recipe={}, detail={}",

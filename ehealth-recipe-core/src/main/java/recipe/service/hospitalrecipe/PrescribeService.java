@@ -40,9 +40,9 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.util.RedisClient;
 
 import java.util.HashMap;

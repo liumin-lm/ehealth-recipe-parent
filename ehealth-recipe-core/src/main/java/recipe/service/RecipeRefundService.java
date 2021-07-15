@@ -24,7 +24,6 @@ import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -40,11 +39,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.service.manager.RecipeManager;
+import recipe.manager.RecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**

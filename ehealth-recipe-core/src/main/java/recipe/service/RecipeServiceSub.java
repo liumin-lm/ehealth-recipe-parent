@@ -25,7 +25,6 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.message.api.MessageAPI;
 import com.ngari.message.api.service.ConsultMessageService;
 import com.ngari.message.api.service.INetworkclinicMsgService;
@@ -36,9 +35,9 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drugsenterprise.model.RecipeLabelVO;
+import com.ngari.recipe.dto.AttachSealPicDTO;
+import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -69,7 +68,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -79,7 +77,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.comment.DictionaryUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -90,12 +87,11 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.GroupRecipeManager;
+import recipe.manager.SignManager;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
-import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.GroupRecipeManager;
-import recipe.service.manager.RecipeLabelManager;
-import recipe.service.manager.SignManager;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -124,9 +120,6 @@ public class RecipeServiceSub {
 
     private static SignManager signManager = AppContextHolder.getBean("signManager", SignManager.class);
 
-    @Autowired
-    private RecipeLabelManager recipeLabelManager;
-
     private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
 
     private static HisRecipeService hisRecipeService=ApplicationUtils.getRecipeService(HisRecipeService.class);
@@ -149,67 +142,6 @@ public class RecipeServiceSub {
     private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
-
-    /**
-     * 获取pdf byte 格式
-     *
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public String queryPdfStrById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        try {
-            return recipeLabelManager.queryPdfStrById(result, recipeMap);
-        } catch (Exception e) {
-            LOGGER.error("queryPdfRecipeLabelById error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
-        }
-    }
-
-    /**
-     * 获取pdf oss id
-     *
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public Map<String, Object> queryPdfRecipeLabelById(int recipeId, Integer organId, int recipeStatus) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        try {
-            return recipeLabelManager.queryPdfRecipeLabelById(result, recipeMap);
-        } catch (Exception e) {
-            LOGGER.error("queryPdfRecipeLabelById error ", e);
-            //日志记录
-            String memo = "签名上传文件失败！原因：" + e.getMessage();
-            RecipeLogService.saveRecipeLog(recipeId, recipeStatus, recipeStatus, memo);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "pdf error");
-        }
-    }
-
-    /**
-     * 获取配置的处方签
-     *
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        Map<String, Object> recipeMap = getRecipeAndDetailByIdImpl(recipeId, false);
-        if (org.springframework.util.CollectionUtils.isEmpty(recipeMap)) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "recipe is null!");
-        }
-        Map<String, List<RecipeLabelVO>> result = recipeLabelManager.queryRecipeLabelById(organId, recipeMap);
-        return result;
-    }
 
     /**
      * @param recipeBean
@@ -851,12 +783,7 @@ public class RecipeServiceSub {
             }
             paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
-
-            //水印
-//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-//            if (null != waterPrintText) {
-//                paramMap.put("waterPrintText", waterPrintText.toString());
-//            }
+            
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -963,21 +890,11 @@ public class RecipeServiceSub {
                 }
 
                 paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
-//                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
-//                LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
-//                if((boolean)canShowDrugCost){
-//                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
-//                }
                 i++;
             }
             paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
 
-            //水印
-//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-//            if (null != waterPrintText) {
-//                paramMap.put("waterPrintText", waterPrintText.toString());
-//            }
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -2232,28 +2149,6 @@ public class RecipeServiceSub {
         map.put("showButton", showButton);
     }
 
-    private static List<AuditMedicinesBean> handleAnalysisByType(List<AuditMedicinesBean> auditMedicines, String type) {
-        if (CollectionUtils.isNotEmpty(auditMedicines)) {
-            auditMedicines.forEach(auditMedicinesDTO -> {
-                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
-                List<AuditMedicineIssueBean> resultAuditMedicineIssues = new ArrayList<>();
-                auditMedicineIssues.forEach(auditMedicineIssueDTO -> {
-                    if (type.equals("medicines")) {
-                        if (null == auditMedicineIssueDTO.getDetailUrl()) {
-                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
-                        }
-                    } else if (type.equals("recipeDangers")) {
-                        if (null != auditMedicineIssueDTO.getDetailUrl()) {
-                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
-                        }
-                    }
-                });
-                auditMedicinesDTO.setAuditMedicineIssues(resultAuditMedicineIssues);
-            });
-        }
-        return auditMedicines;
-    }
-
     public static String getCancelReasonForChecker(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
@@ -3123,29 +3018,6 @@ public class RecipeServiceSub {
             return false;
         }
         return false;
-    }
-
-    /**
-     * //根据平台机构id获取民科机构登记号
-     *
-     * @param organid
-     * @return
-     */
-    public static String getMinkeOrganCodeByOrganId(Integer organid) {
-        try {
-            if (organid != null) {
-                //获取民科机构登记号
-                OrganService organService = BasicAPI.getService(OrganService.class);
-                OrganDTO organDTO = organService.getByOrganId(organid);
-                if (organDTO != null && StringUtils.isNotEmpty(organDTO.getMinkeUnitID())) {
-                    IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
-                    return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("getMinkeOrganCodeByOrganId error", e);
-        }
-        return null;
     }
 
     /**

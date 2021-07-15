@@ -5,10 +5,13 @@ import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * 废弃 与原有架构不符
+ *
  * @author fuzi
  */
 @Setter
 @Getter
+@Deprecated
 public class ResultBean {
 
     private Integer code;

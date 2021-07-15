@@ -15,6 +15,11 @@
     <description>common</description>
     <dependencies>
         <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-recipe-entity</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>ngari-mvc</artifactId>
         </dependency>

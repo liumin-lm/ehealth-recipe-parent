@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.MedicationGuide;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -14,6 +15,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -33,13 +35,14 @@ import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.MedicationGuideDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.EmrRecipeManager;
 import recipe.medicationguide.bean.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * created by shiyuping on 2019/10/28
@@ -54,10 +57,15 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
     @Override
     @RpcService
     public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
-       if (null != recipeBean && null != recipeBean.getRecipeId()){
-           RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-           getMedicalInfo(recipeBean, recipeExtend);
-       }
+        if (null != recipeBean && null != recipeBean.getRecipeId()) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+
+            Recipe recipeNew = new Recipe();
+            BeanUtils.copy(recipeBean, recipeNew);
+            EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+            recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+            recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
+        }
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
         //获取请求url

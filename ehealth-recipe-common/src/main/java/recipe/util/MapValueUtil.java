@@ -229,7 +229,7 @@ public class MapValueUtil {
     public static String getFieldValueByName(String fieldName, Object o) {
         if (StringUtils.isEmpty(fieldName) || null == o) {
             logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toString(o));
-            return null;
+            return "";
         }
         try {
             String getter = "get" + captureName(fieldName.trim());
@@ -244,7 +244,7 @@ public class MapValueUtil {
             return value.toString();
         } catch (Exception e) {
             logger.warn("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
-            return null;
+            return "";
         }
     }
 

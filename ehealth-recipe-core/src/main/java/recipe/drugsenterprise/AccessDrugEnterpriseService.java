@@ -27,13 +27,12 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.dao.*;
 import recipe.service.RecipeOrderService;
-import recipe.service.manager.EmrRecipeManager;
+import recipe.manager.EmrRecipeManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
