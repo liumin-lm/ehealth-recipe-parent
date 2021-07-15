@@ -234,10 +234,12 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
             String province = getAddressDic(recipeOrder.getAddress1());
             String city = getAddressDic(recipeOrder.getAddress2());
             String district = getAddressDic(recipeOrder.getAddress3());
+            String streetAddress = getAddressDic(recipeOrder.getStreetAddress());
             AddressBean addressBean = new AddressBean();
             addressBean.setProvince(province);
             addressBean.setCity(city);
             addressBean.setDistrict(district);
+            addressBean.setStreetAddress(streetAddress);
             pushRecipeAndOrder.setAddressBean(addressBean);
         }
 
