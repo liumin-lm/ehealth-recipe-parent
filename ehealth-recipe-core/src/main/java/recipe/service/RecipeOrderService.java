@@ -73,6 +73,7 @@ import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.OrderManager;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -127,7 +128,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeDAO recipeDAO;
 
     @Autowired
-    private HisRecipeService hisRecipeService;
+    private FrontService frontService;
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
@@ -150,6 +151,9 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
+
+    @Autowired
+    private OfflineToOnlineService offlineToOnlineService;
 
     /**
      * 处方结算时创建临时订单
@@ -2028,9 +2032,9 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(), patientDTO, 6, 1, null);
-            List<QueryHisRecipResTO> hisRecipeTO = responseTO.getData();
-            if (CollectionUtils.isEmpty(hisRecipeTO)) {
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = frontService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
+            List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
+            if(CollectionUtils.isEmpty(hisRecipeTO)){
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
@@ -2055,9 +2059,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             });
             //删除
-            hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
-            if (existThisRecipeCode.get() == false ||
-                    (deleteSetRecipeCode == null && deleteSetRecipeCode.size() > 0)) {
+            offlineToOnlineService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
+            if (existThisRecipeCode.get()==false ||
+                    (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
                 LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }

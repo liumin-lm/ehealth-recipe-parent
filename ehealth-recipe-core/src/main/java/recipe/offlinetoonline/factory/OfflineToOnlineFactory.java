@@ -1,4 +1,4 @@
-package recipe.factory.status.offlineToOnlineFactory;
+package recipe.offlinetoonline.factory;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.SettleForOfflineToOnlineVO;
@@ -8,6 +8,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.core.api.IOfflineToOnlineService;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -24,13 +25,7 @@ import java.util.Map;
 public class OfflineToOnlineFactory implements ApplicationContextAware, IOfflineToOnlineService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static Map<Integer, recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService> payModeMap = new HashMap<>();
-
-    @Override
-    public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request) {
-        recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService offlineToOnlineService = getFactoryService(1);
-        return offlineToOnlineService.settleForOfflineToOnline(request);
-    }
+    private static Map<String, IOfflineToOnlineService> payModeMap = new HashMap<>();
 
     /**
      * 获取实现类
@@ -38,8 +33,8 @@ public class OfflineToOnlineFactory implements ApplicationContextAware, IOffline
      * @param
      * @return
      */
-    public recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService getFactoryService(Integer payMode) {
-        recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService offlineToOnlineService = payModeMap.get(payMode);
+    public IOfflineToOnlineService getFactoryService(String payMode) {
+        IOfflineToOnlineService offlineToOnlineService = payModeMap.get(payMode);
         if (offlineToOnlineService == null) {
             logger.warn("OfflineToOnlineFactory无效 payMode= {}", payMode);
         }
@@ -48,15 +43,13 @@ public class OfflineToOnlineFactory implements ApplicationContextAware, IOffline
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        String[] beanNames = applicationContext.getBeanNamesForType(recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService.class);
+        String[] beanNames = applicationContext.getBeanNamesForType(IOfflineToOnlineService.class);
         logger.info("OfflineToOnlineFactory添加授权服务工厂类，beanNames = {}", beanNames.toString());
         for (String beanName : beanNames) {
-            recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService offlineToOnlineService = applicationContext.getBean(beanName, recipe.factory.status.offlineToOnlineFactory.IOfflineToOnlineService.class);
-            payModeMap.put(offlineToOnlineService.getPayMode(), offlineToOnlineService);
+            IOfflineToOnlineService offlineToOnlineService = applicationContext.getBean(beanName, IOfflineToOnlineService.class);
+            payModeMap.put(offlineToOnlineService.getHandlerMode(), offlineToOnlineService);
         }
         logger.info("OfflineToOnlineFactory添加授权服务工厂类，payModeMap = {}", JSON.toJSONString(payModeMap));
 
     }
-
-
 }
