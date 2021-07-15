@@ -9,8 +9,6 @@ import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugClient;
@@ -29,8 +27,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class DrugManeger {
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class DrugManeger extends BaseManager {
     @Autowired
     private DrugClient drugClient;
     @Autowired
@@ -39,12 +36,9 @@ public class DrugManeger {
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
-     * <p>
      * 后台处理药品显示名---卡片消息/处方笺/处方列表页第一个药名/电子病历详情
      *
      * @param recipedetail

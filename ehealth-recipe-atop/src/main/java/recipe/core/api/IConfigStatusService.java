@@ -1,4 +1,4 @@
-package recipe.core.api.doctor;
+package recipe.core.api;
 
 import com.ngari.recipe.vo.ConfigStatusCheckVO;
 

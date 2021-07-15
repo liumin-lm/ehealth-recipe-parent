@@ -2373,7 +2373,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @Deprecated
     @RpcService
     public String getThirdUrl(Integer recipeId) {
-        SkipThirdBean skipThirdBean = orderManager.getThirdUrl(recipeId);
+        SkipThirdBean skipThirdBean = orderManager.getThirdUrl(recipeId, 0);
         if (skipThirdBean != null && StringUtils.isNotEmpty(skipThirdBean.getUrl())) {
             return skipThirdBean.getUrl();
         }
@@ -2390,7 +2390,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @Deprecated
     @RpcService
     public SkipThirdBean getThirdUrlNew(Integer recipeId) {
-        return orderManager.getThirdUrl(recipeId);
+        return orderManager.getThirdUrl(recipeId, 0);
     }
 
     /**
