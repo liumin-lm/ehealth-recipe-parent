@@ -9,19 +9,18 @@ import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.sign.ISignRecipeInfoService;
 import com.ngari.recipe.sign.model.SignDoctorRecipeInfoDTO;
-import ctd.mvc.upload.FileMetaRecord;
-import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,17 +31,16 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeService;
+import recipe.util.RecipeUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * 已迁移到CA 兼容老app 后续删除
@@ -203,7 +201,11 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            getMedicalInfo(recipeBean, recipeExtend);
+            Recipe recipeNew = new Recipe();
+            BeanUtils.copy(recipeBean, recipeNew);
+            EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+            recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+            recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO p = patientService.getPatientByMpiId(recipeBean.getMpiid());
 
@@ -345,48 +347,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @RpcService
     public String uploadPicture(String picture) {
-        byte[] data = Base64.decodeBase64(picture.getBytes());
-        if (data == null) {
-            return null;
-        }
-        OutputStream fileOutputStream = null;
-        try {
-            //先生成本地文件
-            String prefix = picture.substring(0, 4);
-            String fileName = "caPicture_" + prefix + ".jpeg";
-            File file = new File(fileName);
-            fileOutputStream = new FileOutputStream(file);
-            if (data.length > 0) {
-                fileOutputStream.write(data, 0, data.length);
-                fileOutputStream.flush();
-            }
-
-            FileMetaRecord meta = new FileMetaRecord();
-            meta.setManageUnit("eh");
-            // meta.setOwner(token.getUserId());
-            meta.setLastModify(new Date());
-            meta.setUploadTime(new Date());
-            //0需要验证 31不需要
-            meta.setMode(0);
-            meta.setCatalog("other-doc");
-            meta.setContentType("image/jpeg");
-            meta.setFileName(fileName);
-            meta.setFileSize(file.length());
-            logger.info("uploadPicture.meta=[{}]", JSONUtils.toString(meta));
-            FileService.instance().upload(meta, file);
-            file.delete();
-            return meta.getFileId();
-        } catch (Exception e) {
-            logger.error("uploadPicture uploadRecipeFile exception:" + e.getMessage());
-        } finally {
-            try {
-                fileOutputStream.close();
-            } catch (Exception e) {
-                logger.error("uploadPicture uploadRecipeFile exception:" + e.getMessage());
-            }
-
-        }
-        return null;
+        return RecipeUtil.uploadPicture(picture);
     }
 
     @Override
@@ -429,15 +390,6 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     @RpcService
     public SignDoctorRecipeInfo getSignInfoByRecipeIdAndServerType(Integer recipeId, Integer serverType) {
         List<SignDoctorRecipeInfo> resultList = signDoctorRecipeInfoDAO.findRecipeInfoByRecipeIdAndServerType(recipeId, serverType);
-        if (CollectionUtils.isNotEmpty(resultList)) {
-            return resultList.get(0);
-        } else {
-            return null;
-        }
-    }
-
-    public SignDoctorRecipeInfo getSignInfoByRecipeIdAndDoctorId(Integer recipeId, Integer doctorId, Integer serverType) {
-        List<SignDoctorRecipeInfo> resultList = signDoctorRecipeInfoDAO.findSignInfoByRecipeIdAndDoctorId(recipeId, doctorId, serverType);
         if (CollectionUtils.isNotEmpty(resultList)) {
             return resultList.get(0);
         } else {

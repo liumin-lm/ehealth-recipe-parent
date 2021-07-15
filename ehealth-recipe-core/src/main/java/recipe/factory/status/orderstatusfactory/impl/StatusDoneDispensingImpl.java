@@ -3,16 +3,19 @@ package recipe.factory.status.orderstatusfactory.impl;
 import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeOrderBill;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.HisInventoryClient;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.service.client.HisInventoryClient;
-import recipe.service.manager.RecipeLabelManager;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 已发药
@@ -28,7 +31,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     @Autowired
     private HisInventoryClient hisInventoryClient;
     @Autowired
-    private RecipeLabelManager recipeLabelManager;
+    private CreatePdfFactory createPdfFactory;
 
     @Override
     public Integer getStatus() {
@@ -39,8 +42,10 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_DONE);
         recipeOrder.setDispensingTime(new Date());
-        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(orderStatus.getRecipeId());
-        request.setInventoryType(1);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
+        request.setInventoryType(DISPENSING_FLAG_DONE);
         hisInventoryClient.drugInventory(request);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         return recipe;
@@ -48,15 +53,6 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public void upRecipeThreadPool(Recipe recipe) {
-        RecipeBusiThreadPool.execute(() -> {
-            try {
-                Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
-                if (null != recipeUpdate) {
-                    recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-                }
-            } catch (Exception e) {
-                logger.error("StatusDoneDispensingImpl upRecipeThreadPool ", e);
-            }
-        });
+        RecipeBusiThreadPool.execute(() -> createPdfFactory.updateGiveUser(recipe));
     }
 }

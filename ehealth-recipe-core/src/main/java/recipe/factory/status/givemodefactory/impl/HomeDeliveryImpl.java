@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.comment.DictionaryUtil;
 import recipe.common.response.CommonResponse;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -31,6 +30,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
 import java.util.Date;

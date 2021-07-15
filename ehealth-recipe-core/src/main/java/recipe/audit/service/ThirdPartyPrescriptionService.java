@@ -14,6 +14,7 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -40,6 +41,7 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeHisService;
 
 import java.math.BigDecimal;
@@ -48,7 +50,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
 
 /**
  * 第三方合理用药
@@ -98,7 +99,11 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
                 recipeExtendBean = new RecipeExtendBean();
                 BeanUtils.copyProperties(recipeExtend, recipeExtendBean);
-                getMedicalInfo(recipeBean, recipeExtend);
+                Recipe recipeNew = new Recipe();
+                ctd.util.BeanUtils.copy(recipeBean, recipeNew);
+                EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+                recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+                recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
             }
             ThirdPartyRationalUseDrugReqTO reqTO;
             ConsultExDTO consultExDTO = null;

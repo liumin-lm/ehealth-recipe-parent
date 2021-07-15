@@ -171,4 +171,15 @@ public class ByteUtils {
 			return null;
 		}
 	}
+
+	public static String objValueOfString(Object str) {
+		if (ObjectUtils.isEmpty(str)) {
+			return "";
+		}
+		try {
+			return String.valueOf(str);
+		} catch (Exception e) {
+			return "";
+		}
+	}
 }

@@ -19,11 +19,11 @@ import recipe.bean.RecipeCheckPassResult;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;

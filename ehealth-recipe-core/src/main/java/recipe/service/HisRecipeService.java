@@ -10,8 +10,8 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.revisit.RevisitAPI;
@@ -21,7 +21,6 @@ import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -47,8 +46,8 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
-import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.GroupRecipeManager;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.GroupRecipeManager;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -1133,9 +1132,7 @@ public class HisRecipeService {
         }
         //中药
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
-        RecipeBean recipeBean = new RecipeBean();
-        BeanUtils.copy(recipe, recipeBean);
-        emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
+        emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
     }
 
@@ -1787,14 +1784,10 @@ public class HisRecipeService {
                 LOGGER.info("updateHisRecipe hisRecipe = {}", JSONUtils.toString(hisRecipe));
                 Recipe recipe = recipeMap.get(a.getRecipeCode());
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copy(recipe, recipeBean);
-                recipeBean.setOrganDiseaseName(diseaseName);
-                recipeBean.setOrganDiseaseId(disease);
-                emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
-                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-                recipe.setOrganDiseaseId(disease);
                 recipe.setOrganDiseaseName(diseaseName);
+                recipe.setOrganDiseaseId(disease);
+                emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
+                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
                 recipeDAO.update(recipe);
             }
         });

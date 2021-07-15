@@ -1,25 +1,27 @@
 package recipe.service;
 
+import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.vo.ValidateDetailVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
+import recipe.core.api.IRecipeDetailService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
-import recipe.service.client.DrugClient;
-import recipe.service.client.IConfigurationClient;
-import recipe.service.manager.OrganDrugListManager;
-import recipe.service.manager.PharmacyManager;
+import recipe.manager.DrugManeger;
+import recipe.manager.OrganDrugListManager;
+import recipe.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
+import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +35,7 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
  * @author fuzi
  */
 @Service
-public class RecipeDetailService {
+public class RecipeDetailService implements IRecipeDetailService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private IConfigurationClient configurationClient;
@@ -44,16 +46,12 @@ public class RecipeDetailService {
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
-    private DrugClient drugClient;
+    private DrugManeger drugManeger;
     @Autowired
     private OrganDrugListManager organDrugListManager;
 
-    /**
-     * 校验线上线下 药品数据 用于续方需求
-     *
-     * @param validateDetailVO 机构id
-     * @return
-     */
+
+    @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
         Integer organId = validateDetailVO.getOrganId();
         Integer recipeType = validateDetailVO.getRecipeType();
@@ -68,7 +66,7 @@ public class RecipeDetailService {
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
-        Map<String, DrugEntrustDTO> drugEntrustNameMap = drugClient.drugEntrustNameMap(organId);
+        Map<String, DrugEntrust> drugEntrustNameMap = drugManeger.drugEntrustNameMap(organId);
         /**校验处方扩展字段*/
         //校验煎法
         recipeDetailValidateTool.validateDecoction(organId, validateDetailVO.getRecipeExtendBean());
@@ -95,12 +93,8 @@ public class RecipeDetailService {
         return validateDetailVO;
     }
 
-    /**
-     * 校验处方药品配置时间
-     *
-     * @param validateDetailVO 药品数据VO
-     * @return 处方药品明细
-     */
+
+    @Override
     public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
         //处方药物使用天数时间
@@ -109,16 +103,11 @@ public class RecipeDetailService {
         return recipeDetails;
     }
 
-    /**
-     * 校验中药嘱托
-     *
-     * @param organId       机构id
-     * @param recipeDetails 处方药品明细
-     * @return 处方药品明细
-     */
+
+    @Override
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
         //获取嘱托
-        Map<String, DrugEntrustDTO> drugEntrustNameMap = drugClient.drugEntrustNameMap(organId);
+        Map<String, DrugEntrust> drugEntrustNameMap = drugManeger.drugEntrustNameMap(organId);
         recipeDetails.forEach(a -> {
             if (recipeDetailValidateTool.entrustValidate(a, drugEntrustNameMap)) {
                 a.setValidateStatus(VALIDATE_STATUS_PERFECT);
@@ -127,12 +116,8 @@ public class RecipeDetailService {
         return recipeDetails;
     }
 
-    /**
-     * 患者端处方进行中列表查询药品信息
-     *
-     * @param orderCode 订单code
-     * @return
-     */
+
+    @Override
     public String getDrugName(String orderCode) {
         StringBuilder stringBuilder = new StringBuilder();
         List<Recipedetail> recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
@@ -161,7 +146,7 @@ public class RecipeDetailService {
     private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap, Integer recipeType) {
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
-        recipeDetailBean.setUseDoseAndUnitRelation(OrganDrugListManager.defaultUseDose(organDrug));
+        recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
     }

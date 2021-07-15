@@ -1,16 +1,12 @@
 package recipe.service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
-import com.ngari.base.doctor.model.GetPriorityDrugsTO;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.PriortyDrug;
