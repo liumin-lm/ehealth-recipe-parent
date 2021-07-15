@@ -5,11 +5,11 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.util.annotation.RpcService;
-import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
+import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.List;
 

@@ -11,8 +11,8 @@ import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -20,7 +20,6 @@ import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -33,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
@@ -42,14 +40,15 @@ import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.GroupRecipeManager;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.IOfflineToOnlineService;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
-import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.GroupRecipeManager;
+import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -1056,9 +1055,7 @@ public class OfflineToOnlineService {
             }
         }
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
-        RecipeBean recipeBean = new RecipeBean();
-        BeanUtils.copy(recipe, recipeBean);
-        emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
+        emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
     }
 
@@ -1429,12 +1426,9 @@ public class OfflineToOnlineService {
                 recipe.setOrganDiseaseName(diseaseName);
                 recipeDAO.update(recipe);
 
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copy(recipe, recipeBean);
-                recipeBean.setOrganDiseaseName(diseaseName);
-                recipeBean.setOrganDiseaseId(disease);
+
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                emrRecipeManager.updateMedicalInfo(recipeBean, recipeExtend);
+                emrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             }
         });
@@ -1771,7 +1765,7 @@ public class OfflineToOnlineService {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         if("2".equals(hisRecipe.getStatus())){
-            recipeDetailMap= recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
+            //recipeDetailMap= recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
         }else {
             recipeDetailMap = recipeService.getPatientRecipeById(recipeId);
         }
